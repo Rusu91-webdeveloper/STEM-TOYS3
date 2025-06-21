@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_PASSWORD: Admin1234!
+    ports:
+      - "5433:5432"
+
+  app:
+    build:
+      context: .
+    image: nextcommerce
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: development
+    develop:
+      watch:
+        - action: sync
+          path: ./
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+    depends_on:
+      - db

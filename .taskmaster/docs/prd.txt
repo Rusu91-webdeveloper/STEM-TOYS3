@@ -1,0 +1,199 @@
+# STEM Toys E-commerce Platform PRD
+
+## Overview
+The STEM Toys e-commerce platform is a modern, full-featured online store specializing in educational toys focused on Science, Technology, Engineering, and Mathematics. The platform aims to provide a seamless shopping experience for parents and educators looking for high-quality educational products while offering rich educational content through a blog system. The platform includes comprehensive product management, user authentication, order processing, and content management features.
+
+## Core Features
+1. **User Authentication and Management**
+   - Secure user registration and login using NextAuth v5
+   - Role-based access control (customer vs admin)
+   - User profile management with shipping/billing addresses
+   - Secure password reset functionality
+
+2. **Product Catalog and Management**
+   - Hierarchical category management for STEM product organization
+   - Comprehensive product listings with images, descriptions, and specifications
+   - Product search and filtering capabilities
+   - Inventory management with stock tracking
+
+3. **Shopping Experience**
+   - Wishlist functionality for users to save products
+   - Shopping cart with persistent storage
+   - Streamlined checkout process
+   - Multiple payment options via Stripe integration
+
+4. **Order Management**
+   - Order history for users
+   - Order status tracking (processing, shipped, delivered, etc.)
+   - Order details and receipts
+   - Admin order management dashboard
+
+5. **Content Management**
+   - Educational blog posts categorized by STEM areas
+   - Book catalog with language availability
+   - Rich media content with image uploading capabilities
+   - Admin content creation and editing tools
+
+6. **Admin Dashboard**
+   - Comprehensive admin controls for products, orders, and users
+   - Sales analytics and reporting
+   - Inventory management
+   - Content management tools
+
+7. **Security Features**
+   - Secure authentication with password hashing
+   - Role-based access control
+   - Redis timeout protection
+   - Standardized authorization checks
+
+## Technical Architecture
+1. **Frontend**
+   - Next.js 15 with App Router
+   - React 19 for component-based UI
+   - TypeScript for type safety
+   - Tailwind CSS 4 with Shadcn UI components
+   - TanStack React Query for data fetching
+   - Zustand for state management
+
+2. **Backend**
+   - Next.js API routes
+   - Prisma 6 ORM for database access
+   - PostgreSQL via NeonDB for data storage
+   - NextAuth v5 for authentication
+   - Redis for caching and session storage
+
+3. **External Integrations**
+   - Stripe for payment processing
+   - Resend & Nodemailer for transactional emails
+   - UploadThing for file and image uploads
+
+4. **Security Implementation**
+   - bcrypt and PBKDF2 for password hashing
+   - Redis timeout protection
+   - Standardized authorization middleware
+   - Zod for input validation and type checking
+
+5. **Database Structure**
+   - User Management: User, PasswordResetToken, Address, PaymentCard
+   - Product Catalog: Category, Product, Wishlist
+   - Content Management: Blog, Book, Language
+   - Order Processing: Order, OrderItem
+   - Configuration: StoreSettings
+
+## Development Roadmap
+
+### Phase 1: Core Infrastructure
+1. Set up Next.js project with TypeScript and Tailwind CSS
+2. Configure Prisma with PostgreSQL and design database schema
+3. Implement authentication system with NextAuth
+4. Create basic API structure and middleware
+5. Implement security utilities and authorization system
+
+### Phase 2: Product Catalog
+1. Develop category management system
+2. Create product model and management functionality
+3. Implement product search and filtering
+4. Build product detail pages
+5. Create product admin interface
+
+### Phase 3: User Experience
+1. Implement user profile management
+2. Create wishlist functionality
+3. Develop shopping cart system
+4. Build checkout flow
+5. Integrate payment processing with Stripe
+
+### Phase 4: Order Management
+1. Create order model and processing system
+2. Implement order status tracking
+3. Develop order history for users
+4. Build admin order management interface
+5. Create notification system for order updates
+
+### Phase 5: Content Management
+1. Implement blog system with categories
+2. Create book catalog functionality
+3. Develop content editing tools for admins
+4. Implement media uploads for content
+5. Build content display components
+
+### Phase 6: Testing and Optimization
+1. Implement unit and integration tests
+2. Perform security audits and fixes
+3. Optimize performance and loading times
+4. Implement SEO best practices
+5. Conduct accessibility audit and improvements
+
+### Phase 7: Deployment and Documentation
+1. Set up deployment pipeline
+2. Configure staging and production environments
+3. Create comprehensive documentation
+4. Implement monitoring and error tracking
+5. Conduct final QA and prepare for launch
+
+## Logical Dependency Chain
+1. **Foundation First**
+   - Project setup and configuration
+   - Database schema and ORM setup
+   - Authentication system
+   - Basic API structure and security middleware
+
+2. **Core Features**
+   - Product catalog and management (visible frontend)
+   - User registration and profiles
+   - Shopping cart functionality
+   - Basic checkout process
+
+3. **Enhanced Functionality**
+   - Payment processing integration
+   - Order management
+   - Wishlist and saved items
+   - Blog and content management
+
+4. **Polishing and Optimization**
+   - UI/UX improvements
+   - Performance optimization
+   - Security audits and improvements
+   - Testing and bug fixes
+
+## Risks and Mitigations
+
+1. **Security Vulnerabilities**
+   - Risk: Exposure of sensitive user data or admin access
+   - Mitigation: Implementation of secure authentication, password hashing, standardized authorization checks, and regular security audits
+
+2. **Performance Issues**
+   - Risk: Slow page loads or API responses affecting user experience
+   - Mitigation: Implementation of caching strategies, optimized database queries, and image optimization
+
+3. **Payment Processing Failures**
+   - Risk: Failed payments or transaction errors
+   - Mitigation: Robust error handling, transaction logging, and fallback payment options
+
+4. **Database Scalability**
+   - Risk: Performance degradation with increased data volume
+   - Mitigation: Proper indexing, query optimization, and using NeonDB's scalable PostgreSQL solution
+
+5. **Redis Failures**
+   - Risk: Application hangs if Redis becomes unresponsive
+   - Mitigation: Implementation of timeout protection and in-memory fallbacks
+
+## Appendix
+
+### Recent Security Improvements
+1. Secure Admin Authentication with password hashing
+2. Redis Timeout Protection with graceful fallbacks
+3. Standardized Authorization Checks across API endpoints
+
+### Core Database Models
+- User (CUSTOMER, ADMIN roles)
+- Product with Category relationships
+- Order with OrderItem relationships
+- Blog posts with STEM categories (SCIENCE, TECHNOLOGY, ENGINEERING, MATHEMATICS, GENERAL)
+- Store configuration settings
+
+### Development Status
+- Core infrastructure largely implemented
+- Security improvements recently completed
+- Many features still pending implementation
+- Documentation for existing features created 

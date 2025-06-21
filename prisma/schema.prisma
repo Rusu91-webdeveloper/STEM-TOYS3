@@ -1,0 +1,478 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  name                String?
+  email               String               @unique
+  password            String
+  role                Role                 @default(CUSTOMER)
+  emailVerified       DateTime?
+  verificationToken   String?
+  isActive            Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  addresses           Address[]
+  blogs               Blog[]
+  digitalDownloads    DigitalDownload[]
+  orders              Order[]
+  passwordResetTokens PasswordResetToken[]
+  paymentCards        PaymentCard[]
+  returns             Return[]
+  reviews             Review[]
+  wishlistItems       Wishlist[]
+  couponsCreated      Coupon[]             @relation("CouponCreatedBy")
+  couponUsages        CouponUsage[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  email     String
+  expires   DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [email], references: [email], onDelete: Cascade)
+
+  @@index([email])
+  @@index([token])
+}
+
+model Address {
+  id           String  @id @default(cuid())
+  userId       String
+  name         String
+  fullName     String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  postalCode   String
+  country      String
+  phone        String
+  isDefault    Boolean @default(false)
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders       Order[]
+}
+
+model PaymentCard {
+  id                String   @id @default(cuid())
+  userId            String
+  cardholderName    String
+  lastFourDigits    String
+  encryptedCardData String
+  encryptedCvv      String?
+  expiryMonth       String
+  expiryYear        String
+  cardType          String
+  billingAddressId  String?
+  isDefault         Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  parentId    String?
+  image       String?
+  isActive    Boolean    @default(true)
+  metadata    Json?
+  blogs       Blog[]
+  parent      Category?  @relation("CategoryToCategory", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryToCategory")
+  products    Product[]
+}
+
+model Product {
+  id             String      @id @default(cuid())
+  name           String
+  slug           String      @unique
+  description    String
+  price          Float
+  compareAtPrice Float?
+  images         String[]
+  categoryId     String
+  tags           String[]
+  attributes     Json?
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  barcode        String?
+  dimensions     Json?
+  metadata       Json?
+  sku            String?
+  stockQuantity  Int         @default(0)
+  weight         Float?
+  featured       Boolean     @default(false)
+  orderItems     OrderItem[]
+  category       Category    @relation(fields: [categoryId], references: [id])
+  reviews        Review[]
+  wishlistItems  Wishlist[]
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([featured])
+  @@index([slug])
+  @@index([name])
+  @@index([price])
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model Blog {
+  id           String       @id @default(cuid())
+  title        String
+  slug         String       @unique
+  excerpt      String
+  content      String
+  coverImage   String?
+  categoryId   String
+  authorId     String
+  tags         String[]
+  metadata     Json?
+  isPublished  Boolean      @default(false)
+  publishedAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  readingTime  Int?
+  stemCategory StemCategory @default(GENERAL)
+  author       User         @relation(fields: [authorId], references: [id])
+  category     Category     @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([stemCategory])
+}
+
+model Book {
+  id           String        @id @default(cuid())
+  name         String
+  slug         String        @unique
+  author       String
+  description  String
+  price        Float         @default(50)
+  coverImage   String?
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  metadata     Json?
+  isDigital    Boolean       @default(true)
+  digitalFiles DigitalFile[]
+  languages    Language[]
+  orderItems   OrderItem[]
+}
+
+model DigitalFile {
+  id        String            @id @default(cuid())
+  bookId    String
+  fileName  String
+  fileUrl   String
+  fileSize  Int
+  format    String
+  language  String
+  isActive  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  downloads DigitalDownload[]
+  book      Book              @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, format, language])
+  @@index([bookId])
+  @@index([format])
+  @@index([language])
+}
+
+model Language {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  code        String  @unique
+  nativeName  String?
+  isAvailable Boolean @default(true)
+  books       Book[]
+}
+
+model Order {
+  id                String        @id @default(cuid())
+  orderNumber       String        @unique
+  userId            String
+  total             Float
+  subtotal          Float
+  tax               Float
+  shippingCost      Float
+  discountAmount    Float         @default(0)
+  couponCode        String?
+  couponId          String?
+  status            OrderStatus   @default(PROCESSING)
+  paymentStatus     PaymentStatus @default(PENDING)
+  paymentMethod     String
+  notes             String?
+  shippingAddressId String
+  billingAddressId  String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deliveredAt       DateTime?
+  shippingAddress   Address       @relation(fields: [shippingAddressId], references: [id])
+  user              User          @relation(fields: [userId], references: [id])
+  coupon            Coupon?       @relation(fields: [couponId], references: [id])
+  items             OrderItem[]
+  returns           Return[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([orderNumber])
+  @@index([couponId])
+}
+
+model OrderItem {
+  id                String                @id @default(cuid())
+  orderId           String
+  productId         String?
+  name              String
+  price             Float
+  quantity          Int
+  returnStatus      OrderItemReturnStatus @default(NONE)
+  bookId            String?
+  downloadCount     Int                   @default(0)
+  downloadExpiresAt DateTime?
+  isDigital         Boolean               @default(false)
+  maxDownloads      Int                   @default(5)
+  downloads         DigitalDownload[]
+  book              Book?                 @relation(fields: [bookId], references: [id])
+  order             Order                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product           Product?              @relation(fields: [productId], references: [id])
+  returns           Return[]
+  reviews           Review[]
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([bookId])
+}
+
+model StoreSettings {
+  id               String   @id @default(cuid())
+  storeName        String   @default("TechTots")
+  storeUrl         String   @default("https://techtots.com")
+  storeDescription String   @default("TechTots is a premier online destination for STEM toys that inspire learning through play.")
+  contactEmail     String   @default("info@techtots.com")
+  contactPhone     String   @default("+1 (555) 123-4567")
+  currency         String   @default("usd")
+  timezone         String   @default("america-new_york")
+  dateFormat       String   @default("mm-dd-yyyy")
+  weightUnit       String   @default("lb")
+  metaTitle        String   @default("TechTots | STEM Toys for Curious Minds")
+  metaDescription  String   @default("Discover the best STEM toys for curious minds at TechTots. Educational toys that make learning fun for children of all ages.")
+  metaKeywords     String   @default("STEM toys, educational toys, science toys, technology toys, engineering toys, math toys")
+  shippingSettings Json?
+  paymentSettings  Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  metadata         Json?
+  taxSettings      Json?
+}
+
+model Return {
+  id          String       @id @default(cuid())
+  userId      String
+  orderId     String
+  orderItemId String
+  reason      ReturnReason
+  details     String?
+  status      ReturnStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  order       Order        @relation(fields: [orderId], references: [id])
+  orderItem   OrderItem    @relation(fields: [orderItemId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([orderId])
+  @@index([orderItemId])
+}
+
+model Review {
+  id          String    @id @default(cuid())
+  userId      String
+  productId   String
+  orderItemId String
+  rating      Int       @default(0)
+  title       String
+  content     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+  product     Product   @relation(fields: [productId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, orderItemId])
+  @@index([userId])
+  @@index([productId])
+  @@index([orderItemId])
+}
+
+model Newsletter {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  firstName  String?
+  lastName   String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  categories String[] @default([])
+
+  @@index([email])
+  @@index([isActive])
+}
+
+model DigitalDownload {
+  id            String      @id @default(cuid())
+  orderItemId   String
+  userId        String
+  digitalFileId String
+  downloadToken String      @unique
+  expiresAt     DateTime
+  downloadedAt  DateTime?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime    @default(now())
+  digitalFile   DigitalFile @relation(fields: [digitalFileId], references: [id], onDelete: Cascade)
+  orderItem     OrderItem   @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([orderItemId])
+  @@index([userId])
+  @@index([digitalFileId])
+  @@index([downloadToken])
+  @@index([expiresAt])
+}
+
+model Coupon {
+  id                String        @id @default(cuid())
+  code              String        @unique
+  name              String
+  description       String?
+  type              CouponType    @default(PERCENTAGE)
+  value             Float         // Percentage (e.g., 20) or fixed amount (e.g., 10.00)
+  minimumOrderValue Float?        // Minimum cart value to apply coupon
+  maxDiscountAmount Float?        // Maximum discount amount for percentage coupons
+  maxUses           Int?          // Maximum total uses (null = unlimited)
+  currentUses       Int           @default(0)
+  maxUsesPerUser    Int?          // Maximum uses per user (null = unlimited)
+  isActive          Boolean       @default(true)
+  startsAt          DateTime?     // When coupon becomes active (null = immediately)
+  expiresAt         DateTime?     // When coupon expires (null = never)
+  isInfluencer      Boolean       @default(false) // Flag for influencer coupons
+  influencerName    String?       // Name of influencer for tracking
+  image             String?       // URL to coupon promotional image
+  showAsPopup       Boolean       @default(false) // Whether to show this coupon in popup
+  popupPriority     Int           @default(0) // Higher priority = shown first
+  createdBy         String        // Admin user ID who created it
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  orders            Order[]
+  usages            CouponUsage[]
+  admin             User          @relation("CouponCreatedBy", fields: [createdBy], references: [id])
+
+  @@index([code])
+  @@index([isActive])
+  @@index([expiresAt])
+  @@index([isInfluencer])
+  @@index([createdBy])
+  @@index([showAsPopup])
+}
+
+model CouponUsage {
+  id        String   @id @default(cuid())
+  couponId  String
+  userId    String
+  orderId   String?  // Null if coupon was applied but order failed
+  usedAt    DateTime @default(now())
+  coupon    Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([couponId, orderId]) // Prevent duplicate usage for same order
+  @@index([couponId])
+  @@index([userId])
+  @@index([usedAt])
+}
+
+enum OrderItemReturnStatus {
+  NONE
+  REQUESTED
+  APPROVED
+  REJECTED
+  RECEIVED
+  REFUNDED
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum StemCategory {
+  SCIENCE
+  TECHNOLOGY
+  ENGINEERING
+  MATHEMATICS
+  GENERAL
+}
+
+enum OrderStatus {
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum ReturnReason {
+  DOES_NOT_MEET_EXPECTATIONS
+  DAMAGED_OR_DEFECTIVE
+  WRONG_ITEM_SHIPPED
+  CHANGED_MIND
+  ORDERED_WRONG_PRODUCT
+  OTHER
+}
+
+enum ReturnStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  RECEIVED
+  REFUNDED
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}

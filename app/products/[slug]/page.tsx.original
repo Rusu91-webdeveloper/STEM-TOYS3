@@ -1,0 +1,498 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { notFound } from "next/navigation";
+import { ArrowLeft, Truck, ShieldCheck, RotateCcw } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+  ProductImageGallery,
+  ProductReviews,
+  RelatedProducts,
+  ProductVariantProvider,
+  ProductAddToCartButton,
+  type Review,
+} from "@/features/products";
+import type { Product } from "@/types/product";
+
+// Mock data for demonstration
+const mockProducts: Product[] = Array.from({ length: 12 }).map((_, i) => ({
+  id: `product-${i + 1}`,
+  name: `STEM Educational ${
+    i % 4 === 0
+      ? "Robot"
+      : i % 3 === 0
+      ? "Chemistry Set"
+      : i % 2 === 0
+      ? "Math Puzzle"
+      : "Coding Kit"
+  } ${i + 1}`,
+  slug: `stem-toy-${i + 1}`,
+  description: `This educational toy helps children learn about ${
+    i % 4 === 0
+      ? "robotics and programming"
+      : i % 3 === 0
+      ? "chemistry and scientific experiments"
+      : i % 2 === 0
+      ? "mathematical concepts"
+      : "the basics of coding"
+  }. Great for ages ${6 + (i % 5)}-${12 + (i % 5)}.`,
+  price: 29.99 + i * 5,
+  compareAtPrice: i % 3 === 0 ? (29.99 + i * 5) * 1.2 : undefined,
+  images: Array.from(
+    { length: Math.min(1 + (i % 4), 5) },
+    (_, imgIndex) =>
+      `https://picsum.photos/seed/stem-toy-${i + 1}-${imgIndex}/600/400`
+  ),
+  stemCategory:
+    i % 4 === 0
+      ? "technology"
+      : i % 3 === 0
+      ? "science"
+      : i % 2 === 0
+      ? "mathematics"
+      : "engineering",
+  ageRange: `${6 + (i % 5)}-${12 + (i % 5)}`,
+  rating: 3 + (i % 3),
+  reviewCount: 10 + i,
+  variants:
+    i % 2 === 0
+      ? [
+          {
+            id: `variant-${i}-1`,
+            name: "Standard Edition",
+            price: 29.99 + i * 5,
+            attributes: { edition: "Standard" },
+            isAvailable: true,
+          },
+          {
+            id: `variant-${i}-2`,
+            name: "Deluxe Edition",
+            price: (29.99 + i * 5) * 1.5,
+            attributes: { edition: "Deluxe" },
+            isAvailable: true,
+          },
+        ]
+      : undefined,
+}));
+
+// Mock reviews
+const mockReviews: Review[] = [
+  {
+    id: "review-1",
+    productId: "product-1",
+    userName: "John D.",
+    userImage: "",
+    rating: 5,
+    title: "Perfect for my kids",
+    content:
+      "My children love this toy. They've been playing with it every day and learning so much about science.",
+    date: "2023-05-15",
+    verified: true,
+  },
+  {
+    id: "review-2",
+    productId: "product-1",
+    userName: "Sarah M.",
+    userImage: "",
+    rating: 4,
+    title: "Great educational value",
+    content:
+      "This toy is excellent for teaching STEM concepts in a fun way. The only reason for 4 stars is that assembly was a bit challenging.",
+    date: "2023-04-22",
+    verified: true,
+  },
+  {
+    id: "review-3",
+    productId: "product-1",
+    userName: "Michael T.",
+    userImage: "",
+    rating: 5,
+    title: "Highly recommend",
+    content:
+      "Well-made and durable. My daughter is learning so much while having fun. Highly recommend for parents looking for educational toys.",
+    date: "2023-03-10",
+  },
+];
+
+// In a real app, this would get the product from an API or database
+const getProductBySlug = (slug: string): Product | undefined => {
+  return mockProducts.find((product) => product.slug === slug);
+};
+
+// In a real app, this would get related products from an API
+const getRelatedProducts = (
+  productId: string,
+  categoryId?: string
+): Product[] => {
+  return mockProducts.filter(
+    (product) => product.id !== productId && product.stemCategory === categoryId
+  );
+};
+
+// In a real app, this would get product reviews from an API
+const getProductReviews = (productId: string): Review[] => {
+  return mockReviews.filter((review) => review.productId === productId);
+};
+
+export default function ProductPage({ params }: { params: { slug: string } }) {
+  const [product, setProduct] = useState<Product | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("description");
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false); // In a real app, this would come from authentication
+
+  // Fetch product data
+  useEffect(() => {
+    const fetchData = () => {
+      try {
+        // Simulate API delay
+        setTimeout(() => {
+          const foundProduct = getProductBySlug(params.slug);
+
+          if (!foundProduct) {
+            notFound();
+          }
+
+          setProduct(foundProduct);
+          setReviews(getProductReviews(foundProduct.id));
+          setRelatedProducts(
+            getRelatedProducts(foundProduct.id, foundProduct.stemCategory)
+          );
+          setLoading(false);
+        }, 300);
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [params.slug]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 animate-pulse">
+        <div className="h-6 w-40 bg-muted rounded mb-6"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="aspect-square bg-muted rounded-lg"></div>
+          <div className="space-y-4">
+            <div className="h-8 w-3/4 bg-muted rounded"></div>
+            <div className="h-4 w-1/4 bg-muted rounded"></div>
+            <div className="h-4 w-full bg-muted rounded mt-6"></div>
+            <div className="h-4 w-full bg-muted rounded"></div>
+            <div className="h-4 w-3/4 bg-muted rounded"></div>
+            <div className="h-10 w-1/2 bg-muted rounded mt-6"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return notFound();
+  }
+
+  // Format price with currency
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(price);
+  };
+
+  // Determine if product is on sale
+  const isOnSale =
+    product.compareAtPrice && product.compareAtPrice > product.price;
+
+  // Calculate discount percentage for sale items
+  const discountPercentage = isOnSale
+    ? Math.round(
+        ((product.compareAtPrice! - product.price) / product.compareAtPrice!) *
+          100
+      )
+    : 0;
+
+  // Handle review submission
+  const handleSubmitReview = (
+    reviewData: Omit<Review, "id" | "userId" | "date">
+  ) => {
+    // In a real app, this would send the review to an API
+    console.log("Review submitted:", reviewData);
+
+    // Add the review to the local state (simulation)
+    const newReview: Review = {
+      ...reviewData,
+      id: `review-${Date.now()}`,
+      date: new Date().toISOString(),
+      verified: true,
+    };
+
+    setReviews((prevReviews) => [newReview, ...prevReviews]);
+  };
+
+  return (
+    <ProductVariantProvider>
+      <div className="container mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <div className="mb-6">
+          <Link
+            href="/products"
+            className="flex items-center text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            Back to Products
+          </Link>
+        </div>
+
+        {/* Product details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          {/* Image gallery */}
+          <ProductImageGallery
+            images={product.images}
+            alt={product.name}
+          />
+
+          {/* Product info */}
+          <div className="space-y-6">
+            <div>
+              {product.stemCategory && (
+                <Link href={`/products?category=${product.stemCategory}`}>
+                  <Badge
+                    variant="outline"
+                    className="mb-2 capitalize">
+                    {product.stemCategory}
+                  </Badge>
+                </Link>
+              )}
+              <h1 className="text-3xl font-bold">{product.name}</h1>
+
+              {/* Rating summary */}
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <svg
+                      key={i}
+                      className={`h-4 w-4 ${
+                        i < Math.floor(product.rating || 0)
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-300"
+                      }`}
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24">
+                      <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                    </svg>
+                  ))}
+                </div>
+                <a
+                  href="#reviews"
+                  className="text-sm text-muted-foreground hover:underline">
+                  {product.reviewCount} reviews
+                </a>
+              </div>
+            </div>
+
+            {/* Price */}
+            <div className="mt-4">
+              <div className="flex items-baseline gap-2">
+                <span
+                  className={`text-2xl font-bold ${
+                    isOnSale ? "text-red-600" : ""
+                  }`}>
+                  {formatPrice(product.price)}
+                </span>
+                {isOnSale && product.compareAtPrice && (
+                  <>
+                    <span className="text-lg text-muted-foreground line-through">
+                      {formatPrice(product.compareAtPrice)}
+                    </span>
+                    <Badge className="bg-red-600">
+                      Save {discountPercentage}%
+                    </Badge>
+                  </>
+                )}
+              </div>
+              {product.ageRange && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Recommended for ages: {product.ageRange}
+                </p>
+              )}
+            </div>
+
+            {/* Short description */}
+            <p className="text-muted-foreground">{product.description}</p>
+
+            {/* Add to cart */}
+            <div className="pt-4">
+              <ProductAddToCartButton
+                product={{
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  image: product.images[0],
+                  variants: product.variants,
+                }}
+                showQuantity={true}
+                className="w-full md:w-auto"
+              />
+            </div>
+
+            {/* Benefits */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6">
+              <div className="flex items-center gap-2 text-sm">
+                <Truck className="h-5 w-5 text-muted-foreground" />
+                <span>Free shipping over $50</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+                <span>1-year warranty</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <RotateCcw className="h-5 w-5 text-muted-foreground" />
+                <span>14-day returns</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs: Description, Specifications, Reviews */}
+        <Tabs
+          defaultValue="description"
+          className="mb-12"
+          onValueChange={setActiveTab}>
+          <TabsList className="w-full border-b rounded-none justify-start">
+            <TabsTrigger
+              value="description"
+              className="rounded-none">
+              Description
+            </TabsTrigger>
+            <TabsTrigger
+              value="specifications"
+              className="rounded-none">
+              Specifications
+            </TabsTrigger>
+            <TabsTrigger
+              value="reviews"
+              className="rounded-none"
+              id="reviews">
+              Reviews ({reviews.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent
+            value="description"
+            className="mt-6">
+            <div className="prose max-w-none">
+              <p>{product.description}</p>
+              <p>
+                This educational toy is specifically designed to help children
+                learn through play. The interactive elements encourage
+                problem-solving, critical thinking, and creativity while
+                introducing fundamental {product.stemCategory} concepts in an
+                engaging way.
+              </p>
+              <h3>Key Benefits:</h3>
+              <ul>
+                <li>Develops critical thinking and problem-solving skills</li>
+                <li>Introduces fundamental {product.stemCategory} concepts</li>
+                <li>Encourages hands-on learning and exploration</li>
+                <li>Suitable for individual play or group activities</li>
+                <li>Durable construction for long-lasting use</li>
+              </ul>
+              <p>
+                Perfect for curious minds, this toy provides hours of
+                educational entertainment while building a strong foundation in{" "}
+                {product.stemCategory}.
+              </p>
+            </div>
+          </TabsContent>
+
+          <TabsContent
+            value="specifications"
+            className="mt-6">
+            <div className="space-y-4">
+              <h3 className="font-medium">Product Specifications</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 border-b pb-2">
+                    <span className="text-muted-foreground">
+                      Recommended Age
+                    </span>
+                    <span>{product.ageRange}</span>
+                  </div>
+                  <div className="grid grid-cols-2 border-b pb-2">
+                    <span className="text-muted-foreground">Category</span>
+                    <span className="capitalize">{product.stemCategory}</span>
+                  </div>
+                  <div className="grid grid-cols-2 border-b pb-2">
+                    <span className="text-muted-foreground">
+                      Product Weight
+                    </span>
+                    <span>1.2 kg</span>
+                  </div>
+                  <div className="grid grid-cols-2 border-b pb-2">
+                    <span className="text-muted-foreground">
+                      Assembly Required
+                    </span>
+                    <span>Minimal</span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 border-b pb-2">
+                    <span className="text-muted-foreground">Materials</span>
+                    <span>BPA-free plastic, wood</span>
+                  </div>
+                  <div className="grid grid-cols-2 border-b pb-2">
+                    <span className="text-muted-foreground">Batteries</span>
+                    <span>2 x AA (not included)</span>
+                  </div>
+                  <div className="grid grid-cols-2 border-b pb-2">
+                    <span className="text-muted-foreground">Dimensions</span>
+                    <span>25 x 20 x 15 cm</span>
+                  </div>
+                  <div className="grid grid-cols-2 border-b pb-2">
+                    <span className="text-muted-foreground">Warranty</span>
+                    <span>1 year</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <h3 className="font-medium mb-2">Package Contents</h3>
+                <ul className="list-disc list-inside space-y-1 pl-2">
+                  <li>1 x Main {product.name} unit</li>
+                  <li>1 x Instruction manual</li>
+                  <li>1 x Educational activity booklet</li>
+                  <li>Various components depending on model</li>
+                </ul>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent
+            value="reviews"
+            className="mt-6">
+            <ProductReviews
+              productId={product.id}
+              reviews={reviews}
+              userLoggedIn={isUserLoggedIn}
+              onSubmitReview={handleSubmitReview}
+            />
+          </TabsContent>
+        </Tabs>
+
+        {/* Related products */}
+        <RelatedProducts
+          currentProductId={product.id}
+          products={relatedProducts}
+          title="You May Also Like"
+          className="mb-12"
+        />
+      </div>
+    </ProductVariantProvider>
+  );
+}
