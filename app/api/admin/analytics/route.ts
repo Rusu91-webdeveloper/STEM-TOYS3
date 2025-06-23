@@ -309,7 +309,7 @@ async function fetchTopSellingProducts(startDate: Date, endDate: Date) {
   const products = await db.product.findMany({
     where: {
       id: {
-        in: productIds,
+        in: productIds.filter((id): id is string => id !== null),
       },
     },
     select: {
@@ -362,7 +362,7 @@ async function fetchSalesByCategory(startDate: Date, endDate: Date) {
 
   // Get all category IDs from the order items
   const categoryIds = [
-    ...new Set(orderItems.map((item) => item.product.categoryId)),
+    ...new Set(orderItems.filter(item => item.product !== null).map((item) => item.product!.categoryId)),
   ];
 
   // Get category details
@@ -382,7 +382,7 @@ async function fetchSalesByCategory(startDate: Date, endDate: Date) {
   const categorySales = categoryIds
     .map((categoryId) => {
       const categoryItems = orderItems.filter(
-        (item) => item.product.categoryId === categoryId
+        (item) => item.product?.categoryId === categoryId
       );
       const totalAmount = categoryItems.reduce(
         (sum, item) => sum + item.price * item.quantity,

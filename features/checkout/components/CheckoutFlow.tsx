@@ -7,21 +7,33 @@ import { ShippingMethodSelector } from "./ShippingMethodSelector";
 import { PaymentForm } from "./PaymentForm";
 import { OrderReview } from "./OrderReview";
 import { CheckoutSummary } from "./CheckoutSummary";
-import { CheckoutStepper } from "./CheckoutStepper";
+import { EnhancedCheckoutStepper } from "./EnhancedCheckoutStepper";
 import { createOrder } from "../lib/checkoutApi";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/features/cart";
 import { useTranslation } from "@/lib/i18n";
 import { Shield, Award, ShieldCheck } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useRouter as useNextRouter } from "next/navigation";
+import { GuestInformationForm } from "./GuestInformationForm";
 
 export function CheckoutFlow() {
   const router = useRouter();
+  const nextRouter = useNextRouter();
+  const { data: session } = useSession();
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { t } = useTranslation();
+
+  // Determine initial step based on authentication status
+  const getInitialStep = (): CheckoutStep => {
+    return session?.user ? "shipping-address" : "guest-info";
+  };
+
   const [currentStep, setCurrentStep] =
-    useState<CheckoutStep>("shipping-address");
+    useState<CheckoutStep>(getInitialStep());
   const [checkoutData, setCheckoutData] = useState<CheckoutData>({
     billingAddressSameAsShipping: true,
+    isGuestCheckout: !session?.user,
   });
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
@@ -31,7 +43,7 @@ export function CheckoutFlow() {
   const [discountAmount, setDiscountAmount] = useState(0);
 
   const updateCheckoutData = (data: Partial<CheckoutData>) => {
-    setCheckoutData((prev) => ({ ...prev, ...data }));
+    setCheckoutData(prev => ({ ...prev, ...data }));
   };
 
   // **COUPON HANDLERS**
@@ -48,22 +60,32 @@ export function CheckoutFlow() {
   };
 
   const goToNextStep = () => {
-    if (currentStep === "shipping-address") setCurrentStep("shipping-method");
+    if (currentStep === "guest-info") setCurrentStep("shipping-address");
+    else if (currentStep === "shipping-address")
+      setCurrentStep("shipping-method");
     else if (currentStep === "shipping-method") setCurrentStep("payment");
     else if (currentStep === "payment") setCurrentStep("review");
   };
 
   const goToPreviousStep = () => {
-    if (currentStep === "shipping-method") setCurrentStep("shipping-address");
-    else if (currentStep === "payment") setCurrentStep("shipping-method");
-    else if (currentStep === "review") setCurrentStep("payment");
+    if (currentStep === "shipping-address") {
+      setCurrentStep(session?.user ? "shipping-address" : "guest-info");
+    } else if (currentStep === "shipping-method") {
+      setCurrentStep("shipping-address");
+    } else if (currentStep === "payment") {
+      setCurrentStep("shipping-method");
+    } else if (currentStep === "review") {
+      setCurrentStep("payment");
+    }
   };
 
   const goToStep = (step: CheckoutStep) => {
     // Only allow navigating to steps that come before the current step
     // or the next step if the current step is complete
     if (
-      step === "shipping-address" ||
+      (step === "guest-info" && !session?.user) ||
+      (step === "shipping-address" &&
+        (session?.user || checkoutData.guestInformation?.email)) ||
       (step === "shipping-method" && checkoutData.shippingAddress) ||
       (step === "payment" &&
         checkoutData.shippingAddress &&
@@ -141,7 +163,7 @@ export function CheckoutFlow() {
         // **COUPON FIELDS**
         couponCode: appliedCoupon?.code || null,
         discountAmount: discountAmount || 0,
-        items: cartItems.map((item) => ({
+        items: cartItems.map(item => ({
           productId: item.productId,
           name: item.name,
           price: item.price,
@@ -187,16 +209,32 @@ export function CheckoutFlow() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       <div className="md:col-span-2 space-y-8">
-        <CheckoutStepper
+        <EnhancedCheckoutStepper
           currentStep={currentStep}
           onStepClick={goToStep}
           checkoutData={checkoutData}
         />
 
+        {currentStep === "guest-info" && (
+          <GuestInformationForm
+            initialData={checkoutData.guestInformation}
+            onSubmit={guestInfo => {
+              updateCheckoutData({
+                guestInformation: guestInfo,
+                isGuestCheckout: true,
+              });
+              goToNextStep();
+            }}
+            onLoginRedirect={() => {
+              nextRouter.push("/auth/login?callbackUrl=/checkout");
+            }}
+          />
+        )}
+
         {currentStep === "shipping-address" && (
           <ShippingAddressForm
             initialData={checkoutData.shippingAddress}
-            onSubmit={(address) => {
+            onSubmit={address => {
               updateCheckoutData({ shippingAddress: address });
               goToNextStep();
             }}
@@ -206,7 +244,7 @@ export function CheckoutFlow() {
         {currentStep === "shipping-method" && (
           <ShippingMethodSelector
             initialMethod={checkoutData.shippingMethod}
-            onSubmit={(method) => {
+            onSubmit={method => {
               updateCheckoutData({ shippingMethod: method });
               goToNextStep();
             }}
@@ -242,7 +280,7 @@ export function CheckoutFlow() {
               shippingMethod={checkoutData.shippingMethod}
               appliedCoupon={appliedCoupon}
               discountAmount={discountAmount}
-              onSubmit={(paymentData) => {
+              onSubmit={paymentData => {
                 updateCheckoutData(paymentData);
                 goToNextStep();
               }}

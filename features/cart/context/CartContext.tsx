@@ -51,6 +51,19 @@ interface CartContextType {
   isEmpty: boolean; // Added for MiniCart
   syncWithServer: () => Promise<void>;
 
+  // Bulk operations
+  selectedItems: Set<string>;
+  toggleItemSelection: (itemId: string) => void;
+  selectAllItems: () => void;
+  clearSelection: () => void;
+  removeSelectedItems: () => void;
+  updateSelectedItemsQuantity: (quantity: number) => void;
+  moveSelectedToSavedForLater: () => void;
+  savedForLaterItems: CartItem[];
+  moveFromSavedForLater: (itemId: string) => void;
+  removeSavedForLaterItem: (itemId: string) => void;
+  clearSavedForLater: () => void;
+
   // Legacy aliases for backward compatibility
   cartItems: CartItem[];
   removeFromCart: (itemId: string) => void;
@@ -94,6 +107,8 @@ const getCartItemId = (
 export const CartProvider = ({ children }: CartProviderProps) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [savedForLaterItems, setSavedForLaterItems] = useState<CartItem[]>([]);
   const { data: session, status } = useSession();
   const isAuthenticated = status === "authenticated";
   const previousAuthState = React.useRef(isAuthenticated);
@@ -119,7 +134,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
           // Mark initial load as complete
           initialLoadComplete.current = true;
         })
-        .catch((error) => {
+        .catch(error => {
           console.error("Failed to load cart storage:", error);
           // Fallback to old localStorage behavior
           const storedCart = localStorage.getItem("nextcommerce_cart");
@@ -151,13 +166,13 @@ export const CartProvider = ({ children }: CartProviderProps) => {
           if (isAuthenticated) {
             // User has logged in, we need to merge the carts
             // Don't block UI while merging, do it in background
-            mergeCartsOnLogin().catch((error) => {
+            mergeCartsOnLogin().catch(error => {
               console.error("Error merging carts on login:", error);
             });
           }
         } else if (isAuthenticated && initialLoadComplete.current) {
           // Fetch from server in the background, without blocking the UI
-          fetchCartFromServer(false).catch((error) => {
+          fetchCartFromServer(false).catch(error => {
             console.error("Error fetching cart from server:", error);
           });
         }
@@ -267,7 +282,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         .then(({ saveCartToStorage }) => {
           saveCartToStorage(cartItems);
         })
-        .catch((error) => {
+        .catch(error => {
           console.error("Failed to save cart storage:", error);
           // Fallback to old localStorage behavior
           if (
@@ -304,10 +319,10 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       itemToAdd.selectedLanguage
     );
 
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === cartItemId);
+    setCartItems(prevItems => {
+      const existingItem = prevItems.find(item => item.id === cartItemId);
       if (existingItem) {
-        return prevItems.map((item) =>
+        return prevItems.map(item =>
           item.id === cartItemId
             ? { ...item, quantity: item.quantity + quantity }
             : item
@@ -321,7 +336,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     try {
       if (itemToAdd.variantId) {
         // For items with variants, handle the server update asynchronously
-        const existingItem = cartItems.find((item) => item.id === cartItemId);
+        const existingItem = cartItems.find(item => item.id === cartItemId);
         if (existingItem) {
           await updateCartItemQuantity(
             cartItemId,
@@ -349,9 +364,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         : itemId;
 
     // First update the UI immediately
-    setCartItems((prevItems) =>
-      prevItems.filter((item) => item.id !== cartItemId)
-    );
+    setCartItems(prevItems => prevItems.filter(item => item.id !== cartItemId));
 
     // Then try to sync with server in the background
     try {
@@ -386,15 +399,15 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
     // First update the UI immediately
     setCartItems(
-      (prevItems) =>
+      prevItems =>
         prevItems
           .map(
-            (item) =>
+            item =>
               item.id === cartItemId
                 ? { ...item, quantity: Math.max(0, quantity) }
                 : item // Prevent negative quantity
           )
-          .filter((item) => item.quantity > 0) // Remove item if quantity is 0
+          .filter(item => item.quantity > 0) // Remove item if quantity is 0
     );
 
     // Then try to sync with server in the background
@@ -458,6 +471,152 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
   const isEmpty = cartItems.length === 0;
 
+  // Bulk operations
+  const toggleItemSelection = (itemId: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllItems = () => {
+    setSelectedItems(new Set(cartItems.map(item => item.id)));
+  };
+
+  const clearSelection = () => {
+    setSelectedItems(new Set());
+  };
+
+  const removeSelectedItems = async () => {
+    const itemsToRemove = Array.from(selectedItems);
+
+    // Update UI immediately
+    setCartItems(prev => prev.filter(item => !selectedItems.has(item.id)));
+    clearSelection();
+
+    // Sync with server in background
+    for (const itemId of itemsToRemove) {
+      try {
+        await removeCartItem(itemId);
+      } catch (error) {
+        console.error(`Failed to remove item ${itemId} from server:`, error);
+      }
+    }
+  };
+
+  const updateSelectedItemsQuantity = async (quantity: number) => {
+    const itemsToUpdate = cartItems.filter(item => selectedItems.has(item.id));
+
+    if (quantity <= 0) {
+      // Remove items if quantity is 0 or negative
+      await removeSelectedItems();
+      return;
+    }
+
+    // Update UI immediately
+    setCartItems(prev =>
+      prev.map(item =>
+        selectedItems.has(item.id) ? { ...item, quantity } : item
+      )
+    );
+
+    // Sync with server in background
+    for (const item of itemsToUpdate) {
+      try {
+        await updateCartItemQuantity(item.id, quantity);
+      } catch (error) {
+        console.error(`Failed to update quantity for item ${item.id}:`, error);
+      }
+    }
+  };
+
+  const moveSelectedToSavedForLater = () => {
+    const itemsToMove = cartItems.filter(item => selectedItems.has(item.id));
+
+    // Add to saved for later
+    setSavedForLaterItems(prev => {
+      const existingIds = new Set(prev.map(item => item.id));
+      const newItems = itemsToMove.filter(item => !existingIds.has(item.id));
+      return [...prev, ...newItems];
+    });
+
+    // Remove from cart
+    setCartItems(prev => prev.filter(item => !selectedItems.has(item.id)));
+    clearSelection();
+
+    // Save to localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
+        "nextcommerce_saved_for_later",
+        JSON.stringify(savedForLaterItems)
+      );
+    }
+  };
+
+  const moveFromSavedForLater = (itemId: string) => {
+    const itemToMove = savedForLaterItems.find(item => item.id === itemId);
+    if (!itemToMove) return;
+
+    // Add to cart
+    setCartItems(prev => {
+      const existingItem = prev.find(item => item.id === itemId);
+      if (existingItem) {
+        return prev.map(item =>
+          item.id === itemId
+            ? { ...item, quantity: item.quantity + itemToMove.quantity }
+            : item
+        );
+      } else {
+        return [...prev, itemToMove];
+      }
+    });
+
+    // Remove from saved for later
+    setSavedForLaterItems(prev => prev.filter(item => item.id !== itemId));
+  };
+
+  const removeSavedForLaterItem = (itemId: string) => {
+    setSavedForLaterItems(prev => prev.filter(item => item.id !== itemId));
+  };
+
+  const clearSavedForLater = () => {
+    setSavedForLaterItems([]);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("nextcommerce_saved_for_later");
+    }
+  };
+
+  // Load saved for later items from localStorage
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("nextcommerce_saved_for_later");
+      if (saved) {
+        try {
+          const items = JSON.parse(saved);
+          setSavedForLaterItems(items);
+        } catch (error) {
+          console.error("Failed to parse saved for later items:", error);
+          localStorage.removeItem("nextcommerce_saved_for_later");
+        }
+      }
+    }
+  }, []);
+
+  // Save "saved for later" items to localStorage whenever they change
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
+        "nextcommerce_saved_for_later",
+        JSON.stringify(savedForLaterItems)
+      );
+    }
+  }, [savedForLaterItems]);
+
   return (
     <CartContext.Provider
       value={{
@@ -467,6 +626,19 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         updateItemQuantity,
         getTotal,
         isEmpty,
+
+        // Bulk operations
+        selectedItems,
+        toggleItemSelection,
+        selectAllItems,
+        clearSelection,
+        removeSelectedItems,
+        updateSelectedItemsQuantity,
+        moveSelectedToSavedForLater,
+        savedForLaterItems,
+        moveFromSavedForLater,
+        removeSavedForLaterItem,
+        clearSavedForLater,
 
         // Legacy API for backward compatibility
         cartItems,
@@ -478,7 +650,8 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         getItemCount,
         isLoading,
         syncWithServer,
-      }}>
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

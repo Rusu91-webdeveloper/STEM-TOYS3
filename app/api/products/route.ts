@@ -7,6 +7,8 @@ import {
   createValidationErrorResponse,
   type ValidatedProductQuery,
 } from "@/lib/validations/api";
+import { withPerformanceMonitoring } from "@/lib/performance";
+import { TIME, CACHE_LIMITS } from "@/lib/constants";
 
 // Type definitions to help with type safety
 type StemCategoryMap = {
@@ -19,7 +21,7 @@ type StemCategoryMap = {
 
 // **PERFORMANCE**: In-memory cache for product requests
 const productCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes cache
+const CACHE_DURATION = TIME.CACHE_DURATION.SHORT; // 2 minutes cache
 
 export async function GET(request: NextRequest) {
   try {
@@ -206,7 +208,9 @@ export async function GET(request: NextRequest) {
     console.log("Final query where clause:", JSON.stringify(where, null, 2));
 
     try {
-      // Calculate pagination
+      const startTime = Date.now();
+
+      // Calculate pagination with performance optimization
       const skip = (page - 1) * limit;
 
       // Determine sort order
@@ -224,24 +228,37 @@ export async function GET(request: NextRequest) {
         }
       })();
 
-      // Fetch products with the built where clause
-      const [products, totalCount] = await Promise.all([
-        db.product.findMany({
-          where,
-          include: {
-            category: true,
-          },
-          orderBy,
-          skip,
-          take: limit,
-        }),
-        db.product.count({ where }),
-      ]);
+      // Optimized includes to prevent over-fetching
+      const optimizedIncludes = {
+        category: {
+          select: { id: true, name: true, slug: true, image: true },
+        },
+      };
+
+      // Execute query with performance monitoring
+      const fetchProducts = withPerformanceMonitoring(
+        "product_list_query",
+        async () => {
+          // Use Promise.all for concurrent execution
+          return await Promise.all([
+            db.product.findMany({
+              where,
+              include: optimizedIncludes,
+              orderBy,
+              skip,
+              take: limit,
+            }),
+            db.product.count({ where }),
+          ]);
+        }
+      );
+
+      const [products, totalCount] = await fetchProducts();
 
       console.log(`Found ${products.length} products matching criteria`);
 
       // Transform product data for the response
-      const transformedProducts = products.map((product) => {
+      const transformedProducts = products.map(product => {
         // Extract data safely
         const productData = {
           id: product.id,
@@ -295,6 +312,8 @@ export async function GET(request: NextRequest) {
         format: "paginated",
       });
 
+      const executionTime = Date.now() - startTime;
+
       const responseData = {
         products: transformedProducts,
         pagination: {
@@ -305,6 +324,11 @@ export async function GET(request: NextRequest) {
           hasNext: page * limit < totalCount,
           hasPrevious: page > 1,
         },
+        meta: {
+          executionTime,
+          itemsCount: transformedProducts.length,
+          queryOptimizations: true,
+        },
       };
 
       // **PERFORMANCE**: Cache the result
@@ -314,10 +338,10 @@ export async function GET(request: NextRequest) {
       });
 
       // **PERFORMANCE**: Clean up old cache entries
-      if (productCache.size > 100) {
+      if (productCache.size > CACHE_LIMITS.MAX_CACHE_ENTRIES) {
         const entries = Array.from(productCache.entries());
         entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-        const toRemove = entries.slice(0, 50);
+        const toRemove = entries.slice(0, CACHE_LIMITS.CACHE_CLEANUP_THRESHOLD);
         toRemove.forEach(([key]) => productCache.delete(key));
       }
 

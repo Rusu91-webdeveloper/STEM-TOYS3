@@ -10,6 +10,8 @@ import { useShoppingCart } from "../context/CartContext";
 import { useCheckoutTransition } from "../context/CheckoutTransitionContext";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { CartSettings } from "./CartSettings";
+import { BulkCartOperations } from "./BulkCartOperations";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface MiniCartProps {
   isOpen: boolean;
@@ -29,6 +31,8 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
     clearCart,
     isLoading,
     syncWithServer,
+    selectedItems,
+    toggleItemSelection,
   } = useShoppingCart();
   const { formatPrice } = useCurrency();
   const { t } = useTranslation();
@@ -153,16 +157,13 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
               variant="ghost"
               size="sm"
               onClick={() => setShowCartSettings(true)}
-              className="p-1">
+              className="p-1"
+            >
               <Settings className="h-4 w-4" />
             </Button>
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="p-1">
+          <Button variant="ghost" size="sm" onClick={onClose} className="p-1">
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -188,14 +189,29 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
             </div>
           ) : (
             <>
+              {/* Bulk Operations */}
+              <div className="px-4 pt-2">
+                <BulkCartOperations />
+              </div>
+
               {/* Items */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {items.map((item) => (
+                {items.map(item => (
                   <div
                     key={`${item.id}-${item.variantId || ""}-${
                       item.selectedLanguage || ""
                     }`}
-                    className="flex gap-3 pb-4 border-b last:border-b-0">
+                    className="flex gap-3 pb-4 border-b last:border-b-0"
+                  >
+                    {/* Selection Checkbox */}
+                    <div className="flex items-start pt-2">
+                      <Checkbox
+                        checked={selectedItems.has(item.id)}
+                        onCheckedChange={() => toggleItemSelection(item.id)}
+                        className="mt-1"
+                      />
+                    </div>
+
                     {/* Item image */}
                     <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
                       {item.image ? (
@@ -249,7 +265,8 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                               )
                             }
                             disabled={item.quantity <= 1}
-                            className="h-6 w-6 p-0">
+                            className="h-6 w-6 p-0"
+                          >
                             -
                           </Button>
                           <span className="text-sm">{item.quantity}</span>
@@ -264,7 +281,8 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                                 item.selectedLanguage
                               )
                             }
-                            className="h-6 w-6 p-0">
+                            className="h-6 w-6 p-0"
+                          >
                             +
                           </Button>
                         </div>
@@ -278,7 +296,8 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                               item.selectedLanguage
                             )
                           }
-                          className="text-red-600 hover:text-red-700 p-1">
+                          className="text-red-600 hover:text-red-700 p-1"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -300,7 +319,8 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                   <Button
                     onClick={handleCheckout}
                     disabled={isCheckoutLoading}
-                    className="w-full">
+                    className="w-full"
+                  >
                     {isCheckoutLoading ? (
                       <div className="flex items-center gap-2">
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -314,7 +334,8 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                   <Button
                     variant="outline"
                     onClick={handleClearCart}
-                    className="w-full">
+                    className="w-full"
+                  >
                     {t("clearCart")}
                   </Button>
 
@@ -323,7 +344,8 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                     <Button
                       variant="outline"
                       onClick={handleDevClearCart}
-                      className="w-full text-orange-600 border-orange-200 hover:bg-orange-50">
+                      className="w-full text-orange-600 border-orange-200 hover:bg-orange-50"
+                    >
                       🧹 Dev: Clear All Cart Data
                     </Button>
                   )}

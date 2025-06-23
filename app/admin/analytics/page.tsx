@@ -189,7 +189,7 @@ async function fetchSalesData(startDate: Date, endDate: Date) {
     weekly: weeklySales._sum.total || 0,
     monthly: currentTotal,
     previousPeriodChange: parseFloat(percentageChange.toFixed(1)),
-    trending: percentageChange >= 0 ? "up" : "down",
+    trending: percentageChange >= 0 ? ("up" as const) : ("down" as const),
   };
 }
 
@@ -308,17 +308,17 @@ async function fetchOrderStats(startDate: Date, endDate: Date) {
     conversionRate: {
       rate: parseFloat(conversionRate.toFixed(1)),
       previousPeriodChange: parseFloat(conversionRateChange.toFixed(1)),
-      trending: conversionRateChange >= 0 ? "up" : "down",
+      trending: conversionRateChange >= 0 ? ("up" as const) : ("down" as const),
     },
     averageOrderValue: {
       value: parseFloat(currentAOV.toFixed(2)),
       previousPeriodChange: parseFloat(aovGrowthPercentage.toFixed(1)),
-      trending: aovGrowthPercentage >= 0 ? "up" : "down",
+      trending: aovGrowthPercentage >= 0 ? ("up" as const) : ("down" as const),
     },
     totalCustomers: {
       value: totalCustomers,
       previousPeriodChange: parseFloat(customerGrowthPercentage.toFixed(1)),
-      trending: customerGrowthPercentage >= 0 ? "up" : "down",
+      trending: customerGrowthPercentage >= 0 ? ("up" as const) : ("down" as const),
     },
   };
 }

@@ -16,7 +16,7 @@ const vibrantColors = {
 };
 
 const Navbar = () => {
-  const { t, i18n } = useTranslation();
+  const { t, language } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
@@ -59,8 +59,8 @@ const Navbar = () => {
   const handleLanguageChange = (lang: string) => {
     const currentPath = pathname;
     // Remove existing locale prefix if present
-    const newPath = currentPath.startsWith(`/${i18n.language}`)
-      ? currentPath.substring(i18n.language.length + 1)
+    const newPath = currentPath.startsWith(`/${language}`)
+      ? currentPath.substring(language.length + 1)
       : currentPath;
     router.push(`/${lang}${newPath}`);
     setIsLangMenuOpen(false);
@@ -105,9 +105,9 @@ const Navbar = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex-shrink-0">
-              <Link href={`/${i18n.language}`}>
+              <Link href={`/${language}`}>
                 <span className="text-2xl font-bold bg-gradient-to-r from-[vibrantColors.primary] to-[vibrantColors.secondary] bg-clip-text text-transparent hover:from-[vibrantColors.primary] hover:to-[vibrantColors.secondary] transition-all">
-                  {t("navbar.brandName", "NextCommerce")}
+                  NextCommerce
                 </span>
               </Link>
             </div>

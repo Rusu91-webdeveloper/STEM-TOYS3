@@ -5,11 +5,7 @@ import { auth } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { withRateLimit } from "@/lib/rate-limit";
 import { sanitizeInput } from "@/lib/security";
-import {
-  getCartFromCache,
-  setCartInCache,
-  invalidateCartCache,
-} from "@/lib/redis";
+import { getCached, cache, CacheKeys } from "@/lib/cache";
 import { db } from "@/lib/db";
 
 // Mock database for cart storage - replace with Prisma in production
@@ -62,58 +58,75 @@ function isValidCartData(data: any): data is CartItem[] {
 }
 
 async function cleanupInvalidCartItems(items: CartItem[]): Promise<CartItem[]> {
-  const validItems: CartItem[] = [];
+  if (items.length === 0) return [];
 
-  for (const item of items) {
+  // Extract product IDs and book IDs
+  const productIds = items
+    .filter(item => !item.isBook)
+    .map(item => item.productId)
+    .filter(Boolean);
+  
+  const bookIds = items
+    .filter(item => item.isBook)
+    .map(item => item.productId)
+    .filter(Boolean);
+
+  // Also check for items that might be books but not marked as such
+  const allIds = items.map(item => item.productId).filter(Boolean);
+
+  // Batch fetch all products and books in parallel to avoid N+1 queries
+  const [products, books, potentialBooks] = await Promise.all([
+    productIds.length > 0 
+      ? db.product.findMany({
+          where: { id: { in: productIds }, isActive: true },
+          select: { id: true, name: true, isActive: true }
+        })
+      : [],
+    bookIds.length > 0 
+      ? db.book.findMany({
+          where: { id: { in: bookIds }, isActive: true },
+          select: { id: true, name: true, isActive: true }
+        })
+      : [],
+    // Check all IDs against books table for fallback detection
+    allIds.length > 0
+      ? db.book.findMany({
+          where: { id: { in: allIds }, isActive: true },
+          select: { id: true, name: true, isActive: true }
+        })
+      : []
+  ]);
+
+  // Create lookup maps for efficient O(1) access
+  const productMap = new Map(products.map(p => [p.id, p]));
+  const bookMap = new Map(books.map(b => [b.id, b]));
+  const potentialBookMap = new Map(potentialBooks.map(b => [b.id, b]));
+
+  // Filter valid items using the lookup maps
+  const validItems = items.filter(item => {
     // Skip items with "(Deleted)" in the name
     if (item.name.includes("(Deleted)")) {
-      // Removing deleted item from cart
-      continue;
+      return false;
     }
 
     // Check if it's marked as a book
     if (item.isBook) {
-      // For books, item.productId is the book ID
-      const book = await db.book.findUnique({
-        where: { id: item.productId },
-        select: { id: true, name: true, isActive: true },
-      });
-
-      if (book && book.isActive) {
-        validItems.push(item);
-      } else {
-        // Removing invalid/inactive book from cart
-      }
-    } else {
-      // Check if it's a book by trying to find it in the books table (fallback detection)
-      const book = await db.book.findUnique({
-        where: { id: item.productId },
-        select: { id: true, name: true, isActive: true },
-      });
-
-      if (book) {
-        // It's a book - check if it's still active
-        if (book.isActive) {
-          validItems.push(item);
-        } else {
-          // Removing inactive book from cart
-        }
-      } else {
-        // It's a regular product - check if it exists and is active
-        const product = await db.product.findUnique({
-          where: { id: item.productId },
-          select: { id: true, name: true, isActive: true },
-        });
-
-        if (product && product.isActive) {
-          validItems.push(item);
-        } else {
-          console.log(
-            `Removing invalid/inactive product from cart: ${item.name}`
-          );
-        }
-      }
+      return bookMap.has(item.productId);
     }
+
+    // Check if it's a book by looking in the potential books map
+    if (potentialBookMap.has(item.productId)) {
+      return true;
+    }
+
+    // Check if it's a valid product
+    return productMap.has(item.productId);
+  });
+
+  // Log cleanup statistics
+  const removedCount = items.length - validItems.length;
+  if (removedCount > 0) {
+    console.log(`Cart cleanup: removed ${removedCount} invalid items out of ${items.length} total items`);
   }
 
   return validItems;
@@ -135,72 +148,40 @@ export const GET = withRateLimit(
         cartId = await getGuestId();
       }
 
-      // Try to get cart from Redis cache first
-      try {
-        console.log(`Fetching cart for ${cartId} from cache...`);
-        const cachedCart = await getCartFromCache(cartId);
+      // Try to get cart from cache first
+      const cacheKey = CacheKeys.cart(cartId);
+      console.log(`Fetching cart for ${cartId} from cache...`);
+      
+      const cachedCart = await cache.get(cacheKey);
+      if (cachedCart && isValidCartData(cachedCart)) {
+        console.log(`Cart for ${cartId} found in cache with ${cachedCart.length} items`);
+        
+        // Clean up invalid items
+        const cleanedCart = await cleanupInvalidCartItems(cachedCart);
 
-        if (cachedCart) {
-          console.log(`Cart for ${cartId} found in cache`);
-          try {
-            // Try to parse the cached cart
-            const parsedCart =
-              typeof cachedCart === "string"
-                ? JSON.parse(cachedCart)
-                : cachedCart;
-
-            // Validate the parsed cart data
-            if (isValidCartData(parsedCart)) {
-              console.log(
-                `Returning cached cart for ${cartId} with ${parsedCart.length} items`
-              );
-              // Clean up invalid items
-              const cleanedCart = await cleanupInvalidCartItems(parsedCart);
-
-              // If items were removed, update the cache
-              if (cleanedCart.length !== parsedCart.length) {
-                console.log(
-                  `Cleaned cart: removed ${parsedCart.length - cleanedCart.length} invalid items`
-                );
-                await setCartInCache(cartId, cleanedCart);
-              }
-
-              return NextResponse.json({
-                success: true,
-                message: "Cart fetched from cache",
-                data: cleanedCart,
-                user: session?.user?.email || null,
-                fromCache: true,
-              });
-            } else {
-              console.error(
-                "Invalid cart data in cache, falling back to storage"
-              );
-              // If data is invalid, invalidate the cache
-              await invalidateCartCache(cartId);
-            }
-          } catch (parseError) {
-            console.error("Failed to parse cached cart:", parseError);
-            // If parsing fails, invalidate the bad cache entry
-            await invalidateCartCache(cartId);
-          }
-        } else {
-          console.log(`No cached cart found for ${cartId}`);
+        // If items were removed, update the cache
+        if (cleanedCart.length !== cachedCart.length) {
+          console.log(
+            `Cleaned cart: removed ${cachedCart.length - cleanedCart.length} invalid items`
+          );
+          await cache.set(cacheKey, cleanedCart);
         }
-      } catch (cacheError) {
-        // Log cache error but continue with database fetch
-        console.error("Cache error (continuing with fallback):", cacheError);
+
+        return NextResponse.json({
+          success: true,
+          message: "Cart fetched from cache",
+          data: cleanedCart,
+          user: session?.user?.email || null,
+          fromCache: true,
+        });
       }
 
       // Get cart from storage (or return empty array if not found)
       const cart = CART_STORAGE.get(cartId) || [];
 
       // Cache the cart with 10-minute expiration
-      try {
-        await setCartInCache(cartId, cart);
-      } catch (cacheError) {
-        console.error("Failed to cache cart:", cacheError);
-      }
+      const storageCacheKey = CacheKeys.cart(cartId);
+      await cache.set(storageCacheKey, cart, 10 * 60 * 1000); // 10 minutes
 
       return NextResponse.json({
         success: true,
@@ -277,14 +258,9 @@ export const POST = withRateLimit(
       // Update cart in storage
       CART_STORAGE.set(cartId, cartWithIds);
 
-      // Invalidate cart cache on update
-      try {
-        await invalidateCartCache(cartId);
-        // Cache the new cart
-        await setCartInCache(cartId, cartWithIds);
-      } catch (cacheError) {
-        console.error("Cache operation failed:", cacheError);
-      }
+      // Update cart cache
+      const updateCacheKey = CacheKeys.cart(cartId);
+      await cache.set(updateCacheKey, cartWithIds, 10 * 60 * 1000); // 10 minutes
 
       return NextResponse.json({
         success: true,

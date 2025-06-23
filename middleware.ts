@@ -85,7 +85,10 @@ export async function middleware(request: NextRequest) {
   const rateLimitResult = await applyRateLimit(request, pathname);
   if (!rateLimitResult.success) {
     // Rate limit exceeded - return the rate limit response
-    console.log(`Rate limit exceeded for ${pathname}`);
+    // Don't log for session endpoint since it has its own rate limiter
+    if (!pathname.includes("/api/auth/session")) {
+      console.log(`Rate limit exceeded for ${pathname}`);
+    }
     return rateLimitResult.response!;
   }
 
@@ -144,7 +147,7 @@ export async function middleware(request: NextRequest) {
   // **PERFORMANCE**: Early exit for routes that don't need validation
   if (
     !requiresValidation &&
-    skipValidationRoutes.some((route) => pathname.startsWith(route))
+    skipValidationRoutes.some(route => pathname.startsWith(route))
   ) {
     console.log(`Path: ${pathname}, Auth Status: Skipped (Public Route)`);
     return NextResponse.next();
@@ -164,7 +167,7 @@ export async function middleware(request: NextRequest) {
   const guestCookie = request.cookies.get("guest_id")?.value;
 
   // Consider the user authenticated if ANY auth cookie exists
-  const isAuthenticated = authCookies.some((cookie) => !!cookie);
+  const isAuthenticated = authCookies.some(cookie => !!cookie);
 
   // Check for a special header that might be set by client-side code
   const clientAuthHeader = request.headers.get("x-auth-token");

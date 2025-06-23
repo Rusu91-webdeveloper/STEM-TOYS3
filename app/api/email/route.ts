@@ -17,6 +17,11 @@ const orderConfirmationSchema = z.object({
         })
       ),
       total: z.number(),
+      shippingCost: z.number(),
+      tax: z.number(),
+      taxRatePercentage: z.string().optional(),
+      isFreeShippingActive: z.boolean().optional(),
+      freeShippingThreshold: z.number().optional(),
     }),
   }),
 });

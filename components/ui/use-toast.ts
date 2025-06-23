@@ -5,14 +5,25 @@ import * as React from "react";
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
-const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000000;
+const TOAST_LIMIT = 5;
+const TOAST_REMOVE_DELAY = 5000;
 
-type ToasterToast = ToastProps & {
+type ToasterToast = {
   id: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
-  action?: ToastActionElement;
+  action?: React.ReactNode;
+  variant?: "default" | "destructive" | "success" | "warning" | "info";
+  duration?: number;
+  dismissible?: boolean;
+  position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
+  className?: string;
+  style?: React.CSSProperties;
+  icon?: React.ReactNode;
+  onDismiss?: () => void;
+  onAction?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 const actionTypes = {
@@ -20,12 +31,13 @@ const actionTypes = {
   UPDATE_TOAST: "UPDATE_TOAST",
   DISMISS_TOAST: "DISMISS_TOAST",
   REMOVE_TOAST: "REMOVE_TOAST",
+  CLEAR_TOASTS: "CLEAR_TOASTS",
 } as const;
 
 let count = 0;
 
 function genId() {
-  count = (count + 1) % Number.MAX_VALUE;
+  count = (count + 1) % Number.MAX_SAFE_INTEGER;
   return count.toString();
 }
 
@@ -47,6 +59,9 @@ type Action =
   | {
       type: ActionType["REMOVE_TOAST"];
       toastId?: ToasterToast["id"];
+    }
+  | {
+      type: ActionType["CLEAR_TOASTS"];
     };
 
 interface State {
@@ -90,8 +105,7 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action;
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
+      // Toast to dismiss is either passed or is the first toast
       if (toastId) {
         addToRemoveQueue(toastId);
       } else {
@@ -123,6 +137,13 @@ export const reducer = (state: State, action: Action): State => {
         ...state,
         toasts: state.toasts.filter((t) => t.id !== action.toastId),
       };
+    case "CLEAR_TOASTS":
+      toastTimeouts.forEach((timeout) => clearTimeout(timeout));
+      toastTimeouts.clear();
+      return {
+        ...state,
+        toasts: [],
+      };
   }
 };
 
@@ -137,35 +158,155 @@ function dispatch(action: Action) {
   });
 }
 
-type Toast = Omit<ToasterToast, "id">;
+interface Toast extends Omit<ToasterToast, "id"> {}
 
-function toast({ ...props }: Toast) {
+function toast(props: Toast) {
   const id = genId();
 
-  const update = (props: ToasterToast) =>
+  const update = (props: Partial<ToasterToast>) =>
     dispatch({
       type: "UPDATE_TOAST",
       toast: { ...props, id },
     });
+  
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id });
+
+  const toastData: ToasterToast = {
+    ...props,
+    id,
+    open: true,
+    onOpenChange: (open) => {
+      if (!open) dismiss();
+    },
+    dismissible: props.dismissible !== false,
+  };
 
   dispatch({
     type: "ADD_TOAST",
-    toast: {
-      ...props,
-      id,
-      open: true,
-      onOpenChange: (open) => {
-        if (!open) dismiss();
-      },
-    },
+    toast: toastData,
   });
 
   return {
-    id: id,
+    id,
     dismiss,
     update,
   };
+}
+
+// Convenience methods for different toast types
+function toastSuccess(
+  title: string,
+  description?: string,
+  options?: Omit<Toast, "title" | "description" | "variant">
+) {
+  return toast({
+    title,
+    description,
+    variant: "success",
+    ...options,
+  });
+}
+
+function toastError(
+  title: string,
+  description?: string,
+  options?: Omit<Toast, "title" | "description" | "variant">
+) {
+  return toast({
+    title,
+    description,
+    variant: "destructive",
+    ...options,
+  });
+}
+
+function toastWarning(
+  title: string,
+  description?: string,
+  options?: Omit<Toast, "title" | "description" | "variant">
+) {
+  return toast({
+    title,
+    description,
+    variant: "warning",
+    ...options,
+  });
+}
+
+function toastInfo(
+  title: string,
+  description?: string,
+  options?: Omit<Toast, "title" | "description" | "variant">
+) {
+  return toast({
+    title,
+    description,
+    variant: "info",
+    ...options,
+  });
+}
+
+function toastLoading(
+  title: string,
+  description?: string,
+  options?: Omit<Toast, "title" | "description" | "variant">
+) {
+  return toast({
+    title,
+    description,
+    variant: "default",
+    duration: 0, // Don't auto-dismiss loading toasts
+    dismissible: false,
+    ...options,
+  });
+}
+
+function toastPromise<T>(
+  promise: Promise<T>,
+  {
+    loading,
+    success,
+    error,
+  }: {
+    loading: string;
+    success: string | ((data: T) => string);
+    error: string | ((error: any) => string);
+  }
+) {
+  const toastId = toastLoading(loading);
+
+  promise
+    .then((data) => {
+      toastId.update({
+        title: typeof success === "function" ? success(data) : success,
+        variant: "success",
+        duration: 4000,
+        dismissible: true,
+      });
+    })
+    .catch((error) => {
+      toastId.update({
+        title: typeof error === "function" ? error(error) : error,
+        variant: "destructive",
+        duration: 4000,
+        dismissible: true,
+      });
+    });
+
+  return toastId;
+}
+
+function dismiss(toastId?: string) {
+  dispatch({
+    type: "DISMISS_TOAST",
+    toastId,
+  });
+}
+
+function clearToasts() {
+  dispatch({
+    type: "CLEAR_TOASTS",
+  });
 }
 
 function useToast() {
@@ -184,8 +325,16 @@ function useToast() {
   return {
     ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    toastSuccess,
+    toastError,
+    toastWarning,
+    toastInfo,
+    toastLoading,
+    toastPromise,
+    dismiss,
+    clearToasts,
   };
 }
 
-export { useToast, toast };
+export { useToast, toast, toastSuccess, toastError, toastWarning, toastInfo, toastLoading, toastPromise, dismiss, clearToasts };
+export type { ToasterToast, Toast };

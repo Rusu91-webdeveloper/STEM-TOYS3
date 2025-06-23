@@ -1,0 +1,251 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { fn } from '@storybook/test';
+import React from 'react';
+
+import { 
+  EmptyState,
+  EmptyCart,
+  EmptyWishlist,
+  EmptySearch,
+  EmptyOrders,
+  EmptyDigitalLibrary
+} from './empty-state';
+
+// Base EmptyState Stories
+const emptyStateMeta: Meta<typeof EmptyState> = {
+  title: 'UI/EmptyState/EmptyState',
+  component: EmptyState,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+  argTypes: {
+    variant: { control: 'select', options: ['default', 'minimal', 'illustrated'] },
+  },
+  args: {
+    action: fn(),
+    secondaryAction: fn(),
+  },
+};
+
+export default emptyStateMeta;
+type EmptyStory = StoryObj<typeof emptyStateMeta>;
+
+export const BasicEmpty: EmptyStory = {
+  args: {
+    title: 'No items found',
+    description: 'There are no items to display at the moment.',
+  },
+};
+
+export const EmptyWithAction: EmptyStory = {
+  args: {
+    title: 'No products found',
+    description: 'We couldn\'t find any products matching your criteria.',
+    actionText: 'Clear Filters',
+  },
+};
+
+export const EmptyWithSecondaryAction: EmptyStory = {
+  args: {
+    title: 'No results',
+    description: 'Try adjusting your search or browse our categories.',
+    actionText: 'Browse Categories',
+    secondaryActionText: 'Clear Search',
+  },
+};
+
+export const MinimalEmpty: EmptyStory = {
+  args: {
+    variant: 'minimal',
+    title: 'Empty',
+    description: 'Nothing to show here.',
+  },
+};
+
+export const IllustratedEmpty: EmptyStory = {
+  args: {
+    variant: 'illustrated',
+    title: 'Welcome to your dashboard',
+    description: 'Get started by creating your first item.',
+    actionText: 'Create Item',
+  },
+};
+
+// EmptyCart Stories
+const cartMeta: Meta<typeof EmptyCart> = {
+  title: 'UI/EmptyState/EmptyCart',
+  component: EmptyCart,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+  args: {
+    onBrowseProducts: fn(),
+  },
+};
+
+export const EmptyCartMeta = cartMeta;
+type CartStory = StoryObj<typeof cartMeta>;
+
+export const EmptyCartDefault: CartStory = {
+  args: {},
+};
+
+export const EmptyCartCustom: CartStory = {
+  args: {
+    title: 'Your shopping cart is empty',
+    description: 'Discover amazing STEM toys and educational products.',
+  },
+};
+
+// EmptyWishlist Stories
+const wishlistMeta: Meta<typeof EmptyWishlist> = {
+  title: 'UI/EmptyState/EmptyWishlist',
+  component: EmptyWishlist,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+  args: {
+    onBrowseProducts: fn(),
+  },
+};
+
+export const EmptyWishlistMeta = wishlistMeta;
+type WishlistStory = StoryObj<typeof wishlistMeta>;
+
+export const EmptyWishlistDefault: WishlistStory = {
+  args: {},
+};
+
+// EmptySearch Stories
+const searchMeta: Meta<typeof EmptySearch> = {
+  title: 'UI/EmptyState/EmptySearch',
+  component: EmptySearch,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+  args: {
+    onClearSearch: fn(),
+    onBrowseAll: fn(),
+  },
+};
+
+export const EmptySearchMeta = searchMeta;
+type SearchStory = StoryObj<typeof searchMeta>;
+
+export const EmptySearchDefault: SearchStory = {
+  args: {},
+};
+
+export const EmptySearchWithQuery: SearchStory = {
+  args: {
+    query: 'microscope',
+  },
+};
+
+// EmptyOrders Stories
+const ordersMeta: Meta<typeof EmptyOrders> = {
+  title: 'UI/EmptyState/EmptyOrders',
+  component: EmptyOrders,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+  args: {
+    onStartShopping: fn(),
+  },
+};
+
+export const EmptyOrdersMeta = ordersMeta;
+type OrdersStory = StoryObj<typeof ordersMeta>;
+
+export const EmptyOrdersDefault: OrdersStory = {
+  args: {},
+};
+
+// EmptyDigitalLibrary Stories
+const digitalMeta: Meta<typeof EmptyDigitalLibrary> = {
+  title: 'UI/EmptyState/EmptyDigitalLibrary',
+  component: EmptyDigitalLibrary,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+  args: {
+    onBrowseBooks: fn(),
+  },
+};
+
+export const EmptyDigitalLibraryMeta = digitalMeta;
+type DigitalStory = StoryObj<typeof digitalMeta>;
+
+export const EmptyDigitalLibraryDefault: DigitalStory = {
+  args: {},
+};
+
+// Example Layout Showcases
+export const EcommerceEmptyStates: StoryObj = {
+  render: () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
+      <div className="border rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4">Empty Cart</h3>
+        <EmptyCart />
+      </div>
+      <div className="border rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4">Empty Wishlist</h3>
+        <EmptyWishlist />
+      </div>
+      <div className="border rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4">Empty Search</h3>
+        <EmptySearch query="microscope" />
+      </div>
+      <div className="border rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4">Empty Orders</h3>
+        <EmptyOrders />
+      </div>
+    </div>
+  ),
+  parameters: {
+    layout: 'fullscreen',
+  },
+};
+
+export const EmptyStateVariants: StoryObj = {
+  render: () => (
+    <div className="space-y-8 p-6">
+      <div className="border rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4">Default Variant</h3>
+        <EmptyState
+          title="No items found"
+          description="There are no items to display at the moment."
+          actionText="Add Item"
+          action={fn()}
+        />
+      </div>
+      <div className="border rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4">Minimal Variant</h3>
+        <EmptyState
+          variant="minimal"
+          title="Empty"
+          description="Nothing to show here."
+        />
+      </div>
+      <div className="border rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4">Illustrated Variant</h3>
+        <EmptyState
+          variant="illustrated"
+          title="Welcome to your dashboard"
+          description="Get started by creating your first item."
+          actionText="Create Item"
+          action={fn()}
+        />
+      </div>
+    </div>
+  ),
+  parameters: {
+    layout: 'fullscreen',
+  },
+}; 

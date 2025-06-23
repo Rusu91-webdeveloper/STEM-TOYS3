@@ -2,13 +2,41 @@ import NextAuth from "next-auth";
 import { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { z } from "zod";
+
 import { compare } from "bcrypt";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { hashAdminPassword, verifyAdminPassword } from "@/lib/admin-auth";
 import { withRetry, verifyUserExists } from "@/lib/db-helpers";
-import { env, serviceConfig } from "@/lib/config";
+let env: any;
+let serviceConfig: any;
+
+try {
+  const config = require("@/lib/config");
+  env = config.env;
+  serviceConfig = config.serviceConfig;
+} catch (error) {
+  console.error("Failed to load config in auth.ts:", error);
+  // Use fallback values
+  env = {
+    NODE_ENV: process.env.NODE_ENV || "development",
+    NEXTAUTH_SECRET:
+      process.env.NEXTAUTH_SECRET || "development-secret-change-me",
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || "http://localhost:3000",
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+    ADMIN_NAME: process.env.ADMIN_NAME,
+    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+    ADMIN_PASSWORD_HASH: process.env.ADMIN_PASSWORD_HASH,
+  };
+  serviceConfig = {
+    isGoogleOAuthEnabled: () =>
+      !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
+    isAdminEnvEnabled: () =>
+      !!(env.ADMIN_EMAIL && (env.ADMIN_PASSWORD || env.ADMIN_PASSWORD_HASH)),
+  };
+}
 
 // Extended user type that includes our custom fields
 interface ExtendedUser {
@@ -18,11 +46,6 @@ interface ExtendedUser {
   image?: string | null;
   isActive?: boolean;
   role?: string;
-}
-
-interface Credentials {
-  email: string;
-  password: string;
 }
 
 // Extend the session types
@@ -142,13 +165,19 @@ export const authOptions: NextAuthConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(
-        credentials: Record<"email" | "password", string> | undefined
-      ) {
-        if (!credentials?.email || !credentials?.password) {
+      async authorize(credentials, request) {
+        if (
+          !credentials?.email ||
+          !credentials?.password ||
+          typeof credentials.email !== "string" ||
+          typeof credentials.password !== "string"
+        ) {
           logger.warn("Missing credentials for login attempt");
           return null;
         }
+
+        const email = credentials.email;
+        const password = credentials.password;
 
         try {
           // Find user in database
@@ -160,7 +189,7 @@ export const authOptions: NextAuthConfig = {
             process.env.USE_ENV_ADMIN === "true" || isDevelopmentEnv;
 
           // Check if admin credentials from environment should be used (development only)
-          if (useEnvAdmin && credentials.email === env.ADMIN_EMAIL) {
+          if (useEnvAdmin && email === env.ADMIN_EMAIL) {
             logger.info("Attempting development admin login");
             const envAdmin = await createDevAdminFromEnv();
             if (envAdmin) {
@@ -172,11 +201,11 @@ export const authOptions: NextAuthConfig = {
           // try to find the user in the database
           if (!user) {
             logger.debug("Looking up user in database", {
-              email: credentials.email,
+              email: email,
             });
             try {
               user = await db.user.findUnique({
-                where: { email: credentials.email },
+                where: { email: email },
               });
 
               if (user) {
@@ -190,7 +219,7 @@ export const authOptions: NextAuthConfig = {
 
           if (!user) {
             logger.warn("User not found during login attempt", {
-              email: credentials.email,
+              email: email,
             });
             return null;
           }
@@ -201,19 +230,16 @@ export const authOptions: NextAuthConfig = {
           let passwordMatch = false;
           if (user.passwordIsHashed) {
             // Direct comparison for pre-hashed admin password
-            passwordMatch = user.password === credentials.password;
+            passwordMatch = user.password === password;
           } else if (user.id === "admin_env") {
             // For environment variable admin using our secure hashing
             passwordMatch = await verifyAdminPassword(
-              credentials.password,
+              password,
               user.password as string
             );
           } else {
             // Standard database user with bcrypt hash
-            passwordMatch = await compare(
-              credentials.password,
-              user.password as string
-            );
+            passwordMatch = await compare(password, user.password as string);
           }
 
           if (!passwordMatch) {
@@ -442,7 +468,7 @@ export const authOptions: NextAuthConfig = {
           }
 
           // Force a delay to ensure database operations complete
-          await new Promise((resolve) => setTimeout(resolve, 1500));
+          await new Promise(resolve => setTimeout(resolve, 1500));
         } catch (error) {
           logger.error("Error in Google sign-in flow", {
             error: error instanceof Error ? error.message : String(error),
@@ -619,11 +645,43 @@ export const authOptions: NextAuthConfig = {
     signIn: "/auth/login",
     error: "/auth/error",
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret:
+    process.env.NEXTAUTH_SECRET ||
+    (process.env.NODE_ENV === "development"
+      ? "development-secret-please-change"
+      : undefined),
+  trustHost: process.env.NODE_ENV === "development",
 };
 
-// For Next Auth v5
-export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
+// Import the wrapper
+import { createAuth } from "./auth-wrapper";
+
+// For Next Auth v5 - use the wrapper with error handling
+let authInstance: any;
+try {
+  authInstance = createAuth(authOptions);
+} catch (error) {
+  console.error("Failed to create auth instance:", error);
+  // Use a basic fallback for development
+  authInstance = {
+    handlers: {
+      GET: async () =>
+        new Response(JSON.stringify({ user: null }), {
+          headers: { "Content-Type": "application/json" },
+        }),
+      POST: async () =>
+        new Response(JSON.stringify({ error: "Auth not configured" }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }),
+    },
+    auth: async () => null,
+    signIn: async () => ({ error: "Auth not configured" }),
+    signOut: async () => ({ error: "Auth not configured" }),
+  };
+}
+
+export const { handlers, auth, signIn, signOut } = authInstance;
 
 // Mock users for development purposes
 export const mockUsers = [

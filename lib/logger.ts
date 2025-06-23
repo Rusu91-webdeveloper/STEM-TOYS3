@@ -1,6 +1,8 @@
 /**
- * A structured logger with log levels to safely log in development and production
+ * Enhanced structured logger using Pino for high-performance logging
  */
+
+import pino from "pino";
 
 type LogLevel = "debug" | "info" | "warn" | "error";
 
@@ -24,10 +26,77 @@ const SENSITIVE_KEYS = [
   "card",
   "cvv",
   "ssn",
+  "apikey",
+  "authorization",
+  "bearer",
 ];
 
+// Check if we should disable Pino (for worker thread issues)
+const shouldDisablePino =
+  process.env.DISABLE_PINO === "true" ||
+  (process.env.NODE_ENV === "development" &&
+    process.env.ENABLE_PINO !== "true");
+
+// Create Pino logger instance or fallback console logger
+const pinoLogger = !shouldDisablePino
+  ? pino({
+      level: process.env.LOG_LEVEL || DEFAULT_LOG_LEVEL,
+
+      // Production configuration
+      ...(process.env.NODE_ENV === "production"
+        ? {
+            // Structured logging for production
+            formatters: {
+              level: label => ({ level: label }),
+            },
+            timestamp: pino.stdTimeFunctions.isoTime,
+            redact: {
+              paths: SENSITIVE_KEYS,
+              censor: "[REDACTED]",
+            },
+          }
+        : {
+            // Pretty printing for development
+            transport: {
+              target: "pino-pretty",
+              options: {
+                colorize: true,
+                translateTime: "SYS:standard",
+                ignore: "pid,hostname",
+                singleLine: false,
+                hideObject: false,
+              },
+            },
+            redact: {
+              paths: SENSITIVE_KEYS,
+              censor: "[REDACTED]",
+            },
+          }),
+
+      // Base context
+      base: {
+        pid: process.pid,
+        hostname: process.env.HOSTNAME || "unknown",
+        env: process.env.NODE_ENV || "development",
+        service: "stem-toys-ecommerce",
+        version: process.env.npm_package_version || "1.0.0",
+      },
+    })
+  : {
+      // Fallback console logger to avoid worker thread issues
+      debug: (data: any, message: string) =>
+        console.debug(`[DEBUG] ${message}`, data),
+      info: (data: any, message: string) =>
+        console.log(`[INFO] ${message}`, data),
+      warn: (data: any, message: string) =>
+        console.warn(`[WARN] ${message}`, data),
+      error: (data: any, message: string) =>
+        console.error(`[ERROR] ${message}`, data),
+      child: () => pinoLogger, // Return self for child loggers
+    };
+
 /**
- * Sanitize an object by redacting sensitive values
+ * Enhanced sanitize function with more thorough checks
  */
 function sanitizeData(data: any): any {
   if (!data) return data;
@@ -37,7 +106,7 @@ function sanitizeData(data: any): any {
 
   // Handle arrays
   if (Array.isArray(data)) {
-    return data.map((item) => sanitizeData(item));
+    return data.map(item => sanitizeData(item));
   }
 
   // Handle objects
@@ -47,7 +116,7 @@ function sanitizeData(data: any): any {
     const lowerKey = key.toLowerCase();
 
     // Check if this key contains sensitive information
-    const isSensitive = SENSITIVE_KEYS.some((sensitiveKey) =>
+    const isSensitive = SENSITIVE_KEYS.some(sensitiveKey =>
       lowerKey.includes(sensitiveKey)
     );
 
@@ -72,91 +141,266 @@ function sanitizeData(data: any): any {
   return sanitized;
 }
 
-const LOG_LEVELS: Record<LogLevel, number> = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
-};
+// Performance and request tracking
+interface RequestContext {
+  requestId?: string;
+  userId?: string;
+  userAgent?: string;
+  ip?: string;
+  method?: string;
+  url?: string;
+  duration?: number;
+}
 
-/**
- * Determines if a message should be logged based on current log level
- */
-function shouldLog(level: LogLevel): boolean {
-  const configuredLevel =
-    (process.env.LOG_LEVEL as LogLevel) || DEFAULT_LOG_LEVEL;
-  return LOG_LEVELS[level] >= LOG_LEVELS[configuredLevel];
+interface LogContext {
+  request?: RequestContext;
+  component?: string;
+  operation?: string;
+  [key: string]: any;
 }
 
 /**
- * Format a log message with timestamp and level
+ * Enhanced logger interface with structured logging and context support
  */
-function formatLogMessage(
-  level: LogLevel,
-  message: string,
-  data?: any
-): string {
-  const timestamp = new Date().toISOString();
-  const sanitizedData = data ? sanitizeData(data) : undefined;
+const loggerInstance = {
+  /**
+   * Create a child logger with additional context
+   */
+  child: (context: LogContext) => {
+    const childLogger = pinoLogger.child(sanitizeData(context));
 
-  let formattedMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
+    return {
+      debug: (message: string, data?: any) => {
+        childLogger.debug(sanitizeData(data), message);
+      },
 
-  if (sanitizedData) {
-    try {
-      formattedMessage += ` ${JSON.stringify(sanitizedData)}`;
-    } catch (e) {
-      formattedMessage += " [Data could not be stringified]";
-    }
-  }
+      info: (message: string, data?: any) => {
+        childLogger.info(sanitizeData(data), message);
+      },
 
-  return formattedMessage;
-}
+      warn: (message: string, data?: any) => {
+        childLogger.warn(sanitizeData(data), message);
+      },
 
-/**
- * The logger interface
- */
-export const logger = {
+      error: (message: string, error?: any, additionalData?: any) => {
+        const errorData = {
+          ...sanitizeData(additionalData),
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack:
+                    process.env.NODE_ENV !== "production"
+                      ? error.stack
+                      : undefined,
+                }
+              : error,
+        };
+
+        childLogger.error(errorData, message);
+      },
+    };
+  },
+
+  /**
+   * Debug level logging
+   */
   debug: (message: string, data?: any) => {
-    if (shouldLog("debug")) {
-      console.debug(formatLogMessage("debug", message, data));
-    }
+    pinoLogger.debug(sanitizeData(data), message);
   },
 
+  /**
+   * Info level logging
+   */
   info: (message: string, data?: any) => {
-    if (shouldLog("info")) {
-      console.info(formatLogMessage("info", message, data));
-    }
+    pinoLogger.info(sanitizeData(data), message);
   },
 
+  /**
+   * Warning level logging
+   */
   warn: (message: string, data?: any) => {
-    if (shouldLog("warn")) {
-      console.warn(formatLogMessage("warn", message, data));
-    }
+    pinoLogger.warn(sanitizeData(data), message);
   },
 
+  /**
+   * Error level logging with enhanced error handling
+   */
   error: (message: string, error?: any, additionalData?: any) => {
-    if (shouldLog("error")) {
-      const errorMessage =
+    const errorData = {
+      ...sanitizeData(additionalData),
+      error:
         error instanceof Error
-          ? `${error.name}: ${error.message}`
-          : String(error);
+          ? {
+              name: error.name,
+              message: error.message,
+              stack:
+                process.env.NODE_ENV !== "production" ? error.stack : undefined,
+              code: (error as any).code,
+              statusCode: (error as any).statusCode,
+            }
+          : error,
+    };
 
-      console.error(
-        formatLogMessage(
-          "error",
-          `${message} - ${errorMessage}`,
-          additionalData
-        )
+    pinoLogger.error(errorData, message);
+  },
+
+  /**
+   * HTTP request logging
+   */
+  http: {
+    request: (req: any, context?: LogContext) => {
+      const requestData = {
+        ...context,
+        request: {
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers?.["user-agent"],
+          ip: req.headers?.["x-forwarded-for"] || req.ip,
+          requestId:
+            req.headers?.["x-request-id"] || context?.request?.requestId,
+        },
+      };
+
+      pinoLogger.info(sanitizeData(requestData), "HTTP Request");
+    },
+
+    response: (req: any, res: any, duration: number, context?: LogContext) => {
+      const responseData = {
+        ...context,
+        request: {
+          method: req.method,
+          url: req.url,
+          requestId:
+            req.headers?.["x-request-id"] || context?.request?.requestId,
+        },
+        response: {
+          statusCode: res.statusCode,
+          duration,
+          contentLength: res.get?.("content-length"),
+        },
+      };
+
+      const level = res.statusCode >= 400 ? "warn" : "info";
+      pinoLogger[level](sanitizeData(responseData), "HTTP Response");
+    },
+  },
+
+  /**
+   * Database operation logging
+   */
+  db: {
+    query: (query: string, duration?: number, context?: LogContext) => {
+      pinoLogger.debug(
+        sanitizeData({
+          ...context,
+          database: {
+            query: query.substring(0, 500), // Truncate long queries
+            duration,
+          },
+        }),
+        "Database Query"
       );
+    },
 
-      // Log stack trace for errors in non-production environments
-      if (
-        process.env.NODE_ENV !== "production" &&
-        error instanceof Error &&
-        error.stack
-      ) {
-        console.error(error.stack);
-      }
-    }
+    error: (query: string, error: any, context?: LogContext) => {
+      loggerInstance.error("Database Query Failed", error, {
+        ...context,
+        database: {
+          query: query.substring(0, 500),
+        },
+      });
+    },
+  },
+
+  /**
+   * Business logic and application events
+   */
+  app: {
+    startup: (port?: number, env?: string) => {
+      pinoLogger.info(
+        {
+          application: {
+            port,
+            environment: env || process.env.NODE_ENV,
+            startup: true,
+          },
+        },
+        "Application Started"
+      );
+    },
+
+    shutdown: (reason?: string) => {
+      pinoLogger.info(
+        {
+          application: {
+            shutdown: true,
+            reason,
+          },
+        },
+        "Application Shutdown"
+      );
+    },
+  },
+
+  /**
+   * Performance and metrics logging
+   */
+  metrics: {
+    performance: (
+      operation: string,
+      duration: number,
+      context?: LogContext
+    ) => {
+      pinoLogger.info(
+        sanitizeData({
+          ...context,
+          performance: {
+            operation,
+            duration,
+            timestamp: Date.now(),
+          },
+        }),
+        "Performance Metric"
+      );
+    },
+
+    counter: (metric: string, value: number, tags?: Record<string, string>) => {
+      pinoLogger.info(
+        sanitizeData({
+          metrics: {
+            type: "counter",
+            name: metric,
+            value,
+            tags,
+          },
+        }),
+        "Counter Metric"
+      );
+    },
   },
 };
+
+// Import safe logger wrapper
+import { createSafeLogger } from "./logger-safe";
+
+// Create wrapped logger for safe usage in environments with worker thread issues
+const safeLogger = createSafeLogger({
+  ...loggerInstance,
+  // Expose the original pino logger methods that the safe wrapper expects
+  debug: (message: string, data?: any) => loggerInstance.debug(message, data),
+  info: (message: string, data?: any) => loggerInstance.info(message, data),
+  warn: (message: string, data?: any) => loggerInstance.warn(message, data),
+  error: (message: string, error?: any, additionalData?: any) =>
+    loggerInstance.error(message, error, additionalData),
+  trace: () => {}, // Add trace method for compatibility
+  fatal: (message: string, error?: any) =>
+    loggerInstance.error(`[FATAL] ${message}`, error),
+});
+
+// Export the safe logger
+export { safeLogger as logger };
+
+// Export types for use in other modules
+export type { LogContext, RequestContext };

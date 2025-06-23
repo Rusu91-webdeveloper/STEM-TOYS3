@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { applyDevelopmentFallbacks } from "./config-fallback";
+
 // Define the environment schema with all required variables
 const envSchema = z.object({
   // Database
@@ -9,7 +11,20 @@ const envSchema = z.object({
   NEXTAUTH_URL: z.string().url("NEXTAUTH_URL must be a valid URL").optional(),
   NEXTAUTH_SECRET: z
     .string()
-    .min(32, "NEXTAUTH_SECRET must be at least 32 characters long"),
+    .min(32, "NEXTAUTH_SECRET must be at least 32 characters long")
+    .optional()
+    .refine(
+      val => {
+        // In production, NEXTAUTH_SECRET is required
+        if (process.env.NODE_ENV === "production" && !val) {
+          return false;
+        }
+        return true;
+      },
+      {
+        message: "NEXTAUTH_SECRET is required in production",
+      }
+    ),
 
   // OAuth Providers (required if being used)
   GOOGLE_CLIENT_ID: z.string().optional(),
@@ -38,12 +53,28 @@ const envSchema = z.object({
   // Upload service
   UPLOADTHING_SECRET: z.string().optional(),
   UPLOADTHING_APP_ID: z.string().optional(),
+
+  // Logger configuration
+  DISABLE_PINO: z.string().optional(),
+  ENABLE_PINO: z.string().optional(),
+  LOG_LEVEL: z.string().optional(),
+
+  // Cache configuration
+  DISABLE_REDIS: z.string().optional(),
+  REDIS_URL: z.string().optional(),
+  UPSTASH_REDIS_REST_URL: z.string().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+  REDIS_TIMEOUT: z.string().optional(),
+
+  // Security
+  ENCRYPTION_KEY: z.string().optional(),
+  CSRF_SECRET_KEY: z.string().optional(),
 });
 
 // Refined schema with custom validation logic
 const envSchemaRefined = envSchema
   .refine(
-    (data) => {
+    data => {
       // If Google OAuth is configured, both client ID and secret are required
       if (data.GOOGLE_CLIENT_ID || data.GOOGLE_CLIENT_SECRET) {
         return data.GOOGLE_CLIENT_ID && data.GOOGLE_CLIENT_SECRET;
@@ -57,7 +88,7 @@ const envSchemaRefined = envSchema
     }
   )
   .refine(
-    (data) => {
+    data => {
       // If admin environment variables are used, validate they're only in development
       if (
         (data.ADMIN_EMAIL || data.ADMIN_PASSWORD || data.ADMIN_PASSWORD_HASH) &&
@@ -77,16 +108,21 @@ export type Env = z.infer<typeof envSchema>;
 
 // Validate and parse environment variables
 function validateEnv(): Env {
+  // Apply development fallbacks before validation
+  if (process.env.NODE_ENV !== "production") {
+    applyDevelopmentFallbacks();
+  }
+
   try {
     return envSchemaRefined.parse(process.env);
   } catch (error) {
     if (error instanceof z.ZodError) {
       const errorMessages = error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`
+        err => `${err.path.join(".")}: ${err.message}`
       );
 
       console.error("❌ Environment variable validation failed:");
-      errorMessages.forEach((msg) => console.error(`  - ${msg}`));
+      errorMessages.forEach(msg => console.error(`  - ${msg}`));
 
       console.error(
         "\n💡 Please check your .env file and ensure all required variables are set."
@@ -115,20 +151,47 @@ export const serviceConfig = {
     !!(env.STRIPE_SECRET_KEY && env.STRIPE_PUBLISHABLE_KEY),
   isEmailEnabled: () => !!env.RESEND_API_KEY,
   isUploadEnabled: () => !!(env.UPLOADTHING_SECRET && env.UPLOADTHING_APP_ID),
-  isAdminEnvEnabled: () =>
-    !!(env.ADMIN_EMAIL && (env.ADMIN_PASSWORD || env.ADMIN_PASSWORD_HASH)),
+  isAdminEnvEnabled: () => {
+    const hasPassword = Boolean(env.ADMIN_PASSWORD);
+    const hasPasswordHash = Boolean(env.ADMIN_PASSWORD_HASH);
+    const hasAuth = hasPassword || hasPasswordHash;
+    return Boolean(env.ADMIN_EMAIL) && hasAuth;
+  },
+  isRedisEnabled: () => {
+    const hasRedisUrl = Boolean(env.REDIS_URL);
+    const hasUpstashUrl = Boolean(env.UPSTASH_REDIS_REST_URL);
+    const hasRedisConfig = hasRedisUrl || hasUpstashUrl;
+    return hasRedisConfig && env.DISABLE_REDIS !== "true";
+  },
+  isPinoEnabled: () => {
+    const isProductionOrExplicitlyEnabled =
+      env.NODE_ENV === "production" || env.ENABLE_PINO === "true";
+    return env.DISABLE_PINO !== "true" && isProductionOrExplicitlyEnabled;
+  },
 } as const;
 
 // Log configuration status (only in development)
 if (env.NODE_ENV === "development") {
+  // eslint-disable-next-line no-console
   console.log("🔧 Service Configuration:");
+  // eslint-disable-next-line no-console
   console.log(
     `  - Google OAuth: ${serviceConfig.isGoogleOAuthEnabled() ? "✅" : "❌"}`
   );
+  // eslint-disable-next-line no-console
   console.log(`  - Stripe: ${serviceConfig.isStripeEnabled() ? "✅" : "❌"}`);
+  // eslint-disable-next-line no-console
   console.log(`  - Email: ${serviceConfig.isEmailEnabled() ? "✅" : "❌"}`);
+  // eslint-disable-next-line no-console
   console.log(`  - Upload: ${serviceConfig.isUploadEnabled() ? "✅" : "❌"}`);
+  // eslint-disable-next-line no-console
   console.log(
     `  - Admin Env: ${serviceConfig.isAdminEnvEnabled() ? "✅" : "❌"}`
+  );
+  // eslint-disable-next-line no-console
+  console.log(`  - Redis: ${serviceConfig.isRedisEnabled() ? "✅" : "❌"}`);
+  // eslint-disable-next-line no-console
+  console.log(
+    `  - Pino Logger: ${serviceConfig.isPinoEnabled() ? "✅" : "❌"}`
   );
 }

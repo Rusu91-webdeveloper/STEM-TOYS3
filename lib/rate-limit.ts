@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { redis } from "@/lib/redis";
+import { RATE_LIMITS } from "./constants";
 
 interface RateLimitConfig {
   /**
@@ -397,57 +398,57 @@ const rateLimiter = new RateLimiter();
 export const rateLimitConfig = {
   // Authentication endpoints - strict limits
   auth: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 5, // 5 attempts per 15 minutes
+    windowMs: RATE_LIMITS.AUTH.WINDOW_MS,
+    maxRequests: RATE_LIMITS.AUTH.MAX_REQUESTS,
     message: "Too many authentication attempts. Please try again later.",
   },
 
   // Password reset - very strict
   passwordReset: {
-    windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 3, // 3 attempts per hour
+    windowMs: RATE_LIMITS.PASSWORD_RESET.WINDOW_MS,
+    maxRequests: RATE_LIMITS.PASSWORD_RESET.MAX_REQUESTS,
     message: "Too many password reset attempts. Please try again later.",
   },
 
   // Contact form - prevent spam
   contact: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 2, // 2 submissions per minute
+    windowMs: RATE_LIMITS.CONTACT.WINDOW_MS,
+    maxRequests: RATE_LIMITS.CONTACT.MAX_REQUESTS,
     message: "Please wait before submitting another message.",
   },
 
   // General API endpoints
   api: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 60, // 60 requests per minute
+    windowMs: RATE_LIMITS.API.WINDOW_MS,
+    maxRequests: RATE_LIMITS.API.MAX_REQUESTS,
     message: "Too many requests. Please slow down.",
   },
 
   // Admin endpoints - more restrictive
   admin: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 30, // 30 requests per minute
+    windowMs: RATE_LIMITS.ADMIN.WINDOW_MS,
+    maxRequests: RATE_LIMITS.ADMIN.MAX_REQUESTS,
     message: "Admin rate limit exceeded.",
   },
 
   // Public content - more lenient
   public: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100, // 100 requests per minute
+    windowMs: RATE_LIMITS.PUBLIC.WINDOW_MS,
+    maxRequests: RATE_LIMITS.PUBLIC.MAX_REQUESTS,
     message: "Rate limit exceeded for public content.",
   },
 
   // Search endpoints
   search: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 20, // 20 searches per minute
+    windowMs: RATE_LIMITS.SEARCH.WINDOW_MS,
+    maxRequests: RATE_LIMITS.SEARCH.MAX_REQUESTS,
     message: "Too many search requests. Please wait.",
   },
 
   // Cart/checkout operations
   cart: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 30, // 30 cart operations per minute
+    windowMs: RATE_LIMITS.CART.WINDOW_MS,
+    maxRequests: RATE_LIMITS.CART.MAX_REQUESTS,
     message: "Too many cart operations. Please wait.",
   },
 } as const;
@@ -464,7 +465,7 @@ export function getClientIdentifier(request: Request): string {
 
   // Parse forwarded-for header (may contain multiple IPs)
   if (forwardedFor) {
-    const ips = forwardedFor.split(",").map((ip) => ip.trim());
+    const ips = forwardedFor.split(",").map(ip => ip.trim());
     return ips[0]; // First IP is the original client
   }
 

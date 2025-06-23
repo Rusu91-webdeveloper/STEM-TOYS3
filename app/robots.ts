@@ -1,47 +1,114 @@
 import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = "https://techtots.com";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://techtots.com";
 
   return {
     rules: [
+      // Primary rule for all crawlers
       {
         userAgent: "*",
-        allow: ["/", "/products/", "/categories/", "/blog/", "/about/"],
+        allow: [
+          "/",
+          "/products/",
+          "/categories/",
+          "/blog/",
+          "/books/",
+          "/about/",
+          "/contact/",
+          "/warranty/",
+          "/returns/",
+          "/privacy/",
+          "/terms/",
+        ],
         disallow: [
-          "/admin",
+          "/admin/",
           "/api/",
           "/auth/",
           "/checkout/",
-          "/direct-verify/",
           "/account/",
-          "/*?query=*", // Prevent indexing of search result pages
-          "/*?sort=*", // Prevent indexing of sorted pages
+          "/guest-orders/",
+          "/_next/",
+          "/unsubscribe/",
+          "/offline/",
+          "/*?*", // Prevent indexing of pages with query parameters
+          "/products/*?*", // Except allow clean product URLs
+          "/categories/*?*", // Except allow clean category URLs
+          "/blog/*?*", // Except allow clean blog URLs
         ],
+        crawlDelay: 1, // Be respectful to server resources
       },
-      // Specific rule for Google
+
+      // Optimized rule for Google
       {
         userAgent: "Googlebot",
-        allow: "/",
-        disallow: ["/admin", "/api/"],
+        allow: [
+          "/",
+          "/products/",
+          "/categories/",
+          "/blog/",
+          "/books/",
+          "/about/",
+          "/contact/",
+          "/warranty/",
+          "/returns/",
+          "/privacy/",
+          "/terms/",
+          "/ro/", // Romanian content
+          "/en/", // English content
+        ],
+        disallow: ["/admin/", "/api/", "/auth/", "/checkout/", "/account/"],
       },
-      // Specific rule for Bing
+
+      // Mobile-first crawling for Google Mobile
+      {
+        userAgent: "Googlebot-Mobile",
+        allow: ["/", "/products/", "/categories/", "/blog/", "/books/"],
+        disallow: ["/admin/", "/api/", "/auth/", "/checkout/", "/account/"],
+      },
+
+      // Optimized for Bing
       {
         userAgent: "Bingbot",
-        allow: "/",
-        disallow: ["/admin", "/api/"],
+        allow: ["/", "/products/", "/categories/", "/blog/", "/books/"],
+        disallow: ["/admin/", "/api/", "/auth/", "/checkout/", "/account/"],
+        crawlDelay: 2, // Bing recommends slightly higher delay
       },
-      // Specific rule for Yahoo
+
+      // Block AI training bots (common practice for content protection)
       {
-        userAgent: "Slurp",
-        allow: "/",
-        disallow: ["/admin", "/api/"],
+        userAgent: "GPTBot",
+        disallow: ["/"],
       },
-      // Specific rule for Yandex
       {
-        userAgent: "Yandex",
-        allow: "/",
-        disallow: ["/admin", "/api/"],
+        userAgent: "ChatGPT-User",
+        disallow: ["/"],
+      },
+      {
+        userAgent: "Google-Extended",
+        disallow: ["/"],
+      },
+      {
+        userAgent: "anthropic-ai",
+        disallow: ["/"],
+      },
+      {
+        userAgent: "Claude-Web",
+        disallow: ["/"],
+      },
+
+      // Block common bad bots
+      {
+        userAgent: "SemrushBot",
+        disallow: ["/"],
+      },
+      {
+        userAgent: "AhrefsBot",
+        disallow: ["/"],
+      },
+      {
+        userAgent: "MJ12bot",
+        disallow: ["/"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

@@ -44,7 +44,10 @@ export default async function DigitalFilesPage({ params }: Props) {
 
       <DigitalFilesManager
         book={book}
-        availableLanguages={availableLanguages}
+        availableLanguages={availableLanguages.map(lang => ({
+          ...lang,
+          nativeName: lang.nativeName || undefined
+        }))}
       />
     </div>
   );

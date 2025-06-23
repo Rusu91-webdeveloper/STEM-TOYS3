@@ -25,7 +25,7 @@ const shippingMethodSchema = z
     name: z.string().optional(),
     description: z.string().optional(),
     price: z
-      .union([z.number(), z.string().transform((val) => parseFloat(val) || 0)])
+      .union([z.number(), z.string().transform(val => parseFloat(val) || 0)])
       .optional(),
   })
   .passthrough();
@@ -48,6 +48,14 @@ const orderItemSchema = z.object({
   selectedLanguage: z.string().optional(),
 });
 
+// Guest information schema
+const guestInformationSchema = z.object({
+  email: z.string().email(),
+  createAccount: z.boolean().optional(),
+  password: z.string().optional(),
+  marketingOptIn: z.boolean().optional(),
+});
+
 // Updated order schema
 const orderSchema = z.object({
   shippingAddress: shippingAddressSchema,
@@ -64,6 +72,8 @@ const orderSchema = z.object({
   items: z.array(orderItemSchema).optional(),
   couponCode: z.string().optional(),
   discountAmount: z.number().optional(),
+  guestInformation: guestInformationSchema.optional(),
+  isGuestCheckout: z.boolean().optional(),
 });
 
 // Helper function to format Zod errors
@@ -79,19 +89,9 @@ function formatZodErrors(error: z.ZodError): Record<string, string> {
 // POST /api/checkout/order - Create a new order
 export async function POST(request: Request) {
   try {
-    // Get the user session
+    // Get the user session (optional for guest checkout)
     const session = await auth();
     const user = session?.user;
-
-    if (!user || !user.id) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required",
-        },
-        { status: 401 }
-      );
-    }
 
     // Parse the request body
     let body;
@@ -117,6 +117,26 @@ export async function POST(request: Request) {
 
     // Validate request body
     const orderData = orderSchema.parse(body);
+
+    // Validate checkout type - either authenticated user or guest with email
+    if (
+      !user &&
+      (!orderData.guestInformation?.email || !orderData.isGuestCheckout)
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Authentication required or guest information missing",
+        },
+        { status: 401 }
+      );
+    }
+
+    // Determine if this is a guest checkout
+    const isGuestCheckout = !user && orderData.isGuestCheckout;
+    const guestEmail = isGuestCheckout
+      ? orderData.guestInformation?.email
+      : null;
 
     // Check if Stripe environment variables are set
     const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -176,7 +196,7 @@ export async function POST(request: Request) {
       });
 
       // Map database products to cart items
-      items = products.map((product) => ({
+      items = products.map(product => ({
         id: product.id,
         productId: product.id,
         name: product.name,
@@ -380,14 +400,14 @@ export async function POST(request: Request) {
     try {
       console.log(
         `Creating order with ${items.length} items:`,
-        items.map((item) => ({
+        items.map(item => ({
           name: item.name,
           productId: item.productId,
           isBook: item.isBook,
         }))
       );
 
-      dbOrder = await db.$transaction(async (tx) => {
+      dbOrder = await db.$transaction(async tx => {
         // First, create the order
         const newOrder = await tx.order.create({
           data: {
@@ -563,7 +583,7 @@ export async function POST(request: Request) {
       });
 
       const digitalBooks =
-        orderWithItems?.items.filter((item) => item.bookId !== null) || [];
+        orderWithItems?.items.filter(item => item.bookId !== null) || [];
       const hasDigitalBooks = digitalBooks.length > 0;
 
       if (hasDigitalBooks) {
@@ -577,7 +597,7 @@ export async function POST(request: Request) {
         // Match cart items with order items to extract language preferences
         for (const orderItem of digitalBooks) {
           // Find the corresponding cart item by matching the item name
-          const cartItem = items.find((item) => item.name === orderItem.name);
+          const cartItem = items.find(item => item.name === orderItem.name);
 
           if (cartItem?.selectedLanguage) {
             languagePreferences.set(orderItem.id, cartItem.selectedLanguage);
@@ -605,7 +625,7 @@ export async function POST(request: Request) {
 
             // Check if this order contains ONLY digital books
             const allItemsAreDigital = orderWithItems?.items.every(
-              (item) => item.isDigital === true
+              item => item.isDigital === true
             );
 
             if (allItemsAreDigital) {
@@ -639,7 +659,7 @@ export async function POST(request: Request) {
           userId: user.id,
           orderNumber,
           itemCount: items.length,
-          items: items.map((item) => ({
+          items: items.map(item => ({
             name: item.name,
             productId: item.productId,
             isBook: item.isBook,
@@ -657,7 +677,7 @@ export async function POST(request: Request) {
     try {
       const orderDetails = {
         id: dbOrder?.id || orderId,
-        items: items.map((item) => ({
+        items: items.map(item => ({
           name: item.name,
           quantity: item.quantity,
           price: item.price,

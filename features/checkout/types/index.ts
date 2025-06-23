@@ -1,4 +1,5 @@
 export type CheckoutStep =
+  | "guest-info"
   | "shipping-address"
   | "shipping-method"
   | "payment"
@@ -32,10 +33,19 @@ export interface PaymentDetails {
   cardType?: string;
 }
 
+export interface GuestInformation {
+  email: string;
+  createAccount?: boolean;
+  password?: string;
+  marketingOptIn?: boolean;
+}
+
 export interface CheckoutData {
   shippingAddress?: ShippingAddress;
   shippingMethod?: ShippingMethod;
   paymentDetails?: PaymentDetails;
   billingAddressSameAsShipping?: boolean;
   billingAddress?: ShippingAddress;
+  guestInformation?: GuestInformation;
+  isGuestCheckout?: boolean;
 }

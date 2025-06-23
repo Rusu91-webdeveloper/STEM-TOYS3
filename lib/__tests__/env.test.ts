@@ -8,8 +8,8 @@ describe("Environment variable utilities", () => {
   // Setup and teardown
   beforeEach(() => {
     // Reset environment variables before each test
+    jest.resetModules();
     process.env = { ...originalEnv };
-    process.env.NODE_ENV = originalNodeEnv;
 
     // Spy on console.warn and console.error
     jest.spyOn(console, "warn").mockImplementation(() => {});
@@ -52,19 +52,28 @@ describe("Environment variable utilities", () => {
 
     it("should return a placeholder in development mode when isDevelopmentOnly is true", () => {
       // Arrange
-      process.env.NODE_ENV = "development";
+      Object.defineProperty(process.env, "NODE_ENV", {
+        value: "development",
+        configurable: true,
+      });
       delete process.env.TEST_VAR;
 
       // Act
       const result = getRequiredEnvVar("TEST_VAR", undefined, true);
 
       // Assert
-      expect(result).toBe("development-placeholder-value");
+      expect(result).toMatch(/^dev-placeholder-TEST_VAR-\d+$/);
+      expect(console.warn).toHaveBeenCalledWith(
+        "WARNING: Using development placeholder for TEST_VAR. This would throw an error in production."
+      );
     });
 
     it("should still throw in production even when isDevelopmentOnly is true", () => {
       // Arrange
-      process.env.NODE_ENV = "production";
+      Object.defineProperty(process.env, "NODE_ENV", {
+        value: "production",
+        configurable: true,
+      });
       delete process.env.TEST_VAR;
 
       // Act & Assert

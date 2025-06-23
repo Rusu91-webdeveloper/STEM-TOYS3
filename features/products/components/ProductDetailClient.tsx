@@ -17,6 +17,8 @@ import { toast } from "@/components/ui/use-toast";
 import type { Product } from "@/types/product";
 import { ProductReviews, type Review } from "./ProductReviews";
 import { useSession } from "next-auth/react";
+import ProductImageZoom from "@/components/products/ProductImageZoom";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 type ProductDetailClientProps = {
   product: Product;
@@ -236,27 +238,35 @@ export default function ProductDetailClient({
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="mb-6">
-          <Link
-            href="/products"
-            className="flex items-center text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            {t("backToProducts")}
-          </Link>
+          <Breadcrumb
+            items={[
+              { label: t("products"), href: "/products" },
+              {
+                label: product.category?.name || "Category",
+                href: `/categories/${product.category?.slug}`,
+              },
+              { label: product.name, current: true },
+            ]}
+            className="mb-4"
+          />
         </div>
 
         {/* Product Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Gallery */}
           <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-lg border">
+            <div className="relative aspect-square overflow-hidden rounded-lg border group">
               {selectedImage && (
-                <Image
+                <ProductImageZoom
                   src={selectedImage}
                   alt={product.name}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  width={600}
+                  height={600}
                   priority
-                  className="object-cover"
+                  className="w-full h-full"
+                  enableHoverZoom={true}
+                  enableClickZoom={true}
+                  showZoomControls={true}
                 />
               )}
             </div>
@@ -265,12 +275,13 @@ export default function ProductDetailClient({
                 {product.images.map((image, index) => (
                   <button
                     key={index}
-                    className={`relative aspect-square overflow-hidden rounded border ${
+                    className={`relative aspect-square overflow-hidden rounded border transition-all duration-200 ${
                       selectedImage === image
                         ? "ring-2 ring-primary"
                         : "hover:ring-1 hover:ring-primary/50"
                     }`}
-                    onClick={() => setSelectedImage(image)}>
+                    onClick={() => setSelectedImage(image)}
+                  >
                     <Image
                       src={image}
                       alt={`${product.name} - view ${index + 1}`}
@@ -297,7 +308,8 @@ export default function ProductDetailClient({
                         i < Math.round(averageRating)
                           ? "text-yellow-400"
                           : "text-gray-300"
-                      }`}>
+                      }`}
+                    >
                       ★
                     </span>
                   ))}
@@ -343,24 +355,29 @@ export default function ProductDetailClient({
 
             <div className="space-y-4">
               <div>
-                <span className="font-medium">{t("ageRange")}:</span>{" "}
+                <span className="font-medium">
+                  {t("ageRange", "Age Range")}:
+                </span>{" "}
                 {product.ageRange ||
                   (product.attributes?.age
                     ? product.attributes.age
                     : "8-12")}{" "}
-                {t("years")}
+                years
               </div>
               <div>
-                <span className="font-medium">{t("category")}:</span>{" "}
+                <span className="font-medium">
+                  {t("category", "Category")}:
+                </span>{" "}
                 <Link
                   href={`/products?category=${getCategoryName()}`}
-                  className="capitalize hover:underline text-primary">
+                  className="capitalize hover:underline text-primary"
+                >
                   {getCategoryName()}
                 </Link>
               </div>
               {product.attributes?.difficulty && (
                 <div>
-                  <span className="font-medium">{t("difficulty")}:</span>{" "}
+                  <span className="font-medium">Difficulty:</span>{" "}
                   <span>{product.attributes.difficulty}</span>
                 </div>
               )}
@@ -368,15 +385,13 @@ export default function ProductDetailClient({
 
             {/* Action Buttons */}
             <div className="pt-4 flex flex-col gap-3">
-              <ProductAddToCartButton
-                product={product}
-                isBook={isBook}
-              />
+              <ProductAddToCartButton product={product} isBook={isBook} />
               <Button
                 variant="outline"
                 className={`flex items-center gap-2 ${isInWishlist ? "text-red-500" : ""}`}
                 onClick={handleToggleWishlist}
-                disabled={isAddingToWishlist}>
+                disabled={isAddingToWishlist}
+              >
                 <Heart
                   className={`h-4 w-4 ${isInWishlist ? "fill-current" : ""}`}
                 />
@@ -465,7 +480,7 @@ export default function ProductDetailClient({
               productId={product.id}
               reviews={reviews}
               userLoggedIn={!!session}
-              onSubmitReview={(reviewData) => {
+              onSubmitReview={reviewData => {
                 toast({
                   title: t(
                     "reviewSubmissionDisabled",

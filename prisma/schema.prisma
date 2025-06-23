@@ -29,6 +29,7 @@ model User {
   wishlistItems       Wishlist[]
   couponsCreated      Coupon[]             @relation("CouponCreatedBy")
   couponUsages        CouponUsage[]
+  contentVersions     ContentVersion[]
 }
 
 model PasswordResetToken {
@@ -440,6 +441,12 @@ enum StemCategory {
   GENERAL
 }
 
+enum ContentType {
+  BLOG
+  PRODUCT
+  CATEGORY
+}
+
 enum OrderStatus {
   PROCESSING
   SHIPPED
@@ -475,4 +482,23 @@ enum ReturnStatus {
 enum CouponType {
   PERCENTAGE
   FIXED_AMOUNT
+}
+
+model ContentVersion {
+  id                String      @id @default(cuid())
+  contentId         String
+  contentType       ContentType
+  version           Int
+  title             String
+  content           Json
+  changeDescription String?
+  createdBy         String
+  createdAt         DateTime    @default(now())
+  isPublished       Boolean     @default(false)
+  creator           User        @relation(fields: [createdBy], references: [id])
+
+  @@unique([contentId, contentType, version])
+  @@index([contentId, contentType])
+  @@index([createdBy])
+  @@index([createdAt])
 }
