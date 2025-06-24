@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { withErrorHandler } from "@/lib/api-error-handler";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { withErrorHandler } from "@/lib/api-error-handler";
 
 interface UserStats {
   totalOrders: number;
@@ -11,7 +12,7 @@ interface UserStats {
   accountLevel: {
     current: string;
     progress: number;
-    nextLevel: string;
+    nextLevel: string | null;
     benefitsUnlocked: string[];
   };
   loyaltyPoints: number;
@@ -77,21 +78,21 @@ function calculateAccountLevel(totalSpent: number) {
       nextLevel: "gold",
       benefitsUnlocked: ACCOUNT_LEVELS.silver.benefits,
     };
-  } else {
-    const progress = Math.min(
-      100,
-      (totalSpent / ACCOUNT_LEVELS.silver.min) * 100
-    );
-    return {
-      current: "bronze",
-      progress: Math.round(progress),
-      nextLevel: "silver",
-      benefitsUnlocked: ACCOUNT_LEVELS.bronze.benefits,
-    };
   }
+  const progress = Math.min(
+    100,
+    (totalSpent / ACCOUNT_LEVELS.silver.min) * 100
+  );
+  return {
+    current: "bronze",
+    progress: Math.round(progress),
+    nextLevel: "silver",
+    benefitsUnlocked: ACCOUNT_LEVELS.bronze.benefits,
+  };
 }
 
-export async function GET(request: NextRequest) {
+// eslint-disable-next-line require-await
+export async function GET(_request: NextRequest) {
   return withErrorHandler(async () => {
     const session = await auth();
 
@@ -114,7 +115,7 @@ export async function GET(request: NextRequest) {
           },
         },
         include: {
-          orderItems: {
+          items: {
             include: {
               product: {
                 include: {
@@ -134,8 +135,8 @@ export async function GET(request: NextRequest) {
       // Calculate favorite category
       const categoryPurchases: Record<string, number> = {};
       orders.forEach(order => {
-        order.orderItems.forEach(item => {
-          if (item.product.category) {
+        order.items.forEach(item => {
+          if (item.product?.category) {
             const categoryName = item.product.category.name;
             categoryPurchases[categoryName] =
               (categoryPurchases[categoryName] || 0) + item.quantity;

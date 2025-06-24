@@ -1,11 +1,13 @@
-import React from "react";
+import { ArrowLeft } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
+import React from "react";
+
+import { ProductReviewForm } from "@/features/account/components/ProductReviewForm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getTranslations } from "@/lib/i18n/server";
-import { ArrowLeft } from "lucide-react";
-import { ProductReviewForm } from "@/features/account/components/ProductReviewForm";
 
 interface PageProps {
   params: {
@@ -17,15 +19,12 @@ interface PageProps {
   };
 }
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata({ params: _params }: PageProps) {
   const t = await getTranslations("ro");
 
   return {
-    title: `${t("writeReview", "Write Review")} | ${t("account", "Account")}`,
-    description: t(
-      "shareYourExperience",
-      "Share your experience with this product"
-    ),
+    title: `${t("writeReview")} | ${t("account")}`,
+    description: t("shareYourExperience"),
   };
 }
 
@@ -52,7 +51,7 @@ export default async function WriteReviewPage({
   const orderItem = await db.orderItem.findFirst({
     where: {
       id: itemId,
-      productId: productId,
+      productId,
       order: {
         id: orderId,
         userId: session.user.id,
@@ -92,29 +91,32 @@ export default async function WriteReviewPage({
     <div className="max-w-2xl mx-auto">
       <Link
         href={`/account/orders/${orderId}`}
-        className="flex items-center text-sm text-muted-foreground mb-6 hover:text-foreground transition-colors">
+        className="flex items-center text-sm text-muted-foreground mb-6 hover:text-foreground transition-colors"
+      >
         <ArrowLeft className="h-4 w-4 mr-1" />
-        {t("backToOrder", "Back to Order")}
+        {t("backToOrder")}
       </Link>
 
       <h2 className="text-2xl font-semibold tracking-tight mb-6">
-        {t("writeReview", "Write Review")}
+        {t("writeReview")}
       </h2>
 
       <div className="flex items-center gap-4 mb-8">
         <div className="h-16 w-16 rounded bg-muted overflow-hidden relative shrink-0">
           {orderItem.product?.images?.[0] && (
-            <img
+            <Image
               src={orderItem.product.images[0]}
-              alt={orderItem.product.name}
+              alt={orderItem.product?.name || "Product"}
               className="object-cover h-full w-full"
+              width={64}
+              height={64}
             />
           )}
         </div>
         <div>
-          <h3 className="font-medium">{orderItem.product.name}</h3>
+          <h3 className="font-medium">{orderItem.product?.name}</h3>
           <p className="text-sm text-muted-foreground">
-            {t("fromOrder", "From Order")} #{orderItem.order.orderNumber}
+            {t("fromOrder")} #{orderItem.order.orderNumber}
           </p>
         </div>
       </div>
