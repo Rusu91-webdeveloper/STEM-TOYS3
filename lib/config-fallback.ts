@@ -16,33 +16,20 @@ const generateDevSecret = () => {
 export const developmentFallbackConfig = {
   // Database
   DATABASE_URL:
-    process.env.DATABASE_URL ||
     "postgresql://postgres:postgres@localhost:5432/nextcommerce_dev",
 
-  // NextAuth
-  NEXTAUTH_URL: process.env.NEXTAUTH_URL || "http://localhost:3000",
-  NEXTAUTH_SECRET:
-    process.env.NEXTAUTH_SECRET ||
-    (process.env.NODE_ENV !== "production" ? generateDevSecret() : undefined),
+  // NextAuth - Only generate secret if not already set
+  NEXTAUTH_URL: "http://localhost:3000",
+  NEXTAUTH_SECRET: undefined, // Will be generated only if needed
 
   // Node environment
-  NODE_ENV: process.env.NODE_ENV || "development",
-
-  // Optional services - return undefined if not set
-  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
-  STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
-  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-  RESEND_API_KEY: process.env.RESEND_API_KEY,
-  UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
-  UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
+  NODE_ENV: "development",
 
   // Admin defaults for development
-  ADMIN_EMAIL: process.env.ADMIN_EMAIL || "admin@example.com",
-  ADMIN_NAME: process.env.ADMIN_NAME || "Admin User",
-  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "admin123",
-  USE_ENV_ADMIN: process.env.USE_ENV_ADMIN || "true",
+  ADMIN_EMAIL: "admin@example.com",
+  ADMIN_NAME: "Admin User",
+  ADMIN_PASSWORD: "admin123",
+  USE_ENV_ADMIN: "true",
 };
 
 // Apply fallback only in development
@@ -51,13 +38,24 @@ export function applyDevelopmentFallbacks() {
     return;
   }
 
+  let appliedAnyFallback = false;
+
   // Apply fallbacks to process.env
   Object.entries(developmentFallbackConfig).forEach(([key, value]) => {
     if (value !== undefined && !process.env[key]) {
       process.env[key] = value;
+      appliedAnyFallback = true;
     }
   });
 
-  console.log("🔧 Development fallback configuration applied");
-  console.log("⚠️  Please create a .env.local file for proper configuration");
+  // Special handling for NEXTAUTH_SECRET - only generate if not set
+  if (!process.env.NEXTAUTH_SECRET && process.env.NODE_ENV === "development") {
+    process.env.NEXTAUTH_SECRET = generateDevSecret();
+    appliedAnyFallback = true;
+  }
+
+  if (appliedAnyFallback) {
+    console.log("🔧 Development fallback configuration applied");
+    console.log("⚠️  Some environment variables were missing from .env.local");
+  }
 }

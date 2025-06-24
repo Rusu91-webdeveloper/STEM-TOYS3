@@ -50,7 +50,7 @@ export const RATE_LIMITS = {
   // Authentication endpoints
   AUTH: {
     WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-    MAX_REQUESTS: 5, // 5 attempts per window
+    MAX_REQUESTS: process.env.NODE_ENV === "development" ? 50 : 5, // 50 attempts in dev, 5 in production
   },
 
   // Password reset

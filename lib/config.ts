@@ -114,7 +114,8 @@ function validateEnv(): Env {
   }
 
   try {
-    return envSchemaRefined.parse(process.env);
+    const validatedEnv = envSchemaRefined.parse(process.env);
+    return validatedEnv;
   } catch (error) {
     if (error instanceof z.ZodError) {
       const errorMessages = error.errors.map(
@@ -140,58 +141,104 @@ function validateEnv(): Env {
   }
 }
 
-// Export the validated environment variables
-export const env = validateEnv();
+// Lazy load environment variables to ensure they're loaded after Next.js initializes
+let _env: Env | null = null;
+
+export function getEnv(): Env {
+  if (!_env) {
+    _env = validateEnv();
+  }
+  return _env;
+}
+
+// Export a getter for backwards compatibility
+export const env = new Proxy({} as Env, {
+  get(target, prop) {
+    const value = getEnv()[prop as keyof Env];
+    ensureConfigLogged();
+    return value;
+  },
+});
+
+// Initialize and log config on first access (but only once)
+let hasLoggedConfig = false;
+function ensureConfigLogged() {
+  if (!hasLoggedConfig && _env && _env.NODE_ENV === "development") {
+    hasLoggedConfig = true;
+    // Use setTimeout to ensure this happens after the current execution context
+    setTimeout(() => {
+      logConfigStatus();
+    }, 0);
+  }
+}
 
 // Helper function to check if required services are configured
 export const serviceConfig = {
-  isGoogleOAuthEnabled: () =>
-    !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
-  isStripeEnabled: () =>
-    !!(env.STRIPE_SECRET_KEY && env.STRIPE_PUBLISHABLE_KEY),
-  isEmailEnabled: () => !!env.RESEND_API_KEY,
-  isUploadEnabled: () => !!(env.UPLOADTHING_SECRET && env.UPLOADTHING_APP_ID),
+  isGoogleOAuthEnabled: () => {
+    if (!_env) return false;
+    return !!(_env.GOOGLE_CLIENT_ID && _env.GOOGLE_CLIENT_SECRET);
+  },
+  isStripeEnabled: () => {
+    if (!_env) return false;
+    return !!(_env.STRIPE_SECRET_KEY && _env.STRIPE_PUBLISHABLE_KEY);
+  },
+  isEmailEnabled: () => {
+    if (!_env) return false;
+    return !!_env.RESEND_API_KEY;
+  },
+  isUploadEnabled: () => {
+    if (!_env) return false;
+    return !!(_env.UPLOADTHING_SECRET && _env.UPLOADTHING_APP_ID);
+  },
   isAdminEnvEnabled: () => {
-    const hasPassword = Boolean(env.ADMIN_PASSWORD);
-    const hasPasswordHash = Boolean(env.ADMIN_PASSWORD_HASH);
+    if (!_env) return false;
+    const hasPassword = Boolean(_env.ADMIN_PASSWORD);
+    const hasPasswordHash = Boolean(_env.ADMIN_PASSWORD_HASH);
     const hasAuth = hasPassword || hasPasswordHash;
-    return Boolean(env.ADMIN_EMAIL) && hasAuth;
+    return Boolean(_env.ADMIN_EMAIL) && hasAuth;
   },
   isRedisEnabled: () => {
-    const hasRedisUrl = Boolean(env.REDIS_URL);
-    const hasUpstashUrl = Boolean(env.UPSTASH_REDIS_REST_URL);
+    if (!_env) return false;
+    const hasRedisUrl = Boolean(_env.REDIS_URL);
+    const hasUpstashUrl = Boolean(_env.UPSTASH_REDIS_REST_URL);
     const hasRedisConfig = hasRedisUrl || hasUpstashUrl;
-    return hasRedisConfig && env.DISABLE_REDIS !== "true";
+    return hasRedisConfig && _env.DISABLE_REDIS !== "true";
   },
   isPinoEnabled: () => {
+    if (!_env) return false;
     const isProductionOrExplicitlyEnabled =
-      env.NODE_ENV === "production" || env.ENABLE_PINO === "true";
-    return env.DISABLE_PINO !== "true" && isProductionOrExplicitlyEnabled;
+      _env.NODE_ENV === "production" || _env.ENABLE_PINO === "true";
+    return _env.DISABLE_PINO !== "true" && isProductionOrExplicitlyEnabled;
   },
 } as const;
 
 // Log configuration status (only in development)
-if (env.NODE_ENV === "development") {
-  // eslint-disable-next-line no-console
-  console.log("🔧 Service Configuration:");
-  // eslint-disable-next-line no-console
-  console.log(
-    `  - Google OAuth: ${serviceConfig.isGoogleOAuthEnabled() ? "✅" : "❌"}`
-  );
-  // eslint-disable-next-line no-console
-  console.log(`  - Stripe: ${serviceConfig.isStripeEnabled() ? "✅" : "❌"}`);
-  // eslint-disable-next-line no-console
-  console.log(`  - Email: ${serviceConfig.isEmailEnabled() ? "✅" : "❌"}`);
-  // eslint-disable-next-line no-console
-  console.log(`  - Upload: ${serviceConfig.isUploadEnabled() ? "✅" : "❌"}`);
-  // eslint-disable-next-line no-console
-  console.log(
-    `  - Admin Env: ${serviceConfig.isAdminEnvEnabled() ? "✅" : "❌"}`
-  );
-  // eslint-disable-next-line no-console
-  console.log(`  - Redis: ${serviceConfig.isRedisEnabled() ? "✅" : "❌"}`);
-  // eslint-disable-next-line no-console
-  console.log(
-    `  - Pino Logger: ${serviceConfig.isPinoEnabled() ? "✅" : "❌"}`
-  );
+export function logConfigStatus() {
+  // Only log if environment has been initialized
+  if (!_env) return;
+
+  if (_env.NODE_ENV === "development") {
+    // eslint-disable-next-line no-console
+    console.log("🔧 Service Configuration:");
+    // eslint-disable-next-line no-console
+    console.log(
+      `  - Google OAuth: ${serviceConfig.isGoogleOAuthEnabled() ? "✅" : "❌"}`
+    );
+    // eslint-disable-next-line no-console
+    console.log(`  - Stripe: ${serviceConfig.isStripeEnabled() ? "✅" : "❌"}`);
+    // eslint-disable-next-line no-console
+    console.log(`  - Email: ${serviceConfig.isEmailEnabled() ? "✅" : "❌"}`);
+    // eslint-disable-next-line no-console
+    console.log(`  - Upload: ${serviceConfig.isUploadEnabled() ? "✅" : "❌"}`);
+    // eslint-disable-next-line no-console
+    console.log(
+      `  - Admin Env: ${serviceConfig.isAdminEnvEnabled() ? "✅" : "❌"}`
+    );
+    // eslint-disable-next-line no-console
+    console.log(`  - Redis: ${serviceConfig.isRedisEnabled() ? "✅" : "❌"}`);
+    // eslint-disable-next-line no-console
+    console.log(
+      `  - Pino Logger: ${serviceConfig.isPinoEnabled() ? "✅" : "❌"}`
+    );
+  }
 }
