@@ -137,12 +137,13 @@ export async function PATCH(
           returnId: updatedReturn.id,
           productName: updatedReturn.orderItem.name,
           productId: updatedReturn.orderItem.productId,
-          productSku: updatedReturn.orderItem.product.sku,
+          productSku: updatedReturn.orderItem.product?.sku || "",
           reason:
             reasonLabelsRo[
               updatedReturn.reason as keyof typeof reasonLabelsRo
             ] || updatedReturn.reason,
-          customerName: updatedReturn.user.name || updatedReturn.user.email,
+          customerName: (updatedReturn.user.name ??
+            updatedReturn.user.email) as string,
           customerEmail: updatedReturn.user.email,
           customerAddress: customerAddress,
           language: "ro", // Set Romanian language for the label
@@ -163,7 +164,7 @@ export async function PATCH(
 
         // Get product image URL (if available)
         const productImage =
-          updatedReturn.orderItem.product.images &&
+          updatedReturn.orderItem.product?.images &&
           updatedReturn.orderItem.product.images.length > 0
             ? updatedReturn.orderItem.product.images[0]
             : "/images/product-placeholder.png";

@@ -16,19 +16,10 @@ export async function POST(request: NextRequest) {
     const order = await db.order.findFirst({
       where: {
         orderNumber,
-        // For guest orders, check the email in guest information or shipping address
-        OR: [
-          {
-            // For guest orders - check guest email
-            guestEmail: email,
-          },
-          {
-            // For authenticated users - check user email
-            user: {
-              email,
-            },
-          },
-        ],
+        // Check user email (works for both guest and authenticated users)
+        user: {
+          email,
+        },
       },
       include: {
         items: {
@@ -41,7 +32,7 @@ export async function POST(request: NextRequest) {
             },
             book: {
               select: {
-                title: true,
+                name: true,
                 slug: true,
               },
             },
@@ -70,19 +61,15 @@ export async function POST(request: NextRequest) {
       total: order.total,
       shippingAddress: order.shippingAddress,
       items: order.items.map(item => ({
-        name: item.product?.name || item.book?.title || item.name,
+        name: item.product?.name || item.book?.name || item.name,
         quantity: item.quantity,
         price: item.price,
         isBook: !!item.book,
       })),
-      shippingMethod: order.shippingMethod
-        ? {
-            name: order.shippingMethod,
-            description:
-              order.shippingCost > 0 ? `$${order.shippingCost}` : "Free",
-          }
-        : undefined,
-      trackingNumber: order.trackingNumber,
+      shippingMethod: {
+        name: "Standard Shipping",
+        description: order.shippingCost > 0 ? `$${order.shippingCost}` : "Free",
+      },
     };
 
     return NextResponse.json(response);
