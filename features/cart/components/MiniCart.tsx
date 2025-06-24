@@ -91,16 +91,14 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
   const proceedWithCheckout = () => {
     console.log(`Proceeding with checkout - Auth status: ${status}`);
 
-    startTransition(() => {
-      // Navigate based on authentication status
-      if (status === "authenticated") {
-        console.log("User is authenticated, redirecting to checkout");
-        router.push("/checkout");
-      } else {
-        console.log("User not authenticated, redirecting to login");
-        router.push("/auth/login?callbackUrl=/checkout");
-      }
-    });
+    // Navigate based on authentication status
+    if (status === "authenticated") {
+      console.log("User is authenticated, redirecting to checkout");
+      startTransition("checkout");
+    } else {
+      console.log("User not authenticated, redirecting to login");
+      startTransition("login", "/checkout");
+    }
 
     // Clean up loading state
     setTimeout(() => {
@@ -360,9 +358,6 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
       <CartSettings
         isOpen={showCartSettings}
         onClose={() => setShowCartSettings(false)}
-        cartAge={cartAge}
-        onClearCart={handleClearCart}
-        onDevClearCart={handleDevClearCart}
       />
     </div>
   );

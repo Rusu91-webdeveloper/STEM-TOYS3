@@ -95,11 +95,11 @@ export async function POST(request: NextRequest) {
     const emailPromises = subscribers.map(subscriber =>
       emailTemplates.blogNotification({
         to: subscriber.email,
-        name: subscriber.firstName || subscriber.email.split("@")[0],
+        name: subscriber.firstName ?? subscriber.email.split("@")[0],
         blog: {
           ...blog,
           author: {
-            name: blog.author.name || "Anonymous",
+            name: blog.author.name ?? "Anonymous",
           },
         },
       })

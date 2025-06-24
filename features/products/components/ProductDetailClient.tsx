@@ -242,8 +242,8 @@ export default function ProductDetailClient({
             items={[
               { label: t("products"), href: "/products" },
               {
-                label: product.category?.name || "Category",
-                href: `/categories/${product.category?.slug}`,
+                label: product.category || "Category",
+                href: `/products?category=${product.category || ""}`,
               },
               { label: product.name, current: true },
             ]}
@@ -438,12 +438,7 @@ export default function ProductDetailClient({
           <h2 className="text-2xl font-bold mb-4">{t("productDescription")}</h2>
           <Separator className="mb-6" />
           <div className="prose max-w-none">
-            <p>
-              {t(
-                product.translationKey || "defaultProductDescription",
-                product.description
-              )}
-            </p>
+            <p>{product.description}</p>
             <p>
               {t("stemToyDesigned")} {getCategoryName()}. {t("providesHandsOn")}
             </p>

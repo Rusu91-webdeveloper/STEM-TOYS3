@@ -28,7 +28,7 @@ export function Wishlist() {
   const [isLoading, setIsLoading] = useState(true);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { addItem } = useShoppingCart();
+  const { addToCart } = useShoppingCart();
   const { formatPrice } = useCurrency();
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export function Wishlist() {
       }
 
       // Update local state
-      setWishlistItems(wishlistItems.filter((item) => item.id !== id));
+      setWishlistItems(wishlistItems.filter(item => item.id !== id));
 
       toast({
         title: t(
@@ -94,7 +94,7 @@ export function Wishlist() {
   const handleAddToCart = async (item: WishlistItem) => {
     try {
       // Use the shopping cart hook to add the item directly to cart
-      addItem({
+      addToCart({
         productId: item.productId,
         name: item.name,
         price: item.price,
@@ -103,12 +103,9 @@ export function Wishlist() {
       });
 
       toast({
-        title: t("addedToCart", "Adăugat în coș"),
-        description: t(
-          "productAddedToCart",
-          "Produsul a fost adăugat în coșul tău"
-        ),
-        variant: "cart",
+        title: "Adăugat în coș",
+        description: "Produsul a fost adăugat în coșul tău",
+        variant: "success",
       });
     } catch (error) {
       toast({
@@ -181,7 +178,7 @@ export function Wishlist() {
   if (isLoading) {
     return (
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3, 4].map((i) => (
+        {[1, 2, 3, 4].map(i => (
           <Card key={i}>
             <div className="relative pt-[100%]">
               <Skeleton className="absolute inset-0 rounded-t-lg" />
@@ -228,10 +225,8 @@ export function Wishlist() {
 
   return (
     <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-      {wishlistItems.map((item) => (
-        <Card
-          key={item.id}
-          className="overflow-hidden group">
+      {wishlistItems.map(item => (
+        <Card key={item.id} className="overflow-hidden group">
           <div className="relative pt-[100%] bg-gray-100">
             <Link href={`/products/${item.slug}`}>
               <img
@@ -245,14 +240,16 @@ export function Wishlist() {
               size="icon"
               className="absolute top-2 right-2 h-8 w-8 bg-white/70 hover:bg-white/90 text-red-500"
               onClick={() => handleRemoveFromWishlist(item.id)}
-              title={t("removeFromWishlist", "Elimină din Lista de Dorințe")}>
+              title={t("removeFromWishlist", "Elimină din Lista de Dorințe")}
+            >
               <Trash className="h-4 w-4" />
             </Button>
           </div>
           <CardContent className="p-4">
             <Link
               href={`/products/${item.slug}`}
-              className="text-sm font-medium line-clamp-2 hover:underline mb-2">
+              className="text-sm font-medium line-clamp-2 hover:underline mb-2"
+            >
               {item.name}
             </Link>
             <p className="text-lg font-bold">{formatPrice(item.price)}</p>
@@ -271,14 +268,16 @@ export function Wishlist() {
               size="sm"
               className="text-gray-600"
               onClick={() => handleShare(item)}
-              title={t("share", "Partajează")}>
+              title={t("share", "Partajează")}
+            >
               <Share2 className="h-4 w-4 mr-1" />
               {t("share", "Partajează")}
             </Button>
             <Button
               size="sm"
               onClick={() => handleAddToCart(item)}
-              disabled={!item.inStock}>
+              disabled={!item.inStock}
+            >
               <ShoppingCart className="h-4 w-4 mr-1" />
               {item.inStock
                 ? t("addToCart", "Add to Cart")

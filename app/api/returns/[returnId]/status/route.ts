@@ -6,8 +6,9 @@ import { sendMail } from "@/lib/brevo";
 import { generateReturnLabel } from "@/lib/return-label";
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
 
-// Return reason display labels
-const reasonLabels = {
+// Return reason display labels (unused but kept for future use)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _reasonLabels = {
   DOES_NOT_MEET_EXPECTATIONS: "Does not meet expectations",
   DAMAGED_OR_DEFECTIVE: "Damaged or defective",
   WRONG_ITEM_SHIPPED: "Wrong item shipped",
@@ -141,7 +142,7 @@ export async function PATCH(
           reason:
             reasonLabelsRo[
               updatedReturn.reason as keyof typeof reasonLabelsRo
-            ] || updatedReturn.reason,
+            ] ?? updatedReturn.reason,
           customerName: (updatedReturn.user.name ??
             updatedReturn.user.email) as string,
           customerEmail: updatedReturn.user.email,
@@ -162,12 +163,7 @@ export async function PATCH(
           day: "numeric",
         });
 
-        // Get product image URL (if available)
-        const productImage =
-          updatedReturn.orderItem.product?.images &&
-          updatedReturn.orderItem.product.images.length > 0
-            ? updatedReturn.orderItem.product.images[0]
-            : "/images/product-placeholder.png";
+        // Product image handling removed as it's not currently used in the email template
 
         // Create email content with professional Romanian template
         const emailHtml = `
@@ -180,7 +176,7 @@ export async function PATCH(
             <div style="padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
               <h2 style="color: #4f46e5; margin-top: 0;">${roTranslations.email_return_approved_subject.replace("#{orderNumber}", updatedReturn.order.orderNumber)}</h2>
               
-              <p style="font-size: 16px;">${roTranslations.email_return_approved_greeting.replace("{name}", updatedReturn.user.name || "Client")}</p>
+              <p style="font-size: 16px;">${roTranslations.email_return_approved_greeting.replace("{name}", updatedReturn.user.name ?? "Client")}</p>
               
               <p>${roTranslations.email_return_approved_body.replace("{productName}", updatedReturn.orderItem.name)}</p>
               

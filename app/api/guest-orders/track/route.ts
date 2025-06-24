@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       total: order.total,
       shippingAddress: order.shippingAddress,
       items: order.items.map(item => ({
-        name: item.product?.name || item.book?.name || item.name,
+        name: item.product?.name ?? item.book?.name ?? item.name,
         quantity: item.quantity,
         price: item.price,
         isBook: !!item.book,

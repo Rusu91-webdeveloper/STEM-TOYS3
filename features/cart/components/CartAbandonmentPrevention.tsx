@@ -88,7 +88,8 @@ export function CartAbandonmentPrevention({
 }: AbandonmentPreventionProps) {
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, getTotal, clearCart } = useCart();
+  const totalPrice = getTotal();
   const router = useRouter();
 
   const [isExitIntentModalOpen, setIsExitIntentModalOpen] = useState(false);

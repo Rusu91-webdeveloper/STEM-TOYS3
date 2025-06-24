@@ -42,7 +42,8 @@ export default function BlogPostDetail({ post }: BlogPostDetailProps) {
       <div className="mb-6">
         <Link
           href="/blog"
-          className="flex items-center text-sm text-muted-foreground hover:text-foreground">
+          className="flex items-center text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="mr-1 h-4 w-4" />
           {t("backToBlog", "Back to Blog")}
         </Link>
@@ -54,14 +55,16 @@ export default function BlogPostDetail({ post }: BlogPostDetailProps) {
           {post.category && (
             <Link
               href={`/blog?category=${post.category.slug}`}
-              className="text-xs font-medium px-2.5 py-0.5 rounded bg-purple-100 text-purple-800 hover:bg-purple-200">
+              className="text-xs font-medium px-2.5 py-0.5 rounded bg-purple-100 text-purple-800 hover:bg-purple-200"
+            >
               {post.category.name}
             </Link>
           )}
           <span
             className={`text-xs font-medium px-2.5 py-0.5 rounded text-white ${getStemCategoryColor(
               post.stemCategory
-            )}`}>
+            )}`}
+          >
             {post.stemCategory}
           </span>
         </div>
@@ -73,10 +76,10 @@ export default function BlogPostDetail({ post }: BlogPostDetailProps) {
         <div className="flex items-center gap-4 text-muted-foreground">
           {post.author && (
             <div className="flex items-center">
-              {post.author.avatarUrl ? (
+              {false ? (
                 <div className="h-8 w-8 rounded-full overflow-hidden mr-2">
                   <Image
-                    src={post.author.avatarUrl}
+                    src="/placeholder-avatar.jpg"
                     alt={post.author.name || "Author"}
                     width={32}
                     height={32}
@@ -95,7 +98,9 @@ export default function BlogPostDetail({ post }: BlogPostDetailProps) {
           )}
 
           <div className="text-sm">
-            {format(new Date(post.publishedAt), "MMM d, yyyy")}
+            {post.publishedAt
+              ? format(new Date(post.publishedAt), "MMM d, yyyy")
+              : format(new Date(post.createdAt), "MMM d, yyyy")}
           </div>
 
           {/* Share buttons */}
