@@ -19,6 +19,12 @@ interface UserStats {
   savedOnDiscounts: number;
 }
 
+type TopProductCategory = {
+  category: {
+    name: string;
+  } | null;
+} | null;
+
 // Account level thresholds (based on total spent)
 const ACCOUNT_LEVELS = {
   bronze: { min: 0, max: 299.99, benefits: ["Basic Support"] },
@@ -91,9 +97,8 @@ function calculateAccountLevel(totalSpent: number) {
   };
 }
 
-// eslint-disable-next-line require-await
-export async function GET(_request: NextRequest) {
-  return withErrorHandler(async () => {
+export function GET(_request: NextRequest) {
+  const handler = async () => {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -127,12 +132,17 @@ export async function GET(_request: NextRequest) {
       const topProductId = favoriteAgg.sort(
         (a, b) => (b._sum.quantity || 0) - (a._sum.quantity || 0)
       )[0].productId;
-      const topProduct = await db.product.findUnique({
-        where: { id: topProductId },
-        select: { category: { select: { name: true } } },
-      });
-      if (topProduct?.category?.name)
-        favoriteCategory = topProduct.category.name;
+
+      if (topProductId) {
+        const topProduct: TopProductCategory = await db.product.findUnique({
+          where: { id: topProductId },
+          select: { category: { select: { name: true } } },
+        });
+
+        if (topProduct?.category?.name) {
+          favoriteCategory = topProduct.category.name;
+        }
+      }
     }
     // Loyalty points and savings (mock)
     const loyaltyPoints = Math.floor(totalSpent);
@@ -148,5 +158,7 @@ export async function GET(_request: NextRequest) {
       loyaltyPoints,
       savedOnDiscounts,
     });
-  });
+  };
+
+  return withErrorHandler(handler)();
 }
