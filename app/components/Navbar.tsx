@@ -6,11 +6,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
 
+import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation } from "@/lib/i18n";
 
 import { MiniCart } from "../../features/cart/components/MiniCart";
-import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 
 const Navbar = () => {
   const { t, language } = useTranslation();

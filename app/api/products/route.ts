@@ -10,15 +10,15 @@ import {
 import { TIME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { withPerformanceMonitoring } from "@/lib/performance";
+import { getCacheKey } from "@/lib/utils/cache-key";
+import { getFilterParams } from "@/lib/utils/filtering";
+import { getPaginationParams } from "@/lib/utils/pagination";
 import {
   validateQueryParams,
   productQuerySchema,
   createValidationErrorResponse,
   type ValidatedProductQuery,
 } from "@/lib/validations/api";
-import { getPaginationParams } from "@/lib/utils/pagination";
-import { getFilterParams } from "@/lib/utils/filtering";
-import { getCacheKey } from "@/lib/utils/cache-key";
 
 type ProductWithOptionalCategory = Product & {
   category?: {

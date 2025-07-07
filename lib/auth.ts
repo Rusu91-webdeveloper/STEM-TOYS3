@@ -4,11 +4,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
 import "./env"; // Load environment variables early
-import { verifyPassword } from "./auth-utils";
 import { hashAdminPassword, verifyAdminPassword } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { withRetry, verifyUserExists } from "@/lib/db-helpers";
 import { logger } from "@/lib/logger";
+
+import { verifyPassword } from "./auth-utils";
 let env: Record<string, string | undefined>;
 let serviceConfig: Record<string, () => boolean>;
 

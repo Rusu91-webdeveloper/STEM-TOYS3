@@ -6,7 +6,6 @@ import React, { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/use-toast";
 import { AddressForm } from "@/features/account/components/AddressForm";
-
 import type { Address } from "@/types/address";
 
 export default function EditAddressPage() {

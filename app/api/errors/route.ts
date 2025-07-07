@@ -5,7 +5,7 @@
 
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { withRateLimit } from "@/lib/rate-limit";
+
 import {
   withErrorHandling,
   badRequest,
@@ -13,6 +13,7 @@ import {
   handleZodError,
   handleUnexpectedError,
 } from "@/lib/api-error";
+import { withRateLimit } from "@/lib/rate-limit";
 import { applyStandardHeaders } from "@/lib/response-headers";
 
 interface ErrorReport {
@@ -33,7 +34,7 @@ interface ErrorReport {
  * POST handler - Log client-side errors
  */
 export const POST = withRateLimit(
-  async function POST(request: NextRequest) {
+  async (request: NextRequest) => {
     try {
       const headersList = await headers();
       const body: ErrorReport = await request.json();

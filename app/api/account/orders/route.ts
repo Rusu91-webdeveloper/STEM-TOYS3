@@ -1,14 +1,5 @@
 import { NextResponse } from "next/server";
-import { applyStandardHeaders } from "@/lib/response-headers";
 
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import {
-  getCached,
-  CacheKeys,
-  invalidateCache,
-  invalidateCachePattern,
-} from "@/lib/cache";
 import {
   withErrorHandling,
   badRequest,
@@ -16,6 +7,16 @@ import {
   handleZodError,
   handleUnexpectedError,
 } from "@/lib/api-error";
+import { auth } from "@/lib/auth";
+import {
+  getCached,
+  CacheKeys,
+  invalidateCache,
+  invalidateCachePattern,
+} from "@/lib/cache";
+import { db } from "@/lib/db";
+import { applyStandardHeaders } from "@/lib/response-headers";
+
 
 // GET /api/account/orders - Get orders for the authenticated user
 export async function GET() {
@@ -30,7 +31,7 @@ export async function GET() {
     }
 
     // --- Caching logic start ---
-    const cacheKey = CacheKeys.user(session.user.id) + ":orders";
+    const cacheKey = `${CacheKeys.user(session.user.id)  }:orders`;
     const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
     const orders = await getCached(
       cacheKey,

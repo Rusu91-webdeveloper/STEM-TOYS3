@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import {
   getCached,
   CacheKeys,
   invalidateCache,
   invalidateCachePattern,
 } from "@/lib/cache";
+import { db } from "@/lib/db";
 import { withRateLimit } from "@/lib/rate-limit";
-import { getPaginationParams } from "@/lib/utils/pagination";
-import { getFilterParams } from "@/lib/utils/filtering";
 import { getCacheKey } from "@/lib/utils/cache-key";
+import { getFilterParams } from "@/lib/utils/filtering";
+import { getPaginationParams } from "@/lib/utils/pagination";
 
 export const GET = withRateLimit(
-  async function GET(request: NextRequest) {
+  async (request: NextRequest) => {
     try {
       // Check authentication
       const session = await auth();

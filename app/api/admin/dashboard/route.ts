@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { getCached, CacheKeys, invalidateCachePattern } from "@/lib/cache";
+import { db } from "@/lib/db";
 import { withRateLimit } from "@/lib/rate-limit";
 
 export const GET = withRateLimit(
-  async function GET(request: NextRequest) {
+  async (request: NextRequest) => {
     try {
       // Check authentication
       const session = await auth();

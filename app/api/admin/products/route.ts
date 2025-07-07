@@ -2,20 +2,6 @@ import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { handleFormData } from "@/lib/api-helpers";
-import { auth } from "@/lib/auth";
-import { isAdmin } from "@/lib/auth/admin";
-import { db } from "@/lib/db";
-import { utapi } from "@/lib/uploadthing";
-import { slugify } from "@/lib/utils";
-import { productSchema as baseProductSchema } from "@/lib/validations";
-import {
-  getCached,
-  CacheKeys,
-  invalidateCache,
-  invalidateCachePattern,
-} from "@/lib/cache";
-import { withRateLimit } from "@/lib/rate-limit";
 import {
   withErrorHandling,
   badRequest,
@@ -23,7 +9,21 @@ import {
   handleZodError,
   handleUnexpectedError,
 } from "@/lib/api-error";
+import { handleFormData } from "@/lib/api-helpers";
+import { auth } from "@/lib/auth";
+import { isAdmin } from "@/lib/auth/admin";
+import {
+  getCached,
+  CacheKeys,
+  invalidateCache,
+  invalidateCachePattern,
+} from "@/lib/cache";
+import { db } from "@/lib/db";
+import { withRateLimit } from "@/lib/rate-limit";
 import { applyStandardHeaders } from "@/lib/response-headers";
+import { utapi } from "@/lib/uploadthing";
+import { slugify } from "@/lib/utils";
+import { productSchema as baseProductSchema } from "@/lib/validations";
 
 // Extend the base product schema with additional fields specific to this API
 const productSchema = baseProductSchema
@@ -65,7 +65,7 @@ const productUpdateSchema = productSchema.partial().extend({
 
 // GET all products
 export const GET = withRateLimit(
-  async function GET(request: NextRequest) {
+  async (request: NextRequest) => {
     try {
       // Check if user is admin
       if (!(await isAdmin(request))) {

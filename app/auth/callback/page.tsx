@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSession, signIn } from "next-auth/react";
+import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 
 export default function AuthCallbackPage() {

@@ -1,4 +1,5 @@
 import { Metadata, ResolvingMetadata } from "next";
+
 import { getBlogPost } from "@/lib/api/blog";
 
 type BlogPostPageProps = {

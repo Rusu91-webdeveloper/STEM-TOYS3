@@ -1,5 +1,6 @@
-import HomePageClient from "./HomePageClient";
 import type { Product } from "@/types/product";
+
+import HomePageClient from "./HomePageClient";
 
 async function getFeaturedProducts(): Promise<Product[]> {
   try {

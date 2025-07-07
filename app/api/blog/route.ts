@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import DOMPurify from "isomorphic-dompurify";
+import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";

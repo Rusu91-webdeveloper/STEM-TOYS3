@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { NextRequest, NextResponse } from "next/server";
 import DOMPurify from "isomorphic-dompurify";
+import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { blogService } from "@/lib/services/blog-service";

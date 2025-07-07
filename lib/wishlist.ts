@@ -1,8 +1,9 @@
 import "server-only";
 
-import { db } from "@/lib/db";
-import { auth } from "@/lib/auth";
 import { Prisma } from "@prisma/client";
+
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 // Define the type for the joined wishlist item
 type WishlistItemWithProduct = Prisma.WishlistGetPayload<{

@@ -1,13 +1,16 @@
 "use client";
 
-import { useTranslation } from "@/lib/i18n";
-import type { Product } from "@/types/product";
-import { useCurrency } from "@/lib/currency";
-import { HeroSection } from "@/features/home/components/HeroSection";
+import React, { Suspense } from "react";
+
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CategoriesSection } from "@/features/home/components/CategoriesSection";
 import { FeaturedProductsSection } from "@/features/home/components/FeaturedProductsSection";
-import React, { Suspense } from "react";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { HeroSection } from "@/features/home/components/HeroSection";
+import { useCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
+import type { Product } from "@/types/product";
+
+
 
 const EducationalBooksSection = React.lazy(
   () => import("@/features/home/components/EducationalBooksSection")

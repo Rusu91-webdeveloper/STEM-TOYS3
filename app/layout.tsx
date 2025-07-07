@@ -1,13 +1,14 @@
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
-import { I18nProvider } from "@/lib/i18n";
-import { CurrencyProvider } from "@/lib/currency";
-import CartProviderWrapper from "@/features/cart/components/CartProviderWrapper.client";
+
 import ClientLayout from "@/components/layout/ClientLayout";
 import { Toaster } from "@/components/ui/toaster";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import CartProviderWrapper from "@/features/cart/components/CartProviderWrapper.client";
 import { CentralizedSessionProvider } from "@/lib/auth/SessionContext";
+import { CurrencyProvider } from "@/lib/currency";
+import { I18nProvider } from "@/lib/i18n";
 
 import "./globals.css";
 import { metadata as appMetadata } from "./metadata";

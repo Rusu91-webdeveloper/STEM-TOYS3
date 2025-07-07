@@ -1,6 +1,6 @@
+import type { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import type { PrismaClient } from "@prisma/client";
 
 import { SESSION_CART_STORAGE, getCartId } from "@/lib/cart-storage";
 

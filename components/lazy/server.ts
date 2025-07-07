@@ -4,12 +4,12 @@
  * Lazy-loaded components for non-critical parts of the application
  */
 
+import React, { ComponentType } from "react";
+
 import {
   createAsyncComponent,
   createIntersectionLazyComponent,
 } from "@/lib/bundle-analyzer";
-import { ComponentType } from "react";
-import React from "react";
 
 // Loading components
 const DefaultLoading: ComponentType = () =>

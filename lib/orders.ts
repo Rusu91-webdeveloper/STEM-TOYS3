@@ -1,7 +1,7 @@
 import "server-only";
 
-import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 export async function getOrders() {
   const session = await auth();

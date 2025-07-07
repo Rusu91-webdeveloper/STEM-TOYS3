@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
+import { getCached, cache, CacheKeys } from "@/lib/cache";
 import { verifyUserExists } from "@/lib/db-helpers";
 import { logger } from "@/lib/logger";
-import { getCached, cache, CacheKeys } from "@/lib/cache";
 
 /**
  * **OPTIMIZED** API route to validate a user's session against the database
@@ -40,7 +40,7 @@ export async function GET(_request: NextRequest) {
 
     // Extract user ID for clarity
     const userId = session.user.id;
-    const cacheKey = CacheKeys.user(userId) + ":session-validation";
+    const cacheKey = `${CacheKeys.user(userId)  }:session-validation`;
     const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 
     // **PERFORMANCE**: Check distributed cache first

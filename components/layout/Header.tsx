@@ -13,8 +13,7 @@ import { Button } from "@/components/ui/button";
 import { CurrencySwitcher } from "@/components/ui/currency-switcher";
 import { CartButton } from "@/features/cart";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
-import { useTranslation } from "@/lib/i18n";
-import { TranslationKey } from "@/lib/i18n";
+import { useTranslation , TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const navigation: { name: TranslationKey; href: string }[] = [
