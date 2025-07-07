@@ -1,27 +1,26 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { ArrowLeft, Truck, ShieldCheck, RotateCcw, Heart } from "lucide-react";
-import Link from "next/link";
+import { Truck, ShieldCheck, RotateCcw, Heart } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import React, { useState, useEffect } from "react";
+
+import { LazyProductReviews } from "@/components/lazy/server";
+import ProductImageZoom from "@/components/products/ProductImageZoom";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/use-toast";
 import {
   ProductVariantProvider,
   ProductAddToCartButton,
 } from "@/features/products";
-import { useTranslation } from "@/lib/i18n";
 import { useCurrency } from "@/lib/currency";
-import { toast } from "@/components/ui/use-toast";
+import { useTranslation } from "@/lib/i18n";
 import type { Product } from "@/types/product";
-import {
-  LazyProductReviews,
-  LazyRelatedProducts,
-} from "@/components/lazy/client";
-import { useSession } from "next-auth/react";
-import ProductImageZoom from "@/components/products/ProductImageZoom";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
+
+import { type Review } from "./ProductReviews";
 
 type ProductDetailClientProps = {
   product: Product;
@@ -478,7 +477,9 @@ export default function ProductDetailClient({
               productId={product.id}
               reviews={reviews}
               userLoggedIn={!!session}
-              onSubmitReview={reviewData => {
+              onSubmitReview={(
+                _reviewData: Omit<Review, "id" | "userId" | "date">
+              ) => {
                 toast({
                   title: t("error", "Review Submission Notice"),
                   description: t(

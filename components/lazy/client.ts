@@ -19,7 +19,7 @@ function createIntersectionLazyComponent<T extends ComponentType<any>>(
     loading: LoadingComponent,
   } = options;
 
-  return React.forwardRef<any, any>((props, ref) => {
+  const LazyComponent = React.forwardRef<any, any>((props, ref) => {
     const [isVisible, setIsVisible] = React.useState(false);
     const [Component, setComponent] = React.useState<T | null>(null);
     const [error, setError] = React.useState<Error | null>(null);
@@ -82,6 +82,8 @@ function createIntersectionLazyComponent<T extends ComponentType<any>>(
 
     return React.createElement(Component, { ...props, ref });
   });
+  LazyComponent.displayName = _name || "LazyComponent";
+  return LazyComponent;
 }
 
 // =================== CLIENT-SAFE LAZY COMPONENTS ===================
@@ -92,6 +94,3 @@ export const LazyNewsletterSignup = createIntersectionLazyComponent(
   "NewsletterSignup",
   { rootMargin: "50px" }
 );
-
-// Re-export server-only lazy components for client-side usage
-export { LazyProductReviews, LazyRelatedProducts } from "./server";
