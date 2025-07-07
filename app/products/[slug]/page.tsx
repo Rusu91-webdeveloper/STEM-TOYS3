@@ -6,15 +6,19 @@ import ProductDetailServer from "@/features/products/components/ProductDetailSer
 import { generateProductMetadata } from "@/lib/utils/seo";
 
 type ProductPageProps = {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 };
 
-export function generateMetadata({ params }: ProductPageProps): Metadata {
+export async function generateMetadata({
+  params,
+}: ProductPageProps): Promise<Metadata> {
+  // Await params for Next.js 15
+  const { slug } = await params;
   // Use our SEO utility to generate metadata
   // (Assume product fetching and error handling is handled in the server component)
-  return generateProductMetadata({ name: params.slug });
+  return generateProductMetadata({ name: slug });
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {

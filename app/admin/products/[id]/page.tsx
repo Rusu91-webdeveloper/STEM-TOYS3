@@ -2,11 +2,11 @@ import {
   Edit,
   ArrowLeft,
   Trash2,
-  Calendar,
-  Tag,
-  ShoppingCart,
+  // Calendar,
+  // Tag,
+  // ShoppingCart,
   Search,
-  Layers,
+  // Layers,
   Check,
   X,
 } from "lucide-react";
@@ -14,6 +14,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import React from "react";
+import Image from "next/image";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,13 +22,12 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
+  // CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { db } from "@/lib/db";
-
 
 export const metadata: Metadata = {
   title: "Product Details | Admin Dashboard",
@@ -35,9 +35,9 @@ export const metadata: Metadata = {
 };
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Server-side price formatting function
@@ -124,7 +124,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div>
           <Link
             href="/admin/products"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-2">
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-2"
+          >
             <ArrowLeft className="mr-1 h-4 w-4" />
             Back to Products
           </Link>
@@ -132,30 +133,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <p className="text-muted-foreground">Product ID: {product.id}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9"
-            asChild>
+          <Button variant="outline" size="sm" className="h-9" asChild>
             <Link href={`/products/${product.slug}`}>
               <Search className="mr-2 h-4 w-4" />
               View on Site
             </Link>
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9"
-            asChild>
+          <Button variant="outline" size="sm" className="h-9" asChild>
             <Link href={`/admin/products/${product.id}/edit`}>
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </Link>
           </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="h-9">
+          <Button variant="destructive" size="sm" className="h-9">
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </Button>
@@ -174,9 +164,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </TabsList>
 
             {/* Details Tab */}
-            <TabsContent
-              value="details"
-              className="space-y-6">
+            <TabsContent value="details" className="space-y-6">
               {/* Basic Info */}
               <Card>
                 <CardHeader>
@@ -215,14 +203,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
                         {product.isActive ? (
                           <Badge
                             variant="secondary"
-                            className="flex items-center gap-1 bg-green-100 text-green-800">
+                            className="flex items-center gap-1 bg-green-100 text-green-800"
+                          >
                             <Check className="h-3 w-3" />
                             Active
                           </Badge>
                         ) : (
                           <Badge
                             variant="destructive"
-                            className="flex items-center gap-1">
+                            className="flex items-center gap-1"
+                          >
                             <X className="h-3 w-3" />
                             Inactive
                           </Badge>
@@ -266,10 +256,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {product.tags && product.tags.length > 0 ? (
-                      product.tags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary">
+                      product.tags.map(tag => (
+                        <Badge key={tag} variant="secondary">
                           {tag}
                         </Badge>
                       ))
@@ -282,9 +270,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </TabsContent>
 
             {/* SEO Tab */}
-            <TabsContent
-              value="seo"
-              className="space-y-6">
+            <TabsContent value="seo" className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>SEO Information</CardTitle>
@@ -314,9 +300,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                       {attributes.metaKeywords &&
                       attributes.metaKeywords.length > 0 ? (
                         attributes.metaKeywords.map((keyword: string) => (
-                          <Badge
-                            key={keyword}
-                            variant="outline">
+                          <Badge key={keyword} variant="outline">
                             {keyword}
                           </Badge>
                         ))
@@ -347,9 +331,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </TabsContent>
 
             {/* Attributes Tab */}
-            <TabsContent
-              value="attributes"
-              className="space-y-6">
+            <TabsContent value="attributes" className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>STEM Attributes</CardTitle>
@@ -420,11 +402,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     {product.images.map((image, index) => (
                       <div
                         key={index}
-                        className="relative aspect-square rounded-md overflow-hidden border">
-                        <img
+                        className="relative aspect-square rounded-md overflow-hidden border"
+                      >
+                        <Image
                           src={image}
-                          alt={`${product.name} - Image ${index + 1}`}
-                          className="object-cover w-full h-full"
+                          alt={`${product.name} - ${index + 1}`}
+                          className="object-cover"
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
                         {index === 0 && (
                           <div className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground text-xs py-1 text-center">
@@ -452,7 +437,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                asChild>
+                asChild
+              >
                 <Link href={`/admin/products/${product.id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Product
@@ -461,7 +447,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                asChild>
+                asChild
+              >
                 <Link href={`/products/${product.slug}`}>
                   <Search className="mr-2 h-4 w-4" />
                   View on Site

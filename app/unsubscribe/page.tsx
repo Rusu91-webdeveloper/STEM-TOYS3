@@ -1,10 +1,10 @@
+import React from "react";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { getTranslations } from "@/lib/i18n/server";
-
+// import { getTranslations } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "Dezabonare Newsletter | TechTots",
@@ -14,10 +14,11 @@ export const metadata: Metadata = {
 export default async function UnsubscribePage({
   searchParams,
 }: {
-  searchParams: { email?: string };
+  searchParams: Promise<{ email?: string }>;
 }) {
-  const t = await getTranslations();
-  const email = searchParams.email || "";
+  // const t = await getTranslations();
+  const params = await searchParams;
+  const email = params.email || "";
 
   return (
     <Container>
@@ -34,7 +35,7 @@ export default async function UnsubscribePage({
 
           <form
             className="flex flex-col gap-4"
-            action={async (formData) => {
+            action={async formData => {
               "use server";
 
               const emailToUse = email || (formData.get("email") as string);
@@ -65,12 +66,14 @@ export default async function UnsubscribePage({
               } else {
                 redirect("/unsubscribe/error");
               }
-            }}>
+            }}
+          >
             {!email && (
               <div className="mb-4">
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-1">
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Adresa de email
                 </label>
                 <input
@@ -87,7 +90,8 @@ export default async function UnsubscribePage({
             <div className="flex justify-center">
               <Button
                 type="submit"
-                className="bg-red-600 hover:bg-red-700 text-white">
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
                 Dezabonează-mă
               </Button>
             </div>

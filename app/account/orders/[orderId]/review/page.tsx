@@ -10,17 +10,18 @@ import { db } from "@/lib/db";
 import { getTranslations } from "@/lib/i18n/server";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     orderId: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     itemId?: string;
     productId?: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params: _params }: PageProps) {
   const t = await getTranslations("ro");
+  // const { orderId } = await params;
 
   return {
     title: `${t("writeReview")} | ${t("account")}`,
@@ -39,9 +40,8 @@ export default async function WriteReviewPage({
     return null;
   }
 
-  const orderId: string = params.orderId;
-  const itemId: string | undefined = searchParams.itemId;
-  const productId: string | undefined = searchParams.productId;
+  const { orderId } = await params;
+  const { itemId, productId } = await searchParams;
 
   if (!itemId || !productId) {
     redirect(`/account/orders/${orderId}`);

@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 };
 
 interface EditProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 async function getProduct(id: string) {
@@ -112,7 +112,8 @@ export default async function EditProductPage({
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Edit Product</h1>
         <p className="text-muted-foreground">
-          Make changes to your product "{product.name}" including SEO settings.
+          Make changes to your product &quot;{product.name}&quot; including SEO
+          settings.
         </p>
       </div>
 

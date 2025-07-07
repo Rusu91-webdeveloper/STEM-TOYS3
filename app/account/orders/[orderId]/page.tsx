@@ -24,10 +24,10 @@ function serializeOrder(order: object) {
 export async function generateMetadata({
   params,
 }: {
-  params: { orderId: string };
+  params: Promise<{ orderId: string }>;
 }) {
   const t = await getTranslations();
-  const orderId = params.orderId;
+  const { orderId } = await params;
   return {
     title: `${t("orderNumber" as TranslationKey)} ${orderId} | ${t("siteTitle" as TranslationKey)}`,
   };
@@ -36,11 +36,11 @@ export async function generateMetadata({
 export default async function OrderDetailsPage({
   params,
 }: {
-  params: { orderId: string };
+  params: Promise<{ orderId: string }>;
 }) {
   const _t = await getTranslations();
   const session = await auth();
-  const orderId = params.orderId;
+  const { orderId } = await params;
 
   if (!session?.user) {
     return notFound();

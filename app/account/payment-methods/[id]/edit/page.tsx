@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import React from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,21 +14,19 @@ export const metadata = {
 export default async function EditPaymentMethodPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const session = await auth();
+  const { id } = await params;
 
   if (!session?.user) {
-    // This should never happen since layout handles auth check
-    return null;
+    redirect("/auth/login");
   }
-
-  const cardId = params.id;
 
   // Fetch the card to be edited
   const card = await db.paymentCard.findFirst({
     where: {
-      id: cardId,
+      id: id,
       userId: session.user.id,
     },
     select: {
@@ -63,7 +61,7 @@ export default async function EditPaymentMethodPage({
   });
 
   // Format addresses for the form
-  const formattedAddresses = addresses.map((address) => ({
+  const formattedAddresses = addresses.map(address => ({
     id: address.id,
     name: `${address.name} - ${address.fullName}, ${address.addressLine1}, ${address.city}, ${address.state}`,
   }));
@@ -101,7 +99,7 @@ export default async function EditPaymentMethodPage({
           <PaymentCardForm
             initialData={initialData}
             isEditing={true}
-            cardId={cardId}
+            cardId={id}
             addresses={formattedAddresses}
           />
         </CardContent>

@@ -1,28 +1,29 @@
-import { Check, ShoppingBag } from "lucide-react";
+import { CheckCircle, Package /* ArrowLeft */ } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
+// import { getTranslations } from "@/lib/i18n/server";
 
 export const metadata = {
-  title: "Confirmare Comandă | TeechTots",
-  description: "Comanda dvs. a fost plasată cu succes",
+  title: "Confirmare Comandă | TechTots",
+  description: "Comanda dvs. a fost plasată cu succes.",
 };
 
 export default async function OrderConfirmationPage({
   searchParams,
 }: {
-  searchParams: { orderId?: string };
+  searchParams: Promise<{ orderId?: string }>;
 }) {
-  // Need to await searchParams when using it
+  // const t = await getTranslations();
   const params = await searchParams;
-  const orderId = params.orderId || "123456789"; // Fallback for demo
+  const orderId = params.orderId;
 
   return (
     <div className="container max-w-4xl py-12">
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
-          <Check className="h-8 w-8 text-green-600" />
+          <CheckCircle className="h-8 w-8 text-green-600" />
         </div>
         <h1 className="text-3xl font-bold mb-2">Vă mulțumim pentru comandă!</h1>
         <p className="text-gray-600 text-lg">
@@ -58,9 +59,7 @@ export default async function OrderConfirmationPage({
           <li>Veți primi un email când comanda dvs. va fi expediată</li>
           <li>
             Puteți urmări statusul comenzii în{" "}
-            <Link
-              href="/account/orders"
-              className="text-primary underline">
+            <Link href="/account/orders" className="text-primary underline">
               istoricul comenzilor
             </Link>
           </li>
@@ -71,23 +70,20 @@ export default async function OrderConfirmationPage({
           echipa noastră de asistență la{" "}
           <a
             href="mailto:webira.rem.srl@gmail.com"
-            className="text-primary underline">
+            className="text-primary underline"
+          >
             webira.rem.srl@gmail.com
           </a>
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-          <Button
-            asChild
-            className="flex items-center gap-2">
+          <Button asChild className="flex items-center gap-2">
             <Link href="/products">
-              <ShoppingBag className="h-4 w-4" />
+              <Package className="h-4 w-4" />
               Continuă Cumpărăturile
             </Link>
           </Button>
-          <Button
-            asChild
-            variant="outline">
+          <Button asChild variant="outline">
             <Link href="/account/orders">Vezi Comenzile Mele</Link>
           </Button>
         </div>
