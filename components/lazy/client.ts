@@ -13,7 +13,11 @@ function createIntersectionLazyComponent<T extends ComponentType<any>>(
     loading?: ComponentType;
   } = {}
 ) {
-  const { rootMargin = "50px", threshold = 0.1, loading: LoadingComponent } = options;
+  const {
+    rootMargin = "50px",
+    threshold = 0.1,
+    loading: LoadingComponent,
+  } = options;
 
   return React.forwardRef<any, any>((props, ref) => {
     const [isVisible, setIsVisible] = React.useState(false);
@@ -47,12 +51,16 @@ function createIntersectionLazyComponent<T extends ComponentType<any>>(
           observer.unobserve(elementRef.current);
         }
         observer.disconnect();
-      }
+      };
     }, [isVisible]); // Re-run if isVisible changes (for retry logic perhaps)
 
     if (error) {
-        // A simple error display
-        return React.createElement('div', { ref: elementRef, style: { color: 'red' } }, 'Error loading component.');
+      // A simple error display
+      return React.createElement(
+        "div",
+        { ref: elementRef, style: { color: "red" } },
+        "Error loading component."
+      );
     }
 
     if (!isVisible) {
@@ -64,8 +72,12 @@ function createIntersectionLazyComponent<T extends ComponentType<any>>(
     }
 
     if (!Component) {
-        // If a loading component is provided, use it. Otherwise, a simple text.
-        return React.createElement('div', { ref: elementRef }, LoadingComponent ? React.createElement(LoadingComponent) : 'Loading...');
+      // If a loading component is provided, use it. Otherwise, a simple text.
+      return React.createElement(
+        "div",
+        { ref: elementRef },
+        LoadingComponent ? React.createElement(LoadingComponent) : "Loading..."
+      );
     }
 
     return React.createElement(Component, { ...props, ref });
@@ -80,3 +92,6 @@ export const LazyNewsletterSignup = createIntersectionLazyComponent(
   "NewsletterSignup",
   { rootMargin: "50px" }
 );
+
+// Re-export server-only lazy components for client-side usage
+export { LazyProductReviews, LazyRelatedProducts } from "./server";

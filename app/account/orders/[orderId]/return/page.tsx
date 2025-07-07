@@ -93,26 +93,11 @@ const reasonLabels = {
   OTHER: "Other reason",
 };
 
-export default function InitiateReturn({
+export default async function InitiateReturn({
   params,
 }: { params: { orderId: string } } | { params: Promise<{ orderId: string }> }) {
-  // Next.js 15+ compatibility: unwrap params if it's a Promise
-  const [resolvedParams, setResolvedParams] = useState<{
-    orderId: string;
-  } | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      const p = params instanceof Promise ? await params : params;
-      if (isMounted) setResolvedParams(p);
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, [params]);
-
-  const orderId = resolvedParams?.orderId;
+  const resolvedParams = await params;
+  const orderId = resolvedParams.orderId;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
