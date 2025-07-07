@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import React, { useState, useEffect } from "react";
 
-import { LazyProductReviews } from "@/components/lazy/server";
 import ProductImageZoom from "@/components/products/ProductImageZoom";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
@@ -33,7 +32,7 @@ export default function ProductDetailClient({
 }: ProductDetailClientProps) {
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
-  const { data: session } = useSession();
+  const { data: _session } = useSession();
 
   const [selectedImage, setSelectedImage] = useState<string>(
     product.images && product.images.length > 0 ? product.images[0] : ""
@@ -41,7 +40,7 @@ export default function ProductDetailClient({
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [loadingReviews, setLoadingReviews] = useState(true);
+  const [_loadingReviews, setLoadingReviews] = useState(true);
 
   // Check if the product is in the user's wishlist
   useEffect(() => {
@@ -458,38 +457,6 @@ export default function ProductDetailClient({
               <li>{t("safeMaterials")}</li>
             </ul>
           </div>
-        </div>
-
-        {/* Reviews Section */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold mb-4">
-            {t("reviews", "Customer Reviews")}
-          </h2>
-          <Separator className="mb-6" />
-          {loadingReviews ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                {t("loading", "Loading reviews...")}
-              </p>
-            </div>
-          ) : (
-            <LazyProductReviews
-              productId={product.id}
-              reviews={reviews}
-              userLoggedIn={!!session}
-              onSubmitReview={(
-                _reviewData: Omit<Review, "id" | "userId" | "date">
-              ) => {
-                toast({
-                  title: t("error", "Review Submission Notice"),
-                  description: t(
-                    "purchaseRequired",
-                    "You need to purchase this product before leaving a review. Reviews can be submitted after delivery from your order details page."
-                  ),
-                });
-              }}
-            />
-          )}
         </div>
       </div>
     </ProductVariantProvider>
