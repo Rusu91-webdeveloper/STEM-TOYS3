@@ -25,7 +25,7 @@ const updateCouponSchema = z.object({
 // GET /api/admin/coupons/[id] - Get a specific coupon
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -37,8 +37,7 @@ export async function GET(
       );
     }
 
-    const resolvedParams = await params;
-    const { id } = resolvedParams;
+    const { id } = await params;
 
     const coupon = await db.coupon.findUnique({
       where: { id },

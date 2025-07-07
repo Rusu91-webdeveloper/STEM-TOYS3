@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
 
-interface Props {
-  params: Promise<{
-    slug: string;
-  }>;
-}
-
-export async function GET(request: NextRequest, { params }: Props) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
     const { slug } = await params;
 
@@ -63,7 +60,7 @@ export async function GET(request: NextRequest, { params }: Props) {
     const digitalFilesGrouped = new Map<string, Set<string>>();
 
     // Group formats by language
-    book.digitalFiles.forEach((file) => {
+    book.digitalFiles.forEach(file => {
       if (!digitalFilesGrouped.has(file.language)) {
         digitalFilesGrouped.set(file.language, new Set());
       }
