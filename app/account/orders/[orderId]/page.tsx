@@ -8,8 +8,6 @@ import { getTranslations, TranslationKey } from "@/lib/i18n/server";
 // Import the client component
 import { OrderDetailsClient } from "./OrderDetailsClient";
 
-
-
 // Helper function to safely serialize dates and objects for client component
 function serializeOrder(order: object) {
   return JSON.parse(
@@ -23,20 +21,26 @@ function serializeOrder(order: object) {
   );
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ orderId: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: { orderId: string };
+}) {
   const t = await getTranslations();
-  const resolvedParams = await params;
-  const orderId = resolvedParams.orderId;
+  const orderId = params.orderId;
   return {
     title: `${t("orderNumber" as TranslationKey)} ${orderId} | ${t("siteTitle" as TranslationKey)}`,
   };
 }
 
-export default async function OrderDetailsPage({ params }: { params: Promise<{ orderId: string }> }) {
+export default async function OrderDetailsPage({
+  params,
+}: {
+  params: { orderId: string };
+}) {
   const _t = await getTranslations();
   const session = await auth();
-  const resolvedParams = await params;
-  const orderId = resolvedParams.orderId;
+  const orderId = params.orderId;
 
   if (!session?.user) {
     return notFound();
