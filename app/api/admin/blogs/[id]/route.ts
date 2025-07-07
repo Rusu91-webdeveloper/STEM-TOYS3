@@ -23,7 +23,7 @@ const updateBlogSchema = z.object({
 // GET /api/admin/blogs/[id] - Get a specific blog post
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check if user is authenticated and is an admin
@@ -32,7 +32,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const id = params.id;
+    const { id } = await params;
 
     // Get blog post
     const blog = await db.blog.findUnique({
@@ -69,7 +69,7 @@ export async function GET(
 // PUT /api/admin/blogs/[id] - Update a blog post
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check if user is authenticated and is an admin
@@ -78,7 +78,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const id = params.id;
+    const { id } = await params;
 
     // Check if blog exists
     const existingBlog = await db.blog.findUnique({
@@ -137,7 +137,7 @@ export async function PUT(
 // DELETE /api/admin/blogs/[id] - Delete a blog post
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check if user is authenticated and is an admin
@@ -146,7 +146,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const id = params.id;
+    const { id } = await params;
 
     // Check if blog exists
     const existingBlog = await db.blog.findUnique({

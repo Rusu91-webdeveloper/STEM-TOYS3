@@ -5,10 +5,10 @@ import { db } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const { token } = params;
+    const { token } = await params;
     const headersList = await headers();
     const userAgent = headersList.get("user-agent") || "Unknown";
     const forwardedFor = headersList.get("x-forwarded-for");

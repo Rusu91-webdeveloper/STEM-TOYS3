@@ -18,7 +18,7 @@ const updateOrderSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     // Check authentication
@@ -28,7 +28,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
-    const { orderId } = params;
+    const { orderId } = await params;
     const body = await request.json();
 
     // Validate the request body

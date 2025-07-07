@@ -12,12 +12,10 @@ const updateSchema = z.object({
 // PATCH /api/cart/items/[itemId] - Update item quantity
 export async function PATCH(
   request: Request,
-  { params }: { params: { itemId: string } }
+  { params }: { params: Promise<{ itemId: string }> }
 ) {
   try {
-    // Need to await params before accessing properties
-    const itemParams = await Promise.resolve(params);
-    const itemId = itemParams.itemId;
+    const { itemId } = await params;
 
     console.log(`🛒 [ITEMS PATCH] Attempting to update item: ${itemId}`);
     const body = await request.json();
@@ -110,8 +108,9 @@ export async function PATCH(
       ephemeral: true,
     });
   } catch (error) {
+    const awaitedParams = await params;
     console.error(
-      `❌ [ITEMS PATCH] Failed to update item ${params.itemId}:`,
+      `❌ [ITEMS PATCH] Failed to update item ${awaitedParams.itemId}:`,
       error
     );
 
@@ -141,12 +140,10 @@ export async function PATCH(
 // DELETE /api/cart/items/[itemId] - Remove an item from the cart
 export async function DELETE(
   request: Request,
-  { params }: { params: { itemId: string } }
+  { params }: { params: Promise<{ itemId: string }> }
 ) {
   try {
-    // Need to await params before accessing
-    const itemParams = await Promise.resolve(params);
-    const itemId = itemParams.itemId;
+    const { itemId } = await params;
 
     console.log(
       `🛒 [ITEMS DELETE] Attempting to remove item with ID: ${itemId}`
@@ -211,8 +208,9 @@ export async function DELETE(
       ephemeral: true,
     });
   } catch (error) {
+    const awaitedParams = await params;
     console.error(
-      `❌ [ITEMS DELETE] Failed to remove item ${params.itemId}:`,
+      `❌ [ITEMS DELETE] Failed to remove item ${awaitedParams.itemId}:`,
       error
     );
     return NextResponse.json(

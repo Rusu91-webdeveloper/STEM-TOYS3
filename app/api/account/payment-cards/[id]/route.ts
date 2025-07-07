@@ -22,7 +22,7 @@ const updateCardSchema = z.object({
 // GET - Get a specific payment card
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -34,7 +34,7 @@ export async function GET(
       );
     }
 
-    const cardId = params.id;
+    const { id: cardId } = await params;
 
     // Fetch the card and ensure it belongs to the current user
     const card = await db.paymentCard.findFirst({
@@ -74,7 +74,7 @@ export async function GET(
 // PUT - Update a payment card
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -86,7 +86,7 @@ export async function PUT(
       );
     }
 
-    const cardId = params.id;
+    const { id: cardId } = await params;
     const body = await req.json();
 
     // Handle "none" value for billingAddressId
@@ -118,7 +118,7 @@ export async function PUT(
     const { isDefault, ...cardData } = result.data;
 
     // Use transaction to ensure all operations are atomic
-    const updatedCard = await db.$transaction(async (tx) => {
+    const updatedCard = await db.$transaction(async tx => {
       // If this is being set as the default card, unset any existing default cards
       if (isDefault && !existingCard.isDefault) {
         await tx.paymentCard.updateMany({
@@ -169,7 +169,7 @@ export async function PUT(
 // DELETE - Delete a payment card
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -181,7 +181,7 @@ export async function DELETE(
       );
     }
 
-    const cardId = params.id;
+    const { id: cardId } = await params;
 
     // Check if the card exists and belongs to the user
     const existingCard = await db.paymentCard.findFirst({

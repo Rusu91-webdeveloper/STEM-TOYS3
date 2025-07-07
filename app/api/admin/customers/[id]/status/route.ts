@@ -11,7 +11,7 @@ const statusUpdateSchema = z.object({
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -21,7 +21,7 @@ export async function PUT(
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
 
     // Validate request body
     const body = await request.json();

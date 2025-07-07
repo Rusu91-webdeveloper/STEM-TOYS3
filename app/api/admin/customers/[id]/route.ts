@@ -14,7 +14,7 @@ type OrderWithItems = {
 // GET - Get customer details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -25,7 +25,7 @@ export async function GET(
     }
 
     // Get the customer ID from route params
-    const customerId = params.id;
+    const { id: customerId } = await params;
 
     // Fetch customer with their orders and other related data
     const customer = await db.user.findUnique({
@@ -114,7 +114,7 @@ export async function GET(
 // DELETE - Delete a customer
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -125,7 +125,7 @@ export async function DELETE(
     }
 
     // Get the customer ID from route params
-    const customerId = params.id;
+    const { id: customerId } = await params;
 
     // Get the user to check if they exist and if they have orders
     const userToDelete = await db.user.findUnique({

@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 // GET /api/account/orders/[orderId] - Get a single order for the authenticated user
 export async function GET(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     const session = await auth();
@@ -50,7 +50,7 @@ export async function GET(
       paymentStatus: order.paymentStatus,
       createdAt: order.createdAt,
       deliveredAt: (order as any).deliveredAt || null,
-      items: order.items.map((item) => ({
+      items: order.items.map(item => ({
         id: item.id,
         name: item.product?.name || item.name || "Product no longer available",
         price: item.price,
