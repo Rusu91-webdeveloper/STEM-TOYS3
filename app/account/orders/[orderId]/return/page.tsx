@@ -93,11 +93,12 @@ const reasonLabels = {
   OTHER: "Other reason",
 };
 
-export default async function InitiateReturn({
+export default function InitiateReturn({
   params,
-}: { params: { orderId: string } } | { params: Promise<{ orderId: string }> }) {
-  const resolvedParams = await params;
-  const orderId = resolvedParams.orderId;
+}: {
+  params: { orderId: string };
+}) {
+  const orderId = params.orderId;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -260,7 +261,7 @@ export default async function InitiateReturn({
         <div className="bg-white p-8 rounded-xl shadow-sm text-center">
           <h3 className="text-lg font-medium mb-2">Order not found</h3>
           <p className="text-gray-500 mb-4">
-            We couldn't find the order you're looking for.
+            We couldn&apos;t find the order you&apos;re looking for.
           </p>
           <Link href="/account/orders" className="text-primary hover:underline">
             View all orders
@@ -282,7 +283,7 @@ export default async function InitiateReturn({
             <p className="text-gray-500 mb-4">
               Your return request has been submitted successfully for all
               selected items. Please note that items must be returned within 14
-              days of delivery. You'll receive one confirmation email with
+              days of delivery. You&apos;ll receive one confirmation email with
               details for all items in this return request.
             </p>
             <div className="mt-6">
