@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { use } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -94,11 +95,12 @@ const reasonLabels = {
 };
 
 interface ReturnPageProps {
-  params: { orderId: string };
+  params: Promise<{ orderId: string }>;
 }
 
 export default function InitiateReturn({ params }: ReturnPageProps) {
-  const orderId = params.orderId;
+  // Use React's use hook to access params in client component
+  const { orderId } = use(params);
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
