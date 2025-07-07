@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { Coins } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+import React, { useState, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Coins } from "lucide-react";
+
 
 // Self-contained currencies - no external dependencies
 const CURRENCIES = [

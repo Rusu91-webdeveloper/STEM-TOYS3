@@ -4,6 +4,7 @@
  */
 
 import { sendMail } from "../brevo";
+
 import {
   getStoreSettings,
   getBaseUrl,

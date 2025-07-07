@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+
 import { withErrorHandler } from "@/lib/api-error-handler";
+import { db } from "@/lib/db";
 
 interface RecommendationProduct {
   id: string;

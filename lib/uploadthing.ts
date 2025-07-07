@@ -1,5 +1,6 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UTApi } from "uploadthing/server";
+
 import { auth } from "@/lib/auth";
 
 const f = createUploadthing();
@@ -98,7 +99,7 @@ export const ourFileRouter = {
       const session = await auth();
 
       // Check if the user is authenticated
-      if (!session || !session.user) {
+      if (!session?.user) {
         throw new Error("Unauthorized: You must be logged in to upload files");
       }
 
@@ -118,7 +119,7 @@ export const ourFileRouter = {
       const session = await auth();
 
       // Check if the user is authenticated
-      if (!session || !session.user) {
+      if (!session?.user) {
         throw new Error("Unauthorized: You must be logged in to upload files");
       }
 
@@ -138,7 +139,7 @@ export const ourFileRouter = {
       const session = await auth();
 
       // Check if the user is authenticated and is an admin
-      if (!session || !session.user) {
+      if (!session?.user) {
         throw new Error("Unauthorized: You must be logged in to upload files");
       }
 
@@ -163,7 +164,7 @@ export const ourFileRouter = {
       const session = await auth();
 
       // Check if the user is authenticated and is an admin
-      if (!session || !session.user) {
+      if (!session?.user) {
         throw new Error("Unauthorized: You must be logged in to upload files");
       }
 
@@ -188,7 +189,7 @@ export const ourFileRouter = {
       const session = await auth();
 
       // Check if the user is authenticated
-      if (!session || !session.user) {
+      if (!session?.user) {
         throw new Error("Unauthorized: You must be logged in to upload files");
       }
 
@@ -213,7 +214,7 @@ export const ourFileRouter = {
       const session = await auth();
 
       // Check if the user is authenticated and is an admin
-      if (!session || !session.user) {
+      if (!session?.user) {
         throw new Error("Unauthorized: You must be logged in to upload files");
       }
 

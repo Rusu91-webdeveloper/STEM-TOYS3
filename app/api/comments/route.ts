@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { query, execute } from "@/lib/db-utils";
 import { z } from "zod";
+
+import { query, execute } from "@/lib/db-utils";
 
 // Validate the comment data
 const commentSchema = z.object({

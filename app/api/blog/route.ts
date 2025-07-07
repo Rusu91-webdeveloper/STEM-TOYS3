@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import DOMPurify from "isomorphic-dompurify";
+
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { blogService } from "@/lib/services/blog-service";
@@ -162,15 +164,17 @@ export async function POST(request: NextRequest) {
       language: data.language || "en",
     });
 
+    const sanitizedContent = DOMPurify.sanitize(data.content);
+
     // Create blog post using blog service (includes automatic notifications)
     const blog = await blogService.createBlog({
       title: data.title,
       slug: data.slug,
       excerpt: data.excerpt,
-      content: data.content,
+      content: sanitizedContent,
       coverImage: data.coverImage || undefined,
       categoryId: data.categoryId,
-      authorId: authorId,
+      authorId,
       stemCategory: data.stemCategory || "GENERAL",
       tags,
       isPublished: data.isPublished || false,

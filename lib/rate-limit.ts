@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+
 import { redis } from "@/lib/redis";
+
 import { RATE_LIMITS } from "./constants";
 
 interface RateLimitConfig {
@@ -476,15 +478,25 @@ export function getClientIdentifier(request: Request): string {
   const userAgent = request.headers.get("user-agent") || "unknown";
   const acceptLanguage = request.headers.get("accept-language") || "unknown";
 
-  // Create a hash of identifying information
-  const crypto = require("crypto");
-  const identifier = crypto
-    .createHash("sha256")
-    .update(`${userAgent}:${acceptLanguage}`)
-    .digest("hex")
-    .substring(0, 16);
+  // Create a hash of identifying information using Web Crypto API (Edge Runtime compatible)
+  try {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(`${userAgent}:${acceptLanguage}`);
 
-  return `fallback:${identifier}`;
+    // Use a simple hash function for Edge Runtime compatibility
+    let hash = 0;
+    for (let i = 0; i < data.length; i++) {
+      const char = data[i];
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+
+    const identifier = Math.abs(hash).toString(16).substring(0, 16);
+    return `fallback:${identifier}`;
+  } catch (error) {
+    // Final fallback - use timestamp + random
+    return `fallback:${Date.now().toString(16)}${Math.random().toString(16).substr(2, 8)}`;
+  }
 }
 
 /**

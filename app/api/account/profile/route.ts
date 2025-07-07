@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { mockUsers } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { hash } from "bcrypt";
+import { NextResponse } from "next/server";
 import { z } from "zod";
+
+import { auth , mockUsers } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 // Profile update schema
 const profileUpdateSchema = z.object({
@@ -114,9 +114,9 @@ export async function PUT(req: Request) {
       }
 
       // Use transaction to ensure atomicity
-      updatedUser = await db.$transaction(async (tx) => {
+      updatedUser = await db.$transaction(async (tx) => 
         // Update the user in the database
-        return tx.user.update({
+         tx.user.update({
           where: {
             id: session.user.id,
           },
@@ -132,8 +132,8 @@ export async function PUT(req: Request) {
             updatedAt: true,
             // Do not include password in response
           },
-        });
-      });
+        })
+      );
     }
 
     return NextResponse.json({

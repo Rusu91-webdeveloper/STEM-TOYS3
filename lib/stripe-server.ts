@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+
 import { getRequiredEnvVar } from "./env";
 
 // Initialize Stripe with the secret key from environment variable

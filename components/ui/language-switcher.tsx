@@ -1,7 +1,9 @@
 "use client";
 
-import React from "react";
+import { Globe } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+import React from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,7 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Globe } from "lucide-react";
 import { languages, useTranslation } from "@/lib/i18n";
 
 export function LanguageSwitcher() {

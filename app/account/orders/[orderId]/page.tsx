@@ -1,5 +1,6 @@
-import React from "react";
 import { notFound } from "next/navigation";
+import React from "react";
+
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getTranslations, TranslationKey } from "@/lib/i18n/server";
@@ -7,14 +8,10 @@ import { getTranslations, TranslationKey } from "@/lib/i18n/server";
 // Import the client component
 import { OrderDetailsClient } from "./OrderDetailsClient";
 
-interface PageProps {
-  params: {
-    orderId: string;
-  };
-}
+
 
 // Helper function to safely serialize dates and objects for client component
-function serializeOrder(order: any) {
+function serializeOrder(order: object) {
   return JSON.parse(
     JSON.stringify(order, (key, value) => {
       // Convert Date objects to ISO strings
@@ -26,7 +23,7 @@ function serializeOrder(order: any) {
   );
 }
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata({ params }: { params: Promise<{ orderId: string }> }) {
   const t = await getTranslations();
   const resolvedParams = await params;
   const orderId = resolvedParams.orderId;
@@ -35,8 +32,8 @@ export async function generateMetadata({ params }: PageProps) {
   };
 }
 
-export default async function OrderDetailsPage({ params }: PageProps) {
-  const t = await getTranslations();
+export default async function OrderDetailsPage({ params }: { params: Promise<{ orderId: string }> }) {
+  const _t = await getTranslations();
   const session = await auth();
   const resolvedParams = await params;
   const orderId = resolvedParams.orderId;

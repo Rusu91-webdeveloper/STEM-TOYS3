@@ -1,11 +1,8 @@
 import React from "react";
-import { auth } from "@/lib/auth";
-import { Wishlist } from "@/features/account/components/Wishlist";
 
-export const metadata = {
-  title: "Wishlist | My Account",
-  description: "View and manage your saved products",
-};
+import { Wishlist } from "@/features/account/components/Wishlist";
+import { getWishlistItems } from "@/lib/wishlist";
+import { auth } from "@/lib/auth";
 
 export default async function WishlistPage() {
   const session = await auth();
@@ -15,6 +12,8 @@ export default async function WishlistPage() {
     return null;
   }
 
+  const wishlistItems = await getWishlistItems();
+
   return (
     <div className="space-y-6">
       <div>
@@ -23,7 +22,7 @@ export default async function WishlistPage() {
           View and manage your saved products
         </p>
       </div>
-      <Wishlist />
+      <Wishlist initialItems={wishlistItems} />
     </div>
   );
 }

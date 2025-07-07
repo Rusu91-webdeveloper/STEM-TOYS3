@@ -83,9 +83,9 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     // Format based on currency
     if (currency.code === "RON") {
       return `${convertedPrice.toFixed(2)} ${currency.symbol}`;
-    } else {
+    } 
       return `${currency.symbol}${convertedPrice.toFixed(2)}`;
-    }
+    
   };
 
   const value = {

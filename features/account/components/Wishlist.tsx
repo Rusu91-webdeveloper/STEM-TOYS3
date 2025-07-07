@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,38 +24,16 @@ interface WishlistItem {
   dateAdded: string;
 }
 
-export function Wishlist() {
+interface WishlistProps {
+  initialItems: WishlistItem[];
+}
+
+export function Wishlist({ initialItems }: WishlistProps) {
   const { t } = useTranslation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [wishlistItems, setWishlistItems] =
+    useState<WishlistItem[]>(initialItems);
   const { addToCart } = useShoppingCart();
   const { formatPrice } = useCurrency();
-
-  useEffect(() => {
-    // Fetch wishlist items from API
-    const fetchWishlist = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch("/api/account/wishlist");
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setWishlistItems(data);
-        setError(null);
-      } catch (error) {
-        console.error("Error fetching wishlist:", error);
-        setError("Failed to load your wishlist");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchWishlist();
-  }, []);
 
   const handleRemoveFromWishlist = async (id: string) => {
     try {
@@ -79,7 +58,7 @@ export function Wishlist() {
           "Articolul a fost eliminat din lista ta de dorințe."
         ),
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: t("error", "Eroare"),
         description: t(
@@ -91,7 +70,7 @@ export function Wishlist() {
     }
   };
 
-  const handleAddToCart = async (item: WishlistItem) => {
+  const handleAddToCart = (item: WishlistItem) => {
     try {
       // Use the shopping cart hook to add the item directly to cart
       addToCart({
@@ -107,7 +86,7 @@ export function Wishlist() {
         description: "Produsul a fost adăugat în coșul tău",
         variant: "success",
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: t("error", "Eroare"),
         description: t(
@@ -155,51 +134,6 @@ export function Wishlist() {
     }
   };
 
-  // Error state
-  if (error) {
-    return (
-      <div className="text-center py-12 border rounded-lg">
-        <AlertCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium mb-2">{error}</h3>
-        <p className="text-gray-500 mb-6">
-          {t(
-            "wishlistErrorDesc",
-            "Nu am putut încărca lista ta de dorințe. Te rugăm să încerci din nou mai târziu."
-          )}
-        </p>
-        <Button onClick={() => window.location.reload()}>
-          {t("tryAgain", "Încearcă din nou")}
-        </Button>
-      </div>
-    );
-  }
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3, 4].map(i => (
-          <Card key={i}>
-            <div className="relative pt-[100%]">
-              <Skeleton className="absolute inset-0 rounded-t-lg" />
-            </div>
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-full" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-6 w-1/3" />
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between p-4 pt-0">
-              <Skeleton className="h-9 w-24" />
-              <Skeleton className="h-9 w-24" />
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
   // Empty state
   if (wishlistItems.length === 0) {
     return (
@@ -229,10 +163,12 @@ export function Wishlist() {
         <Card key={item.id} className="overflow-hidden group">
           <div className="relative pt-[100%] bg-gray-100">
             <Link href={`/products/${item.slug}`}>
-              <img
+              <Image
                 src={item.image}
                 alt={item.name}
-                className="absolute inset-0 w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
+                fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                className="object-cover transition-all duration-300 group-hover:scale-105"
               />
             </Link>
             <Button

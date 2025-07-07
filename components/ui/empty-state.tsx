@@ -1,7 +1,4 @@
-import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { 
   ShoppingCart, 
   Heart, 
@@ -18,6 +15,11 @@ import {
   Plus,
   ArrowRight
 } from "lucide-react"
+import * as React from "react"
+
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
 
 const emptyStateVariants = cva(
   "flex flex-col items-center justify-center text-center space-y-6 p-8",

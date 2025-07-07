@@ -1,7 +1,8 @@
+import { hash } from "bcrypt";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+
 import { db } from "@/lib/db";
-import { hash } from "bcrypt";
 import { withRateLimit } from "@/lib/rate-limit";
 
 // Schema for request validation

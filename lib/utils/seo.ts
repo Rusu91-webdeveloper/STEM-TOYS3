@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import { createMetadata } from "../metadata";
 
 type SeoMetadata = {
@@ -166,13 +167,13 @@ export function generateProductMetadata(product: any): Metadata {
   return createMetadata({
     title: "metaTitle" as any,
     description: "metaDescription" as any,
-    keywords: keywords,
-    structuredData: structuredData,
+    keywords,
+    structuredData,
     canonicalUrl:
       seoData.canonical || `https://techtots.com/products/${product.slug}`,
     ogImage: product.images?.[0] || "/opengraph-image.png",
     pathWithoutLocale: `/products/${product.slug}`,
-    translations: translations,
+    translations,
   });
 }
 
@@ -278,7 +279,7 @@ export function generateCategoryMetadata(category: any): Metadata {
       seoData.canonical || `https://techtots.com/categories/${category.slug}`,
     ogImage: category.image || "/opengraph-image.png",
     pathWithoutLocale: `/categories/${category.slug}`,
-    translations: translations,
+    translations,
   });
 }
 
@@ -374,12 +375,12 @@ export function generateBlogMetadata(blog: any): Metadata {
   return createMetadata({
     title: "metaTitle" as any,
     description: "metaDescription" as any,
-    keywords: keywords,
-    structuredData: structuredData,
+    keywords,
+    structuredData,
     canonicalUrl: seoData.canonical || `https://techtots.com/blog/${blog.slug}`,
     ogImage: blog.coverImage || "/opengraph-image.png",
     pathWithoutLocale: `/blog/${blog.slug}`,
-    translations: translations,
+    translations,
   });
 }
 
@@ -477,13 +478,13 @@ export function generateBookMetadata(book: any): Metadata {
   return createMetadata({
     title: "metaTitle" as any,
     description: "metaDescription" as any,
-    keywords: keywords,
-    structuredData: structuredData,
+    keywords,
+    structuredData,
     canonicalUrl:
       seoData.canonical || `https://techtots.com/books/${book.slug}`,
     ogImage: book.coverImage || "/opengraph-image.png",
     pathWithoutLocale: `/books/${book.slug}`,
-    translations: translations,
+    translations,
   });
 }
 
@@ -530,6 +531,6 @@ export function generateHomepageMetadata(storeSettings: any): Metadata {
     canonicalUrl: storeSettings.storeUrl,
     ogImage: "/opengraph-image.png",
     pathWithoutLocale: "/",
-    translations: translations,
+    translations,
   });
 }

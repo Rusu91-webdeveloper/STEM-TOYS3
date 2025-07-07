@@ -200,3 +200,26 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+.book-cover-effect {
+  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+.book-cover-effect:hover {
+  box-shadow: 7px 7px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-5px);
+}
+
+/* Responsive book sizing */
+@media (max-width: 768px) {
+  .book-cover-effect {
+    max-width: 120px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .book-cover-effect {
+    max-width: 150px;
+  }
+}

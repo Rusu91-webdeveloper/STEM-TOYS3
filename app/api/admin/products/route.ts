@@ -1,13 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { auth } from "@/lib/auth";
-import { z } from "zod";
 import { revalidateTag } from "next/cache";
-import { isAdmin } from "@/lib/auth/admin";
-import { slugify } from "@/lib/utils";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
 import { handleFormData } from "@/lib/api-helpers";
+import { auth } from "@/lib/auth";
+import { isAdmin } from "@/lib/auth/admin";
+import { db } from "@/lib/db";
 import { utapi } from "@/lib/uploadthing";
+import { slugify } from "@/lib/utils";
 import { productSchema as baseProductSchema } from "@/lib/validations";
+import {
+  getCached,
+  CacheKeys,
+  invalidateCache,
+  invalidateCachePattern,
+} from "@/lib/cache";
+import { withRateLimit } from "@/lib/rate-limit";
+import {
+  withErrorHandling,
+  badRequest,
+  notFound,
+  handleZodError,
+  handleUnexpectedError,
+} from "@/lib/api-error";
+import { applyStandardHeaders } from "@/lib/response-headers";
 
 // Extend the base product schema with additional fields specific to this API
 const productSchema = baseProductSchema
@@ -48,65 +64,55 @@ const productUpdateSchema = productSchema.partial().extend({
 });
 
 // GET all products
-export async function GET(request: NextRequest) {
-  try {
-    // Check if user is admin
-    if (!(await isAdmin(request))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Log that we're attempting to fetch products
-    console.log("Fetching products from database");
-
-    let products;
-
-    if (process.env.USE_MOCK_DATA === "true") {
-      console.log("Using mock data for products");
-      // Return mock products if in development mode
-      products = [
-        {
-          id: "P001",
-          name: "Robotic Building Kit",
-          price: 59.99,
-          category: { name: "Technology" },
-          inventory: 32,
-          status: "In Stock",
-          featured: true,
-          image:
-            "https://placehold.co/400x300/4F46E5/FFFFFF.png?text=Robot+Kit",
-        },
-        // ... other mock products
-      ];
-    } else {
-      // Fetch from database with proper error handling
-      try {
-        products = await db.product.findMany({
-          include: {
-            category: true,
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        });
-        console.log(`Found ${products.length} products in database`);
-      } catch (dbError) {
-        console.error("Database error when fetching products:", dbError);
-        return NextResponse.json(
-          { error: "Database error", details: dbError },
-          { status: 500 }
-        );
+export const GET = withRateLimit(
+  async function GET(request: NextRequest) {
+    try {
+      // Check if user is admin
+      if (!(await isAdmin(request))) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
-    }
 
-    return NextResponse.json(products);
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error", details: error },
-      { status: 500 }
-    );
-  }
-}
+      // --- Caching logic start ---
+      const cacheKey = CacheKeys.productList({ admin: true });
+      const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+      const products = await getCached(
+        cacheKey,
+        async () => {
+          // Fetch from database with proper error handling
+          try {
+            return await db.product.findMany({
+              include: {
+                category: true,
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+            });
+          } catch (dbError) {
+            console.error("Database error when fetching products:", dbError);
+            throw dbError;
+          }
+        },
+        CACHE_TTL
+      );
+      // --- Caching logic end ---
+
+      return applyStandardHeaders(NextResponse.json(products), {
+        cache: "private",
+      });
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      return applyStandardHeaders(
+        NextResponse.json(
+          { error: "Internal Server Error", details: error },
+          { status: 500 }
+        ),
+        { cache: "private" }
+      );
+    }
+  },
+  { limit: 30, windowMs: 10 * 60 * 1000 }
+);
 
 // POST - Create a new product
 export async function POST(request: NextRequest) {
@@ -202,19 +208,31 @@ export async function POST(request: NextRequest) {
         revalidateTag(`category-${data.categoryId}`);
       }
 
-      return NextResponse.json(product, { status: 201 });
+      // After any admin product mutation (POST, PUT, DELETE), add:
+      await invalidateCachePattern("products:");
+      await invalidateCachePattern("product:");
+
+      return applyStandardHeaders(NextResponse.json(product), {
+        cache: "private",
+      });
     } catch (dbError) {
       console.error("Database error creating product:", dbError);
-      return NextResponse.json(
-        { error: "Database error", details: String(dbError) },
-        { status: 500 }
+      return applyStandardHeaders(
+        NextResponse.json(
+          { error: "Database error", details: String(dbError) },
+          { status: 500 }
+        ),
+        { cache: "private" }
       );
     }
   } catch (error) {
     console.error("Error creating product:", error);
-    return NextResponse.json(
-      { error: "Failed to create product", details: String(error) },
-      { status: 500 }
+    return applyStandardHeaders(
+      NextResponse.json(
+        { error: "Failed to create product", details: String(error) },
+        { status: 500 }
+      ),
+      { cache: "private" }
     );
   }
 }
@@ -386,12 +404,18 @@ export async function PUT(request: NextRequest) {
       revalidateTag(`category-${existingProduct.categoryId}`);
     }
 
-    return NextResponse.json(updatedProduct);
+    // After any admin product mutation (POST, PUT, DELETE), add:
+    await invalidateCachePattern("products:");
+    await invalidateCachePattern("product:");
+
+    return applyStandardHeaders(NextResponse.json(updatedProduct), {
+      cache: "private",
+    });
   } catch (error) {
     console.error("Error updating product:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
+    return applyStandardHeaders(
+      NextResponse.json({ error: "Internal Server Error" }, { status: 500 }),
+      { cache: "private" }
     );
   }
 }
@@ -462,15 +486,22 @@ export async function DELETE(request: NextRequest) {
       revalidateTag(`category-${categoryId}`);
     }
 
-    return NextResponse.json(
-      { message: "Product deleted successfully" },
-      { status: 200 }
+    // After any admin product mutation (POST, PUT, DELETE), add:
+    await invalidateCachePattern("products:");
+    await invalidateCachePattern("product:");
+
+    return applyStandardHeaders(
+      NextResponse.json(
+        { message: "Product deleted successfully" },
+        { status: 200 }
+      ),
+      { cache: "private" }
     );
   } catch (error) {
     console.error("Error deleting product:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
+    return applyStandardHeaders(
+      NextResponse.json({ error: "Internal Server Error" }, { status: 500 }),
+      { cache: "private" }
     );
   }
 }

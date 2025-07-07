@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
 import { ChevronRight, Home } from "lucide-react";
+import Link from "next/link";
+import React from "react";
+
 import { cn } from "@/lib/utils";
 
 export interface BreadcrumbItem {

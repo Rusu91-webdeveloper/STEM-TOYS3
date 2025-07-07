@@ -93,6 +93,7 @@ export function ProductCard({
     image: product.images[0],
     variants: product.variants,
     slug: product.slug,
+    stockQuantity: product.stockQuantity,
   };
 
   // Use placeholder image if product image is missing
@@ -107,12 +108,14 @@ export function ProductCard({
         className={cn(
           "flex flex-col xs:flex-row border rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-300",
           className
-        )}>
+        )}
+      >
         <div className="relative w-full xs:w-1/3 h-48 xs:h-auto xs:max-w-[240px]">
           <Link href={`/products/${product.slug}`}>
             <div
               className="relative h-full w-full group"
-              style={{ position: "relative" }}>
+              style={{ position: "relative" }}
+            >
               <Image
                 src={imageUrl}
                 alt={product.name}
@@ -134,7 +137,8 @@ export function ProductCard({
             {product.stemCategory && (
               <Badge
                 className="absolute top-3 right-3 capitalize text-xs px-2 py-1"
-                variant="outline">
+                variant="outline"
+              >
                 {product.stemCategory}
               </Badge>
             )}
@@ -142,9 +146,7 @@ export function ProductCard({
         </div>
         <div className="flex flex-col flex-1 p-4 justify-between">
           <div className="space-y-2">
-            <Link
-              href={`/products/${product.slug}`}
-              className="block">
+            <Link href={`/products/${product.slug}`} className="block">
               <h3 className="font-semibold text-base line-clamp-2 hover:text-primary transition-colors">
                 {product.name}
               </h3>
@@ -190,13 +192,9 @@ export function ProductCard({
       className={cn(
         "group border rounded-xl overflow-hidden h-full flex flex-col bg-white shadow-sm hover:shadow-lg transition-all duration-300",
         className
-      )}>
-      <div
-        className="relative overflow-hidden"
-        style={{
-          height: calculatedHeight, // Use the calculated height based on screen size
-          position: "relative", // Add this to fix the Image fill warning
-        }}>
+      )}
+    >
+      <div className="relative overflow-hidden aspect-square">
         <Link href={`/products/${product.slug}`}>
           <Image
             src={imageUrl}
@@ -218,7 +216,8 @@ export function ProductCard({
           {product.stemCategory && (
             <Badge
               className="absolute top-3 right-3 capitalize text-xs px-2 py-1 bg-white/90 text-gray-700 border-0"
-              variant="outline">
+              variant="outline"
+            >
               {product.stemCategory}
             </Badge>
           )}
@@ -227,9 +226,7 @@ export function ProductCard({
 
       <div className="flex flex-col flex-1 p-4 space-y-3">
         <div className="space-y-2">
-          <Link
-            href={`/products/${product.slug}`}
-            className="block">
+          <Link href={`/products/${product.slug}`} className="block">
             <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-colors">
               {product.name}
             </h3>

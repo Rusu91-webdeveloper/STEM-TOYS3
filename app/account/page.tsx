@@ -1,16 +1,12 @@
+import { User } from "lucide-react";
 import React from "react";
+
 import { ProfileForm } from "@/features/account/components/ProfileForm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getTranslations } from "@/lib/i18n/server";
-import { User } from "lucide-react";
 
-export async function generateMetadata() {
-  const t = await getTranslations("ro");
-  return {
-    title: `${t("account")} | NextCommerce`,
-  };
-}
+
 
 export default async function ProfilePage() {
   const session = await auth();

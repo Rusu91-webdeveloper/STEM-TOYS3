@@ -1,19 +1,3 @@
-import React from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   ArrowUpRight,
   ArrowDownRight,
@@ -24,16 +8,34 @@ import {
   Activity,
   Calendar,
 } from "lucide-react";
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { SalesChart } from "./components/sales-chart";
-import { db } from "@/lib/db";
+import React from "react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { auth } from "@/lib/auth";
 import { CurrencyProvider } from "@/lib/currency";
-import { TopSellingProductsTable } from "./components/TopSellingProductsTable";
-import { SalesByCategoryChart } from "./components/SalesByCategoryChart";
-import { CurrencyDisplay } from "./components/CurrencyDisplay";
+import { db } from "@/lib/db";
+
 import { AnalyticsDashboard } from "./components/AnalyticsDashboard";
 import { ClientAnalytics } from "./components/ClientAnalytics";
+import { CurrencyDisplay } from "./components/CurrencyDisplay";
+import { SalesChart } from "./components/sales-chart";
+import { SalesByCategoryChart } from "./components/SalesByCategoryChart";
+import { TopSellingProductsTable } from "./components/TopSellingProductsTable";
 
 // Define types for our API responses
 interface SalesData {
@@ -318,7 +320,8 @@ async function fetchOrderStats(startDate: Date, endDate: Date) {
     totalCustomers: {
       value: totalCustomers,
       previousPeriodChange: parseFloat(customerGrowthPercentage.toFixed(1)),
-      trending: customerGrowthPercentage >= 0 ? ("up" as const) : ("down" as const),
+      trending:
+        customerGrowthPercentage >= 0 ? ("up" as const) : ("down" as const),
     },
   };
 }
@@ -345,7 +348,7 @@ async function fetchTopSellingProducts(startDate: Date, endDate: Date) {
     LIMIT 5
   `;
 
-  return (topSoldProducts as any[]).map((product) => ({
+  return (topSoldProducts as any[]).map(product => ({
     name: product.name,
     price: parseFloat(product.price),
     sold: parseInt(product.sold),
@@ -379,7 +382,7 @@ async function fetchSalesByCategory(startDate: Date, endDate: Date) {
     0
   );
 
-  return (categorySales as any[]).map((item) => ({
+  return (categorySales as any[]).map(item => ({
     categoryId: item.categoryId,
     category: item.category,
     amount: parseFloat(item.amount),
@@ -416,13 +419,13 @@ async function fetchSalesChartData(startDate: Date, endDate: Date) {
 
   // Create a map for quick lookups
   const salesByDateMap = new Map();
-  (dailySales as any[]).forEach((day) => {
+  (dailySales as any[]).forEach(day => {
     const dateStr = new Date(day.date).toISOString().split("T")[0];
     salesByDateMap.set(dateStr, parseFloat(day.sales));
   });
 
   // Fill in all days, even those with no sales
-  const salesData = days.map((day) => {
+  const salesData = days.map(day => {
     const dateStr = day.toISOString().split("T")[0];
     return {
       date: dateStr,
@@ -461,16 +464,14 @@ export default async function AnalyticsPage() {
 
     // Return the client component with all data
     return (
-      <CurrencyProvider>
-        <ClientAnalytics
-          initialSalesData={salesData}
-          initialOrderStats={orderStats}
-          initialTopSellingProducts={topSellingProducts}
-          initialSalesByCategory={salesByCategory}
-          initialSalesChartData={salesChartData}
-          defaultPeriod={defaultPeriod}
-        />
-      </CurrencyProvider>
+      <ClientAnalytics
+        initialSalesData={salesData}
+        initialOrderStats={orderStats}
+        initialTopSellingProducts={topSellingProducts}
+        initialSalesByCategory={salesByCategory}
+        initialSalesChartData={salesChartData}
+        defaultPeriod={defaultPeriod}
+      />
     );
   } catch (error) {
     console.error("Error fetching analytics data:", error);

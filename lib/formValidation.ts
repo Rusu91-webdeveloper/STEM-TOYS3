@@ -39,9 +39,7 @@ export function createFormValidator(schema: z.ZodSchema) {
      * Validates the entire form
      * @param formData The form data to validate
      */
-    validateForm: (formData: unknown) => {
-      return validateFormData(schema, formData);
-    },
+    validateForm: (formData: unknown) => validateFormData(schema, formData),
 
     /**
      * Validates a single field by creating a partial schema

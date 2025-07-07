@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { X, Copy, Clock, ShoppingBag, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n";
-import Image from "next/image";
+
 
 interface PromotionalCoupon {
   id: string;

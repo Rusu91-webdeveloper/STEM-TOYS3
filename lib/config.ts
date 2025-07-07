@@ -210,6 +210,7 @@ export const serviceConfig = {
       _env.NODE_ENV === "production" || _env.ENABLE_PINO === "true";
     return _env.DISABLE_PINO !== "true" && isProductionOrExplicitlyEnabled;
   },
+  isEmailServiceEnabled: () => !!process.env.BREVO_API_KEY || !!process.env.BREVO_SMTP_KEY,
 } as const;
 
 // Log configuration status (only in development)
@@ -239,6 +240,10 @@ export function logConfigStatus() {
     // eslint-disable-next-line no-console
     console.log(
       `  - Pino Logger: ${serviceConfig.isPinoEnabled() ? "✅" : "❌"}`
+    );
+    // eslint-disable-next-line no-console
+    console.log(
+      `  - Email Service: ${serviceConfig.isEmailServiceEnabled() ? "✅" : "❌"}`
     );
   }
 }

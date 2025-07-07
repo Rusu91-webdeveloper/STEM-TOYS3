@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { db } from "@/lib/db";
 import type { Product } from "@/types/product";
 
@@ -7,9 +8,7 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   try {
-    // Ensure params is resolved if it's a promise
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const slug = resolvedParams.slug;
+    const { slug } = params;
 
     if (!slug) {
       return NextResponse.json({ error: "Slug is required" }, { status: 400 });
@@ -36,7 +35,7 @@ export async function GET(
       id: dbProduct.id,
       name: dbProduct.name,
       slug: dbProduct.slug,
-      description: dbProduct.description,
+      description: dbProduct.description ?? "",
       price: dbProduct.price,
       compareAtPrice: dbProduct.compareAtPrice ?? undefined,
       images: dbProduct.images as string[],
@@ -49,7 +48,9 @@ export async function GET(
       // Ensure category is available
       category: dbProduct.category?.name,
       // Set stemCategory from category
-      stemCategory: dbProduct.category?.name.toLowerCase(),
+      stemCategory: dbProduct.category?.name?.toLowerCase(),
+      stockQuantity: dbProduct.stockQuantity,
+      reservedQuantity: dbProduct.reservedQuantity,
       // Pass through any other properties
       ...((dbProduct as any).categoryId
         ? { categoryId: (dbProduct as any).categoryId }
@@ -79,9 +80,7 @@ export async function PATCH(
   { params }: { params: { slug: string } }
 ) {
   try {
-    // Ensure params is resolved if it's a promise
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const slug = resolvedParams.slug;
+    const { slug } = params;
 
     if (!slug) {
       return NextResponse.json({ error: "Slug is required" }, { status: 400 });

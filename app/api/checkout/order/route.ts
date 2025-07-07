@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { auth } from "@/lib/auth";
-import { sendEmail } from "@/lib/email";
-import { db } from "@/lib/db";
+
 import type { CartItem } from "@/features/cart/context/CartContext";
+import { auth } from "@/lib/auth";
+import { validateCsrfForRequest } from "@/lib/csrf";
+import { db } from "@/lib/db";
+import { sendEmail } from "@/lib/email";
 
 // Order validation schema - more lenient version
 const shippingAddressSchema = z
@@ -70,7 +72,7 @@ const orderSchema = z.object({
   shippingCost: z.number().optional(),
   total: z.number().optional(),
   items: z.array(orderItemSchema).optional(),
-  couponCode: z.string().optional(),
+  couponCode: z.string().nullable().optional(),
   discountAmount: z.number().optional(),
   guestInformation: guestInformationSchema.optional(),
   isGuestCheckout: z.boolean().optional(),
@@ -89,15 +91,11 @@ function formatZodErrors(error: z.ZodError): Record<string, string> {
 // POST /api/checkout/order - Create a new order
 export async function POST(request: Request) {
   try {
-    // Get the user session (optional for guest checkout)
-    const session = await auth();
-    const user = session?.user;
-
-    // Parse the request body
+    // Parse the request body first
     let body;
     try {
-      body = await request.json();
-      // Log the request payload for debugging
+      const bodyText = await request.text();
+      body = JSON.parse(bodyText);
       console.log(
         "Processing order with payload:",
         JSON.stringify(body, null, 2)
@@ -114,6 +112,33 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // Create a new Request object for CSRF validation since we consumed the body
+    const requestForCsrf = new Request(request.url, {
+      method: request.method,
+      headers: request.headers,
+      body: JSON.stringify(body),
+    });
+
+    // Validate CSRF token
+    const csrfResult = await validateCsrfForRequest(requestForCsrf, body);
+    if (!csrfResult.valid) {
+      console.error(
+        `CSRF validation failed for /api/checkout/order: ${csrfResult.error}`
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Security validation failed",
+          error: "CSRF_VALIDATION_FAILED",
+        },
+        { status: 403 }
+      );
+    }
+
+    // Get the user session (optional for guest checkout)
+    const session = await auth();
+    const user = session?.user;
 
     // Validate request body
     const orderData = orderSchema.parse(body);
@@ -134,9 +159,6 @@ export async function POST(request: Request) {
 
     // Determine if this is a guest checkout
     const isGuestCheckout = !user && orderData.isGuestCheckout;
-    const guestEmail = isGuestCheckout
-      ? orderData.guestInformation?.email
-      : null;
 
     // Check if Stripe environment variables are set
     const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -219,7 +241,7 @@ export async function POST(request: Request) {
       items.reduce((total, item) => total + item.price * item.quantity, 0);
 
     // Get initial shipping method cost (default to 0 if not provided)
-    let baseShippingCost =
+    const baseShippingCost =
       orderData.shippingCost ||
       (orderData.shippingMethod?.price
         ? parseFloat(orderData.shippingMethod.price.toString())
@@ -250,10 +272,7 @@ export async function POST(request: Request) {
       // Get shipping settings for free shipping threshold
       if (storeSettings?.shippingSettings) {
         const shippingSettings = storeSettings.shippingSettings as any;
-        if (
-          shippingSettings.freeThreshold &&
-          shippingSettings.freeThreshold.active
-        ) {
+        if (shippingSettings.freeThreshold?.active) {
           freeShippingThreshold = parseFloat(
             shippingSettings.freeThreshold.price
           );
@@ -423,7 +442,7 @@ export async function POST(request: Request) {
             paymentMethod: "card", // Default payment method
             status: "PROCESSING",
             paymentStatus: "PAID", // In a real app, this would depend on payment processing
-            shippingAddressId: shippingAddressId,
+            shippingAddressId,
           },
         });
 
@@ -551,7 +570,7 @@ export async function POST(request: Request) {
           } else {
             orderItemData = {
               orderId: newOrder.id,
-              productId: productId,
+              productId,
               name: item.name,
               price: item.price,
               quantity: item.quantity,
@@ -565,6 +584,23 @@ export async function POST(request: Request) {
           console.log(
             `Created order item: ${orderItem.id} for ${isBook ? "book" : "product"} ${productId}${isBook ? " (digital)" : ""}${item.selectedLanguage ? ` in ${item.selectedLanguage}` : ""}`
           );
+
+          // --- INVENTORY UPDATE LOGIC ---
+          if (!isBook && productId) {
+            await tx.product.update({
+              where: { id: productId },
+              data: {
+                stockQuantity: { decrement: item.quantity },
+                reservedQuantity: { increment: item.quantity },
+                // Optionally, increment totalSold here if you want to count as sold immediately:
+                // totalSold: { increment: item.quantity },
+              },
+            });
+            console.log(
+              `Updated inventory for product ${productId}: -${item.quantity} stock, +${item.quantity} reserved.`
+            );
+          }
+          // --- END INVENTORY UPDATE LOGIC ---
         }
 
         return newOrder;
@@ -682,23 +718,23 @@ export async function POST(request: Request) {
           quantity: item.quantity,
           price: item.price,
         })),
-        subtotal: subtotal,
-        tax: tax,
+        subtotal,
+        tax,
         shippingCost: finalShippingCost,
-        discountAmount: discountAmount,
+        discountAmount,
         couponCode: appliedCoupon?.code || null,
         total: orderTotal,
         shippingAddress: orderData.shippingAddress,
         shippingMethod: orderData.shippingMethod,
         orderDate: orderData.orderDate || new Date().toISOString(),
-        taxRatePercentage: taxRatePercentage,
-        isFreeShippingActive: isFreeShippingActive,
-        freeShippingThreshold: freeShippingThreshold,
+        taxRatePercentage,
+        isFreeShippingActive,
+        freeShippingThreshold,
       };
 
       await sendEmail({
         to: user.email as string,
-        subject: "Confirmare comandă TeechTots #" + (dbOrder?.id || orderId),
+        subject: `Confirmare comandă TeechTots #${dbOrder?.id || orderId}`,
         template: "order-confirmation",
         data: {
           order: orderDetails,

@@ -1,6 +1,7 @@
-import React from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import React from "react";
+
 import ProductForm from "@/components/admin/ProductForm";
 import { db } from "@/lib/db";
 
@@ -23,7 +24,7 @@ async function getProduct(id: string) {
       process.env.USE_MOCK_DATA === "true"
     ) {
       return {
-        id: id,
+        id,
         name: "Mock Product",
         slug: "mock-product",
         description: "This is a mock product for development.",
@@ -57,21 +58,34 @@ async function getProduct(id: string) {
       return null;
     }
 
-    // Parse the attributes for the form
+    // Parse the attributes and metadata for the form
     const attributes = (product.attributes as Record<string, any>) || {};
+    const metadata = (product.metadata as Record<string, any>) || {};
 
     // Ensure images is always an array
     const images = Array.isArray(product.images) ? product.images : [];
 
+    // Map database data to form fields, providing defaults for null/undefined values
     return {
-      ...product,
-      // Make sure images is correctly formatted
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      description: product.description || "",
+      price: product.price || 0,
+      compareAtPrice: product.compareAtPrice || null,
+      stock: product.stockQuantity || 0, // Map stockQuantity to stock
       images,
-      // Extract SEO and other custom fields from attributes
-      metaTitle: attributes.metaTitle || product.name,
+      categoryId: product.categoryId || "",
+      tags: Array.isArray(product.tags) ? product.tags : [],
+      isActive: product.isActive,
+      // SEO fields from metadata
+      metaTitle: metadata.metaTitle || product.name || "",
       metaDescription:
-        attributes.metaDescription || product.description.substring(0, 160),
-      metaKeywords: attributes.metaKeywords || [],
+        metadata.metaDescription ||
+        product.description?.substring(0, 160) ||
+        "",
+      metaKeywords: metadata.keywords || [],
+      // STEM fields from attributes
       ageRange: attributes.ageRange || "",
       stemCategory: attributes.stemCategory || "",
       difficultyLevel: attributes.difficultyLevel || "",
@@ -102,10 +116,7 @@ export default async function EditProductPage({
         </p>
       </div>
 
-      <ProductForm
-        initialData={product}
-        isEditing={true}
-      />
+      <ProductForm initialData={product} isEditing={true} />
     </div>
   );
 }

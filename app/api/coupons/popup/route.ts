@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { db } from "@/lib/db";
 
 // GET /api/coupons/popup - Get active promotional coupons for popup display
@@ -11,34 +12,6 @@ export async function GET(request: NextRequest) {
 
     console.log("🔍 [COUPON POPUP] Searching for popup coupons...");
     console.log("🕐 [COUPON POPUP] Current time:", now.toISOString());
-
-    // **DEBUG**: First, let's see ALL coupons in the database
-    const allCoupons = await db.coupon.findMany({
-      select: {
-        id: true,
-        code: true,
-        name: true,
-        isActive: true,
-        showAsPopup: true,
-        startsAt: true,
-        expiresAt: true,
-        popupPriority: true,
-      },
-    });
-
-    console.log("📋 [COUPON POPUP] All coupons in database:");
-    allCoupons.forEach((coupon, index) => {
-      console.log(`  ${index + 1}. "${coupon.name}" (${coupon.code})`);
-      console.log(`     - isActive: ${coupon.isActive}`);
-      console.log(`     - showAsPopup: ${coupon.showAsPopup}`);
-      console.log(
-        `     - startsAt: ${coupon.startsAt?.toISOString() || "null"}`
-      );
-      console.log(
-        `     - expiresAt: ${coupon.expiresAt?.toISOString() || "null"}`
-      );
-      console.log(`     - popupPriority: ${coupon.popupPriority}`);
-    });
 
     // Find active coupons that should be shown as popup
     const promotionalCoupons = await db.coupon.findMany({

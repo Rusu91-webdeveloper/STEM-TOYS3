@@ -12,6 +12,7 @@ import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { CartSettings } from "./CartSettings";
 import { BulkCartOperations } from "./BulkCartOperations";
 import { Checkbox } from "@/components/ui/checkbox";
+import { db } from "@/lib/db"; // (for SSR, but for client, we'll fetch via API)
 
 interface MiniCartProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
     hoursOld: number;
     isOld: boolean;
   } | null>(null);
+  const [stockMap, setStockMap] = useState<Record<string, number>>({});
 
   // Load cart age info when cart opens
   useEffect(() => {
@@ -56,6 +58,39 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
         .catch(console.error);
     }
   }, [isOpen]);
+
+  // Fetch stockQuantity for each cart item when MiniCart opens
+  useEffect(() => {
+    if (!isOpen || items.length === 0) return;
+    let isMounted = true;
+    async function fetchStocks() {
+      const results: Record<string, number> = {};
+      await Promise.all(
+        items.map(async item => {
+          try {
+            if (!item.slug) {
+              results[item.id] = 0;
+              return;
+            }
+            const res = await fetch(`/api/products/${item.slug}`);
+            if (res.ok) {
+              const data = await res.json();
+              results[item.id] = Math.max(0, data.stockQuantity ?? 0);
+            } else {
+              results[item.id] = 0;
+            }
+          } catch {
+            results[item.id] = 0;
+          }
+        })
+      );
+      if (isMounted) setStockMap(results);
+    }
+    fetchStocks();
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, items]);
 
   if (!isOpen) {
     return null;
@@ -280,6 +315,11 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                               )
                             }
                             className="h-6 w-6 p-0"
+                            disabled={
+                              (stockMap[item.id] !== undefined &&
+                                item.quantity >= stockMap[item.id]) ||
+                              false
+                            }
                           >
                             +
                           </Button>

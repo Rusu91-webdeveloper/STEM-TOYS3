@@ -1,15 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { AddressForm } from "@/features/account/components/AddressForm";
 import { useParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/use-toast";
+import { AddressForm } from "@/features/account/components/AddressForm";
+
+import type { Address } from "@/types/address";
 
 export default function EditAddressPage() {
   const params = useParams();
   const addressId = params.id as string;
-  const [address, setAddress] = useState<any>(null);
+  const [address, setAddress] = useState<Address | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

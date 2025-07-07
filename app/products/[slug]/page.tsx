@@ -1,8 +1,9 @@
-import React from "react";
-import { notFound } from "next/navigation";
 import { Metadata, ResolvingMetadata } from "next";
-import { getCombinedProduct } from "@/lib/api/products";
+import { notFound } from "next/navigation";
+import React from "react";
+
 import ProductDetailClient from "@/features/products/components/ProductDetailClient";
+import { getCombinedProduct } from "@/lib/api/products";
 import { generateProductMetadata } from "@/lib/utils/seo";
 import type { Product } from "@/types/product";
 
@@ -27,7 +28,7 @@ export async function generateMetadata(
   // Get product data
   try {
     // Ensure params is resolved if it's a promise
-    const resolvedParams = params instanceof Promise ? await params : params;
+    const resolvedParams = await params;
     const slug = resolvedParams.slug;
 
     // Get product or book using the combined API
@@ -54,7 +55,7 @@ export async function generateMetadata(
 export default async function ProductPage({ params }: ProductPageProps) {
   try {
     // Ensure params is resolved if it's a promise
-    const resolvedParams = params instanceof Promise ? await params : params;
+    const resolvedParams = await params;
     const slug = resolvedParams.slug;
 
     // Get product or book using the combined API
@@ -68,12 +69,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     }
 
     // Pass product data to client component
-    return (
-      <ProductDetailClient
-        product={product}
-        isBook={isBook}
-      />
-    );
+    return <ProductDetailClient product={product} isBook={isBook} />;
   } catch (error) {
     console.error("Error fetching product:", error);
     return notFound();

@@ -21,6 +21,9 @@ export {
   sendShippingNotificationEmail,
 } from "./order-templates";
 
+// Export all coupon templates
+export { sendCouponEmail } from "./coupon-templates";
+
 // Export base utilities for custom templates
 export {
   getStoreSettings,
@@ -40,7 +43,7 @@ import {
   sendVerificationEmail,
   sendPasswordResetEmail,
 } from "./auth-templates";
-
+import { sendCouponEmail } from "./coupon-templates";
 import {
   sendDigitalBookDeliveryEmail,
   sendOrderConfirmationEmail,
@@ -81,4 +84,9 @@ export const emailTemplates = {
    * @deprecated Use sendShippingNotificationEmail instead
    */
   shippingNotification: sendShippingNotificationEmail,
+
+  /**
+   * @deprecated Use sendCouponEmail instead
+   */
+  coupon: sendCouponEmail,
 };

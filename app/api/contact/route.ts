@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+
 import { sendMail } from "@/lib/brevo";
 
 const contactFormSchema = z.object({

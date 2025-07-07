@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { useTranslation } from "@/lib/i18n";
-import { TranslationKey } from "@/lib/i18n/translations";
 import { useEffect, useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation, TranslationKey } from "@/lib/i18n";
 
 // Category data with translation keys
 const categoryDescKeys: Record<string, TranslationKey> = {
@@ -72,7 +72,7 @@ const slugToQueryCategory: Record<string, string> = {
 export default function CategoriesPage() {
   const { t, language } = useTranslation();
   const [categories, setCategories] = useState<Category[]>(
-    categoryData.map((cat) => ({
+    categoryData.map(cat => ({
       ...cat,
       name: cat.nameKey, // Initial name from key
       productCount: 0,
@@ -102,7 +102,9 @@ export default function CategoriesPage() {
     async function fetchCategories() {
       try {
         setIsLoading(true);
-        const response = await fetch("/api/categories");
+        const response = await fetch("/api/categories", {
+          cache: "no-store",
+        });
 
         if (!response.ok) {
           throw new Error("Failed to fetch categories");
@@ -111,7 +113,7 @@ export default function CategoriesPage() {
         const dbCategories = await response.json();
 
         // Map database categories to our display categories with correct images and descriptions
-        const updatedCategories = categoryData.map((displayCat) => {
+        const updatedCategories = categoryData.map(displayCat => {
           const dbCategory = dbCategories.find(
             (dbCat: any) =>
               dbCat.slug.toLowerCase() === displayCat.slug.toLowerCase()
@@ -137,8 +139,8 @@ export default function CategoriesPage() {
 
   // Update category names when language changes
   useEffect(() => {
-    setCategories((prev) =>
-      prev.map((cat) => ({
+    setCategories(prev =>
+      prev.map(cat => ({
         ...cat,
         name: getCategoryName(cat.slug),
       }))
@@ -160,7 +162,8 @@ export default function CategoriesPage() {
             key={category.slug}
             className={`flex flex-col ${
               index % 2 !== 0 ? "md:flex-row-reverse" : "md:flex-row"
-            } gap-6 sm:gap-8 md:gap-12 items-center transition-all duration-500 hover:scale-[1.02] shadow-lg hover:shadow-xl rounded-xl sm:rounded-2xl overflow-hidden`}>
+            } gap-6 sm:gap-8 md:gap-12 items-center transition-all duration-500 hover:scale-[1.02] shadow-lg hover:shadow-xl rounded-xl sm:rounded-2xl overflow-hidden`}
+          >
             <div className="w-full md:w-1/2">
               <div className="relative h-56 sm:h-64 md:h-96 w-full overflow-hidden rounded-xl sm:rounded-2xl shadow-lg">
                 {isLoading ? (
@@ -205,9 +208,11 @@ export default function CategoriesPage() {
                     <Button
                       asChild
                       size="lg"
-                      className="rounded-full font-medium h-9 sm:h-10 md:h-11 text-xs sm:text-sm md:text-base px-4 sm:px-6 bg-gradient-to-r from-primary to-secondary text-white hover:from-secondary hover:to-primary">
+                      className="rounded-full font-medium h-9 sm:h-10 md:h-11 text-xs sm:text-sm md:text-base px-4 sm:px-6 bg-gradient-to-r from-primary to-secondary text-white hover:from-secondary hover:to-primary"
+                    >
                       <Link
-                        href={`/products?category=${slugToQueryCategory[category.slug] || category.slug}`}>
+                        href={`/products?category=${slugToQueryCategory[category.slug] || category.slug}`}
+                      >
                         {t("explorerCategoryToys").replace(
                           "{0}",
                           category.name

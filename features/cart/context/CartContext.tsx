@@ -5,7 +5,7 @@ import React, {
   useContext,
   useState,
   useEffect,
-  ReactNode,
+  type ReactNode,
 } from "react";
 import {
   fetchCart,
@@ -15,7 +15,8 @@ import {
   addItemToCart,
 } from "../lib/cartApi";
 import { mergeCarts, needsMerging } from "../lib/cartMerge";
-import { useSession } from "next-auth/react";
+import { debugCartState } from "../lib/cartSync";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 
 // Define a specific type for CartItem based on our product structure
 export interface CartItem {
@@ -28,6 +29,7 @@ export interface CartItem {
   image?: string;
   isBook?: boolean;
   selectedLanguage?: string; // Language code for books (e.g., 'en', 'ro')
+  slug?: string; // Add slug for MiniCart stock fetch
 }
 
 interface CartContextType {
@@ -50,6 +52,8 @@ interface CartContextType {
   isLoading: boolean;
   isEmpty: boolean; // Added for MiniCart
   syncWithServer: () => Promise<void>;
+  forceSyncWithServer: () => Promise<void>; // Force full synchronization
+  loadCart: () => Promise<void>;
 
   // Bulk operations
   selectedItems: Set<string>;
@@ -64,6 +68,11 @@ interface CartContextType {
   removeSavedForLaterItem: (itemId: string) => void;
   clearSavedForLater: () => void;
 
+  // For CartDrawer
+  isCartOpen: boolean;
+  setIsCartOpen: (isOpen: boolean) => void;
+  cartCount: number;
+
   // Legacy aliases for backward compatibility
   cartItems: CartItem[];
   removeFromCart: (itemId: string) => void;
@@ -75,7 +84,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error("useCart must be used within a CartProvider");
   }
   return context;
@@ -106,208 +115,78 @@ const getCartItemId = (
 
 export const CartProvider = ({ children }: CartProviderProps) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [savedForLaterItems, setSavedForLaterItems] = useState<CartItem[]>([]);
-  const { data: session, status } = useSession();
+  const [isCartOpen, setIsCartOpen] = useState(false); // Add state for drawer
+  const { status } = useOptimizedSession();
   const isAuthenticated = status === "authenticated";
-  const previousAuthState = React.useRef(isAuthenticated);
-  const initialLoadComplete = React.useRef(false);
-  const serverFetchTimeout = React.useRef<NodeJS.Timeout | null>(null);
 
-  // Load cart with smart persistence logic
-  useEffect(() => {
-    // Only load from storage on first render
-    if (!initialLoadComplete.current && typeof window !== "undefined") {
-      // Import storage functions dynamically to avoid SSR issues
-      import("../lib/cartStorage")
-        .then(({ loadCartFromStorage, clearExpiredCarts }) => {
-          // Clear any expired carts first
-          clearExpiredCarts();
+  // Ref to track if a cart load is in progress to prevent loops
+  const loadingInProgress = React.useRef(false);
 
-          // Load cart using smart logic
-          const items = loadCartFromStorage();
-          if (items.length > 0) {
-            setCartItems(items);
-          }
-
-          // Mark initial load as complete
-          initialLoadComplete.current = true;
-        })
-        .catch(error => {
-          console.error("Failed to load cart storage:", error);
-          // Fallback to old localStorage behavior
-          const storedCart = localStorage.getItem("nextcommerce_cart");
-          if (storedCart) {
-            try {
-              const localCart = JSON.parse(storedCart);
-              setCartItems(localCart);
-            } catch (error) {
-              console.error("Failed to parse cart from localStorage:", error);
-              localStorage.removeItem("nextcommerce_cart");
-            }
-          }
-          initialLoadComplete.current = true;
-        });
+  // Move loadCart outside useEffect so it can be exposed
+  const loadCart = async () => {
+    if (status === "loading" || loadingInProgress.current) {
+      return;
     }
-  }, []);
-
-  // Effect to handle auth state changes and cart merging
-  useEffect(() => {
-    // Skip if auth is still loading
-    if (status === "loading") return;
-
-    const handleAuthStateChange = async () => {
-      try {
-        // Check if auth state has changed
-        if (previousAuthState.current !== isAuthenticated) {
-          previousAuthState.current = isAuthenticated;
-
-          if (isAuthenticated) {
-            // User has logged in, we need to merge the carts
-            // Don't block UI while merging, do it in background
-            mergeCartsOnLogin().catch(error => {
-              console.error("Error merging carts on login:", error);
-            });
-          }
-        } else if (isAuthenticated && initialLoadComplete.current) {
-          // Fetch from server in the background, without blocking the UI
-          fetchCartFromServer(false).catch(error => {
-            console.error("Error fetching cart from server:", error);
-          });
-        }
-      } catch (error) {
-        console.error("Error in auth state change handler:", error);
-      }
-    };
-
-    // Start server fetch with a small delay to improve perceived performance
-    if (serverFetchTimeout.current) {
-      clearTimeout(serverFetchTimeout.current);
-    }
-
-    serverFetchTimeout.current = setTimeout(() => {
-      handleAuthStateChange();
-    }, 100); // Small delay to prioritize UI responsiveness
-
-    return () => {
-      // Clear timeout on cleanup
-      if (serverFetchTimeout.current) {
-        clearTimeout(serverFetchTimeout.current);
-      }
-    };
-  }, [isAuthenticated, status]);
-
-  // Function to merge local cart with server cart on login
-  const mergeCartsOnLogin = async () => {
-    if (!isAuthenticated) return;
-
+    loadingInProgress.current = true;
+    setIsLoading(true);
     try {
-      // Set loading state only if cart is empty
-      if (cartItems.length === 0) {
-        setIsLoading(true);
-      }
-
-      // Fetch server cart
       const serverCart = await fetchCart();
-
-      // Check if carts need merging
-      if (needsMerging(cartItems, serverCart)) {
-        // Merge carts and update both local state and server
-        const mergedCart = mergeCarts(cartItems, serverCart);
-        setCartItems(mergedCart);
-        await saveCart(mergedCart);
-      } else if (serverCart.length > 0) {
-        // If server cart exists but no merging needed, use server cart
-        setCartItems(serverCart);
-      }
-
-      // Update localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem(
-          "nextcommerce_cart",
-          JSON.stringify(serverCart.length > 0 ? serverCart : cartItems)
-        );
-      }
+      setCartItems(serverCart);
+      debugCartState(serverCart, "Cart loaded from server");
     } catch (error) {
-      console.error("Failed to merge carts on login:", error);
-      throw error;
+      console.error("❌ Failed to load cart from server:", error);
+      setCartItems([]);
     } finally {
       setIsLoading(false);
+      loadingInProgress.current = false;
     }
   };
 
-  // Function to fetch cart from server
-  const fetchCartFromServer = async (setLoadingState = true) => {
-    if (setLoadingState) {
-      setIsLoading(true);
-    }
+  // Load cart on initial mount and when auth state changes
+  useEffect(() => {
+    loadCart();
+  }, [isAuthenticated, status]);
 
+  // Sync cart with server (simplified)
+  const syncWithServer = async () => {
     try {
-      // fetchCart already has its own timeout handling
-      const serverCart = await fetchCart();
-
-      // If server has items, use them
-      if (serverCart.length > 0) {
-        setCartItems(serverCart);
-
-        // Update localStorage
-        if (typeof window !== "undefined") {
-          localStorage.setItem("nextcommerce_cart", JSON.stringify(serverCart));
-        }
-      } else if (cartItems.length > 0) {
-        // If local cart has items but server doesn't, sync to server
+      if (cartItems.length > 0) {
         await saveCart(cartItems);
       }
     } catch (error) {
-      console.error("Failed to fetch cart from server:", error);
-      // If the fetch fails, we still have the localStorage cart
-      throw error;
+      console.error("Failed to sync cart with server:", error);
+    }
+  };
+
+  // Track sync operations to prevent infinite loops
+  const syncInProgress = React.useRef(false);
+
+  // Force full synchronization with server
+  const forceSyncWithServer = React.useCallback(async () => {
+    // Prevent multiple simultaneous sync operations
+    if (syncInProgress.current) {
+      return;
+    }
+
+    try {
+      syncInProgress.current = true;
+      setIsLoading(true);
+
+      // Simple force sync - fetch from server and replace local state
+      const serverCart = await fetchCart();
+      setCartItems(serverCart);
+
+      debugCartState(serverCart, "After Force Sync");
+    } catch (error) {
+      console.error("❌ Failed to force sync cart with server:", error);
     } finally {
-      if (setLoadingState) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
+      syncInProgress.current = false;
     }
-  };
-
-  // Save cart using smart persistence logic
-  useEffect(() => {
-    if (
-      initialLoadComplete.current &&
-      !isLoading &&
-      typeof window !== "undefined"
-    ) {
-      // Import storage functions dynamically
-      import("../lib/cartStorage")
-        .then(({ saveCartToStorage }) => {
-          saveCartToStorage(cartItems);
-        })
-        .catch(error => {
-          console.error("Failed to save cart storage:", error);
-          // Fallback to old localStorage behavior
-          if (
-            cartItems.length > 0 ||
-            localStorage.getItem("nextcommerce_cart")
-          ) {
-            localStorage.setItem(
-              "nextcommerce_cart",
-              JSON.stringify(cartItems)
-            );
-          }
-        });
-    }
-  }, [cartItems, isLoading]);
-
-  // Sync cart with server
-  const syncWithServer = async () => {
-    if (cartItems.length > 0) {
-      try {
-        await saveCart(cartItems);
-      } catch (error) {
-        console.error("Failed to sync cart with server:", error);
-      }
-    }
-  };
+  }, []); // No dependencies to prevent infinite loops
 
   const addToCart = async (
     itemToAdd: Omit<CartItem, "id">,
@@ -328,7 +207,11 @@ export const CartProvider = ({ children }: CartProviderProps) => {
             : item
         );
       } else {
-        return [...prevItems, { ...itemToAdd, id: cartItemId, quantity }];
+        // Include slug if present
+        return [
+          ...prevItems,
+          { ...itemToAdd, id: cartItemId, quantity, slug: itemToAdd.slug },
+        ];
       }
     });
 
@@ -351,7 +234,6 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
   };
 
-  // Updated removeItem function to match MiniCart signature
   const removeItem = async (
     itemId: string,
     variantId?: string,
@@ -368,12 +250,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
     // Then try to sync with server in the background
     try {
-      const success = await removeCartItem(cartItemId);
-      if (!success) {
-        console.warn(
-          `Failed to remove item ${cartItemId} from server, but removed from UI`
-        );
-      }
+      await removeCartItem(cartItemId);
     } catch (error) {
       console.error("Error removing item from cart:", error);
       // Don't revert the UI, just log the error
@@ -384,7 +261,6 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     return removeItem(itemId);
   };
 
-  // Updated updateItemQuantity function to match MiniCart signature
   const updateItemQuantity = async (
     itemId: string,
     quantity: number,
@@ -411,28 +287,14 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     );
 
     // Then try to sync with server in the background
-    if (quantity > 0) {
-      try {
-        const success = await updateCartItemQuantity(cartItemId, quantity);
-        if (!success) {
-          console.warn(
-            `Failed to update quantity for item ${cartItemId}, but UI is updated`
-          );
-        }
-      } catch (error) {
-        console.error("Error updating item quantity:", error);
+    try {
+      if (quantity > 0) {
+        await updateCartItemQuantity(cartItemId, quantity);
+      } else {
+        await removeCartItem(cartItemId);
       }
-    } else {
-      try {
-        const success = await removeCartItem(cartItemId);
-        if (!success) {
-          console.warn(
-            `Failed to remove item ${cartItemId} from server, but removed from UI`
-          );
-        }
-      } catch (error) {
-        console.error("Error removing item from cart:", error);
-      }
+    } catch (error) {
+      console.error("Error updating item quantity:", error);
     }
   };
 
@@ -442,9 +304,6 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
   const clearCart = async () => {
     setCartItems([]);
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("nextcommerce_cart");
-    }
 
     // Try to sync with server in the background
     try {
@@ -468,6 +327,8 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   const getItemCount = () => {
     return cartItems.reduce((count, item) => count + item.quantity, 0);
   };
+
+  const cartCount = getItemCount(); // Calculate cart count
 
   const isEmpty = cartItems.length === 0;
 
@@ -538,7 +399,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   const moveSelectedToSavedForLater = () => {
     const itemsToMove = cartItems.filter(item => selectedItems.has(item.id));
 
-    // Add to saved for later
+    // Add to saved for later (in memory only)
     setSavedForLaterItems(prev => {
       const existingIds = new Set(prev.map(item => item.id));
       const newItems = itemsToMove.filter(item => !existingIds.has(item.id));
@@ -549,35 +410,16 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     setCartItems(prev => prev.filter(item => !selectedItems.has(item.id)));
     clearSelection();
 
-    // Save to localStorage
-    if (typeof window !== "undefined") {
-      localStorage.setItem(
-        "nextcommerce_saved_for_later",
-        JSON.stringify(savedForLaterItems)
-      );
-    }
+    console.log("📦 Moved selected items to saved for later (ephemeral)");
   };
 
   const moveFromSavedForLater = (itemId: string) => {
     const itemToMove = savedForLaterItems.find(item => item.id === itemId);
-    if (!itemToMove) return;
-
-    // Add to cart
-    setCartItems(prev => {
-      const existingItem = prev.find(item => item.id === itemId);
-      if (existingItem) {
-        return prev.map(item =>
-          item.id === itemId
-            ? { ...item, quantity: item.quantity + itemToMove.quantity }
-            : item
-        );
-      } else {
-        return [...prev, itemToMove];
-      }
-    });
-
-    // Remove from saved for later
-    setSavedForLaterItems(prev => prev.filter(item => item.id !== itemId));
+    if (itemToMove) {
+      setCartItems(prev => [...prev, itemToMove]);
+      setSavedForLaterItems(prev => prev.filter(item => item.id !== itemId));
+      console.log("📦 Moved item from saved for later to cart (ephemeral)");
+    }
   };
 
   const removeSavedForLaterItem = (itemId: string) => {
@@ -586,48 +428,23 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
   const clearSavedForLater = () => {
     setSavedForLaterItems([]);
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("nextcommerce_saved_for_later");
-    }
   };
-
-  // Load saved for later items from localStorage
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("nextcommerce_saved_for_later");
-      if (saved) {
-        try {
-          const items = JSON.parse(saved);
-          setSavedForLaterItems(items);
-        } catch (error) {
-          console.error("Failed to parse saved for later items:", error);
-          localStorage.removeItem("nextcommerce_saved_for_later");
-        }
-      }
-    }
-  }, []);
-
-  // Save "saved for later" items to localStorage whenever they change
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(
-        "nextcommerce_saved_for_later",
-        JSON.stringify(savedForLaterItems)
-      );
-    }
-  }, [savedForLaterItems]);
 
   return (
     <CartContext.Provider
       value={{
-        // New API for MiniCart
         items: cartItems,
+        addToCart,
         removeItem,
         updateItemQuantity,
+        clearCart,
         getTotal,
+        getItemCount,
+        isLoading,
         isEmpty,
-
-        // Bulk operations
+        syncWithServer,
+        forceSyncWithServer,
+        loadCart,
         selectedItems,
         toggleItemSelection,
         selectAllItems,
@@ -639,17 +456,13 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         moveFromSavedForLater,
         removeSavedForLaterItem,
         clearSavedForLater,
-
-        // Legacy API for backward compatibility
+        isCartOpen,
+        setIsCartOpen,
+        cartCount,
         cartItems,
-        addToCart,
         removeFromCart,
         updateQuantity,
-        clearCart,
         getCartTotal,
-        getItemCount,
-        isLoading,
-        syncWithServer,
       }}
     >
       {children}

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { addressSchema } from "@/lib/validations";
-import { z } from "zod";
 
 // Extended schema for updating an address
 const updateAddressSchema = addressSchema.extend({
@@ -47,7 +48,7 @@ export async function GET(
     const address = await db.address.findFirst({
       where: {
         id: addressId,
-        userId: userId,
+        userId,
       },
     });
 
@@ -112,7 +113,7 @@ export async function PUT(
     const existingAddress = await db.address.findFirst({
       where: {
         id: addressId,
-        userId: userId,
+        userId,
       },
     });
 
@@ -128,7 +129,7 @@ export async function PUT(
       if (isDefault && !existingAddress.isDefault) {
         await tx.address.updateMany({
           where: {
-            userId: userId, // Use the resolved userId which handles admin_env
+            userId, // Use the resolved userId which handles admin_env
             isDefault: true,
           },
           data: {
@@ -196,7 +197,7 @@ export async function DELETE(
     const existingAddress = await db.address.findFirst({
       where: {
         id: addressId,
-        userId: userId,
+        userId,
       },
     });
 
@@ -217,7 +218,7 @@ export async function DELETE(
       if (existingAddress.isDefault) {
         const anotherAddress = await tx.address.findFirst({
           where: {
-            userId: userId, // Use the resolved userId which handles admin_env
+            userId, // Use the resolved userId which handles admin_env
           },
         });
 

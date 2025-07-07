@@ -4,22 +4,21 @@
 const nextConfig = {
   experimental: {
     // typedRoutes: true,
-    esmExternals: "loose",
   },
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
   productionBrowserSourceMaps: false,
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+    removeConsole: false,
   },
   // Don't block production builds even with ESLint errors
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
     // Don't block production builds even with TypeScript errors
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   // Update domain configuration with new fallback approach
   images: {

@@ -2,8 +2,7 @@
  * NextAuth wrapper with improved error handling for development
  */
 
-import { NextAuthConfig } from "next-auth";
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthConfig } from "next-auth";
 
 // Wrap NextAuth to handle configuration errors gracefully
 export function createAuth(config: NextAuthConfig) {
@@ -39,8 +38,7 @@ export function createAuth(config: NextAuthConfig) {
       // Return mock auth functions
       return {
         handlers: {
-          GET: async (req: any) => {
-            return new Response(
+          GET: async (req: any) => new Response(
               JSON.stringify({
                 user: null,
                 expires: new Date(
@@ -51,10 +49,8 @@ export function createAuth(config: NextAuthConfig) {
                 status: 200,
                 headers: { "Content-Type": "application/json" },
               }
-            );
-          },
-          POST: async (req: any) => {
-            return new Response(
+            ),
+          POST: async (req: any) => new Response(
               JSON.stringify({
                 error: "Auth not configured properly",
               }),
@@ -62,8 +58,7 @@ export function createAuth(config: NextAuthConfig) {
                 status: 500,
                 headers: { "Content-Type": "application/json" },
               }
-            );
-          },
+            ),
         },
         auth: async () => null,
         signIn: async () => ({ error: "Auth not configured" }),

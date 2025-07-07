@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { db } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: { slug: string } }
 ) {
   const { slug } = await params;
   try {
     // First, try to find a product with this slug
     const product = await db.product.findFirst({
       where: {
-        slug: slug,
+        slug,
         isActive: true,
       },
       include: {
@@ -25,7 +26,7 @@ export async function GET(
     // If no product found, try to find a book
     const book = await db.book.findFirst({
       where: {
-        slug: slug,
+        slug,
         isActive: true,
       },
       include: {

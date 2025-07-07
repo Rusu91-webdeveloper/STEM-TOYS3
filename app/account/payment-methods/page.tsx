@@ -1,6 +1,7 @@
 import React from "react";
-import { auth } from "@/lib/auth";
+
 import { PaymentMethods } from "@/features/account/components/PaymentMethods";
+import { auth } from "@/lib/auth";
 
 export const metadata = {
   title: "Payment Methods | My Account",

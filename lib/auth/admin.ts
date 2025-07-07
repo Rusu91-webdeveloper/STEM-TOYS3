@@ -1,5 +1,6 @@
-import { auth } from "@/lib/auth";
 import { NextRequest } from "next/server";
+
+import { auth } from "@/lib/auth";
 
 /**
  * Helper function to check if the current user is an admin

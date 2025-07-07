@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { withErrorHandler } from "@/lib/api-error-handler";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { withErrorHandler } from "@/lib/api-error-handler";
 
 interface Activity {
   id: string;

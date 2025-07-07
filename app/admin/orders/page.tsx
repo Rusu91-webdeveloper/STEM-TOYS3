@@ -1,9 +1,5 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Search,
   Filter,
@@ -17,7 +13,20 @@ import {
   RotateCw,
   Ban,
 } from "lucide-react";
+import Link from "next/link";
+import React, { useState, useEffect } from "react";
+
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -26,7 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { CurrencyProvider, useCurrency } from "@/lib/currency";
+import { useCurrency } from "@/lib/currency";
 
 // Type definitions
 type Order = {
@@ -157,9 +166,7 @@ export default function OrdersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
-        <Button
-          variant="outline"
-          className="flex items-center gap-2">
+        <Button variant="outline" className="flex items-center gap-2">
           <Download className="h-4 w-4" />
           <span>Export</span>
         </Button>
@@ -170,18 +177,16 @@ export default function OrdersPage() {
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <form
               onSubmit={handleSearch}
-              className="flex w-full max-w-sm items-center space-x-2">
+              className="flex w-full max-w-sm items-center space-x-2"
+            >
               <Input
                 type="search"
                 placeholder="Search orders or customers..."
                 className="w-full"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
               />
-              <Button
-                type="submit"
-                variant="outline"
-                size="icon">
+              <Button type="submit" variant="outline" size="icon">
                 <Search className="h-4 w-4" />
               </Button>
             </form>
@@ -189,7 +194,8 @@ export default function OrdersPage() {
               <Select
                 defaultValue="all"
                 value={status}
-                onValueChange={(value) => setStatus(value)}>
+                onValueChange={value => setStatus(value)}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -204,7 +210,8 @@ export default function OrdersPage() {
               <Select
                 defaultValue="30"
                 value={period}
-                onValueChange={(value) => setPeriod(value)}>
+                onValueChange={value => setPeriod(value)}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Time Period" />
                 </SelectTrigger>
@@ -218,7 +225,8 @@ export default function OrdersPage() {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => fetchOrders()}>
+                onClick={() => fetchOrders()}
+              >
                 <Filter className="h-4 w-4" />
               </Button>
             </div>
@@ -264,14 +272,16 @@ export default function OrdersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order) => (
+                  {orders.map(order => (
                     <tr
                       key={order.id}
-                      className="border-b text-sm hover:bg-muted/50">
+                      className="border-b text-sm hover:bg-muted/50"
+                    >
                       <td className="px-4 py-4">
                         <Link
                           href={`/admin/orders/${order.id.toLowerCase()}`}
-                          className="font-medium text-primary hover:underline">
+                          className="font-medium text-primary hover:underline"
+                        >
                           {order.id}
                         </Link>
                       </td>
@@ -289,7 +299,8 @@ export default function OrdersPage() {
                       </td>
                       <td className="px-4 py-4">
                         <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(order.status)}`}>
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(order.status)}`}
+                        >
                           {getStatusIcon(order.status)}
                           {order.status}
                         </span>
@@ -297,13 +308,30 @@ export default function OrdersPage() {
                       <td className="px-4 py-4">{order.payment}</td>
                       <td className="px-4 py-4">{order.items} items</td>
                       <td className="px-4 py-4 text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Actions</span>
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Actions</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                              <Link
+                                href={`/admin/orders/${order.id.toLowerCase()}`}
+                              >
+                                View Details
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>Update Status</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}
@@ -321,7 +349,8 @@ export default function OrdersPage() {
                 variant="outline"
                 size="sm"
                 onClick={handlePrevPage}
-                disabled={pagination.page <= 1 || loading}>
+                disabled={pagination.page <= 1 || loading}
+              >
                 Previous
               </Button>
               <Button
@@ -329,7 +358,8 @@ export default function OrdersPage() {
                 size="sm"
                 onClick={handleNextPage}
                 disabled={pagination.page >= pagination.pages || loading}
-                className="gap-1">
+                className="gap-1"
+              >
                 Next
               </Button>
             </div>
@@ -339,5 +369,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-// Make sure the component is wrapped with CurrencyProvider in _app.tsx or layout.tsx

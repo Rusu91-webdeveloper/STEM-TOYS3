@@ -1,16 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Download,
   FileText,
@@ -20,7 +9,19 @@ import {
   Book,
   Calendar,
 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 
 interface DigitalFile {
   id: string;
@@ -77,15 +78,13 @@ export function DigitalLibrary({ orders }: Props) {
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("ro-RO", {
+  const formatPrice = (price: number) => new Intl.NumberFormat("ro-RO", {
       style: "currency",
       currency: "RON",
     }).format(price);
-  };
 
   const isDownloadExpired = (expiresAt: Date | null) => {
     if (!expiresAt) return false;
@@ -167,7 +166,7 @@ export function DigitalLibrary({ orders }: Props) {
               Încă nu ai achiziționat nicio carte digitală.
             </p>
             <Button asChild>
-              <a href="/products">Explorează Cărțile Noastre</a>
+              <Link href="/products">Explorează Cărțile Noastre</Link>
             </Button>
           </div>
         </CardContent>
@@ -218,11 +217,13 @@ export function DigitalLibrary({ orders }: Props) {
                     className="border rounded-lg p-6">
                     <div className="flex items-start gap-4">
                       {book.coverImage && (
-                        <img
-                          src={book.coverImage}
-                          alt={book.name}
-                          className="w-20 h-28 object-cover rounded-md"
-                        />
+                        <Image
+                        src={book.coverImage}
+                        alt={book.name}
+                        width={80}
+                        height={112}
+                        className="object-cover rounded-md"
+                      />
                       )}
 
                       <div className="flex-1">

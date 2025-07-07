@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { emailTemplates } from "@/lib/resend";
 import { z } from "zod";
+
+import { emailTemplates } from "@/lib/resend";
 
 // Schema for email request validation
 const orderConfirmationSchema = z.object({

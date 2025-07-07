@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { addressSchema } from "@/lib/validations";
-import { z } from "zod";
 
 // Extended schema for creating an address
 const createAddressSchema = addressSchema.extend({
@@ -124,7 +125,7 @@ export async function POST(req: Request) {
       if (isDefault) {
         await tx.address.updateMany({
           where: {
-            userId: userId,
+            userId,
             isDefault: true,
           },
           data: {
@@ -138,7 +139,7 @@ export async function POST(req: Request) {
         data: {
           ...addressData,
           isDefault,
-          userId: userId,
+          userId,
         },
       });
     });

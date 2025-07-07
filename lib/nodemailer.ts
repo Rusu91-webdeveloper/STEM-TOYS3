@@ -1,6 +1,7 @@
-import nodemailer from "nodemailer";
-import { logger } from "./logger";
 import { PrismaClient } from "@prisma/client";
+import nodemailer from "nodemailer";
+
+import { logger } from "./logger";
 
 const prisma = new PrismaClient();
 
@@ -42,7 +43,7 @@ const devTransporter = {
       from: options.from,
       to: options.to,
       subject: options.subject,
-      contentPreview: options.html.substring(0, 100) + "...",
+      contentPreview: `${options.html.substring(0, 100)  }...`,
     });
     return { messageId: `dev-${Date.now()}@localhost` };
   },
@@ -90,7 +91,7 @@ export async function sendMail({
         from,
         to: typeof to === "string" ? to : to.join(", "),
         subject,
-        contentPreview: html.substring(0, 100) + "...",
+        contentPreview: `${html.substring(0, 100)  }...`,
       });
       return { success: true, messageId: `dev-${Date.now()}@localhost` };
     }

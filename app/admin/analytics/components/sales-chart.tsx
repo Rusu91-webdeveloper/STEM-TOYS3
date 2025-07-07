@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+
 import { useCurrency } from "@/lib/currency";
 
 interface SalesDataPoint {
@@ -48,9 +49,9 @@ export function SalesChart({ data }: SalesChartProps) {
           tickFormatter={(value: number) => {
             if (currency.code === "RON") {
               return `${value} ${currency.symbol}`;
-            } else {
+            } 
               return `${currency.symbol}${value}`;
-            }
+            
           }}
         />
         <Tooltip

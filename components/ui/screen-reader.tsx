@@ -1,4 +1,5 @@
 import * as React from "react"
+
 import { cn } from "@/lib/utils"
 
 interface ScreenReaderOnlyProps {
@@ -99,13 +100,11 @@ function useAnnouncement() {
     setAnnouncement("")
   }, [])
 
-  React.useEffect(() => {
-    return () => {
+  React.useEffect(() => () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
       }
-    }
-  }, [])
+    }, [])
 
   return {
     announcement,

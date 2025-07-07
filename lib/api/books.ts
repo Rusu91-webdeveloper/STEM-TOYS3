@@ -1,5 +1,10 @@
 import type { Book } from "@/types/book";
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.NEXTAUTH_URL ||
+  "http://localhost:3000";
+
 /**
  * Get all books
  */
@@ -30,7 +35,10 @@ export async function getBooks(
     } else {
       // Server environment - use environment variable or default to localhost
       const apiBase =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+        process.env.NEXT_PUBLIC_API_URL ||
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.NEXTAUTH_URL ||
+        "http://localhost:3000";
 
       // Make sure we have a complete URL with protocol
       const baseUrl = apiBase.startsWith("http")
@@ -42,6 +50,7 @@ export async function getBooks(
         ? baseUrl.slice(0, -1)
         : baseUrl;
 
+      console.log(`Using API base URL: ${cleanBaseUrl}`);
       url = `${cleanBaseUrl}/api/books${queryString}`;
     }
 
@@ -51,7 +60,7 @@ export async function getBooks(
       next: {
         // Use tags for more precise invalidation
         tags: ["books"],
-        revalidate: 3600, // Revalidate every hour
+        revalidate: 60, // Revalidate every minute
       },
     });
 
@@ -83,7 +92,10 @@ export async function getBook(slug: string): Promise<Book | null> {
     } else {
       // Server environment - use environment variable or default to localhost
       const apiBase =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+        process.env.NEXT_PUBLIC_API_URL ||
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.NEXTAUTH_URL ||
+        "http://localhost:3000";
 
       // Make sure we have a complete URL with protocol
       const baseUrl = apiBase.startsWith("http")
@@ -95,6 +107,7 @@ export async function getBook(slug: string): Promise<Book | null> {
         ? baseUrl.slice(0, -1)
         : baseUrl;
 
+      console.log(`Using API base URL: ${cleanBaseUrl}`);
       url = `${cleanBaseUrl}/api/books?slug=${encodedSlug}`;
     }
 

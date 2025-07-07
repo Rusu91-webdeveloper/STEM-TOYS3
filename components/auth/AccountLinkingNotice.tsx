@@ -1,18 +1,23 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+
+import { useToast } from "@/components/ui/use-toast";
 
 export function AccountLinkingNotice() {
   const { data: session } = useSession();
   const { toast } = useToast();
   const router = useRouter();
+  const [noticeShown, setNoticeShown] = useState(false);
 
   useEffect(() => {
-    // Check if the user has linked their account with Google
-    if (session?.user?.accountLinked) {
+    // Check if the user has linked their account and if the notice has not been shown yet
+    if (session?.user?.accountLinked && !noticeShown) {
+      // Mark the notice as shown to prevent it from showing again
+      setNoticeShown(true);
+
       // Customize message based on role
       const isAdmin = session.user.role === "ADMIN";
 
@@ -29,7 +34,7 @@ export function AccountLinkingNotice() {
       // Redirect to account page to prevent the notice from showing repeatedly
       router.push("/account");
     }
-  }, [session, toast, router]);
+  }, [session, toast, router, noticeShown]);
 
   // This component doesn't render anything visible
   return null;

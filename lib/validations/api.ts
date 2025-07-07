@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { NextRequest } from "next/server";
+import { z } from "zod";
 
 // Common validation patterns
 const idSchema = z.string().min(1, "ID is required");
@@ -140,10 +140,10 @@ export const orderCreateSchema = z
     notes: z.string().max(500).optional(),
   })
   .refine(
-    (data) => {
+    (data) => 
       // Ensure each item has either productId or bookId
-      return data.items.every((item) => item.productId || item.bookId);
-    },
+       data.items.every((item) => item.productId || item.bookId)
+    ,
     {
       message: "Each item must have either productId or bookId",
       path: ["items"],

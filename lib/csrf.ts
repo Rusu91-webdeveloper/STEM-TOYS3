@@ -5,7 +5,20 @@
 
 import { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+
 import { generateCsrfToken, validateCsrfToken } from "@/lib/security";
+
+/**
+ * SHA-256 hashing function for creating stable identifiers
+ * @param str The string to hash
+ * @returns A SHA-256 hash as a hex string
+ */
+async function sha256(str: string): Promise<string> {
+  const buffer = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
 
 /**
  * CSRF configuration for different route types
@@ -43,34 +56,92 @@ const csrfConfig = {
 /**
  * Extract session ID from NextAuth token or fallback methods
  */
-async function getSessionId(request: NextRequest): Promise<string | null> {
+async function getSessionId(
+  request: NextRequest | Request
+): Promise<string | null> {
+  const context =
+    "nextUrl" in request ? `Middleware (${request.nextUrl.pathname})` : "API";
+  console.log(`[CSRF DEBUG] getSessionId called from: ${context}`);
+
   try {
-    // Try to get NextAuth session token
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    // Try to get NextAuth session token (only works with NextRequest)
+    if ("cookies" in request) {
+      const token = await getToken({
+        req: request as NextRequest,
+        secret: process.env.NEXTAUTH_SECRET,
+      });
 
-    if (token?.id) {
-      return token.id as string;
+      if (token?.id) {
+        console.log(
+          `[CSRF DEBUG] Found session ID from getToken (id): ${token.id}`
+        );
+        return token.id as string;
+      }
+
+      if (token?.sub) {
+        console.log(
+          `[CSRF DEBUG] Found session ID from getToken (sub): ${token.sub}`
+        );
+        return token.sub;
+      }
+
+      // Fallback: check for session cookies
+      const sessionCookie =
+        request.cookies.get("next-auth.session-token")?.value ||
+        request.cookies.get("__Secure-next-auth.session-token")?.value;
+
+      if (sessionCookie) {
+        const id = await sha256(sessionCookie);
+        console.log(
+          `[CSRF DEBUG] Found session ID from hashed cookie fallback: ${id}`
+        );
+        return id;
+      }
+
+      // Guest session fallback
+      const guestId = request.cookies.get("guest_id")?.value;
+      if (guestId) {
+        const id = `guest:${guestId}`;
+        console.log(`[CSRF DEBUG] Found session ID from guest cookie: ${id}`);
+        return id;
+      }
+    } else {
+      // For regular Request objects, try to extract from headers
+      const authHeader = request.headers.get("authorization");
+      if (authHeader) {
+        const id = await sha256(authHeader.replace("Bearer ", ""));
+        console.log(
+          `[CSRF DEBUG] Found session ID from hashed auth header: ${id}`
+        );
+        return id;
+      }
+
+      // Extract from cookie header manually
+      const cookieHeader = request.headers.get("cookie");
+      if (cookieHeader) {
+        const sessionMatch = cookieHeader.match(
+          /next-auth\.session-token=([^;]+)/
+        );
+        if (sessionMatch) {
+          const id = await sha256(sessionMatch[1]);
+          console.log(
+            `[CSRF DEBUG] Found session ID from hashed manual cookie parse: ${id}`
+          );
+          return id;
+        }
+
+        const guestMatch = cookieHeader.match(/guest_id=([^;]+)/);
+        if (guestMatch) {
+          const id = `guest:${guestMatch[1]}`;
+          console.log(
+            `[CSRF DEBUG] Found session ID from manual guest cookie parse: ${id}`
+          );
+          return id;
+        }
+      }
     }
 
-    // Fallback: check for session cookies
-    const sessionCookie =
-      request.cookies.get("next-auth.session-token")?.value ||
-      request.cookies.get("__Secure-next-auth.session-token")?.value;
-
-    if (sessionCookie) {
-      // Use first 32 characters of session cookie as ID
-      return sessionCookie.substring(0, 32);
-    }
-
-    // Guest session fallback
-    const guestId = request.cookies.get("guest_id")?.value;
-    if (guestId) {
-      return `guest:${guestId}`;
-    }
-
+    console.log(`[CSRF DEBUG] No session ID found.`);
     return null;
   } catch (error) {
     console.error("Error extracting session ID for CSRF:", error);
@@ -81,7 +152,10 @@ async function getSessionId(request: NextRequest): Promise<string | null> {
 /**
  * Extract CSRF token from request headers or body
  */
-function extractCsrfToken(request: NextRequest, body?: any): string | null {
+function extractCsrfToken(
+  request: NextRequest | Request,
+  body?: any
+): string | null {
   // Check headers first
   for (const header of csrfConfig.tokenHeaders) {
     const token = request.headers.get(header);
@@ -106,7 +180,7 @@ function requiresCsrfProtection(pathname: string, method: string): boolean {
   }
 
   // Check if route is explicitly exempt
-  const isExempt = csrfConfig.exemptRoutes.some((route) =>
+  const isExempt = csrfConfig.exemptRoutes.some(route =>
     pathname.startsWith(route)
   );
 
@@ -115,7 +189,7 @@ function requiresCsrfProtection(pathname: string, method: string): boolean {
   }
 
   // Check if route is explicitly protected
-  const isProtected = csrfConfig.protectedRoutes.some((route) =>
+  const isProtected = csrfConfig.protectedRoutes.some(route =>
     pathname.startsWith(route)
   );
 
@@ -126,14 +200,23 @@ function requiresCsrfProtection(pathname: string, method: string): boolean {
  * Validate CSRF token for a request
  */
 export async function validateCsrfForRequest(
-  request: NextRequest,
+  request: NextRequest | Request,
   body?: any
 ): Promise<{
   valid: boolean;
   error?: string;
   sessionId?: string;
 }> {
-  const { pathname } = request.nextUrl;
+  // Handle both NextRequest and regular Request objects
+  let pathname: string;
+  if ("nextUrl" in request && request.nextUrl) {
+    pathname = request.nextUrl.pathname;
+  } else {
+    // Extract pathname from URL for regular Request objects
+    const url = new URL(request.url);
+    pathname = url.pathname;
+  }
+
   const method = request.method;
 
   // Check if CSRF protection is required
@@ -144,6 +227,7 @@ export async function validateCsrfForRequest(
   // Get session ID
   const sessionId = await getSessionId(request);
   if (!sessionId) {
+    console.log("[CSRF DEBUG] Validation failed: No session ID found.");
     return {
       valid: false,
       error: "No valid session found for CSRF validation",
@@ -153,6 +237,7 @@ export async function validateCsrfForRequest(
   // Extract CSRF token
   const csrfToken = extractCsrfToken(request, body);
   if (!csrfToken) {
+    console.log("[CSRF DEBUG] Validation failed: No CSRF token in request.");
     return {
       valid: false,
       error: "CSRF token missing from request",
@@ -161,7 +246,19 @@ export async function validateCsrfForRequest(
   }
 
   // Validate token
-  const isValid = validateCsrfToken(csrfToken, sessionId);
+  const isValid = await validateCsrfToken(csrfToken, sessionId);
+
+  if (!isValid) {
+    const tokenData = Buffer.from(csrfToken, "base64").toString();
+    const [storedSessionId] = tokenData.split(":");
+    console.log(
+      `[CSRF DEBUG] Validation FAILED. Token Session ID: '${storedSessionId}', Request Session ID: '${sessionId}'`
+    );
+  } else {
+    console.log(
+      `[CSRF DEBUG] Validation SUCCEEDED. Session ID: '${sessionId}'`
+    );
+  }
 
   return {
     valid: isValid,
@@ -186,7 +283,7 @@ export async function generateCsrfForSession(
     return { token: null, sessionId: null };
   }
 
-  const token = generateCsrfToken(sessionId, expirationMinutes);
+  const token = await generateCsrfToken(sessionId, expirationMinutes);
 
   return { token, sessionId };
 }
@@ -288,7 +385,7 @@ export async function createCsrfTokenResponse(
   return new Response(
     JSON.stringify({
       csrfToken: token,
-      sessionId: sessionId,
+      sessionId,
     }),
     {
       status: 200,

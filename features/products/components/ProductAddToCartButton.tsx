@@ -18,6 +18,7 @@ interface ProductAddToCartButtonProps {
     image?: string;
     variants?: Variant[];
     slug?: string; // Add slug for language fetching
+    stockQuantity?: number;
   };
   className?: string;
   showQuantity?: boolean;
@@ -40,8 +41,13 @@ export function ProductAddToCartButton({
   >();
   const [hasAvailableLanguages, setHasAvailableLanguages] = useState(false);
   const [languagesLoading, setLanguagesLoading] = useState(isBook);
-  const { addItem } = useShoppingCart();
+  const { addItem, items: cartItems } = useShoppingCart();
   const { selectedVariants, getSelectedVariant } = useProductVariant();
+
+  // Clamp stockQuantity to a minimum of 0 for display and logic
+  const rawStockQuantity = product.stockQuantity ?? 0;
+  const stockQuantity = Math.max(0, rawStockQuantity);
+  const isOutOfStock = !isBook && stockQuantity <= 0;
 
   const hasVariants = product.variants && product.variants.length > 0;
   const selectedVariantId = hasVariants
@@ -56,8 +62,8 @@ export function ProductAddToCartButton({
     if (isBook && product.slug) {
       setLanguagesLoading(true);
       fetch(`/api/books/${product.slug}/languages`)
-        .then((response) => response.json())
-        .then((data) => {
+        .then(response => response.json())
+        .then(data => {
           const languages = data.availableLanguages || [];
           setHasAvailableLanguages(languages.length > 0);
           setLanguagesLoading(false);
@@ -69,12 +75,46 @@ export function ProductAddToCartButton({
     }
   }, [isBook, product.slug]);
 
+  // Helper to generate cart item ID (same as backend)
+  const getCartItemId = (
+    productId: string,
+    variantId?: string,
+    selectedLanguage?: string
+  ) => {
+    let id = productId;
+    if (variantId) id += `_${variantId}`;
+    if (selectedLanguage) id += `_${selectedLanguage}`;
+    return id;
+  };
+
+  const cartItemId = getCartItemId(
+    product.id,
+    selectedVariantId,
+    selectedLanguage
+  );
+  const cartItem = cartItems.find(item => item.id === cartItemId);
+  const cartQuantity = cartItem?.quantity ?? 0;
+  const maxAddable = Math.max(0, stockQuantity - cartQuantity);
+  const isAtMaxInCart = maxAddable === 0;
+
+  // Clamp quantity selector to not exceed maxAddable
+  useEffect(() => {
+    if (quantity > maxAddable) {
+      setQuantity(maxAddable > 0 ? maxAddable : 1);
+    }
+  }, [maxAddable]);
+
+  const isBookAndNeedsLanguage =
+    isBook && hasAvailableLanguages && !selectedLanguage;
+
   const isDisabled =
+    isOutOfStock ||
     isAdded ||
     isLoading ||
     languagesLoading ||
+    isAtMaxInCart ||
     (hasVariants && product.variants!.length > 1 && !selectedVariantId) ||
-    (isBook && hasAvailableLanguages && !selectedLanguage); // Only require language if languages are available
+    isBookAndNeedsLanguage;
 
   const handleAddToCart = async () => {
     // Prevent double-clicking
@@ -94,6 +134,7 @@ export function ProductAddToCartButton({
         isBook,
         selectedLanguage:
           isBook && hasAvailableLanguages ? selectedLanguage : undefined,
+        slug: product.slug,
       };
 
       console.log(`Adding item to cart:`, item);
@@ -169,21 +210,27 @@ export function ProductAddToCartButton({
             className={cn(
               "flex items-center border rounded-md bg-white",
               config.quantityControls
-            )}>
+            )}
+          >
             <button
-              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+              onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
               className="p-2 hover:bg-gray-50 transition-colors rounded-l-md"
               aria-label="Decrease quantity"
-              disabled={quantity <= 1}>
+              disabled={quantity <= 1}
+            >
               <span className="text-gray-600 font-medium">−</span>
             </button>
             <span className="px-4 py-2 font-medium min-w-[3rem] text-center">
               {quantity}
             </span>
             <button
-              onClick={() => setQuantity((prev) => prev + 1)}
+              onClick={() =>
+                setQuantity(prev => Math.min(maxAddable, prev + 1))
+              }
               className="p-2 hover:bg-gray-50 transition-colors rounded-r-md"
-              aria-label="Increase quantity">
+              aria-label="Increase quantity"
+              disabled={quantity >= maxAddable}
+            >
               <span className="text-gray-600 font-medium">+</span>
             </button>
           </div>
@@ -202,7 +249,8 @@ export function ProductAddToCartButton({
                 ? "bg-gray-100 text-gray-400 border border-gray-200"
                 : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg active:scale-95",
             showQuantity ? "flex-1" : "w-full"
-          )}>
+          )}
+        >
           {isAdded ? (
             <>
               <Check className={config.icon} />
@@ -218,6 +266,10 @@ export function ProductAddToCartButton({
               />
               {size === "sm" ? "Adding..." : "Adding to Cart..."}
             </>
+          ) : isOutOfStock || isAtMaxInCart ? (
+            <>
+              <span>Out of Stock</span>
+            </>
           ) : (
             <>
               <ShoppingCart className={config.icon} />
@@ -225,7 +277,7 @@ export function ProductAddToCartButton({
                 ? size === "sm"
                   ? "Select"
                   : "Select Options"
-                : isBook && !selectedLanguage
+                : isBookAndNeedsLanguage
                   ? size === "sm"
                     ? "Choose Language"
                     : "Select Language"
@@ -237,8 +289,19 @@ export function ProductAddToCartButton({
         </button>
       </div>
 
+      {stockQuantity > 0 && stockQuantity <= 10 && (
+        <div className="text-sm text-red-600 font-medium text-center">
+          Only {stockQuantity} left in stock!
+        </div>
+      )}
+      {stockQuantity === 0 && (
+        <div className="text-sm text-red-600 font-medium text-center">
+          Out of Stock
+        </div>
+      )}
+
       {/* Helper text for disabled states */}
-      {isDisabled && !isAdded && !isLoading && (
+      {isDisabled && !isAdded && !isLoading && !isOutOfStock && (
         <div className="text-xs text-muted-foreground text-center">
           {languagesLoading
             ? "Loading book information..."

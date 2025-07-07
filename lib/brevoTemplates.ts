@@ -8,10 +8,13 @@
  * - Professional Romanian company branding
  */
 
-import { prisma } from "@/lib/prisma";
 import { StoreSettings, Product, Blog } from "@prisma/client";
-import { sendMail } from "./brevo";
+
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
+import { prisma } from "@/lib/prisma";
+
+import { sendMail } from "./brevo";
+
 
 // Type for SEO metadata
 type SEOMetadata = {
@@ -776,7 +779,7 @@ export const emailTemplates = {
         });
 
     // Create an excerpt if needed
-    const excerpt = blog.excerpt || blog.content.substring(0, 180) + "...";
+    const excerpt = blog.excerpt || `${blog.content.substring(0, 180)  }...`;
     const blogUrl = `${baseUrl}/blog/${blog.slug}`;
     const coverImage =
       blog.coverImage || `${baseUrl}/images/blog/default-cover.jpg`;

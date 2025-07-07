@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { utapi } from "@/lib/uploadthing";
 
 export async function POST(request: NextRequest) {
   try {
     // Check authentication and admin role
     const session = await auth();
-    if (!session || !session.user || session.user.role !== "ADMIN") {
+    if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

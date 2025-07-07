@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import {
   Plus,
   Search,
@@ -11,10 +11,11 @@ import {
   Copy,
   Eye,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -31,11 +34,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { format } from "date-fns";
+
 
 interface Coupon {
   id: string;
@@ -116,7 +118,7 @@ export default function CouponsPage() {
     isInfluencer: false,
     influencerName: "",
     image: "",
-    showAsPopup: false,
+    showAsPopup: true,
     popupPriority: 0,
   });
 
@@ -161,6 +163,26 @@ export default function CouponsPage() {
     fetchCoupons();
   }, [currentPage, searchTerm, statusFilter, typeFilter]);
 
+  // Fetch custom CSRF token
+  const getCustomCsrfToken = async () => {
+    try {
+      const response = await fetch("/api/csrf-token");
+      if (!response.ok) {
+        throw new Error("Failed to fetch CSRF token");
+      }
+      const data = await response.json();
+      return data.csrfToken;
+    } catch (error) {
+      console.error("CSRF Token fetch error:", error);
+      toast({
+        title: "Security Error",
+        description: "Could not verify your session. Please refresh the page.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   // Create coupon
   const handleCreateCoupon = async () => {
     try {
@@ -201,6 +223,13 @@ export default function CouponsPage() {
         return;
       }
 
+      // Get CSRF token
+      const csrfToken = await getCustomCsrfToken();
+      if (!csrfToken) {
+        // The getCustomCsrfToken function already shows a toast on error
+        return;
+      }
+
       const payload = {
         code: newCoupon.code.toUpperCase().trim(),
         name: newCoupon.name.trim(),
@@ -221,13 +250,20 @@ export default function CouponsPage() {
         expiresAt: newCoupon.expiresAt || "",
         isInfluencer: newCoupon.isInfluencer,
         influencerName: newCoupon.influencerName?.trim() || "",
+        showAsPopup: newCoupon.showAsPopup,
+        popupPriority: newCoupon.popupPriority
+          ? Number(newCoupon.popupPriority)
+          : 0,
       };
 
-      console.log("Sending coupon data:", payload); // For debugging
+      console.log("Sending coupon data:", payload);
 
       const response = await fetch("/api/admin/coupons", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -272,7 +308,7 @@ export default function CouponsPage() {
         isInfluencer: false,
         influencerName: "",
         image: "",
-        showAsPopup: false,
+        showAsPopup: true,
         popupPriority: 0,
       });
       fetchCoupons();
@@ -295,7 +331,7 @@ export default function CouponsPage() {
       const customEmailsList = emailData.customEmails
         ? emailData.customEmails
             .split(",")
-            .map((email) => email.trim())
+            .map(email => email.trim())
             .filter(Boolean)
         : [];
 
@@ -412,9 +448,7 @@ export default function CouponsPage() {
           </p>
         </div>
 
-        <Dialog
-          open={showCreateDialog}
-          onOpenChange={setShowCreateDialog}>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -437,7 +471,7 @@ export default function CouponsPage() {
                     id="code"
                     placeholder="SAVE20"
                     value={newCoupon.code}
-                    onChange={(e) =>
+                    onChange={e =>
                       setNewCoupon({
                         ...newCoupon,
                         code: e.target.value.toUpperCase(),
@@ -451,7 +485,7 @@ export default function CouponsPage() {
                     id="name"
                     placeholder="20% Summer Sale"
                     value={newCoupon.name}
-                    onChange={(e) =>
+                    onChange={e =>
                       setNewCoupon({ ...newCoupon, name: e.target.value })
                     }
                   />
@@ -464,7 +498,7 @@ export default function CouponsPage() {
                   id="description"
                   placeholder="Special summer discount for all products"
                   value={newCoupon.description}
-                  onChange={(e) =>
+                  onChange={e =>
                     setNewCoupon({ ...newCoupon, description: e.target.value })
                   }
                 />
@@ -477,7 +511,8 @@ export default function CouponsPage() {
                     value={newCoupon.type}
                     onValueChange={(value: "PERCENTAGE" | "FIXED_AMOUNT") =>
                       setNewCoupon({ ...newCoupon, type: value })
-                    }>
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -500,7 +535,7 @@ export default function CouponsPage() {
                     min="0"
                     max={newCoupon.type === "PERCENTAGE" ? "100" : undefined}
                     value={newCoupon.value || ""}
-                    onChange={(e) =>
+                    onChange={e =>
                       setNewCoupon({
                         ...newCoupon,
                         value: parseFloat(e.target.value) || 0,
@@ -518,7 +553,7 @@ export default function CouponsPage() {
                     type="number"
                     min="0"
                     value={newCoupon.minimumOrderValue || ""}
-                    onChange={(e) =>
+                    onChange={e =>
                       setNewCoupon({
                         ...newCoupon,
                         minimumOrderValue:
@@ -537,7 +572,7 @@ export default function CouponsPage() {
                       type="number"
                       min="0"
                       value={newCoupon.maxDiscountAmount || ""}
-                      onChange={(e) =>
+                      onChange={e =>
                         setNewCoupon({
                           ...newCoupon,
                           maxDiscountAmount:
@@ -557,7 +592,7 @@ export default function CouponsPage() {
                     type="number"
                     min="1"
                     value={newCoupon.maxUses || ""}
-                    onChange={(e) =>
+                    onChange={e =>
                       setNewCoupon({
                         ...newCoupon,
                         maxUses: parseInt(e.target.value) || undefined,
@@ -572,7 +607,7 @@ export default function CouponsPage() {
                     type="number"
                     min="1"
                     value={newCoupon.maxUsesPerUser || ""}
-                    onChange={(e) =>
+                    onChange={e =>
                       setNewCoupon({
                         ...newCoupon,
                         maxUsesPerUser: parseInt(e.target.value) || undefined,
@@ -589,7 +624,7 @@ export default function CouponsPage() {
                     id="startsAt"
                     type="datetime-local"
                     value={newCoupon.startsAt}
-                    onChange={(e) =>
+                    onChange={e =>
                       setNewCoupon({ ...newCoupon, startsAt: e.target.value })
                     }
                   />
@@ -600,7 +635,7 @@ export default function CouponsPage() {
                     id="expiresAt"
                     type="datetime-local"
                     value={newCoupon.expiresAt}
-                    onChange={(e) =>
+                    onChange={e =>
                       setNewCoupon({ ...newCoupon, expiresAt: e.target.value })
                     }
                   />
@@ -611,7 +646,7 @@ export default function CouponsPage() {
                 <Switch
                   id="isInfluencer"
                   checked={newCoupon.isInfluencer}
-                  onCheckedChange={(checked) =>
+                  onCheckedChange={checked =>
                     setNewCoupon({ ...newCoupon, isInfluencer: checked })
                   }
                 />
@@ -625,7 +660,7 @@ export default function CouponsPage() {
                     id="influencerName"
                     placeholder="John Doe"
                     value={newCoupon.influencerName}
-                    onChange={(e) =>
+                    onChange={e =>
                       setNewCoupon({
                         ...newCoupon,
                         influencerName: e.target.value,
@@ -641,7 +676,7 @@ export default function CouponsPage() {
                   id="image"
                   placeholder="https://example.com/coupon-image.jpg"
                   value={newCoupon.image}
-                  onChange={(e) =>
+                  onChange={e =>
                     setNewCoupon({ ...newCoupon, image: e.target.value })
                   }
                 />
@@ -656,7 +691,7 @@ export default function CouponsPage() {
                   <Switch
                     id="showAsPopup"
                     checked={newCoupon.showAsPopup}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={checked =>
                       setNewCoupon({ ...newCoupon, showAsPopup: checked })
                     }
                   />
@@ -677,7 +712,7 @@ export default function CouponsPage() {
                       max="10"
                       placeholder="0"
                       value={newCoupon.popupPriority || ""}
-                      onChange={(e) =>
+                      onChange={e =>
                         setNewCoupon({
                           ...newCoupon,
                           popupPriority: parseInt(e.target.value) || 0,
@@ -696,7 +731,8 @@ export default function CouponsPage() {
             <DialogFooter>
               <Button
                 variant="outline"
-                onClick={() => setShowCreateDialog(false)}>
+                onClick={() => setShowCreateDialog(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={handleCreateCoupon}>Create Coupon</Button>
@@ -715,14 +751,12 @@ export default function CouponsPage() {
                 <Input
                   placeholder="Search coupons..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="pl-9"
                 />
               </div>
             </div>
-            <Select
-              value={statusFilter}
-              onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -732,9 +766,7 @@ export default function CouponsPage() {
                 <SelectItem value="false">Inactive</SelectItem>
               </SelectContent>
             </Select>
-            <Select
-              value={typeFilter}
-              onValueChange={setTypeFilter}>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -759,7 +791,7 @@ export default function CouponsPage() {
             </CardContent>
           </Card>
         ) : (
-          coupons.map((coupon) => (
+          coupons.map(coupon => (
             <Card key={coupon.id}>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
@@ -818,7 +850,8 @@ export default function CouponsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleCopyCode(coupon.code)}>
+                      onClick={() => handleCopyCode(coupon.code)}
+                    >
                       <Copy className="h-4 w-4" />
                     </Button>
 
@@ -832,14 +865,16 @@ export default function CouponsPage() {
                           subject: `🎉 Ofertă Specială: ${getDiscountText(coupon)} cu codul ${coupon.code}!`,
                         });
                         setShowEmailDialog(true);
-                      }}>
+                      }}
+                    >
                       <Send className="h-4 w-4" />
                     </Button>
 
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDeleteCoupon(coupon)}>
+                      onClick={() => handleDeleteCoupon(coupon)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -851,9 +886,7 @@ export default function CouponsPage() {
       </div>
 
       {/* Email Dialog */}
-      <Dialog
-        open={showEmailDialog}
-        onOpenChange={setShowEmailDialog}>
+      <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Send Coupon Email</DialogTitle>
@@ -869,7 +902,8 @@ export default function CouponsPage() {
                 value={emailData.recipients}
                 onValueChange={(
                   value: "subscribers" | "all_users" | "custom"
-                ) => setEmailData({ ...emailData, recipients: value })}>
+                ) => setEmailData({ ...emailData, recipients: value })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -892,7 +926,7 @@ export default function CouponsPage() {
                   id="customEmails"
                   placeholder="email1@example.com, email2@example.com"
                   value={emailData.customEmails}
-                  onChange={(e) =>
+                  onChange={e =>
                     setEmailData({ ...emailData, customEmails: e.target.value })
                   }
                 />
@@ -907,7 +941,7 @@ export default function CouponsPage() {
               <Input
                 id="subject"
                 value={emailData.subject}
-                onChange={(e) =>
+                onChange={e =>
                   setEmailData({ ...emailData, subject: e.target.value })
                 }
               />
@@ -919,7 +953,7 @@ export default function CouponsPage() {
                 id="message"
                 placeholder="Add a personal message to include in the email"
                 value={emailData.message}
-                onChange={(e) =>
+                onChange={e =>
                   setEmailData({ ...emailData, message: e.target.value })
                 }
               />
@@ -927,9 +961,7 @@ export default function CouponsPage() {
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowEmailDialog(false)}>
+            <Button variant="outline" onClick={() => setShowEmailDialog(false)}>
               Cancel
             </Button>
             <Button onClick={handleSendEmail}>Send Emails</Button>
@@ -943,7 +975,8 @@ export default function CouponsPage() {
           <Button
             variant="outline"
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}>
+            disabled={currentPage === 1}
+          >
             Previous
           </Button>
           <span className="flex items-center px-4">
@@ -954,7 +987,8 @@ export default function CouponsPage() {
             onClick={() =>
               setCurrentPage(Math.min(totalPages, currentPage + 1))
             }
-            disabled={currentPage === totalPages}>
+            disabled={currentPage === totalPages}
+          >
             Next
           </Button>
         </div>

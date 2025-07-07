@@ -22,12 +22,15 @@ async function main() {
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminName = process.env.ADMIN_NAME;
   const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
-  if (!adminEmail || !adminPassword) {
+  if (!adminEmail || (!adminPassword && !adminPasswordHash)) {
     console.error(
       "Admin credentials not properly set in environment variables"
     );
-    console.error("Please set ADMIN_EMAIL, ADMIN_NAME, and ADMIN_PASSWORD");
+    console.error(
+      "Please set ADMIN_EMAIL, ADMIN_NAME, and either ADMIN_PASSWORD or ADMIN_PASSWORD_HASH"
+    );
     process.exit(1);
   }
 
@@ -44,8 +47,15 @@ async function main() {
         `Admin user with email ${adminEmail} already exists. Skipping creation.`
       );
     } else {
-      // Hash the admin password
-      const hashedPassword = await hash(adminPassword, 12);
+      // Use existing hash if available, otherwise hash the password
+      let hashedPassword: string;
+      if (adminPasswordHash) {
+        hashedPassword = adminPasswordHash;
+        console.log("Using pre-hashed password from ADMIN_PASSWORD_HASH");
+      } else {
+        hashedPassword = await hash(adminPassword!, 12);
+        console.log("Hashing password from ADMIN_PASSWORD");
+      }
 
       // Create the admin user
       const admin = await prisma.user.create({
@@ -55,6 +65,7 @@ async function main() {
           password: hashedPassword,
           isActive: true,
           role: "ADMIN",
+          emailVerified: new Date(),
         },
       });
 
@@ -71,7 +82,7 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error(e);
     process.exit(1);
   })

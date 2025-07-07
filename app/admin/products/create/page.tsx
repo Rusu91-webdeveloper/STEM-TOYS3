@@ -1,7 +1,8 @@
-import React from "react";
 import { Metadata } from "next";
-import ProductForm from "@/components/admin/ProductForm";
+import React from "react";
+
 import { CategoryCheck } from "@/components/admin/CategoryCheck";
+import ProductForm from "@/components/admin/ProductForm";
 
 export const metadata: Metadata = {
   title: "Create Product | Admin Dashboard",

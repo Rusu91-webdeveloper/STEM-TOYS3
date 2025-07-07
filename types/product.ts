@@ -1,3 +1,5 @@
+import { Book } from "./book";
+
 export interface ProductVariant {
   id: string;
   name: string;
@@ -41,5 +43,7 @@ export interface Product {
   rating?: number;
   reviewCount?: number;
   stockQuantity?: number;
+  reservedQuantity?: number;
   isBook?: boolean;
+  book?: Book;
 }

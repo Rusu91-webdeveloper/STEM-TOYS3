@@ -11,7 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
+
 import { formatDate } from "@/lib/utils";
 import { useCurrency } from "@/lib/currency";
 import {
@@ -455,7 +455,7 @@ export function OrderTrackingSystem({
           <div className="flex items-center justify-between">
             <CardTitle>Tracking History</CardTitle>
             <p className="text-sm text-gray-500">
-              Last updated: {formatDate(lastUpdated, { includeTime: true })}
+              Last updated: {formatDate(lastUpdated)}
             </p>
           </div>
         </CardHeader>
@@ -506,9 +506,7 @@ export function OrderTrackingSystem({
                         >
                           {event.isEstimated
                             ? "Estimated"
-                            : formatDate(new Date(event.timestamp), {
-                                includeTime: true,
-                              })}
+                            : formatDate(new Date(event.timestamp))}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2 mt-1">

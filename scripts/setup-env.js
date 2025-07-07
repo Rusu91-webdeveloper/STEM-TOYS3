@@ -4,42 +4,48 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 
-// Generate a secure random secret
-const generateSecret = () => {
-  return crypto.randomBytes(32).toString("base64");
-};
+/**
+ * Setup script to create a basic .env file for development
+ */
 
-// Template for .env.local
-const envTemplate = `# Application
+const ENV_TEMPLATE = `# Application
 NODE_ENV=development
 
-# Database - Replace with your actual database URL
+# Database - REQUIRED for authentication features
+# Replace with your actual database URL
 DATABASE_URL="postgresql://username:password@localhost:5432/nextcommerce"
 
-# NextAuth - REQUIRED
+# NextAuth - REQUIRED for authentication
 NEXTAUTH_URL=http://localhost:3000
-# This secret was auto-generated. Keep it secure!
-NEXTAUTH_SECRET="${generateSecret()}"
+NEXTAUTH_SECRET="your-secure-random-secret-here"
 
-# Admin User (for development)
+# Optional: Admin User (for development)
 ADMIN_EMAIL=admin@example.com
 ADMIN_NAME="Admin User"
-ADMIN_PASSWORD="securepassword123"
-USE_ENV_ADMIN=true
+# Use this approach for security:
+ADMIN_PASSWORD_HASH="generate-this-using-admin-auth-utils"
+# Or for development only:
+# ADMIN_PASSWORD="your-secure-password"
+USE_ENV_ADMIN=false
 
-# OAuth Providers (optional - uncomment and fill if using)
+# Optional: OAuth Providers
 # GOOGLE_CLIENT_ID=your-google-client-id
 # GOOGLE_CLIENT_SECRET=your-google-client-secret
 
-# Stripe (optional - uncomment and fill if using)
+# Optional: Security
+# ENCRYPTION_KEY="32-character-encryption-key-for-data"
+# CSRF_SECRET_KEY="strong-csrf-secret-key-for-tokens"
+
+# Optional: Payment Processing
 # STRIPE_SECRET_KEY=your-stripe-secret-key
-# STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key  
 # STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
+# STRIPE_PUBLIC_KEY=your-stripe-public-key
 
-# Email Services (optional - uncomment and fill if using)
+# Optional: Email Services
 # RESEND_API_KEY=your-resend-api-key
+# BREVO_API_KEY=your-brevo-api-key
 
-# File Upload (optional - uncomment and fill if using)
+# Optional: File Upload
 # UPLOADTHING_SECRET=your-uploadthing-secret
 # UPLOADTHING_APP_ID=your-uploadthing-app-id
 
@@ -47,30 +53,65 @@ USE_ENV_ADMIN=true
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 `;
 
-const envPath = path.join(process.cwd(), ".env.local");
-
-// Check if .env.local already exists
-if (fs.existsSync(envPath)) {
-  console.log("⚠️  .env.local already exists!");
-  console.log("📋 Here's a secure NEXTAUTH_SECRET you can use:");
-  console.log(`\nNEXTAUTH_SECRET="${generateSecret()}"\n`);
-  console.log("Add this to your .env.local file if needed.");
-} else {
-  // Create .env.local
-  fs.writeFileSync(envPath, envTemplate);
-  console.log("✅ Created .env.local with secure defaults");
-  console.log(
-    "📝 Please update the DATABASE_URL and any other services you're using"
-  );
+function generateSecretKey() {
+  return crypto.randomBytes(32).toString("hex");
 }
 
-// Also create .env.example if it doesn't exist
-const examplePath = path.join(process.cwd(), ".env.example");
-if (!fs.existsSync(examplePath)) {
-  const exampleTemplate = envTemplate.replace(
-    generateSecret(),
-    "your-secret-key-here-at-least-32-characters"
-  );
-  fs.writeFileSync(examplePath, exampleTemplate);
-  console.log("✅ Created .env.example for reference");
+function setupEnvironment() {
+  const projectRoot = process.cwd();
+  const envPath = path.join(projectRoot, ".env");
+  const envExamplePath = path.join(projectRoot, ".env.example");
+
+  console.log("🔧 Setting up environment configuration...\n");
+
+  // Check if .env already exists
+  if (fs.existsSync(envPath)) {
+    console.log("❌ .env file already exists!");
+    console.log(
+      "   To avoid overwriting your configuration, this script will not continue."
+    );
+    console.log(
+      "   If you want to reset your environment, delete .env and run this script again.\n"
+    );
+    return;
+  }
+
+  try {
+    // Generate a secure secret
+    const nextAuthSecret = generateSecretKey();
+
+    // Create the .env content with generated secret
+    const envContent = ENV_TEMPLATE.replace(
+      'NEXTAUTH_SECRET="your-secure-random-secret-here"',
+      `NEXTAUTH_SECRET="${nextAuthSecret}"`
+    );
+
+    // Write the .env file
+    fs.writeFileSync(envPath, envContent, "utf8");
+
+    console.log("✅ Created .env file with basic configuration");
+    console.log("✅ Generated secure NEXTAUTH_SECRET");
+    console.log("\n🔍 Next steps:");
+    console.log(
+      "   1. Update DATABASE_URL with your actual database connection string"
+    );
+    console.log("   2. Configure any optional services you want to use");
+    console.log("   3. Run `npm run dev` to start development");
+    console.log("\n💡 Tips:");
+    console.log("   - The current DATABASE_URL is just a placeholder");
+    console.log(
+      "   - You can set USE_ENV_ADMIN=true for development admin access"
+    );
+    console.log("   - Check env.example for all available options");
+    console.log("\n🚨 Security reminder:");
+    console.log("   - Never commit .env to version control");
+    console.log("   - Use strong passwords for production databases");
+    console.log("   - Keep your secrets secure");
+  } catch (error) {
+    console.error("❌ Error creating .env file:", error.message);
+    process.exit(1);
+  }
 }
+
+// Run the setup
+setupEnvironment();

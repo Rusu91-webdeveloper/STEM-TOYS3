@@ -1,10 +1,15 @@
 # NextCommerce
 
-NextCommerce is a modern e-commerce platform built with Next.js, designed to provide a seamless shopping experience with fast page loads, SEO optimization, and a responsive design. The application serves as a complete solution for online retailers, with features for product browsing, user authentication, shopping cart management, checkout processes, and order tracking.
+NextCommerce is a modern e-commerce platform built with Next.js, designed to
+provide a seamless shopping experience with fast page loads, SEO optimization,
+and a responsive design. The application serves as a complete solution for
+online retailers, with features for product browsing, user authentication,
+shopping cart management, checkout processes, and order tracking.
 
 ## Features
 
-- 🛍️ **Complete E-commerce Platform**: Product catalog, search, filtering, cart, checkout
+- 🛍️ **Complete E-commerce Platform**: Product catalog, search, filtering, cart,
+  checkout
 - 💳 **Secure Payments**: Integrated with Stripe for secure payment processing
 - 📱 **Responsive Design**: Works smoothly on mobile, tablet, and desktop
 - 🚀 **High Performance**: Built with Next.js for optimal loading speeds
@@ -45,7 +50,8 @@ NextCommerce prioritizes security with several important measures:
 ### Content Security Policy (CSP)
 
 - Implements a robust Content Security Policy using nonces and strict-dynamic
-- Scripts are only executed if they contain a valid nonce generated for each request
+- Scripts are only executed if they contain a valid nonce generated for each
+  request
 - Prevents malicious script injection and XSS attacks
 - Proper CSP implementation in both development and production environments
 
@@ -96,9 +102,9 @@ NextCommerce prioritizes security with several important measures:
    ```
 
 3. Set up environment variables:
-
    - Copy `.env.example` to `.env.local`
-   - Fill in the required environment variables (see [Environment Variables](ENVIRONMENT_VARIABLES.md))
+   - Fill in the required environment variables (see
+     [Environment Variables](ENVIRONMENT_VARIABLES.md))
 
 4. Set up the database:
 
@@ -115,7 +121,8 @@ NextCommerce prioritizes security with several important measures:
    yarn dev
    ```
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser to see
+   the application.
 
 ## Project Structure
 
@@ -169,7 +176,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for
+details.
 
 ## Acknowledgements
 
@@ -185,9 +193,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ### Setting Up Admin Credentials (Secure Method)
 
-For security reasons, admin credentials should be stored in environment variables rather than in the codebase. To set up an admin user:
+For security reasons, admin credentials should be stored in environment
+variables rather than in the codebase. To set up an admin user:
 
-1. Create a `.env.local` file in the root directory with the following variables:
+1. Create a `.env.local` file in the root directory with the following
+   variables:
 
 ```
 USE_MOCK_DATA="true"
@@ -196,15 +206,18 @@ ADMIN_NAME="Admin User Name"
 ADMIN_PASSWORD="YourSecurePassword"
 ```
 
-2. For development with mock data, the system will automatically authenticate the admin user using these environment variables.
+2. For development with mock data, the system will automatically authenticate
+   the admin user using these environment variables.
 
-3. For production with a real database, run the following command to create the admin user:
+3. For production with a real database, run the following command to create the
+   admin user:
 
 ```bash
 node scripts/create-env-admin.js
 ```
 
-This approach keeps sensitive credentials out of your codebase, which is important for security.
+This approach keeps sensitive credentials out of your codebase, which is
+important for security.
 
 ## Development
 
@@ -216,11 +229,52 @@ npm run dev
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the
+result.
 
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
+  features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+## API Input Validation & Sanitization Standard
+
+All API endpoints **must** follow these standards to ensure security,
+reliability, and maintainability:
+
+- Use [zod](https://github.com/colinhacks/zod) schemas for validating request
+  bodies and query parameters.
+- Validation errors **must** return a standardized error response using the
+  shared error utility.
+- Any user-provided HTML or rich text **must** be sanitized before storage or
+  rendering (e.g., with DOMPurify).
+- All search/filter query strings **must** be validated and sanitized to prevent
+  injection attacks.
+- All new endpoints **must** follow these standards.
+
+**Example usage:**
+
+```typescript
+import { z } from "zod";
+const schema = z.object({ name: z.string().min(1) });
+const result = schema.safeParse(req.body);
+if (!result.success) {
+  return NextResponse.json({ error: result.error.errors }, { status: 400 });
+}
+```
+
+**Rationale:**
+
+- Prevents invalid or malicious data from entering the system
+- Ensures consistent error handling and developer experience
+- Protects against XSS, SQL/NoSQL injection, and other common attacks
+
+**Note:**
+
+- For any endpoint that stores or renders HTML, sanitize input using DOMPurify
+  or a similar library before saving or displaying it.
+- For search/filter queries, always validate and escape input before using in
+  database queries.

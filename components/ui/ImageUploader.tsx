@@ -1,11 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
 import { UploadButton } from "@uploadthing/react";
-import Image from "next/image";
 import { Trash2 } from "lucide-react";
-import { Button } from "./button";
+import Image from "next/image";
+import React, { useState } from "react";
+
 import { OurFileRouter } from "@/lib/uploadthing";
+
+import { Button } from "./button";
+
 
 interface ImageUploaderProps {
   /**

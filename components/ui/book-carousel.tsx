@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
-import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import React, { useState, useEffect, useCallback } from "react";
+
+import { Button } from "@/components/ui/button";
+
 
 type BookImage = {
   src: string;

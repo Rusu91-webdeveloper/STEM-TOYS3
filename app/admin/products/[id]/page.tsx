@@ -1,19 +1,3 @@
-import React from "react";
-import Link from "next/link";
-import { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { db } from "@/lib/db";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import {
   Edit,
   ArrowLeft,
@@ -26,6 +10,24 @@ import {
   Check,
   X,
 } from "lucide-react";
+import { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { db } from "@/lib/db";
+
 
 export const metadata: Metadata = {
   title: "Product Details | Admin Dashboard",
@@ -39,9 +41,7 @@ interface ProductPageProps {
 }
 
 // Server-side price formatting function
-const formatPrice = (price: number) => {
-  return `${price.toFixed(2)} lei`;
-};
+const formatPrice = (price: number) => `${price.toFixed(2)} lei`;
 
 async function getProduct(id: string) {
   try {
@@ -51,7 +51,7 @@ async function getProduct(id: string) {
       process.env.USE_MOCK_DATA === "true"
     ) {
       return {
-        id: id,
+        id,
         name: "Robotic Building Kit",
         slug: "robotic-building-kit",
         description:

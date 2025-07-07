@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { emailTemplates } from "@/lib/brevoTemplates";
 import { z } from "zod";
+
 import { auth } from "@/lib/auth";
+import { emailTemplates } from "@/lib/brevoTemplates";
 
 // Schema for email request validation
 const orderConfirmationSchema = z.object({

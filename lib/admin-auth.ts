@@ -1,5 +1,7 @@
-import { hash, compare } from "bcrypt";
+import "server-only";
 import crypto from "crypto";
+
+import { hash, compare } from "bcrypt";
 
 /**
  * Generates a hash that combines the admin password with a secret key

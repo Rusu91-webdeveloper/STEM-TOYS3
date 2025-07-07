@@ -510,8 +510,10 @@ export const ro = {
 
   // Product page specific translations
   backToProducts: "Înapoi la Produse",
-  productDescription: "Descrierea Produsului",
-  ageRange: "Interval de Vârstă",
+  productDescription: "Descrierea produsului",
+  purchaseRequired: "Este necesară achiziția pentru a lăsa o recenzie",
+  ageRange: "Interval de vârstă",
+  years: "ani",
   category: "Categorie",
   off: "REDUCERE",
   freeShipping: "Transport Gratuit",
@@ -830,4 +832,11 @@ export const ro = {
   getDiscount: "Obține Reducerea",
   dontMissOut: "Nu Rata Oferta!",
   exclusiveDiscount: "Reducere Exclusivă",
+
+  Science: "Știință",
+  Technology: "Tehnologie",
+  Engineering: "Inginerie",
+  "educational-booksCategoryDesc":
+    "Cărți educaționale pentru a inspira minți tinere.",
+  "educational-booksCategory": "Cărți educaționale",
 };

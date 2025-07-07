@@ -31,9 +31,9 @@ const DEFAULT_AUTH_PREFERENCES: AuthPreferences = {
 
 // Validation intervals based on frequency setting
 const VALIDATION_INTERVALS = {
-  minimal: 10 * 60 * 1000, // 10 minutes
-  normal: 5 * 60 * 1000, // 5 minutes
-  frequent: 2 * 60 * 1000, // 2 minutes
+  minimal: 15 * 60 * 1000, // 15 minutes
+  normal: 10 * 60 * 1000, // 10 minutes
+  frequent: 5 * 60 * 1000, // 5 minutes
 };
 
 // Global state management
@@ -242,10 +242,31 @@ export async function validateSessionSmart(userId: string): Promise<boolean> {
     } catch (error) {
       console.warn("Session validation failed:", error);
 
-      // On timeout or error, assume valid to avoid UX disruption
-      const assumeValid =
+      // FIXED: Don't assume valid when database is unavailable
+      // Instead, be more strict about session validity
+      const isAbortError =
+        error instanceof Error && error.name === "AbortError";
+      const isDatabaseError =
         error instanceof Error &&
-        (error.name === "AbortError" || error.message.includes("timeout"));
+        (error.message.includes(
+          "Environment variable not found: DATABASE_URL"
+        ) ||
+          error.message.includes("PrismaClientInitializationError") ||
+          error.message.includes("database") ||
+          error.message.includes("DATABASE_URL"));
+
+      // If it's a database configuration error, invalidate the session
+      if (isDatabaseError) {
+        console.error("🚨 Database not configured - invalidating session");
+        setSessionState({
+          isValid: false,
+          error: "Database not configured",
+        });
+        return false;
+      }
+
+      // Only assume valid for network timeouts, not database errors
+      const assumeValid = isAbortError;
 
       setSessionState({
         isValid: assumeValid,
@@ -338,13 +359,13 @@ export function clearAuthCookies(): void {
     "__Host-next-auth.csrf-token",
   ];
 
-  authCookies.forEach((cookieName) => {
+  authCookies.forEach(cookieName => {
     // Clear with multiple path/domain combinations
     const paths = ["/", "/auth", "/account", "/checkout"];
     const domains = ["", `.${window.location.hostname}`];
 
-    paths.forEach((path) => {
-      domains.forEach((domain) => {
+    paths.forEach(path => {
+      domains.forEach(domain => {
         document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=${path}; domain=${domain}; secure; samesite=lax`;
         document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=${path}; domain=${domain}`;
       });

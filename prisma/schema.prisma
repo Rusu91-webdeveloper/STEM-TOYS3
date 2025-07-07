@@ -30,6 +30,8 @@ model User {
   couponsCreated      Coupon[]             @relation("CouponCreatedBy")
   couponUsages        CouponUsage[]
   contentVersions     ContentVersion[]
+
+  @@index([email])
 }
 
 model PasswordResetToken {
@@ -93,40 +95,56 @@ model Category {
   parent      Category?  @relation("CategoryToCategory", fields: [parentId], references: [id])
   children    Category[] @relation("CategoryToCategory")
   products    Product[]
+
+  @@index([slug])
 }
 
 model Product {
-  id             String      @id @default(cuid())
-  name           String
-  slug           String      @unique
-  description    String
-  price          Float
-  compareAtPrice Float?
-  images         String[]
-  categoryId     String
-  tags           String[]
-  attributes     Json?
-  isActive       Boolean     @default(true)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  barcode        String?
-  dimensions     Json?
-  metadata       Json?
-  sku            String?
-  stockQuantity  Int         @default(0)
-  weight         Float?
-  featured       Boolean     @default(false)
-  orderItems     OrderItem[]
-  category       Category    @relation(fields: [categoryId], references: [id])
-  reviews        Review[]
-  wishlistItems  Wishlist[]
+  id                  String              @id @default(cuid())
+  name                String
+  slug                String              @unique
+  description         String?
+  price               Float
+  compareAtPrice      Float?
+  sku                 String?             @unique
+  barcode             String?
+  images              String[]
+  category            Category?           @relation(fields: [categoryId], references: [id])
+  categoryId          String?
+  tags                String[]
+  attributes          Json?
+  metadata            Json?
+  isActive            Boolean             @default(true)
+  featured            Boolean             @default(false)
+  stockQuantity       Int                 @default(0)
+  reservedQuantity    Int                 @default(0)
+  reorderPoint        Int?
+  weight              Float?
+  dimensions          Json?
+  orderItems          OrderItem[]
+  reviews             Review[]
+  wishlistItems       Wishlist[]
+  averageRating       Float?
+  reviewCount         Int                 @default(0)
+  totalSold           Int                 @default(0)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 
   @@index([categoryId])
   @@index([isActive])
-  @@index([featured])
   @@index([slug])
   @@index([name])
   @@index([price])
+  @@index([createdAt])
+  @@index([stockQuantity])
+  @@index([averageRating])
+  @@index([isActive, featured])
+  @@index([categoryId, isActive])
+  @@index([price, isActive])
+  @@index([stockQuantity, isActive])
+  @@index([featured, createdAt(sort: Desc)])
+  @@index([featured])
+  @@map("Product")
 }
 
 model Wishlist {
@@ -397,11 +415,10 @@ model Coupon {
   admin             User          @relation("CouponCreatedBy", fields: [createdBy], references: [id])
 
   @@index([code])
-  @@index([isActive])
   @@index([expiresAt])
   @@index([isInfluencer])
   @@index([createdBy])
-  @@index([showAsPopup])
+  @@index([isActive, showAsPopup, popupPriority, expiresAt, startsAt], name: "idx_popup_coupon")
 }
 
 model CouponUsage {

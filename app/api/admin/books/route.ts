@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { auth } from "@/lib/auth";
 import { z } from "zod";
+
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 // Validation schema for book creation/update
 const bookSchema = z.object({
@@ -39,6 +40,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get the default language (e.g., the first one in the database)
+    const defaultLanguage = await db.language.findFirst();
+
+    if (!defaultLanguage) {
+      return NextResponse.json(
+        {
+          error:
+            "No languages found in the database. Please add a language before creating a book.",
+        },
+        { status: 500 }
+      );
+    }
+
     // Create the book
     const book = await db.book.create({
       data: {
@@ -49,6 +63,9 @@ export async function POST(request: NextRequest) {
         coverImage: validatedData.coverImage,
         isActive: validatedData.isActive,
         slug: validatedData.slug,
+        languages: {
+          connect: { id: defaultLanguage.id },
+        },
       },
     });
 

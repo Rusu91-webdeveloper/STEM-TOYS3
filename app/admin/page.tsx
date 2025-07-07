@@ -1,9 +1,5 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   ArrowUpRight,
   ArrowDownRight,
@@ -14,6 +10,11 @@ import {
   TrendingUp,
   Calendar,
 } from "lucide-react";
+import Link from "next/link";
+import React, { useState, useEffect } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { getDashboardData } from "@/lib/admin/api";
 import type { DashboardStat, RecentOrder, TopProduct } from "@/lib/admin/api";
 import { useCurrency } from "@/lib/currency";

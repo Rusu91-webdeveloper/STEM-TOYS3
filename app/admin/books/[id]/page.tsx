@@ -1,14 +1,3 @@
-import { notFound } from "next/navigation";
-import { db } from "@/lib/db";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   BookOpen,
   Upload,
@@ -19,6 +8,18 @@ import {
   FileText,
 } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { db } from "@/lib/db";
 
 interface Props {
   params: Promise<{
@@ -67,12 +68,10 @@ export default async function AdminBookDetailsPage({ params }: Props) {
     where: { bookId: id },
   });
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("ro-RO", {
+  const formatPrice = (price: number) => new Intl.NumberFormat("ro-RO", {
       style: "currency",
       currency: "RON",
     }).format(price);
-  };
 
   const totalRevenue = book.orderItems.reduce(
     (sum: number, item: any) => sum + item.price,

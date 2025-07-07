@@ -1,7 +1,12 @@
 /**
- * Security utilities for the NextCommerce application
+ * Common security utilities for hashing, encryption, and token generation
  */
-import crypto from "crypto";
+
+import { webcrypto } from "node:crypto";
+
+// Use 'crypto' from 'node:crypto' to ensure Edge runtime compatibility
+const crypto = webcrypto as unknown as Crypto;
+
 import DOMPurify from "dompurify";
 
 /**
@@ -89,69 +94,103 @@ function getCsrfSecretKey(): string {
   return "fallback-csrf-secret-key-for-development-only";
 }
 
+// Helper to convert ArrayBuffer to Hex string
+const arrayBufferToHex = (buffer: ArrayBuffer) => Array.from(new Uint8Array(buffer))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+
+// Helper to convert Hex string to ArrayBuffer
+const hexToArrayBuffer = (hex: string) => {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return bytes.buffer;
+};
+
 /**
- * Generates a limited-time CSRF token for forms
+ * Generates a limited-time CSRF token for forms using Web Crypto API
  * @param sessionId The current session ID
  * @param expirationMinutes How long the token should be valid in minutes
  * @returns A CSRF token that includes an expiration timestamp and HMAC signature
  */
-export function generateCsrfToken(
+export async function generateCsrfToken(
   sessionId: string,
   expirationMinutes: number = 60
-): string {
+): Promise<string> {
   const timestamp = Date.now() + expirationMinutes * 60 * 1000;
   const tokenData = `${sessionId}:${timestamp}`;
-
-  // Create HMAC signature using SHA-256 and the secret key
   const secretKey = getCsrfSecretKey();
-  const hmac = crypto.createHmac("sha256", secretKey);
-  const signature = hmac.update(tokenData).digest("hex");
 
-  // Combine the token data and signature
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secretKey),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const signatureBuffer = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(tokenData)
+  );
+
+  const signature = arrayBufferToHex(signatureBuffer);
   const token = `${tokenData}:${signature}`;
 
-  // Base64 encode the complete token
-  return Buffer.from(token).toString("base64");
+  return btoa(token);
 }
 
 /**
- * Validates a CSRF token
+ * Validates a CSRF token using Web Crypto API
  * @param token The token to validate
  * @param sessionId The current session ID
  * @returns True if the token is valid, properly signed, and not expired
  */
-export function validateCsrfToken(token: string, sessionId: string): boolean {
+export async function validateCsrfToken(
+  token: string,
+  sessionId: string
+): Promise<boolean> {
   try {
-    // Decode the token
-    const tokenData = Buffer.from(token, "base64").toString();
-    const [storedSessionId, timestampStr, signature] = tokenData.split(":");
+    const tokenData = atob(token);
+    const [storedSessionId, timestampStr, signatureHex] = tokenData.split(":");
 
-    // Verify session ID
+    if (!storedSessionId || !timestampStr || !signatureHex) {
+      return false;
+    }
+
     if (storedSessionId !== sessionId) {
       return false;
     }
 
-    // Verify timestamp (expiration)
     const timestamp = parseInt(timestampStr, 10);
-    const now = Date.now();
-
-    if (isNaN(timestamp) || timestamp < now) {
+    if (isNaN(timestamp) || timestamp < Date.now()) {
       return false;
     }
 
-    // Verify signature
     const secretKey = getCsrfSecretKey();
-    const hmac = crypto.createHmac("sha256", secretKey);
-    const expectedSignature = hmac
-      .update(`${storedSessionId}:${timestampStr}`)
-      .digest("hex");
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secretKey),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
 
-    if (signature !== expectedSignature) {
-      return false;
-    }
+    const signatureBuffer = hexToArrayBuffer(signatureHex);
+    const dataToVerify = new TextEncoder().encode(
+      `${storedSessionId}:${timestampStr}`
+    );
 
-    return true;
+    return await crypto.subtle.verify(
+      "HMAC",
+      key,
+      signatureBuffer,
+      dataToVerify
+    );
   } catch (error) {
+    console.error("Error during CSRF token validation:", error);
     return false;
   }
 }
@@ -187,3 +226,16 @@ export const securityHeaders = {
   // HTTP Strict Transport Security
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
 };
+
+/**
+ * Generates a secret key for encryption or hashing
+ * @param length The desired length of the secret key in bytes
+ * @returns A securely generated secret key as a hex string
+ */
+export function generateSecretKey(length: number = 32): string {
+  const buffer = new Uint8Array(length);
+  crypto.getRandomValues(buffer);
+  return Array.from(buffer)
+    .map(byte => byte.toString(16).padStart(2, "0"))
+    .join("");
+}

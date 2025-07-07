@@ -1,5 +1,5 @@
+import { LoadingSkeletonCard } from "@/components/ui/loading";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ImageSkeleton, LoadingSkeletonCard } from "@/components/ui/loading";
 
 export default function ProductDetailLoading() {
   return (
@@ -14,14 +14,15 @@ export default function ProductDetailLoading() {
         {/* Product Gallery */}
         <div className="space-y-4">
           <div className="relative aspect-square overflow-hidden rounded-lg border">
-            <ImageSkeleton className="w-full h-full" />
+            <Skeleton className="w-full h-full" />
           </div>
           <div className="grid grid-cols-4 gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="relative aspect-square overflow-hidden rounded-md border">
-                <ImageSkeleton className="w-full h-full" />
+                className="relative aspect-square overflow-hidden rounded-md border"
+              >
+                <Skeleton className="w-full h-full" />
               </div>
             ))}
           </div>
@@ -34,10 +35,7 @@ export default function ProductDetailLoading() {
             <div className="flex items-center mt-2">
               <div className="flex items-center gap-1">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    className="h-4 w-4"
-                  />
+                  <Skeleton key={i} className="h-4 w-4" />
                 ))}
               </div>
               <Skeleton className="h-4 w-16 ml-2" />
@@ -69,7 +67,8 @@ export default function ProductDetailLoading() {
               {Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex flex-col items-center text-center p-4">
+                  className="flex flex-col items-center text-center p-4"
+                >
                   <Skeleton className="h-5 w-5 mb-2" />
                   <Skeleton className="h-4 w-24 mb-1" />
                   <Skeleton className="h-3 w-32" />
@@ -91,10 +90,7 @@ export default function ProductDetailLoading() {
           <Skeleton className="h-6 w-64 mt-6" />
           <div className="pl-6 space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton
-                key={i}
-                className="h-4 w-5/6"
-              />
+              <Skeleton key={i} className="h-4 w-5/6" />
             ))}
           </div>
         </div>
@@ -106,10 +102,7 @@ export default function ProductDetailLoading() {
         <Skeleton className="h-0.5 w-full mb-6" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
-            <LoadingSkeletonCard
-              key={i}
-              lines={2}
-            />
+            <LoadingSkeletonCard key={i} lines={2} />
           ))}
         </div>
       </div>

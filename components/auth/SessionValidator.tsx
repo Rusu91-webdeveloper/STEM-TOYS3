@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { useEffect, useRef, useState } from "react";
+
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import {
   validateSessionSmart,
   shouldAutoRedirect,
   getAuthPreferences,
 } from "@/lib/auth/smartSessionManager";
-import { useOptimizedSession } from "@/lib/auth/SessionContext";
+
 
 /**
  * Smart Session Validator - Uses intelligent session management
@@ -21,58 +24,63 @@ export function SessionValidator() {
   const lastValidationRef = useRef<number>(0);
   const isValidatingRef = useRef<boolean>(false);
 
-  // Only validate on truly critical routes
-  const criticalRoutes = ["/account", "/admin", "/checkout"];
+  // Only validate on critical routes and limit frequency
+  const criticalRoutes = ["/account", "/admin"];
   const shouldValidate =
     status === "authenticated" &&
-    criticalRoutes.some((route) => pathname.startsWith(route)) &&
+    criticalRoutes.some(route => pathname.startsWith(route)) &&
     !pathname.startsWith("/auth") &&
-    !pathname.includes("/api/auth");
+    !pathname.includes("/api/auth") &&
+    Date.now() - lastValidationRef.current > 30000; // Only validate every 30 seconds
 
+  // Simplified validation logic - only for critical routes and not too frequently
   useEffect(() => {
-    // Skip if not on critical routes or already validating
-    if (!shouldValidate || isValidatingRef.current) return;
-
-    // Check for session errors that require immediate action
-    if (session?.user && (session.user as any).error) {
-      const error = (session.user as any).error;
-      console.warn("Session error detected:", error);
-
-      if (error === "UserNotFound" || error === "RefetchError") {
-        router.push("/api/auth/clear-session");
-        return;
-      }
+    if (!shouldValidate || isValidatingRef.current || !session?.user?.id) {
+      return;
     }
 
     const performValidation = async () => {
-      if (!session?.user?.id || isValidatingRef.current) return;
+      if (isValidatingRef.current) return;
 
       try {
         isValidatingRef.current = true;
         setValidationError(null);
 
-        const isValid = await validateSessionSmart(session.user.id);
+        // Check database health first
+        const healthResponse = await fetch("/api/health/database", {
+          cache: "no-cache",
+        });
+        const healthResult = await healthResponse.json();
 
+        if (
+          healthResult.status === "unhealthy" &&
+          healthResult.error?.includes("DATABASE_URL not configured")
+        ) {
+          console.warn("Database not configured, clearing invalid session");
+          await signOut({ redirect: false, callbackUrl: "/" });
+          return undefined;
+        }
+
+        // Validate session
+        const isValid = await validateSessionSmart(session.user.id);
         if (!isValid) {
-          console.warn("Session validation failed, clearing session...");
-          router.push("/api/auth/clear-session");
+          console.warn("Session validation failed, clearing session");
+          await signOut({ redirect: false, callbackUrl: "/" });
         }
 
         lastValidationRef.current = Date.now();
       } catch (error) {
-        console.error("Validation error in SessionValidator:", error);
+        console.error("Session validation error:", error);
         setValidationError(
           error instanceof Error ? error.message : "Unknown error"
         );
-
-        // Don't redirect on validation errors to avoid UX disruption
       } finally {
         isValidatingRef.current = false;
       }
     };
 
-    // Debounce validation calls
-    const timeoutId = setTimeout(performValidation, 100);
+    // Debounce validation calls with longer delay
+    const timeoutId = setTimeout(performValidation, 1000);
     return () => clearTimeout(timeoutId);
   }, [session, status, pathname, router, shouldValidate]);
 
@@ -80,16 +88,13 @@ export function SessionValidator() {
   useEffect(() => {
     if (status !== "authenticated" || !session) return;
 
-    const preferences = getAuthPreferences();
-
-    // Only redirect if user has enabled auto-login and it's safe
     if (shouldAutoRedirect(pathname)) {
       const callbackUrl = new URLSearchParams(window.location.search).get(
         "callbackUrl"
       );
 
       if (callbackUrl && callbackUrl !== pathname) {
-        console.log("Auto-redirecting to:", callbackUrl);
+        console.warn("Auto-redirecting to:", callbackUrl);
         router.push(callbackUrl);
       }
     }

@@ -409,8 +409,6 @@ export function getNextImageProps(src: string, options: {
 } = {}) {
   return {
     src: getImageUrl(src, options),
-    loader: ({ src, width, quality }: { src: string; width: number; quality?: number }) => {
-      return getImageUrl(src, { width, quality });
-    }
+    loader: ({ src, width, quality }: { src: string; width: number; quality?: number }) => getImageUrl(src, { width, quality })
   };
 } 

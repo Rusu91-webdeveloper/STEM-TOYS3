@@ -1,6 +1,7 @@
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { headers } from "next/headers";
+
 import { getRequiredEnvVar } from "@/lib/env";
 
 // Initialize Stripe with proper error handling for required keys
@@ -103,7 +104,7 @@ async function handleSuccessfulPayment(paymentIntent: Stripe.PaymentIntent) {
       // Check if order contains digital books
       const digitalItems = await db.orderItem.findMany({
         where: {
-          orderId: orderId,
+          orderId,
           isDigital: true,
         },
       });

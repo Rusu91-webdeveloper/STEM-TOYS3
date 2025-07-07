@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
-import { Button } from "@/components/ui/button";
 import { Share2, Twitter, Facebook, Linkedin, Link2, Copy } from "lucide-react";
+import React from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,

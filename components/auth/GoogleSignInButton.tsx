@@ -1,10 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { useRouter } from "next/navigation";
+
+import { Button } from "@/components/ui/button";
 
 interface GoogleSignInButtonProps {
   callbackUrl?: string;
@@ -28,10 +29,13 @@ export function GoogleSignInButton({
         localStorage.removeItem("googleAuthInProgress");
       }, 60000); // 1 minute timeout
 
-      // Start the Google sign-in flow - always use /account as callback
-      // This ensures consistent user experience regardless of where the login was initiated from
+      // Use /auth/callback as the callbackUrl, and pass through the intended callbackUrl as a query param
+      const url = new URL("/auth/callback", window.location.origin);
+      if (callbackUrl && callbackUrl !== "/account") {
+        url.searchParams.set("callbackUrl", callbackUrl);
+      }
       await signIn("google", {
-        callbackUrl: "/account",
+        callbackUrl: url.toString(),
         redirect: true,
       });
 
@@ -51,7 +55,8 @@ export function GoogleSignInButton({
       type="button"
       disabled={isLoading}
       onClick={handleGoogleSignIn}
-      className="w-full flex items-center justify-center gap-2">
+      className="w-full flex items-center justify-center gap-2"
+    >
       {isLoading ? (
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-900 border-t-transparent" />
       ) : (

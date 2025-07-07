@@ -3,6 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+
 import { logger } from "./logger";
 
 // Compression configuration
@@ -196,7 +197,7 @@ class CompressionManager {
           method: compressionMethod,
           originalSize: body.length,
           compressedSize: compressedBody.length,
-          ratio: ((1 - compressedBody.length / body.length) * 100).toFixed(2) + '%'
+          ratio: `${((1 - compressedBody.length / body.length) * 100).toFixed(2)  }%`
         });
 
         return compressedResponse;

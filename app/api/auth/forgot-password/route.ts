@@ -1,8 +1,10 @@
+import crypto from "crypto";
+
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import crypto from "crypto";
-import { sendPasswordResetEmail } from "@/lib/email";
+
 import { db } from "@/lib/db";
+import { sendPasswordResetEmail } from "@/lib/email";
 import { withRateLimit } from "@/lib/rate-limit";
 
 // Token expiration time (1 hour)

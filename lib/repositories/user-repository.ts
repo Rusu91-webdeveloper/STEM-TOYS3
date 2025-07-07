@@ -1,11 +1,12 @@
 import { User, Prisma, Role } from "@prisma/client";
+
 import {
   BaseRepository,
   PaginationOptions,
   QueryOptions,
 } from "@/lib/architecture/base-repository";
-import { db } from "@/lib/db";
 import { cache } from "@/lib/cache";
+import { db } from "@/lib/db";
 
 export type UserWithRelations = User & {
   addresses?: any[];

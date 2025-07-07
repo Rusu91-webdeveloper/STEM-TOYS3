@@ -1,29 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Plus, X, Upload, Image } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -33,18 +24,28 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { ImageUploader } from "@/components/ui/ImageUploader";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, Plus, X, Upload, Image } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { slugify } from "@/lib/utils";
-import { ImageUploader } from "@/components/ui/ImageUploader";
 
 // Define form schema
 const formSchema = z.object({
@@ -197,7 +198,7 @@ export default function ProductForm({
     const currentTags = form.getValues("tags");
     form.setValue(
       "tags",
-      currentTags.filter((t) => t !== tag)
+      currentTags.filter(t => t !== tag)
     );
   };
 
@@ -218,7 +219,7 @@ export default function ProductForm({
     const currentObjectives = form.getValues("learningObjectives");
     form.setValue(
       "learningObjectives",
-      currentObjectives.filter((o) => o !== objective)
+      currentObjectives.filter(o => o !== objective)
     );
   };
 
@@ -237,7 +238,7 @@ export default function ProductForm({
     const currentImages = form.getValues("images");
     form.setValue(
       "images",
-      currentImages.filter((img) => img !== imageUrl)
+      currentImages.filter(img => img !== imageUrl)
     );
   };
 
@@ -276,7 +277,7 @@ export default function ProductForm({
       }
 
       // API endpoint and method based on whether we're editing or creating
-      let endpoint = isEditing
+      const endpoint = isEditing
         ? `/api/admin/products/${initialData.id}`
         : "/api/admin/products";
 
@@ -394,14 +395,13 @@ export default function ProductForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={(event) => {
+        onSubmit={event => {
           console.log("Form submission event triggered", event);
           form.handleSubmit(onSubmit)(event);
-        }}>
+        }}
+      >
         <div className="space-y-6">
-          <Tabs
-            defaultValue="general"
-            className="w-full">
+          <Tabs defaultValue="general" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="images">Images</TabsTrigger>
@@ -410,9 +410,7 @@ export default function ProductForm({
             </TabsList>
 
             {/* General Tab */}
-            <TabsContent
-              value="general"
-              className="space-y-4 py-4">
+            <TabsContent value="general" className="space-y-4 py-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Basic Information</CardTitle>
@@ -428,10 +426,7 @@ export default function ProductForm({
                       <FormItem>
                         <FormLabel>Name</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Product name"
-                            {...field}
-                          />
+                          <Input placeholder="Product name" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -445,10 +440,7 @@ export default function ProductForm({
                       <FormItem>
                         <FormLabel>Slug</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="product-slug"
-                            {...field}
-                          />
+                          <Input placeholder="product-slug" {...field} />
                         </FormControl>
                         <FormDescription>
                           Used in the URL. Auto-generated from name.
@@ -510,11 +502,10 @@ export default function ProductForm({
                               step="0.01"
                               placeholder="0.00"
                               {...field}
-                              value={field.value || ""}
-                              onChange={(e) => {
+                              onChange={e => {
                                 const value = e.target.value
                                   ? parseFloat(e.target.value)
-                                  : undefined;
+                                  : null;
                                 field.onChange(value);
                               }}
                             />
@@ -581,7 +572,8 @@ export default function ProductForm({
                           disabled={isLoading}
                           onValueChange={field.onChange}
                           value={field.value}
-                          defaultValue={field.value}>
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a category" />
@@ -589,10 +581,11 @@ export default function ProductForm({
                           </FormControl>
                           <SelectContent>
                             {categories.length > 0 ? (
-                              categories.map((category) => (
+                              categories.map(category => (
                                 <SelectItem
                                   key={category.id}
-                                  value={category.id}>
+                                  value={category.id}
+                                >
                                   {category.name}
                                 </SelectItem>
                               ))
@@ -604,13 +597,14 @@ export default function ProductForm({
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={(e) => {
+                                  onClick={e => {
                                     e.preventDefault();
                                     window.open(
                                       "/admin/categories/create",
                                       "_blank"
                                     );
-                                  }}>
+                                  }}
+                                >
                                   Create Category
                                 </Button>
                               </div>
@@ -625,7 +619,8 @@ export default function ProductForm({
                               <a
                                 href="/admin/categories/create"
                                 target="_blank"
-                                className="underline">
+                                className="underline"
+                              >
                                 create a category
                               </a>{" "}
                               first.
@@ -666,8 +661,8 @@ export default function ProductForm({
                       <Input
                         placeholder="Add a tag"
                         value={newTag}
-                        onChange={(e) => setNewTag(e.target.value)}
-                        onKeyDown={(e) => {
+                        onChange={e => setNewTag(e.target.value)}
+                        onKeyDown={e => {
                           if (e.key === "Enter") {
                             e.preventDefault();
                             addTag();
@@ -678,20 +673,20 @@ export default function ProductForm({
                         type="button"
                         onClick={addTag}
                         variant="outline"
-                        size="sm">
+                        size="sm"
+                      >
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {form.watch("tags").map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary">
+                      {form.watch("tags").map(tag => (
+                        <Badge key={tag} variant="secondary">
                           {tag}
                           <button
                             type="button"
                             onClick={() => removeTag(tag)}
-                            className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                            className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                          >
                             <X className="h-3 w-3" />
                             <span className="sr-only">Remove</span>
                           </button>
@@ -704,9 +699,7 @@ export default function ProductForm({
             </TabsContent>
 
             {/* Images Tab */}
-            <TabsContent
-              value="images"
-              className="space-y-4 py-4">
+            <TabsContent value="images" className="space-y-4 py-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Product Images</CardTitle>
@@ -732,9 +725,7 @@ export default function ProductForm({
             </TabsContent>
 
             {/* Attributes Tab */}
-            <TabsContent
-              value="attributes"
-              className="space-y-4 py-4">
+            <TabsContent value="attributes" className="space-y-4 py-4">
               <Card>
                 <CardHeader>
                   <CardTitle>STEM-Specific Attributes</CardTitle>
@@ -751,7 +742,8 @@ export default function ProductForm({
                         <FormLabel>Age Range</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}>
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select age range" />
@@ -783,7 +775,8 @@ export default function ProductForm({
                           disabled={isLoading}
                           onValueChange={field.onChange}
                           value={field.value || ""}
-                          defaultValue={field.value || ""}>
+                          defaultValue={field.value || ""}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select STEM category" />
@@ -819,7 +812,8 @@ export default function ProductForm({
                         <FormLabel>Difficulty Level</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}>
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select difficulty level" />
@@ -850,10 +844,8 @@ export default function ProductForm({
                       <Input
                         placeholder="Add a learning objective"
                         value={newLearningObjective}
-                        onChange={(e) =>
-                          setNewLearningObjective(e.target.value)
-                        }
-                        onKeyDown={(e) => {
+                        onChange={e => setNewLearningObjective(e.target.value)}
+                        onKeyDown={e => {
                           if (e.key === "Enter") {
                             e.preventDefault();
                             addLearningObjective();
@@ -864,7 +856,8 @@ export default function ProductForm({
                         type="button"
                         onClick={addLearningObjective}
                         variant="outline"
-                        size="sm">
+                        size="sm"
+                      >
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -872,15 +865,17 @@ export default function ProductForm({
                       What will children learn by using this product?
                     </FormDescription>
                     <div className="flex flex-col gap-2 mt-3">
-                      {form.watch("learningObjectives").map((objective) => (
+                      {form.watch("learningObjectives").map(objective => (
                         <div
                           key={objective}
-                          className="flex items-center justify-between rounded-md border px-3 py-2">
+                          className="flex items-center justify-between rounded-md border px-3 py-2"
+                        >
                           <span>{objective}</span>
                           <button
                             type="button"
                             onClick={() => removeLearningObjective(objective)}
-                            className="text-destructive">
+                            className="text-destructive"
+                          >
                             <X className="h-4 w-4" />
                             <span className="sr-only">Remove</span>
                           </button>
@@ -893,9 +888,7 @@ export default function ProductForm({
             </TabsContent>
 
             {/* SEO Tab */}
-            <TabsContent
-              value="seo"
-              className="space-y-4 py-4">
+            <TabsContent value="seo" className="space-y-4 py-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Search Engine Optimization</CardTitle>
@@ -912,10 +905,7 @@ export default function ProductForm({
                       <FormItem>
                         <FormLabel>Meta Title</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="SEO title"
-                            {...field}
-                          />
+                          <Input placeholder="SEO title" {...field} />
                         </FormControl>
                         <FormDescription>
                           Appears in browser tabs and search results. Defaults
@@ -959,8 +949,8 @@ export default function ProductForm({
                       <Input
                         placeholder="Add a keyword"
                         value={newTag}
-                        onChange={(e) => setNewTag(e.target.value)}
-                        onKeyDown={(e) => {
+                        onChange={e => setNewTag(e.target.value)}
+                        onKeyDown={e => {
                           if (e.key === "Enter") {
                             e.preventDefault();
                             if (newTag.trim() !== "") {
@@ -993,7 +983,8 @@ export default function ProductForm({
                           }
                         }}
                         variant="outline"
-                        size="sm">
+                        size="sm"
+                      >
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -1002,10 +993,8 @@ export default function ProductForm({
                       SEO.
                     </FormDescription>
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {form.watch("metaKeywords").map((keyword) => (
-                        <Badge
-                          key={keyword}
-                          variant="secondary">
+                      {form.watch("metaKeywords").map(keyword => (
+                        <Badge key={keyword} variant="secondary">
                           {keyword}
                           <button
                             type="button"
@@ -1014,10 +1003,11 @@ export default function ProductForm({
                                 form.getValues("metaKeywords");
                               form.setValue(
                                 "metaKeywords",
-                                currentKeywords.filter((k) => k !== keyword)
+                                currentKeywords.filter(k => k !== keyword)
                               );
                             }}
-                            className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                            className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                          >
                             <X className="h-3 w-3" />
                             <span className="sr-only">Remove</span>
                           </button>
@@ -1055,12 +1045,11 @@ export default function ProductForm({
               type="button"
               variant="outline"
               onClick={() => router.push("/admin/products")}
-              disabled={isLoading}>
+              disabled={isLoading}
+            >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}>
+            <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isEditing ? "Update Product" : "Create Product"}
             </Button>

@@ -1,8 +1,9 @@
-import React from "react";
-import { AddressList } from "@/features/account/components/AddressList";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { PlusCircle } from "lucide-react";
+import Link from "next/link";
+import React from "react";
+
+import { Button } from "@/components/ui/button";
+import { AddressList } from "@/features/account/components/AddressList";
 
 export const metadata = {
   title: "Address Book | My Account",

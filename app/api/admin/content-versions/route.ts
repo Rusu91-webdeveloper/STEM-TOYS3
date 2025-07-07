@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@/lib/auth";
-import { contentVersioningService } from "@/lib/services/content-versioning";
 import { db } from "@/lib/db";
+import { contentVersioningService } from "@/lib/services/content-versioning";
 
 // GET /api/admin/content-versions - Get version history
 export async function GET(request: NextRequest) {

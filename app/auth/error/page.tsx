@@ -1,8 +1,10 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Suspense } from "react";
 
 function AuthErrorContent() {
   const searchParams = useSearchParams();

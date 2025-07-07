@@ -3,8 +3,9 @@
  * Provides types and functions for blog operations
  */
 
-import { db } from "@/lib/db";
 import { StemCategory } from "@prisma/client";
+
+import { db } from "@/lib/db";
 
 /**
  * Blog post type with author and category information

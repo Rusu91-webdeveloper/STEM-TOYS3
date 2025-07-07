@@ -95,88 +95,58 @@ function calculateAccountLevel(totalSpent: number) {
 export async function GET(_request: NextRequest) {
   return withErrorHandler(async () => {
     const session = await auth();
-
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
       );
     }
-
     const userId = session.user.id;
-
-    try {
-      // Get user's completed orders
-      const orders = await db.order.findMany({
+    // Use Prisma aggregates for stats
+    const [orderAgg, favoriteAgg] = await Promise.all([
+      db.order.aggregate({
         where: {
           userId,
-          status: {
-            in: ["COMPLETED", "DELIVERED", "SHIPPED"],
-          },
+          status: { in: ["COMPLETED", "DELIVERED", "SHIPPED"] },
         },
-        include: {
-          items: {
-            include: {
-              product: {
-                include: {
-                  category: true,
-                },
-              },
-            },
-          },
-        },
+        _sum: { total: true },
+        _count: { _all: true },
+      }),
+      db.orderItem.groupBy({
+        by: ["productId"],
+        where: { order: { userId } },
+        _sum: { quantity: true },
+      }),
+    ]);
+    const totalOrders = orderAgg._count._all;
+    const totalSpent = orderAgg._sum.total || 0;
+    const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
+    // Find favorite category by most purchased product
+    let favoriteCategory = "Science Kits";
+    if (favoriteAgg.length > 0) {
+      const topProductId = favoriteAgg.sort(
+        (a, b) => (b._sum.quantity || 0) - (a._sum.quantity || 0)
+      )[0].productId;
+      const topProduct = await db.product.findUnique({
+        where: { id: topProductId },
+        select: { category: { select: { name: true } } },
       });
-
-      // Calculate basic statistics
-      const totalOrders = orders.length;
-      const totalSpent = orders.reduce((sum, order) => sum + order.total, 0);
-      const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
-
-      // Calculate favorite category
-      const categoryPurchases: Record<string, number> = {};
-      orders.forEach(order => {
-        order.items.forEach(item => {
-          if (item.product?.category) {
-            const categoryName = item.product.category.name;
-            categoryPurchases[categoryName] =
-              (categoryPurchases[categoryName] || 0) + item.quantity;
-          }
-        });
-      });
-
-      const favoriteCategory =
-        Object.keys(categoryPurchases).length > 0
-          ? Object.entries(categoryPurchases).sort(
-              ([, a], [, b]) => b - a
-            )[0][0]
-          : "Science Kits";
-
-      // Calculate account level
-      const accountLevel = calculateAccountLevel(totalSpent);
-
-      // Calculate loyalty points (simplified: 1 point per $1 spent)
-      const loyaltyPoints = Math.floor(totalSpent);
-
-      // Calculate savings from discounts (mock calculation)
-      const savedOnDiscounts = totalSpent * 0.15; // Assume average 15% savings
-
-      const userStats: UserStats = {
-        totalOrders,
-        totalSpent,
-        averageOrderValue,
-        favoriteCategory,
-        accountLevel,
-        loyaltyPoints,
-        savedOnDiscounts,
-      };
-
-      return NextResponse.json(userStats);
-    } catch (error) {
-      console.error("Error fetching user dashboard stats:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch dashboard statistics" },
-        { status: 500 }
-      );
+      if (topProduct?.category?.name)
+        favoriteCategory = topProduct.category.name;
     }
+    // Loyalty points and savings (mock)
+    const loyaltyPoints = Math.floor(totalSpent);
+    const savedOnDiscounts = totalSpent * 0.15;
+    // Account level (mock)
+    const accountLevel = calculateAccountLevel(totalSpent);
+    return NextResponse.json({
+      totalOrders,
+      totalSpent,
+      averageOrderValue,
+      favoriteCategory,
+      accountLevel,
+      loyaltyPoints,
+      savedOnDiscounts,
+    });
   });
 }

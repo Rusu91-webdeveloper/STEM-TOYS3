@@ -1,28 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { Menu, X, User, Settings, LogOut, Shield } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Menu,
-  X,
-  User,
-  Settings,
-  ShoppingCart,
-  LogOut,
-  Shield,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { CartButton } from "@/features/cart";
-import { LanguageSwitcher } from "@/components/language-switcher";
-import { CurrencySwitcher } from "@/components/ui/currency-switcher";
-import { useTranslation } from "@/lib/i18n";
-import { TranslationKey } from "@/lib/i18n/translations";
 import { signOut } from "next-auth/react";
-import { useOptimizedSession } from "@/lib/auth/SessionContext";
+import { useState } from "react";
+
 import { AuthSettings } from "@/components/auth/AuthSettings";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { Button } from "@/components/ui/button";
+import { CurrencySwitcher } from "@/components/ui/currency-switcher";
+import { CartButton } from "@/features/cart";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
+import { useTranslation } from "@/lib/i18n";
+import { TranslationKey } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 const navigation: { name: TranslationKey; href: string }[] = [
   { name: "home", href: "/" },
@@ -39,10 +32,14 @@ export default function Header() {
   const { t } = useTranslation();
   const { data: session, status } = useOptimizedSession();
 
-  // Check if user is logged in
-  const isLoggedIn = status === "authenticated";
-  // Check if user is admin
-  const isAdmin = isLoggedIn && session?.user?.role === "ADMIN";
+  // FIXED: Simplified and consistent authentication state logic
+  const isAuthenticated =
+    status === "authenticated" && !!session?.user && !session.user.error;
+  const isAdmin = isAuthenticated && session?.user?.role === "ADMIN";
+  const isLoading = status === "loading";
+
+  // FIXED: Only show authenticated UI if truly authenticated
+  const shouldShowAuthenticatedUI = isAuthenticated && !isLoading;
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
@@ -54,9 +51,7 @@ export default function Header() {
         <div className="flex h-14 sm:h-16 md:h-20 items-center justify-between">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link
-              href="/"
-              className="flex items-center">
+            <Link href="/" className="flex items-center">
               <div className="relative h-10 w-32 sm:h-12 sm:w-36 md:h-16 md:w-40">
                 <Image
                   className="object-contain"
@@ -72,7 +67,7 @@ export default function Header() {
 
           {/* Navigation - Left Side (Categories) */}
           <div className="hidden md:flex md:items-center md:space-x-2 flex-1 max-w-xl mx-6 lg:mx-12">
-            {navigation.map((item) => (
+            {navigation.map(item => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -81,14 +76,16 @@ export default function Header() {
                   pathname === item.href
                     ? "text-indigo-700 bg-indigo-50 shadow-sm"
                     : "text-gray-700 hover:text-indigo-600 hover:bg-indigo-50/50"
-                )}>
+                )}
+              >
                 <span className="relative">
                   {t(item.name)}
                   <span
                     className={cn(
                       "absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-200 group-hover:w-full",
                       pathname === item.href ? "w-full" : ""
-                    )}></span>
+                    )}
+                  ></span>
                 </span>
               </Link>
             ))}
@@ -99,12 +96,10 @@ export default function Header() {
             <button
               type="button"
               className="inline-flex items-center justify-center rounded-md p-1.5 sm:p-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer"
-              onClick={() => setMobileMenuOpen(true)}>
+              onClick={() => setMobileMenuOpen(true)}
+            >
               <span className="sr-only">Open main menu</span>
-              <Menu
-                className="h-5 w-5 sm:h-6 sm:w-6"
-                aria-hidden="true"
-              />
+              <Menu className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
             </button>
           </div>
 
@@ -128,11 +123,12 @@ export default function Header() {
             </div>
 
             {/* Account and Admin */}
-            {isLoggedIn ? (
+            {shouldShowAuthenticatedUI ? (
               <div className="flex items-center space-x-1.5 lg:space-x-3 ml-3 lg:ml-6 border-l pl-3 lg:pl-6 border-gray-200">
                 <Link
                   href="/account"
-                  className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-colors cursor-pointer shadow-sm hover:shadow">
+                  className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-colors cursor-pointer shadow-sm hover:shadow"
+                >
                   <User className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                   <span>{t("account")}</span>
                 </Link>
@@ -140,7 +136,8 @@ export default function Header() {
                 {isAdmin && (
                   <Link
                     href="/admin"
-                    className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors cursor-pointer shadow-sm hover:shadow">
+                    className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors cursor-pointer shadow-sm hover:shadow"
+                  >
                     <Settings className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                     <span>{t("admin")}</span>
                   </Link>
@@ -149,7 +146,8 @@ export default function Header() {
                 <Button
                   onClick={() => setAuthSettingsOpen(true)}
                   variant="ghost"
-                  className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer shadow-sm hover:shadow h-auto">
+                  className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer shadow-sm hover:shadow h-auto"
+                >
                   <Shield className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                   <span>Auth</span>
                 </Button>
@@ -157,24 +155,28 @@ export default function Header() {
                 <Button
                   onClick={handleSignOut}
                   variant="ghost"
-                  className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer shadow-sm hover:shadow h-auto">
+                  className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer shadow-sm hover:shadow h-auto"
+                >
                   <LogOut className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                   <span>{t("logout")}</span>
                 </Button>
               </div>
             ) : (
+              // Not authenticated or loading - show login
               <div className="flex items-center space-x-1.5 lg:space-x-3 ml-3 lg:ml-6 border-l pl-3 lg:pl-6 border-gray-200">
                 <Button
                   onClick={() => setAuthSettingsOpen(true)}
                   variant="ghost"
-                  className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer shadow-sm hover:shadow h-auto">
+                  className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer shadow-sm hover:shadow h-auto"
+                >
                   <Shield className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                   <span>Auth</span>
                 </Button>
 
                 <Link
                   href="/auth/login"
-                  className="flex items-center gap-1 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-md bg-indigo-600 text-white text-xs lg:text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm hover:shadow cursor-pointer">
+                  className="flex items-center gap-1 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-md bg-indigo-600 text-white text-xs lg:text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm hover:shadow cursor-pointer"
+                >
                   {t("login")}
                   <span aria-hidden="true">&rarr;</span>
                 </Link>
@@ -193,9 +195,7 @@ export default function Header() {
           />
           <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-4 sm:px-6 py-4 sm:py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
             <div className="flex items-center justify-between">
-              <Link
-                href="/"
-                className="-m-1 p-1 sm:-m-1.5 sm:p-1.5">
+              <Link href="/" className="-m-1 p-1 sm:-m-1.5 sm:p-1.5">
                 <span className="sr-only">TechTots</span>
                 <div className="relative h-12 w-28 sm:h-16 sm:w-32">
                   <Image
@@ -210,19 +210,17 @@ export default function Header() {
               <button
                 type="button"
                 className="-m-2 rounded-md p-2 sm:-m-2.5 sm:p-2.5 text-gray-700 hover:bg-gray-100 cursor-pointer"
-                onClick={() => setMobileMenuOpen(false)}>
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 <span className="sr-only">Close menu</span>
-                <X
-                  className="h-5 w-5 sm:h-6 sm:w-6"
-                  aria-hidden="true"
-                />
+                <X className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
               </button>
             </div>
 
             <div className="mt-4 sm:mt-6 flow-root">
               <div className="-my-4 sm:-my-6 divide-y divide-gray-500/10">
                 <div className="space-y-1.5 sm:space-y-2 py-4 sm:py-6">
-                  {navigation.map((item) => (
+                  {navigation.map(item => (
                     <Link
                       key={item.name}
                       href={item.href}
@@ -232,7 +230,8 @@ export default function Header() {
                           ? "bg-indigo-50 text-indigo-700 shadow-sm"
                           : "text-gray-900 hover:bg-gray-50 hover:text-indigo-600"
                       )}
-                      onClick={() => setMobileMenuOpen(false)}>
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
                       {t(item.name)}
                     </Link>
                   ))}
@@ -246,12 +245,13 @@ export default function Header() {
                   </div>
 
                   <div className="border-t border-gray-200 pt-3 sm:pt-4 mt-1 sm:mt-2">
-                    {isLoggedIn ? (
+                    {shouldShowAuthenticatedUI ? (
                       <>
                         <Link
                           href="/account"
                           className="block rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-indigo-600 mb-1.5 sm:mb-2 cursor-pointer"
-                          onClick={() => setMobileMenuOpen(false)}>
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
                           <div className="flex items-center">
                             <User className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
                             <span>{t("account")}</span>
@@ -261,7 +261,8 @@ export default function Header() {
                           <Link
                             href="/admin"
                             className="block rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium bg-indigo-50 text-indigo-600 hover:bg-indigo-100 cursor-pointer mb-1.5 sm:mb-2"
-                            onClick={() => setMobileMenuOpen(false)}>
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
                             <div className="flex items-center">
                               <Settings className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
                               <span>{t("admin")}</span>
@@ -273,7 +274,8 @@ export default function Header() {
                             setAuthSettingsOpen(true);
                             setMobileMenuOpen(false);
                           }}
-                          className="w-full block rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium text-blue-600 hover:bg-blue-50 cursor-pointer mb-1.5 sm:mb-2">
+                          className="w-full block rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium text-blue-600 hover:bg-blue-50 cursor-pointer mb-1.5 sm:mb-2"
+                        >
                           <div className="flex items-center">
                             <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
                             <span>Auth Settings</span>
@@ -284,7 +286,8 @@ export default function Header() {
                             handleSignOut();
                             setMobileMenuOpen(false);
                           }}
-                          className="w-full block rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium text-red-600 hover:bg-red-50 cursor-pointer">
+                          className="w-full block rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium text-red-600 hover:bg-red-50 cursor-pointer"
+                        >
                           <div className="flex items-center">
                             <LogOut className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
                             <span>{t("logout")}</span>
@@ -292,13 +295,15 @@ export default function Header() {
                         </button>
                       </>
                     ) : (
+                      // Not authenticated or loading - show login for mobile
                       <>
                         <button
                           onClick={() => {
                             setAuthSettingsOpen(true);
                             setMobileMenuOpen(false);
                           }}
-                          className="w-full block rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium text-blue-600 hover:bg-blue-50 cursor-pointer mb-3">
+                          className="w-full block rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium text-blue-600 hover:bg-blue-50 cursor-pointer mb-3"
+                        >
                           <div className="flex items-center">
                             <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
                             <span>Auth Settings</span>
@@ -307,11 +312,10 @@ export default function Header() {
                         <Link
                           href="/auth/login"
                           className="flex items-center w-full justify-center gap-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-md bg-indigo-600 text-white text-sm sm:text-base font-medium hover:bg-indigo-700 transition-colors shadow-sm hover:shadow cursor-pointer"
-                          onClick={() => setMobileMenuOpen(false)}>
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
                           {t("login")}
-                          <span
-                            aria-hidden="true"
-                            className="ml-1">
+                          <span aria-hidden="true" className="ml-1">
                             &rarr;
                           </span>
                         </Link>

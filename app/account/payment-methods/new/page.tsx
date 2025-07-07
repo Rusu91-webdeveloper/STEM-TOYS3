@@ -1,8 +1,9 @@
 import React from "react";
-import { auth } from "@/lib/auth";
-import { PaymentCardForm } from "@/features/account/components/PaymentCardForm";
-import { db } from "@/lib/db";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaymentCardForm } from "@/features/account/components/PaymentCardForm";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 export const metadata = {
   title: "Add Payment Method | My Account",

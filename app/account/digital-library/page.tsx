@@ -1,12 +1,14 @@
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+
 import { DigitalLibrary } from "./DigitalLibrary";
 
 export default async function DigitalLibraryPage() {
   const session = await auth();
 
-  if (!session || !session.user) {
+  if (!session?.user) {
     redirect("/auth/login");
   }
 

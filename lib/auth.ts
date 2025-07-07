@@ -1,15 +1,16 @@
-import NextAuth from "next-auth";
+import "server-only";
 import { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
-import { compare } from "bcrypt";
-import { db } from "@/lib/db";
-import { logger } from "@/lib/logger";
+import "./env"; // Load environment variables early
+import { verifyPassword } from "./auth-utils";
 import { hashAdminPassword, verifyAdminPassword } from "@/lib/admin-auth";
+import { db } from "@/lib/db";
 import { withRetry, verifyUserExists } from "@/lib/db-helpers";
-let env: any;
-let serviceConfig: any;
+import { logger } from "@/lib/logger";
+let env: Record<string, string | undefined>;
+let serviceConfig: Record<string, () => boolean>;
 
 try {
   const config = require("@/lib/config");
@@ -19,10 +20,10 @@ try {
   console.error("Failed to load config in auth.ts:", error);
   // Use fallback values
   env = {
-    NODE_ENV: process.env.NODE_ENV || "development",
+    NODE_ENV: process.env.NODE_ENV ?? "development",
     NEXTAUTH_SECRET:
-      process.env.NEXTAUTH_SECRET || "development-secret-change-me",
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL || "http://localhost:3000",
+      process.env.NEXTAUTH_SECRET ?? "development-secret-change-me",
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL ?? "http://localhost:3000",
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,
@@ -59,6 +60,7 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       accountLinked?: boolean;
+      error?: string;
     };
   }
 }
@@ -134,8 +136,9 @@ const createDevAdminFromEnv = async () => {
 export const authOptions: NextAuthConfig = {
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  // Secure cookie settings
+  // FIXED: Simplified cookie configuration for better compatibility
   cookies: {
     sessionToken: {
       name:
@@ -151,7 +154,8 @@ export const authOptions: NextAuthConfig = {
     },
   },
   providers: [
-    ...(serviceConfig.isGoogleOAuthEnabled()
+    // FIXED: Always include Google provider when credentials are available
+    ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
       ? [
           GoogleProvider({
             clientId: env.GOOGLE_CLIENT_ID!,
@@ -165,7 +169,7 @@ export const authOptions: NextAuthConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, request) {
+      async authorize(credentials, _request) {
         if (
           !credentials?.email ||
           !credentials?.password ||
@@ -201,11 +205,11 @@ export const authOptions: NextAuthConfig = {
           // try to find the user in the database
           if (!user) {
             logger.debug("Looking up user in database", {
-              email: email,
+              email,
             });
             try {
               user = await db.user.findUnique({
-                where: { email: email },
+                where: { email },
               });
 
               if (user) {
@@ -219,7 +223,7 @@ export const authOptions: NextAuthConfig = {
 
           if (!user) {
             logger.warn("User not found during login attempt", {
-              email: email,
+              email,
             });
             return null;
           }
@@ -228,18 +232,27 @@ export const authOptions: NextAuthConfig = {
           logger.debug("Checking password for user", { userId: user.id });
 
           let passwordMatch = false;
-          if (user.passwordIsHashed) {
-            // Direct comparison for pre-hashed admin password
-            passwordMatch = user.password === password;
-          } else if (user.id === "admin_env") {
-            // For environment variable admin using our secure hashing
-            passwordMatch = await verifyAdminPassword(
+          if (user.id === "admin_env") {
+            // For environment variable admin - check if we have a hash or need to use custom hashing
+            if (user.passwordIsHashed) {
+              // We have a pre-computed bcrypt hash - use our server-side utility
+              passwordMatch = await verifyPassword(
+                password,
+                user.password as string
+              );
+            } else {
+              // Use our custom secure hashing for legacy admin passwords
+              passwordMatch = await verifyAdminPassword(
+                password,
+                user.password as string
+              );
+            }
+          } else {
+            // Standard database user with bcrypt hash
+            passwordMatch = await verifyPassword(
               password,
               user.password as string
             );
-          } else {
-            // Standard database user with bcrypt hash
-            passwordMatch = await compare(password, user.password as string);
           }
 
           if (!passwordMatch) {
@@ -487,160 +500,46 @@ export const authOptions: NextAuthConfig = {
         session.user.isActive = token.isActive || false;
         session.user.role = token.role || "CUSTOMER";
         session.user.accountLinked = token.accountLinked || false;
-
-        // For Google-linked accounts, double-check the role from the database
-        // This ensures admin privileges are preserved after Google sign-in
-        if (token.accountLinked && session.user.id) {
-          try {
-            // Only make this additional check for accounts marked as linked
-            const dbUser = await db.user.findUnique({
-              where: { id: session.user.id },
-              select: { role: true },
-            });
-
-            if (dbUser && dbUser.role) {
-              // Make sure to use the latest role from DB
-              session.user.role = dbUser.role;
-            }
-          } catch (error) {
-            logger.error("Error verifying role in session callback", {
-              error: error instanceof Error ? error.message : String(error),
-              userId: session.user.id,
-            });
-            // Continue with existing role on error
-          }
-        }
-
-        // For middleware and API routes, add token data to session
-        // This makes googleAuthTimestamp accessible in the middleware
-        (session as any).token = {
-          googleAuthTimestamp: token.googleAuthTimestamp,
-        };
       }
-
-      // Skip database verification for fresh Google auth sessions
-      // This gives time for the user creation in the database to complete
-      const isRecentGoogleAuth =
-        token.googleAuthTimestamp &&
-        Date.now() - (token.googleAuthTimestamp as number) < 120000; // 2 minute grace period (increased)
-
-      if (isRecentGoogleAuth) {
-        logger.info("Bypassing database check for fresh Google auth session", {
-          userId: session.user.id,
-        });
-        return session;
-      }
-
-      // Verify that the user still exists in the database using our retry helper
-      try {
-        if (session.user.id) {
-          // Special handling for environment-based admin accounts (development only)
-          // These accounts don't exist in the database but are valid in development
-          if (session.user.id === "admin_env") {
-            // Check if admin env is enabled and we're in development
-            if (
-              env.NODE_ENV === "development" &&
-              serviceConfig.isAdminEnvEnabled()
-            ) {
-              logger.info("Session validated for development admin user", {
-                userId: session.user.id,
-              });
-              return session;
-            } else {
-              logger.warn("Environment admin session invalid in production", {
-                userId: session.user.id,
-              });
-              return {
-                ...session,
-                user: {
-                  ...session.user,
-                  error: "AdminEnvDisabled",
-                },
-                expires: "0",
-              };
-            }
-          }
-
-          const userExists = await verifyUserExists(session.user.id, {
-            maxRetries: 3,
-            delayMs: 500,
-          });
-
-          // If user doesn't exist in database, invalidate the session
-          if (!userExists) {
-            logger.warn("Session requested for deleted user", {
-              userId: session.user.id,
-            });
-            // Set an error flag so middleware can detect and handle this
-            return {
-              ...session,
-              user: {
-                ...session.user,
-                error: "UserNotFound",
-              },
-              expires: "0",
-            };
-          }
-        }
-      } catch (error) {
-        logger.error("Error verifying user existence during session", {
-          error: error instanceof Error ? error.message : String(error),
-          userId: session.user?.id,
-        });
-        // Continue in case of database error to avoid blocking access
-      }
-
       return session;
     },
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account }) {
       // If the user has just signed in, add their database id to the token
       if (user) {
+        // User object is available on initial sign-in
         token.id = user.id;
-        // Use type assertion to handle the custom fields safely
         const extendedUser = user as ExtendedUser;
         token.isActive = extendedUser.isActive || false;
         token.role = extendedUser.role || "CUSTOMER";
-
-        // Capture account linking information if present
         token.accountLinked = (user as any).accountLinked || false;
-
-        // For Google auth, add a timestamp when the user is created/updated
-        // This helps identify fresh Google auth sessions
-        if (account?.provider === "google") {
-          token.googleAuthTimestamp = Date.now();
-
-          // For linked accounts (especially ADMIN), verify the role directly from the database
-          if ((user as any).accountLinked) {
-            try {
-              const dbUser = await db.user.findUnique({
-                where: { id: user.id },
-                select: { role: true },
-              });
-
-              if (dbUser && dbUser.role) {
-                // Use the role from the database to ensure admins keep their privileges
-                token.role = dbUser.role;
-                logger.info(
-                  "Updated user role from database during Google auth",
-                  {
-                    userId: user.id,
-                    role: dbUser.role,
-                  }
-                );
-              }
-            } catch (error) {
-              logger.error("Error fetching user role during Google auth", {
-                error: error instanceof Error ? error.message : String(error),
-                userId: user.id,
-              });
-            }
+      } else if (token.id) {
+        // On subsequent requests, token.id is available, refresh data from DB
+        try {
+          const dbUser = await db.user.findUnique({
+            where: { id: token.id },
+            select: { role: true, isActive: true },
+          });
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.isActive = dbUser.isActive;
           }
+        } catch (error) {
+          logger.error("Error refreshing user data in JWT callback", {
+            error: error instanceof Error ? error.message : String(error),
+            userId: token.id,
+          });
         }
       }
+
+      // For Google auth, add a timestamp when the user is created/updated
+      if (account?.provider === "google") {
+        token.googleAuthTimestamp = Date.now();
+      }
+
       return token;
     },
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: false,
   pages: {
     signIn: "/auth/login",
     error: "/auth/error",

@@ -10,11 +10,21 @@ export async function createPaymentIntent(
   metadata?: Record<string, string>
 ): Promise<{ clientSecret: string } | null> {
   try {
+    // Fetch CSRF token before making the request
+    const csrfToken = await fetchCsrfToken();
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add CSRF token to headers if available
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
+
     const response = await fetch("/api/checkout/payment-intent", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({
         amount: Math.round(amount * 100), // Convert to cents
         currency: "usd",
@@ -37,20 +47,55 @@ export async function createPaymentIntent(
 }
 
 /**
+ * Fetch CSRF token from the API
+ */
+async function fetchCsrfToken(): Promise<string | null> {
+  try {
+    const response = await fetch("/api/csrf-token", {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.csrfToken;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Failed to fetch CSRF token:", error);
+    return null;
+  }
+}
+
+/**
  * Create an order
  */
 export async function createOrder(orderData: any) {
   try {
+    // Fetch CSRF token before making the request
+    const csrfToken = await fetchCsrfToken();
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add CSRF token to headers if available
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
+
     const response = await fetch("/api/checkout/order", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify(orderData),
     });
 
     if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        `Error: ${response.status} - ${errorData.message || response.statusText}`
+      );
     }
 
     return await response.json();
@@ -89,7 +134,7 @@ export async function fetchTaxSettings() {
     if (!response.ok) {
       throw new Error(`Error fetching tax settings: ${response.statusText}`);
     }
-    return await response.json().then((data) => data.taxSettings);
+    return await response.json().then(data => data.taxSettings);
   } catch (error) {
     console.error("Failed to fetch tax settings:", error);
     // Return default settings if fetch fails

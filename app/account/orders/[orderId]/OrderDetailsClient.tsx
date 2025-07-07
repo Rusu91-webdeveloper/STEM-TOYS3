@@ -1,15 +1,17 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import { formatDate } from "@/lib/utils";
 import { ArrowLeft, Package, Star, Truck, Check, FileText } from "lucide-react";
+import Link from "next/link";
+import React from "react";
+import Image from "next/image";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
-import { TranslationKey } from "@/lib/i18n/translations";
+import { formatDate } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface OrderItem {
   id: string;
@@ -122,9 +124,7 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
   };
 
   // Safe translation function that handles dynamic keys
-  const safeT = (key: string, defaultValue?: string) => {
-    return t(key as TranslationKey, defaultValue);
-  };
+  const safeT = (key: string, defaultValue?: string) => t(key, defaultValue);
 
   return (
     <div className="space-y-8">
@@ -132,7 +132,8 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
       <div>
         <Link
           href="/account/orders"
-          className="flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground transition-colors">
+          className="flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground transition-colors"
+        >
           <ArrowLeft className="h-4 w-4 mr-1" />
           {t("backToOrders")}
         </Link>
@@ -147,13 +148,15 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
           </div>
           <div className="space-x-2">
             <Badge
-              className={`${getStatusBadgeVariant(order.status)} capitalize`}>
+              className={`${getStatusBadgeVariant(order.status)} capitalize`}
+            >
               {safeT(order.status.toLowerCase())}
             </Badge>
             <Badge
               className={`${getPaymentStatusBadgeVariant(
                 order.paymentStatus
-              )} capitalize`}>
+              )} capitalize`}
+            >
               {safeT(order.paymentStatus.toLowerCase())}
             </Badge>
           </div>
@@ -177,7 +180,7 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
             ) : (
               <div className="text-sm text-muted-foreground">
                 {/* Using string concatenation as a workaround */}
-                {t("estimatedDelivery") + ": " + formatDate(estimatedDelivery)}
+                {`${t("estimatedDelivery")}: ${formatDate(estimatedDelivery)}`}
               </div>
             )}
           </div>
@@ -195,7 +198,8 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                     order.status === "SHIPPED" || order.status === "DELIVERED"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground"
-                  } flex items-center justify-center`}>
+                  } flex items-center justify-center`}
+                >
                   <Truck className="h-4 w-4" />
                 </div>
               </div>
@@ -205,7 +209,8 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                     order.status === "DELIVERED"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground"
-                  } flex items-center justify-center`}>
+                  } flex items-center justify-center`}
+                >
                   <Check className="h-4 w-4" />
                 </div>
               </div>
@@ -220,18 +225,18 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
         <div className="md:col-span-2 space-y-4">
           <h3 className="text-lg font-medium">{t("items")}</h3>
           <div className="border rounded-lg divide-y">
-            {order.items.map((item) => {
+            {order.items.map(item => {
               const hasReviewed = item.reviews.length > 0;
               return (
-                <div
-                  key={item.id}
-                  className="p-4">
+                <div key={item.id} className="p-4">
                   <div className="flex gap-4">
                     <div className="h-20 w-20 rounded bg-muted overflow-hidden relative shrink-0">
                       {item.product?.images?.[0] && (
-                        <img
+                        <Image
                           src={item.product.images[0]}
                           alt={item.name}
+                          width={80}
+                          height={80}
                           className="object-cover h-full w-full"
                         />
                       )}
@@ -240,8 +245,9 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                       <div className="flex justify-between">
                         <div>
                           <Link
-                            href={`/products/${item.product?.slug || "#"}`}
-                            className="font-medium hover:underline">
+                            href={`/products/${item.product?.slug ?? "#"}`}
+                            className="font-medium hover:underline"
+                          >
                             {item.name}
                           </Link>
                           <div className="text-sm text-muted-foreground">
@@ -265,9 +271,11 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                                 variant="outline"
                                 size="sm"
                                 asChild
-                                className="mt-2 mr-2">
+                                className="mt-2 mr-2"
+                              >
                                 <Link
-                                  href={`/account/orders/${order.id}/review?itemId=${item.id}&productId=${item.productId}`}>
+                                  href={`/account/orders/${order.id}/review?itemId=${item.id}&productId=${item.productId}`}
+                                >
                                   <Star className="h-4 w-4 mr-1" />
                                   {t("writeReview")}
                                 </Link>
@@ -279,9 +287,11 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                                 variant="outline"
                                 size="sm"
                                 asChild
-                                className="mt-2">
+                                className="mt-2"
+                              >
                                 <Link
-                                  href={`/account/orders/${order.id}/return?itemId=${item.id}`}>
+                                  href={`/account/orders/${order.id}/return?itemId=${item.id}`}
+                                >
                                   <Package className="h-4 w-4 mr-1" />
                                   {t("returnItem")}
                                 </Link>
@@ -386,7 +396,8 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                     order.paymentStatus === "PAID"
                       ? "text-green-600"
                       : "text-amber-600"
-                  }>
+                  }
+                >
                   {safeT(order.paymentStatus.toLowerCase())}
                 </span>
               </p>

@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+
 import { BooksList } from "./BooksList";
 
 export default async function AdminBooksPage() {

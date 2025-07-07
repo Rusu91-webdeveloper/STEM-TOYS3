@@ -3,8 +3,8 @@
  * Validates tokens without database calls for maximum speed
  */
 
-import { logger } from "../logger";
 import { cache } from "../cache";
+import { logger } from "../logger";
 
 // JWT validation configuration
 export interface JWTConfig {
@@ -197,7 +197,7 @@ export class JWTValidator {
     const payload = JSON.parse(this.base64UrlDecode(payloadB64)) as JWTPayload;
 
     // Verify signature
-    const expectedSignature = await this.generateSignature(headerB64 + '.' + payloadB64);
+    const expectedSignature = await this.generateSignature(`${headerB64  }.${  payloadB64}`);
     if (signatureB64 !== expectedSignature) {
       throw new Error('Invalid signature');
     }
@@ -439,7 +439,7 @@ export class JWTValidator {
 
     const headerB64 = this.base64UrlEncode(new TextEncoder().encode(JSON.stringify(header)));
     const payloadB64 = this.base64UrlEncode(new TextEncoder().encode(JSON.stringify(fullPayload)));
-    const signature = await this.generateSignature(headerB64 + '.' + payloadB64);
+    const signature = await this.generateSignature(`${headerB64  }.${  payloadB64}`);
 
     return `${headerB64}.${payloadB64}.${signature}`;
   }

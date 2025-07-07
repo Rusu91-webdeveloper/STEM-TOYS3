@@ -1,16 +1,9 @@
 import React from "react";
-import { auth } from "@/lib/auth";
+
 import { OrderHistory } from "@/features/account/components/OrderHistory";
+import { auth } from "@/lib/auth";
 import { getTranslations } from "@/lib/i18n/server";
-
-export async function generateMetadata() {
-  const t = await getTranslations("ro"); // Default to Romanian
-
-  return {
-    title: `${t("orders")} | ${t("account")}`,
-    description: t("viewOrderHistory"),
-  };
-}
+import { getOrders } from "@/lib/orders";
 
 export default async function OrdersPage() {
   const session = await auth();
@@ -21,6 +14,8 @@ export default async function OrdersPage() {
     return null;
   }
 
+  const orders = await getOrders();
+
   return (
     <div className="space-y-6">
       <div>
@@ -29,7 +24,7 @@ export default async function OrdersPage() {
         </h2>
         <p className="text-sm text-muted-foreground">{t("viewOrderHistory")}</p>
       </div>
-      <OrderHistory />
+      <OrderHistory initialOrders={orders} />
     </div>
   );
 }

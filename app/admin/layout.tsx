@@ -1,13 +1,13 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { redirect, useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
-import SidebarNav, { adminNavItems } from "./components/sidebar-nav";
+import Image from "next/image";
+import Link from "next/link";
+import { redirect, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
+
+import SidebarNav, { adminNavItems } from "./components/sidebar-nav";
 
 export default function AdminLayout({
   children,

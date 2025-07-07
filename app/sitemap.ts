@@ -8,7 +8,7 @@ const languages = ["ro", "en"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static routes that should always be included
-  let sitemapEntries: MetadataRoute.Sitemap = [];
+  const sitemapEntries: MetadataRoute.Sitemap = [];
 
   // Add homepage for each language
   languages.forEach((lang) => {

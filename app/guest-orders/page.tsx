@@ -1,5 +1,6 @@
-import React from "react";
 import { Metadata } from "next";
+import React from "react";
+
 import { GuestOrderTracking } from "@/features/checkout/components/GuestOrderTracking";
 
 export const metadata: Metadata = {

@@ -2,8 +2,8 @@
  * Advanced caching system with Redis support and in-memory fallback
  */
 
-import { logger } from "./logger";
 import { TIME, CACHE_LIMITS } from "./constants";
+import { logger } from "./logger";
 
 // Cache configuration
 interface CacheConfig {
@@ -227,7 +227,32 @@ class RedisCache {
     if (!this.isConnected || !this.redis) return;
 
     try {
-      const serializedData = JSON.stringify(data);
+      let serializedData: string;
+      if (typeof data === "string") {
+        // Check if it's already valid JSON
+        try {
+          JSON.parse(data);
+          serializedData = data; // Already valid JSON string
+        } catch {
+          // Not valid JSON, wrap as JSON string
+          serializedData = JSON.stringify({ value: data });
+          logger.warn(
+            "RedisCache.set: String data was not valid JSON, wrapping in object",
+            { key, data }
+          );
+        }
+      } else {
+        try {
+          serializedData = JSON.stringify(data);
+        } catch (err) {
+          logger.error("RedisCache.set: Failed to serialize data", {
+            key,
+            data,
+            error: err,
+          });
+          return;
+        }
+      }
       const ttlSeconds = Math.floor((ttl || config.defaultTTL) / 1000);
 
       await this.redis.setex(
@@ -257,7 +282,40 @@ class RedisCache {
 
       this.stats.hits++;
       logger.debug("Cache HIT (redis)", { key });
-      return JSON.parse(data);
+      // If data is wrapped as { value: ... }, unwrap it
+      let parsed;
+      try {
+        parsed = JSON.parse(data);
+      } catch (err) {
+        logger.error("RedisCache.get: Failed to parse cached data", {
+          key,
+          data,
+          error: err,
+        });
+        // Auto-delete the bad cache entry to self-heal
+        try {
+          await this.redis.del(config.keyPrefix + key);
+          logger.warn(
+            "RedisCache.get: Deleted bad cache entry after parse error",
+            { key }
+          );
+        } catch (delErr) {
+          logger.error("RedisCache.get: Failed to delete bad cache entry", {
+            key,
+            error: delErr,
+          });
+        }
+        return null;
+      }
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        Object.keys(parsed).length === 1 &&
+        parsed.value !== undefined
+      ) {
+        return parsed.value;
+      }
+      return parsed;
     } catch (error) {
       this.stats.errors++;
       logger.error("Redis GET error", { key, error });

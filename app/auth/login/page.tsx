@@ -1,20 +1,21 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle, Info } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { signIn, useSession, signOut } from "next-auth/react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { signIn, useSession, signOut } from "next-auth/react";
+
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginSchema } from "@/lib/validations";
-import { CheckCircle, Info } from "lucide-react";
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n";
+import { loginSchema } from "@/lib/validations";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
@@ -26,12 +27,12 @@ const clearProblemCookies = () => {
     urlParams.has("callbackUrl") &&
     urlParams.get("callbackUrl") === "/checkout"
   ) {
-    const loopCount = parseInt(localStorage.getItem("loginLoopCount") || "0");
+    const loopCount = parseInt(localStorage.getItem("loginLoopCount") ?? "0");
     localStorage.setItem("loginLoopCount", (loopCount + 1).toString());
 
     // If we detect multiple redirects in quick succession, clear auth cookies
     if (loopCount > 3) {
-      console.log("Detected potential redirect loop, clearing auth cookies");
+      console.warn("Detected potential redirect loop, clearing auth cookies");
       document.cookie =
         "next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
       document.cookie =
@@ -47,7 +48,6 @@ const clearProblemCookies = () => {
 };
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const { t } = useTranslation();
@@ -76,7 +76,7 @@ function LoginForm() {
       );
 
       if (isGoogleAuthInProgress) {
-        console.log("Google auth in progress, suppressing error message");
+        console.warn("Google auth in progress, suppressing error message");
         // Don't show error during OAuth flow, it might be temporary
         // Remove the error parameter from URL to prevent it from showing up
         // when the user is redirected back
@@ -102,7 +102,7 @@ function LoginForm() {
           await signOut({ redirect: false });
 
           // Clear all cookies with more aggressive approach
-          document.cookie.split(";").forEach((cookie) => {
+          document.cookie.split(";").forEach(cookie => {
             const [name] = cookie.trim().split("=");
             if (name) {
               const paths = [
@@ -116,8 +116,8 @@ function LoginForm() {
               const domains = [window.location.hostname, "", null, undefined];
 
               // Clear cookie on all paths and potential domains
-              paths.forEach((path) => {
-                domains.forEach((domain) => {
+              paths.forEach(path => {
+                domains.forEach(domain => {
                   const domainStr = domain ? `domain=${domain}; ` : "";
                   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; ${domainStr}path=${path}; secure; samesite=lax`;
                   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; ${domainStr}path=${path}`;
@@ -130,7 +130,7 @@ function LoginForm() {
           localStorage.clear();
           sessionStorage.clear();
 
-          console.log("Cleared all auth data due to UserDeleted error");
+          console.warn("Cleared all auth data due to UserDeleted error");
 
           // Force reload to ensure clean state
           setTimeout(() => {
@@ -145,30 +145,62 @@ function LoginForm() {
     }
   }, [searchParams, t]);
 
-  // If user is already authenticated and there's a callbackUrl, redirect there
+  // If user is already authenticated, handle redirects intelligently
   useEffect(() => {
     if (status === "authenticated" && session) {
-      const callbackUrl = searchParams.get("callbackUrl") || "/account";
-      console.log("User is authenticated, redirecting to:", callbackUrl);
+      const callbackUrl = searchParams.get("callbackUrl");
 
-      // Add a small delay to allow state to settle
-      const redirectTimer = setTimeout(() => {
-        // Check if the callbackUrl is already in the browser history
-        // This helps prevent redirect loops when changing language/currency
-        const isRedirectedFromCallbackUrl =
-          document.referrer && document.referrer.includes(callbackUrl);
+      // FIXED: Only redirect if there's a specific callback URL
+      // If user is just visiting /auth/login normally, don't redirect them
+      if (callbackUrl) {
+        console.warn(
+          "User is authenticated and has callback URL, redirecting to:",
+          callbackUrl
+        );
 
-        if (isRedirectedFromCallbackUrl) {
-          console.log(
-            "Detected potential redirect loop, navigating to homepage instead"
-          );
-          window.location.href = "/";
-        } else {
-          window.location.href = callbackUrl;
-        }
-      }, 500);
+        const validateAndRedirect = async () => {
+          try {
+            // Quick session validation only for redirects
+            const validationResponse = await fetch(
+              "/api/auth/validate-session"
+            );
+            const validationData = await validationResponse.json();
 
-      return () => clearTimeout(redirectTimer);
+            if (!validationData.valid) {
+              console.warn(
+                "Session validation failed, clearing session silently"
+              );
+              await signOut({ redirect: false });
+              // Don't show error - user can just log in normally
+              return;
+            }
+
+            // If validation passes, proceed with redirect
+            const isRedirectedFromCallbackUrl =
+              document.referrer && document.referrer.includes(callbackUrl);
+
+            if (isRedirectedFromCallbackUrl) {
+              console.warn(
+                "Detected potential redirect loop, navigating to homepage instead"
+              );
+              window.location.href = "/";
+            } else {
+              window.location.href = callbackUrl;
+            }
+          } catch (error) {
+            console.error("Error validating session:", error);
+            // Silently clear invalid session and let user log in normally
+            await signOut({ redirect: false });
+          }
+        };
+
+        const redirectTimer = setTimeout(validateAndRedirect, 500);
+        return () => clearTimeout(redirectTimer);
+      } 
+        // User has valid session but no callback URL - they might want to access account
+        // Show a message suggesting they might want to go to their account
+        console.warn("User is already authenticated - no redirect needed");
+      
     }
   }, [session, status, searchParams]);
 
@@ -190,15 +222,16 @@ function LoginForm() {
     setSuccess(null);
 
     try {
-      console.log("Signing in with:", data.email);
+      console.warn("Signing in with:", data.email);
 
+      // FIXED: Let NextAuth handle CSRF tokens automatically
       const result = await signIn("credentials", {
         redirect: false,
         email: data.email,
         password: data.password,
       });
 
-      console.log("Sign in result:", result);
+      console.warn("Sign in result:", result);
 
       if (!result) {
         setError(t("authServiceUnavailable"));
@@ -207,11 +240,17 @@ function LoginForm() {
       }
 
       if (result.error) {
+        console.error("Sign in error:", result.error);
+
         if (
           result.error === "CredentialsSignin" ||
           result.error.includes("credentials")
         ) {
           setError(t("invalidCredentials"));
+        } else if (result.error === "MissingCSRF" || result.error === "CSRF") {
+          setError(
+            "Authentication error. Please refresh the page and try again."
+          );
         } else if (
           result.error.includes("not verified") ||
           result.error.includes("inactive")
@@ -228,11 +267,13 @@ function LoginForm() {
       setSuccess(t("loginSuccessful"));
 
       // Get the redirect URL
-      const callbackUrl = searchParams.get("callbackUrl") || "/";
-      console.log("Redirecting to:", callbackUrl);
+      const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+      console.warn("Redirecting to:", callbackUrl);
 
-      // Use window.location for a hard redirect instead of Next.js router
-      window.location.href = callbackUrl;
+      // Give a moment for the session to be established
+      setTimeout(() => {
+        window.location.href = callbackUrl;
+      }, 500);
     } catch (error) {
       console.error("Login error:", error);
       setError(t("registrationError"));
@@ -258,7 +299,8 @@ function LoginForm() {
         <div className="flex justify-end">
           <button
             onClick={() => setDebugVisible(!debugVisible)}
-            className="text-gray-400 hover:text-gray-600 p-1">
+            className="text-gray-400 hover:text-gray-600 p-1"
+          >
             <Info size={16} />
           </button>
         </div>
@@ -275,14 +317,15 @@ function LoginForm() {
             )}
             <p>
               <strong>Callback URL:</strong>{" "}
-              {searchParams.get("callbackUrl") || "None"}
+              {searchParams.get("callbackUrl") ?? "None"}
             </p>
             <div className="mt-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleSignOut}
-                className="text-xs h-7">
+                className="text-xs h-7"
+              >
                 Force Sign Out
               </Button>
             </div>
@@ -299,7 +342,8 @@ function LoginForm() {
                   Need a new verification email?{" "}
                   <Link
                     href="/auth/resend-verification"
-                    className="text-primary hover:underline font-medium">
+                    className="text-primary hover:underline font-medium"
+                  >
                     Resend verification
                   </Link>
                 </p>
@@ -318,9 +362,7 @@ function LoginForm() {
           </div>
         )}
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">{t("email")}</Label>
             <Input
@@ -341,7 +383,8 @@ function LoginForm() {
               <Label htmlFor="password">{t("password")}</Label>
               <Link
                 href="/auth/forgot-password"
-                className="text-sm text-primary hover:underline">
+                className="text-sm text-primary hover:underline"
+              >
                 {t("forgotPassword")}
               </Link>
             </div>
@@ -360,10 +403,7 @@ function LoginForm() {
             )}
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}>
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? t("signingIn") : t("signIn")}
           </Button>
         </form>
@@ -385,7 +425,8 @@ function LoginForm() {
           {t("dontHaveAccount")}{" "}
           <Link
             href="/auth/register"
-            className="font-medium text-primary hover:underline">
+            className="font-medium text-primary hover:underline"
+          >
             {t("createAccount")}
           </Link>
         </div>

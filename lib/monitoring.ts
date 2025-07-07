@@ -2,8 +2,8 @@
  * Application monitoring for uptime, performance, and metrics tracking
  */
 
-import { logger } from "./logger";
 import { trackError, ErrorTracker } from "./error-tracking";
+import { logger } from "./logger";
 
 // Performance thresholds (in milliseconds)
 const PERFORMANCE_THRESHOLDS = {

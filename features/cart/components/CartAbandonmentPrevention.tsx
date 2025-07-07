@@ -3,13 +3,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  X,
   ShoppingCart,
   Clock,
   Mail,
   Percent,
   Gift,
-  Heart,
   AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,10 +20,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
 import { useCurrency } from "@/lib/currency";
 import { useCart } from "@/features/cart/context/CartContext";
@@ -88,13 +84,12 @@ export function CartAbandonmentPrevention({
 }: AbandonmentPreventionProps) {
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
-  const { items, getTotal, clearCart } = useCart();
+  const { items, getTotal } = useCart();
   const totalPrice = getTotal();
   const router = useRouter();
 
   const [isExitIntentModalOpen, setIsExitIntentModalOpen] = useState(false);
   const [isIdleModalOpen, setIsIdleModalOpen] = useState(false);
-  const [isEmailCaptureOpen, setIsEmailCaptureOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<AbandonmentOffer | null>(
     null
   );

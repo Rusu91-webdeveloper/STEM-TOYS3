@@ -3,6 +3,7 @@
  */
 
 import * as Sentry from "@sentry/nextjs";
+
 import { logger, type LogContext } from "./logger";
 
 // Error severity levels

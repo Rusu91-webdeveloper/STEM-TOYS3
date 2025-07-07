@@ -1,13 +1,5 @@
 "use client";
 
-import React from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import {
   ArrowUpRight,
   ArrowDownRight,
@@ -17,11 +9,16 @@ import {
   CreditCard,
   Activity,
 } from "lucide-react";
-import { SalesChart } from "./sales-chart";
-import { TopSellingProductsTable } from "./TopSellingProductsTable";
-import { SalesByCategoryChart } from "./SalesByCategoryChart";
-import { CurrencyDisplay } from "./CurrencyDisplay";
+import React from "react";
+
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -29,6 +26,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+import { CurrencyDisplay } from "./CurrencyDisplay";
+import { SalesChart } from "./sales-chart";
+import { SalesByCategoryChart } from "./SalesByCategoryChart";
+import { TopSellingProductsTable } from "./TopSellingProductsTable";
+
 
 interface SalesData {
   daily: number;

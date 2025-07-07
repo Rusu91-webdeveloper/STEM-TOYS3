@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   checkCategoriesExist,
   createDefaultCategories,
 } from "@/lib/utils/categories-utils";
-import Link from "next/link";
+
 
 export function CategoryCheck() {
   const [loading, setLoading] = useState(true);

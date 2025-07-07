@@ -1,5 +1,6 @@
-import { handlers } from "@/lib/auth";
 import { NextRequest } from "next/server";
+
+import { handlers } from "@/lib/auth";
 
 // Get the original NextAuth handlers
 const { GET: originalGet, POST: originalPost } = handlers;

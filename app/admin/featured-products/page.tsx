@@ -1,16 +1,17 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import Link from "next/link";
-import Image from "next/image";
-import { useTranslation } from "@/lib/i18n";
 import { useCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
 import type { Product } from "@/types/product";
 
 export default function ManageFeaturedProductsPage() {
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
   const { formatPrice } = useCurrency();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +68,7 @@ export default function ManageFeaturedProductsPage() {
 
       // Update local state
       setProducts(
-        products.map((p) =>
+        products.map(p =>
           p.id === product.id ? { ...p, featured: newFeaturedValue } : p
         )
       );
@@ -93,7 +94,7 @@ export default function ManageFeaturedProductsPage() {
   };
 
   // Get the count of featured products
-  const featuredCount = products.filter((p) => p.featured).length;
+  const featuredCount = products.filter(p => p.featured).length;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -116,7 +117,8 @@ export default function ManageFeaturedProductsPage() {
             statusMessage.type === "success"
               ? "bg-green-100 text-green-800"
               : "bg-red-100 text-red-800"
-          }`}>
+          }`}
+        >
           {statusMessage.text}
         </div>
       )}
@@ -132,36 +134,42 @@ export default function ManageFeaturedProductsPage() {
               <tr>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Featured
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Product
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Category
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Price
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Status
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {products.map((product) => (
+              {products.map(product => (
                 <tr
                   key={product.id}
-                  className={product.featured ? "bg-blue-50" : ""}>
+                  className={product.featured ? "bg-blue-50" : ""}
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <Checkbox
                       checked={product.featured || false}
@@ -193,7 +201,8 @@ export default function ManageFeaturedProductsPage() {
                         </div>
                         <Link
                           href={`/products/${product.slug}`}
-                          className="text-xs text-blue-500 hover:underline">
+                          className="text-xs text-blue-500 hover:underline"
+                        >
                           View product
                         </Link>
                       </div>
@@ -219,7 +228,8 @@ export default function ManageFeaturedProductsPage() {
                         product.isActive
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
-                      }`}>
+                      }`}
+                    >
                       {product.isActive ? "Active" : "Inactive"}
                     </span>
                   </td>

@@ -1,4 +1,5 @@
 export type CheckoutStep =
+  | "loading"
   | "guest-info"
   | "shipping-address"
   | "shipping-method"

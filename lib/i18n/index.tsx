@@ -7,6 +7,7 @@ import React, {
   useContext,
   ReactNode,
 } from "react";
+
 import { translations, TranslationKey } from "./translations";
 
 // Define available languages
@@ -20,7 +21,7 @@ type I18nContextType = {
   language: string;
   locale: string;
   setLanguage: (lang: string) => void;
-  t: (key: TranslationKey, defaultValue?: string) => string;
+  t: (key: string, defaultValue?: string) => string;
 };
 
 const I18nContext = createContext<I18nContextType>({
@@ -43,7 +44,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
     const storedLang =
       typeof window !== "undefined" ? localStorage.getItem("language") : null;
 
-    if (storedLang && languages.some((lang) => lang.code === storedLang)) {
+    if (storedLang && languages.some(lang => lang.code === storedLang)) {
       setLanguage(storedLang);
     } else {
       // If no stored language or invalid language, set to Romanian
@@ -62,11 +63,10 @@ export function I18nProvider({ children }: I18nProviderProps) {
   }, [language]);
 
   // Translation function
-  const t = (key: TranslationKey, defaultValue?: string): string => {
+  const t = (key: string, defaultValue?: string): string => {
     const currentTranslations =
       translations[language as keyof typeof translations];
 
-    // Type-safe access to translation keys
     if (currentTranslations && key in currentTranslations) {
       return (currentTranslations as any)[key];
     }
@@ -75,6 +75,11 @@ export function I18nProvider({ children }: I18nProviderProps) {
       return (translations.en as any)[key];
     }
 
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        `Missing translation for key: '${key}' in language: '${language}'`
+      );
+    }
     return defaultValue || String(key);
   };
 
@@ -98,4 +103,4 @@ export function useTranslation() {
 }
 
 // Export the I18nContextType for use in other components
-export type { I18nContextType };
+export type { I18nContextType, TranslationKey };

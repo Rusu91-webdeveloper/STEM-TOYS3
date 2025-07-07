@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Globe } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Globe } from "lucide-react";
+
 
 // Define languages locally to ensure they're always available
 const languages = [

@@ -1,6 +1,26 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+
 import { logger } from "./logger";
+
+/**
+ * Standardized API error handling utility for Next.js API routes.
+ *
+ * - Use the exported helpers (badRequest, unauthorized, forbidden, notFound, conflict, etc.)
+ *   for consistent error responses.
+ * - Wrap all route handlers with `withErrorHandling` for automatic error catching and formatting.
+ * - All error responses include a unique requestId and are logged via the shared logger.
+ * - All error responses set 'Cache-Control: no-store' to prevent caching of error payloads.
+ * - Handles Zod validation errors and generic server errors.
+ *
+ * Usage:
+ *   import { withErrorHandling, badRequest, ... } from "@/lib/api-error";
+ *
+ *   export const POST = withErrorHandling(async (req) => { ... });
+ *
+ *   // For manual errors:
+ *   return badRequest("Missing field");
+ */
 
 // Define error types
 export type ErrorType =
@@ -105,7 +125,13 @@ export function createErrorResponse(
     response.error.fields = validationErrors;
   }
 
-  return NextResponse.json(response, { status: errorDetails.status });
+  // Always set Cache-Control: no-store on error responses
+  return NextResponse.json(response, {
+    status: errorDetails.status,
+    headers: {
+      "Cache-Control": "no-store",
+    },
+  });
 }
 
 /**
@@ -115,7 +141,7 @@ export function handleZodError(error: ZodError): NextResponse<ErrorResponse> {
   // Format field errors for client consumption
   const fieldErrors: Record<string, string> = {};
 
-  error.errors.forEach((err) => {
+  error.errors.forEach(err => {
     // Get the field path (e.g., "email" or "user.address.street")
     const fieldPath = err.path.join(".");
     // Use the error message

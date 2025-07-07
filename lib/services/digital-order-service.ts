@@ -1,7 +1,8 @@
-import { db } from "@/lib/db";
 import crypto from "crypto";
+
 import { sendMail } from "@/lib/brevo";
 import { emailTemplates } from "@/lib/brevoTemplates";
+import { db } from "@/lib/db";
 
 interface DigitalOrderItem {
   id: string;
@@ -21,6 +22,11 @@ interface DigitalOrder {
     email: string;
   };
 }
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.NEXTAUTH_URL ||
+  "http://localhost:3000";
 
 /**
  * Generate a secure download token
@@ -100,7 +106,7 @@ export async function processDigitalBookOrder(
     // Process each order item
     for (const item of orderData) {
       // Add book info (avoid duplicates)
-      const existingBook = books.find((b) => b.name === item.book_name);
+      const existingBook = books.find(b => b.name === item.book_name);
       if (!existingBook) {
         books.push({
           name: item.book_name,
@@ -162,11 +168,7 @@ export async function processDigitalBookOrder(
         `;
 
         // Build download URL
-        const baseUrl =
-          process.env.NEXT_PUBLIC_SITE_URL ||
-          process.env.NEXTAUTH_URL ||
-          "http://localhost:3000";
-        const downloadUrl = `${baseUrl}/api/download/${downloadToken}`;
+        const downloadUrl = `${API_BASE_URL}/api/download/${downloadToken}`;
 
         downloadLinks.push({
           bookName: item.book_name,
@@ -289,7 +291,7 @@ export async function getOrderDownloadStatus(orderId: string) {
     },
   });
 
-  return downloads.map((download) => ({
+  return downloads.map(download => ({
     id: download.id,
     bookName: download.digitalFile.book.name,
     fileName: download.digitalFile.fileName,
@@ -323,4 +325,119 @@ export async function regenerateDownloadToken(
   });
 
   return newToken;
+}
+
+export class DigitalOrderService {
+  async generateDownloadLinksForOrder(orderId: string): Promise<void> {
+    try {
+      console.log(`🔄 Generating download links for order: ${orderId}`);
+
+      // Get order with items
+      const order = await db.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: {
+            include: {
+              book: {
+                include: {
+                  digitalFiles: true,
+                },
+              },
+            },
+          },
+          user: true,
+        },
+      });
+
+      if (!order) {
+        throw new Error(`Order ${orderId} not found`);
+      }
+
+      // Generate download links for each digital item
+      for (const item of order.items) {
+        if (item.book && item.book.isDigital) {
+          const book = item.book;
+
+          // Generate download links for each file
+          for (const digitalFile of book.digitalFiles) {
+            const downloadToken = crypto.randomBytes(32).toString("hex");
+            const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+            await db.digitalDownload.create({
+              data: {
+                orderItemId: item.id,
+                userId: order.userId,
+                digitalFileId: digitalFile.id,
+                downloadToken,
+                expiresAt,
+              },
+            });
+
+            // Update order item with download info
+            await db.orderItem.update({
+              where: { id: item.id },
+              data: {
+                downloadExpiresAt: expiresAt,
+                maxDownloads: 5, // Allow 5 downloads
+              },
+            });
+
+            console.log("Generated download link", {
+              orderId,
+              itemId: item.id,
+              fileId: digitalFile.id,
+              token: `${downloadToken.substring(0, 8)  }...`,
+            });
+          }
+        }
+      }
+
+      // Send email notification
+      await this.sendDigitalDeliveryEmail(order);
+
+      console.log("Successfully generated download links for order", {
+        orderId,
+      });
+    } catch (error) {
+      console.error("Failed to generate download links", {
+        orderId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+  }
+
+  private async sendDigitalDeliveryEmail(order: any): Promise<void> {
+    try {
+      // Send email notification with download links
+      const response = await fetch(
+        `${API_BASE_URL}/api/email/digital-delivery`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            orderId: order.id,
+            customerEmail: order.user.email,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Email API returned ${response.status}`);
+      }
+
+      console.log("Digital delivery email sent", {
+        orderId: order.id,
+        email: order.user.email,
+      });
+    } catch (error) {
+      console.error("Failed to send digital delivery email", {
+        orderId: order.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      // Don't throw here - email failure shouldn't block order processing
+    }
+  }
 }

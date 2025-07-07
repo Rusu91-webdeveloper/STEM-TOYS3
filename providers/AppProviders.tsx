@@ -1,0 +1,40 @@
+"use client";
+
+import { SessionProvider } from "next-auth/react";
+import React from "react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import dynamic from "next/dynamic";
+
+import ClientLayout from "@/components/layout/ClientLayout";
+import { CartSkeleton } from "@/components/skeletons/cart-skeleton";
+import { Toaster } from "@/components/ui/toaster";
+import { CurrencyProvider } from "@/lib/currency";
+import { I18nProvider } from "@/lib/i18n";
+import { CartLoader } from "@/features/cart/components/CartLoader";
+
+const CartProviderWrapper = dynamic(
+  () => import("@/features/cart/components/CartProviderWrapper.client"),
+  {
+    ssr: false,
+    loading: () => <CartSkeleton />,
+  }
+);
+
+export function AppProviders({ children }: { children: React.ReactNode }) {
+  return (
+    <SessionProvider>
+      <I18nProvider>
+        <CurrencyProvider>
+          <CartProviderWrapper>
+            <CartLoader />
+            <ClientLayout>
+              {children}
+              <SpeedInsights />
+            </ClientLayout>
+            <Toaster />
+          </CartProviderWrapper>
+        </CurrencyProvider>
+      </I18nProvider>
+    </SessionProvider>
+  );
+}

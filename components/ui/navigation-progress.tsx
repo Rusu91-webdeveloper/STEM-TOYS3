@@ -6,8 +6,9 @@
 
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+
 import { cn } from "@/lib/utils";
 
 // Internal component that uses useSearchParams and usePathname

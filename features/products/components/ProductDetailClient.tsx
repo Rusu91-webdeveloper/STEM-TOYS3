@@ -15,7 +15,7 @@ import { useTranslation } from "@/lib/i18n";
 import { useCurrency } from "@/lib/currency";
 import { toast } from "@/components/ui/use-toast";
 import type { Product } from "@/types/product";
-import { ProductReviews, type Review } from "./ProductReviews";
+import { LazyProductReviews, LazyRelatedProducts } from "@/components/lazy";
 import { useSession } from "next-auth/react";
 import ProductImageZoom from "@/components/products/ProductImageZoom";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
@@ -242,8 +242,8 @@ export default function ProductDetailClient({
             items={[
               { label: t("products"), href: "/products" },
               {
-                label: product.category || "Category",
-                href: `/products?category=${product.category || ""}`,
+                label: getCategoryName() || "Category",
+                href: `/products?category=${getCategoryName() || ""}`,
               },
               { label: product.name, current: true },
             ]}
@@ -461,28 +461,25 @@ export default function ProductDetailClient({
         {/* Reviews Section */}
         <div className="mt-16">
           <h2 className="text-2xl font-bold mb-4">
-            {t("customerReviews", "Customer Reviews")}
+            {t("reviews", "Customer Reviews")}
           </h2>
           <Separator className="mb-6" />
           {loadingReviews ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">
-                {t("loadingReviews", "Loading reviews...")}
+                {t("loading", "Loading reviews...")}
               </p>
             </div>
           ) : (
-            <ProductReviews
+            <LazyProductReviews
               productId={product.id}
               reviews={reviews}
               userLoggedIn={!!session}
               onSubmitReview={reviewData => {
                 toast({
-                  title: t(
-                    "reviewSubmissionDisabled",
-                    "Review Submission Notice"
-                  ),
+                  title: t("error", "Review Submission Notice"),
                   description: t(
-                    "purchaseRequiredForReview",
+                    "purchaseRequired",
                     "You need to purchase this product before leaving a review. Reviews can be submitted after delivery from your order details page."
                   ),
                 });

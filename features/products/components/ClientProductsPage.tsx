@@ -252,7 +252,7 @@ function ClientProductsPageContent({
     };
 
     // Add all standard categories first
-    standardCategories.forEach((cat) => {
+    standardCategories.forEach(cat => {
       const normalizedCat = normalizeCategory(cat);
       categoryMap.set(normalizedCat, {
         id: normalizedCat,
@@ -265,7 +265,7 @@ function ClientProductsPageContent({
     });
 
     // Count products for each category (avoid double counting)
-    products.forEach((product) => {
+    products.forEach(product => {
       // Determine the primary category for this product to avoid double counting
       let primaryCategory = "";
       let categoryLabel = "";
@@ -339,31 +339,76 @@ function ClientProductsPageContent({
     };
   }, [products, t]);
 
-  // Mock filters (won't make another server request for demo purposes)
-  const mockFilters: FilterGroup[] = [
-    {
-      id: "ageRange",
-      name: t("ageRange", "Age Range"),
-      options: [
-        { id: "6-10", label: t("years6To10", "6-10 years"), count: 5 },
-        { id: "8-12", label: t("years8To12", "8-12 years"), count: 4 },
-        { id: "10-14", label: t("years10To14", "10-14 years"), count: 3 },
-      ],
-    },
-    {
-      id: "difficulty",
-      name: t("difficultyLevel", "Difficulty Level"),
-      options: [
-        { id: "beginner", label: t("beginner", "Beginner"), count: 4 },
-        {
-          id: "intermediate",
-          label: t("intermediate", "Intermediate"),
-          count: 5,
-        },
-        { id: "advanced", label: t("advanced", "Advanced"), count: 3 },
-      ],
-    },
-  ];
+  // Create dynamic filters from product data
+  const dynamicFilters = useMemo(() => {
+    const ageRangeMap = new Map<
+      string,
+      { id: string; label: string; count: number }
+    >();
+    const difficultyMap = new Map<
+      string,
+      { id: string; label: string; count: number }
+    >();
+
+    products.forEach(product => {
+      // Process Age Range
+      if (product.ageRange) {
+        const age = product.ageRange.trim();
+        if (age) {
+          const existing = ageRangeMap.get(age);
+          if (existing) {
+            existing.count++;
+          } else {
+            ageRangeMap.set(age, {
+              id: age,
+              label: `${age} years`, // Use raw value
+              count: 1,
+            });
+          }
+        }
+      }
+
+      // Process Difficulty Level
+      const difficulty = product.attributes?.difficultyLevel as string;
+      if (difficulty) {
+        const d = difficulty.trim().toLowerCase();
+        if (d) {
+          const existing = difficultyMap.get(d);
+          if (existing) {
+            existing.count++;
+          } else {
+            difficultyMap.set(d, {
+              id: d,
+              label: d.charAt(0).toUpperCase() + d.slice(1), // Use raw value
+              count: 1,
+            });
+          }
+        }
+      }
+    });
+
+    const filters: FilterGroup[] = [];
+
+    if (ageRangeMap.size > 0) {
+      filters.push({
+        id: "ageRange",
+        name: t("ageRange"),
+        options: Array.from(ageRangeMap.values()).sort((a, b) =>
+          a.label.localeCompare(b.label)
+        ),
+      });
+    }
+
+    if (difficultyMap.size > 0) {
+      filters.push({
+        id: "difficulty",
+        name: t("difficultyLevel"),
+        options: Array.from(difficultyMap.values()),
+      });
+    }
+
+    return filters;
+  }, [products, t]);
 
   // Calculate filtered products based on all filters applied
   const filteredProducts = useMemo(() => {
@@ -376,7 +421,7 @@ function ClientProductsPageContent({
     // Only apply category filtering if we have selected categories AND we're hydrated
     // This prevents hydration mismatches and ensures all products show initially
     if (selectedCategories.length > 0 && isHydrated) {
-      filtered = filtered.filter((product) => {
+      filtered = filtered.filter(product => {
         // Get category info from the product
         const prodCategoryName = (product.category?.name || "").toLowerCase();
         const prodCategorySlug = (product.category?.slug || "").toLowerCase();
@@ -396,7 +441,7 @@ function ClientProductsPageContent({
         }
 
         // Improved category matching with better logging
-        return selectedCategories.some((cat) => {
+        return selectedCategories.some(cat => {
           const lowerCat = cat.toLowerCase();
 
           // Special case for engineering category
@@ -456,14 +501,14 @@ function ClientProductsPageContent({
     Object.entries(selectedFilters).forEach(([filterId, values]) => {
       if (values.length > 0) {
         if (filterId === "ageRange") {
-          filtered = filtered.filter((product) => {
+          filtered = filtered.filter(product => {
             if (!product.ageRange) return false;
 
             const [productMin, productMax] = product.ageRange
               .split("-")
               .map(Number);
 
-            return values.some((range) => {
+            return values.some(range => {
               const [filterMin, filterMax] = range.split("-").map(Number);
 
               // Check if product age range overlaps with filter age range
@@ -474,16 +519,17 @@ function ClientProductsPageContent({
             });
           });
         } else if (filterId === "difficulty") {
-          filtered = filtered.filter((product) => {
-            // Check product attributes for difficulty level
-            return values.some(
-              (value) => product.attributes?.difficulty === value
-            );
+          filtered = filtered.filter(product => {
+            const productDifficulty = (
+              product.attributes?.difficultyLevel as string
+            )?.toLowerCase();
+            if (!productDifficulty) return false;
+            return values.includes(productDifficulty);
           });
         } else if (filterId === "productType") {
-          filtered = filtered.filter((product) => {
+          filtered = filtered.filter(product => {
             // Check product attributes for type
-            return values.some((value) =>
+            return values.some(value =>
               product.attributes?.type
                 ?.toLowerCase()
                 .includes(value.toLowerCase())
@@ -496,7 +542,7 @@ function ClientProductsPageContent({
     // Filter by price range (only if price filter is enabled)
     if (!noPriceFilter) {
       filtered = filtered.filter(
-        (product) =>
+        product =>
           product.price >= priceRangeFilter.min &&
           product.price <= priceRangeFilter.max
       );
@@ -534,16 +580,16 @@ function ClientProductsPageContent({
     // Use the normalizeCategory function to ensure consistent category naming
     const normalizedCategoryId = normalizeCategory(categoryId);
 
-    setSelectedCategories((prev) => {
+    setSelectedCategories(prev => {
       // Check if this category is already selected (case insensitive comparison)
       const isAlreadySelected = prev.some(
-        (cat) => normalizeCategory(cat) === normalizedCategoryId
+        cat => normalizeCategory(cat) === normalizedCategoryId
       );
 
       if (isAlreadySelected) {
         // Remove this category
         return prev.filter(
-          (cat) => normalizeCategory(cat) !== normalizedCategoryId
+          cat => normalizeCategory(cat) !== normalizedCategoryId
         );
       } else {
         // Add this category, replacing any existing ones
@@ -555,10 +601,10 @@ function ClientProductsPageContent({
 
   // Handler for other filter changes
   const handleFilterChange = (filterId: string, optionId: string) => {
-    setSelectedFilters((prev) => {
+    setSelectedFilters(prev => {
       const currentValues = prev[filterId] || [];
       if (currentValues.includes(optionId)) {
-        const newValues = currentValues.filter((id) => id !== optionId);
+        const newValues = currentValues.filter(id => id !== optionId);
         return {
           ...prev,
           [filterId]: newValues,
@@ -596,7 +642,7 @@ function ClientProductsPageContent({
   // Get the active category for the header
   const activeCategory =
     selectedCategories.length === 1
-      ? categoryFilter.options.find((c) => {
+      ? categoryFilter.options.find(c => {
           // Use normalizeCategory for consistent category matching
           return (
             normalizeCategory(c.id) === normalizeCategory(selectedCategories[0])
@@ -788,7 +834,8 @@ function ClientProductsPageContent({
               <div className="max-w-3xl">
                 <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
                   <div
-                    className={`${activeCategoryInfo.bgColor} p-1.5 sm:p-2 rounded-full`}>
+                    className={`${activeCategoryInfo.bgColor} p-1.5 sm:p-2 rounded-full`}
+                  >
                     <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
                   <span className="text-xs sm:text-sm md:text-lg font-bold bg-primary/80 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-md">
@@ -848,7 +895,7 @@ function ClientProductsPageContent({
 
                   // Convert both to lowercase for comparison
                   const isSelected = selectedCategories.some(
-                    (cat) => normalizeCategory(cat) === normalizeCategory(key)
+                    cat => normalizeCategory(cat) === normalizeCategory(key)
                   );
 
                   return (
@@ -859,7 +906,8 @@ function ClientProductsPageContent({
                       className={`h-8 sm:h-12 px-2 sm:px-5 rounded-full text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 border-2 transition-all hover:scale-105 ${
                         isSelected ? activeColor : categoryColor
                       }`}
-                      onClick={() => handleCategoryChange(key)}>
+                      onClick={() => handleCategoryChange(key)}
+                    >
                       <CategoryIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                       <span className="hidden xs:inline">
                         {t(
@@ -889,7 +937,8 @@ function ClientProductsPageContent({
                 return (
                   <div
                     key={index}
-                    className="bg-gray-50 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col items-center text-center">
+                    className="bg-gray-50 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col items-center text-center"
+                  >
                     <div className="p-1.5 sm:p-2 rounded-full bg-primary/10 text-primary mb-1.5 sm:mb-2">
                       <BenefitIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                     </div>
@@ -933,7 +982,8 @@ function ClientProductsPageContent({
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="text-primary">
+                    className="text-primary"
+                  >
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                   </svg>
                 </div>
@@ -941,7 +991,7 @@ function ClientProductsPageContent({
               </h3>
               <ProductFilters
                 categories={categoryFilter}
-                filters={mockFilters}
+                filters={dynamicFilters}
                 priceRange={{
                   min: 0,
                   max: 500,
@@ -973,14 +1023,16 @@ function ClientProductsPageContent({
                       : activeCategory.id === "engineering"
                         ? "from-orange-50 to-orange-100 border-orange-200"
                         : "from-purple-50 to-purple-100 border-purple-200"
-                } border shadow-sm`}>
+                } border shadow-sm`}
+              >
                 <div className="flex flex-col xs:flex-row items-start xs:items-center gap-2 sm:gap-3">
                   <div
                     className={`p-2 sm:p-3 rounded-full ${
                       activeCategory && categoryInfo[activeCategory.id]
                         ? categoryInfo[activeCategory.id].bgColor
                         : categoryInfo.science.bgColor
-                    } flex-shrink-0`}>
+                    } flex-shrink-0`}
+                  >
                     <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
                   <div className="flex-1">
@@ -997,11 +1049,12 @@ function ClientProductsPageContent({
 
             {/* Products display */}
             <div
-              className={viewMode === "list" ? "space-y-3 sm:space-y-4" : ""}>
+              className={viewMode === "list" ? "space-y-3 sm:space-y-4" : ""}
+            >
               {viewMode === "grid" ? (
                 <div className="bg-gray-50/50 rounded-xl p-2 sm:p-4">
                   <ProductGrid
-                    products={filteredProducts.map((product) => {
+                    products={filteredProducts.map(product => {
                       // If the product name or description contains raw translation keys,
                       // replace them with properly translated content
                       let modifiedProduct = { ...product };
@@ -1024,7 +1077,7 @@ function ClientProductsPageContent({
                 </div>
               ) : (
                 <div className="bg-gray-50/50 rounded-xl p-2 sm:p-4 space-y-2 sm:space-y-3">
-                  {filteredProducts.map((product) => {
+                  {filteredProducts.map(product => {
                     // Get appropriate content for this product if it contains raw translation keys
                     let displayName = product.name;
                     let displayDescription = product.description;
@@ -1042,7 +1095,8 @@ function ClientProductsPageContent({
                     return (
                       <div
                         key={product.id}
-                        className="flex flex-col xs:flex-row gap-3 sm:gap-4 bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-md transition-shadow relative group">
+                        className="flex flex-col xs:flex-row gap-3 sm:gap-4 bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-md transition-shadow relative group"
+                      >
                         {/* Fun shape decoration - smaller size */}
                         <div className="absolute -left-2 -top-2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-primary/10 transition-transform group-hover:scale-110 -z-0 hidden sm:block"></div>
                         <div className="absolute -right-2 -bottom-2 w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-yellow-200/30 transition-transform group-hover:scale-110 -z-0 hidden sm:block"></div>
@@ -1078,17 +1132,20 @@ function ClientProductsPageContent({
                                       ? "bg-orange-100 text-orange-700 border-orange-200"
                                       : "bg-purple-100 text-purple-700 border-purple-200"
                               }
-                            `}>
+                            `}
+                            >
                               {product.category?.name}
                             </Badge>
                             <Badge
                               variant="outline"
-                              className="bg-gray-100 text-gray-700 border-gray-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5">
+                              className="bg-gray-100 text-gray-700 border-gray-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5"
+                            >
                               {product.ageRange} years
                             </Badge>
                             <Badge
                               variant="outline"
-                              className="bg-gray-100 text-gray-700 border-gray-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5">
+                              className="bg-gray-100 text-gray-700 border-gray-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5"
+                            >
                               {product.attributes?.difficulty}
                             </Badge>
                           </div>
@@ -1112,7 +1169,8 @@ function ClientProductsPageContent({
                             <Link href={`/products/${product.slug}`}>
                               <Button
                                 size="sm"
-                                className="rounded-full px-2 sm:px-3 text-xs py-0.5 sm:py-1 h-6 sm:h-7 transition-transform hover:scale-105">
+                                className="rounded-full px-2 sm:px-3 text-xs py-0.5 sm:py-1 h-6 sm:h-7 transition-transform hover:scale-105"
+                              >
                                 {t("viewDetails")}
                               </Button>
                             </Link>
@@ -1138,12 +1196,9 @@ function ClientProductsPageContent({
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="text-gray-400">
-                    <circle
-                      cx="11"
-                      cy="11"
-                      r="8"
-                    />
+                    className="text-gray-400"
+                  >
+                    <circle cx="11" cy="11" r="8" />
                     <path d="m21 21-4.3-4.3" />
                   </svg>
                 </div>
@@ -1155,7 +1210,8 @@ function ClientProductsPageContent({
                 </p>
                 <Button
                   onClick={handleClearFilters}
-                  className="rounded-full px-3 sm:px-4 text-xs sm:text-sm py-1 h-7 sm:h-8">
+                  className="rounded-full px-3 sm:px-4 text-xs sm:text-sm py-1 h-7 sm:h-8"
+                >
                   {t("clearAllFilters")}
                 </Button>
               </div>
@@ -1181,9 +1237,7 @@ function ClientProductsPageFallback() {
               {Array(6)
                 .fill(0)
                 .map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-64 bg-gray-200 rounded-xl"></div>
+                  <div key={i} className="h-64 bg-gray-200 rounded-xl"></div>
                 ))}
             </div>
           </div>

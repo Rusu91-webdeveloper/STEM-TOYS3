@@ -1,11 +1,13 @@
 // Server Component
 import React, { Suspense } from "react";
-import { getProducts } from "@/lib/api/products";
-import { getBooks } from "@/lib/api/books";
+
 import { ProductsPageSkeleton } from "@/components/skeletons/products-skeleton";
 import ClientProductsPage from "@/features/products/components/ClientProductsPage";
-import type { Product } from "@/types/product";
+import { getBooks } from "@/lib/api/books";
+import { getProducts } from "@/lib/api/products";
+import { CurrencyProvider } from "@/lib/currency";
 import type { Book } from "@/types/book";
+import type { Product } from "@/types/product";
 
 interface CategoryData {
   id: string;
@@ -44,28 +46,43 @@ export default async function ProductsPage({
     console.log("Fetching products from API...");
     console.log("Requested category:", requestedCategory);
 
-    // 🚀 PERFORMANCE: Fetch books and products in parallel instead of sequentially
-    const [booksData, productsData] = await Promise.all([
-      getBooks().catch((error) => {
-        console.error("Error fetching books:", error);
-        return []; // Return empty array if books fail to load
-      }),
-      getProducts({
-        category:
-          requestedCategory !== "educational-books"
-            ? requestedCategory
-            : undefined,
-      }).catch((error) => {
-        console.error("Error fetching products:", error);
-        return []; // Return empty array if products fail to load
-      }),
-    ]);
+    let booksData: Book[] = [];
+    let productsData: Product[] = [];
+
+    // 🚀 PERFORMANCE & LOGIC FIX: Conditionally fetch books and products
+    if (!requestedCategory) {
+      // No category selected, fetch both
+      [booksData, productsData] = await Promise.all([
+        getBooks().catch(error => {
+          console.error("Error fetching books:", error);
+          return []; // Return empty array on error
+        }),
+        getProducts().catch(error => {
+          console.error("Error fetching products:", error);
+          return []; // Return empty array on error
+        }),
+      ]);
+    } else if (requestedCategory === "educational-books") {
+      // Only fetch books for the "educational-books" category
+      booksData = await getBooks().catch(error => {
+        console.error("Error fetching books for category:", error);
+        return [];
+      });
+    } else {
+      // Fetch STEM products for any other category
+      productsData = await getProducts({ category: requestedCategory }).catch(
+        error => {
+          console.error("Error fetching products for category:", error);
+          return [];
+        }
+      );
+    }
 
     console.log(`📚 Found ${booksData.length} digital books`);
     console.log(`📦 Found ${productsData.length} STEM products`);
 
     // Transform books to look like products
-    const bookProducts = booksData.map((book) => ({
+    const bookProducts = booksData.map(book => ({
       id: book.id,
       name: book.name,
       slug: book.slug,
@@ -84,7 +101,7 @@ export default async function ProductsPage({
         author: book.author,
         isDigital: "true",
         type: "digital-book",
-        languages: book.languages?.map((lang) => lang.name).join(", ") || "",
+        languages: book.languages?.map(lang => lang.name).join(", ") || "",
       },
       isActive: book.isActive,
       createdAt: book.createdAt,
@@ -96,7 +113,7 @@ export default async function ProductsPage({
     })) as ProductData[];
 
     // Transform STEM products to match the expected type
-    const stemProducts = productsData.map((product) => {
+    const stemProducts = productsData.map(product => {
       // Handle the category property conversion
       let categoryData: CategoryData | undefined = undefined;
 
@@ -126,7 +143,7 @@ export default async function ProductsPage({
       return {
         ...product,
         category: categoryData,
-        stemCategory: stemCategory,
+        stemCategory,
       } as ProductData;
     });
 
@@ -138,12 +155,14 @@ export default async function ProductsPage({
     );
 
     return (
-      <Suspense fallback={<ProductsPageSkeleton />}>
-        <ClientProductsPage
-          initialProducts={products}
-          searchParams={params}
-        />
-      </Suspense>
+      <CurrencyProvider>
+        <Suspense fallback={<ProductsPageSkeleton />}>
+          <ClientProductsPage
+            initialProducts={products}
+            searchParams={params}
+          />
+        </Suspense>
+      </CurrencyProvider>
     );
   } catch (error) {
     console.error("Error in ProductsPage component:", error);

@@ -110,7 +110,7 @@ async function main() {
         "https://placehold.co/800x600/10B981/FFFFFF.png?text=Chemistry+Kit+1",
         "https://placehold.co/800x600/10B981/FFFFFF.png?text=Chemistry+Kit+2",
       ],
-      categoryId: categoryMap.get("science"),
+      categorySlug: "science",
       tags: ["chemistry", "experiments", "educational", "8-12 years"],
       attributes: {
         age: "8-12 years",
@@ -160,7 +160,7 @@ async function main() {
         "https://placehold.co/800x600/4F46E5/FFFFFF.png?text=Coding+Robot+1",
         "https://placehold.co/800x600/4F46E5/FFFFFF.png?text=Coding+Robot+2",
       ],
-      categoryId: categoryMap.get("technology"),
+      categorySlug: "technology",
       tags: ["coding", "robotics", "programming", "tech", "6+ years"],
       attributes: {
         age: "6+ years",
@@ -211,7 +211,7 @@ async function main() {
         "https://placehold.co/800x600/F59E0B/FFFFFF.png?text=Bridge+Kit+1",
         "https://placehold.co/800x600/F59E0B/FFFFFF.png?text=Bridge+Kit+2",
       ],
-      categoryId: categoryMap.get("engineering"),
+      categorySlug: "engineering",
       tags: ["engineering", "construction", "bridges", "physics", "9+ years"],
       attributes: {
         age: "9+ years",
@@ -261,7 +261,7 @@ async function main() {
         "https://placehold.co/800x600/3B82F6/FFFFFF.png?text=Math+Puzzles+1",
         "https://placehold.co/800x600/3B82F6/FFFFFF.png?text=Math+Puzzles+2",
       ],
-      categoryId: categoryMap.get("mathematics"),
+      categorySlug: "mathematics",
       tags: [
         "mathematics",
         "puzzles",
@@ -318,7 +318,7 @@ async function main() {
         "https://placehold.co/800x600/10B981/FFFFFF.png?text=Planetarium+1",
         "https://placehold.co/800x600/10B981/FFFFFF.png?text=Planetarium+2",
       ],
-      categoryId: categoryMap.get("science"),
+      categorySlug: "science",
       tags: ["astronomy", "solar system", "space", "planets", "8+ years"],
       attributes: {
         age: "8+ years",
@@ -369,7 +369,7 @@ async function main() {
         "https://placehold.co/800x600/10B981/FFFFFF.png?text=Energy+Kit+1",
         "https://placehold.co/800x600/10B981/FFFFFF.png?text=Energy+Kit+2",
       ],
-      categoryId: categoryMap.get("science"),
+      categorySlug: "science",
       tags: [
         "renewable energy",
         "sustainability",
@@ -423,16 +423,24 @@ async function main() {
       where: { slug: product.slug },
     });
 
+    // Extract categorySlug and build the relation connect object
+    const { categorySlug, ...productData } = product;
+    const categoryId = categoryMap.get(categorySlug);
+    const dataWithCategory = {
+      ...productData,
+      category: { connect: { id: categoryId } },
+    };
+
     if (!existingProduct) {
       const createdProduct = await prisma.product.create({
-        data: product,
+        data: dataWithCategory,
       });
       console.log(`Created product: ${createdProduct.name}`);
     } else {
       console.log(`Product ${product.name} already exists, updating...`);
       await prisma.product.update({
         where: { id: existingProduct.id },
-        data: product,
+        data: dataWithCategory,
       });
     }
   }
@@ -722,7 +730,7 @@ main()
   .then(async () => {
     await prisma.$disconnect();
   })
-  .catch(async (e) => {
+  .catch(async e => {
     console.error(e);
     await prisma.$disconnect();
     process.exit(1);

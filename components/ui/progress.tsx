@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
 interface ProgressProps {
@@ -9,8 +10,7 @@ interface ProgressProps {
 }
 
 const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
-  ({ value = 0, className, ...props }, ref) => {
-    return (
+  ({ value = 0, className, ...props }, ref) => (
       <div
         ref={ref}
         className={cn(
@@ -24,8 +24,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
           style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
         />
       </div>
-    );
-  }
+    )
 );
 
 Progress.displayName = "Progress";

@@ -1,12 +1,13 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
+import { handleFormData } from "@/lib/api-helpers";
+import { auth } from "@/lib/auth";
+import { isAdmin } from "@/lib/auth/admin";
 import { db } from "@/lib/db";
 import { deleteUploadThingFiles } from "@/lib/uploadthing";
-import { revalidateTag } from "next/cache";
 import { slugify } from "@/lib/utils";
-import { handleFormData } from "@/lib/api-helpers";
-import { isAdmin } from "@/lib/auth/admin";
-import { auth } from "@/lib/auth";
-import { z } from "zod";
 
 // In a production application, you would properly implement auth checks
 // For this demo, we'll add a fallback for development mode
@@ -210,6 +211,10 @@ export async function PATCH(
     // Only add optional fields if they exist in the update data
     if (updatedData.compareAtPrice) {
       updateData.compareAtPrice = parseFloat(updatedData.compareAtPrice);
+    }
+
+    if (updatedData.stock !== undefined) {
+      updateData.stockQuantity = parseInt(updatedData.stock, 10);
     }
 
     if (updatedData.categoryId) {

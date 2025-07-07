@@ -1,7 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, ReactNode } from "react";
 import { useSession, SessionContextValue } from "next-auth/react";
+import React, { createContext, useContext, ReactNode } from "react";
 
 // Create a centralized session context to reduce multiple useSession calls
 const CentralizedSessionContext = createContext<SessionContextValue | null>(
@@ -21,6 +21,7 @@ export function CentralizedSessionProvider({
 }: CentralizedSessionProviderProps) {
   const sessionData = useSession();
 
+  // Always use the actual session data, don't modify or cache it
   return (
     <CentralizedSessionContext.Provider value={sessionData}>
       {children}
@@ -43,13 +44,21 @@ export function useCentralizedSession(): SessionContextValue {
 }
 
 /**
- * Optimized session hook that uses centralized session when available
+ * Optimized session hook that provides immediate fallback
  * Falls back to regular useSession if not in centralized context
  */
 export function useOptimizedSession(): SessionContextValue {
   const centralizedContext = useContext(CentralizedSessionContext);
-  const directSession = useSession();
 
-  // Use centralized session if available, otherwise fall back to direct session
-  return centralizedContext || directSession;
+  // If we're within the centralized context, use it
+  if (centralizedContext) {
+    return centralizedContext;
+  }
+
+  // Otherwise, we need to use the regular useSession hook
+  // This should rarely happen since we wrap the app with CentralizedSessionProvider
+  console.warn(
+    "useOptimizedSession: Falling back to regular useSession. Consider wrapping your app with CentralizedSessionProvider."
+  );
+  return useSession();
 }

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { emailTemplates } from "@/lib/brevoTemplates";
+
 import { auth } from "@/lib/auth";
+import { emailTemplates } from "@/lib/brevoTemplates";
+import { prisma } from "@/lib/prisma";
 
 // Schema for blog notification validation
 const notifySchema = z.object({

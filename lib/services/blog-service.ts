@@ -1,6 +1,7 @@
-import { db } from "@/lib/db";
 import { StemCategory } from "@prisma/client";
+
 import { emailTemplates } from "@/lib/brevoTemplates";
+import { db } from "@/lib/db";
 
 export interface CreateBlogInput {
   title: string;

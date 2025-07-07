@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import { en } from "./i18n/translations/en";
 import { ro } from "./i18n/translations/ro";
 

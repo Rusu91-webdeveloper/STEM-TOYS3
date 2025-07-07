@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { PrismaClient } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
+import DOMPurify from "isomorphic-dompurify";
+
+import { auth } from "@/lib/auth";
 import { blogService } from "@/lib/services/blog-service";
 
 const prisma = new PrismaClient();
@@ -173,12 +175,14 @@ export async function PUT(
       );
     }
 
+    const sanitizedContent = DOMPurify.sanitize(data.content);
+
     // Update blog post using blog service (includes automatic notifications)
     const updatedBlog = await blogService.updateBlog({
       id: existingBlog.id,
       title: data.title,
       excerpt: data.excerpt,
-      content: data.content,
+      content: sanitizedContent,
       coverImage: data.coverImage,
       categoryId: data.categoryId,
       stemCategory: data.stemCategory,

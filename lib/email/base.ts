@@ -4,6 +4,7 @@
  */
 
 import { StoreSettings } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 
 // Base URL for links

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { logger } from "@/lib/logger";
 
 export type ApiVersion = "v1" | "v2" | "v3";
@@ -328,7 +329,7 @@ export class ApiVersionManager {
     sunsetDate?: Date
   ): void {
     const endpointHandlers = this.handlers.get(endpoint);
-    if (endpointHandlers && endpointHandlers.has(version)) {
+    if (endpointHandlers?.has(version)) {
       const handler = endpointHandlers.get(version)!;
       handler.deprecated = true;
       handler.deprecationDate = deprecationDate;
@@ -394,9 +395,7 @@ export function createVersionedHandler(
   }
 
   // Return unified handler
-  return async (request: NextRequest, context?: any) => {
-    return apiVersionManager.handle(endpoint, request, context);
-  };
+  return async (request: NextRequest, context?: any) => apiVersionManager.handle(endpoint, request, context);
 }
 
 /**

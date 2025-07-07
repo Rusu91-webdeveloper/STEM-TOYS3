@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { sendMail } from "@/lib/brevo";
-import { generateReturnLabel } from "@/lib/return-label";
+import { db } from "@/lib/db";
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
+import { generateReturnLabel } from "@/lib/return-label";
 
 // Return reason display labels
 const reasonLabelsRo = {
@@ -127,7 +128,7 @@ export async function POST(request: Request) {
           reason: "Returnare în bloc", // Bulk return
           customerName: customer.name || customer.email,
           customerEmail: customer.email,
-          customerAddress: customerAddress,
+          customerAddress,
           language: "ro",
         });
 

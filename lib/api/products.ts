@@ -1,5 +1,7 @@
 import type { Product } from "@/types/product";
 
+import { logger } from "../logger";
+
 /**
  * Get a combined product or book by slug
  * This will check both products and books tables
@@ -68,58 +70,26 @@ export async function getCombinedProduct(
  */
 export async function getProduct(slug: string): Promise<Product | null> {
   try {
-    // Encode the slug to handle special characters
-    const encodedSlug = encodeURIComponent(slug);
+    const API_BASE_URL =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.NEXTAUTH_URL ||
+      "http://localhost:3000";
 
-    // In server components, we need to ensure absolute URLs
-    let url: string;
-
-    if (typeof window !== "undefined") {
-      // Browser environment
-      url = `${window.location.origin}/api/products/${encodedSlug}`;
-    } else {
-      // Server environment - use environment variable or default to localhost
-      const apiBase =
-        process.env.NEXT_PUBLIC_API_URL ||
-        process.env.NEXT_PUBLIC_SITE_URL ||
-        process.env.NEXTAUTH_URL ||
-        "http://localhost:3000";
-
-      // Make sure we have a complete URL with protocol
-      const baseUrl = apiBase.startsWith("http")
-        ? apiBase
-        : `http://${apiBase}`;
-
-      // Remove trailing slash if present
-      const cleanBaseUrl = baseUrl.endsWith("/")
-        ? baseUrl.slice(0, -1)
-        : baseUrl;
-
-      console.log(`Using API base URL: ${cleanBaseUrl}`);
-      url = `${cleanBaseUrl}/api/products/${encodedSlug}`;
-    }
-
-    console.log(`Fetching product with URL: ${url}`);
-
-    const response = await fetch(url, {
-      next: {
-        // Use tags for more precise invalidation
-        tags: [`product-${slug}`, "products"],
-        revalidate: 0, // Don't cache individual products to ensure freshness
-      },
+    const response = await fetch(`${API_BASE_URL}/api/products/${slug}`, {
+      cache: "no-store",
     });
 
     if (!response.ok) {
       if (response.status === 404) {
-        return null;
+        throw new Error("Product not found");
       }
-      throw new Error(`Failed to fetch product: ${response.statusText}`);
+      throw new Error(`Failed to fetch product: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error("Error fetching product:", error);
-    return null;
+    logger.error(`Failed to fetch product with slug: ${slug}`, error);
+    throw error;
   }
 }
 
@@ -178,7 +148,7 @@ export async function getProducts(
       next: {
         // Use tags for more precise invalidation
         tags: ["products", category ? `category-${category}` : ""],
-        revalidate: 0, // Don't cache the products list to ensure freshness
+        revalidate: 60,
       },
     });
 
@@ -205,7 +175,7 @@ export async function getProducts(
       return data;
     } else if (typeof data === "object" && data !== null) {
       // If it's an object but not in the expected format, try to extract any array we can find
-      const possibleArrays = Object.values(data).filter((val) =>
+      const possibleArrays = Object.values(data).filter(val =>
         Array.isArray(val)
       );
       if (possibleArrays.length > 0) {
@@ -228,10 +198,10 @@ export async function getProducts(
 
       console.error("Unexpected API response format (object):", data);
       return [];
-    } else {
+    } 
       console.error("Unexpected API response format:", data);
       return [];
-    }
+    
   } catch (error) {
     console.error("Error fetching products:", error);
     return [];

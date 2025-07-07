@@ -1,15 +1,16 @@
-import React from "react";
 import { Metadata } from "next";
-import { AccountNav } from "@/features/account/components/AccountNav";
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { getTranslations } from "@/lib/i18n/server";
-import { LanguageSwitcher } from "@/components/ui/language-switcher";
-import { verifyUserExists } from "@/lib/db-helpers";
-import { logger } from "@/lib/logger";
-import { MobileNav } from "@/features/account/components/MobileNav";
 import Image from "next/image";
+import { redirect } from "next/navigation";
+import React from "react";
+
 import Footer from "@/components/layout/Footer";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { AccountNav } from "@/features/account/components/AccountNav";
+import { MobileNav } from "@/features/account/components/MobileNav";
+import { auth } from "@/lib/auth";
+import { verifyUserExists } from "@/lib/db-helpers";
+import { getTranslations } from "@/lib/i18n/server";
+import { logger } from "@/lib/logger";
 
 export const metadata: Metadata = {
   title: "My Account | NextCommerce",
@@ -25,7 +26,7 @@ export default async function AccountLayout({
   const t = await getTranslations("ro"); // Default to Romanian
 
   // Check if the user is authenticated
-  if (!session || !session.user) {
+  if (!session?.user) {
     // No session, redirect to login
     logger.info("Redirecting to login from account page - no session");
     // Include the callback URL to ensure the user is redirected back to the account page after login
@@ -44,7 +45,7 @@ export default async function AccountLayout({
     // Admin env user is valid, continue to render the account page
   } else {
     // For regular users, verify they exist in the database
-    const tokenData = (session as any).token || {};
+    const tokenData = session?.token ?? {};
     const isRecentGoogleAuth =
       tokenData.googleAuthTimestamp &&
       Date.now() - tokenData.googleAuthTimestamp < 120000; // 2 minute grace period
@@ -119,7 +120,7 @@ export default async function AccountLayout({
                     {t("account")}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    {session.user.name || t("account")}
+                    {session.user?.name ?? t("account")}
                   </p>
                 </div>
                 <div className="md:hidden">

@@ -1,5 +1,7 @@
 "use client";
 
+import { ShoppingCart, Check, Info, AlertCircle, X } from "lucide-react";
+
 import {
   Toast,
   ToastClose,
@@ -9,7 +11,6 @@ import {
   ToastViewport,
 } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
-import { ShoppingCart, Check, Info, AlertCircle, X } from "lucide-react";
 
 export function Toaster() {
   const { toasts } = useToast();
@@ -34,14 +35,14 @@ export function Toaster() {
 
   return (
     <ToastProvider>
-      {toasts.map(function ({
+      {toasts.map(({
         id,
         title,
         description,
         action,
         variant,
         ...props
-      }) {
+      }) => {
         // Ensure variant is a string or undefined to satisfy type constraints
         const safeVariant = variant ? String(variant) : undefined;
 

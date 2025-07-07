@@ -1,7 +1,8 @@
 "use client";
 
-import { useTranslation } from "@/lib/i18n";
 import Image from "next/image";
+
+import { useTranslation } from "@/lib/i18n";
 
 export default function TermsPage() {
   const { t } = useTranslation();

@@ -1,8 +1,10 @@
 import { Metadata } from "next";
-import { Container } from "@/components/ui/container";
-import { Button } from "@/components/ui/button";
-import { getTranslations } from "@/lib/i18n/server";
 import { redirect } from "next/navigation";
+
+import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
+import { getTranslations } from "@/lib/i18n/server";
+
 
 export const metadata: Metadata = {
   title: "Dezabonare Newsletter | TechTots",

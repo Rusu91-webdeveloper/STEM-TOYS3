@@ -3,8 +3,9 @@
  * Provides native app-like navigation patterns for the PWA
  */
 
-import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, useCallback } from "react";
+
 import { useTouchGestures } from "./touch-interactions";
 
 // Gesture configuration

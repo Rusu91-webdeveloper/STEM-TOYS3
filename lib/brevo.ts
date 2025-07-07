@@ -5,6 +5,7 @@
 
 import axios from "axios";
 import nodemailer from "nodemailer";
+
 import { isDevelopment } from "./security";
 
 // Brevo API configuration
@@ -20,7 +21,7 @@ const brevoAxios = axios.create({
 });
 
 // Add API key interceptor
-brevoAxios.interceptors.request.use((config) => {
+brevoAxios.interceptors.request.use(config => {
   if (process.env.BREVO_API_KEY) {
     config.headers["api-key"] = process.env.BREVO_API_KEY;
   }
@@ -40,10 +41,10 @@ export const brevoTransporter = nodemailer.createTransport({
 
 // For development environment, provide console-based email simulation
 const devTransporter = {
-  sendMail: async (options: any) => {
+  sendMail: async (options: any) => 
     // Development mode: Email not sent, but would be sent with these details
-    return { messageId: `dev-${Date.now()}@localhost` };
-  },
+     ({ messageId: `dev-${Date.now()}@localhost` })
+  ,
 };
 
 // Use dev transporter in development mode if credentials are missing
@@ -109,7 +110,7 @@ export async function sendEmailWithBrevoApi({
     }
 
     if (attachments && attachments.length > 0) {
-      emailPayload.attachment = attachments.map((a) => ({
+      emailPayload.attachment = attachments.map(a => ({
         content: a.content,
         name: a.filename,
       }));
@@ -218,7 +219,7 @@ export async function sendMail({
   if (process.env.BREVO_API_KEY) {
     // Convert to format expected by the API
     const toArray = Array.isArray(to)
-      ? to.map((email) => ({ email }))
+      ? to.map(email => ({ email }))
       : [{ email: to }];
 
     return sendEmailWithBrevoApi({

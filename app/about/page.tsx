@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+
+import { BookCarousel } from "@/components/ui/book-carousel";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
-import { useState, useEffect } from "react";
-import { BookCarousel } from "@/components/ui/book-carousel";
 
 type BookLanguage = "english" | "romanian";
 
@@ -44,23 +45,23 @@ export default function AboutPage() {
   // Toggle language for specific book
   const toggleBookLanguage = (index: number) => {
     const bookKey = index === 0 ? "book1" : "book2";
-    setBookVersions((prev) => ({
+    setBookVersions(prev => ({
       ...prev,
       [bookKey]: prev[bookKey] === "english" ? "romanian" : "english",
     }));
   };
 
   // Handle image load error
-  const handleImageError = (book: string, language: string) => {
-    setImageErrors((prev) => ({
+  const _handleImageError = (book: string, language: string) => {
+    setImageErrors(prev => ({
       ...prev,
       [`${book}_${language}`]: true,
     }));
-    console.log(`Failed to load image for ${book} in ${language}`);
+    console.warn(`Failed to load image for ${book} in ${language}`);
   };
 
   // Get book image source based on selected language with fallback
-  const getBookImageSrc = (book: "book1" | "book2") => {
+  const _getBookImageSrc = (book: "book1" | "book2") => {
     if (book === "book1") {
       // Check if Romanian image failed and fallback to English if needed
       if (bookVersions.book1 === "romanian" && imageErrors.book1_ro) {
@@ -74,33 +75,33 @@ export default function AboutPage() {
       return bookVersions.book1 === "english"
         ? "/born_for_the_future.png"
         : "/born_for_the_future_ro.png";
-    } else {
-      // Check if Romanian image failed and fallback to English if needed
-      if (bookVersions.book2 === "romanian" && imageErrors.book2_ro) {
-        return "/STEM_play_for_neurodiverse_minds.jpg";
-      }
-      // Check if English image failed and fallback to Romanian if needed
-      if (bookVersions.book2 === "english" && imageErrors.book2_en) {
-        return "/STEM_play_for_neurodiverse_minds_ro.jpg";
-      }
-
-      return bookVersions.book2 === "english"
-        ? "/STEM_play_for_neurodiverse_minds.jpg"
-        : "/STEM_play_for_neurodiverse_minds_ro.jpg";
     }
+
+    // Check if Romanian image failed and fallback to English if needed
+    if (bookVersions.book2 === "romanian" && imageErrors.book2_ro) {
+      return "/STEM_play_for_neurodiverse_minds.jpg";
+    }
+    // Check if English image failed and fallback to Romanian if needed
+    if (bookVersions.book2 === "english" && imageErrors.book2_en) {
+      return "/STEM_play_for_neurodiverse_minds_ro.jpg";
+    }
+
+    return bookVersions.book2 === "english"
+      ? "/STEM_play_for_neurodiverse_minds.jpg"
+      : "/STEM_play_for_neurodiverse_minds_ro.jpg";
   };
 
   // Get book title based on selected language
-  const getBookTitle = (book: "book1" | "book2") => {
+  const _getBookTitle = (book: "book1" | "book2") => {
     if (book === "book1") {
       return bookVersions.book1 === "english"
         ? t("book1TitleEn", "Born for the Future")
         : t("book1TitleRo", "Născut pentru viitor");
-    } else {
-      return bookVersions.book2 === "english"
-        ? t("book2TitleEn", "STEM Play for Neurodiverse Minds")
-        : t("book2TitleRo", "Jocuri STEM pentru minți neurodivergente");
     }
+
+    return bookVersions.book2 === "english"
+      ? t("book2TitleEn", "STEM Play for Neurodiverse Minds")
+      : t("book2TitleRo", "Jocuri STEM pentru minți neurodivergente");
   };
 
   // Book data for carousel
@@ -225,24 +226,11 @@ export default function AboutPage() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="text-white sm:w-6 sm:h-6">
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
-                  />
-                  <line
-                    x1="12"
-                    y1="8"
-                    x2="12"
-                    y2="12"
-                  />
-                  <line
-                    x1="12"
-                    y1="16"
-                    x2="12.01"
-                    y2="16"
-                  />
+                  className="text-white sm:w-6 sm:h-6"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
               </div>
               <h3 className="text-base sm:text-lg md:text-xl font-bold mb-2 sm:mb-3 md:mb-4 text-center text-indigo-900">
@@ -264,7 +252,8 @@ export default function AboutPage() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="text-white sm:w-6 sm:h-6">
+                  className="text-white sm:w-6 sm:h-6"
+                >
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                 </svg>
               </div>
@@ -287,7 +276,8 @@ export default function AboutPage() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="text-white sm:w-6 sm:h-6">
+                  className="text-white sm:w-6 sm:h-6"
+                >
                   <path d="M7 3a4 4 0 0 1 8 0 5 5 0 0 1 4 5.5c0 3-2 4.5-4 5.5C13 16 12 18 12 20m-1-4v-2a4 4 0 0 0-4-4c-2 0-3 1-3 2a3 3 0 0 0 3 3c1 0 3 .5 3 2Z"></path>
                   <path d="M13 20a1 1 0 0 1-1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 1-1 1Z"></path>
                 </svg>
@@ -344,7 +334,8 @@ export default function AboutPage() {
                   </Button>
                   <Button
                     variant="outline"
-                    className="border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs sm:text-sm h-8 sm:h-9">
+                    className="border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs sm:text-sm h-8 sm:h-9"
+                  >
                     {t("linkedin", "LinkedIn")}
                   </Button>
                 </div>
@@ -367,7 +358,8 @@ export default function AboutPage() {
           <Button
             asChild
             size="lg"
-            className="bg-white hover:bg-white/90 text-indigo-700 border-none shadow-md transition-all hover:shadow-lg text-xs sm:text-sm md:text-base h-9 sm:h-10 md:h-12">
+            className="bg-white hover:bg-white/90 text-indigo-700 border-none shadow-md transition-all hover:shadow-lg text-xs sm:text-sm md:text-base h-9 sm:h-10 md:h-12"
+          >
             <Link href="/products">{t("shopCollection")}</Link>
           </Button>
         </div>

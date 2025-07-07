@@ -1,5 +1,10 @@
 "use client";
 
+import { BookOpen, FileText, Users, Upload, Eye, Plus } from "lucide-react";
+import Link from "next/link";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,10 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { BookOpen, FileText, Users, Upload, Eye, Plus } from "lucide-react";
-import Link from "next/link";
+
 import { BookDeleteButton } from "./components/BookDeleteButton";
 
 interface DigitalFile {
@@ -50,12 +52,10 @@ interface Props {
 }
 
 export function BooksList({ books }: Props) {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("ro-RO", {
+  const formatPrice = (price: number) => new Intl.NumberFormat("ro-RO", {
       style: "currency",
       currency: "RON",
     }).format(price);
-  };
 
   const getFileFormats = (digitalFiles: DigitalFile[]) => {
     const formats = [

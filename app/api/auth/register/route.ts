@@ -1,8 +1,10 @@
+import { randomBytes } from "crypto";
+
+import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { hash } from "bcrypt";
+
 import { db } from "@/lib/db";
-import { randomBytes } from "crypto";
 import {
   sendUserVerificationEmails,
   sendWelcomeEmail,
@@ -59,8 +61,7 @@ async function handleRegistration(req: Request) {
     const verificationToken = randomBytes(32).toString("hex");
 
     // Create user with verification token using transaction
-    const newUser = await db.$transaction(async (tx) => {
-      return tx.user.create({
+    const newUser = await db.$transaction(async (tx) => tx.user.create({
         data: {
           name,
           email,
@@ -68,8 +69,7 @@ async function handleRegistration(req: Request) {
           verificationToken,
           isActive: false,
         },
-      });
-    });
+      }));
 
     // In a production environment, we would send verification email here
     // For demo purposes, we'll simulate a successful email delivery

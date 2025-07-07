@@ -1,9 +1,10 @@
-import React from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Plus, Search, Filter } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent , CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -11,12 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { db } from "@/lib/db";
 import { CurrencyProvider } from "@/lib/currency";
-import { ProductTable } from "./components/ProductTable";
-import { CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { db } from "@/lib/db";
+
 import { ProductDeleteButton } from "./components/ProductDeleteButton";
+import { ProductTable } from "./components/ProductTable";
+
+
 
 // Add this interface at the top of the file with the imports
 interface Category {
@@ -122,12 +124,10 @@ export default async function AdminProductsPage() {
     },
   });
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("ro-RO", {
+  const formatPrice = (price: number) => new Intl.NumberFormat("ro-RO", {
       style: "currency",
       currency: "RON",
     }).format(price);
-  };
 
   return (
     <div className="space-y-6">
@@ -160,10 +160,8 @@ export default async function AdminProductsPage() {
           </CardHeader>
           <CardContent>
             <div className="flex gap-2 flex-wrap">
-              {stemCategories.map((category) => (
-                <Badge
-                  key={category.id}
-                  variant="outline">
+              {stemCategories.map(category => (
+                <Badge key={category.id} variant="outline">
                   {category.name}
                 </Badge>
               ))}
@@ -198,10 +196,8 @@ export default async function AdminProductsPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
-            <Card
-              key={product.id}
-              className="overflow-hidden">
+          {products.map(product => (
+            <Card key={product.id} className="overflow-hidden">
               <CardHeader className="pb-3">
                 <div className="flex items-start gap-3">
                   {product.images && product.images.length > 0 ? (
@@ -224,13 +220,12 @@ export default async function AdminProductsPage() {
                       {product.category.name}
                     </CardDescription>
                     <div className="flex items-center gap-2 mt-2">
-                      <Badge
-                        variant="default"
-                        className="bg-purple-600">
+                      <Badge variant="default" className="bg-purple-600">
                         STEM
                       </Badge>
                       <Badge
-                        variant={product.isActive ? "default" : "secondary"}>
+                        variant={product.isActive ? "default" : "secondary"}
+                      >
                         {product.isActive ? "Activ" : "Inactiv"}
                       </Badge>
                       <span className="text-sm font-medium text-green-600">
@@ -274,16 +269,14 @@ export default async function AdminProductsPage() {
                       asChild
                       variant="default"
                       size="sm"
-                      className="flex-1">
+                      className="flex-1"
+                    >
                       <Link href={`/admin/products/${product.id}`}>
                         Editează
                       </Link>
                     </Button>
 
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="sm">
+                    <Button asChild variant="outline" size="sm">
                       <Link href={`/products/${product.slug}`}>
                         Vizualizează
                       </Link>

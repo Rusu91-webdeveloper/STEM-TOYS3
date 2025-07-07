@@ -1,27 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UploadButton } from "@uploadthing/react";
 import {
   ArrowLeft,
   Save,
@@ -30,8 +9,30 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { toast } from "sonner";
-import { UploadButton } from "@uploadthing/react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import type { OurFileRouter } from "@/lib/uploadthing";
 
 interface BookFormData {
@@ -63,14 +64,12 @@ export function BookForm({ initialData, isEditing }: Props) {
     slug: initialData?.slug || "",
   });
 
-  const generateSlug = (name: string) => {
-    return name
+  const generateSlug = (name: string) => name
       .toLowerCase()
       .trim()
       .replace(/[^\w\s-]/g, "")
       .replace(/[\s_-]+/g, "-")
       .replace(/^-+|-+$/g, "");
-  };
 
   const handleInputChange = (field: keyof BookFormData, value: any) => {
     setFormData((prev) => {

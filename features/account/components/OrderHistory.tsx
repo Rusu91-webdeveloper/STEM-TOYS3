@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   Card,
@@ -54,6 +54,10 @@ export interface Order {
   };
 }
 
+interface OrderHistoryProps {
+  initialOrders: Order[];
+}
+
 // Function to get the status badge variant
 const getStatusBadgeVariant = (status: OrderStatus) => {
   switch (status) {
@@ -91,100 +95,20 @@ const isWithinReturnWindow = (order: Order) => {
 
 // Helper function to check if order has returnable items (non-digital items)
 const hasReturnableItems = (order: Order) => {
-  return order.items.some((item) => !item.isDigital);
+  return order.items.some(item => !item.isDigital);
 };
 
-export function OrderHistory() {
+export function OrderHistory({ initialOrders }: OrderHistoryProps) {
   const { t } = useTranslation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [activeTab, setActiveTab] = useState("all");
-  const [error, setError] = useState<string | null>(null);
   const { formatPrice } = useCurrency();
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch("/api/account/orders");
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setOrders(data);
-        setError(null);
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-        setError("Failed to load order history");
-        setOrders([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, []);
 
   // Filter orders based on active tab
   const filteredOrders =
     activeTab === "all"
       ? orders
-      : orders.filter((order) => order.status === activeTab);
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <Card
-            key={i}
-            className="w-full">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between">
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-6 w-24" />
-              </div>
-              <Skeleton className="h-4 w-48 mt-2" />
-            </CardHeader>
-            <CardContent className="pb-2">
-              <div className="flex items-center space-x-4">
-                <Skeleton className="h-12 w-12 rounded" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-48" />
-                  <Skeleton className="h-4 w-20" />
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Skeleton className="h-9 w-24" />
-              <Skeleton className="h-9 w-24" />
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="text-center py-12 border rounded-lg">
-        <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium mb-2">{error}</h3>
-        <p className="text-gray-500 mb-6">
-          {t(
-            "orderHistoryErrorDescription",
-            "We couldn't load your order history. Please try again later."
-          )}
-        </p>
-        <Button onClick={() => window.location.reload()}>
-          {t("tryAgain", "Încearcă din nou")}
-        </Button>
-      </div>
-    );
-  }
+      : orders.filter(order => order.status === activeTab);
 
   // Empty state
   if (orders.length === 0) {
@@ -215,7 +139,8 @@ export function OrderHistory() {
         defaultValue="all"
         value={activeTab}
         onValueChange={setActiveTab}
-        className="w-full">
+        className="w-full"
+      >
         <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-6 gap-2">
           <TabsTrigger value="all">{t("all", "Toate")}</TabsTrigger>
           <TabsTrigger value="processing">
@@ -229,9 +154,7 @@ export function OrderHistory() {
             {t("cancelled", "Anulat")}
           </TabsTrigger>
         </TabsList>
-        <TabsContent
-          value={activeTab}
-          className="space-y-4">
+        <TabsContent value={activeTab} className="space-y-4">
           {filteredOrders.length === 0 ? (
             <div className="text-center py-8 border rounded-lg">
               <Package className="h-10 w-10 mx-auto text-gray-400 mb-4" />
@@ -243,7 +166,7 @@ export function OrderHistory() {
               </p>
             </div>
           ) : (
-            filteredOrders.map((order) => (
+            filteredOrders.map(order => (
               <Card key={order.id}>
                 <CardHeader className="pb-3">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
@@ -260,17 +183,19 @@ export function OrderHistory() {
                     <Badge
                       className={`${getStatusBadgeVariant(
                         order.status
-                      )} capitalize w-fit`}>
+                      )} capitalize w-fit`}
+                    >
                       {t(order.status, order.status)}
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="pb-3">
                   <div className="space-y-3">
-                    {order.items.map((item) => (
+                    {order.items.map(item => (
                       <div
                         key={item.id}
-                        className="flex flex-col sm:flex-row gap-3">
+                        className="flex flex-col sm:flex-row gap-3"
+                      >
                         <div className="h-16 w-16 rounded bg-muted overflow-hidden relative shrink-0 mx-auto sm:mx-0">
                           <img
                             src={item.image}
@@ -281,7 +206,8 @@ export function OrderHistory() {
                         <div className="flex flex-col text-center sm:text-left">
                           <Link
                             href={`/products/${item.productSlug}`}
-                            className="font-medium hover:underline">
+                            className="font-medium hover:underline"
+                          >
                             {item.productName}
                           </Link>
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm text-muted-foreground">
@@ -313,7 +239,8 @@ export function OrderHistory() {
                     variant="outline"
                     size="sm"
                     asChild
-                    className="w-full sm:w-auto">
+                    className="w-full sm:w-auto"
+                  >
                     <Link href={`/account/orders/${order.id}`}>
                       <Eye className="h-4 w-4 mr-2" />
                       {t("viewDetails", "View Details")}
@@ -326,7 +253,8 @@ export function OrderHistory() {
                         variant="outline"
                         size="sm"
                         asChild
-                        className="w-full sm:w-auto">
+                        className="w-full sm:w-auto"
+                      >
                         <Link href={`/account/orders/${order.id}/return`}>
                           <ArrowRight className="h-4 w-4 mr-2" />
                           {t("returnItem", "Return Items")}

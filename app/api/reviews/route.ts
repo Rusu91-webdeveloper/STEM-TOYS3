@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/lib/db";
-import { auth } from "@/lib/auth";
-import { logger } from "@/lib/logger";
+
 import {
   withErrorHandling,
   notFound,
@@ -11,6 +9,9 @@ import {
   conflict,
   handleZodError,
 } from "@/lib/api-error";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 // Schema for validating review submission
 const reviewSchema = z.object({
@@ -24,7 +25,7 @@ const reviewSchema = z.object({
 export const POST = withErrorHandling(async (req: NextRequest) => {
   // Verify authentication
   const session = await auth();
-  if (!session || !session.user) {
+  if (!session?.user) {
     return unauthorized("You must be logged in to submit a review");
   }
 

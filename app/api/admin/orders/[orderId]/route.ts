@@ -1,8 +1,9 @@
+import { OrderStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { z } from "zod";
-import { OrderStatus } from "@prisma/client";
 
 // Schema for updating order status
 const updateOrderSchema = z.object({

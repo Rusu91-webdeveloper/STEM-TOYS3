@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import { Pool } from "@neondatabase/serverless";
+import { PrismaClient } from "@prisma/client";
 
 // Configure connection pool if we're using Neon
 const connectionString = process.env.DATABASE_URL || "";

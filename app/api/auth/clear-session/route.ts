@@ -1,35 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { logger } from "@/lib/logger";
-import { auth } from "@/lib/auth";
 
 /**
- * API route to clear all authentication cookies and redirect to login page
- * Used primarily when a session exists for a user that has been deleted
+ * API route to clear invalid sessions and auth cookies
+ * This helps users who are stuck in an invalid authentication state
  */
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    const userId = session?.user?.id || "unknown";
-    const email = session?.user?.email || "unknown";
+    logger.info("Clearing invalid session and auth cookies");
 
-    // Check if this is a recent Google auth session
-    const tokenData = (session as any)?.token || {};
-    const isRecentGoogleAuth =
-      tokenData.googleAuthTimestamp &&
-      Date.now() - tokenData.googleAuthTimestamp < 15000; // 15 seconds
+    const response = NextResponse.redirect(new URL("/", request.url));
 
-    // For very recent auth, don't show an error since it might be temporary
-    const errorParam = isRecentGoogleAuth ? "" : "?error=UserDeleted";
-
-    logger.info("Clearing session and authentication cookies", {
-      userId,
-      email,
-      url: request.url,
-      referer: request.headers.get("referer") || "none",
-      isRecentGoogleAuth,
-    });
-
-    // List of auth cookies to clear
+    // Clear all NextAuth cookies
     const authCookies = [
       "next-auth.session-token",
       "__Secure-next-auth.session-token",
@@ -41,16 +24,8 @@ export async function GET(request: NextRequest) {
       "__Host-next-auth.csrf-token",
     ];
 
-    // Create response that redirects to login
-    const response = NextResponse.redirect(
-      new URL(`/auth/login${errorParam}`, request.url)
-    );
-
-    // Clear all auth cookies
-    for (const cookieName of authCookies) {
-      response.cookies.delete(cookieName);
-
-      // Also set an expired cookie to ensure it's removed
+    authCookies.forEach(cookieName => {
+      // Clear with different path combinations
       response.cookies.set(cookieName, "", {
         expires: new Date(0),
         path: "/",
@@ -58,26 +33,41 @@ export async function GET(request: NextRequest) {
         httpOnly: true,
         sameSite: "lax",
       });
-    }
 
+      response.cookies.set(cookieName, "", {
+        expires: new Date(0),
+        path: "/auth",
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        sameSite: "lax",
+      });
+    });
+
+    // Add headers to clear client-side session data
+    response.headers.set("Clear-Site-Data", '"cache", "cookies", "storage"');
+    response.headers.set(
+      "Cache-Control",
+      "no-cache, no-store, must-revalidate"
+    );
+
+    logger.info("Session and cookies cleared successfully");
     return response;
   } catch (error) {
-    logger.error("Error clearing session cookies", {
+    logger.error("Error clearing session", {
       error: error instanceof Error ? error.message : String(error),
     });
 
-    // Even if there's an error, attempt to clear cookies and redirect
-    const response = NextResponse.redirect(
-      new URL("/auth/login?error=SessionClearError", request.url)
+    return NextResponse.json(
+      {
+        error: "Failed to clear session",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
     );
-
-    // Try to clear at least the main auth cookie
-    response.cookies.delete("next-auth.session-token");
-    response.cookies.set("next-auth.session-token", "", {
-      expires: new Date(0),
-      path: "/",
-    });
-
-    return response;
   }
+}
+
+export function POST(request: NextRequest) {
+  // Support both GET and POST for different use cases
+  return GET(request);
 }

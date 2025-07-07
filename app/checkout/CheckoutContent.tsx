@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { CheckoutFlow } from "@/features/checkout/components/CheckoutFlow";
 import { Loader2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+
+import { CheckoutFlow } from "@/features/checkout/components/CheckoutFlow";
 import { useTranslation } from "@/lib/i18n";
 
 export function CheckoutContent() {

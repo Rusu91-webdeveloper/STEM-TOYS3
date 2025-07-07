@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@/lib/auth";
 import { sessionRateLimit } from "@/lib/rate-limit-session";
 
@@ -27,23 +28,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // BYPASS CACHE: Always fetch session directly
     const session = await auth();
-
     if (!session) {
-      return NextResponse.json({
-        user: null,
-        expires: null,
-      });
+      return NextResponse.json({ user: null, expires: null });
     }
-
     return NextResponse.json(session);
   } catch (error) {
     console.error("Session error:", error);
-
     // Return a valid empty session instead of an error
-    return NextResponse.json({
-      user: null,
-      expires: null,
-    });
+    return NextResponse.json({ user: null, expires: null });
   }
 }

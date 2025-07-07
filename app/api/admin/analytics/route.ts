@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -329,9 +330,9 @@ async function fetchTopSellingProducts(startDate: Date, endDate: Date) {
 
       return {
         name: product?.name || "Unknown Product",
-        price: price,
+        price,
         sold: soldQuantity,
-        revenue: revenue,
+        revenue,
       };
     })
     .sort((a, b) => b.revenue - a.revenue);

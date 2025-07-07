@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import React, { useState, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
+
 
 // Define the Category type
 type Category = {

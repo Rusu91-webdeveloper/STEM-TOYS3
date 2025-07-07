@@ -1,6 +1,7 @@
 import React from "react";
-import { auth } from "@/lib/auth";
+
 import { AccountSettings } from "@/features/account/components/AccountSettings";
+import { auth } from "@/lib/auth";
 import { getTranslations } from "@/lib/i18n/server";
 
 export async function generateMetadata() {

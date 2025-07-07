@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CheckoutStep, CheckoutData } from "../types";
 import { ShippingAddressForm } from "./ShippingAddressForm";
 import { ShippingMethodSelector } from "./ShippingMethodSelector";
@@ -13,24 +13,53 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/features/cart";
 import { useTranslation } from "@/lib/i18n";
 import { Shield, Award, ShieldCheck } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useRouter as useNextRouter } from "next/navigation";
 import { GuestInformationForm } from "./GuestInformationForm";
+import { Loader2 } from "lucide-react";
 
 export function CheckoutFlow() {
   const router = useRouter();
   const nextRouter = useNextRouter();
-  const { data: session } = useSession();
-  const { cartItems, getCartTotal, clearCart } = useCart();
+  const { data: session, status } = useOptimizedSession();
+  const { cartItems, getCartTotal, clearCart, forceSyncWithServer } = useCart();
   const { t } = useTranslation();
+
+  // Force sync cart data when checkout component mounts
+  useEffect(() => {
+    let isMounted = true;
+
+    const syncCartData = async () => {
+      try {
+        console.log("🔄 [CHECKOUT] Force syncing cart data on mount...");
+        await forceSyncWithServer();
+        if (isMounted) {
+          console.log("✅ [CHECKOUT] Cart data synced successfully");
+        }
+      } catch (error) {
+        console.error("❌ [CHECKOUT] Failed to sync cart data:", error);
+      }
+    };
+
+    // Only sync if we're not already loading and have session info
+    if (status !== "loading") {
+      syncCartData();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [status]); // Removed forceSyncWithServer from dependencies to prevent infinite loop
 
   // Determine initial step based on authentication status
   const getInitialStep = (): CheckoutStep => {
+    if (status === "loading") {
+      return "loading"; // Special case for loading state
+    }
     return session?.user ? "shipping-address" : "guest-info";
   };
 
-  const [currentStep, setCurrentStep] =
-    useState<CheckoutStep>(getInitialStep());
+  const [currentStep, setCurrentStep] = useState<CheckoutStep>("loading");
   const [checkoutData, setCheckoutData] = useState<CheckoutData>({
     billingAddressSameAsShipping: true,
     isGuestCheckout: !session?.user,
@@ -41,6 +70,9 @@ export function CheckoutFlow() {
   // **COUPON STATE MANAGEMENT**
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
+
+  // **CART SYNCHRONIZATION** - Removed automatic sync to prevent infinite loops
+  // The cart will sync naturally through normal user interactions
 
   const updateCheckoutData = (data: Partial<CheckoutData>) => {
     setCheckoutData(prev => ({ ...prev, ...data }));
@@ -98,6 +130,17 @@ export function CheckoutFlow() {
       setCurrentStep(step);
     }
   };
+
+  // Update step based on session status
+  useEffect(() => {
+    if (status === "authenticated") {
+      setCurrentStep("shipping-address");
+      updateCheckoutData({ isGuestCheckout: false });
+    } else if (status === "unauthenticated") {
+      setCurrentStep("guest-info");
+      updateCheckoutData({ isGuestCheckout: true });
+    }
+  }, [status]);
 
   const handlePlaceOrder = async () => {
     setIsProcessingOrder(true);
@@ -214,6 +257,12 @@ export function CheckoutFlow() {
           onStepClick={goToStep}
           checkoutData={checkoutData}
         />
+
+        {currentStep === "loading" && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-12 w-12 animate-spin text-indigo-600" />
+          </div>
+        )}
 
         {currentStep === "guest-info" && (
           <GuestInformationForm

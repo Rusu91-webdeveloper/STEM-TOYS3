@@ -4,13 +4,14 @@
  */
 
 import { NextRequest } from "next/server";
+
 import { createCsrfTokenResponse } from "@/lib/csrf";
 
 /**
- * GET handler - Generate CSRF token for current session
+ * GET /api/csrf-token - Generate CSRF token for current session
  */
 export async function GET(request: NextRequest) {
-  return await createCsrfTokenResponse(request);
+  return createCsrfTokenResponse(request);
 }
 
 /**

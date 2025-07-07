@@ -1,8 +1,5 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
-import { useTouchGestures } from "@/lib/touch-interactions";
 import {
   ChevronLeft,
   ChevronRight,
@@ -15,6 +12,10 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+
+import { useTouchGestures } from "@/lib/touch-interactions";
+import { cn } from "@/lib/utils";
 
 // Checkout step types
 type CheckoutStep = "cart" | "shipping" | "payment" | "review" | "confirmation";

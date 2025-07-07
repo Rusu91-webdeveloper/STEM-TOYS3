@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
-import Image from "next/image";
 import { X, ZoomIn, ZoomOut, RotateCw, Download } from "lucide-react";
+import Image from "next/image";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -98,7 +99,7 @@ export default function ProductImageZoom({
   const handleDownload = useCallback(() => {
     const link = document.createElement("a");
     link.href = src;
-    link.download = alt.replace(/\s+/g, "-").toLowerCase() + ".jpg";
+    link.download = `${alt.replace(/\s+/g, "-").toLowerCase()  }.jpg`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

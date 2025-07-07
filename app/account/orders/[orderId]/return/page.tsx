@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useToast } from "@/components/ui/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, ArrowLeft, ShoppingBag, Check } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardHeader,
@@ -13,6 +17,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+
 import {
   Form,
   FormField,
@@ -28,14 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import Image from "next/image";
-import Link from "next/link";
-import { formatDistance } from "date-fns";
+import { useToast } from "@/components/ui/use-toast";
 import { useCurrency } from "@/lib/currency";
 
 // Define return types
@@ -279,9 +278,7 @@ export default function InitiateReturn({
           <p className="text-gray-500 mb-4">
             We couldn't find the order you're looking for.
           </p>
-          <Link
-            href="/account/orders"
-            className="text-primary hover:underline">
+          <Link href="/account/orders" className="text-primary hover:underline">
             View all orders
           </Link>
         </div>
@@ -320,9 +317,7 @@ export default function InitiateReturn({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Link href={`/account/orders/${orderId}`}>
-            <Button
-              variant="ghost"
-              size="icon">
+            <Button variant="ghost" size="icon">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
@@ -347,7 +342,7 @@ export default function InitiateReturn({
                 <h3 className="text-sm font-medium mb-3">Order Items</h3>
 
                 {order.items.filter(
-                  (item) =>
+                  item =>
                     order.status === "DELIVERED" &&
                     !returnedItemIds.includes(item.id) &&
                     !item.isDigital
@@ -365,12 +360,12 @@ export default function InitiateReturn({
                           <div className="space-y-3">
                             {order.items
                               .filter(
-                                (item) =>
+                                item =>
                                   order.status === "DELIVERED" &&
                                   !returnedItemIds.includes(item.id) &&
                                   !item.isDigital
                               )
-                              .map((item) => {
+                              .map(item => {
                                 const disabled =
                                   order.status !== "DELIVERED" ||
                                   returnedItemIds.includes(item.id) ||
@@ -378,13 +373,14 @@ export default function InitiateReturn({
                                 return (
                                   <div
                                     key={item.id}
-                                    className={`flex p-4 border rounded-lg ${field.value.includes(item.id) ? "border-primary bg-primary/5" : "border-gray-200"} ${disabled ? "opacity-50 pointer-events-none" : ""}`}>
+                                    className={`flex p-4 border rounded-lg ${field.value.includes(item.id) ? "border-primary bg-primary/5" : "border-gray-200"} ${disabled ? "opacity-50 pointer-events-none" : ""}`}
+                                  >
                                     <FormControl>
                                       <input
                                         type="checkbox"
                                         className="hidden"
                                         checked={field.value.includes(item.id)}
-                                        onChange={(e) => {
+                                        onChange={e => {
                                           if (e.target.checked) {
                                             field.onChange([
                                               ...field.value,
@@ -393,7 +389,7 @@ export default function InitiateReturn({
                                           } else {
                                             field.onChange(
                                               field.value.filter(
-                                                (id) => id !== item.id
+                                                id => id !== item.id
                                               )
                                             );
                                           }
@@ -408,7 +404,7 @@ export default function InitiateReturn({
                                         if (field.value.includes(item.id)) {
                                           field.onChange(
                                             field.value.filter(
-                                              (id) => id !== item.id
+                                              id => id !== item.id
                                             )
                                           );
                                         } else {
@@ -417,7 +413,8 @@ export default function InitiateReturn({
                                             item.id,
                                           ]);
                                         }
-                                      }}>
+                                      }}
+                                    >
                                       {item.product.images?.[0] && (
                                         <div className="relative h-16 w-16 rounded overflow-hidden">
                                           <Image
@@ -440,7 +437,8 @@ export default function InitiateReturn({
                                       </div>
 
                                       <div
-                                        className={`w-5 h-5 rounded-full border flex items-center justify-center ${field.value.includes(item.id) ? "border-primary bg-primary" : "border-gray-300"}`}>
+                                        className={`w-5 h-5 rounded-full border flex items-center justify-center ${field.value.includes(item.id) ? "border-primary bg-primary" : "border-gray-300"}`}
+                                      >
                                         {field.value.includes(item.id) && (
                                           <Check className="h-3 w-3 text-white" />
                                         )}
@@ -466,7 +464,8 @@ export default function InitiateReturn({
                     <FormLabel>Reason for return</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}>
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a reason" />
@@ -474,9 +473,7 @@ export default function InitiateReturn({
                       </FormControl>
                       <SelectContent>
                         {Object.entries(reasonLabels).map(([key, label]) => (
-                          <SelectItem
-                            key={key}
-                            value={key}>
+                          <SelectItem key={key} value={key}>
                             {label}
                           </SelectItem>
                         ))}
@@ -513,12 +510,11 @@ export default function InitiateReturn({
               <Button
                 variant="outline"
                 type="button"
-                onClick={() => router.back()}>
+                onClick={() => router.back()}
+              >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={submitting}>
+              <Button type="submit" disabled={submitting}>
                 {submitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

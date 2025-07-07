@@ -1,11 +1,5 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import { cn } from "@/lib/utils";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Check,
   X,
@@ -16,6 +10,13 @@ import {
   AlertCircle,
   ShoppingCart,
 } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { cn } from "@/lib/utils";
 
 export interface EnhancedVariant {
   id: string;

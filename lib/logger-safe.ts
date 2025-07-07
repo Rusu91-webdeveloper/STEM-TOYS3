@@ -7,7 +7,7 @@ const isDevelopment = process.env.NODE_ENV === "development";
 // Detect if we're in a worker thread context or if pino is having issues
 const isWorkerThread =
   typeof process !== "undefined" &&
-  ((process.env && process.env.NODE_UNIQUE_ID) ||
+  ((process.env?.NODE_UNIQUE_ID) ||
     (typeof window === "undefined" &&
       typeof global !== "undefined" &&
       (global as any).Worker));

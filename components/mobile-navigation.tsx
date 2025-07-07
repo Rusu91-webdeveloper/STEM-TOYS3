@@ -1,10 +1,5 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { useTouchGestures } from "@/lib/touch-interactions";
 import {
   Home,
   Search,
@@ -17,6 +12,12 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import React, { useState, useEffect } from "react";
+
+import { useTouchGestures } from "@/lib/touch-interactions";
+import { cn } from "@/lib/utils";
 
 // Mobile navigation types
 interface MobileNavItem {

@@ -1,21 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckIcon, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
+
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { userSchema } from "@/lib/validations";
-import { CheckIcon, ArrowRight } from "lucide-react";
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { Separator } from "@/components/ui/separator";
-import { useTranslation } from "@/lib/i18n";
-import type { TranslationKey } from "@/lib/i18n/translations";
+import { useToast } from "@/components/ui/use-toast";
+import { useTranslation, type TranslationKey } from "@/lib/i18n";
+import { userSchema } from "@/lib/validations";
 
 // Create a registration schema factory that uses translation function
 const createRegisterSchema = (t: (key: TranslationKey) => string) =>
@@ -23,11 +24,11 @@ const createRegisterSchema = (t: (key: TranslationKey) => string) =>
     .extend({
       password: userSchema.shape.password.unwrap(),
       confirmPassword: z.string(),
-      agreeToTerms: z.boolean().refine((value) => value === true, {
+      agreeToTerms: z.boolean().refine(value => value === true, {
         message: t("termsMustAgree"),
       }),
     })
-    .refine((data) => data.password === data.confirmPassword, {
+    .refine(data => data.password === data.confirmPassword, {
       message: t("passwordsNoMatch"),
       path: ["confirmPassword"],
     });
@@ -142,7 +143,8 @@ export default function RegisterPage() {
                   onClick={() => window.open(verificationUrl, "_blank")}
                   variant="outline"
                   size="sm"
-                  className="w-full">
+                  className="w-full"
+                >
                   {t("openVerificationLink")}
                 </Button>
               </div>
@@ -152,7 +154,8 @@ export default function RegisterPage() {
           <div className="flex flex-col gap-4 w-full">
             <Button
               onClick={() => router.push("/auth/login?from=register")}
-              className="w-full flex items-center justify-center gap-2">
+              className="w-full flex items-center justify-center gap-2"
+            >
               {t("goToLoginPage")} <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
@@ -178,7 +181,8 @@ export default function RegisterPage() {
                 <div className="mt-2 text-sm">
                   <Link
                     href="/auth/login"
-                    className="text-primary hover:underline font-medium">
+                    className="text-primary hover:underline font-medium"
+                  >
                     {t("goToLoginPage")}
                   </Link>
                 </div>
@@ -193,9 +197,7 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">{t("fullName")}</Label>
               <Input
@@ -277,11 +279,10 @@ export default function RegisterPage() {
               />
               <label
                 htmlFor="agreeToTerms"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
                 {t("agreeToTerms")}{" "}
-                <Link
-                  href="/terms"
-                  className="text-primary hover:underline">
+                <Link href="/terms" className="text-primary hover:underline">
                   {t("termsOfService")}
                 </Link>
               </label>
@@ -292,10 +293,7 @@ export default function RegisterPage() {
               </p>
             )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? t("creatingAccount") : t("createAccount")}
             </Button>
           </form>
@@ -317,7 +315,8 @@ export default function RegisterPage() {
             {t("alreadyHaveAccount")}{" "}
             <Link
               href="/auth/login"
-              className="font-medium text-primary hover:underline">
+              className="font-medium text-primary hover:underline"
+            >
               {t("signIn")}
             </Link>
           </div>

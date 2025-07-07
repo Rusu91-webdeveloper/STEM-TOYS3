@@ -251,6 +251,8 @@ export const en = {
   userDeleted:
     "Your account has been deleted or no longer exists. Please create a new account or contact support.",
   loginSuccessful: "Login successful! Redirecting...",
+  email_verification_greeting:
+    "Your email has been successfully verified! You can now log in.",
   emailExists: "An account with this email already exists.",
   checkInfoAndTryAgain: "Please check your information and try again.",
   registrationError: "An error occurred during registration. Please try again.",
@@ -490,7 +492,9 @@ export const en = {
   // Product page specific translations
   backToProducts: "Back to Products",
   productDescription: "Product Description",
+  purchaseRequired: "Purchase Required to Review",
   ageRange: "Age Range",
+  years: "years",
   category: "Category",
   off: "OFF",
   freeShipping: "Free Shipping",

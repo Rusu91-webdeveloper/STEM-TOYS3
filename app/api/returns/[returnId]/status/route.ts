@@ -1,13 +1,14 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { NextResponse } from "next/server";
+
+import { auth } from "@/lib/auth";
 import { sendMail } from "@/lib/brevo";
-import { generateReturnLabel } from "@/lib/return-label";
+import { db } from "@/lib/db";
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
+import { generateReturnLabel } from "@/lib/return-label";
 
 // Return reason display labels (unused but kept for future use)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 const _reasonLabels = {
   DOES_NOT_MEET_EXPECTATIONS: "Does not meet expectations",
   DAMAGED_OR_DEFECTIVE: "Damaged or defective",
@@ -146,7 +147,7 @@ export async function PATCH(
           customerName: (updatedReturn.user.name ??
             updatedReturn.user.email) as string,
           customerEmail: updatedReturn.user.email,
-          customerAddress: customerAddress,
+          customerAddress,
           language: "ro", // Set Romanian language for the label
         });
 

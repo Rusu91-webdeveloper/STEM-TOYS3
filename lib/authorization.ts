@@ -1,5 +1,6 @@
-import { Session } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
+import { Session } from "next-auth";
+
 import { auth } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 

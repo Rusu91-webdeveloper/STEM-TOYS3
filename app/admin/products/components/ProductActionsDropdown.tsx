@@ -1,17 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { Edit, MoreHorizontal, Trash2, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useState, useRef, useEffect } from "react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,8 +15,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/use-toast";
-import { Edit, MoreHorizontal, Trash2, ExternalLink } from "lucide-react";
+
 
 interface ProductActionsDropdownProps {
   productId: string;

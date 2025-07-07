@@ -1,12 +1,13 @@
 "use client";
 
-import { useParams, notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useParams, notFound } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
-import { useTranslation } from "@/lib/i18n";
-import { ArrowLeft } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { useTranslation } from "@/lib/i18n";
 
 // Mock data for blog posts categorized by STEM areas
 export const blogPostsByCategory = {

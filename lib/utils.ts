@@ -108,7 +108,7 @@ export function formatCurrency(
 ): string {
   return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: currency,
+    currency,
   }).format(amount);
 }
 

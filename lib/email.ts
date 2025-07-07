@@ -3,8 +3,8 @@
  * Uses Nodemailer for sending emails
  */
 
-import { isDevelopment } from "./security";
 import { sendMail, emailTemplates as nodemailerTemplates } from "./nodemailer";
+import { isDevelopment } from "./security";
 
 // Email types
 export type EmailTemplate =

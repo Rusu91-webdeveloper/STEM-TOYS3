@@ -8,11 +8,28 @@ import { monitor } from "./monitoring";
 // In-memory cache for frequently accessed data
 class PerformanceCache {
   private cache = new Map<string, { data: any; expiry: number }>();
-  private defaultTTL = 5 * 60 * 1000; // 5 minutes
+  private defaultTTL = 2 * 60 * 1000; // 2 minutes (reduced from 5)
+  private maxEntries = 100; // Limit cache size
 
   set(key: string, data: any, ttl?: number): void {
     const expiry = Date.now() + (ttl || this.defaultTTL);
+
+    // If cache is full, remove oldest entries
+    if (this.cache.size >= this.maxEntries) {
+      this.evictOldest();
+    }
+
     this.cache.set(key, { data, expiry });
+  }
+
+  private evictOldest(): void {
+    // Remove the first 10 entries (oldest)
+    let count = 0;
+    for (const key of this.cache.keys()) {
+      this.cache.delete(key);
+      count++;
+      if (count >= 10) break;
+    }
   }
 
   get(key: string): any | null {
@@ -56,12 +73,12 @@ class PerformanceCache {
 
 export const performanceCache = new PerformanceCache();
 
-// Clean up cache every 10 minutes
+// Clean up cache every 2 minutes (more frequent)
 setInterval(
   () => {
     performanceCache.cleanup();
   },
-  10 * 60 * 1000
+  2 * 60 * 1000
 );
 
 /**
@@ -323,8 +340,7 @@ export const BundleAnalyzer = {
   lazyLoad: <T>(
     importFn: () => Promise<{ default: T }>,
     componentName: string
-  ) => {
-    return new Promise<{ default: T }>((resolve, reject) => {
+  ) => new Promise<{ default: T }>((resolve, reject) => {
       const startTime = Date.now();
 
       importFn()
@@ -345,8 +361,7 @@ export const BundleAnalyzer = {
           resolve(module);
         })
         .catch(reject);
-    });
-  },
+    }),
 };
 
 /**
@@ -370,18 +385,18 @@ export const MemoryOptimizer = {
    */
   checkMemoryUsage: () => {
     const usage = process.memoryUsage();
-    const warningThreshold = 800 * 1024 * 1024; // 800MB
-    const criticalThreshold = 1200 * 1024 * 1024; // 1.2GB
+    const warningThreshold = 1000 * 1024 * 1024; // 1GB (increased for dev mode)
+    const criticalThreshold = 1500 * 1024 * 1024; // 1.5GB
 
     if (usage.heapUsed > criticalThreshold) {
       logger.error("Critical memory usage detected", {
-        heapUsed: Math.round(usage.heapUsed / 1024 / 1024) + "MB",
-        heapTotal: Math.round(usage.heapTotal / 1024 / 1024) + "MB",
+        heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)  }MB`,
+        heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)  }MB`,
       });
     } else if (usage.heapUsed > warningThreshold) {
       logger.warn("High memory usage detected", {
-        heapUsed: Math.round(usage.heapUsed / 1024 / 1024) + "MB",
-        heapTotal: Math.round(usage.heapTotal / 1024 / 1024) + "MB",
+        heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)  }MB`,
+        heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)  }MB`,
       });
     }
 
@@ -402,10 +417,10 @@ export const MemoryOptimizer = {
   },
 };
 
-// Monitor memory usage every 5 minutes
+// Monitor memory usage every 15 minutes (less frequent alerts)
 setInterval(
   () => {
     MemoryOptimizer.checkMemoryUsage();
   },
-  5 * 60 * 1000
+  15 * 60 * 1000
 );

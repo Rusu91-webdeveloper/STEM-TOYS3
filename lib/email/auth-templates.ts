@@ -3,9 +3,11 @@
  * Includes welcome, verification, and password reset emails
  */
 
-import { sendMail } from "../brevo";
-import { prisma } from "@/lib/prisma";
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
+import { prisma } from "@/lib/prisma";
+
+import { sendMail } from "../brevo";
+
 import {
   getStoreSettings,
   getBaseUrl,

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/lib/db";
+
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { blogService } from "@/lib/services/blog-service";
 
 // Schema for updating a blog post
