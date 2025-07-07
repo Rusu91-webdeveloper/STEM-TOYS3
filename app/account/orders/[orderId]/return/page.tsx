@@ -93,11 +93,11 @@ const reasonLabels = {
   OTHER: "Other reason",
 };
 
-export default function InitiateReturn({
-  params,
-}: {
+interface ReturnPageProps {
   params: { orderId: string };
-}) {
+}
+
+export default function InitiateReturn({ params }: ReturnPageProps) {
   const orderId = params.orderId;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
