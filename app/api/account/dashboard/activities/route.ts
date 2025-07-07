@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Wishlist, Product } from "@prisma/client";
 
 import { withErrorHandler } from "@/lib/api-error-handler";
 import { auth } from "@/lib/auth";
@@ -14,8 +15,13 @@ interface Activity {
   metadata?: Record<string, any>;
 }
 
-export async function GET(request: NextRequest) {
-  return withErrorHandler(async () => {
+// Define a type for wishlist items with the nested product
+type WishlistItemWithProduct = Wishlist & {
+  product: Pick<Product, "name">;
+};
+
+export function GET(_request: NextRequest) {
+  const handler = async () => {
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -107,7 +113,7 @@ export async function GET(request: NextRequest) {
         take: 5,
       });
 
-      recentWishlistItems.forEach((item: any) => {
+      recentWishlistItems.forEach((item: WishlistItemWithProduct) => {
         activities.push({
           id: `wishlist-${item.id}`,
           type: "wishlist",
@@ -150,7 +156,7 @@ export async function GET(request: NextRequest) {
             },
           });
         });
-      } catch (error) {
+      } catch (_error) {
         // Reviews table might not exist, skip silently
         console.log("Reviews table not found, skipping review activities");
       }
@@ -204,12 +210,14 @@ export async function GET(request: NextRequest) {
       const limitedActivities = activities.slice(0, 20);
 
       return NextResponse.json(limitedActivities);
-    } catch (error) {
-      console.error("Error fetching user dashboard activities:", error);
+    } catch (_error) {
+      // console.error("Error fetching user dashboard activities:", error);
       return NextResponse.json(
         { error: "Failed to fetch dashboard activities" },
         { status: 500 }
       );
     }
-  });
+  };
+
+  return withErrorHandler(handler)();
 }
