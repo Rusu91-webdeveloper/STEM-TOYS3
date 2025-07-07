@@ -65,6 +65,8 @@ interface ReturnItem {
   details: string | null;
   status: ReturnStatus;
   createdAt: string;
+  refundStatus?: string | null;
+  refundError?: string | null;
   user: {
     id: string;
     name: string;
@@ -251,17 +253,17 @@ export default function AdminReturnsPage() {
   };
 
   const handleSelectReturn = (returnId: string) => {
-    setSelectedReturns((prev) =>
+    setSelectedReturns(prev =>
       prev.includes(returnId)
-        ? prev.filter((id) => id !== returnId)
+        ? prev.filter(id => id !== returnId)
         : [...prev, returnId]
     );
   };
 
   const handleSelectAll = () => {
     const pendingReturns = returns
-      .filter((ret) => ret.status === "PENDING")
-      .map((ret) => ret.id);
+      .filter(ret => ret.status === "PENDING")
+      .map(ret => ret.id);
 
     if (selectedReturns.length === pendingReturns.length) {
       setSelectedReturns([]);
@@ -272,7 +274,7 @@ export default function AdminReturnsPage() {
 
   const filteredReturns = searchTerm
     ? returns.filter(
-        (ret) =>
+        ret =>
           ret.orderItem.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           ret.order.orderNumber
             .toLowerCase()
@@ -291,7 +293,7 @@ export default function AdminReturnsPage() {
             <Input
               placeholder="Search returns..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="pl-8 w-[250px]"
             />
             {searchTerm && (
@@ -303,11 +305,12 @@ export default function AdminReturnsPage() {
           </div>
           <Select
             value={filterStatus || "__ALL__"}
-            onValueChange={(value) =>
+            onValueChange={value =>
               setFilterStatus(
                 value === "__ALL__" ? undefined : (value as ReturnStatus)
               )
-            }>
+            }
+          >
             <SelectTrigger className="w-[160px]">
               <div className="flex items-center">
                 <Filter className="mr-2 h-4 w-4" />
@@ -319,9 +322,7 @@ export default function AdminReturnsPage() {
             <SelectContent>
               <SelectItem value="__ALL__">All Statuses</SelectItem>
               {Object.entries(statusBadges).map(([status, { label }]) => (
-                <SelectItem
-                  key={status}
-                  value={status}>
+                <SelectItem key={status} value={status}>
                   {label}
                 </SelectItem>
               ))}
@@ -331,7 +332,7 @@ export default function AdminReturnsPage() {
       </div>
 
       {/* Bulk Actions Section */}
-      {filteredReturns.filter((ret) => ret.status === "PENDING").length > 0 && (
+      {filteredReturns.filter(ret => ret.status === "PENDING").length > 0 && (
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
@@ -341,9 +342,8 @@ export default function AdminReturnsPage() {
                     checked={
                       selectedReturns.length > 0 &&
                       selectedReturns.length ===
-                        filteredReturns.filter(
-                          (ret) => ret.status === "PENDING"
-                        ).length
+                        filteredReturns.filter(ret => ret.status === "PENDING")
+                          .length
                     }
                     onCheckedChange={handleSelectAll}
                   />
@@ -360,7 +360,8 @@ export default function AdminReturnsPage() {
                     <Button
                       onClick={handleBulkApproval}
                       disabled={bulkProcessing}
-                      className="bg-green-600 hover:bg-green-700">
+                      className="bg-green-600 hover:bg-green-700"
+                    >
                       {bulkProcessing ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -376,7 +377,8 @@ export default function AdminReturnsPage() {
                     <Button
                       variant="outline"
                       onClick={() => setSelectedReturns([])}
-                      disabled={bulkProcessing}>
+                      disabled={bulkProcessing}
+                    >
                       Clear Selection
                     </Button>
                   </>
@@ -422,11 +424,11 @@ export default function AdminReturnsPage() {
                         <Checkbox
                           checked={
                             filteredReturns.filter(
-                              (ret) => ret.status === "PENDING"
+                              ret => ret.status === "PENDING"
                             ).length > 0 &&
                             selectedReturns.length ===
                               filteredReturns.filter(
-                                (ret) => ret.status === "PENDING"
+                                ret => ret.status === "PENDING"
                               ).length
                           }
                           onCheckedChange={handleSelectAll}
@@ -442,7 +444,7 @@ export default function AdminReturnsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredReturns.map((returnItem) => (
+                    {filteredReturns.map(returnItem => (
                       <TableRow key={returnItem.id}>
                         <TableCell>
                           {returnItem.status === "PENDING" ? (
@@ -507,16 +509,38 @@ export default function AdminReturnsPage() {
                         </TableCell>
                         <TableCell>
                           <Badge
-                            className={statusBadges[returnItem.status].color}>
+                            className={statusBadges[returnItem.status].color}
+                          >
                             {statusBadges[returnItem.status].label}
                           </Badge>
+                          {returnItem.status === "REFUNDED" && (
+                            <div className="mt-1">
+                              <span className="text-xs font-semibold">
+                                Refund:
+                              </span>{" "}
+                              <span
+                                className={
+                                  returnItem.refundStatus === "SUCCESS"
+                                    ? "text-green-700"
+                                    : returnItem.refundStatus === "FAILED"
+                                      ? "text-red-700"
+                                      : "text-gray-700"
+                                }
+                              >
+                                {returnItem.refundStatus || "Unknown"}
+                              </span>
+                              {returnItem.refundError && (
+                                <div className="text-xs text-red-600 mt-1">
+                                  {returnItem.refundError}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon">
+                              <Button variant="ghost" size="icon">
                                 <MoreHorizontal className="h-4 w-4" />
                                 <span className="sr-only">Open menu</span>
                               </Button>
@@ -527,14 +551,16 @@ export default function AdminReturnsPage() {
                                 onClick={() =>
                                   handleUpdateStatus(returnItem.id, "APPROVED")
                                 }
-                                disabled={returnItem.status === "APPROVED"}>
+                                disabled={returnItem.status === "APPROVED"}
+                              >
                                 Approve Return
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() =>
                                   handleUpdateStatus(returnItem.id, "REJECTED")
                                 }
-                                disabled={returnItem.status === "REJECTED"}>
+                                disabled={returnItem.status === "REJECTED"}
+                              >
                                 Reject Return
                               </DropdownMenuItem>
                               <DropdownMenuItem
@@ -544,14 +570,16 @@ export default function AdminReturnsPage() {
                                 disabled={
                                   returnItem.status === "RECEIVED" ||
                                   returnItem.status === "REFUNDED"
-                                }>
+                                }
+                              >
                                 Mark as Received
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() =>
                                   handleUpdateStatus(returnItem.id, "REFUNDED")
                                 }
-                                disabled={returnItem.status === "REFUNDED"}>
+                                disabled={returnItem.status === "REFUNDED"}
+                              >
                                 Mark as Refunded
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -577,7 +605,8 @@ export default function AdminReturnsPage() {
                         page: pagination.page - 1,
                       })
                     }
-                    disabled={pagination.page <= 1}>
+                    disabled={pagination.page <= 1}
+                  >
                     <ChevronLeft className="h-4 w-4 mr-1" />
                     Previous
                   </Button>
@@ -593,7 +622,8 @@ export default function AdminReturnsPage() {
                         page: pagination.page + 1,
                       })
                     }
-                    disabled={pagination.page >= pagination.totalPages}>
+                    disabled={pagination.page >= pagination.totalPages}
+                  >
                     Next
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>

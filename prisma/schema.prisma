@@ -246,6 +246,7 @@ model Order {
   status            OrderStatus   @default(PROCESSING)
   paymentStatus     PaymentStatus @default(PENDING)
   paymentMethod     String
+  stripePaymentIntentId String?
   notes             String?
   shippingAddressId String
   billingAddressId  String?
@@ -320,6 +321,8 @@ model Return {
   reason      ReturnReason
   details     String?
   status      ReturnStatus @default(PENDING)
+  refundStatus String?
+  refundError  String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   order       Order        @relation(fields: [orderId], references: [id])

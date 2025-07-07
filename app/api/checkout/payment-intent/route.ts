@@ -18,6 +18,7 @@ const stripe = new Stripe(stripeSecretKey);
 // Schema for validating the request body
 const paymentIntentSchema = z.object({
   amount: z.number().positive(),
+  orderId: z.string().optional(), // Accept orderId if available
 });
 
 // POST /api/checkout/payment-intent - Create a Stripe payment intent
@@ -27,28 +28,29 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     // Validate the request
-    const { amount } = paymentIntentSchema.parse(body);
+    const { amount, orderId } = paymentIntentSchema.parse(body);
 
-    // Create metadata including userId if available
+    // Create metadata including userId and orderId if available
     const metadata: Record<string, string> = {
       integration_check: "nextcommerce_payment",
     };
-
-    // Only add userId if it exists
     if (session?.user?.id) {
       metadata.userId = session.user.id.toString();
+    }
+    if (orderId) {
+      metadata.orderId = orderId;
     }
 
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "usd",
-      // Verify your integration by passing this to metadata
       metadata,
     });
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id, // Return paymentIntentId for order creation
     });
   } catch (error) {
     console.error("Payment intent error:", error);

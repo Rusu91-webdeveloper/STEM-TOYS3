@@ -76,6 +76,7 @@ const orderSchema = z.object({
   discountAmount: z.number().optional(),
   guestInformation: guestInformationSchema.optional(),
   isGuestCheckout: z.boolean().optional(),
+  stripePaymentIntentId: z.string().optional(), // Accept payment intent ID
 });
 
 // Helper function to format Zod errors
@@ -369,6 +370,9 @@ export async function POST(request: Request) {
 
     // Prepare order details for email (includes all calculated values)
 
+    // DEBUG: Log user object and user.id before address creation
+    console.log("DEBUG: user object at order creation", user);
+    console.log("DEBUG: user.id at order creation", user?.id);
     // Save shipping address to database or get existing address
     let shippingAddressId;
 
@@ -443,6 +447,7 @@ export async function POST(request: Request) {
             status: "PROCESSING",
             paymentStatus: "PAID", // In a real app, this would depend on payment processing
             shippingAddressId,
+            stripePaymentIntentId: orderData.stripePaymentIntentId || null,
           },
         });
 

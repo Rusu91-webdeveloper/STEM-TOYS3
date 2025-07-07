@@ -83,6 +83,7 @@ async function handleSuccessfulPayment(paymentIntent: Stripe.PaymentIntent) {
         data: {
           paymentStatus: "PAID",
           status: "COMPLETED", // For digital products, complete immediately
+          stripePaymentIntentId: paymentIntent.id,
         },
       });
 

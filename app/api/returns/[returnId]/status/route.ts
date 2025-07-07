@@ -6,9 +6,10 @@ import { sendMail } from "@/lib/brevo";
 import { db } from "@/lib/db";
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
 import { generateReturnLabel } from "@/lib/return-label";
+import stripe from "@/lib/stripe-server";
 
 // Return reason display labels (unused but kept for future use)
- 
+
 const _reasonLabels = {
   DOES_NOT_MEET_EXPECTATIONS: "Does not meet expectations",
   DAMAGED_OR_DEFECTIVE: "Damaged or defective",
@@ -68,7 +69,17 @@ export async function PATCH(
     const returnData = await db.return.findUnique({
       where: { id: returnId },
       include: {
-        order: true,
+        order: {
+          select: {
+            id: true,
+            orderNumber: true,
+            createdAt: true,
+            stripePaymentIntentId: true,
+            total: true,
+            shippingCost: true,
+            paymentStatus: true,
+          },
+        },
         orderItem: {
           include: {
             product: true,
@@ -105,7 +116,17 @@ export async function PATCH(
             },
           },
         },
-        order: true,
+        order: {
+          select: {
+            id: true,
+            orderNumber: true,
+            createdAt: true,
+            stripePaymentIntentId: true,
+            total: true,
+            shippingCost: true,
+            paymentStatus: true,
+          },
+        },
         orderItem: {
           include: {
             product: true,
@@ -115,6 +136,90 @@ export async function PATCH(
     });
 
     console.log(`✅ Return ${returnId} status updated to: ${status}`);
+
+    // Stripe refund logic for REFUNDED status
+    if (status === "REFUNDED") {
+      try {
+        const order = updatedReturn.order as any;
+        if (!order.stripePaymentIntentId) {
+          await db.return.update({
+            where: { id: returnId },
+            data: {
+              refundStatus: "FAILED",
+              refundError:
+                "Order does not have a Stripe payment intent ID. Cannot process refund.",
+            },
+          });
+          return NextResponse.json(
+            {
+              error:
+                "Order does not have a Stripe payment intent ID. Cannot process refund.",
+              refundStatus: "FAILED",
+              refundError:
+                "Order does not have a Stripe payment intent ID. Cannot process refund.",
+            },
+            { status: 400 }
+          );
+        }
+        if (order.paymentStatus === "REFUNDED") {
+          await db.return.update({
+            where: { id: returnId },
+            data: { refundStatus: "SUCCESS", refundError: "" },
+          });
+        } else {
+          const refundAmount = Math.round(
+            (order.total - order.shippingCost) * 100
+          );
+          if (refundAmount <= 0) {
+            await db.return.update({
+              where: { id: returnId },
+              data: {
+                refundStatus: "FAILED",
+                refundError:
+                  "Refund amount is zero or negative. Skipping Stripe refund.",
+              },
+            });
+          } else {
+            const refund = await stripe.refunds.create({
+              payment_intent: order.stripePaymentIntentId,
+              amount: refundAmount,
+            });
+            await db.order.update({
+              where: { id: order.id },
+              data: { paymentStatus: "REFUNDED" },
+            });
+            await db.return.update({
+              where: { id: returnId },
+              data: { refundStatus: "SUCCESS", refundError: "" },
+            });
+          }
+        }
+      } catch (refundError) {
+        await db.return.update({
+          where: { id: returnId },
+          data: {
+            refundStatus: "FAILED",
+            refundError:
+              refundError instanceof Error
+                ? refundError.message
+                : String(refundError),
+          },
+        });
+        return NextResponse.json(
+          {
+            error: "Stripe refund failed",
+            details:
+              refundError instanceof Error ? refundError.message : refundError,
+            refundStatus: "FAILED",
+            refundError:
+              refundError instanceof Error
+                ? refundError.message
+                : String(refundError),
+          },
+          { status: 500 }
+        );
+      }
+    }
 
     // If status is changed to APPROVED, send email with return label
     if (status === "APPROVED") {
@@ -271,11 +376,43 @@ export async function PATCH(
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      message: `Return status updated to ${status}`,
-      data: updatedReturn,
+    // Always return the updated return object (with refundStatus/refundError if set)
+    const finalReturn = await db.return.findUnique({
+      where: { id: returnId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            addresses: {
+              where: { isDefault: true },
+              take: 1,
+            },
+          },
+        },
+        order: {
+          select: {
+            id: true,
+            orderNumber: true,
+            createdAt: true,
+            stripePaymentIntentId: true,
+            total: true,
+            shippingCost: true,
+            paymentStatus: true,
+          },
+        },
+        orderItem: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
+    if (finalReturn && finalReturn.refundError == null) {
+      finalReturn.refundError = "";
+    }
+    return NextResponse.json({ success: true, return: finalReturn });
   } catch (error: unknown) {
     console.error("Error updating return status:", error);
 

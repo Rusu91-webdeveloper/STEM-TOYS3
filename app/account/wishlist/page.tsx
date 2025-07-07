@@ -1,8 +1,8 @@
 import React from "react";
 
 import { Wishlist } from "@/features/account/components/Wishlist";
-import { auth } from "@/lib/auth";
-import { getWishlistItems } from "@/lib/wishlist";
+import { auth } from "@/lib/server/auth";
+import { getWishlistItems } from "@/lib/server/wishlist";
 
 export default async function WishlistPage() {
   const session = await auth();

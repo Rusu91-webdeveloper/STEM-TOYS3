@@ -15,7 +15,10 @@ import { useTranslation } from "@/lib/i18n";
 import { useCurrency } from "@/lib/currency";
 import { toast } from "@/components/ui/use-toast";
 import type { Product } from "@/types/product";
-import { LazyProductReviews, LazyRelatedProducts } from "@/components/lazy";
+import {
+  LazyProductReviews,
+  LazyRelatedProducts,
+} from "@/components/lazy/client";
 import { useSession } from "next-auth/react";
 import ProductImageZoom from "@/components/products/ProductImageZoom";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
