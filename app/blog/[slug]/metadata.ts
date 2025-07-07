@@ -3,7 +3,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import { getBlogPost } from "@/lib/api/blog";
 
 type BlogPostPageProps = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
@@ -12,8 +12,9 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   try {
+    const { slug } = await params;
     // Get blog post data
-    const blogPost = await getBlogPost(params.slug);
+    const blogPost = await getBlogPost(slug);
 
     if (!blogPost) {
       return {
@@ -35,7 +36,7 @@ export async function generateMetadata(
       "TechTots blog",
       "learning resources",
       "educational content",
-      `${blogPost.stemCategory.toLowerCase()  } for kids`,
+      `${blogPost.stemCategory.toLowerCase()} for kids`,
     ].filter(Boolean);
 
     // Create structured data for article rich results
@@ -61,7 +62,7 @@ export async function generateMetadata(
       },
       mainEntityOfPage: {
         "@type": "WebPage",
-        "@id": `https://techtots.com/blog/${params.slug}`,
+        "@id": `https://techtots.com/blog/${slug}`,
       },
       keywords: keywords.join(", "),
     };
@@ -77,8 +78,14 @@ export async function generateMetadata(
         authors: blogPost.author?.name
           ? [blogPost.author.name]
           : ["TechTots Team"],
-        publishedTime: blogPost.publishedAt,
-        modifiedTime: blogPost.updatedAt || blogPost.publishedAt,
+        publishedTime: blogPost.publishedAt
+          ? new Date(blogPost.publishedAt).toISOString()
+          : undefined,
+        modifiedTime: blogPost.updatedAt
+          ? new Date(blogPost.updatedAt).toISOString()
+          : blogPost.publishedAt
+            ? new Date(blogPost.publishedAt).toISOString()
+            : undefined,
         section: blogPost.category?.name,
         tags: [
           blogPost.stemCategory,
@@ -103,7 +110,7 @@ export async function generateMetadata(
         images: blogPost.coverImage ? [blogPost.coverImage] : [],
       },
       alternates: {
-        canonical: `https://techtots.com/blog/${params.slug}`,
+        canonical: `https://techtots.com/blog/${slug}`,
       },
       other: {
         structuredData: JSON.stringify(structuredData),
