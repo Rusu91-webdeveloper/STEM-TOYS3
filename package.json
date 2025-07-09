@@ -1,6 +1,7 @@
 {
   "name": "nextcommerce",
   "version": "0.1.0",
+  "packageManager": "pnpm@9.14.4",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -40,13 +41,8 @@
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,yaml,yml}": [
-      "prettier --write"
-    ]
+    "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,md,yaml,yml}": ["prettier --write"]
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
