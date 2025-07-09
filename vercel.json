@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm install autoprefixer postcss tailwindcss && prisma generate && next build",
-  "installCommand": "npm install",
+  "buildCommand": "pnpm install autoprefixer postcss tailwindcss && prisma generate && next build",
+  "installCommand": "pnpm install",
   "framework": "nextjs"
 }
