@@ -1,19 +1,18 @@
 "use client";
 
-import { Menu, X, User, Settings, LogOut, Shield } from "lucide-react";
+import { Menu, X, User, Settings, LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 
-import { AuthSettings } from "@/components/auth/AuthSettings";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
 import { CurrencySwitcher } from "@/components/ui/currency-switcher";
 import { CartButton } from "@/features/cart";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
-import { useTranslation , TranslationKey } from "@/lib/i18n";
+import { useTranslation, TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const navigation: { name: TranslationKey; href: string }[] = [
@@ -26,7 +25,6 @@ const navigation: { name: TranslationKey; href: string }[] = [
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [authSettingsOpen, setAuthSettingsOpen] = useState(false);
   const pathname = usePathname();
   const { t } = useTranslation();
   const { data: session, status } = useOptimizedSession();
@@ -143,15 +141,6 @@ export default function Header() {
                 )}
 
                 <Button
-                  onClick={() => setAuthSettingsOpen(true)}
-                  variant="ghost"
-                  className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer shadow-sm hover:shadow h-auto"
-                >
-                  <Shield className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-                  <span>Auth</span>
-                </Button>
-
-                <Button
                   onClick={handleSignOut}
                   variant="ghost"
                   className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer shadow-sm hover:shadow h-auto"
@@ -163,15 +152,6 @@ export default function Header() {
             ) : (
               // Not authenticated or loading - show login
               <div className="flex items-center space-x-1.5 lg:space-x-3 ml-3 lg:ml-6 border-l pl-3 lg:pl-6 border-gray-200">
-                <Button
-                  onClick={() => setAuthSettingsOpen(true)}
-                  variant="ghost"
-                  className="flex items-center gap-1 lg:gap-1.5 px-2 lg:px-4 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer shadow-sm hover:shadow h-auto"
-                >
-                  <Shield className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-                  <span>Auth</span>
-                </Button>
-
                 <Link
                   href="/auth/login"
                   className="flex items-center gap-1 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-md bg-indigo-600 text-white text-xs lg:text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm hover:shadow cursor-pointer"
@@ -187,28 +167,17 @@ export default function Header() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden">
+        <div className="md:hidden fixed inset-0 z-50">
           <div
-            className="fixed inset-0 z-50 bg-gray-800 bg-opacity-50"
+            className="fixed inset-0 bg-black bg-opacity-25"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-4 sm:px-6 py-4 sm:py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
-            <div className="flex items-center justify-between">
-              <Link href="/" className="-m-1 p-1 sm:-m-1.5 sm:p-1.5">
-                <span className="sr-only">TechTots</span>
-                <div className="relative h-12 w-28 sm:h-16 sm:w-32">
-                  <Image
-                    className="object-contain"
-                    src="/TechTots_LOGO.png"
-                    alt="TechTots Logo"
-                    fill
-                    sizes="(max-width: 640px) 7rem, 8rem"
-                  />
-                </div>
-              </Link>
+          <div className="fixed top-0 right-0 bottom-0 w-full max-w-xs bg-white shadow-xl">
+            <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 px-3 sm:px-4 border-b">
+              <h2 className="text-lg font-semibold">Menu</h2>
               <button
                 type="button"
-                className="-m-2 rounded-md p-2 sm:-m-2.5 sm:p-2.5 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                className="rounded-md p-1.5 sm:p-2 text-gray-700 hover:bg-gray-100"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="sr-only">Close menu</span>
@@ -216,25 +185,23 @@ export default function Header() {
               </button>
             </div>
 
-            <div className="mt-4 sm:mt-6 flow-root">
-              <div className="-my-4 sm:-my-6 divide-y divide-gray-500/10">
-                <div className="space-y-1.5 sm:space-y-2 py-4 sm:py-6">
-                  {navigation.map(item => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={cn(
-                        "block rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium transition-all cursor-pointer",
-                        pathname === item.href
-                          ? "bg-indigo-50 text-indigo-700 shadow-sm"
-                          : "text-gray-900 hover:bg-gray-50 hover:text-indigo-600"
-                      )}
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {t(item.name)}
-                    </Link>
-                  ))}
-                </div>
+            <div className="flex flex-col h-full">
+              <div className="flex-1 px-3 sm:px-4 py-3 sm:py-4 space-y-1 sm:space-y-2 overflow-y-auto">
+                {navigation.map(item => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      "block rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium transition-colors cursor-pointer",
+                      pathname === item.href
+                        ? "bg-indigo-50 text-indigo-600"
+                        : "text-gray-900 hover:bg-gray-50 hover:text-indigo-600"
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {t(item.name)}
+                  </Link>
+                ))}
 
                 <div className="py-3 sm:py-4">
                   <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 mt-2">
@@ -270,18 +237,6 @@ export default function Header() {
                         )}
                         <button
                           onClick={() => {
-                            setAuthSettingsOpen(true);
-                            setMobileMenuOpen(false);
-                          }}
-                          className="w-full block rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium text-blue-600 hover:bg-blue-50 cursor-pointer mb-1.5 sm:mb-2"
-                        >
-                          <div className="flex items-center">
-                            <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
-                            <span>Auth Settings</span>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => {
                             handleSignOut();
                             setMobileMenuOpen(false);
                           }}
@@ -295,30 +250,16 @@ export default function Header() {
                       </>
                     ) : (
                       // Not authenticated or loading - show login for mobile
-                      <>
-                        <button
-                          onClick={() => {
-                            setAuthSettingsOpen(true);
-                            setMobileMenuOpen(false);
-                          }}
-                          className="w-full block rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium text-blue-600 hover:bg-blue-50 cursor-pointer mb-3"
-                        >
-                          <div className="flex items-center">
-                            <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
-                            <span>Auth Settings</span>
-                          </div>
-                        </button>
-                        <Link
-                          href="/auth/login"
-                          className="flex items-center w-full justify-center gap-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-md bg-indigo-600 text-white text-sm sm:text-base font-medium hover:bg-indigo-700 transition-colors shadow-sm hover:shadow cursor-pointer"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          {t("login")}
-                          <span aria-hidden="true" className="ml-1">
-                            &rarr;
-                          </span>
-                        </Link>
-                      </>
+                      <Link
+                        href="/auth/login"
+                        className="flex items-center w-full justify-center gap-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-md bg-indigo-600 text-white text-sm sm:text-base font-medium hover:bg-indigo-700 transition-colors shadow-sm hover:shadow cursor-pointer"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {t("login")}
+                        <span aria-hidden="true" className="ml-1">
+                          &rarr;
+                        </span>
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -327,12 +268,6 @@ export default function Header() {
           </div>
         </div>
       )}
-
-      {/* Auth Settings Modal */}
-      <AuthSettings
-        isOpen={authSettingsOpen}
-        onClose={() => setAuthSettingsOpen(false)}
-      />
     </header>
   );
 }
