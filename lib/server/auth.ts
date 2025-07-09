@@ -19,12 +19,30 @@ try {
   serviceConfig = config.serviceConfig;
 } catch (error) {
   console.error("Failed to load config in auth.ts:", error);
+
+  // Determine the correct URL based on environment
+  let nextAuthUrl = process.env.NEXTAUTH_URL;
+
+  if (!nextAuthUrl) {
+    if (process.env.VERCEL_URL) {
+      // On Vercel, use the deployment URL
+      nextAuthUrl = `https://${process.env.VERCEL_URL}`;
+    } else if (process.env.NODE_ENV === "production") {
+      // In production without Vercel, require explicit URL
+      console.error("NEXTAUTH_URL must be set in production");
+      nextAuthUrl = undefined;
+    } else {
+      // Development fallback
+      nextAuthUrl = "http://localhost:3000";
+    }
+  }
+
   // Use fallback values
   env = {
     NODE_ENV: process.env.NODE_ENV ?? "development",
     NEXTAUTH_SECRET:
       process.env.NEXTAUTH_SECRET ?? "development-secret-change-me",
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL ?? "http://localhost:3000",
+    NEXTAUTH_URL: nextAuthUrl,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,

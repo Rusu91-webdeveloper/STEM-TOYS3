@@ -173,7 +173,13 @@ export const env = {
   NODE_ENV: process.env.NODE_ENV || "development",
   DATABASE_URL: process.env.DATABASE_URL || "",
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || "",
-  NEXTAUTH_URL: process.env.NEXTAUTH_URL || "http://localhost:3000",
+  NEXTAUTH_URL:
+    process.env.NEXTAUTH_URL ||
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NODE_ENV === "production"
+        ? "https://stem-toys-3.vercel.app"
+        : "http://localhost:3000"),
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "",
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || "",
 } as const;

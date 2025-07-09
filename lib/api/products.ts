@@ -22,10 +22,14 @@ export async function getCombinedProduct(
     } else {
       // Server environment - use environment variable or default to localhost
       const apiBase =
-        process.env.NEXT_PUBLIC_API_URL ||
-        process.env.NEXT_PUBLIC_SITE_URL ||
         process.env.NEXTAUTH_URL ||
-        "http://localhost:3000";
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        (process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : process.env.NODE_ENV === "production"
+            ? "https://stem-toys-3.vercel.app"
+            : "http://localhost:3000");
 
       // Make sure we have a complete URL with protocol
       const baseUrl = apiBase.startsWith("http")
@@ -123,10 +127,14 @@ export async function getProducts(
     } else {
       // Server environment - use environment variable or default to localhost
       const apiBase =
-        process.env.NEXT_PUBLIC_API_URL ||
-        process.env.NEXT_PUBLIC_SITE_URL ||
         process.env.NEXTAUTH_URL ||
-        "http://localhost:3000";
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        (process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : process.env.NODE_ENV === "production"
+            ? "https://stem-toys-3.vercel.app"
+            : "http://localhost:3000");
 
       // Make sure we have a complete URL with protocol
       const baseUrl = apiBase.startsWith("http")

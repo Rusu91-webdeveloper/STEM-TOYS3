@@ -15,6 +15,20 @@ export function createAuth(config: NextAuthConfig) {
       throw new Error("NEXTAUTH_SECRET is required in production");
     }
 
+    // Determine the correct URL for NextAuth
+    let nextAuthUrl = process.env.NEXTAUTH_URL;
+    if (!nextAuthUrl) {
+      if (process.env.VERCEL_URL) {
+        nextAuthUrl = `https://${process.env.VERCEL_URL}`;
+      } else if (process.env.NODE_ENV === "production") {
+        nextAuthUrl = "https://stem-toys-3.vercel.app";
+      } else {
+        nextAuthUrl = "http://localhost:3000";
+      }
+      // Set the environment variable for NextAuth to use
+      process.env.NEXTAUTH_URL = nextAuthUrl;
+    }
+
     // Add default secret for development if not set
     const authConfig: NextAuthConfig = {
       ...config,
@@ -38,7 +52,8 @@ export function createAuth(config: NextAuthConfig) {
       // Return mock auth functions
       return {
         handlers: {
-          GET: async (req: any) => new Response(
+          GET: async (req: any) =>
+            new Response(
               JSON.stringify({
                 user: null,
                 expires: new Date(
@@ -50,7 +65,8 @@ export function createAuth(config: NextAuthConfig) {
                 headers: { "Content-Type": "application/json" },
               }
             ),
-          POST: async (req: any) => new Response(
+          POST: async (req: any) =>
+            new Response(
               JSON.stringify({
                 error: "Auth not configured properly",
               }),
