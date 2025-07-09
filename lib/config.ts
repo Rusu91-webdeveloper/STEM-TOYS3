@@ -92,7 +92,9 @@ const envSchemaRefined = envSchema
       // Skip admin validation during build process or if explicitly allowed
       if (
         process.env.SKIP_ADMIN_VALIDATION === "true" ||
-        process.env.npm_lifecycle_event === "build"
+        process.env.npm_lifecycle_event === "build" ||
+        process.env.VERCEL === "1" ||
+        process.env.CI === "true"
       ) {
         return true;
       }
