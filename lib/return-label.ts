@@ -8,7 +8,7 @@ interface ReturnLabelProps {
   orderNumber: string;
   returnId: string;
   productName: string;
-  productId: string | null;
+  productId: string;
   productSku: string | null;
   reason: string;
   customerName: string;
@@ -75,7 +75,9 @@ const translations = {
   },
 };
 
-export function generateReturnLabel(props: ReturnLabelProps): Promise<Buffer> {
+export async function generateReturnLabel(
+  props: ReturnLabelProps
+): Promise<Buffer> {
   try {
     const language = props.language || "en";
     const t = translations[language as keyof typeof translations];
@@ -118,7 +120,7 @@ export function generateReturnLabel(props: ReturnLabelProps): Promise<Buffer> {
 
     // Create a buffer to store the PDF
     const chunks: Buffer[] = [];
-    doc.on("data", chunk => chunks.push(chunk));
+    doc.on("data", (chunk) => chunks.push(chunk));
 
     // Header with TechTots branding
     doc.rect(0, 0, 595.28, 60).fill("#2563eb");

@@ -1,23 +1,22 @@
 "use client";
 
-import { Shield, Award, ShieldCheck , Loader2 } from "lucide-react";
-import { useRouter , useRouter as useNextRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
-
-import { useCart } from "@/features/cart";
-import { useOptimizedSession } from "@/lib/auth/SessionContext";
-import { useTranslation } from "@/lib/i18n";
-
-import { createOrder } from "../lib/checkoutApi";
 import { CheckoutStep, CheckoutData } from "../types";
-
-import { CheckoutSummary } from "./CheckoutSummary";
-import { EnhancedCheckoutStepper } from "./EnhancedCheckoutStepper";
-import { GuestInformationForm } from "./GuestInformationForm";
-import { OrderReview } from "./OrderReview";
-import { PaymentForm } from "./PaymentForm";
 import { ShippingAddressForm } from "./ShippingAddressForm";
 import { ShippingMethodSelector } from "./ShippingMethodSelector";
+import { PaymentForm } from "./PaymentForm";
+import { OrderReview } from "./OrderReview";
+import { CheckoutSummary } from "./CheckoutSummary";
+import { EnhancedCheckoutStepper } from "./EnhancedCheckoutStepper";
+import { createOrder } from "../lib/checkoutApi";
+import { useRouter } from "next/navigation";
+import { useCart } from "@/features/cart";
+import { useTranslation } from "@/lib/i18n";
+import { Shield, Award, ShieldCheck } from "lucide-react";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
+import { useRouter as useNextRouter } from "next/navigation";
+import { GuestInformationForm } from "./GuestInformationForm";
+import { Loader2 } from "lucide-react";
 
 export function CheckoutFlow() {
   const router = useRouter();
@@ -157,7 +156,7 @@ export function CheckoutFlow() {
         const taxSettings = await fetch("/api/checkout/tax-settings");
         if (taxSettings.ok) {
           const taxData = await taxSettings.json();
-          if (taxData.taxSettings?.active) {
+          if (taxData.taxSettings && taxData.taxSettings.active) {
             taxRate = parseFloat(taxData.taxSettings.rate) / 100;
           }
         }
@@ -174,7 +173,7 @@ export function CheckoutFlow() {
         const shippingSettings = await fetch("/api/checkout/shipping-settings");
         if (shippingSettings.ok) {
           const shippingData = await shippingSettings.json();
-          if (shippingData.freeThreshold?.active) {
+          if (shippingData.freeThreshold && shippingData.freeThreshold.active) {
             const freeShippingThreshold = parseFloat(
               shippingData.freeThreshold.price
             );

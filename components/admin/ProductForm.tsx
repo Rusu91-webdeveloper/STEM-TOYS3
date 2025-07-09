@@ -502,12 +502,6 @@ export default function ProductForm({
                               step="0.01"
                               placeholder="0.00"
                               {...field}
-                              value={
-                                field.value === null ||
-                                field.value === undefined
-                                  ? ""
-                                  : field.value
-                              }
                               onChange={e => {
                                 const value = e.target.value
                                   ? parseFloat(e.target.value)

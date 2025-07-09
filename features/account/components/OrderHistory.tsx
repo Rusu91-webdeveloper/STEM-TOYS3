@@ -1,11 +1,7 @@
 "use client";
 
-import { Package, Eye, ArrowRight, ShoppingBag } from "lucide-react";
-import Link from "next/link";
 import React, { useState } from "react";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -14,13 +10,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCurrency } from "@/lib/currency";
-import { useTranslation } from "@/lib/i18n";
+import { Package, Eye, ArrowRight, ShoppingBag } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/lib/i18n";
+import { useCurrency } from "@/lib/currency";
 
-// Define order status type (only mapped values)
+// Define order status type
 type OrderStatus = "processing" | "shipped" | "delivered" | "cancelled";
 
 // Define order item type
@@ -95,8 +94,9 @@ const isWithinReturnWindow = (order: Order) => {
 };
 
 // Helper function to check if order has returnable items (non-digital items)
-const hasReturnableItems = (order: Order) =>
-  order.items.some(item => !item.isDigital);
+const hasReturnableItems = (order: Order) => {
+  return order.items.some(item => !item.isDigital);
+};
 
 export function OrderHistory({ initialOrders }: OrderHistoryProps) {
   const { t } = useTranslation();

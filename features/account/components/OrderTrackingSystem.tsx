@@ -1,5 +1,19 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+import { formatDate } from "@/lib/utils";
+import { useCurrency } from "@/lib/currency";
 import {
   Package,
   Truck,
@@ -18,20 +32,6 @@ import {
   Bell,
   BellOff,
 } from "lucide-react";
-import React, { useState, useEffect } from "react";
-
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useCurrency } from "@/lib/currency";
-import { formatDate } from "@/lib/utils";
 
 interface TrackingEvent {
   id: string;
@@ -277,10 +277,12 @@ export function OrderTrackingSystem({
     setNotificationsEnabled(!notificationsEnabled);
   };
 
-  const getStatusInfo = (statusKey: string) => (
+  const getStatusInfo = (statusKey: string) => {
+    return (
       ORDER_STATUSES[statusKey as keyof typeof ORDER_STATUSES] ||
       ORDER_STATUSES.PENDING
     );
+  };
 
   const getEventIcon = (eventStatus: string) => {
     switch (eventStatus) {

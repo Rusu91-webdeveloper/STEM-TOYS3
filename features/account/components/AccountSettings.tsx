@@ -1,12 +1,6 @@
 "use client";
 
-import { setCookie } from "cookies-next";
-import { LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import React, { useState } from "react";
-
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,7 +9,9 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -23,9 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n";
+import { useRouter } from "next/navigation";
+import { setCookie } from "cookies-next";
+import { LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 export function AccountSettings() {
   const { t, language } = useTranslation();

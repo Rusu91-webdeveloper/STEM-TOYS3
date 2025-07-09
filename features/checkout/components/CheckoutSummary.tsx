@@ -1,13 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-
 import { useCart } from "@/features/cart";
-import CouponInput from "@/features/cart/components/CouponInput";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
-
 import { fetchShippingSettings, fetchTaxSettings } from "../lib/checkoutApi";
+import CouponInput from "@/features/cart/components/CouponInput";
 
 interface TaxSettings {
   rate: string;
@@ -62,7 +60,8 @@ export function CheckoutSummary({
         // Load shipping settings
         const shippingSettings = await fetchShippingSettings();
         if (
-          shippingSettings.freeThreshold?.active
+          shippingSettings.freeThreshold &&
+          shippingSettings.freeThreshold.active
         ) {
           setFreeShippingThreshold(
             parseFloat(shippingSettings.freeThreshold.price)
@@ -143,7 +142,7 @@ export function CheckoutSummary({
           {t("freeShippingApplied", "Free shipping applied!")}
         </div>
       );
-    } 
+    } else {
       const amountNeeded = freeShippingThreshold - subtotal;
       return (
         <div className="mt-2 p-2 bg-blue-50 text-blue-700 rounded-md text-sm">
@@ -151,7 +150,7 @@ export function CheckoutSummary({
           {t("moreForFreeShipping", "more for free shipping")}
         </div>
       );
-    
+    }
   };
 
   if (isLoading) {

@@ -1,15 +1,14 @@
 "use client";
 
-import { format } from "date-fns";
-import { ArrowLeft } from "lucide-react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
-
-import { Button } from "@/components/ui/button";
-import { Share } from "@/components/ui/share";
-import { BlogPost } from "@/lib/api/blog";
+import { ArrowLeft } from "lucide-react";
+import { format } from "date-fns";
 import { useTranslation } from "@/lib/i18n";
+import { Share } from "@/components/ui/share";
+import { Button } from "@/components/ui/button";
+import { BlogPost } from "@/lib/api/blog";
 
 interface BlogPostDetailProps {
   post: BlogPost;

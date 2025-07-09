@@ -1,5 +1,8 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import {
   X,
   Plus,
@@ -10,13 +13,11 @@ import {
   Scale,
   Heart,
 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import React, { useState, useEffect } from "react";
-
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -24,12 +25,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
-import { useCurrency } from "@/lib/currency";
-import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
+import { useCurrency } from "@/lib/currency";
 import type { Product } from "@/types/product";
 
 interface ComparisonProduct extends Product {
@@ -199,9 +198,7 @@ export function ProductComparison({
       case "stem_category":
         return (product as any).stemCategory;
       case "difficulty":
-        return product.attributes && typeof product.attributes === "object"
-          ? (product.attributes as Record<string, any>)["difficulty"]
-          : null;
+        return attrs?.difficulty;
       default:
         return null;
     }
@@ -574,8 +571,9 @@ export function useProductComparison() {
     localStorage.removeItem(COMPARISON_STORAGE_KEY);
   };
 
-  const isInComparison = (productId: string) =>
-    products.some(p => p.id === productId);
+  const isInComparison = (productId: string) => {
+    return products.some(p => p.id === productId);
+  };
 
   return {
     products,

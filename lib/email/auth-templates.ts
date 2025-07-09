@@ -18,7 +18,6 @@ import {
 /**
  * Welcome email with SEO optimized links and content
  */
- 
 export async function sendWelcomeEmail({
   to,
   name,
@@ -26,9 +25,8 @@ export async function sendWelcomeEmail({
   to: string;
   name: string;
 }) {
-  await Promise.resolve();
   const storeSettings = await getStoreSettings();
-  const _baseUrl = getBaseUrl();
+  const baseUrl = getBaseUrl();
 
   const content = `
     ${generateEmailHeader(storeSettings)}
@@ -50,7 +48,7 @@ export async function sendWelcomeEmail({
     </div>
     
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${_baseUrl}/products/featured" 
+      <a href="${baseUrl}/products/featured" 
          style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
         🎯 Descoperă Jucăriile STEM Recomandate
       </a>
@@ -59,19 +57,19 @@ export async function sendWelcomeEmail({
     <h2 style="color: #1f2937; margin: 40px 0 20px 0; text-align: center; font-size: 22px;">🔬 Categorii Populare</h2>
     <div style="display: flex; justify-content: space-between; margin-bottom: 32px; text-align: center;">
       <div style="flex: 1; margin: 0 8px;">
-        <a href="${_baseUrl}/categories" style="text-decoration: none; color: #1f2937; display: block; padding: 16px; background-color: #f8fafc; border-radius: 8px; border: 2px solid #e5e7eb; transition: all 0.3s;">
+        <a href="${baseUrl}/categories" style="text-decoration: none; color: #1f2937; display: block; padding: 16px; background-color: #f8fafc; border-radius: 8px; border: 2px solid #e5e7eb; transition: all 0.3s;">
           <div style="font-size: 24px; margin-bottom: 8px;">🧪</div>
           <p style="font-weight: 600; margin: 0; color: #3b82f6;">Știință</p>
         </a>
       </div>
       <div style="flex: 1; margin: 0 8px;">
-        <a href="${_baseUrl}/categories" style="text-decoration: none; color: #1f2937; display: block; padding: 16px; background-color: #f8fafc; border-radius: 8px; border: 2px solid #e5e7eb; transition: all 0.3s;">
+        <a href="${baseUrl}/categories" style="text-decoration: none; color: #1f2937; display: block; padding: 16px; background-color: #f8fafc; border-radius: 8px; border: 2px solid #e5e7eb; transition: all 0.3s;">
           <div style="font-size: 24px; margin-bottom: 8px;">💻</div>
           <p style="font-weight: 600; margin: 0; color: #3b82f6;">Tehnologie</p>
         </a>
       </div>
       <div style="flex: 1; margin: 0 8px;">
-        <a href="${_baseUrl}/categories" style="text-decoration: none; color: #1f2937; display: block; padding: 16px; background-color: #f8fafc; border-radius: 8px; border: 2px solid #e5e7eb; transition: all 0.3s;">
+        <a href="${baseUrl}/categories" style="text-decoration: none; color: #1f2937; display: block; padding: 16px; background-color: #f8fafc; border-radius: 8px; border: 2px solid #e5e7eb; transition: all 0.3s;">
           <div style="font-size: 24px; margin-bottom: 8px;">🔧</div>
           <p style="font-weight: 600; margin: 0; color: #3b82f6;">Inginerie</p>
         </a>
@@ -87,19 +85,17 @@ export async function sendWelcomeEmail({
 
   const html = generateEmailHTML(content, storeSettings, "Bine ai venit");
 
-  const result = await sendMail({
+  return sendMail({
     to,
     subject: roTranslations.email_welcome_subject,
     html,
     params: { email: to },
   });
-  return result;
 }
 
 /**
  * Verification email with SEO optimized links
  */
- 
 export async function sendVerificationEmail({
   to,
   name,
@@ -111,9 +107,8 @@ export async function sendVerificationEmail({
   verificationLink: string;
   expiresIn?: string;
 }) {
-  await Promise.resolve();
   const storeSettings = await getStoreSettings();
-  const _baseUrl = getBaseUrl();
+  const baseUrl = getBaseUrl();
 
   // Fetch the latest 2 published blog posts
   const latestBlogs = await prisma.blog.findMany({
@@ -136,7 +131,7 @@ export async function sendVerificationEmail({
           ${latestBlogs
             .map(
               blog =>
-                `<li style="margin-bottom: 8px;"><a href="${_baseUrl}/blog/${blog.slug}" style="color: #3b82f6; text-decoration: none;">${blog.title}</a></li>`
+                `<li style="margin-bottom: 8px;"><a href="${baseUrl}/blog/${blog.slug}" style="color: #3b82f6; text-decoration: none;">${blog.title}</a></li>`
             )
             .join("")}
         </ul>
@@ -147,7 +142,7 @@ export async function sendVerificationEmail({
       <div style="background-color: #eff6ff; border-radius: 8px; padding: 20px;">
         <p style="margin: 0 0 12px 0; color: #1e40af; font-weight: 600;">Consultă articolele noastre despre educația STEM:</p>
         <p style="margin: 0; color: #1f2937;">
-          <a href="${_baseUrl}/blog" style="color: #3b82f6; text-decoration: none;">Vizitează blogul nostru pentru articole educaționale</a>
+          <a href="${baseUrl}/blog" style="color: #3b82f6; text-decoration: none;">Vizitează blogul nostru pentru articole educaționale</a>
         </p>
       </div>
     `;
@@ -191,19 +186,17 @@ export async function sendVerificationEmail({
     "Verifică adresa de email"
   );
 
-  const result = await sendMail({
+  return sendMail({
     to,
     subject: roTranslations.email_verification_subject,
     html,
     params: { email: to },
   });
-  return result;
 }
 
 /**
  * Password reset email with SEO optimized links
  */
- 
 export async function sendPasswordResetEmail({
   to,
   resetLink,
@@ -213,9 +206,8 @@ export async function sendPasswordResetEmail({
   resetLink: string;
   expiresIn?: string;
 }) {
-  await Promise.resolve();
   const storeSettings = await getStoreSettings();
-  const _baseUrl = getBaseUrl();
+  const baseUrl = getBaseUrl();
 
   const content = `
     ${generateEmailHeader(storeSettings)}
@@ -251,11 +243,10 @@ export async function sendPasswordResetEmail({
 
   const html = generateEmailHTML(content, storeSettings, "Resetare Parolă");
 
-  const result = await sendMail({
+  return sendMail({
     to,
     subject: "🔑 Resetare parolă pentru contul tău",
     html,
     params: { email: to },
   });
-  return result;
 }

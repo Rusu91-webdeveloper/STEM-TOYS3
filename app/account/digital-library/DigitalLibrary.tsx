@@ -9,8 +9,6 @@ import {
   Book,
   Calendar,
 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -23,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
 
 interface DigitalFile {
   id: string;
@@ -79,11 +78,10 @@ export function DigitalLibrary({ orders }: Props) {
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
   };
 
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("ro-RO", {
+  const formatPrice = (price: number) => new Intl.NumberFormat("ro-RO", {
       style: "currency",
       currency: "RON",
     }).format(price);
@@ -178,7 +176,7 @@ export function DigitalLibrary({ orders }: Props) {
 
   return (
     <div className="space-y-6">
-      {orders.map(order => (
+      {orders.map((order) => (
         <Card key={order.id}>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -201,12 +199,12 @@ export function DigitalLibrary({ orders }: Props) {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {order.items.map(item => {
+              {order.items.map((item) => {
                 const book = item.book;
                 const hasActiveDownloads = item.downloads.some(
-                  download => !isDownloadExpired(download.expiresAt)
+                  (download) => !isDownloadExpired(download.expiresAt)
                 );
-                const hasExpiredDownloads = item.downloads.some(download =>
+                const hasExpiredDownloads = item.downloads.some((download) =>
                   isDownloadExpired(download.expiresAt)
                 );
                 const downloadExpired = isDownloadExpired(
@@ -214,16 +212,18 @@ export function DigitalLibrary({ orders }: Props) {
                 );
 
                 return (
-                  <div key={item.id} className="border rounded-lg p-6">
+                  <div
+                    key={item.id}
+                    className="border rounded-lg p-6">
                     <div className="flex items-start gap-4">
                       {book.coverImage && (
                         <Image
-                          src={book.coverImage}
-                          alt={book.name}
-                          width={80}
-                          height={112}
-                          className="object-cover rounded-md"
-                        />
+                        src={book.coverImage}
+                        alt={book.name}
+                        width={80}
+                        height={112}
+                        className="object-cover rounded-md"
+                      />
                       )}
 
                       <div className="flex-1">
@@ -250,8 +250,7 @@ export function DigitalLibrary({ orders }: Props) {
                               <span
                                 className={
                                   downloadExpired ? "text-red-600" : ""
-                                }
-                              >
+                                }>
                                 Expiră la{" "}
                                 {new Date(
                                   item.downloadExpiresAt
@@ -268,8 +267,10 @@ export function DigitalLibrary({ orders }: Props) {
                               Formate disponibile:
                             </h4>
                             <div className="flex gap-2">
-                              {book.digitalFiles.map(file => (
-                                <Badge key={file.id} variant="outline">
+                              {book.digitalFiles.map((file) => (
+                                <Badge
+                                  key={file.id}
+                                  variant="outline">
                                   {file.format.toUpperCase()} -{" "}
                                   {file.language === "en"
                                     ? "English"
@@ -290,7 +291,7 @@ export function DigitalLibrary({ orders }: Props) {
                               Link-uri de descărcare:
                             </h4>
                             <div className="space-y-2">
-                              {item.downloads.map(download => {
+                              {item.downloads.map((download) => {
                                 const expired = isDownloadExpired(
                                   download.expiresAt
                                 );
@@ -299,8 +300,7 @@ export function DigitalLibrary({ orders }: Props) {
                                 return (
                                   <div
                                     key={download.id}
-                                    className="flex items-center justify-between p-3 border rounded-md"
-                                  >
+                                    className="flex items-center justify-between p-3 border rounded-md">
                                     <div className="flex items-center gap-3">
                                       <FileText className="h-4 w-4" />
                                       <div>
@@ -324,8 +324,7 @@ export function DigitalLibrary({ orders }: Props) {
                                       {used && (
                                         <Badge
                                           variant="secondary"
-                                          className="text-xs"
-                                        >
+                                          className="text-xs">
                                           <CheckCircle className="h-3 w-3 mr-1" />
                                           Descărcat
                                         </Badge>
@@ -334,8 +333,7 @@ export function DigitalLibrary({ orders }: Props) {
                                       {expired && (
                                         <Badge
                                           variant="destructive"
-                                          className="text-xs"
-                                        >
+                                          className="text-xs">
                                           <AlertCircle className="h-3 w-3 mr-1" />
                                           Expirat
                                         </Badge>
@@ -350,8 +348,7 @@ export function DigitalLibrary({ orders }: Props) {
                                             download.downloadToken,
                                             download.digitalFile.fileName
                                           )
-                                        }
-                                      >
+                                        }>
                                         <Download className="h-4 w-4" />
                                       </Button>
                                     </div>
@@ -369,8 +366,7 @@ export function DigitalLibrary({ orders }: Props) {
                             <div className="mt-4">
                               <Button
                                 onClick={() => generateDownloadLinks(item.id)}
-                                disabled={isGeneratingLinks === item.id}
-                              >
+                                disabled={isGeneratingLinks === item.id}>
                                 {isGeneratingLinks === item.id
                                   ? "Se generează..."
                                   : "Generează Link-uri de Descărcare"}

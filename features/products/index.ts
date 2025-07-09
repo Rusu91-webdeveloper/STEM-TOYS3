@@ -21,3 +21,7 @@ export { RelatedProducts } from "./components/RelatedProducts";
 
 // Create and export the new client products page component when it's created
 // export { ClientProductsPage } from "./components/ClientProductsPage";
+
+// Reexport types
+export type { FilterGroup, FilterOption } from "./components/ProductFilters";
+export type { PriceRange } from "./components/PriceRangeFilter";

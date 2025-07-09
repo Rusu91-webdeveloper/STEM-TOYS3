@@ -61,7 +61,7 @@ export class ProductRepository extends BaseRepository<
   /**
    * Find products with advanced filtering and search
    */
-  findWithFilters(
+  async findWithFilters(
     filters: ProductFilters = {},
     pagination: PaginationOptions = {},
     options: ProductSearchOptions = {}
@@ -125,7 +125,7 @@ export class ProductRepository extends BaseRepository<
       where.tags = { hasSome: tags };
     }
 
-    return this.findMany(where, pagination, {
+    return await this.findMany(where, pagination, {
       ...options,
       include: {
         category: options.include?.category,
@@ -155,22 +155,22 @@ export class ProductRepository extends BaseRepository<
   /**
    * Find products by category
    */
-  findByCategory(
+  async findByCategory(
     categorySlug: string,
     pagination: PaginationOptions = {},
     options: ProductSearchOptions = {}
   ) {
-    return this.findWithFilters({ categorySlug }, pagination, options);
+    return await this.findWithFilters({ categorySlug }, pagination, options);
   }
 
   /**
    * Find featured products
    */
-  findFeatured(
+  async findFeatured(
     pagination: PaginationOptions = {},
     options: ProductSearchOptions = {}
   ) {
-    return this.findWithFilters({ featured: true }, pagination, {
+    return await this.findWithFilters({ featured: true }, pagination, {
       ...options,
       orderBy: { createdAt: "desc" },
     });
@@ -179,7 +179,7 @@ export class ProductRepository extends BaseRepository<
   /**
    * Find products with low stock
    */
-  findLowStock(
+  async findLowStock(
     threshold: number = 10,
     pagination: PaginationOptions = {},
     options: ProductSearchOptions = {}
@@ -189,7 +189,7 @@ export class ProductRepository extends BaseRepository<
       isActive: true,
     };
 
-    return this.findMany(where, pagination, {
+    return await this.findMany(where, pagination, {
       ...options,
       orderBy: { stockQuantity: "asc" },
     });
@@ -198,7 +198,7 @@ export class ProductRepository extends BaseRepository<
   /**
    * Find out of stock products
    */
-  findOutOfStock(
+  async findOutOfStock(
     pagination: PaginationOptions = {},
     options: ProductSearchOptions = {}
   ) {
@@ -207,7 +207,7 @@ export class ProductRepository extends BaseRepository<
       isActive: true,
     };
 
-    return this.findMany(where, pagination, {
+    return await this.findMany(where, pagination, {
       ...options,
       orderBy: { updatedAt: "desc" },
     });
@@ -245,7 +245,7 @@ export class ProductRepository extends BaseRepository<
       ],
     };
 
-    return this.findMany(
+    return await this.findMany(
       where,
       { limit },
       {
@@ -280,7 +280,7 @@ export class ProductRepository extends BaseRepository<
       updateData.stockQuantity = newQuantity;
     }
 
-    return this.update(productId, updateData);
+    return await this.update(productId, updateData);
   }
 
   /**

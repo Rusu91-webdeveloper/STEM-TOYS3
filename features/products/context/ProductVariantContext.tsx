@@ -7,7 +7,6 @@ import React, {
   ReactNode,
   useCallback,
 } from "react";
-
 import type { Variant } from "@/components/products/VariantSelector";
 
 interface ProductVariantContextType {

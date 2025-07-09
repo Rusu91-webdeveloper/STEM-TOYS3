@@ -4,14 +4,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
 import "../env"; // Load environment variables early
-import { createAuth } from "@/lib/auth-wrapper";
-
 import { hashAdminPassword, verifyAdminPassword } from "../admin-auth";
-import { verifyPassword } from "../auth-utils";
 import { db } from "../db";
-import { withRetry } from "../db-helpers";
+import { withRetry, verifyUserExists } from "../db-helpers";
 import { logger } from "../logger";
 
+import { verifyPassword } from "../auth-utils";
 let env: Record<string, string | undefined>;
 let serviceConfig: Record<string, () => boolean>;
 
@@ -496,7 +494,7 @@ export const authOptions: NextAuthConfig = {
 
       return true; // Allow sign-in
     },
-    session({ session, token }) {
+    async session({ session, token }) {
       // Assign token data to session
       if (token) {
         session.user.id = token.id || token.sub || "";
@@ -556,6 +554,7 @@ export const authOptions: NextAuthConfig = {
 };
 
 // Import the wrapper
+import { createAuth } from "@/lib/auth-wrapper";
 
 // For Next Auth v5 - use the wrapper with error handling
 let authInstance: any;
@@ -566,19 +565,19 @@ try {
   // Use a basic fallback for development
   authInstance = {
     handlers: {
-      GET: () =>
+      GET: async () =>
         new Response(JSON.stringify({ user: null }), {
           headers: { "Content-Type": "application/json" },
         }),
-      POST: () =>
+      POST: async () =>
         new Response(JSON.stringify({ error: "Auth not configured" }), {
           status: 500,
           headers: { "Content-Type": "application/json" },
         }),
     },
-    auth: () => null,
-    signIn: () => ({ error: "Auth not configured" }),
-    signOut: () => ({ error: "Auth not configured" }),
+    auth: async () => null,
+    signIn: async () => ({ error: "Auth not configured" }),
+    signOut: async () => ({ error: "Auth not configured" }),
   };
 }
 

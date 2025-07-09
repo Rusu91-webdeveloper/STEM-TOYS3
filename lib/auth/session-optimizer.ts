@@ -7,7 +7,7 @@ import { cache } from "../cache";
 // Optional JWT support - install jsonwebtoken if needed
 let jwt: any;
 try {
-  jwt = require("jsonwebtoken");
+  jwt = require('jsonwebtoken');
 } catch {
   // JWT not available - will skip JWT validation
 }
@@ -25,13 +25,13 @@ export interface SessionOptimizationConfig {
 
 // Default configuration
 const defaultConfig: SessionOptimizationConfig = {
-  enabled: process.env.NODE_ENV === "production",
+  enabled: process.env.NODE_ENV === 'production',
   cacheTimeout: 300, // 5 minutes
   jwtVerifyCache: true,
   backgroundRefresh: true,
   parallelValidation: true,
   skipDatabaseForJWT: true,
-  sessionCleanupInterval: 3600, // 1 hour
+  sessionCleanupInterval: 3600 // 1 hour
 };
 
 // Session cache keys
@@ -40,7 +40,7 @@ const CACHE_KEYS = {
   USER: (userId: string) => `user:${userId}`,
   JWT_VERIFY: (token: string) => `jwt:${token.slice(-8)}`, // Use last 8 chars as key
   PERMISSIONS: (userId: string) => `permissions:${userId}`,
-  RATE_LIMIT: (identifier: string) => `rate_limit:${identifier}`,
+  RATE_LIMIT: (identifier: string) => `rate_limit:${identifier}`
 };
 
 // Session validation statistics
@@ -62,20 +62,20 @@ export class SessionOptimizer {
     databaseQueries: 0,
     jwtVerifications: 0,
     averageResponseTime: 0,
-    errors: 0,
+    errors: 0
   };
   private cleanupInterval?: NodeJS.Timeout;
 
   constructor(config: Partial<SessionOptimizationConfig> = {}) {
     this.config = { ...defaultConfig, ...config };
-
+    
     if (this.config.enabled) {
-      logger.info("Session optimization enabled", {
+      logger.info('Session optimization enabled', {
         cacheTimeout: this.config.cacheTimeout,
         skipDatabaseForJWT: this.config.skipDatabaseForJWT,
-        backgroundRefresh: this.config.backgroundRefresh,
+        backgroundRefresh: this.config.backgroundRefresh
       });
-
+      
       this.startCleanupInterval();
     }
   }
@@ -83,14 +83,11 @@ export class SessionOptimizer {
   /**
    * Optimized session validation without blocking database calls
    */
-  async validateSession(
-    sessionToken: string,
-    options: {
-      requireFresh?: boolean;
-      includePermissions?: boolean;
-      allowStale?: boolean;
-    } = {}
-  ): Promise<{
+  async validateSession(sessionToken: string, options: {
+    requireFresh?: boolean;
+    includePermissions?: boolean;
+    allowStale?: boolean;
+  } = {}): Promise<{
     valid: boolean;
     user?: any;
     session?: any;
@@ -99,72 +96,51 @@ export class SessionOptimizer {
     responseTime: number;
   }> {
     const startTime = Date.now();
-    const {
-      requireFresh = false,
-      includePermissions = false,
-      allowStale = true,
-    } = options;
+    const { requireFresh = false, includePermissions = false, allowStale = true } = options;
 
     try {
       // Try JWT-only validation first (fastest)
       if (this.config.skipDatabaseForJWT && this.isJWT(sessionToken)) {
-        const jwtResult = await this.validateJWTSession(
-          sessionToken,
-          includePermissions
-        );
+        const jwtResult = await this.validateJWTSession(sessionToken, includePermissions);
         if (jwtResult.valid) {
           const responseTime = Date.now() - startTime;
-          this.updateStats("success", responseTime, true);
+          this.updateStats('success', responseTime, true);
           return { ...jwtResult, responseTime };
         }
       }
 
       // Try cache lookup (second fastest)
       if (!requireFresh) {
-        const cacheResult = await this.validateCachedSession(
-          sessionToken,
-          includePermissions
-        );
+        const cacheResult = await this.validateCachedSession(sessionToken, includePermissions);
         if (cacheResult.valid) {
           const responseTime = Date.now() - startTime;
-          this.updateStats("success", responseTime, true);
+          this.updateStats('success', responseTime, true);
           return { ...cacheResult, responseTime };
         }
       }
 
       // Fall back to database validation (slowest)
-      const dbResult = await this.validateDatabaseSession(
-        sessionToken,
-        includePermissions
-      );
+      const dbResult = await this.validateDatabaseSession(sessionToken, includePermissions);
       const responseTime = Date.now() - startTime;
-
+      
       // Cache the result for future use
       if (dbResult.valid && dbResult.session) {
-        await this.cacheSessionData(
-          dbResult.session,
-          dbResult.user,
-          dbResult.permissions
-        );
+        await this.cacheSessionData(dbResult.session, dbResult.user, dbResult.permissions);
       }
 
-      this.updateStats("success", responseTime, false);
+      this.updateStats('success', responseTime, false);
       return { ...dbResult, responseTime };
+
     } catch (error) {
       const responseTime = Date.now() - startTime;
       this.stats.errors++;
-      logger.error("Session validation failed", {
-        error,
-        sessionToken: sessionToken.slice(-8),
-      });
-
+      logger.error('Session validation failed', { error, sessionToken: sessionToken.slice(-8) });
+      
       // If stale cache is allowed, try to return cached data
       if (allowStale) {
         const staleResult = await this.getStaleSession(sessionToken);
         if (staleResult.valid) {
-          logger.warn("Using stale session data due to error", {
-            sessionToken: sessionToken.slice(-8),
-          });
+          logger.warn('Using stale session data due to error', { sessionToken: sessionToken.slice(-8) });
           return { ...staleResult, responseTime };
         }
       }
@@ -172,7 +148,7 @@ export class SessionOptimizer {
       return {
         valid: false,
         fromCache: false,
-        responseTime,
+        responseTime
       };
     }
   }
@@ -180,10 +156,7 @@ export class SessionOptimizer {
   /**
    * Validate JWT session without database lookup
    */
-  private async validateJWTSession(
-    token: string,
-    includePermissions: boolean = false
-  ): Promise<{
+  private async validateJWTSession(token: string, includePermissions: boolean = false): Promise<{
     valid: boolean;
     user?: any;
     session?: any;
@@ -204,7 +177,7 @@ export class SessionOptimizer {
       // Verify JWT
       const jwtSecret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET;
       if (!jwtSecret) {
-        throw new Error("JWT secret not configured");
+        throw new Error('JWT secret not configured');
       }
 
       const decoded = jwt.verify(token, jwtSecret) as any;
@@ -216,15 +189,15 @@ export class SessionOptimizer {
           id: decoded.sub || decoded.userId,
           email: decoded.email,
           name: decoded.name,
-          role: decoded.role || "user",
+          role: decoded.role || 'user'
         },
         session: {
           id: decoded.jti || token.slice(-8),
           userId: decoded.sub || decoded.userId,
-          expiresAt: new Date(decoded.exp * 1000),
+          expiresAt: new Date(decoded.exp * 1000)
         },
         permissions: decoded.permissions || [],
-        fromCache: false,
+        fromCache: false
       };
 
       // Cache the JWT verification result
@@ -234,21 +207,17 @@ export class SessionOptimizer {
       }
 
       return result;
-    } catch (error) {
-      logger.debug("JWT validation failed", {
-        error: (error as Error).message,
-      });
-      return { valid: false, fromCache: false };
-    }
+
+         } catch (error) {
+       logger.debug('JWT validation failed', { error: (error as Error).message });
+       return { valid: false, fromCache: false };
+     }
   }
 
   /**
    * Validate session using cached data
    */
-  private async validateCachedSession(
-    sessionToken: string,
-    includePermissions: boolean = false
-  ): Promise<{
+  private async validateCachedSession(sessionToken: string, includePermissions: boolean = false): Promise<{
     valid: boolean;
     user?: any;
     session?: any;
@@ -273,7 +242,7 @@ export class SessionOptimizer {
       let permissions: string[] = [];
       if (includePermissions && cachedSession.userId) {
         const permissionsKey = CACHE_KEYS.PERMISSIONS(cachedSession.userId);
-        permissions = (await cache.get(permissionsKey)) || [];
+        permissions = await cache.get(permissionsKey) || [];
       }
 
       return {
@@ -281,10 +250,11 @@ export class SessionOptimizer {
         user: cachedUser,
         session: cachedSession,
         permissions,
-        fromCache: true,
+        fromCache: true
       };
+
     } catch (error) {
-      logger.error("Cache session validation failed", { error });
+      logger.error('Cache session validation failed', { error });
       return { valid: false, fromCache: false };
     }
   }
@@ -292,10 +262,7 @@ export class SessionOptimizer {
   /**
    * Validate session using database (fallback)
    */
-  private async validateDatabaseSession(
-    sessionToken: string,
-    includePermissions: boolean = false
-  ): Promise<{
+  private async validateDatabaseSession(sessionToken: string, includePermissions: boolean = false): Promise<{
     valid: boolean;
     user?: any;
     session?: any;
@@ -303,13 +270,56 @@ export class SessionOptimizer {
     fromCache: boolean;
   }> {
     this.stats.databaseQueries++;
-
+    
     try {
-      // No Session or UserPermission model in schema. Use JWT or User lookup only.
-      // If you have a mapping from sessionToken to user, implement it here. Otherwise, fallback to JWT only.
-      return { valid: false, fromCache: false };
+      // Import prisma dynamically to avoid circular dependencies
+      const { prisma } = await import('../db');
+
+      // Query session with user data
+      const session = await prisma.session.findUnique({
+        where: { sessionToken },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              emailVerified: true,
+              isActive: true
+            }
+          }
+        }
+      });
+
+      if (!session || session.expires < new Date()) {
+        return { valid: false, fromCache: false };
+      }
+
+      let permissions: string[] = [];
+      if (includePermissions && session.user) {
+        // Get user permissions if needed
+        const userPermissions = await prisma.userPermission.findMany({
+          where: { userId: session.user.id },
+          select: { permission: true }
+        });
+        permissions = userPermissions.map(p => p.permission);
+      }
+
+      return {
+        valid: true,
+        user: session.user,
+        session: {
+          id: session.id,
+          userId: session.userId,
+          expiresAt: session.expires
+        },
+        permissions,
+        fromCache: false
+      };
+
     } catch (error) {
-      logger.error("Database session validation failed", { error });
+      logger.error('Database session validation failed', { error });
       return { valid: false, fromCache: false };
     }
   }
@@ -317,29 +327,19 @@ export class SessionOptimizer {
   /**
    * Cache session data
    */
-  private async cacheSessionData(
-    session: any,
-    user: any,
-    permissions?: string[]
-  ): Promise<void> {
+  private async cacheSessionData(session: any, user: any, permissions?: string[]): Promise<void> {
     try {
       const sessionKey = CACHE_KEYS.SESSION(session.sessionToken || session.id);
       const userKey = CACHE_KEYS.USER(session.userId);
 
-      await Promise.all(
-        [
-          cache.set(sessionKey, session, this.config.cacheTimeout),
-          cache.set(userKey, user, this.config.cacheTimeout),
-          permissions &&
-            cache.set(
-              CACHE_KEYS.PERMISSIONS(session.userId),
-              permissions,
-              this.config.cacheTimeout
-            ),
-        ].filter(Boolean)
-      );
+      await Promise.all([
+        cache.set(sessionKey, session, this.config.cacheTimeout),
+        cache.set(userKey, user, this.config.cacheTimeout),
+        permissions && cache.set(CACHE_KEYS.PERMISSIONS(session.userId), permissions, this.config.cacheTimeout)
+      ].filter(Boolean));
+
     } catch (error) {
-      logger.error("Failed to cache session data", { error });
+      logger.error('Failed to cache session data', { error });
     }
   }
 
@@ -356,17 +356,17 @@ export class SessionOptimizer {
     try {
       // Try to get any cached data, even if expired
       const sessionKey = CACHE_KEYS.SESSION(sessionToken);
-      const staleSession = await cache.get(sessionKey);
+      const staleSession = await cache.get(sessionKey, { allowStale: true });
 
       if (staleSession) {
         const userKey = CACHE_KEYS.USER(staleSession.userId);
-        const staleUser = await cache.get(userKey);
+        const staleUser = await cache.get(userKey, { allowStale: true });
 
         return {
           valid: true,
           user: staleUser,
           session: staleSession,
-          fromCache: true,
+          fromCache: true
         };
       }
 
@@ -386,11 +386,11 @@ export class SessionOptimizer {
     setImmediate(async () => {
       try {
         await this.validateSession(sessionToken, { requireFresh: true });
-        logger.debug("Background session refresh completed", {
-          sessionToken: sessionToken.slice(-8),
+        logger.debug('Background session refresh completed', { 
+          sessionToken: sessionToken.slice(-8) 
         });
       } catch (error) {
-        logger.error("Background session refresh failed", { error });
+        logger.error('Background session refresh failed', { error });
       }
     });
   }
@@ -398,14 +398,12 @@ export class SessionOptimizer {
   /**
    * Batch session validation for multiple tokens
    */
-  async validateMultipleSessions(sessionTokens: string[]): Promise<
-    Array<{
-      token: string;
-      valid: boolean;
-      user?: any;
-      session?: any;
-    }>
-  > {
+  async validateMultipleSessions(sessionTokens: string[]): Promise<Array<{
+    token: string;
+    valid: boolean;
+    user?: any;
+    session?: any;
+  }>> {
     if (!this.config.parallelValidation) {
       // Sequential validation
       const results: Array<any> = [];
@@ -417,7 +415,7 @@ export class SessionOptimizer {
     }
 
     // Parallel validation
-    const validationPromises = sessionTokens.map(async token => {
+    const validationPromises = sessionTokens.map(async (token) => {
       const result = await this.validateSession(token);
       return { token, ...result };
     });
@@ -429,18 +427,14 @@ export class SessionOptimizer {
    * Check if token is a JWT
    */
   private isJWT(token: string): boolean {
-    return token.split(".").length === 3;
+    return token.split('.').length === 3;
   }
 
   /**
    * Update performance statistics
    */
-  private updateStats(
-    type: "success" | "error",
-    responseTime: number,
-    fromCache: boolean
-  ): void {
-    if (type === "success") {
+  private updateStats(type: 'success' | 'error', responseTime: number, fromCache: boolean): void {
+    if (type === 'success') {
       if (fromCache) {
         this.stats.cacheHits++;
       } else {
@@ -450,9 +444,8 @@ export class SessionOptimizer {
 
     // Update average response time
     const totalRequests = this.stats.cacheHits + this.stats.cacheMisses;
-    this.stats.averageResponseTime =
-      (this.stats.averageResponseTime * (totalRequests - 1) + responseTime) /
-      totalRequests;
+    this.stats.averageResponseTime = 
+      (this.stats.averageResponseTime * (totalRequests - 1) + responseTime) / totalRequests;
   }
 
   /**
@@ -460,8 +453,9 @@ export class SessionOptimizer {
    */
   private startCleanupInterval(): void {
     this.cleanupInterval = setInterval(() => {
-      // CacheManager does not have a cleanup method; skip cleanup.
-      logger.debug("Session cache cleanup completed");
+      // Trigger cache cleanup
+      cache.cleanup?.();
+      logger.debug('Session cache cleanup completed');
     }, this.config.sessionCleanupInterval * 1000);
   }
 
@@ -473,15 +467,13 @@ export class SessionOptimizer {
     dbQueryRatio: number;
   } {
     const totalRequests = this.stats.cacheHits + this.stats.cacheMisses;
-    const cacheHitRatio =
-      totalRequests > 0 ? this.stats.cacheHits / totalRequests : 0;
-    const dbQueryRatio =
-      totalRequests > 0 ? this.stats.databaseQueries / totalRequests : 0;
+    const cacheHitRatio = totalRequests > 0 ? this.stats.cacheHits / totalRequests : 0;
+    const dbQueryRatio = totalRequests > 0 ? this.stats.databaseQueries / totalRequests : 0;
 
     return {
       ...this.stats,
       cacheHitRatio: Math.round(cacheHitRatio * 100) / 100,
-      dbQueryRatio: Math.round(dbQueryRatio * 100) / 100,
+      dbQueryRatio: Math.round(dbQueryRatio * 100) / 100
     };
   }
 
@@ -492,19 +484,19 @@ export class SessionOptimizer {
     try {
       const sessionKey = CACHE_KEYS.SESSION(sessionToken);
       const cachedSession = await cache.get(sessionKey);
-
+      
       if (cachedSession) {
         const userKey = CACHE_KEYS.USER(cachedSession.userId);
         const permissionsKey = CACHE_KEYS.PERMISSIONS(cachedSession.userId);
-
+        
         await Promise.all([
           cache.delete(sessionKey),
           cache.delete(userKey),
-          cache.delete(permissionsKey),
+          cache.delete(permissionsKey)
         ]);
       }
     } catch (error) {
-      logger.error("Failed to invalidate session cache", { error });
+      logger.error('Failed to invalidate session cache', { error });
     }
   }
 
@@ -524,7 +516,7 @@ export const sessionOptimizer = new SessionOptimizer();
 // Convenience functions
 export async function validateOptimizedSession(
   sessionToken: string,
-  options?: Parameters<SessionOptimizer["validateSession"]>[1]
+  options?: Parameters<SessionOptimizer['validateSession']>[1]
 ) {
   return sessionOptimizer.validateSession(sessionToken, options);
 }
@@ -542,7 +534,7 @@ export class SessionRateLimiter {
   private config = {
     windowMs: 60000, // 1 minute
     maxRequests: 100, // per window
-    keyGenerator: (identifier: string) => `rate_limit:session:${identifier}`,
+    keyGenerator: (identifier: string) => `rate_limit:session:${identifier}`
   };
 
   async checkRateLimit(identifier: string): Promise<{
@@ -552,10 +544,7 @@ export class SessionRateLimiter {
   }> {
     try {
       const key = this.config.keyGenerator(identifier);
-      const current = (await cache.get(key)) || {
-        count: 0,
-        resetTime: Date.now() + this.config.windowMs,
-      };
+      const current = await cache.get(key) || { count: 0, resetTime: Date.now() + this.config.windowMs };
 
       if (Date.now() > current.resetTime) {
         // Reset window
@@ -570,17 +559,13 @@ export class SessionRateLimiter {
       return {
         allowed: current.count <= this.config.maxRequests,
         remaining: Math.max(0, this.config.maxRequests - current.count),
-        resetTime: new Date(current.resetTime),
+        resetTime: new Date(current.resetTime)
       };
     } catch (error) {
-      logger.error("Rate limit check failed", { error });
-      return {
-        allowed: true,
-        remaining: this.config.maxRequests,
-        resetTime: new Date(),
-      };
+      logger.error('Rate limit check failed', { error });
+      return { allowed: true, remaining: this.config.maxRequests, resetTime: new Date() };
     }
   }
 }
 
-export const sessionRateLimiter = new SessionRateLimiter();
+export const sessionRateLimiter = new SessionRateLimiter(); 

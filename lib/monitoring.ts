@@ -2,7 +2,7 @@
  * Application monitoring for uptime, performance, and metrics tracking
  */
 
-import { ErrorTracker } from "./error-tracking";
+import { trackError, ErrorTracker } from "./error-tracking";
 import { logger } from "./logger";
 
 // Performance thresholds (in milliseconds)
@@ -127,7 +127,7 @@ class AppMonitorClass {
     context?: Record<string, any>
   ) {
     const operation = `api-${method.toLowerCase()}-${path}`;
-
+    
     const apiContext = {
       ...context,
       method,
@@ -160,9 +160,7 @@ class AppMonitorClass {
   getUptimePercentage(): number {
     if (this.uptimeChecks.length === 0) return 100;
 
-    const healthyChecks = this.uptimeChecks.filter(
-      check => check.status === "healthy"
-    ).length;
+    const healthyChecks = this.uptimeChecks.filter(check => check.status === "healthy").length;
     return (healthyChecks / this.uptimeChecks.length) * 100;
   }
 
@@ -178,10 +176,7 @@ class AppMonitorClass {
    */
   private startPeriodicChecks() {
     // Only run periodic checks in production or if explicitly enabled
-    if (
-      process.env.NODE_ENV !== "production" &&
-      !process.env.ENABLE_MONITORING
-    ) {
+    if (process.env.NODE_ENV !== "production" && !process.env.ENABLE_MONITORING) {
       return;
     }
 
@@ -197,8 +192,7 @@ class AppMonitorClass {
    */
   private getOperationType(operation: string): string {
     if (operation.includes("api")) return "api";
-    if (operation.includes("db") || operation.includes("database"))
-      return "database";
+    if (operation.includes("db") || operation.includes("database")) return "database";
     if (operation.includes("auth")) return "authentication";
     if (operation.includes("payment")) return "payment";
     return "general";
@@ -229,18 +223,6 @@ export function timeOperation(operation: string) {
   return new PerformanceTimer(operation);
 }
 
-export function trackAPI(
-  method: string,
-  path: string,
-  duration: number,
-  statusCode: number,
-  context?: Record<string, any>
-) {
-  return monitor.trackAPIPerformance(
-    method,
-    path,
-    duration,
-    statusCode,
-    context
-  );
-}
+export function trackAPI(method: string, path: string, duration: number, statusCode: number, context?: Record<string, any>) {
+  return monitor.trackAPIPerformance(method, path, duration, statusCode, context);
+} 

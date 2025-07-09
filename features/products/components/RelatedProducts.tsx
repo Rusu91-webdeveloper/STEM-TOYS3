@@ -1,11 +1,9 @@
 "use client";
 
 import React from "react";
-
 import { cn } from "@/lib/utils";
-import type { Product } from "@/types/product";
-
 import { ProductCard } from "./ProductCard";
+import type { Product } from "@/types/product";
 
 interface RelatedProductsProps {
   currentProductId: string;

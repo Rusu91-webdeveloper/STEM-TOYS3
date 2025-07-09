@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import React from "react";
+import Image from "next/image";
 
 interface EducationalBooksSectionProps {
   t: (key: string, defaultValue?: string) => string;
@@ -9,7 +9,8 @@ interface EducationalBooksSectionProps {
 
 const EducationalBooksSectionComponent = ({
   t,
-}: EducationalBooksSectionProps) => (
+}: EducationalBooksSectionProps) => {
+  return (
     <section className="py-10 bg-muted">
       <div className="container mx-auto px-4 max-w-7xl">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 text-center">
@@ -85,6 +86,7 @@ const EducationalBooksSectionComponent = ({
       </div>
     </section>
   );
+};
 
 const EducationalBooksSection = React.memo(EducationalBooksSectionComponent);
 

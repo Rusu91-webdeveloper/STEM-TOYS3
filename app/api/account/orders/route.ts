@@ -17,6 +17,7 @@ import {
 import { db } from "@/lib/db";
 import { applyStandardHeaders } from "@/lib/response-headers";
 
+
 // GET /api/account/orders - Get orders for the authenticated user
 export async function GET() {
   try {
@@ -30,7 +31,7 @@ export async function GET() {
     }
 
     // --- Caching logic start ---
-    const cacheKey = `${CacheKeys.user(session.user.id)}:orders`;
+    const cacheKey = `${CacheKeys.user(session.user.id)  }:orders`;
     const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
     const orders = await getCached(
       cacheKey,
@@ -96,7 +97,7 @@ export async function GET() {
           // Attach reviews to items
           for (const order of orders) {
             for (const item of order.items) {
-              (item as any).reviews = reviewsByItemId.get(item.id) || [];
+              item.reviews = reviewsByItemId.get(item.id) || [];
             }
           }
           return orders;

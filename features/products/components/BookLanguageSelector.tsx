@@ -1,9 +1,8 @@
 "use client";
 
-import { Loader2, Globe, FileText } from "lucide-react";
 import React, { useState, useEffect, useRef, useCallback } from "react";
-
 import { Badge } from "@/components/ui/badge";
+import { Loader2, Globe, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Language {

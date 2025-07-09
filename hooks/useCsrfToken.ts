@@ -6,7 +6,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-
 import { csrfTokenHelpers } from "@/lib/csrf";
 
 interface UseCsrfTokenReturn {

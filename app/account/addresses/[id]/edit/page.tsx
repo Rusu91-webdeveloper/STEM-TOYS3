@@ -87,7 +87,7 @@ export default function EditAddressPage() {
 
       <div className="bg-card rounded-lg border p-6">
         <AddressForm
-          initialData={address ?? undefined}
+          initialData={address}
           isEditing={true}
           addressId={addressId}
         />

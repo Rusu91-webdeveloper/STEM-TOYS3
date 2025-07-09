@@ -1,8 +1,7 @@
 "use client";
 
-import { Loader2, ArrowRight, ShoppingBag } from "lucide-react";
 import React, { useEffect, useState } from "react";
-
+import { Loader2, ArrowRight, ShoppingBag } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 interface CheckoutTransitionProps {

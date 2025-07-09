@@ -1,16 +1,15 @@
 "use client";
 
-import { StarIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { toast } from "sonner";
-
+import { useRouter } from "next/navigation";
+import { StarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useTranslation } from "@/lib/i18n";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface ProductReviewFormProps {
   productId: string;

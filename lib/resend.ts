@@ -80,7 +80,7 @@ export async function sendTransactionalEmail({
 
 // Email templates for different types of emails
 export const emailTemplates = {
-  orderConfirmation(data: {
+  async orderConfirmation(data: {
     to: string;
     order: {
       id: string;
@@ -104,7 +104,7 @@ export const emailTemplates = {
 
     const itemsHtml = order.items
       .map(
-        item =>
+        (item) =>
           `<tr style="border-bottom: 1px solid #e5e7eb;">
             <td style="padding: 12px 8px; color: #374151;">${item.name}</td>
             <td style="padding: 12px 8px; text-align: center; color: #374151;">${item.quantity}</td>
@@ -206,14 +206,14 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendTransactionalEmail({
+    return await sendTransactionalEmail({
       to,
       subject: `Confirmare Comandă TechTots #${order.id}`,
       html,
     });
   },
 
-  orderShipped(data: {
+  async orderShipped(data: {
     to: string;
     order: { id: string };
     trackingInfo: {
@@ -326,14 +326,14 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendTransactionalEmail({
+    return await sendTransactionalEmail({
       to,
       subject: `Comandă Expediată TechTots #${order.id}`,
       html,
     });
   },
 
-  passwordReset(data: { to: string; resetLink: string }) {
+  async passwordReset(data: { to: string; resetLink: string }) {
     const { to, resetLink } = data;
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const logoUrl = `${baseUrl}/TechTots_LOGO.png`;
@@ -407,7 +407,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendTransactionalEmail({
+    return await sendTransactionalEmail({
       to,
       subject: "Resetare Parolă - TechTots",
       html,

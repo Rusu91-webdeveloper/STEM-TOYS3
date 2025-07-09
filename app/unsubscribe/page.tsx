@@ -1,6 +1,6 @@
+import React from "react";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";

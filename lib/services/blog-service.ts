@@ -86,7 +86,7 @@ async function sendBlogNotification(blogId: string): Promise<void> {
     );
 
     // Send notification emails to all subscribers
-    const emailPromises = subscribers.map(subscriber =>
+    const emailPromises = subscribers.map((subscriber) =>
       emailTemplates.blogNotification({
         to: subscriber.email,
         name: subscriber.firstName || subscriber.email.split("@")[0],
@@ -190,7 +190,7 @@ export const blogService = {
   /**
    * Delete a blog post
    */
-  deleteBlog(id: string) {
+  async deleteBlog(id: string) {
     return db.blog.delete({
       where: { id },
     });
@@ -199,7 +199,7 @@ export const blogService = {
   /**
    * Get a blog post by ID
    */
-  getBlogById(id: string) {
+  async getBlogById(id: string) {
     return db.blog.findUnique({
       where: { id },
       include: {
@@ -218,7 +218,7 @@ export const blogService = {
   /**
    * Get a blog post by slug
    */
-  getBlogBySlug(slug: string) {
+  async getBlogBySlug(slug: string) {
     return db.blog.findUnique({
       where: { slug },
       include: {
@@ -296,7 +296,7 @@ export const blogService = {
   /**
    * Manually send blog notification (for admin use)
    */
-  async sendNotification(blogId: string, _categories?: string[]) {
+  async sendNotification(blogId: string, categories?: string[]) {
     await sendBlogNotification(blogId);
   },
 };

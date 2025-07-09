@@ -21,17 +21,22 @@ export interface ImportOptimizationConfig {
 
 // Default configuration
 const defaultConfig: ImportOptimizationConfig = {
-  enabled: process.env.NODE_ENV === "production",
+  enabled: process.env.NODE_ENV === 'production',
   analyzeUnusedImports: true,
   optimizeBarrelExports: true,
   preferNamedImports: true,
-  excludePatterns: ["node_modules", ".next", "dist", "build"],
+  excludePatterns: [
+    'node_modules',
+    '.next',
+    'dist',
+    'build'
+  ],
   libraryOptimizations: {
     lodash: true,
     reactIcons: true,
     materialUI: true,
-    antd: true,
-  },
+    antd: true
+  }
 };
 
 // Import optimization patterns
@@ -43,60 +48,50 @@ export const ImportOptimizations = {
     // ✅ Good: Import only what you need
     good: "import { debounce, throttle } from 'lodash'",
     // 🚀 Best: Individual function imports
-    best: "import debounce from 'lodash/debounce'",
+    best: "import debounce from 'lodash/debounce'"
   },
 
   // React Icons optimizations
   reactIcons: {
     bad: "import * as Icons from 'react-icons'",
     good: "import { FiHome, FiUser } from 'react-icons/fi'",
-    best: "import { FiHome } from 'react-icons/fi'",
+    best: "import { FiHome } from 'react-icons/fi'"
   },
 
   // Date libraries
   date: {
     bad: "import moment from 'moment'",
     good: "import { format } from 'date-fns'",
-    best: "import format from 'date-fns/format'",
+    best: "import format from 'date-fns/format'"
   },
 
   // UI Libraries
   ui: {
     bad: "import * from '@/components/ui'",
     good: "import { Button, Input } from '@/components/ui'",
-    best: "import Button from '@/components/ui/button'",
-  },
-};
-
-// Type for importStats
-type ImportStats = {
-  totalImports: number;
-  optimizedImports: number;
-  barrelImports: number;
-  defaultImports: number;
-  namedImports: number;
-  namespaceImports: number;
+    best: "import Button from '@/components/ui/button'"
+  }
 };
 
 // Tree shaking analyzer
 export class TreeShakingAnalyzer {
   private config: ImportOptimizationConfig;
-  private importStats: ImportStats = {
+  private importStats = {
     totalImports: 0,
     optimizedImports: 0,
     barrelImports: 0,
     defaultImports: 0,
     namedImports: 0,
-    namespaceImports: 0,
+    namespaceImports: 0
   };
 
   constructor(config: Partial<ImportOptimizationConfig> = {}) {
     this.config = { ...defaultConfig, ...config };
-
+    
     if (this.config.enabled) {
-      logger.info("Tree shaking analysis enabled", {
+      logger.info('Tree shaking analysis enabled', {
         optimizeBarrels: this.config.optimizeBarrelExports,
-        preferNamed: this.config.preferNamedImports,
+        preferNamed: this.config.preferNamedImports
       });
     }
   }
@@ -104,48 +99,45 @@ export class TreeShakingAnalyzer {
   /**
    * Analyze import statements in code
    */
-  analyzeImports(
-    code: string,
-    filePath: string
-  ): {
+  analyzeImports(code: string, filePath: string): {
     issues: Array<{
       line: number;
-      type: "barrel" | "namespace" | "unused" | "inefficient";
+      type: 'barrel' | 'namespace' | 'unused' | 'inefficient';
       message: string;
       suggestion?: string;
     }>;
-    stats: ImportStats;
+    stats: typeof this.importStats;
   } {
     const issues: Array<{
       line: number;
-      type: "barrel" | "namespace" | "unused" | "inefficient";
+      type: 'barrel' | 'namespace' | 'unused' | 'inefficient';
       message: string;
       suggestion?: string;
     }> = [];
 
-    const lines = code.split("\n");
-
+    const lines = code.split('\n');
+    
     lines.forEach((line, index) => {
       const lineNumber = index + 1;
-
+      
       // Check for import statements
-      if (line.trim().startsWith("import")) {
+      if (line.trim().startsWith('import')) {
         this.importStats.totalImports++;
-
+        
         // Analyze import patterns
         this.analyzeImportLine(line, lineNumber, issues);
       }
     });
 
-    logger.debug("Import analysis complete", {
+    logger.debug('Import analysis complete', {
       file: filePath,
       issues: issues.length,
-      stats: this.importStats,
+      stats: this.importStats
     });
 
     return {
       issues,
-      stats: { ...this.importStats },
+      stats: { ...this.importStats }
     };
   }
 
@@ -154,24 +146,23 @@ export class TreeShakingAnalyzer {
    */
   private analyzeImportLine(
     this: TreeShakingAnalyzer,
-    line: string,
-    lineNumber: number,
+    line: string, 
+    lineNumber: number, 
     issues: Array<{
       line: number;
-      type: "barrel" | "namespace" | "unused" | "inefficient";
+      type: 'barrel' | 'namespace' | 'unused' | 'inefficient';
       message: string;
       suggestion?: string;
     }>
   ): void {
     // Namespace imports (import * as)
-    if (line.includes("import * as") || line.includes("import *")) {
+    if (line.includes('import * as') || line.includes('import *')) {
       this.importStats.namespaceImports++;
       issues.push({
         line: lineNumber,
-        type: "namespace",
-        message: "Namespace import may prevent tree shaking",
-        suggestion:
-          'Use named imports instead: import { specific, functions } from "..."',
+        type: 'namespace',
+        message: 'Namespace import may prevent tree shaking',
+        suggestion: 'Use named imports instead: import { specific, functions } from "..."'
       });
     }
 
@@ -181,7 +172,7 @@ export class TreeShakingAnalyzer {
     }
 
     // Named imports
-    else if (line.includes("{") && line.includes("}")) {
+    else if (line.includes('{') && line.includes('}')) {
       this.importStats.namedImports++;
     }
 
@@ -190,9 +181,9 @@ export class TreeShakingAnalyzer {
       this.importStats.barrelImports++;
       issues.push({
         line: lineNumber,
-        type: "barrel",
-        message: "Barrel import may include unnecessary code",
-        suggestion: "Import directly from source files when possible",
+        type: 'barrel',
+        message: 'Barrel import may include unnecessary code',
+        suggestion: 'Import directly from source files when possible'
       });
     }
 
@@ -220,54 +211,46 @@ export class TreeShakingAnalyzer {
    */
   private checkLibraryOptimizations(
     this: TreeShakingAnalyzer,
-    line: string,
-    lineNumber: number,
+    line: string, 
+    lineNumber: number, 
     issues: Array<{
       line: number;
-      type: "barrel" | "namespace" | "unused" | "inefficient";
+      type: 'barrel' | 'namespace' | 'unused' | 'inefficient';
       message: string;
       suggestion?: string;
     }>
   ): void {
     // Lodash optimizations
-    if (this.config.libraryOptimizations.lodash && line.includes("lodash")) {
-      if (
-        line.includes("import _ from 'lodash'") ||
-        line.includes("import * as _ from 'lodash'")
-      ) {
+    if (this.config.libraryOptimizations.lodash && line.includes('lodash')) {
+      if (line.includes("import _ from 'lodash'") || line.includes("import * as _ from 'lodash'")) {
         issues.push({
           line: lineNumber,
-          type: "inefficient",
-          message: "Importing entire lodash library",
-          suggestion:
-            'Use specific imports: import debounce from "lodash/debounce"',
+          type: 'inefficient',
+          message: 'Importing entire lodash library',
+          suggestion: 'Use specific imports: import debounce from "lodash/debounce"'
         });
       }
     }
 
     // React Icons optimizations
-    if (
-      this.config.libraryOptimizations.reactIcons &&
-      line.includes("react-icons")
-    ) {
-      if (line.includes("import * as")) {
+    if (this.config.libraryOptimizations.reactIcons && line.includes('react-icons')) {
+      if (line.includes('import * as')) {
         issues.push({
           line: lineNumber,
-          type: "inefficient",
-          message: "Importing all react-icons",
-          suggestion:
-            'Use specific icon imports: import { FiHome } from "react-icons/fi"',
+          type: 'inefficient',
+          message: 'Importing all react-icons',
+          suggestion: 'Use specific icon imports: import { FiHome } from "react-icons/fi"'
         });
       }
     }
 
     // Date library optimizations
-    if (line.includes("moment") && !line.includes("moment/locale")) {
+    if (line.includes('moment') && !line.includes('moment/locale')) {
       issues.push({
         line: lineNumber,
-        type: "inefficient",
-        message: "Moment.js is large and not tree-shakeable",
-        suggestion: "Consider using date-fns or dayjs for better tree shaking",
+        type: 'inefficient',
+        message: 'Moment.js is large and not tree-shakeable',
+        suggestion: 'Consider using date-fns or dayjs for better tree shaking'
       });
     }
   }
@@ -280,21 +263,15 @@ export class TreeShakingAnalyzer {
     const stats = this.importStats;
 
     if (stats.namespaceImports > stats.namedImports * 0.2) {
-      recommendations.push(
-        "Reduce namespace imports (import *) in favor of named imports"
-      );
+      recommendations.push('Reduce namespace imports (import *) in favor of named imports');
     }
 
     if (stats.barrelImports > stats.totalImports * 0.3) {
-      recommendations.push(
-        "Consider reducing barrel imports for better tree shaking"
-      );
+      recommendations.push('Consider reducing barrel imports for better tree shaking');
     }
 
     if (stats.totalImports > 50) {
-      recommendations.push(
-        "High number of imports detected. Consider code splitting or lazy loading"
-      );
+      recommendations.push('High number of imports detected. Consider code splitting or lazy loading');
     }
 
     return recommendations;
@@ -309,20 +286,19 @@ export class TreeShakingAnalyzer {
       issues: number;
       optimizationOpportunities: number;
     };
-    breakdown: ImportStats;
+    breakdown: typeof this.importStats;
     recommendations: string[];
   } {
     const recommendations = this.getRecommendations();
-
+    
     return {
       summary: {
         totalImports: this.importStats.totalImports,
-        issues:
-          this.importStats.namespaceImports + this.importStats.barrelImports,
-        optimizationOpportunities: recommendations.length,
+        issues: this.importStats.namespaceImports + this.importStats.barrelImports,
+        optimizationOpportunities: recommendations.length
       },
       breakdown: { ...this.importStats },
-      recommendations,
+      recommendations
     };
   }
 }
@@ -337,11 +313,11 @@ export class BundleOptimizer {
     return code
       .replace(
         /import\s+_\s+from\s+['"]lodash['"];?\s*\n/g,
-        "// Optimized: Use specific lodash imports instead\n"
+        '// Optimized: Use specific lodash imports instead\n'
       )
       .replace(
         /import\s*\*\s*as\s+_\s+from\s+['"]lodash['"];?\s*\n/g,
-        "// Optimized: Use specific lodash imports instead\n"
+        '// Optimized: Use specific lodash imports instead\n'
       );
   }
 
@@ -389,16 +365,16 @@ export const OptimizedImports = {
   // Utilities
   clsx: "import { clsx } from 'clsx'",
   cn: "import { cn } from '@/lib/utils'",
-
+  
   // Icons (optimized)
   homeIcon: "import { FiHome } from 'react-icons/fi'",
   userIcon: "import { FiUser } from 'react-icons/fi'",
-
+  
   // Lodash (optimized)
   debounce: "import debounce from 'lodash/debounce'",
   throttle: "import throttle from 'lodash/throttle'",
   get: "import get from 'lodash/get'",
-
+  
   // Date utilities (optimized)
   formatDate: "import { format } from 'date-fns'",
   parseDate: "import { parse } from 'date-fns'",
@@ -414,28 +390,23 @@ export function validateTreeShaking(bundleStats: any): {
   const suggestions: string[] = [];
 
   // Check for common tree shaking problems
-  if (
-    bundleStats?.modules?.some(
-      (mod: any) => mod.name?.includes("lodash") && mod.size > 50000
-    )
-  ) {
-    issues.push("Large lodash modules detected");
-    suggestions.push("Use individual lodash function imports");
+  if (bundleStats?.modules?.some((mod: any) => 
+    mod.name?.includes('lodash') && mod.size > 50000)) {
+    issues.push('Large lodash modules detected');
+    suggestions.push('Use individual lodash function imports');
   }
 
-  if (
-    bundleStats?.modules?.some(
-      (mod: any) =>
-        mod.name?.includes("moment") && !mod.name?.includes("locale")
-    )
-  ) {
-    issues.push("Moment.js detected (not tree-shakeable)");
-    suggestions.push("Consider switching to date-fns or dayjs");
+  if (bundleStats?.modules?.some((mod: any) => 
+    mod.name?.includes('moment') && !mod.name?.includes('locale'))) {
+    issues.push('Moment.js detected (not tree-shakeable)');
+    suggestions.push('Consider switching to date-fns or dayjs');
   }
 
   return {
     isOptimal: issues.length === 0,
     issues,
-    suggestions,
+    suggestions
   };
 }
+
+ 

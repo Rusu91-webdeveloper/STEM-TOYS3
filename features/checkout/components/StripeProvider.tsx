@@ -1,8 +1,7 @@
 "use client";
 
-import { Elements } from "@stripe/react-stripe-js";
 import React, { ReactNode } from "react";
-
+import { Elements } from "@stripe/react-stripe-js";
 import { getStripe } from "@/lib/stripe";
 
 interface StripeProviderProps {

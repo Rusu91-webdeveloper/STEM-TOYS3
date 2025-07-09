@@ -1,5 +1,5 @@
-import { Wishlist, Product } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
+import { Wishlist, Product } from "@prisma/client";
 
 import { withErrorHandler } from "@/lib/api-error-handler";
 import { auth } from "@/lib/auth";

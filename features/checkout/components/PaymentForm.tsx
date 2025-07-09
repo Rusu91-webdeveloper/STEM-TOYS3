@@ -1,22 +1,19 @@
 "use client";
 
-import { Loader2, CreditCard } from "lucide-react";
 import React, { useState, useEffect } from "react";
-
+import { PaymentDetails, ShippingAddress, ShippingMethod } from "../types";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useCart } from "@/features/cart";
-import { useTranslation } from "@/lib/i18n";
-
-import { fetchShippingSettings, fetchTaxSettings } from "../lib/checkoutApi";
-import { PaymentDetails, ShippingAddress, ShippingMethod } from "../types";
-
+import { Checkbox } from "@/components/ui/checkbox";
 import { ShippingAddressForm } from "./ShippingAddressForm";
-import { StripePaymentForm } from "./StripePaymentForm";
 import { StripeProvider } from "./StripeProvider";
+import { StripePaymentForm } from "./StripePaymentForm";
+import { useCart } from "@/features/cart";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Loader2, CreditCard } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
+import { fetchShippingSettings, fetchTaxSettings } from "../lib/checkoutApi";
 
 interface PaymentCard {
   id: string;
@@ -90,7 +87,8 @@ export function PaymentForm({
         // Get shipping settings for free shipping threshold
         const shippingSettings = await fetchShippingSettings();
         if (
-          shippingSettings.freeThreshold?.active
+          shippingSettings.freeThreshold &&
+          shippingSettings.freeThreshold.active
         ) {
           const freeShippingThreshold = parseFloat(
             shippingSettings.freeThreshold.price

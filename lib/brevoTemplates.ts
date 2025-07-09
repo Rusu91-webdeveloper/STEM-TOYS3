@@ -15,6 +15,7 @@ import { prisma } from "@/lib/prisma";
 
 import { sendMail } from "./brevo";
 
+
 // Type for SEO metadata
 type SEOMetadata = {
   metaTitle?: string;
@@ -205,7 +206,7 @@ export const emailTemplates = {
                 <p style="margin: 0 0 8px 0; color: #374151; font-weight: 600; font-size: 14px;">📥 Link-uri de descărcare:</p>
                 ${bookLinks
                   .map(
-                    link => `
+                    (link) => `
                   <div style="margin-bottom: 8px;">
                     <a href="${link.downloadUrl}" 
                        style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px; display: inline-block; margin-right: 8px;">
@@ -405,7 +406,7 @@ export const emailTemplates = {
           <ul style="margin: 0; padding-left: 20px; color: #1f2937;">
             ${latestBlogs
               .map(
-                blog =>
+                (blog) =>
                   `<li style="margin-bottom: 8px;"><a href="${baseUrl}/blog/${blog.slug}" style="color: #3b82f6; text-decoration: none;">${blog.title}</a></li>`
               )
               .join("")}
@@ -581,7 +582,7 @@ export const emailTemplates = {
         <div style="display: flex; justify-content: space-between; margin-bottom: 32px; text-align: center;">
       `;
 
-      latestBlogs.forEach(blog => {
+      latestBlogs.forEach((blog) => {
         const blogUrl = `${baseUrl}/blog/${blog.slug}`;
         const coverImage =
           blog.coverImage || `${baseUrl}/images/blog/default-cover.jpg`;
@@ -778,7 +779,7 @@ export const emailTemplates = {
         });
 
     // Create an excerpt if needed
-    const excerpt = blog.excerpt || `${blog.content.substring(0, 180)}...`;
+    const excerpt = blog.excerpt || `${blog.content.substring(0, 180)  }...`;
     const blogUrl = `${baseUrl}/blog/${blog.slug}`;
     const coverImage =
       blog.coverImage || `${baseUrl}/images/blog/default-cover.jpg`;
@@ -805,7 +806,7 @@ export const emailTemplates = {
           <h2 style="color: #1f2937; text-align: center; margin-bottom: 24px; font-size: 20px; font-weight: 700;">📚 Alte Articole care Te-ar Putea Interesa</h2>
           <div style="display: flex; justify-content: space-between; gap: 16px;">
             ${relatedBlogs
-              .map(relatedBlog => {
+              .map((relatedBlog) => {
                 const relatedBlogUrl = `${baseUrl}/blog/${relatedBlog.slug}`;
                 const relatedCoverImage =
                   relatedBlog.coverImage ||
@@ -1012,9 +1013,19 @@ export const emailTemplates = {
 
         // Safely handle product images with proper type checking
         let imageUrl = `${baseUrl}/images/placeholder.png`;
-        const productImages = safeStringArray(item.product.images);
-        if (productImages.length > 0) {
-          imageUrl = productImages[0];
+        const productImages = item.product.images as string[] | null;
+        if (
+          productImages &&
+          Array.isArray(productImages) &&
+          productImages.length > 0
+        ) {
+          // Type guard to ensure we have string array
+          const images = productImages.filter(
+            (img): img is string => typeof img === "string"
+          );
+          if (images.length > 0) {
+            imageUrl = images[0];
+          }
         }
 
         return `
@@ -1046,28 +1057,19 @@ export const emailTemplates = {
 
     // Find similar products based on categories
     const categoryIds = [
-      ...new Set(
-        order.items
-          .map((item: any) => item.product.categoryId)
-          .filter((id: unknown): id is string => typeof id === "string")
-      ),
-    ] as string[];
+      ...new Set(order.items.map((item: any) => item.product.categoryId)),
+    ];
     let relatedProductsHtml = "";
 
     if (categoryIds.length > 0) {
-      const relatedProducts: Array<Product & { images: string[] }> = (
-        await prisma.product.findMany({
-          where: {
-            categoryId: { in: categoryIds },
-            id: { notIn: order.items.map((item: any) => item.productId) },
-            isActive: true,
-          },
-          take: 3,
-        })
-      ).map(product => ({
-        ...product,
-        images: safeStringArray(product.images),
-      }));
+      const relatedProducts = await prisma.product.findMany({
+        where: {
+          categoryId: { in: categoryIds },
+          id: { notIn: order.items.map((item: any) => item.productId) },
+          isActive: true,
+        },
+        take: 3,
+      });
 
       if (relatedProducts.length > 0) {
         relatedProductsHtml = `
@@ -1075,12 +1077,22 @@ export const emailTemplates = {
             <h2 style="color: #1f2937; text-align: center; margin-bottom: 24px; font-size: 20px;">🎯 Ți-ar Putea Plăcea și</h2>
             <div style="display: flex; justify-content: space-between;">
               ${relatedProducts
-                .map(product => {
+                .map((product) => {
                   // Safely get the first image URL or use placeholder
                   let imageUrl = `${baseUrl}/images/placeholder.png`;
-                  const productImages = safeStringArray(product.images);
-                  if (productImages.length > 0) {
-                    imageUrl = productImages[0];
+                  const productImages = product.images as string[] | null;
+                  if (
+                    productImages &&
+                    Array.isArray(productImages) &&
+                    productImages.length > 0
+                  ) {
+                    // Type guard to ensure we have string array
+                    const images = productImages.filter(
+                      (img): img is string => typeof img === "string"
+                    );
+                    if (images.length > 0) {
+                      imageUrl = images[0];
+                    }
                   }
 
                   return `
@@ -1544,7 +1556,7 @@ export const emailTemplates = {
           <h4 style="color: #1f2937; margin: 0 0 12px 0; font-size: 16px;">🛍️ Produse pentru retur:</h4>
           ${returnItems
             .map(
-              item => `
+              (item) => `
             <div style="border-bottom: 1px solid #e5e7eb; padding: 8px 0; margin-bottom: 8px;">
               <p style="margin: 0; color: #1f2937; font-weight: 500;">• ${item.name}</p>
               <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">Cantitate: ${item.quantity} ${item.sku ? `• SKU: ${item.sku}` : ""}</p>
@@ -1693,7 +1705,7 @@ export const emailTemplates = {
           <h4 style="color: #1f2937; margin: 0 0 12px 0; font-size: 16px;">🛍️ Produse pentru retur:</h4>
           ${returnItems
             .map(
-              item => `
+              (item) => `
             <div style="border-bottom: 1px solid #e5e7eb; padding: 8px 0; margin-bottom: 8px;">
               <p style="margin: 0; color: #1f2937; font-weight: 500;">• ${item.name}</p>
               <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">Cantitate: ${item.quantity} ${item.sku ? `• SKU: ${item.sku}` : ""}</p>
@@ -1752,11 +1764,3 @@ export const emailTemplates = {
     });
   },
 };
-
-// Helper to safely extract string[] from a possibly FieldRef or unknown[]
-function safeStringArray(val: unknown): string[] {
-  if (Array.isArray(val) && val.every(img => typeof img === "string")) {
-    return val as string[];
-  }
-  return [];
-}

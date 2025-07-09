@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useEffect, useState, useRef, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 // **PERFORMANCE**: Global cache shared across all hook instances
 const globalValidationCache = new Map<
@@ -104,10 +104,10 @@ export function useSessionGuard(redirectPath = "/auth/login") {
               console.warn("Session validation timeout - assuming valid");
               setValidationError("Validation timeout");
               return true; // Assume valid on timeout to avoid disrupting UX
-            } 
+            } else {
               console.error("Error validating session:", error.message);
               setValidationError(error.message);
-            
+            }
           }
           // **PERFORMANCE**: Return true on error to avoid redirect loops
           return true;

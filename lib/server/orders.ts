@@ -1,28 +1,12 @@
-import type { Order, OrderItem, Address, Review } from "@prisma/client";
-
-import { db } from "../db";
-
 import { auth } from "./auth";
-
-// Define OrderStatus type to match frontend
-type OrderStatus = "processing" | "shipped" | "delivered" | "cancelled";
+import { db } from "../db";
+import type { Order, OrderItem, Address, Review } from "@prisma/client";
 
 /**
  * Fetches all orders for the currently authenticated user, including items, products/books, reviews, and shipping address.
  * Returns an array of orders formatted for frontend consumption.
  */
-export async function getOrders(): Promise<
-  {
-    id: string;
-    orderNumber: string;
-    date: string;
-    deliveredAt?: string;
-    status: OrderStatus;
-    total: number;
-    items: any[];
-    shippingAddress: any;
-  }[]
-> {
+export async function getOrders() {
   const session = await auth();
   if (!session?.user) return [];
 
@@ -48,22 +32,6 @@ export async function getOrders(): Promise<
     orderBy: { createdAt: "desc" },
   });
 
-  // Map Prisma OrderStatus enum to frontend OrderStatus string union
-  const mapOrderStatus = (status: string): string => {
-    switch (status) {
-      case "PROCESSING":
-        return "processing";
-      case "SHIPPED":
-        return "shipped";
-      case "DELIVERED":
-        return "delivered";
-      case "CANCELLED":
-        return "cancelled";
-      default:
-        return "processing";
-    }
-  };
-
   // Format for frontend
   return orders.map(
     (
@@ -76,7 +44,7 @@ export async function getOrders(): Promise<
       orderNumber: order.orderNumber,
       date: order.createdAt.toISOString(),
       deliveredAt: order.deliveredAt?.toISOString(),
-      status: mapOrderStatus(order.status) as OrderStatus,
+      status: order.status.toLowerCase(),
       total: order.total,
       items: order.items.map(item => {
         const typedItem = item as OrderItem & {

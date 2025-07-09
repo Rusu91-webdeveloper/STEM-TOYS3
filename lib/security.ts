@@ -57,7 +57,7 @@ export function sanitizeUrl(url: string): string | undefined {
       return undefined;
     }
     return parsedUrl.toString();
-  } catch {
+  } catch (error) {
     // If the URL is invalid, return undefined
     return undefined;
   }
@@ -95,8 +95,7 @@ function getCsrfSecretKey(): string {
 }
 
 // Helper to convert ArrayBuffer to Hex string
-const arrayBufferToHex = (buffer: ArrayBuffer) =>
-  Array.from(new Uint8Array(buffer))
+const arrayBufferToHex = (buffer: ArrayBuffer) => Array.from(new Uint8Array(buffer))
     .map(b => b.toString(16).padStart(2, "0"))
     .join("");
 
@@ -201,16 +200,7 @@ export async function validateCsrfToken(
  * @returns A random nonce value
  */
 export function generateNonce(): string {
-  if (typeof window === "undefined" && typeof require === "function") {
-    // Node.js environment
-
-    const nodeCrypto = require("crypto");
-    return nodeCrypto.randomBytes(16).toString("base64");
-  }
-  // Browser or Edge Runtime
-  const array = new Uint8Array(16);
-  crypto.getRandomValues(array);
-  return btoa(String.fromCharCode(...array));
+  return crypto.randomBytes(16).toString("base64");
 }
 
 /**

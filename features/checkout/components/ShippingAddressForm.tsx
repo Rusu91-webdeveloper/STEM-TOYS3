@@ -1,12 +1,10 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import React, { useState, useEffect } from "react";
-
+import { ShippingAddress } from "../types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -14,11 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { addressSchema } from "@/lib/validations";
 import { createFormValidator } from "@/lib/formValidation";
 import { useTranslation } from "@/lib/i18n";
-import { addressSchema } from "@/lib/validations";
-
-import { ShippingAddress } from "../types";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Loader2 } from "lucide-react";
 
 interface Address {
   id: string;

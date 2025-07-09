@@ -1,13 +1,11 @@
 "use client";
 
-import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
-
+import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { Button } from "@/components/ui/button";
-import { useCurrency } from "@/lib/currency";
-
 import { PaymentDetails } from "../types";
+import { useCurrency } from "@/lib/currency";
+import { Loader2 } from "lucide-react";
 
 interface StripePaymentFormProps {
   onSuccess: (paymentDetails: PaymentDetails) => void;
@@ -87,7 +85,7 @@ export function StripePaymentForm({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount,
+          amount: amount,
           currency: "usd", // This should match your base currency
         }),
       });

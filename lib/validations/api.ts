@@ -11,7 +11,7 @@ const phoneSchema = z
 const urlSchema = z.string().url("Invalid URL format").optional();
 
 // Pagination schemas
-const _paginationSchema = z.object({
+const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).optional(),
@@ -30,7 +30,7 @@ export const productQuerySchema = z
     page: z.coerce.number().int().min(1).default(1),
   })
   .refine(
-    data => {
+    (data) => {
       // Ensure maxPrice is greater than minPrice if both are provided
       if (data.minPrice && data.maxPrice) {
         return data.maxPrice >= data.minPrice;
@@ -71,7 +71,7 @@ export const userRegistrationSchema = z
       .max(128),
   })
   .refine(
-    data => {
+    (data) => {
       // Password strength validation
       const hasUpperCase = /[A-Z]/.test(data.password);
       const hasLowerCase = /[a-z]/.test(data.password);
@@ -105,7 +105,7 @@ export const passwordResetConfirmSchema = z
       .max(128),
   })
   .refine(
-    data => {
+    (data) => {
       // Password strength validation
       const hasUpperCase = /[A-Z]/.test(data.password);
       const hasLowerCase = /[a-z]/.test(data.password);
@@ -140,9 +140,10 @@ export const orderCreateSchema = z
     notes: z.string().max(500).optional(),
   })
   .refine(
-    data =>
+    (data) => 
       // Ensure each item has either productId or bookId
-      data.items.every(item => item.productId || item.bookId),
+       data.items.every((item) => item.productId || item.bookId)
+    ,
     {
       message: "Each item must have either productId or bookId",
       path: ["items"],
@@ -209,10 +210,10 @@ export const fileUploadSchema = z.object({
   file: z
     .instanceof(File)
     .refine(
-      file => file.size <= 5 * 1024 * 1024,
+      (file) => file.size <= 5 * 1024 * 1024,
       "File size must be less than 5MB"
     )
-    .refine(file => {
+    .refine((file) => {
       const allowedTypes = [
         "image/jpeg",
         "image/png",
@@ -251,7 +252,7 @@ export function validateQueryParams<T extends z.ZodType>(
   } catch (error) {
     if (error instanceof z.ZodError) {
       const errors = error.errors.map(
-        err => `${err.path.join(".")}: ${err.message}`
+        (err) => `${err.path.join(".")}: ${err.message}`
       );
       return { success: false, errors };
     }
@@ -273,7 +274,7 @@ export async function validateRequestBody<T extends z.ZodType>(
   } catch (error) {
     if (error instanceof z.ZodError) {
       const errors = error.errors.map(
-        err => `${err.path.join(".")}: ${err.message}`
+        (err) => `${err.path.join(".")}: ${err.message}`
       );
       return { success: false, errors };
     }

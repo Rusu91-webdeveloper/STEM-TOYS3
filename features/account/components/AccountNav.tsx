@@ -1,5 +1,8 @@
 "use client";
 
+import React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   User,
   Package,
@@ -10,11 +13,7 @@ import {
   LogOut,
   RotateCcw,
 } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import React from "react";
-
 import { useTranslation } from "@/lib/i18n";
 
 export function AccountNav() {

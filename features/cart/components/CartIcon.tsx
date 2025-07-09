@@ -1,7 +1,7 @@
 "use client";
 
-import { ShoppingCart } from "lucide-react";
 import React from "react";
+import { ShoppingCart } from "lucide-react";
 
 interface CartIconProps {
   className?: string;

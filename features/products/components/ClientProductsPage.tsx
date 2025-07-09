@@ -1,5 +1,20 @@
 "use client";
 
+import React, { useState, useEffect, useMemo, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useTranslation } from "@/lib/i18n";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  ProductCard,
+  ProductGrid,
+  ProductFilters,
+  ProductVariantProvider,
+  type FilterGroup,
+  type PriceRange,
+  type FilterOption,
+} from "@/features/products";
+import type { Product } from "@/types/product";
 import {
   Lightbulb,
   Atom,
@@ -11,24 +26,8 @@ import {
   Brain,
   LucideIcon,
 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
-import React, { useState, useEffect, useMemo, Suspense } from "react";
-
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  ProductCard,
-  ProductGrid,
-  ProductFilters,
-  ProductVariantProvider,
-  type FilterGroup,
-  type PriceRange,
-  type FilterOption,
-} from "@/features/products";
-import { useTranslation } from "@/lib/i18n";
-import type { Product } from "@/types/product";
+import { Badge } from "@/components/ui/badge";
 
 interface CategoryIconInfo {
   icon: LucideIcon;
@@ -304,7 +303,7 @@ function ClientProductsPageContent({
             id: primaryCategory,
             label: categoryLabel,
             count: 1,
-            originalName,
+            originalName: originalName,
           });
         }
       }
@@ -528,14 +527,14 @@ function ClientProductsPageContent({
             return values.includes(productDifficulty);
           });
         } else if (filterId === "productType") {
-          filtered = filtered.filter(product => 
+          filtered = filtered.filter(product => {
             // Check product attributes for type
-             values.some(value =>
+            return values.some(value =>
               product.attributes?.type
                 ?.toLowerCase()
                 .includes(value.toLowerCase())
-            )
-          );
+            );
+          });
         }
       }
     });
@@ -592,11 +591,11 @@ function ClientProductsPageContent({
         return prev.filter(
           cat => normalizeCategory(cat) !== normalizedCategoryId
         );
-      } 
+      } else {
         // Add this category, replacing any existing ones
         // This ensures only one category is selected at a time
         return [normalizedCategoryId];
-      
+      }
     });
   };
 
@@ -610,12 +609,12 @@ function ClientProductsPageContent({
           ...prev,
           [filterId]: newValues,
         };
-      } 
+      } else {
         return {
           ...prev,
           [filterId]: [...currentValues, optionId],
         };
-      
+      }
     });
   };
 
@@ -643,12 +642,12 @@ function ClientProductsPageContent({
   // Get the active category for the header
   const activeCategory =
     selectedCategories.length === 1
-      ? categoryFilter.options.find(c => 
+      ? categoryFilter.options.find(c => {
           // Use normalizeCategory for consistent category matching
-           (
+          return (
             normalizeCategory(c.id) === normalizeCategory(selectedCategories[0])
-          )
-        )
+          );
+        })
       : null;
 
   // Get appropriate category info
@@ -1058,7 +1057,7 @@ function ClientProductsPageContent({
                     products={filteredProducts.map(product => {
                       // If the product name or description contains raw translation keys,
                       // replace them with properly translated content
-                      const modifiedProduct = { ...product };
+                      let modifiedProduct = { ...product };
 
                       // Check if the product has raw translation keys in name or description
                       if (

@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import {
   Settings,
   Clock,
@@ -10,11 +11,8 @@ import {
   CheckCircle,
   AlertTriangle,
 } from "lucide-react";
-import React, { useState, useEffect } from "react";
-
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
-
 import {
   getCartPreferences,
   setCartPreferences,

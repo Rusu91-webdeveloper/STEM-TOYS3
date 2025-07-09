@@ -1,11 +1,9 @@
 "use client";
 
-import { AlertCircle, RotateCcw } from "lucide-react";
 import React from "react";
-
-import { Button } from "@/components/ui/button";
-
 import { useCart } from "../context/CartContext";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, RotateCcw } from "lucide-react";
 
 /**
  * Lightweight cart status component

@@ -1,13 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n";
 
 interface ProfileFormData {
