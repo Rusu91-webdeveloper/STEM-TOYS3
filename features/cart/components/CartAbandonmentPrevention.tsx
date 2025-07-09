@@ -357,7 +357,6 @@ export function CartAbandonmentPrevention({
           ),
         });
 
-        setIsEmailCaptureOpen(false);
         setIsExitIntentModalOpen(false);
         setIsIdleModalOpen(false);
 

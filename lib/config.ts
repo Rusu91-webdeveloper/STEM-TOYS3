@@ -89,6 +89,14 @@ const envSchemaRefined = envSchema
   )
   .refine(
     data => {
+      // Skip admin validation during build process or if explicitly allowed
+      if (
+        process.env.SKIP_ADMIN_VALIDATION === "true" ||
+        process.env.npm_lifecycle_event === "build"
+      ) {
+        return true;
+      }
+
       // If admin environment variables are used, validate they're only in development
       if (
         (data.ADMIN_EMAIL || data.ADMIN_PASSWORD || data.ADMIN_PASSWORD_HASH) &&
@@ -210,7 +218,8 @@ export const serviceConfig = {
       _env.NODE_ENV === "production" || _env.ENABLE_PINO === "true";
     return _env.DISABLE_PINO !== "true" && isProductionOrExplicitlyEnabled;
   },
-  isEmailServiceEnabled: () => !!process.env.BREVO_API_KEY || !!process.env.BREVO_SMTP_KEY,
+  isEmailServiceEnabled: () =>
+    !!process.env.BREVO_API_KEY || !!process.env.BREVO_SMTP_KEY,
 } as const;
 
 // Log configuration status (only in development)

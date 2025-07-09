@@ -44,7 +44,7 @@ export async function getOrders() {
       orderNumber: order.orderNumber,
       date: order.createdAt.toISOString(),
       deliveredAt: order.deliveredAt?.toISOString(),
-      status: order.status.toLowerCase(),
+      status: order.status.toLowerCase() as any,
       total: order.total,
       items: order.items.map(item => {
         const typedItem = item as OrderItem & {
@@ -93,5 +93,5 @@ export async function getOrders() {
           }
         : null,
     })
-  );
+  ) as any;
 }

@@ -23,7 +23,7 @@ import { useTranslation } from "@/lib/i18n";
 import { useCurrency } from "@/lib/currency";
 import type { Product } from "@/types/product";
 
-interface RecommendationProduct extends Product {
+interface RecommendationProduct extends Omit<Product, "category"> {
   score?: number;
   reason?: string;
   category?: {
@@ -157,11 +157,12 @@ export function ProductRecommendations({
 
   // Mock data generator for demonstration
   const generateMockRecommendations = useMemo(() => {
-    const mockProducts: RecommendationProduct[] = [
+    const mockProducts = [
       {
         id: "1",
         name: "Advanced Robotics Kit Pro",
         slug: "advanced-robotics-kit-pro",
+        description: "Build and program advanced robots",
         price: 149.99,
         images: ["/images/robot-kit.jpg"],
         category: { id: "1", name: "Technology", slug: "technology" },
@@ -170,7 +171,7 @@ export function ProductRecommendations({
         score: 0.95,
         reason: "Similar to your recently viewed products",
         isTrending: true,
-      },
+      } as RecommendationProduct,
       {
         id: "2",
         name: "Chemistry Lab Starter Set",
@@ -213,10 +214,12 @@ export function ProductRecommendations({
     return {
       personalized: mockProducts.slice(0, 4),
       similar: mockProducts.slice(1, 5),
-      trending: mockProducts.filter(p => p.isTrending || p.rating > 4.7),
+      trending: mockProducts.filter(
+        (p: any) => p.isTrending || (p.rating && p.rating > 4.7)
+      ),
       collaborative: mockProducts.slice(2, 6),
-      smart: mockProducts.filter(p => p.score && p.score > 0.8),
-    };
+      smart: mockProducts.filter((p: any) => p.score && p.score > 0.8),
+    } as Record<string, RecommendationProduct[]>;
   }, []);
 
   // Use mock data if no real recommendations loaded
@@ -472,7 +475,7 @@ export function ProductRecommendations({
                 algorithmId={algorithm.id}
                 title={algorithm.name}
                 description={algorithm.description}
-                products={currentRecommendations[algorithm.id] || []}
+                products={(currentRecommendations as any)[algorithm.id] || []}
               />
             </TabsContent>
           ))}
@@ -492,7 +495,7 @@ export function ProductRecommendations({
         algorithmId={algorithm.id}
         title={algorithm.name}
         description={algorithm.description}
-        products={currentRecommendations[algorithm.id] || []}
+        products={(currentRecommendations as any)[algorithm.id] || []}
       />
     </div>
   );

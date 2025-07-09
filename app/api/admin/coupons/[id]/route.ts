@@ -86,7 +86,7 @@ export async function GET(
 // PUT /api/admin/coupons/[id] - Update a coupon
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -184,7 +184,7 @@ export async function PUT(
 // DELETE /api/admin/coupons/[id] - Delete a coupon
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();

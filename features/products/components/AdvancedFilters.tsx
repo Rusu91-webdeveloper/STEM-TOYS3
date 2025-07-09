@@ -153,12 +153,8 @@ export default function AdvancedFilters({
   };
 
   // Handle accordion toggle
-  const handleAccordionToggle = (value: string) => {
-    setExpandedAccordions((prev) =>
-      prev.includes(value)
-        ? prev.filter((item) => item !== value)
-        : [...prev, value]
-    );
+  const handleAccordionToggle = (value: string[]) => {
+    setExpandedAccordions(value);
   };
 
   // Get the currency formatter
@@ -192,7 +188,7 @@ export default function AdvancedFilters({
           placeholder="Search within results..."
           value={localSearchTerm}
           onChange={handleSearchInput}
-          onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit()}
+          onKeyDown={e => e.key === "Enter" && handleSearchSubmit()}
           onBlur={handleSearchSubmit}
           className="pl-9"
         />
@@ -207,7 +203,7 @@ export default function AdvancedFilters({
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
-            {sortOptions.map((option) => (
+            {sortOptions.map(option => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
@@ -226,7 +222,8 @@ export default function AdvancedFilters({
             variant="ghost"
             size="sm"
             onClick={onClearFilters}
-            className="h-6 sm:h-8 text-xs py-0">
+            className="h-6 sm:h-8 text-xs py-0"
+          >
             Clear All
           </Button>
         </div>
@@ -234,7 +231,10 @@ export default function AdvancedFilters({
 
       {/* Availability filter */}
       <div className="flex items-center justify-between">
-        <Label htmlFor="in-stock-only" className="text-xs sm:text-sm font-medium">
+        <Label
+          htmlFor="in-stock-only"
+          className="text-xs sm:text-sm font-medium"
+        >
           In Stock Only
         </Label>
         <Switch
@@ -247,15 +247,27 @@ export default function AdvancedFilters({
       {/* Rating filter */}
       <div className="space-y-2">
         <h3 className="text-xs sm:text-sm font-medium">Rating</h3>
-        <RadioGroup value={selectedRating?.toString() || ""} onValueChange={(value) => {
-          onRatingFilterChange?.(value ? Number(value) : null);
-        }}>
-          {ratingOptions.map((option) => (
+        <RadioGroup
+          value={selectedRating?.toString() || ""}
+          onValueChange={value => {
+            onRatingFilterChange?.(value ? Number(value) : null);
+          }}
+        >
+          {ratingOptions.map(option => (
             <div key={option.value} className="flex items-center space-x-2">
-              <RadioGroupItem value={option.value.toString()} id={`rating-${option.value}`} />
-              <Label htmlFor={`rating-${option.value}`} className="flex items-center">
+              <RadioGroupItem
+                value={option.value.toString()}
+                id={`rating-${option.value}`}
+              />
+              <Label
+                htmlFor={`rating-${option.value}`}
+                className="flex items-center"
+              >
                 {[...Array(option.value)].map((_, i) => (
-                  <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                  <Star
+                    key={i}
+                    className="h-3 w-3 fill-yellow-400 text-yellow-400"
+                  />
                 ))}
                 {[...Array(5 - option.value)].map((_, i) => (
                   <Star key={i} className="h-3 w-3 text-gray-300" />
@@ -270,7 +282,8 @@ export default function AdvancedFilters({
                 variant="ghost"
                 size="sm"
                 onClick={() => onRatingFilterChange?.(null)}
-                className="h-6 text-xs py-0 pl-0">
+                className="h-6 text-xs py-0 pl-0"
+              >
                 Clear Rating Filter
               </Button>
             </div>
@@ -284,17 +297,19 @@ export default function AdvancedFilters({
           type="multiple"
           value={expandedAccordions}
           onValueChange={handleAccordionToggle}
-          className="space-y-2">
+          className="space-y-2"
+        >
           <AccordionItem value="categories" className="border-b-0">
             <AccordionTrigger className="py-2 text-xs sm:text-sm font-medium">
               {categories.name}
             </AccordionTrigger>
             <AccordionContent className="pt-1 pb-3">
               <div className="space-y-1.5 sm:space-y-2">
-                {categories.options.map((category) => (
+                {categories.options.map(category => (
                   <div
                     key={category.id}
-                    className="flex items-center space-x-2">
+                    className="flex items-center space-x-2"
+                  >
                     <Checkbox
                       id={`category-${category.id}`}
                       checked={selectedCategories.includes(category.id)}
@@ -303,7 +318,8 @@ export default function AdvancedFilters({
                     />
                     <Label
                       htmlFor={`category-${category.id}`}
-                      className="flex-grow text-xs sm:text-sm">
+                      className="flex-grow text-xs sm:text-sm"
+                    >
                       {category.label}
                     </Label>
                     {category.count !== undefined && (
@@ -325,7 +341,8 @@ export default function AdvancedFilters({
           type="multiple"
           value={expandedAccordions}
           onValueChange={handleAccordionToggle}
-          className="space-y-2">
+          className="space-y-2"
+        >
           <AccordionItem value="price" className="border-b-0">
             <AccordionTrigger className="py-2 text-xs sm:text-sm font-medium">
               Price Range
@@ -341,7 +358,8 @@ export default function AdvancedFilters({
                 />
                 <Label
                   htmlFor="no-price-filter"
-                  className="text-xs sm:text-sm font-medium">
+                  className="text-xs sm:text-sm font-medium"
+                >
                   No price filter
                 </Label>
               </div>
@@ -360,7 +378,7 @@ export default function AdvancedFilters({
                         value={localPriceRange.min}
                         min={priceRange.min}
                         max={localPriceRange.max - 1}
-                        onChange={(e) => {
+                        onChange={e => {
                           const value = Number(e.target.value);
                           if (
                             !isNaN(value) &&
@@ -384,7 +402,7 @@ export default function AdvancedFilters({
                         value={localPriceRange.max}
                         min={localPriceRange.min + 1}
                         max={priceRange.max}
-                        onChange={(e) => {
+                        onChange={e => {
                           const value = Number(e.target.value);
                           if (
                             !isNaN(value) &&
@@ -427,23 +445,22 @@ export default function AdvancedFilters({
       )}
 
       {/* Other filter groups */}
-      {filters.map((filter) => (
+      {filters.map(filter => (
         <Accordion
           key={filter.id}
           type="multiple"
           value={expandedAccordions}
           onValueChange={handleAccordionToggle}
-          className="space-y-2">
+          className="space-y-2"
+        >
           <AccordionItem value={filter.id} className="border-b-0">
             <AccordionTrigger className="py-2 text-xs sm:text-sm font-medium">
               {filter.name}
             </AccordionTrigger>
             <AccordionContent className="pt-1 pb-3">
               <div className="space-y-1.5 sm:space-y-2">
-                {filter.options.map((option) => (
-                  <div
-                    key={option.id}
-                    className="flex items-center space-x-2">
+                {filter.options.map(option => (
+                  <div key={option.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={`${filter.id}-${option.id}`}
                       checked={
@@ -456,7 +473,8 @@ export default function AdvancedFilters({
                     />
                     <Label
                       htmlFor={`${filter.id}-${option.id}`}
-                      className="flex-grow text-xs sm:text-sm">
+                      className="flex-grow text-xs sm:text-sm"
+                    >
                       {option.label}
                     </Label>
                     {option.count !== undefined && (
@@ -481,14 +499,15 @@ export default function AdvancedFilters({
     return (
       <div className="flex flex-wrap gap-1.5 mt-2">
         {/* Category badges */}
-        {selectedCategories.map((categoryId) => {
-          const category = categories?.options.find((c) => c.id === categoryId);
+        {selectedCategories.map(categoryId => {
+          const category = categories?.options.find(c => c.id === categoryId);
           if (!category) return null;
           return (
             <Badge
               key={`cat-${categoryId}`}
               variant="secondary"
-              className="flex items-center gap-1 text-xs py-0.5 h-6">
+              className="flex items-center gap-1 text-xs py-0.5 h-6"
+            >
               {category.label}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -500,17 +519,18 @@ export default function AdvancedFilters({
 
         {/* Filter option badges */}
         {Object.entries(selectedFilters).map(([filterId, optionIds]) => {
-          const filterGroup = filters.find((f) => f.id === filterId);
+          const filterGroup = filters.find(f => f.id === filterId);
           if (!filterGroup) return null;
 
-          return optionIds.map((optionId) => {
-            const option = filterGroup.options.find((o) => o.id === optionId);
+          return optionIds.map(optionId => {
+            const option = filterGroup.options.find(o => o.id === optionId);
             if (!option) return null;
             return (
               <Badge
                 key={`${filterId}-${optionId}`}
                 variant="secondary"
-                className="flex items-center gap-1 text-xs py-0.5 h-6">
+                className="flex items-center gap-1 text-xs py-0.5 h-6"
+              >
                 {option.label}
                 <X
                   className="h-3 w-3 cursor-pointer"
@@ -528,7 +548,8 @@ export default function AdvancedFilters({
             priceRange.current.max !== priceRange.max) && (
             <Badge
               variant="secondary"
-              className="flex items-center gap-1 text-xs py-0.5 h-6">
+              className="flex items-center gap-1 text-xs py-0.5 h-6"
+            >
               {`${formatPrice(priceRange.current.min)} - ${formatPrice(
                 priceRange.current.max
               )}`}
@@ -543,7 +564,8 @@ export default function AdvancedFilters({
         {selectedRating !== null && (
           <Badge
             variant="secondary"
-            className="flex items-center gap-1 text-xs py-0.5 h-6">
+            className="flex items-center gap-1 text-xs py-0.5 h-6"
+          >
             {`${selectedRating}+ Stars`}
             <X
               className="h-3 w-3 cursor-pointer"
@@ -556,7 +578,8 @@ export default function AdvancedFilters({
         {inStockOnly && (
           <Badge
             variant="secondary"
-            className="flex items-center gap-1 text-xs py-0.5 h-6">
+            className="flex items-center gap-1 text-xs py-0.5 h-6"
+          >
             In Stock Only
             <X
               className="h-3 w-3 cursor-pointer"
@@ -571,9 +594,7 @@ export default function AdvancedFilters({
   return (
     <div className={cn("relative", className)}>
       {/* Desktop filters */}
-      <div className="hidden md:block">
-        {filterContent}
-      </div>
+      <div className="hidden md:block">{filterContent}</div>
 
       {/* Mobile filters */}
       <div className="md:hidden">
@@ -583,7 +604,8 @@ export default function AdvancedFilters({
               <Button
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-1.5 text-xs">
+                className="flex items-center gap-1.5 text-xs"
+              >
                 <SlidersHorizontal className="h-3.5 w-3.5" />
                 Filters
                 {activeFilterCount > 0 && (
@@ -597,7 +619,8 @@ export default function AdvancedFilters({
               className="w-screen max-w-xs p-0 border-0 rounded-t-none"
               align="start"
               side="bottom"
-              sideOffset={-1}>
+              sideOffset={-1}
+            >
               <div className="p-4 max-h-[80vh] overflow-y-auto">
                 {filterContent}
               </div>
@@ -605,12 +628,11 @@ export default function AdvancedFilters({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setMobileFiltersOpen(false)}>
+                  onClick={() => setMobileFiltersOpen(false)}
+                >
                   Cancel
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={() => setMobileFiltersOpen(false)}>
+                <Button size="sm" onClick={() => setMobileFiltersOpen(false)}>
                   Apply Filters
                 </Button>
               </div>
@@ -623,7 +645,7 @@ export default function AdvancedFilters({
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              {sortOptions.map((option) => (
+              {sortOptions.map(option => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -637,4 +659,4 @@ export default function AdvancedFilters({
       </div>
     </div>
   );
-} 
+}

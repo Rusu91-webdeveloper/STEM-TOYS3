@@ -47,7 +47,7 @@ export async function getCombinedProduct(
       next: {
         // Use tags for more precise invalidation
         tags: [`product-${slug}`, "products", `book-${slug}`, "books"],
-        revalidate: 0, // Don't cache individual products to ensure freshness
+        revalidate: 60, // Cache for 1 minute to allow static rendering
       },
     });
 
@@ -198,10 +198,9 @@ export async function getProducts(
 
       console.error("Unexpected API response format (object):", data);
       return [];
-    } 
-      console.error("Unexpected API response format:", data);
-      return [];
-    
+    }
+    console.error("Unexpected API response format:", data);
+    return [];
   } catch (error) {
     console.error("Error fetching products:", error);
     return [];

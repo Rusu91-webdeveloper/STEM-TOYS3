@@ -108,10 +108,10 @@ export abstract class BaseRepository<TModel, TCreateInput, TUpdateInput> {
       return await executeFn();
     }
 
-    return await withPerformanceMonitoring(
+    return (await withPerformanceMonitoring(
       executeFn,
       `${this.modelName}.${operationName}`
-    );
+    )) as T;
   }
 
   /**

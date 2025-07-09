@@ -8,7 +8,7 @@ async function getFeaturedProducts(): Promise<Product[]> {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_SITE_URL}/api/products?featured=true`,
       {
-        cache: "no-store", // Or use revalidation if you want to cache
+        next: { revalidate: 60 }, // Cache for 1 minute to allow static rendering
       }
     );
 

@@ -97,68 +97,64 @@ function calculateAccountLevel(totalSpent: number) {
   };
 }
 
-export function GET(_request: NextRequest) {
-  const handler = async () => {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-    const userId = session.user.id;
-    // Use Prisma aggregates for stats
-    const [orderAgg, favoriteAgg] = await Promise.all([
-      db.order.aggregate({
-        where: {
-          userId,
-          status: { in: ["COMPLETED", "DELIVERED", "SHIPPED"] },
-        },
-        _sum: { total: true },
-        _count: { _all: true },
-      }),
-      db.orderItem.groupBy({
-        by: ["productId"],
-        where: { order: { userId } },
-        _sum: { quantity: true },
-      }),
-    ]);
-    const totalOrders = orderAgg._count._all;
-    const totalSpent = orderAgg._sum.total || 0;
-    const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
-    // Find favorite category by most purchased product
-    let favoriteCategory = "Science Kits";
-    if (favoriteAgg.length > 0) {
-      const topProductId = favoriteAgg.sort(
-        (a, b) => (b._sum.quantity || 0) - (a._sum.quantity || 0)
-      )[0].productId;
+export const GET = withErrorHandler(async (_request: NextRequest) => {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Authentication required" },
+      { status: 401 }
+    );
+  }
+  const userId = session.user.id;
+  // Use Prisma aggregates for stats
+  const [orderAgg, favoriteAgg] = await Promise.all([
+    db.order.aggregate({
+      where: {
+        userId,
+        status: { in: ["COMPLETED", "DELIVERED", "SHIPPED"] },
+      },
+      _sum: { total: true },
+      _count: { _all: true },
+    }),
+    db.orderItem.groupBy({
+      by: ["productId"],
+      where: { order: { userId } },
+      _sum: { quantity: true },
+    }),
+  ]);
+  const totalOrders = orderAgg._count._all;
+  const totalSpent = orderAgg._sum.total || 0;
+  const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
+  // Find favorite category by most purchased product
+  let favoriteCategory = "Science Kits";
+  if (favoriteAgg.length > 0) {
+    const topProductId = favoriteAgg.sort(
+      (a, b) => (b._sum.quantity || 0) - (a._sum.quantity || 0)
+    )[0].productId;
 
-      if (topProductId) {
-        const topProduct: TopProductCategory = await db.product.findUnique({
-          where: { id: topProductId },
-          select: { category: { select: { name: true } } },
-        });
+    if (topProductId) {
+      const topProduct: TopProductCategory = await db.product.findUnique({
+        where: { id: topProductId },
+        select: { category: { select: { name: true } } },
+      });
 
-        if (topProduct?.category?.name) {
-          favoriteCategory = topProduct.category.name;
-        }
+      if (topProduct?.category?.name) {
+        favoriteCategory = topProduct.category.name;
       }
     }
-    // Loyalty points and savings (mock)
-    const loyaltyPoints = Math.floor(totalSpent);
-    const savedOnDiscounts = totalSpent * 0.15;
-    // Account level (mock)
-    const accountLevel = calculateAccountLevel(totalSpent);
-    return NextResponse.json({
-      totalOrders,
-      totalSpent,
-      averageOrderValue,
-      favoriteCategory,
-      accountLevel,
-      loyaltyPoints,
-      savedOnDiscounts,
-    });
-  };
-
-  return withErrorHandler(handler)();
-}
+  }
+  // Loyalty points and savings (mock)
+  const loyaltyPoints = Math.floor(totalSpent);
+  const savedOnDiscounts = totalSpent * 0.15;
+  // Account level (mock)
+  const accountLevel = calculateAccountLevel(totalSpent);
+  return NextResponse.json({
+    totalOrders,
+    totalSpent,
+    averageOrderValue,
+    favoriteCategory,
+    accountLevel,
+    loyaltyPoints,
+    savedOnDiscounts,
+  });
+});

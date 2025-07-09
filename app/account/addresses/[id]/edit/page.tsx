@@ -60,7 +60,7 @@ export default function EditAddressPage() {
     );
   }
 
-  if (error) {
+  if (error || !address) {
     return (
       <div className="space-y-6">
         <div>
@@ -70,7 +70,7 @@ export default function EditAddressPage() {
           </p>
         </div>
         <div className="bg-red-50 text-red-800 p-4 rounded-lg border border-red-200">
-          {error}
+          {error || "Address not found"}
         </div>
       </div>
     );

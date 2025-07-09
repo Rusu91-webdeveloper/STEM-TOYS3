@@ -65,7 +65,7 @@ const cardSchema = z.object({
     .string()
     .regex(/^\d{2}$/, "Invalid expiry year")
     .refine(
-      (year) => {
+      year => {
         const currentYear = new Date().getFullYear() % 100;
         return parseInt(year, 10) >= currentYear;
       },
@@ -80,7 +80,7 @@ const cardSchema = z.object({
 
 // Schema with additional checks for expiry date
 const paymentCardSchema = cardSchema.refine(
-  (data) => {
+  data => {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear() % 100;
     const currentMonth = currentDate.getMonth() + 1;
@@ -132,7 +132,7 @@ export function PaymentCardForm({
     control,
     trigger,
   } = useForm<PaymentCardFormValues>({
-    resolver: zodResolver(paymentCardSchema),
+    resolver: zodResolver(paymentCardSchema) as any,
     defaultValues: {
       cardholderName: initialData?.cardholderName || "",
       cardNumber: initialData?.cardNumber || "",
@@ -304,9 +304,7 @@ export function PaymentCardForm({
   });
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div>
         <Label htmlFor="cardholderName">Cardholder Name</Label>
         <Input
@@ -335,7 +333,8 @@ export function PaymentCardForm({
                     ${cardType === "mastercard" ? "bg-red-500" : ""}
                     ${cardType === "amex" ? "bg-blue-700" : ""}
                     ${cardType === "discover" ? "bg-orange-500" : ""}
-                  `}>
+                  `}
+                >
                   {cardType === "visa" && "VISA"}
                   {cardType === "mastercard" && "MC"}
                   {cardType === "amex" && "AMEX"}
@@ -385,17 +384,17 @@ export function PaymentCardForm({
           <Label htmlFor="expiryDate">Expiry Date</Label>
           <div className="flex space-x-2">
             <Select
-              onValueChange={(value) => setValue("expiryMonth", value)}
-              defaultValue={watch("expiryMonth")}>
+              onValueChange={value => setValue("expiryMonth", value)}
+              defaultValue={watch("expiryMonth")}
+            >
               <SelectTrigger
-                className={`${errors.expiryMonth || isExpired ? "border-red-500" : ""} bg-white`}>
+                className={`${errors.expiryMonth || isExpired ? "border-red-500" : ""} bg-white`}
+              >
                 <SelectValue placeholder="MM" />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                {monthOptions.map((month) => (
-                  <SelectItem
-                    key={month.value}
-                    value={month.value}>
+                {monthOptions.map(month => (
+                  <SelectItem key={month.value} value={month.value}>
                     {month.label}
                   </SelectItem>
                 ))}
@@ -403,17 +402,17 @@ export function PaymentCardForm({
             </Select>
 
             <Select
-              onValueChange={(value) => setValue("expiryYear", value)}
-              defaultValue={watch("expiryYear")}>
+              onValueChange={value => setValue("expiryYear", value)}
+              defaultValue={watch("expiryYear")}
+            >
               <SelectTrigger
-                className={`${errors.expiryYear || isExpired ? "border-red-500" : ""} bg-white`}>
+                className={`${errors.expiryYear || isExpired ? "border-red-500" : ""} bg-white`}
+              >
                 <SelectValue placeholder="YY" />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                {yearOptions.map((year) => (
-                  <SelectItem
-                    key={year.value}
-                    value={year.value}>
+                {yearOptions.map(year => (
+                  <SelectItem key={year.value} value={year.value}>
                     {year.label}
                   </SelectItem>
                 ))}
@@ -460,17 +459,16 @@ export function PaymentCardForm({
         <div>
           <Label htmlFor="billingAddressId">Billing Address</Label>
           <Select
-            onValueChange={(value) => setValue("billingAddressId", value)}
-            defaultValue={watch("billingAddressId") || "none"}>
+            onValueChange={value => setValue("billingAddressId", value)}
+            defaultValue={watch("billingAddressId") || "none"}
+          >
             <SelectTrigger className="bg-white">
               <SelectValue placeholder="Select a billing address" />
             </SelectTrigger>
             <SelectContent className="bg-white">
               <SelectItem value="none">None</SelectItem>
-              {addresses.map((address) => (
-                <SelectItem
-                  key={address.id}
-                  value={address.id}>
+              {addresses.map(address => (
+                <SelectItem key={address.id} value={address.id}>
                   {address.name}
                 </SelectItem>
               ))}
@@ -483,13 +481,9 @@ export function PaymentCardForm({
         <Checkbox
           id="isDefault"
           checked={watch("isDefault")}
-          onCheckedChange={(checked) =>
-            setValue("isDefault", checked as boolean)
-          }
+          onCheckedChange={checked => setValue("isDefault", checked as boolean)}
         />
-        <Label
-          htmlFor="isDefault"
-          className="text-sm font-medium">
+        <Label htmlFor="isDefault" className="text-sm font-medium">
           Set as default payment method
         </Label>
       </div>
@@ -507,12 +501,14 @@ export function PaymentCardForm({
           type="button"
           variant="outline"
           onClick={() => router.push("/account/payment-methods")}
-          disabled={isLoading}>
+          disabled={isLoading}
+        >
           Cancel
         </Button>
         <Button
           type="submit"
-          disabled={isLoading || isCardValid === false || isExpired}>
+          disabled={isLoading || isCardValid === false || isExpired}
+        >
           {isLoading ? "Saving..." : isEditing ? "Update Card" : "Add Card"}
         </Button>
       </div>

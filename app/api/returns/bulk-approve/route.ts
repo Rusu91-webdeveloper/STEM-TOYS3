@@ -88,9 +88,9 @@ export async function POST(request: Request) {
     for (const [orderId, orderReturns] of Object.entries(returnsByOrder)) {
       try {
         // Update all return statuses in a transaction
-        await db.$transaction(async (tx) => {
+        await db.$transaction(async tx => {
           await Promise.all(
-            orderReturns.map((returnItem) =>
+            orderReturns.map(returnItem =>
               tx.return.update({
                 where: { id: returnItem.id },
                 data: { status: "APPROVED" },
@@ -111,9 +111,9 @@ export async function POST(request: Request) {
 
         // Create consolidated label with all items
         const allProductNames = orderReturns
-          .map((r) => r.orderItem.name)
+          .map(r => r.orderItem.name)
           .join(", ");
-        const allReturnIds = orderReturns.map((r) => r.id);
+        const allReturnIds = orderReturns.map(r => r.id);
 
         // Generate one return label for all items
         const pdfBuffer = await generateReturnLabel({
@@ -121,9 +121,9 @@ export async function POST(request: Request) {
           orderNumber: order.orderNumber,
           returnId: allReturnIds.join(","), // Combine all return IDs
           productName: `${orderReturns.length} articol(e): ${allProductNames}`,
-          productId: orderReturns[0].orderItem.productId, // Use first product ID as reference
+          productId: orderReturns[0].orderItem.productId || "", // Use first product ID as reference
           productSku: orderReturns
-            .map((r) => r.orderItem.product.sku || "N/A")
+            .map(r => r.orderItem.product?.sku || "N/A")
             .join(", "),
           reason: "Returnare în bloc", // Bulk return
           customerName: customer.name || customer.email,
@@ -145,7 +145,7 @@ export async function POST(request: Request) {
         // Create consolidated email content
         const itemsList = orderReturns
           .map(
-            (returnItem) =>
+            returnItem =>
               `<tr style="border-bottom: 1px solid #e5e7eb;">
             <td style="padding: 8px 0;">${returnItem.orderItem.name}</td>
             <td style="padding: 8px 0; text-align: center;">${returnItem.orderItem.quantity}</td>

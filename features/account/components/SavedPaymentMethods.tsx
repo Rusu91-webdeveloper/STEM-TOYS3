@@ -87,7 +87,7 @@ export function SavedPaymentMethods() {
     setValue,
     watch,
   } = useForm<AddCardFormData>({
-    resolver: zodResolver(addCardSchema),
+    resolver: zodResolver(addCardSchema) as any,
   });
 
   // Load saved payment cards

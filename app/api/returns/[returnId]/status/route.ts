@@ -243,7 +243,7 @@ export async function PATCH(
           orderNumber: updatedReturn.order.orderNumber,
           returnId: updatedReturn.id,
           productName: updatedReturn.orderItem.name,
-          productId: updatedReturn.orderItem.productId,
+          productId: updatedReturn.orderItem.productId || "",
           productSku: updatedReturn.orderItem.product?.sku || "",
           reason:
             reasonLabelsRo[

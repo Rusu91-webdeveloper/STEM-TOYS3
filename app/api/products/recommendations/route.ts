@@ -31,52 +31,50 @@ interface RecommendationParams {
   limit: number;
 }
 
-export async function GET(request: NextRequest) {
-  return withErrorHandler(async () => {
-    const { searchParams } = new URL(request.url);
+export const GET = withErrorHandler(async (request: NextRequest) => {
+  const { searchParams } = new URL(request.url);
 
-    const params: RecommendationParams = {
-      userId: searchParams.get("userId") || undefined,
-      currentProductId: searchParams.get("currentProductId") || undefined,
-      viewedProducts:
-        searchParams.get("viewedProducts")?.split(",").filter(Boolean) || [],
-      purchaseHistory:
-        searchParams.get("purchaseHistory")?.split(",").filter(Boolean) || [],
-      categories:
-        searchParams.get("categories")?.split(",").filter(Boolean) || [],
-      limit: Math.min(parseInt(searchParams.get("limit") || "8"), 20),
-    };
+  const params: RecommendationParams = {
+    userId: searchParams.get("userId") || undefined,
+    currentProductId: searchParams.get("currentProductId") || undefined,
+    viewedProducts:
+      searchParams.get("viewedProducts")?.split(",").filter(Boolean) || [],
+    purchaseHistory:
+      searchParams.get("purchaseHistory")?.split(",").filter(Boolean) || [],
+    categories:
+      searchParams.get("categories")?.split(",").filter(Boolean) || [],
+    limit: Math.min(parseInt(searchParams.get("limit") || "8"), 20),
+  };
 
-    try {
-      const recommendations = await generateRecommendations(params);
+  try {
+    const recommendations = await generateRecommendations(params);
 
-      return NextResponse.json({
-        recommendations,
-        meta: {
-          algorithms: Object.keys(recommendations),
-          totalProducts: Object.values(recommendations).reduce(
-            (sum, products) => sum + products.length,
-            0
-          ),
-          params: {
-            userId: params.userId,
-            currentProductId: params.currentProductId,
-            limit: params.limit,
-          },
+    return NextResponse.json({
+      recommendations,
+      meta: {
+        algorithms: Object.keys(recommendations),
+        totalProducts: Object.values(recommendations).reduce(
+          (sum, products) => sum + products.length,
+          0
+        ),
+        params: {
+          userId: params.userId,
+          currentProductId: params.currentProductId,
+          limit: params.limit,
         },
-      });
-    } catch (error) {
-      console.error("Error generating recommendations:", error);
-      return NextResponse.json(
-        {
-          recommendations: {},
-          error: "Failed to generate recommendations",
-        },
-        { status: 500 }
-      );
-    }
-  });
-}
+      },
+    });
+  } catch (error) {
+    console.error("Error generating recommendations:", error);
+    return NextResponse.json(
+      {
+        recommendations: {},
+        error: "Failed to generate recommendations",
+      },
+      { status: 500 }
+    );
+  }
+});
 
 async function generateRecommendations(params: RecommendationParams) {
   const {
@@ -166,7 +164,11 @@ async function getPersonalizedRecommendations(
     });
 
     const categoryIds = [
-      ...new Set(interactedCategories.map(p => p.categoryId).filter(Boolean)),
+      ...new Set(
+        interactedCategories
+          .map(p => p.categoryId)
+          .filter((id): id is string => id !== null)
+      ),
     ];
 
     // Find similar products in same categories
@@ -321,7 +323,11 @@ async function getCollaborativeRecommendations(
     });
 
     const categoryIds = [
-      ...new Set(referenceCategories.map(p => p.categoryId).filter(Boolean)),
+      ...new Set(
+        referenceCategories
+          .map(p => p.categoryId)
+          .filter((id): id is string => id !== null)
+      ),
     ];
 
     if (categoryIds.length === 0) {

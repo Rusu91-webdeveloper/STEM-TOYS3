@@ -186,8 +186,12 @@ export function ProductComparison({
     }
 
     // Check in attributes
-    if (product.attributes && typeof product.attributes === "object") {
-      const attrs = product.attributes as Record<string, any>;
+    const attrs =
+      product.attributes && typeof product.attributes === "object"
+        ? (product.attributes as Record<string, any>)
+        : null;
+
+    if (attrs?.[attributeKey]) {
       return attrs[attributeKey];
     }
 

@@ -82,7 +82,9 @@ const extendedAddressSchema = addressSchema.extend({
   isDefault: z.boolean().default(false),
 });
 
-type AddressFormValues = z.infer<typeof extendedAddressSchema>;
+type AddressFormValues = z.infer<typeof extendedAddressSchema> & {
+  isDefault: boolean; // Ensure isDefault is always boolean
+};
 
 interface AddressFormProps {
   initialData?: Partial<AddressFormValues>;
@@ -108,7 +110,7 @@ export function AddressForm({
     setValue,
     watch,
   } = useForm<AddressFormValues>({
-    resolver: zodResolver(extendedAddressSchema),
+    resolver: zodResolver(extendedAddressSchema) as any,
     defaultValues: {
       name: initialData?.name || "",
       fullName: initialData?.fullName || "",
@@ -119,7 +121,7 @@ export function AddressForm({
       postalCode: initialData?.postalCode || "",
       country: "RO", // Default to Romania and don't allow changes
       phone: initialData?.phone || "",
-      isDefault: initialData?.isDefault || false,
+      isDefault: initialData?.isDefault ?? false,
     },
   });
 
@@ -177,9 +179,7 @@ export function AddressForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
         <div>
           <Label htmlFor="name">Address Nickname</Label>
@@ -238,15 +238,14 @@ export function AddressForm({
             <Label htmlFor="state">Județ</Label>
             <Select
               defaultValue={watch("state")}
-              onValueChange={handleCountyChange}>
+              onValueChange={handleCountyChange}
+            >
               <SelectTrigger className={errors.state ? "border-red-500" : ""}>
                 <SelectValue placeholder="Selectează județul" />
               </SelectTrigger>
               <SelectContent>
-                {romanianCounties.map((county) => (
-                  <SelectItem
-                    key={county.code}
-                    value={county.code}>
+                {romanianCounties.map(county => (
+                  <SelectItem key={county.code} value={county.code}>
                     {county.name}
                   </SelectItem>
                 ))}
@@ -297,11 +296,7 @@ export function AddressForm({
               disabled
               className="bg-gray-100"
             />
-            <input
-              type="hidden"
-              value="RO"
-              {...register("country")}
-            />
+            <input type="hidden" value="RO" {...register("country")} />
           </div>
         </div>
 
@@ -322,13 +317,11 @@ export function AddressForm({
           <Checkbox
             id="isDefault"
             checked={watch("isDefault")}
-            onCheckedChange={(checked) =>
+            onCheckedChange={checked =>
               setValue("isDefault", checked as boolean)
             }
           />
-          <Label
-            htmlFor="isDefault"
-            className="text-sm font-medium">
+          <Label htmlFor="isDefault" className="text-sm font-medium">
             Setează ca adresă implicită
           </Label>
         </div>
@@ -339,12 +332,11 @@ export function AddressForm({
           type="button"
           variant="outline"
           onClick={() => router.push("/account/addresses")}
-          disabled={isLoading}>
+          disabled={isLoading}
+        >
           Anulează
         </Button>
-        <Button
-          type="submit"
-          disabled={isLoading}>
+        <Button type="submit" disabled={isLoading}>
           {isLoading
             ? "Se salvează..."
             : isEditing

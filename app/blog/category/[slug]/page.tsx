@@ -10,7 +10,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n";
 
 // Mock data for blog posts categorized by STEM areas
-export const blogPostsByCategory = {
+const blogPostsByCategory = {
   science: [
     {
       id: "science-1",
@@ -317,14 +317,10 @@ export default function BlogCategoryPage() {
             <Button
               variant="ghost"
               className="text-white hover:text-white/90 p-0 h-auto text-xs sm:text-sm"
-              asChild>
-              <Link
-                href="/blog"
-                className="flex items-center gap-1">
-                <ArrowLeft
-                  size={14}
-                  className="sm:w-4 sm:h-4"
-                />
+              asChild
+            >
+              <Link href="/blog" className="flex items-center gap-1">
+                <ArrowLeft size={14} className="sm:w-4 sm:h-4" />
                 <span>{t("backToBlog")}</span>
               </Link>
             </Button>
@@ -343,10 +339,11 @@ export default function BlogCategoryPage() {
       <section className="py-6 sm:py-8 md:py-12 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50">
         <div className="container px-3 sm:px-4 lg:px-8 mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mx-auto max-w-7xl">
-            {posts.map((post) => (
+            {posts.map(post => (
               <div
                 key={post.id}
-                className="bg-white rounded-lg overflow-hidden shadow-md border border-indigo-100 hover:shadow-xl hover:border-indigo-200 transition-all transform hover:-translate-y-1 duration-300">
+                className="bg-white rounded-lg overflow-hidden shadow-md border border-indigo-100 hover:shadow-xl hover:border-indigo-200 transition-all transform hover:-translate-y-1 duration-300"
+              >
                 <div className="relative h-40 sm:h-48 w-full">
                   <Image
                     src={post.image}
@@ -382,7 +379,8 @@ export default function BlogCategoryPage() {
                     <Button
                       className="bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 hover:from-indigo-100 hover:to-purple-100 border border-indigo-200 shadow-sm transition-all h-7 sm:h-8 text-[10px] sm:text-xs px-2 sm:px-3 py-0"
                       size="sm"
-                      asChild>
+                      asChild
+                    >
                       <Link href={`/blog/post/${post.id}`}>
                         {t("readMore")}
                       </Link>
@@ -403,13 +401,14 @@ export default function BlogCategoryPage() {
           </h2>
           <div className="flex flex-wrap gap-2 sm:gap-3 max-w-4xl">
             {Object.keys(blogPostsByCategory)
-              .filter((cat) => cat !== categorySlug)
-              .map((cat) => (
+              .filter(cat => cat !== categorySlug)
+              .map(cat => (
                 <Button
                   key={cat}
                   className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white border-none shadow-md transition-all h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3 py-0"
                   size="sm"
-                  asChild>
+                  asChild
+                >
                   <Link href={`/blog/category/${cat}`}>
                     {cat.charAt(0).toUpperCase() + cat.slice(1)}
                   </Link>
