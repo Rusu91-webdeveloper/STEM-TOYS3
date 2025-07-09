@@ -17,7 +17,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // Don't block production builds even with TypeScript errors
+    // Temporarily ignore build errors to allow deployment while fixing module resolution
     ignoreBuildErrors: true,
   },
   // Update domain configuration with new fallback approach
