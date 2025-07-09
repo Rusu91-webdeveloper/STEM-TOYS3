@@ -329,9 +329,6 @@ importers:
       husky:
         specifier: ^9.1.7
         version: 9.1.7
-      is-ci:
-        specifier: ^4.1.0
-        version: 4.1.0
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@20.19.4)(ts-node@10.9.2(@types/node@20.19.4)(typescript@5.8.3))
@@ -8580,13 +8577,6 @@ packages:
         integrity: sha512-1BC0BVFhS/p0qtw6enp8e+8OD0UrK0oFLztSjNzhcKA3WDuJxxAPXzPuPtKkjEY9UUoEWlX/8fgKeu2S8i9JTA==,
       }
     engines: { node: '>= 0.4' }
-
-  is-ci@4.1.0:
-    resolution:
-      {
-        integrity: sha512-Ab9bQDQ11lWootZUI5qxgN2ZXwxNI5hTwnsvOc1wyxQ7zQ8OkEDw79mI0+9jI3x432NfwbVRru+3noJfXF6lSQ==,
-      }
-    hasBin: true
 
   is-core-module@2.16.1:
     resolution:
@@ -18939,10 +18929,6 @@ snapshots:
       semver: 7.7.2
 
   is-callable@1.2.7: {}
-
-  is-ci@4.1.0:
-    dependencies:
-      ci-info: 4.3.0
 
   is-core-module@2.16.1:
     dependencies:
