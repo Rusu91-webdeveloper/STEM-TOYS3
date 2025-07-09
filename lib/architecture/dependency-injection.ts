@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logger";
+import "reflect-metadata";
 
 export type Constructor<T = {}> = new (...args: any[]) => T;
 export type Factory<T = any> = () => T | Promise<T>;
@@ -322,7 +323,7 @@ export const DI = {
   ): Factory<T> {
     return async () => {
       const resolvedDeps = await container.resolveMany(...dependencies);
-      return factory(...resolvedDeps);
+      return (factory as any).apply(null, resolvedDeps);
     };
   },
 
@@ -335,7 +336,7 @@ export const DI = {
   ): Factory<T> {
     return async () => {
       const resolvedDeps = await container.resolveMany(...dependencies);
-      return new ServiceClass(...resolvedDeps);
+      return new ServiceClass(...(resolvedDeps as any[]));
     };
   },
 

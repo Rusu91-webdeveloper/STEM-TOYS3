@@ -2,9 +2,9 @@ import { User } from "lucide-react";
 import React from "react";
 
 import { ProfileForm } from "@/features/account/components/ProfileForm";
-import { auth } from "@/lib/server/auth";
 import { db } from "@/lib/db";
 import { getTranslations } from "@/lib/i18n/server";
+import { auth } from "@/lib/server/auth";
 
 export default async function ProfilePage() {
   const session = await auth();

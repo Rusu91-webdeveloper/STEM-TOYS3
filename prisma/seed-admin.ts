@@ -1,8 +1,9 @@
+import * as fs from "fs";
+import * as path from "path";
+
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcrypt";
 import * as dotenv from "dotenv";
-import * as path from "path";
-import * as fs from "fs";
 
 // Load environment variables from .env.local file
 const envLocalPath = path.resolve(process.cwd(), ".env.local");

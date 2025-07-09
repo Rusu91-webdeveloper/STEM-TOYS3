@@ -307,7 +307,6 @@ class ContentVersioningService {
             compareAtPrice: content.compareAtPrice,
             images: content.images,
             categoryId: content.categoryId,
-            stemCategory: content.stemCategory,
             isActive: content.isActive,
             metadata: content.metadata,
           },

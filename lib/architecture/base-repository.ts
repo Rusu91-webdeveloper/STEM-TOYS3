@@ -1,4 +1,5 @@
 import { PrismaClient, Prisma } from "@prisma/client";
+import type { PrismaClient as PrismaClientType } from "@prisma/client";
 
 import { ApiError, ApiErrors } from "@/lib/api-error-handler";
 import { cache } from "@/lib/cache";
@@ -60,11 +61,11 @@ export abstract class BaseRepository<TModel, TCreateInput, TUpdateInput> {
   /**
    * Execute a database operation with error handling and optional caching
    */
-  protected async executeOperation<T>(
-    operation: () => Promise<T>,
+  protected async executeOperation(
+    operation: () => Promise<any>,
     operationName: string,
     options: QueryOptions = {}
-  ): Promise<T> {
+  ): Promise<any> {
     const {
       cache: useCache = false,
       cacheTTL = 300,
@@ -109,9 +110,9 @@ export abstract class BaseRepository<TModel, TCreateInput, TUpdateInput> {
     }
 
     return await withPerformanceMonitoring(
-      executeFn,
-      `${this.modelName}.${operationName}`
-    );
+      `${this.modelName}.${operationName}`,
+      executeFn
+    )();
   }
 
   /**
@@ -138,7 +139,7 @@ export abstract class BaseRepository<TModel, TCreateInput, TUpdateInput> {
       await cache.set(cacheKey, result, options.cacheTTL);
     }
 
-    return result;
+    return result as TModel | null;
   }
 
   /**
@@ -212,7 +213,7 @@ export abstract class BaseRepository<TModel, TCreateInput, TUpdateInput> {
     await this.invalidateCache("findMany");
     await this.invalidateCache("count");
 
-    return result;
+    return result as TModel;
   }
 
   /**
@@ -233,7 +234,7 @@ export abstract class BaseRepository<TModel, TCreateInput, TUpdateInput> {
     await this.invalidateCache("findById", id);
     await this.invalidateCache("findMany");
 
-    return result;
+    return result as TModel;
   }
 
   /**
@@ -251,7 +252,7 @@ export abstract class BaseRepository<TModel, TCreateInput, TUpdateInput> {
     await this.invalidateCache("findMany");
     await this.invalidateCache("count");
 
-    return result;
+    return result as TModel;
   }
 
   /**
@@ -275,7 +276,7 @@ export abstract class BaseRepository<TModel, TCreateInput, TUpdateInput> {
       await cache.set(cacheKey, result, options.cacheTTL);
     }
 
-    return result;
+    return result as number;
   }
 
   /**
@@ -304,17 +305,27 @@ export abstract class BaseRepository<TModel, TCreateInput, TUpdateInput> {
     // Invalidate related cache entries
     await this.invalidateCache("findMany");
 
-    return result;
+    return result as TModel;
   }
 
   /**
    * Execute a transaction
    */
   async transaction<T>(
-    operations: (tx: PrismaClient) => Promise<T>
+    operations: (
+      tx: Omit<
+        PrismaClientType,
+        | "$connect"
+        | "$disconnect"
+        | "$on"
+        | "$transaction"
+        | "$use"
+        | "$extends"
+      >
+    ) => Promise<T>
   ): Promise<T> {
     return await this.executeOperation(
-      () => db.$transaction(operations),
+      () => (db as PrismaClient).$transaction(operations),
       "transaction"
     );
   }

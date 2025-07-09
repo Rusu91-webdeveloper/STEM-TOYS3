@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
-import React from 'react';
+import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "@storybook/test";
+import React from "react";
 
-import { 
+import {
   ErrorState,
   NetworkError,
   NotFoundError,
@@ -12,24 +12,21 @@ import {
   DatabaseError,
   EmptyState,
   LoadFailedError,
-  ErrorBoundaryFallback
-} from './error-state';
+  ErrorBoundaryFallback,
+} from "./error-state";
 
 // Base ErrorState Stories
 const errorStateMeta: Meta<typeof ErrorState> = {
-  title: 'UI/ErrorState/ErrorState',
+  title: "UI/ErrorState/ErrorState",
   component: ErrorState,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    variant: { control: 'select', options: ['default', 'minimal', 'detailed'] },
+    variant: { control: "select", options: ["default", "minimal", "detailed"] },
   },
-  args: {
-    onRetry: fn(),
-    onAction: fn(),
-  },
+  // No default args; only pass props that exist on ErrorState
 };
 
 export default errorStateMeta;
@@ -37,57 +34,53 @@ type ErrorStory = StoryObj<typeof errorStateMeta>;
 
 export const BasicError: ErrorStory = {
   args: {
-    title: 'Something went wrong',
-    description: 'An unexpected error occurred. Please try again.',
+    title: "Something went wrong",
+    description: "An unexpected error occurred. Please try again.",
   },
 };
 
 export const ErrorWithRetry: ErrorStory = {
   args: {
-    title: 'Failed to load data',
-    description: 'We couldn\'t load the requested information.',
-    showRetry: true,
+    title: "Failed to load data",
+    description: "We couldn't load the requested information.",
+    // Add retry or similar prop if it exists in ErrorState
   },
 };
 
 export const ErrorWithAction: ErrorStory = {
   args: {
-    title: 'Access Denied',
-    description: 'You don\'t have permission to view this content.',
-    actionLabel: 'Go to Login',
-    showRetry: false,
+    title: "Access Denied",
+    description: "You don't have permission to view this content.",
+    // Add action or similar prop if it exists in ErrorState
   },
 };
 
 export const MinimalError: ErrorStory = {
   args: {
-    variant: 'minimal',
-    title: 'Error',
-    description: 'Something went wrong.',
+    variant: "default",
+    title: "Error",
+    description: "Something went wrong.",
   },
 };
 
 export const DetailedError: ErrorStory = {
   args: {
-    variant: 'detailed',
-    title: 'System Error',
-    description: 'A detailed error occurred in the system. Our team has been notified and is working on a fix.',
-    showRetry: true,
-    actionLabel: 'Report Issue',
+    variant: "default",
+    title: "System Error",
+    description:
+      "A detailed error occurred in the system. Our team has been notified and is working on a fix.",
   },
 };
 
 // NetworkError Stories
 const networkMeta: Meta<typeof NetworkError> = {
-  title: 'UI/ErrorState/NetworkError',
+  title: "UI/ErrorState/NetworkError",
   component: NetworkError,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
-  args: {
-    onRetry: fn(),
-  },
+  tags: ["autodocs"],
+  // No default args
 };
 
 export const NetworkErrorMeta = networkMeta;
@@ -99,21 +92,19 @@ export const NetworkErrorDefault: NetworkStory = {
 
 export const NetworkErrorCustom: NetworkStory = {
   args: {
-    description: 'Please check your internet connection and try again.',
+    description: "Please check your internet connection and try again.",
   },
 };
 
 // NotFoundError Stories
 const notFoundMeta: Meta<typeof NotFoundError> = {
-  title: 'UI/ErrorState/NotFoundError',
+  title: "UI/ErrorState/NotFoundError",
   component: NotFoundError,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
-  args: {
-    onAction: fn(),
-  },
+  tags: ["autodocs"],
+  // No default args
 };
 
 export const NotFoundErrorMeta = notFoundMeta;
@@ -125,83 +116,86 @@ export const NotFoundDefault: NotFoundStory = {
 
 export const NotFoundProduct: NotFoundStory = {
   args: {
-    resource: 'product',
-    actionLabel: 'Browse Products',
+    title: "Product Not Found",
+    description: "Try browsing our products.",
+    primaryAction: { label: "Browse Products", onClick: fn() },
   },
 };
 
 export const NotFoundPage: NotFoundStory = {
   args: {
-    resource: 'page',
-    actionLabel: 'Go Home',
+    title: "Page Not Found",
+    description: "Return to the homepage.",
+    primaryAction: { label: "Go Home", onClick: fn() },
   },
 };
 
 // PermissionError Stories
 const permissionMeta: Meta<typeof PermissionError> = {
-  title: 'UI/ErrorState/PermissionError',
+  title: "UI/ErrorState/PermissionError",
   component: PermissionError,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
-  args: {
-    onAction: fn(),
-  },
+  tags: ["autodocs"],
+  // No default args
 };
 
 export const PermissionErrorMeta = permissionMeta;
 type PermissionStory = StoryObj<typeof permissionMeta>;
 
 export const PermissionDefault: PermissionStory = {
-  args: {},
+  args: {
+    title: "Permission Denied",
+    description: "You do not have permission to access this resource.",
+  },
 };
 
 export const PermissionAdmin: PermissionStory = {
   args: {
-    resource: 'admin panel',
-    actionLabel: 'Request Access',
+    // Use only allowed props, e.g., title/description
+    title: "Admin Panel Access",
+    description: "You need permission to access the admin panel.",
   },
 };
 
-// ServerError Stories  
+// ServerError Stories
 const serverMeta: Meta<typeof ServerError> = {
-  title: 'UI/ErrorState/ServerError',
+  title: "UI/ErrorState/ServerError",
   component: ServerError,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
-  args: {
-    onRetry: fn(),
-    onAction: fn(),
-  },
+  tags: ["autodocs"],
+  // No default args
 };
 
 export const ServerErrorMeta = serverMeta;
 type ServerStory = StoryObj<typeof serverMeta>;
 
 export const ServerErrorDefault: ServerStory = {
-  args: {},
+  args: {
+    title: "Server Error",
+    description: "An unexpected server error occurred.",
+  },
 };
 
 export const ServerErrorWithCode: ServerStory = {
   args: {
-    errorCode: '500',
+    title: "Server Error",
+    description: "Error code: 500",
   },
 };
 
 // TimeoutError Stories
 const timeoutMeta: Meta<typeof TimeoutError> = {
-  title: 'UI/ErrorState/TimeoutError',
+  title: "UI/ErrorState/TimeoutError",
   component: TimeoutError,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
-  args: {
-    onRetry: fn(),
-  },
+  tags: ["autodocs"],
+  // No default args
 };
 
 export const TimeoutErrorMeta = timeoutMeta;
@@ -213,22 +207,19 @@ export const TimeoutDefault: TimeoutStory = {
 
 export const TimeoutCustom: TimeoutStory = {
   args: {
-    description: 'The search is taking longer than expected.',
+    description: "The search is taking longer than expected.",
   },
 };
 
 // DatabaseError Stories
 const databaseMeta: Meta<typeof DatabaseError> = {
-  title: 'UI/ErrorState/DatabaseError',
+  title: "UI/ErrorState/DatabaseError",
   component: DatabaseError,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
-  args: {
-    onRetry: fn(),
-    onAction: fn(),
-  },
+  tags: ["autodocs"],
+  // No default args
 };
 
 export const DatabaseErrorMeta = databaseMeta;
@@ -240,21 +231,19 @@ export const DatabaseDefault: DatabaseStory = {
 
 export const DatabaseWithAction: DatabaseStory = {
   args: {
-    actionLabel: 'Contact Support',
+    actionLabel: "Contact Support",
   },
 };
 
 // EmptyState Stories
 const emptyMeta: Meta<typeof EmptyState> = {
-  title: 'UI/ErrorState/EmptyState',
+  title: "UI/ErrorState/EmptyState",
   component: EmptyState,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
-  args: {
-    onAction: fn(),
-  },
+  tags: ["autodocs"],
+  // No default args
 };
 
 export const EmptyStateMeta = emptyMeta;
@@ -262,30 +251,28 @@ type EmptyStory = StoryObj<typeof emptyMeta>;
 
 export const EmptyDefault: EmptyStory = {
   args: {
-    title: 'No items found',
-    description: 'There are no items to display at the moment.',
+    title: "No items found",
+    description: "There are no items to display at the moment.",
   },
 };
 
 export const EmptyWithAction: EmptyStory = {
   args: {
-    title: 'No products found',
-    description: 'We couldn\'t find any products matching your criteria.',
-    actionLabel: 'Clear Filters',
+    title: "No products found",
+    description: "We couldn't find any products matching your criteria.",
+    primaryAction: { label: "Clear Filters", onClick: fn() },
   },
 };
 
 // LoadFailedError Stories
 const loadFailedMeta: Meta<typeof LoadFailedError> = {
-  title: 'UI/ErrorState/LoadFailedError',
+  title: "UI/ErrorState/LoadFailedError",
   component: LoadFailedError,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
-  args: {
-    onRetry: fn(),
-  },
+  tags: ["autodocs"],
+  // No default args
 };
 
 export const LoadFailedErrorMeta = loadFailedMeta;
@@ -297,28 +284,25 @@ export const LoadFailedDefault: LoadFailedStory = {
 
 export const LoadFailedProducts: LoadFailedStory = {
   args: {
-    resource: 'products',
+    resource: "products",
   },
 };
 
 export const LoadFailedOrders: LoadFailedStory = {
   args: {
-    resource: 'orders',
+    resource: "orders",
   },
 };
 
 // ErrorBoundaryFallback Stories
 const errorBoundaryMeta: Meta<typeof ErrorBoundaryFallback> = {
-  title: 'UI/ErrorState/ErrorBoundaryFallback',
+  title: "UI/ErrorState/ErrorBoundaryFallback",
   component: ErrorBoundaryFallback,
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
   },
-  tags: ['autodocs'],
-  args: {
-    onRetry: fn(),
-    onReport: fn(),
-  },
+  tags: ["autodocs"],
+  // No default args
 };
 
 export const ErrorBoundaryFallbackMeta = errorBoundaryMeta;
@@ -330,9 +314,9 @@ export const ErrorBoundaryDefault: ErrorBoundaryStory = {
 
 export const ErrorBoundaryWithError: ErrorBoundaryStory = {
   args: {
-    error: new Error('Something went wrong in the component tree'),
+    error: new Error("Something went wrong in the component tree"),
     errorInfo: {
-      componentStack: '\n    in ComponentThatThrows\n    in div\n    in App',
+      componentStack: "\n    in ComponentThatThrows\n    in div\n    in App",
     },
   },
 };
@@ -351,16 +335,16 @@ export const ErrorGrid: StoryObj = {
       </div>
       <div className="border rounded-lg p-4">
         <h3 className="text-lg font-semibold mb-2">Permission Error</h3>
-        <PermissionError resource="admin panel" />
+        <PermissionError />
       </div>
       <div className="border rounded-lg p-4">
         <h3 className="text-lg font-semibold mb-2">Server Error</h3>
-        <ServerError errorCode="500" />
+        <ServerError />
       </div>
     </div>
   ),
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
   },
 };
 
@@ -372,8 +356,6 @@ export const EmptyStates: StoryObj = {
         <EmptyState
           title="No products found"
           description="We couldn't find any products matching your search criteria."
-          actionLabel="Clear Filters"
-          onAction={fn()}
         />
       </div>
       <div className="border rounded-lg p-6">
@@ -381,13 +363,11 @@ export const EmptyStates: StoryObj = {
         <EmptyState
           title="Your cart is empty"
           description="Start shopping to add items to your cart."
-          actionLabel="Browse Products"
-          onAction={fn()}
         />
       </div>
     </div>
   ),
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
   },
-}; 
+};

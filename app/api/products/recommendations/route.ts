@@ -167,7 +167,7 @@ async function getPersonalizedRecommendations(
 
     const categoryIds = [
       ...new Set(interactedCategories.map(p => p.categoryId).filter(Boolean)),
-    ];
+    ].filter((id): id is string => id !== null);
 
     // Find similar products in same categories
     const recommendations = await db.product.findMany({
@@ -322,7 +322,7 @@ async function getCollaborativeRecommendations(
 
     const categoryIds = [
       ...new Set(referenceCategories.map(p => p.categoryId).filter(Boolean)),
-    ];
+    ].filter((id): id is string => id !== null);
 
     if (categoryIds.length === 0) {
       return [];

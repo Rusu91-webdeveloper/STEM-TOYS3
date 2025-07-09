@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
  * // With multiple parameters
  * const user = await query`SELECT * FROM users WHERE id = ${userId} AND email = ${email}`;
  */
-export async function query<T = any>(
+export function query<T = any>(
   strings: TemplateStringsArray,
   ...values: any[]
 ): Promise<T[]> {
@@ -35,12 +35,12 @@ export async function queryFirst<T = any>(
 /**
  * Execute a SQL query that doesn't return results (INSERT, UPDATE, DELETE)
  */
-export async function execute(
+export function execute(
   strings: TemplateStringsArray,
   ...values: any[]
-): Promise<void> {
+): Promise<number> {
   const { text, params } = buildSqlQuery(strings, values);
-  await prisma.$executeRawUnsafe(text, ...params);
+  return prisma.$executeRawUnsafe(text, ...params);
 }
 
 /**

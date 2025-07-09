@@ -64,18 +64,18 @@ export class UserRepository extends BaseRepository<
   /**
    * Find user by email
    */
-  async findByEmail(
+  findByEmail(
     email: string,
     options: UserSearchOptions = {}
   ): Promise<UserWithRelations | null> {
     const cacheKey = this.getCacheKey("findByEmail", email);
 
     if (options.cache) {
-      const cached = await cache.get(cacheKey);
+      const cached = cache.get(cacheKey);
       if (cached) return cached;
     }
 
-    const result = await this.executeOperation(
+    const result = this.executeOperation(
       () =>
         this.getModel().findUnique({
           where: { email },
@@ -86,7 +86,7 @@ export class UserRepository extends BaseRepository<
     );
 
     if (options.cache && result) {
-      await cache.set(cacheKey, result, options.cacheTTL);
+      cache.set(cacheKey, result, options.cacheTTL);
     }
 
     return result;
@@ -95,7 +95,7 @@ export class UserRepository extends BaseRepository<
   /**
    * Find users with advanced filtering
    */
-  async findWithFilters(
+  findWithFilters(
     filters: UserFilters = {},
     pagination: PaginationOptions = {},
     options: UserSearchOptions = {}
@@ -143,7 +143,7 @@ export class UserRepository extends BaseRepository<
       ];
     }
 
-    return await this.findMany(where, pagination, {
+    return this.findMany(where, pagination, {
       ...options,
       include: {
         addresses: options.include?.addresses,
@@ -188,35 +188,31 @@ export class UserRepository extends BaseRepository<
   /**
    * Find customers only
    */
-  async findCustomers(
+  findCustomers(
     pagination: PaginationOptions = {},
     options: UserSearchOptions = {}
   ) {
-    return await this.findWithFilters(
-      { role: "CUSTOMER" },
-      pagination,
-      options
-    );
+    return this.findWithFilters({ role: "CUSTOMER" }, pagination, options);
   }
 
   /**
    * Find admins only
    */
-  async findAdmins(
+  findAdmins(
     pagination: PaginationOptions = {},
     options: UserSearchOptions = {}
   ) {
-    return await this.findWithFilters({ role: "ADMIN" }, pagination, options);
+    return this.findWithFilters({ role: "ADMIN" }, pagination, options);
   }
 
   /**
    * Find unverified users
    */
-  async findUnverified(
+  findUnverified(
     pagination: PaginationOptions = {},
     options: UserSearchOptions = {}
   ) {
-    return await this.findWithFilters({ emailVerified: false }, pagination, {
+    return this.findWithFilters({ emailVerified: false }, pagination, {
       ...options,
       orderBy: { createdAt: "desc" },
     });
@@ -225,11 +221,11 @@ export class UserRepository extends BaseRepository<
   /**
    * Find inactive users
    */
-  async findInactive(
+  findInactive(
     pagination: PaginationOptions = {},
     options: UserSearchOptions = {}
   ) {
-    return await this.findWithFilters({ isActive: false }, pagination, {
+    return this.findWithFilters({ isActive: false }, pagination, {
       ...options,
       orderBy: { updatedAt: "desc" },
     });
@@ -238,7 +234,7 @@ export class UserRepository extends BaseRepository<
   /**
    * Verify user email
    */
-  async verifyEmail(userId: string, verificationToken?: string) {
+  verifyEmail(userId: string, verificationToken?: string) {
     const updateData: Prisma.UserUpdateInput = {
       emailVerified: new Date(),
       verificationToken: null,
@@ -247,30 +243,30 @@ export class UserRepository extends BaseRepository<
 
     // If verification token provided, verify it matches
     if (verificationToken) {
-      const user = await this.findById(userId);
+      const user = this.findById(userId);
       if (!user || user.verificationToken !== verificationToken) {
         throw new Error("Invalid verification token");
       }
     }
 
-    return await this.update(userId, updateData);
+    return this.update(userId, updateData);
   }
 
   /**
    * Update user password
    */
-  async updatePassword(userId: string, hashedPassword: string) {
-    return await this.update(userId, { password: hashedPassword });
+  updatePassword(userId: string, hashedPassword: string) {
+    return this.update(userId, { password: hashedPassword });
   }
 
   /**
    * Set password reset token
    */
-  async setPasswordResetToken(userId: string, token: string, expires: Date) {
+  setPasswordResetToken(userId: string, token: string, expires: Date) {
     // Create password reset token record
-    await db.passwordResetToken.create({
+    db.passwordResetToken.create({
       data: {
-        email: (await this.findById(userId))?.email || "",
+        email: this.findById(userId)?.email || "",
         token,
         expires,
       },
@@ -282,18 +278,18 @@ export class UserRepository extends BaseRepository<
   /**
    * Get user by verification token
    */
-  async findByVerificationToken(
+  findByVerificationToken(
     token: string,
     options: UserSearchOptions = {}
-  ) {
+  ): Promise<UserWithRelations | null> {
     const cacheKey = this.getCacheKey("findByVerificationToken", token);
 
     if (options.cache) {
-      const cached = await cache.get(cacheKey);
+      const cached = cache.get(cacheKey);
       if (cached) return cached;
     }
 
-    const result = await this.executeOperation(
+    const result = this.executeOperation(
       () =>
         this.getModel().findFirst({
           where: { verificationToken: token },
@@ -304,7 +300,7 @@ export class UserRepository extends BaseRepository<
     );
 
     if (options.cache && result) {
-      await cache.set(cacheKey, result, options.cacheTTL);
+      cache.set(cacheKey, result, options.cacheTTL);
     }
 
     return result;
@@ -313,15 +309,15 @@ export class UserRepository extends BaseRepository<
   /**
    * Get user statistics
    */
-  async getStats(options: QueryOptions = {}) {
+  getStats(options: QueryOptions = {}) {
     const cacheKey = this.getCacheKey("getStats");
 
     if (options.cache) {
-      const cached = await cache.get(cacheKey);
+      const cached = cache.get(cacheKey);
       if (cached) return cached;
     }
 
-    const result = await this.executeOperation(
+    const result = this.executeOperation(
       async () => {
         const [
           totalUsers,
@@ -366,7 +362,7 @@ export class UserRepository extends BaseRepository<
     );
 
     if (options.cache) {
-      await cache.set(cacheKey, result, options.cacheTTL || 600); // Cache for 10 minutes
+      cache.set(cacheKey, result, options.cacheTTL || 600); // Cache for 10 minutes
     }
 
     return result;
@@ -375,15 +371,15 @@ export class UserRepository extends BaseRepository<
   /**
    * Get user activity summary
    */
-  async getUserActivity(userId: string, options: QueryOptions = {}) {
+  getUserActivity(userId: string, options: QueryOptions = {}) {
     const cacheKey = this.getCacheKey("getUserActivity", userId);
 
     if (options.cache) {
-      const cached = await cache.get(cacheKey);
+      const cached = cache.get(cacheKey);
       if (cached) return cached;
     }
 
-    const result = await this.executeOperation(
+    const result = this.executeOperation(
       async () => {
         const [user, orderStats, reviewStats, wishlistStats] =
           await Promise.all([
@@ -428,7 +424,7 @@ export class UserRepository extends BaseRepository<
     );
 
     if (options.cache) {
-      await cache.set(cacheKey, result, options.cacheTTL || 300); // Cache for 5 minutes
+      cache.set(cacheKey, result, options.cacheTTL || 300); // Cache for 5 minutes
     }
 
     return result;

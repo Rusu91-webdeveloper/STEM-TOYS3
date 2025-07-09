@@ -38,16 +38,16 @@ export const transporter = nodemailer.createTransport({
 
 // For development environment, provide console-based email simulation
 const devTransporter = {
-  sendMail: async (options: any) => {
+  sendMail: (options: any) => {
     logger.debug("Email would be sent (DEV MODE)", {
       from: options.from,
       to: options.to,
       subject: options.subject,
-      contentPreview: `${options.html.substring(0, 100)  }...`,
+      contentPreview: `${options.html.substring(0, 100)}...`,
     });
     return { messageId: `dev-${Date.now()}@localhost` };
   },
-  verify: async () => true,
+  verify: () => true,
 };
 
 // Use dev transporter in development mode if email credentials are missing
@@ -57,12 +57,11 @@ const activeTransporter =
     : transporter;
 
 // Verify transporter configuration on startup
-activeTransporter
-  .verify()
+Promise.resolve(activeTransporter.verify())
   .then(() => {
     logger.info("Email transport configured successfully");
   })
-  .catch((error) => {
+  .catch((error: unknown) => {
     logger.error("Email transport configuration failed", error);
     logger.info("Will use fallback development mode for emails");
   });
@@ -91,7 +90,7 @@ export async function sendMail({
         from,
         to: typeof to === "string" ? to : to.join(", "),
         subject,
-        contentPreview: `${html.substring(0, 100)  }...`,
+        contentPreview: `${html.substring(0, 100)}...`,
       });
       return { success: true, messageId: `dev-${Date.now()}@localhost` };
     }
@@ -129,7 +128,7 @@ export const emailTemplates = {
   /**
    * Welcome email with professional Romanian styling
    */
-  welcome: async ({ to, name }: { to: string; name: string }) => {
+  welcome: ({ to, name }: { to: string; name: string }) => {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const logoUrl = `${baseUrl}/TechTots_LOGO.png`;
     const faviconUrl = `${baseUrl}/favicon.ico`;
@@ -219,7 +218,7 @@ export const emailTemplates = {
   /**
    * Return notification email for admin
    */
-  returnNotification: async ({
+  returnNotification: ({
     to,
     orderNumber,
     productName,
@@ -315,7 +314,7 @@ export const emailTemplates = {
           <ul style="margin: 0; padding-left: 20px; color: #1f2937; line-height: 1.5;">
             ${latestBlogs
               .map(
-                (blog) =>
+                blog =>
                   `<li style="margin-bottom: 8px;"><a href="${baseUrl}/blog/${blog.slug}" style="color: #3b82f6; text-decoration: none;">${blog.title}</a></li>`
               )
               .join("")}
@@ -420,7 +419,7 @@ export const emailTemplates = {
   /**
    * Order confirmation email
    */
-  orderConfirmation: async ({
+  orderConfirmation: ({
     to,
     order,
   }: {
@@ -453,7 +452,7 @@ export const emailTemplates = {
     // Build items table HTML
     const itemsHtml = order.items
       .map(
-        (item) =>
+        item =>
           `<tr style="border-bottom: 1px solid #e5e7eb;">
             <td style="padding: 12px 8px; color: #374151;">${item.name}</td>
             <td style="padding: 12px 8px; text-align: center; color: #374151;">${item.quantity}</td>
@@ -662,13 +661,7 @@ export const emailTemplates = {
   /**
    * Password reset email with professional Romanian styling
    */
-  passwordReset: async ({
-    to,
-    resetLink,
-  }: {
-    to: string;
-    resetLink: string;
-  }) => {
+  passwordReset: ({ to, resetLink }: { to: string; resetLink: string }) => {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const logoUrl = `${baseUrl}/TechTots_LOGO.png`;
     const faviconUrl = `${baseUrl}/favicon.ico`;

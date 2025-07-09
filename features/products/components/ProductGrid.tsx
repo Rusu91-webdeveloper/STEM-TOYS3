@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import { Grid2X2, List } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { Product } from "@/types/product";
-import { ProductCard } from "./ProductCard";
+import React, { useState, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -14,6 +12,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+import type { Product } from "@/types/product";
+
+import { ProductCard } from "./ProductCard";
+
 
 interface ProductGridProps {
   products: Product[];

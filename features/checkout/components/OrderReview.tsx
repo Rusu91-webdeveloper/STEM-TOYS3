@@ -1,11 +1,14 @@
 "use client";
 
+import { Edit, AlertCircle } from "lucide-react";
 import React, { useState, useEffect } from "react";
-import { CheckoutData, CheckoutStep } from "../types";
+
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/features/cart";
-import { Edit, AlertCircle } from "lucide-react";
 import { useCurrency } from "@/lib/currency";
+
+import { CheckoutData, CheckoutStep } from "../types";
+
 import { CheckoutSummary } from "./CheckoutSummary";
 
 interface OrderReviewProps {
@@ -45,7 +48,7 @@ export function OrderReview({
         const taxResponse = await fetch("/api/checkout/tax-settings");
         if (taxResponse.ok) {
           const taxData = await taxResponse.json();
-          if (taxData.taxSettings && taxData.taxSettings.active) {
+          if (taxData.taxSettings?.active) {
             setTaxRate(parseFloat(taxData.taxSettings.rate) / 100);
           }
         }
@@ -54,7 +57,7 @@ export function OrderReview({
         const shippingResponse = await fetch("/api/checkout/shipping-settings");
         if (shippingResponse.ok) {
           const shippingData = await shippingResponse.json();
-          if (shippingData.freeThreshold && shippingData.freeThreshold.active) {
+          if (shippingData.freeThreshold?.active) {
             setFreeShippingThreshold(
               parseFloat(shippingData.freeThreshold.price)
             );

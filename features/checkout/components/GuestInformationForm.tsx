@@ -1,22 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Mail,
   User,
@@ -26,8 +10,27 @@ import {
   Lock,
   Info,
 } from "lucide-react";
-import { useTranslation } from "@/lib/i18n";
 import { useSession } from "next-auth/react";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { useTranslation } from "@/lib/i18n";
+
+
 import { GuestInformation } from "../types";
 
 const guestInformationSchema = z

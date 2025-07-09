@@ -24,8 +24,8 @@ const updateCouponSchema = z.object({
 
 // GET /api/admin/coupons/[id] - Get a specific coupon
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  request: Request,
+  context: { params: { id: string } }
 ) {
   try {
     const session = await auth();
@@ -37,7 +37,7 @@ export async function GET(
       );
     }
 
-    const { id } = await params;
+    const { id } = context.params;
 
     const coupon = await db.coupon.findUnique({
       where: { id },
@@ -85,8 +85,8 @@ export async function GET(
 
 // PUT /api/admin/coupons/[id] - Update a coupon
 export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  context: { params: { id: string } }
 ) {
   try {
     const session = await auth();
@@ -98,8 +98,7 @@ export async function PUT(
       );
     }
 
-    const resolvedParams = await params;
-    const { id } = resolvedParams;
+    const { id } = context.params;
     const body = await request.json();
     const validatedData = updateCouponSchema.parse(body);
 
@@ -183,8 +182,8 @@ export async function PUT(
 
 // DELETE /api/admin/coupons/[id] - Delete a coupon
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  context: { params: { id: string } }
 ) {
   try {
     const session = await auth();
@@ -196,8 +195,7 @@ export async function DELETE(
       );
     }
 
-    const resolvedParams = await params;
-    const { id } = resolvedParams;
+    const { id } = context.params;
 
     // Check if coupon exists and if it has been used
     const coupon = await db.coupon.findUnique({

@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-import { CheckoutStep, CheckoutData } from "../types";
 import {
   CheckCircle,
   Circle,
@@ -14,9 +12,13 @@ import {
   ChevronRight,
   Mail,
 } from "lucide-react";
+import React from "react";
+
+import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+
+import { CheckoutStep, CheckoutData } from "../types";
 
 interface StepDefinition {
   id: CheckoutStep;

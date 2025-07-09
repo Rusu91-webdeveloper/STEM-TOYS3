@@ -1,27 +1,7 @@
 import crypto from "crypto";
 
-import { sendMail } from "@/lib/brevo";
 import { emailTemplates } from "@/lib/brevoTemplates";
 import { db } from "@/lib/db";
-
-interface DigitalOrderItem {
-  id: string;
-  bookId: string;
-  quantity: number;
-  price: number;
-  name: string;
-}
-
-interface DigitalOrder {
-  id: string;
-  orderNumber: string;
-  userId: string;
-  items: DigitalOrderItem[];
-  user: {
-    name: string;
-    email: string;
-  };
-}
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -212,22 +192,6 @@ export async function processDigitalBookOrder(
 }
 
 /**
- * Helper function to get selected language for an order item
- * This will be enhanced once we store language selection in the database
- */
-async function getSelectedLanguageForOrderItem(
-  orderItemId: string
-): Promise<string | null> {
-  // For now, we'll implement a basic approach
-  // In a full implementation, we'd store the selected language in the order item
-  // or in a separate table linked to the order item
-
-  // This is a placeholder - we'll need to modify the order creation process
-  // to store the selected language information
-  return null;
-}
-
-/**
  * Create download links for existing completed orders (useful for migration/backfill)
  */
 export async function createDownloadLinksForOrder(
@@ -386,7 +350,7 @@ export class DigitalOrderService {
               orderId,
               itemId: item.id,
               fileId: digitalFile.id,
-              token: `${downloadToken.substring(0, 8)  }...`,
+              token: `${downloadToken.substring(0, 8)}...`,
             });
           }
         }

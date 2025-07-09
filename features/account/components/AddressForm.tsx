@@ -1,13 +1,15 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -17,7 +19,6 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import { addressSchema } from "@/lib/validations";
-import { useRouter } from "next/navigation";
 
 // Romanian counties (județe)
 const romanianCounties = [
@@ -79,7 +80,7 @@ const romanianCities = {
 // Extend the address schema to include the name field and isDefault
 const extendedAddressSchema = addressSchema.extend({
   name: z.string().min(1, "Address nickname is required"),
-  isDefault: z.boolean().default(false),
+  isDefault: z.boolean(),
 });
 
 type AddressFormValues = z.infer<typeof extendedAddressSchema>;
@@ -110,16 +111,16 @@ export function AddressForm({
   } = useForm<AddressFormValues>({
     resolver: zodResolver(extendedAddressSchema),
     defaultValues: {
-      name: initialData?.name || "",
-      fullName: initialData?.fullName || "",
-      addressLine1: initialData?.addressLine1 || "",
-      addressLine2: initialData?.addressLine2 || "",
-      city: initialData?.city || "",
-      state: initialData?.state || "B",
-      postalCode: initialData?.postalCode || "",
+      name: initialData?.name ?? "",
+      fullName: initialData?.fullName ?? "",
+      addressLine1: initialData?.addressLine1 ?? "",
+      addressLine2: initialData?.addressLine2 ?? "",
+      city: initialData?.city ?? "",
+      state: initialData?.state ?? "B",
+      postalCode: initialData?.postalCode ?? "",
       country: "RO", // Default to Romania and don't allow changes
-      phone: initialData?.phone || "",
-      isDefault: initialData?.isDefault || false,
+      phone: initialData?.phone ?? "",
+      isDefault: initialData?.isDefault ?? false,
     },
   });
 
@@ -177,9 +178,7 @@ export function AddressForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
         <div>
           <Label htmlFor="name">Address Nickname</Label>
@@ -238,15 +237,14 @@ export function AddressForm({
             <Label htmlFor="state">Județ</Label>
             <Select
               defaultValue={watch("state")}
-              onValueChange={handleCountyChange}>
+              onValueChange={handleCountyChange}
+            >
               <SelectTrigger className={errors.state ? "border-red-500" : ""}>
                 <SelectValue placeholder="Selectează județul" />
               </SelectTrigger>
               <SelectContent>
-                {romanianCounties.map((county) => (
-                  <SelectItem
-                    key={county.code}
-                    value={county.code}>
+                {romanianCounties.map(county => (
+                  <SelectItem key={county.code} value={county.code}>
                     {county.name}
                   </SelectItem>
                 ))}
@@ -297,11 +295,7 @@ export function AddressForm({
               disabled
               className="bg-gray-100"
             />
-            <input
-              type="hidden"
-              value="RO"
-              {...register("country")}
-            />
+            <input type="hidden" value="RO" {...register("country")} />
           </div>
         </div>
 
@@ -322,13 +316,11 @@ export function AddressForm({
           <Checkbox
             id="isDefault"
             checked={watch("isDefault")}
-            onCheckedChange={(checked) =>
+            onCheckedChange={checked =>
               setValue("isDefault", checked as boolean)
             }
           />
-          <Label
-            htmlFor="isDefault"
-            className="text-sm font-medium">
+          <Label htmlFor="isDefault" className="text-sm font-medium">
             Setează ca adresă implicită
           </Label>
         </div>
@@ -339,12 +331,11 @@ export function AddressForm({
           type="button"
           variant="outline"
           onClick={() => router.push("/account/addresses")}
-          disabled={isLoading}>
+          disabled={isLoading}
+        >
           Anulează
         </Button>
-        <Button
-          type="submit"
-          disabled={isLoading}>
+        <Button type="submit" disabled={isLoading}>
           {isLoading
             ? "Se salvează..."
             : isEditing

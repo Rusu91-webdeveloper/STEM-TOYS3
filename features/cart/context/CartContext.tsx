@@ -7,6 +7,9 @@ import React, {
   useEffect,
   type ReactNode,
 } from "react";
+
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
+
 import {
   fetchCart,
   saveCart,
@@ -16,7 +19,6 @@ import {
 } from "../lib/cartApi";
 import { mergeCarts, needsMerging } from "../lib/cartMerge";
 import { debugCartState } from "../lib/cartSync";
-import { useOptimizedSession } from "@/lib/auth/SessionContext";
 
 // Define a specific type for CartItem based on our product structure
 export interface CartItem {
@@ -206,13 +208,13 @@ export const CartProvider = ({ children }: CartProviderProps) => {
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
-      } else {
+      } 
         // Include slug if present
         return [
           ...prevItems,
           { ...itemToAdd, id: cartItemId, quantity, slug: itemToAdd.slug },
         ];
-      }
+      
     });
 
     // Try to sync with server in the background
@@ -257,9 +259,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
   };
 
-  const removeFromCart = async (itemId: string) => {
-    return removeItem(itemId);
-  };
+  const removeFromCart = async (itemId: string) => removeItem(itemId);
 
   const updateItemQuantity = async (
     itemId: string,
@@ -298,9 +298,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
   };
 
-  const updateQuantity = async (itemId: string, quantity: number) => {
-    return updateItemQuantity(itemId, quantity);
-  };
+  const updateQuantity = async (itemId: string, quantity: number) => updateItemQuantity(itemId, quantity);
 
   const clearCart = async () => {
     setCartItems([]);
@@ -313,20 +311,14 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
   };
 
-  const getTotal = () => {
-    return cartItems.reduce(
+  const getTotal = () => cartItems.reduce(
       (total, item) => total + item.price * item.quantity,
       0
     );
-  };
 
-  const getCartTotal = () => {
-    return getTotal();
-  };
+  const getCartTotal = () => getTotal();
 
-  const getItemCount = () => {
-    return cartItems.reduce((count, item) => count + item.quantity, 0);
-  };
+  const getItemCount = () => cartItems.reduce((count, item) => count + item.quantity, 0);
 
   const cartCount = getItemCount(); // Calculate cart count
 

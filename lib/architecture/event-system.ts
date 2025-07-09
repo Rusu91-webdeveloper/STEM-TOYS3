@@ -18,14 +18,14 @@ export interface DomainEvent {
   timestamp: Date;
 }
 
-export interface EventHandler<T = any> {
-  handle(event: DomainEvent<T>): Promise<void>;
+export interface EventHandler {
+  handle(event: DomainEvent): Promise<void>;
 }
 
 export interface EventBus {
   publish(event: DomainEvent): Promise<void>;
   publishMany(events: DomainEvent[]): Promise<void>;
-  subscribe<T>(eventType: string, handler: EventHandler<T>): void;
+  subscribe(eventType: string, handler: EventHandler): void;
   unsubscribe(eventType: string, handler: EventHandler): void;
 }
 
@@ -82,7 +82,7 @@ export class InMemoryEventBus implements EventBus {
     await Promise.allSettled(promises);
   }
 
-  subscribe<T>(eventType: string, handler: EventHandler<T>): void {
+  subscribe(eventType: string, handler: EventHandler): void {
     if (!this.handlers.has(eventType)) {
       this.handlers.set(eventType, new Set());
     }
@@ -133,13 +133,13 @@ export class EventFactory {
     return `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  static create<T = any>(
+  static create(
     type: string,
     aggregateId: string,
     aggregateType: string,
-    data: T,
+    data: any,
     metadata?: Partial<DomainEvent["metadata"]>
-  ): DomainEvent<T> {
+  ): DomainEvent {
     return {
       id: this.generateId(),
       type,
@@ -159,8 +159,8 @@ export class EventFactory {
 /**
  * Abstract base class for event handlers
  */
-export abstract class BaseEventHandler<T = any> implements EventHandler<T> {
-  abstract handle(event: DomainEvent<T>): Promise<void>;
+export abstract class BaseEventHandler implements EventHandler {
+  abstract handle(event: DomainEvent): Promise<void>;
 
   protected log(message: string, data?: any): void {
     logger.info(`[${this.constructor.name}] ${message}`, data);

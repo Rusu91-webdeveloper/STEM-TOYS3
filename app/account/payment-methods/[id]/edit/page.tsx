@@ -26,7 +26,7 @@ export default async function EditPaymentMethodPage({
   // Fetch the card to be edited
   const card = await db.paymentCard.findFirst({
     where: {
-      id: id,
+      id,
       userId: session.user.id,
     },
     select: {

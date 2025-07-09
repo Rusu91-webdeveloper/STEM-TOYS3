@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-import { CheckoutStep, CheckoutData } from "../types";
 import {
   CheckCircle,
   AlertCircle,
@@ -12,9 +10,13 @@ import {
   CreditCard,
   Eye,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import React from "react";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+import { CheckoutStep, CheckoutData } from "../types";
 
 interface StepValidation {
   isValid: boolean;

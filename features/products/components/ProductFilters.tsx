@@ -1,20 +1,21 @@
 "use client";
 
+import { X, SlidersHorizontal } from "lucide-react";
 import React, { useState } from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, SlidersHorizontal } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { useCurrency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 export interface FilterOption {
   id: string;

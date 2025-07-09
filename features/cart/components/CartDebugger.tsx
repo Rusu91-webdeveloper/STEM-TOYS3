@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
-import { useCart } from "../context/CartContext";
-import { Button } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
+import { useCart } from "../context/CartContext";
 import { debugCartState, refreshCartFromServer } from "../lib/cartSync";
 
 /**

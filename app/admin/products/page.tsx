@@ -4,7 +4,13 @@ import React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent , CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardDescription,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -17,8 +23,6 @@ import { db } from "@/lib/db";
 
 import { ProductDeleteButton } from "./components/ProductDeleteButton";
 import { ProductTable } from "./components/ProductTable";
-
-
 
 // Add this interface at the top of the file with the imports
 interface Category {
@@ -96,7 +100,11 @@ async function getProducts(): Promise<Product[]> {
       },
     });
 
-    return products;
+    return products.map(product => ({
+      ...product,
+      description: product.description ?? "",
+      category: { name: product.category?.name ?? "" },
+    }));
   } catch (error) {
     console.error("Error fetching products:", error);
     return [];
@@ -124,7 +132,8 @@ export default async function AdminProductsPage() {
     },
   });
 
-  const formatPrice = (price: number) => new Intl.NumberFormat("ro-RO", {
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("ro-RO", {
       style: "currency",
       currency: "RON",
     }).format(price);

@@ -306,7 +306,7 @@ async function fetchTopSellingProducts(startDate: Date, endDate: Date) {
   if (topProductsSales.length === 0) return [];
 
   // Get product details
-  const productIds = topProductsSales.map((item) => item.productId);
+  const productIds = topProductsSales.map(item => item.productId);
   const products = await db.product.findMany({
     where: {
       id: {
@@ -322,8 +322,8 @@ async function fetchTopSellingProducts(startDate: Date, endDate: Date) {
 
   // Calculate revenue and format data
   return topProductsSales
-    .map((item) => {
-      const product = products.find((p) => p.id === item.productId);
+    .map(item => {
+      const product = products.find(p => p.id === item.productId);
       const soldQuantity = item._sum.quantity || 0;
       const price = product?.price || 0;
       const revenue = soldQuantity * price;
@@ -363,8 +363,12 @@ async function fetchSalesByCategory(startDate: Date, endDate: Date) {
 
   // Get all category IDs from the order items
   const categoryIds = [
-    ...new Set(orderItems.filter(item => item.product !== null).map((item) => item.product!.categoryId)),
-  ];
+    ...new Set(
+      orderItems
+        .filter(item => item.product !== null)
+        .map(item => item.product!.categoryId)
+    ),
+  ].filter((id): id is string => id !== null);
 
   // Get category details
   const categories = await db.category.findMany({
@@ -381,16 +385,16 @@ async function fetchSalesByCategory(startDate: Date, endDate: Date) {
 
   // Calculate sales by category
   const categorySales = categoryIds
-    .map((categoryId) => {
+    .map(categoryId => {
       const categoryItems = orderItems.filter(
-        (item) => item.product?.categoryId === categoryId
+        item => item.product?.categoryId === categoryId
       );
       const totalAmount = categoryItems.reduce(
         (sum, item) => sum + item.price * item.quantity,
         0
       );
       const categoryName =
-        categories.find((c) => c.id === categoryId)?.name || "Unknown";
+        categories.find(c => c.id === categoryId)?.name || "Unknown";
 
       return {
         categoryId,
@@ -407,7 +411,7 @@ async function fetchSalesByCategory(startDate: Date, endDate: Date) {
   );
 
   // Add percentage to each category
-  return categorySales.map((category) => ({
+  return categorySales.map(category => ({
     ...category,
     percentage:
       totalSales > 0 ? Math.round((category.amount / totalSales) * 100) : 0,

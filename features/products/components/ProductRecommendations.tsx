@@ -1,8 +1,5 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import {
   Star,
   Heart,
@@ -13,24 +10,27 @@ import {
   Target,
   Shuffle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useState, useEffect, useMemo } from "react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
 import { useCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product";
+
+// Fix RecommendationProduct interface
+type CategoryObj = { id: string; name: string; slug: string };
 
 interface RecommendationProduct extends Product {
   score?: number;
   reason?: string;
-  category?: {
-    id: string;
-    name: string;
-    slug: string;
-  };
+  categoryObj?: CategoryObj;
   rating?: number;
   reviewCount?: number;
   isNew?: boolean;
@@ -164,7 +164,9 @@ export function ProductRecommendations({
         slug: "advanced-robotics-kit-pro",
         price: 149.99,
         images: ["/images/robot-kit.jpg"],
-        category: { id: "1", name: "Technology", slug: "technology" },
+        category: "technology",
+        categoryObj: { id: "1", name: "Technology", slug: "technology" },
+        description: "A comprehensive robotics kit for advanced learners.",
         rating: 4.8,
         reviewCount: 156,
         score: 0.95,
@@ -177,7 +179,9 @@ export function ProductRecommendations({
         slug: "chemistry-lab-starter-set",
         price: 89.99,
         images: ["/images/chemistry-set.jpg"],
-        category: { id: "2", name: "Science", slug: "science" },
+        category: "science",
+        categoryObj: { id: "2", name: "Science", slug: "science" },
+        description: "A starter set for budding chemists.",
         rating: 4.6,
         reviewCount: 89,
         score: 0.87,
@@ -190,7 +194,9 @@ export function ProductRecommendations({
         slug: "engineering-design-challenge",
         price: 79.99,
         images: ["/images/engineering-kit.jpg"],
-        category: { id: "3", name: "Engineering", slug: "engineering" },
+        category: "engineering",
+        categoryObj: { id: "3", name: "Engineering", slug: "engineering" },
+        description: "A hands-on kit for engineering challenges.",
         rating: 4.7,
         reviewCount: 123,
         score: 0.82,
@@ -202,7 +208,9 @@ export function ProductRecommendations({
         slug: "mathematical-puzzle-collection",
         price: 39.99,
         images: ["/images/math-puzzles.jpg"],
-        category: { id: "4", name: "Mathematics", slug: "mathematics" },
+        category: "mathematics",
+        categoryObj: { id: "4", name: "Mathematics", slug: "mathematics" },
+        description: "A collection of challenging math puzzles.",
         rating: 4.5,
         reviewCount: 67,
         score: 0.78,
@@ -213,7 +221,9 @@ export function ProductRecommendations({
     return {
       personalized: mockProducts.slice(0, 4),
       similar: mockProducts.slice(1, 5),
-      trending: mockProducts.filter(p => p.isTrending || p.rating > 4.7),
+      trending: mockProducts.filter(
+        p => p.isTrending || (typeof p.rating === "number" && p.rating > 4.7)
+      ),
       collaborative: mockProducts.slice(2, 6),
       smart: mockProducts.filter(p => p.score && p.score > 0.8),
     };
@@ -222,8 +232,11 @@ export function ProductRecommendations({
   // Use mock data if no real recommendations loaded
   const currentRecommendations =
     Object.keys(recommendations).length > 0
-      ? recommendations
-      : generateMockRecommendations;
+      ? (recommendations as Record<string, RecommendationProduct[]>)
+      : (generateMockRecommendations as Record<
+          string,
+          RecommendationProduct[]
+        >);
 
   const handleAddToWishlist = async (productId: string) => {
     try {
@@ -316,9 +329,9 @@ export function ProductRecommendations({
 
         <div className="space-y-2">
           {/* Category */}
-          {product.category && (
+          {product.categoryObj && (
             <Badge variant="outline" className="text-xs">
-              {product.category.name}
+              {product.categoryObj.name}
             </Badge>
           )}
 

@@ -1,18 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { X, ShoppingBag, Settings, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
-import { useTranslation } from "@/lib/i18n";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useCurrency } from "@/lib/currency";
+import { db } from "@/lib/db"; // (for SSR, but for client, we'll fetch via API)
+import { useTranslation } from "@/lib/i18n";
+
 import { useShoppingCart } from "../context/CartContext";
 import { useCheckoutTransition } from "../context/CheckoutTransitionContext";
-import { useOptimizedSession } from "@/lib/auth/SessionContext";
-import { CartSettings } from "./CartSettings";
+
+
 import { BulkCartOperations } from "./BulkCartOperations";
-import { Checkbox } from "@/components/ui/checkbox";
-import { db } from "@/lib/db"; // (for SSR, but for client, we'll fetch via API)
+import { CartSettings } from "./CartSettings";
+
 
 interface MiniCartProps {
   isOpen: boolean;

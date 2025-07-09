@@ -2,8 +2,9 @@
  * @jest-environment node
  */
 
-import { GET, HEAD } from "@/app/api/health/route";
 import { NextRequest } from "next/server";
+
+import { GET, HEAD } from "@/app/api/health/route";
 
 // Mock Prisma client
 jest.mock("@prisma/client", () => ({

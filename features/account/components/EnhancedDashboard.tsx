@@ -1,8 +1,5 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
-import Image from "next/image";
 import {
   Package,
   TrendingUp,
@@ -36,12 +33,15 @@ import {
   ArrowRight,
   ExternalLink,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useState, useEffect, useMemo } from "react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -50,10 +50,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
-import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
 import { useCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface Order {
   id: string;

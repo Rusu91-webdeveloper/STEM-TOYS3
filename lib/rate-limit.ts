@@ -137,9 +137,9 @@ export function rateLimit(config: RateLimitConfig) {
         // Fallback to in-memory rate limiting if Redis is not available
         return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
       }
-    } catch (error) {
+    } catch {
       // If Redis fails, fall back to in-memory rate limiting
-      console.error("Redis rate limiting error, using fallback:", error);
+      console.error("Redis rate limiting error, using fallback:");
       return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
     }
 
@@ -305,6 +305,14 @@ interface RateLimitRecord {
   lastRequest: number;
 }
 
+interface RateLimitResult {
+  success: boolean;
+  limit: number;
+  remaining: number;
+  reset: number;
+  retryAfter?: number;
+}
+
 class RateLimiter {
   private store = new Map<string, RateLimitRecord>();
   private cleanupInterval: NodeJS.Timeout | null = null;
@@ -329,23 +337,17 @@ class RateLimiter {
     return `${identifier}:${endpoint}`;
   }
 
-  async checkLimit(
+  checkLimit(
     identifier: string,
     endpoint: string,
     options: RateLimitOptions
-  ): Promise<{
-    success: boolean;
-    limit: number;
-    remaining: number;
-    reset: number;
-    retryAfter?: number;
-  }> {
+  ): RateLimitResult {
     const key = options.keyGenerator
       ? options.keyGenerator(identifier)
       : this.getKey(identifier, endpoint);
 
     const now = Date.now();
-    const windowStart = now - options.windowMs;
+    const _windowStart = now - options.windowMs;
 
     let record = this.store.get(key);
 

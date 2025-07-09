@@ -14,7 +14,7 @@ const categoryDescKeys: Record<string, TranslationKey> = {
   technology: "technologyCategoryDesc",
   engineering: "engineeringCategoryDesc",
   math: "mathCategoryDesc",
-  "educational-books": "educationalBooksDesc",
+  "educational-books": "educationalBook",
 };
 
 // Static data for fallback with translated names
@@ -45,7 +45,7 @@ const categoryData = [
   },
   {
     nameKey: "Educational Books",
-    description: "educationalBooksDesc",
+    description: "educationalBook",
     slug: "educational-books",
     image: "/images/category_banner_books_01.jpg",
   },

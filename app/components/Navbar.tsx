@@ -21,8 +21,8 @@ const Navbar = () => {
   const [isCurrencyMenuOpen, setIsCurrencyMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [currency, setCurrency] = useState("EUR");
-  const { getItemCount, isLoading: isCartLoading } = useShoppingCart();
-  const cartItemsCount = getItemCount();
+  const { getCount, isLoading: isCartLoading } = useShoppingCart();
+  const cartItemsCount = getCount();
 
   const langMenuRef = useRef<HTMLDivElement>(null);
   const currencyMenuRef = useRef<HTMLDivElement>(null);
@@ -501,15 +501,13 @@ const Navbar = () => {
               {navLinks.map(link => (
                 <Link
                   key={link.labelKey}
-                  href={`/${i18n.language}${
-                    link.href === "/" ? "" : link.href
-                  }`}
+                  href={`/${language}${link.href === "/" ? "" : link.href}`}
                 >
                   <span
                     onClick={() => setIsLangMenuOpen(false)}
                     className={`block px-3 py-2 rounded-md text-base font-medium transition-all ${
-                      pathname === `/${i18n.language}${link.href}` ||
-                      (link.href === "/" && pathname === `/${i18n.language}`)
+                      pathname === `/${language}${link.href}` ||
+                      (link.href === "/" && pathname === `/${language}`)
                         ? "bg-white text-indigo-700 shadow-sm"
                         : "text-gray-700 hover:bg-white hover:text-indigo-700 hover:shadow-sm"
                     }`}
@@ -602,7 +600,7 @@ const Navbar = () => {
                 <button
                   onClick={() => handleLanguageChange("en")}
                   className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                    i18n.language === "en"
+                    language === "en"
                       ? "bg-white text-indigo-700 shadow-sm"
                       : "text-gray-700 hover:bg-white hover:text-indigo-700 hover:shadow-sm"
                   } flex items-center transition-all`}
@@ -619,7 +617,7 @@ const Navbar = () => {
                 <button
                   onClick={() => handleLanguageChange("ro")}
                   className={`block w-full text-left px-3 py-2 mt-1 rounded-md text-base font-medium ${
-                    i18n.language === "ro"
+                    language === "ro"
                       ? "bg-white text-indigo-700 shadow-sm"
                       : "text-gray-700 hover:bg-white hover:text-indigo-700 hover:shadow-sm"
                   } flex items-center transition-all`}

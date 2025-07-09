@@ -1,10 +1,12 @@
 "use client";
 
 import React from "react";
+
 import {
   VariantSelector,
   type Variant,
 } from "@/components/products/VariantSelector";
+
 import { useProductVariant } from "../context/ProductVariantContext";
 
 interface ProductVariantSelectorProps {

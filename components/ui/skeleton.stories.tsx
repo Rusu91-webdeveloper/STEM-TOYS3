@@ -1,25 +1,25 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
+import type { Meta, StoryObj } from "@storybook/react";
+import React from "react";
 
-import { 
+import {
   Skeleton,
   SkeletonText,
   SkeletonCard,
   SkeletonTable,
   SkeletonProduct,
-  SkeletonPage
-} from './skeleton';
+  SkeletonPage,
+} from "./skeleton";
 
 // Base Skeleton Stories
 const skeletonMeta: Meta<typeof Skeleton> = {
-  title: 'UI/Skeleton/Skeleton',
+  title: "UI/Skeleton/Skeleton",
   component: Skeleton,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    variant: { control: 'select', options: ['default', 'pulse', 'wave'] },
+    variant: { control: "select", options: ["default", "pulse", "wave"] },
   },
 };
 
@@ -28,47 +28,47 @@ type SkeletonStory = StoryObj<typeof skeletonMeta>;
 
 export const Default: SkeletonStory = {
   args: {
-    className: 'w-40 h-4',
+    className: "w-40 h-4",
   },
 };
 
 export const PulseVariant: SkeletonStory = {
   args: {
-    variant: 'pulse',
-    className: 'w-40 h-4',
+    variant: "pulse",
+    className: "w-40 h-4",
   },
 };
 
 export const WaveVariant: SkeletonStory = {
   args: {
-    variant: 'wave',
-    className: 'w-40 h-4',
+    variant: "wave",
+    className: "w-40 h-4",
   },
 };
 
 export const CircularSkeleton: SkeletonStory = {
   args: {
-    className: 'w-12 h-12 rounded-full',
+    className: "w-12 h-12 rounded-full",
   },
 };
 
 export const RectangularSkeleton: SkeletonStory = {
   args: {
-    className: 'w-64 h-32 rounded-md',
+    className: "w-64 h-32 rounded-md",
   },
 };
 
 // SkeletonText Stories
 const textMeta: Meta<typeof SkeletonText> = {
-  title: 'UI/Skeleton/SkeletonText',
+  title: "UI/Skeleton/SkeletonText",
   component: SkeletonText,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    lines: { control: { type: 'range', min: 1, max: 10, step: 1 } },
-    variant: { control: 'select', options: ['default', 'pulse', 'wave'] },
+    lines: { control: { type: "range", min: 1, max: 10, step: 1 } },
+    variant: { control: "select", options: ["default", "pulse", "wave"] },
   },
 };
 
@@ -96,28 +96,28 @@ export const FiveLines: TextStory = {
 export const PulseText: TextStory = {
   args: {
     lines: 3,
-    variant: 'pulse',
+    variant: "pulse",
   },
 };
 
 export const WaveText: TextStory = {
   args: {
     lines: 3,
-    variant: 'wave',
+    variant: "wave",
   },
 };
 
 // SkeletonCard Stories
 const cardMeta: Meta<typeof SkeletonCard> = {
-  title: 'UI/Skeleton/SkeletonCard',
+  title: "UI/Skeleton/SkeletonCard",
   component: SkeletonCard,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    variant: { control: 'select', options: ['default', 'pulse', 'wave'] },
-    withImage: { control: 'boolean' },
+    variant: { control: "select", options: ["default", "pulse", "wave"] },
+    showImage: { control: "boolean" },
   },
 };
 
@@ -130,36 +130,36 @@ export const BasicCard: CardStory = {
 
 export const CardWithImage: CardStory = {
   args: {
-    withImage: true,
+    showImage: true,
   },
 };
 
 export const PulseCard: CardStory = {
   args: {
-    variant: 'pulse',
-    withImage: true,
+    variant: "pulse",
+    showImage: true,
   },
 };
 
 export const WaveCard: CardStory = {
   args: {
-    variant: 'wave',
-    withImage: true,
+    variant: "wave",
+    showImage: true,
   },
 };
 
 // SkeletonTable Stories
 const tableMeta: Meta<typeof SkeletonTable> = {
-  title: 'UI/Skeleton/SkeletonTable',
+  title: "UI/Skeleton/SkeletonTable",
   component: SkeletonTable,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    rows: { control: { type: 'range', min: 1, max: 10, step: 1 } },
-    columns: { control: { type: 'range', min: 1, max: 8, step: 1 } },
-    variant: { control: 'select', options: ['default', 'pulse', 'wave'] },
+    rows: { control: { type: "range", min: 1, max: 10, step: 1 } },
+    columns: { control: { type: "range", min: 1, max: 8, step: 1 } },
+    variant: { control: "select", options: ["default", "pulse", "wave"] },
   },
 };
 
@@ -191,21 +191,21 @@ export const PulseTable: TableStory = {
   args: {
     rows: 5,
     columns: 4,
-    variant: 'pulse',
+    variant: "pulse",
   },
 };
 
 // SkeletonProduct Stories
 const productMeta: Meta<typeof SkeletonProduct> = {
-  title: 'UI/Skeleton/SkeletonProduct',
+  title: "UI/Skeleton/SkeletonProduct",
   component: SkeletonProduct,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    layout: { control: 'select', options: ['grid', 'list'] },
-    variant: { control: 'select', options: ['default', 'pulse', 'wave'] },
+    layout: { control: "select", options: ["grid", "list"] },
+    variant: { control: "select", options: ["default", "pulse", "wave"] },
   },
 };
 
@@ -214,40 +214,40 @@ type ProductStory = StoryObj<typeof productMeta>;
 
 export const GridProduct: ProductStory = {
   args: {
-    layout: 'grid',
+    layout: "grid",
   },
 };
 
 export const ListProduct: ProductStory = {
   args: {
-    layout: 'list',
+    layout: "list",
   },
 };
 
 export const PulseProduct: ProductStory = {
   args: {
-    layout: 'grid',
-    variant: 'pulse',
+    layout: "grid",
+    variant: "pulse",
   },
 };
 
 export const WaveProduct: ProductStory = {
   args: {
-    layout: 'grid',
-    variant: 'wave',
+    layout: "grid",
+    variant: "wave",
   },
 };
 
 // SkeletonPage Stories
 const pageMeta: Meta<typeof SkeletonPage> = {
-  title: 'UI/Skeleton/SkeletonPage',
+  title: "UI/Skeleton/SkeletonPage",
   component: SkeletonPage,
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    variant: { control: 'select', options: ['default', 'pulse', 'wave'] },
+    variant: { control: "select", options: ["default", "pulse", "wave"] },
   },
 };
 
@@ -260,13 +260,13 @@ export const DefaultPage: PageStory = {
 
 export const PulsePage: PageStory = {
   args: {
-    variant: 'pulse',
+    variant: "pulse",
   },
 };
 
 export const WavePage: PageStory = {
   args: {
-    variant: 'wave',
+    variant: "wave",
   },
 };
 
@@ -283,7 +283,7 @@ export const ProductGrid: StoryObj = {
     </div>
   ),
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
   },
 };
 
@@ -298,6 +298,6 @@ export const ProductList: StoryObj = {
     </div>
   ),
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
   },
-}; 
+};

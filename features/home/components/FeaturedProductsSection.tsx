@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
+import React from "react";
 
 interface Product {
   id: string;
@@ -22,8 +22,7 @@ const FeaturedProductsSectionComponent = ({
   products,
   formatPrice,
   t,
-}: FeaturedProductsSectionProps) => {
-  return (
+}: FeaturedProductsSectionProps) => (
     <section className="py-10">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="mb-8 text-center">
@@ -90,7 +89,6 @@ const FeaturedProductsSectionComponent = ({
       </div>
     </section>
   );
-};
 
 export const FeaturedProductsSection = React.memo(
   FeaturedProductsSectionComponent

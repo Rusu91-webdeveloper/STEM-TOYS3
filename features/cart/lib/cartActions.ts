@@ -3,8 +3,9 @@
  */
 
 import { auth } from "@/lib/auth";
-import { CartItem } from "../context/CartContext";
 import { db } from "@/lib/db";
+
+import { CartItem } from "../context/CartContext";
 
 /**
  * Get a user's cart from server storage or database

@@ -1,5 +1,10 @@
 {
-  "buildCommand": "npm install autoprefixer postcss tailwindcss && prisma generate && next build",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
   "installCommand": "npm install",
-  "framework": "nextjs"
+  "buildCommand": "next build"
 }

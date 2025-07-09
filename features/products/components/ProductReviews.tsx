@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
 import { StarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import React, { useState } from "react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 export interface Review {
   id: string;

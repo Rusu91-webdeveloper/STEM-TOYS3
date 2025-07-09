@@ -1,9 +1,11 @@
 "use client";
 
 import React, { ReactNode } from "react";
+
+import { CentralizedSessionProvider } from "@/lib/auth/SessionContext";
+
 import { CartProvider } from "../context/CartContext";
 import { CheckoutTransitionProvider } from "../context/CheckoutTransitionContext";
-import { CentralizedSessionProvider } from "@/lib/auth/SessionContext";
 
 interface CartProviderWrapperProps {
   children: ReactNode;

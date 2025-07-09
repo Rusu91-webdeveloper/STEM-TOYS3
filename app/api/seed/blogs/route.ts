@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
 
     // Create blogs in the database
     const createdBlogs = await Promise.all(
-      baseBlogData.map(async (blog) => {
+      baseBlogData.map(async blog => {
         // Check if blog with this slug already exists
         const existingBlog = await prisma.blog.findUnique({
           where: { slug: blog.slug },
@@ -144,10 +144,11 @@ export async function POST(request: NextRequest) {
         }
 
         // Add categoryId to the blog data if it exists
-        const blogData = { ...blog };
-        if (categoryId) {
-          blogData.categoryId = categoryId;
-        }
+        const blogData = {
+          ...blog,
+          categoryId: categoryId!,
+          stemCategory: blog.stemCategory as any,
+        };
 
         return prisma.blog.create({
           data: blogData,
@@ -159,7 +160,7 @@ export async function POST(request: NextRequest) {
       {
         message: "Blog posts seeded successfully",
         count: createdBlogs.length,
-        blogs: createdBlogs.map((blog) => ({
+        blogs: createdBlogs.map(blog => ({
           id: blog.id,
           title: blog.title,
           slug: blog.slug,

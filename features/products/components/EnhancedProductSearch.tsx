@@ -1,14 +1,5 @@
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useDebounce } from "@/hooks/use-debounce";
 import {
   Search,
   X,
@@ -18,14 +9,24 @@ import {
   Loader2,
   Tag,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface SearchSuggestion {
   id: string;

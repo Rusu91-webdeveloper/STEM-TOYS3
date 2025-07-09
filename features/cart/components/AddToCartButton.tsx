@@ -1,13 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
 import { ShoppingCart, Check } from "lucide-react";
-import { useShoppingCart } from "../hooks/useShoppingCart";
-import type { CartItem } from "../context/CartContext";
+import React, { useState } from "react";
+
 import {
   VariantSelector,
   type Variant,
 } from "@/components/products/VariantSelector";
+
+import type { CartItem } from "../context/CartContext";
+import { useShoppingCart } from "../hooks/useShoppingCart";
+
 
 interface AddToCartButtonProps {
   product: {

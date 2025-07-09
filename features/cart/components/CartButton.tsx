@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
-import { MiniCart } from "./MiniCart";
-import { useShoppingCart } from "../hooks/useShoppingCart";
 import { Loader2, ShoppingCart } from "lucide-react";
+import React, { useState } from "react";
+
+import { useShoppingCart } from "../hooks/useShoppingCart";
+
+import { MiniCart } from "./MiniCart";
 
 interface CartButtonProps {
   className?: string;

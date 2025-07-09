@@ -95,7 +95,7 @@ function loadEnvironmentVariables() {
       if (result.parsed) {
         console.log(`✅ Loaded environment variables from ${envFile}`);
       }
-    } catch (error) {
+    } catch {
       // File doesn't exist or can't be read - this is OK
       console.log(`ℹ️  Environment file ${envFile} not found or unreadable`);
     }

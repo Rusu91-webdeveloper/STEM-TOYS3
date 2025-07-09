@@ -19,6 +19,22 @@ function getTranslation(key: keyof typeof en, language: string = "ro"): string {
   return en[key] as string;
 }
 
+// Helper to filter out undefined and invalid values for metadata.other
+function filterValidOther(obj: Record<string, unknown>): {
+  [k: string]: string | number | (string | number)[];
+} {
+  return Object.fromEntries(
+    Object.entries(obj).filter(
+      ([, v]) =>
+        v !== undefined &&
+        (typeof v === "string" ||
+          typeof v === "number" ||
+          (Array.isArray(v) &&
+            v.every(x => typeof x === "string" || typeof x === "number")))
+    )
+  ) as { [k: string]: string | number | (string | number)[] };
+}
+
 type MetadataOptions = {
   title?: keyof typeof en;
   description?: keyof typeof en;
@@ -73,7 +89,7 @@ export function createMetadata({
   const allKeywords = [...keywords, ...romanianKeywords, ...additionalKeywords];
 
   // Generate alternates for each supported language including hreflang attributes
-  const languages = {};
+  const languages: { [key: string]: string } = {};
   const alternateLanguages = [];
 
   // Base URL for the canonical URL
@@ -134,8 +150,8 @@ export function createMetadata({
     metadataBase: new URL(baseUrl),
     other: {
       // Location information for local SEO
-      "geo.placename": city,
-      "geo.region": region,
+      "geo.placename": city ?? "",
+      "geo.region": region ?? "",
       "geo.position": "44.4268;26.1025", // Bucharest coordinates
       ICBM: "44.4268, 26.1025", // Bucharest coordinates
     },
@@ -155,23 +171,25 @@ export function createMetadata({
   if (structuredData) {
     metadata.other = {
       ...metadata.other,
-      structuredData: JSON.stringify(structuredData),
+      ...filterValidOther({
+        structuredData: JSON.stringify(structuredData),
+      }),
     };
   }
 
   // Add language-specific metadata for crawlers
   if (translations) {
     for (const [lang, data] of Object.entries(translations)) {
-      if (data.title) {
+      if (typeof data.title === "string") {
         metadata.other = {
           ...metadata.other,
-          [`title-${lang}`]: data.title,
+          ...filterValidOther({ [`title-${lang}`]: data.title }),
         };
       }
-      if (data.description) {
+      if (typeof data.description === "string") {
         metadata.other = {
           ...metadata.other,
-          [`description-${lang}`]: data.description,
+          ...filterValidOther({ [`description-${lang}`]: data.description }),
         };
       }
     }
