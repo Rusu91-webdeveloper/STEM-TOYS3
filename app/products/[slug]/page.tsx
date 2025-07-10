@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import React from "react";
 
 import ProductDetailServer from "@/features/products/components/ProductDetailServer";
+import { getCombinedProduct } from "@/lib/api/products";
 import { generateProductMetadata } from "@/lib/utils/seo";
 
 type ProductPageProps = {
@@ -14,11 +15,30 @@ type ProductPageProps = {
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
-  // Await params for Next.js 15
-  const { slug } = await params;
-  // Use our SEO utility to generate metadata
-  // (Assume product fetching and error handling is handled in the server component)
-  return generateProductMetadata({ name: slug });
+  try {
+    // Await params for Next.js 15
+    const { slug } = await params;
+
+    // Fetch the actual product for metadata generation
+    const product = await getCombinedProduct(slug);
+
+    if (!product) {
+      // Return basic metadata for non-existent products
+      return {
+        title: "Product Not Found | TechTots",
+        description: "The requested product could not be found.",
+      };
+    }
+
+    // Use our SEO utility to generate metadata with the actual product data
+    return generateProductMetadata(product);
+  } catch (error) {
+    console.error("Error generating product metadata:", error);
+    return {
+      title: "Product Not Found | TechTots",
+      description: "The requested product could not be found.",
+    };
+  }
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {

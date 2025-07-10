@@ -6,7 +6,7 @@ import GoogleProvider from "next-auth/providers/google";
 import "../env"; // Load environment variables early
 import { hashAdminPassword, verifyAdminPassword } from "../admin-auth";
 import { db } from "../db";
-import { withRetry, verifyUserExists } from "../db-helpers";
+import { withRetry } from "../db-helpers";
 import { logger } from "../logger";
 
 import { verifyPassword } from "../auth-utils";

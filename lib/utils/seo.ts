@@ -140,6 +140,7 @@ export function generateProductMetadata(product: any): Metadata {
   }
 
   // Create translations for this product
+  const safeDescription = product.description || "";
   const translations = {
     ro: {
       title: seoData.metaTitle
@@ -147,9 +148,9 @@ export function generateProductMetadata(product: any): Metadata {
         : `${product.name} | TechTots - Jucării STEM`,
       description: seoData.metaDescription
         ? seoData.metaDescription
-        : product.description.length > 160
-          ? `${product.description.substring(0, 157)}...`
-          : product.description,
+        : safeDescription.length > 160
+          ? `${safeDescription.substring(0, 157)}...`
+          : safeDescription,
     },
     en: {
       title: seoData.metaTitle
@@ -157,9 +158,9 @@ export function generateProductMetadata(product: any): Metadata {
         : `${product.name} | TechTots - STEM Toys`,
       description: seoData.metaDescription
         ? seoData.metaDescription
-        : product.description.length > 160
-          ? `${product.description.substring(0, 157)}...`
-          : product.description,
+        : safeDescription.length > 160
+          ? `${safeDescription.substring(0, 157)}...`
+          : safeDescription,
     },
   };
 
@@ -451,6 +452,7 @@ export function generateBookMetadata(book: any): Metadata {
   };
 
   // Create translations for this book
+  const safeBookDescription = book.description || "";
   const translations = {
     ro: {
       title: seoData.metaTitle
@@ -458,9 +460,9 @@ export function generateBookMetadata(book: any): Metadata {
         : `${book.name} | Carte de ${book.author} | TechTots`,
       description: seoData.metaDescription
         ? seoData.metaDescription
-        : book.description.length > 160
-          ? `${book.description.substring(0, 157)}...`
-          : book.description,
+        : safeBookDescription.length > 160
+          ? `${safeBookDescription.substring(0, 157)}...`
+          : safeBookDescription,
     },
     en: {
       title: seoData.metaTitle
@@ -468,9 +470,9 @@ export function generateBookMetadata(book: any): Metadata {
         : `${book.name} | Book by ${book.author} | TechTots`,
       description: seoData.metaDescription
         ? seoData.metaDescription
-        : book.description.length > 160
-          ? `${book.description.substring(0, 157)}...`
-          : book.description,
+        : safeBookDescription.length > 160
+          ? `${safeBookDescription.substring(0, 157)}...`
+          : safeBookDescription,
     },
   };
 

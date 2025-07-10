@@ -6,10 +6,7 @@
 
 import React, { ComponentType } from "react";
 
-import {
-  createAsyncComponent,
-  createIntersectionLazyComponent,
-} from "@/lib/bundle-analyzer";
+import { createAsyncComponent } from "@/lib/bundle-analyzer";
 
 // Loading components
 const DefaultLoading: ComponentType = () =>
@@ -31,7 +28,7 @@ const SkeletonLoading: ComponentType<{ className?: string }> = ({
   });
 
 // Error components
-const DefaultError: ComponentType<{ error: Error; retry: () => void }> = ({
+const _DefaultError: ComponentType<{ error: Error; retry: () => void }> = ({
   error,
   retry,
 }) =>
@@ -141,27 +138,7 @@ export const LazyBlogPost = createAsyncComponent(
 );
 
 // =================== INTERSECTION OBSERVER LAZY COMPONENTS ===================
-// These components load only when they come into view
-
-// Product Reviews (Below the fold)
-export const LazyProductReviews = createIntersectionLazyComponent(
-  () =>
-    import("@/features/products/components/ProductReviews").then(mod => ({
-      default: mod.ProductReviews,
-    })),
-  "ProductReviews",
-  { rootMargin: "100px" }
-);
-
-// Related Products (Below the fold)
-export const LazyRelatedProducts = createIntersectionLazyComponent(
-  () =>
-    import("@/features/products/components/RelatedProducts").then(mod => ({
-      default: mod.RelatedProducts,
-    })),
-  "RelatedProducts",
-  { rootMargin: "100px" }
-);
+// These components have been moved to client.ts since they require client-side execution
 
 // Product Comparison Modal (Only when opened)
 export const LazyProductComparison = createAsyncComponent(
@@ -330,11 +307,7 @@ export const AuthComponents = {
 };
 */
 
-export const IntersectionComponents = {
-  ProductReviews: LazyProductReviews,
-  RelatedProducts: LazyRelatedProducts,
-  // ChatWidget: LazyChatWidget,
-};
+// Note: IntersectionComponents moved to client.ts
 
 export const MediaComponents = {
   ImageGallery: LazyImageGallery,
@@ -351,7 +324,6 @@ export function getLazyComponentStats() {
       ...CheckoutComponents,
       ...BlogComponents,
       // ...AuthComponents,
-      ...IntersectionComponents,
       ...MediaComponents,
     }).length,
     categories: {
@@ -360,7 +332,7 @@ export function getLazyComponentStats() {
       checkout: Object.keys(CheckoutComponents).length,
       blog: Object.keys(BlogComponents).length,
       // auth: Object.keys(AuthComponents).length,
-      intersection: Object.keys(IntersectionComponents).length,
+      // intersection: moved to client.ts
       media: Object.keys(MediaComponents).length,
     },
   };

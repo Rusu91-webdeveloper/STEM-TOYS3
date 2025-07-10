@@ -48,13 +48,19 @@ const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
     VariantProps<typeof toastVariants>
->(({ className, variant, ...props }, ref) => (
+>(({ className, variant, ...props }, ref) => {
+  // Filter out custom props that shouldn't be passed to DOM
+  const { dismissible, position, icon, onDismiss, onAction, ...domProps } =
+    props as Record<string, unknown>;
+
+  return (
     <ToastPrimitives.Root
       ref={ref}
       className={cn(toastVariants({ variant }), className)}
-      {...props}
+      {...domProps}
     />
-  ));
+  );
+});
 Toast.displayName = ToastPrimitives.Root.displayName;
 
 const ToastAction = React.forwardRef<
@@ -83,7 +89,8 @@ const ToastClose = React.forwardRef<
       className
     )}
     toast-close=""
-    {...props}>
+    {...props}
+  >
     <X className="h-4 w-4" />
   </ToastPrimitives.Close>
 ));

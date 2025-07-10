@@ -52,7 +52,7 @@ export function createAuth(config: NextAuthConfig) {
       // Return mock auth functions
       return {
         handlers: {
-          GET: async (req: any) =>
+          GET: async (_req: Request) =>
             new Response(
               JSON.stringify({
                 user: null,
@@ -65,7 +65,7 @@ export function createAuth(config: NextAuthConfig) {
                 headers: { "Content-Type": "application/json" },
               }
             ),
-          POST: async (req: any) =>
+          POST: async (_req: Request) =>
             new Response(
               JSON.stringify({
                 error: "Auth not configured properly",

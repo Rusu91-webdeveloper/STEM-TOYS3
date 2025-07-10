@@ -1,90 +1,9 @@
 "use client";
 
-import React, { ComponentType } from "react";
+import { type ComponentType } from "react";
+import { createIntersectionLazyComponent } from "@/lib/bundle-analyzer-client";
 
-// Copied from lib/bundle-analyzer.ts to be client-safe
-// Logging has been removed.
-function createIntersectionLazyComponent<T extends ComponentType<any>>(
-  importFn: () => Promise<{ default: T }>,
-  _name: string, // name is kept for signature consistency, but not used without logger
-  options: {
-    rootMargin?: string;
-    threshold?: number;
-    loading?: ComponentType;
-  } = {}
-) {
-  const {
-    rootMargin = "50px",
-    threshold = 0.1,
-    loading: LoadingComponent,
-  } = options;
-
-  const LazyComponent = React.forwardRef<any, any>((props, ref) => {
-    const [isVisible, setIsVisible] = React.useState(false);
-    const [Component, setComponent] = React.useState<T | null>(null);
-    const [error, setError] = React.useState<Error | null>(null);
-    const elementRef = React.useRef<HTMLDivElement>(null);
-
-    React.useEffect(() => {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting && !isVisible) {
-            setIsVisible(true);
-            importFn()
-              .then(module => {
-                setComponent(() => module.default);
-              })
-              .catch(err => {
-                setError(err);
-              });
-          }
-        },
-        { rootMargin, threshold }
-      );
-
-      if (elementRef.current) {
-        observer.observe(elementRef.current);
-      }
-
-      return () => {
-        if (elementRef.current) {
-          observer.unobserve(elementRef.current);
-        }
-        observer.disconnect();
-      };
-    }, [isVisible]); // Re-run if isVisible changes (for retry logic perhaps)
-
-    if (error) {
-      // A simple error display
-      return React.createElement(
-        "div",
-        { ref: elementRef, style: { color: "red" } },
-        "Error loading component."
-      );
-    }
-
-    if (!isVisible) {
-      // Render a placeholder with a minimum height to ensure it's observable
-      return React.createElement("div", {
-        ref: elementRef,
-        style: { minHeight: "100px" },
-      });
-    }
-
-    if (!Component) {
-      // If a loading component is provided, use it. Otherwise, a simple text.
-      return React.createElement(
-        "div",
-        { ref: elementRef },
-        LoadingComponent ? React.createElement(LoadingComponent) : "Loading..."
-      );
-    }
-
-    return React.createElement(Component, { ...props, ref });
-  });
-  LazyComponent.displayName = _name || "LazyComponent";
-  return LazyComponent;
-}
+// Using the createIntersectionLazyComponent from lib/bundle-analyzer-client
 
 // =================== CLIENT-SAFE LAZY COMPONENTS ===================
 
@@ -94,3 +13,33 @@ export const LazyNewsletterSignup = createIntersectionLazyComponent(
   "NewsletterSignup",
   { rootMargin: "50px" }
 );
+
+// =================== INTERSECTION OBSERVER LAZY COMPONENTS ===================
+// These components load only when they come into view (moved from server.ts)
+
+// Product Reviews (Below the fold)
+export const LazyProductReviews = createIntersectionLazyComponent(
+  () =>
+    import("@/features/products/components/ProductReviews").then(mod => ({
+      default: mod.ProductReviews,
+    })),
+  "ProductReviews",
+  { rootMargin: "100px" }
+);
+
+// Related Products (Below the fold)
+export const LazyRelatedProducts = createIntersectionLazyComponent(
+  () =>
+    import("@/features/products/components/RelatedProducts").then(mod => ({
+      default: mod.RelatedProducts,
+    })),
+  "RelatedProducts",
+  { rootMargin: "100px" }
+);
+
+// Export collections
+export const IntersectionComponents = {
+  NewsletterSignup: LazyNewsletterSignup,
+  ProductReviews: LazyProductReviews,
+  RelatedProducts: LazyRelatedProducts,
+};

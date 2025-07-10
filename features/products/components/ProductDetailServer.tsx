@@ -1,6 +1,7 @@
 import React from "react";
+import { notFound } from "next/navigation";
 
-import { LazyProductReviews } from "@/components/lazy/server";
+import { LazyProductReviews } from "@/components/lazy/client";
 import { getCombinedProduct } from "@/lib/api/products";
 import type { Product } from "@/types/product";
 
@@ -12,16 +13,27 @@ interface ProductDetailServerProps {
 }
 
 async function fetchReviews(productId: string): Promise<Review[]> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/reviews?productId=${productId}`
-  );
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const url = `${baseUrl}/api/reviews?productId=${productId}`;
+
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    return res.json();
+  } catch (error) {
+    console.error("Failed to fetch reviews:", error);
+    return [];
+  }
 }
 
 const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
   const product: Product | null = await getCombinedProduct(slug);
-  if (!product) return null;
+
+  // If product not found, trigger Next.js 404 page
+  if (!product) {
+    notFound();
+  }
+
   const isBook = product.isBook === true;
   const reviews = await fetchReviews(product.id);
 
