@@ -22,6 +22,17 @@ try {
 } catch (error) {
   console.error("Failed to load config in auth.ts:", error);
 
+  // Log environment variables for debugging (without sensitive values)
+  console.error("Environment check:", {
+    NODE_ENV: process.env.NODE_ENV,
+    hasNEXTAUTH_URL: !!process.env.NEXTAUTH_URL,
+    hasNEXTAUTH_SECRET: !!process.env.NEXTAUTH_SECRET,
+    hasDATABASE_URL: !!process.env.DATABASE_URL,
+    hasGOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
+    hasGOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET,
+    VERCEL_URL: process.env.VERCEL_URL,
+  });
+
   // Determine the correct URL based on environment
   let nextAuthUrl = process.env.NEXTAUTH_URL;
 
@@ -52,11 +63,11 @@ try {
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
     ADMIN_PASSWORD_HASH: process.env.ADMIN_PASSWORD_HASH,
   };
+
   serviceConfig = {
     isGoogleOAuthEnabled: () =>
       !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
-    isAdminEnvEnabled: () =>
-      !!(env.ADMIN_EMAIL && (env.ADMIN_PASSWORD || env.ADMIN_PASSWORD_HASH)),
+    isAdminEnvEnabled: () => !!env.ADMIN_EMAIL,
   };
 }
 

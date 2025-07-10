@@ -7,12 +7,27 @@ import NextAuth, { NextAuthConfig } from "next-auth";
 // Wrap NextAuth to handle configuration errors gracefully
 export function createAuth(config: NextAuthConfig) {
   try {
+    // Log configuration attempt for debugging
+    console.log("Creating NextAuth instance with config:", {
+      providersCount: config.providers?.length || 0,
+      hasSecret: !!config.secret,
+      hasCallbacks: !!config.callbacks,
+      NODE_ENV: process.env.NODE_ENV,
+    });
+
     // Ensure required environment variables are set
     if (
       !process.env.NEXTAUTH_SECRET &&
       process.env.NODE_ENV !== "development"
     ) {
       throw new Error("NEXTAUTH_SECRET is required in production");
+    }
+
+    // Verify database connectivity is possible
+    if (!process.env.DATABASE_URL) {
+      console.error(
+        "DATABASE_URL is missing - this will cause authentication failures"
+      );
     }
 
     // Determine the correct URL for NextAuth
@@ -29,6 +44,8 @@ export function createAuth(config: NextAuthConfig) {
       process.env.NEXTAUTH_URL = nextAuthUrl;
     }
 
+    console.log("NextAuth URL set to:", nextAuthUrl);
+
     // Add default secret for development if not set
     const authConfig: NextAuthConfig = {
       ...config,
@@ -41,9 +58,25 @@ export function createAuth(config: NextAuthConfig) {
       trustHost: process.env.NODE_ENV === "development",
     };
 
+    console.log("NextAuth configuration validated successfully");
     return NextAuth(authConfig);
   } catch (error) {
     console.error("Failed to initialize NextAuth:", error);
+
+    // Log more detailed error information
+    if (error instanceof Error) {
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        env: {
+          NODE_ENV: process.env.NODE_ENV,
+          hasNEXTAUTH_SECRET: !!process.env.NEXTAUTH_SECRET,
+          hasNEXTAUTH_URL: !!process.env.NEXTAUTH_URL,
+          hasDATABASE_URL: !!process.env.DATABASE_URL,
+          VERCEL_URL: process.env.VERCEL_URL,
+        },
+      });
+    }
 
     // Return a minimal auth implementation for development
     if (process.env.NODE_ENV === "development") {
@@ -68,7 +101,13 @@ export function createAuth(config: NextAuthConfig) {
           POST: async (_req: Request) =>
             new Response(
               JSON.stringify({
-                error: "Auth not configured properly",
+                error:
+                  "Auth not configured properly - check your environment variables",
+                details: {
+                  hasNEXTAUTH_SECRET: !!process.env.NEXTAUTH_SECRET,
+                  hasNEXTAUTH_URL: !!process.env.NEXTAUTH_URL,
+                  hasDATABASE_URL: !!process.env.DATABASE_URL,
+                },
               }),
               {
                 status: 500,
