@@ -109,8 +109,16 @@ const nextConfig = {
       },
     ];
   },
-  // Fix OpenTelemetry warnings
+  // Fix module resolution and OpenTelemetry warnings
   webpack: (config, { isServer }) => {
+    // Improve module resolution
+    config.resolve.extensions = [".tsx", ".ts", ".jsx", ".js", ".json"];
+
+    // Make module resolution more explicit
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@": require("path").resolve(__dirname),
+    };
     if (isServer) {
       // Prevent OpenTelemetry from trying to load native modules
       config.externals = [
