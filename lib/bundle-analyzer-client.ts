@@ -5,6 +5,7 @@
  */
 
 import React, { type ComponentType } from "react";
+
 import { logger } from "./logger";
 
 // Lazy loading with intersection observer (CLIENT ONLY)
@@ -52,7 +53,7 @@ export function createIntersectionLazyComponent<
         }
 
         return () => observer.disconnect();
-      }, []);
+      }, [isVisible]);
 
       if (!isVisible) {
         return React.createElement("div", {

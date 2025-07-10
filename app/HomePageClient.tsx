@@ -2,15 +2,15 @@
 
 import React from "react";
 
-import type { Product } from "@/types/product";
-import { useTranslation } from "@/lib/i18n";
-import { useCurrency } from "@/lib/currency";
 
 // Import home page components
-import { HeroSection } from "@/features/home/components/HeroSection";
-import { FeaturedProductsSection } from "@/features/home/components/FeaturedProductsSection";
 import { CategoriesSection } from "@/features/home/components/CategoriesSection";
+import { FeaturedProductsSection } from "@/features/home/components/FeaturedProductsSection";
+import { HeroSection } from "@/features/home/components/HeroSection";
 import ValuePropositionSection from "@/features/home/components/ValuePropositionSection";
+import { useCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
+import type { Product } from "@/types/product";
 
 // Define categories data
 const categories = [

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
+
 import { RetryButton } from "./RetryButton";
 
 export const metadata: Metadata = {

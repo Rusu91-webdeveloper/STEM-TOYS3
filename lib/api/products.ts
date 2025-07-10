@@ -51,8 +51,10 @@ export async function getCombinedProduct(
       next: {
         // Use tags for more precise invalidation
         tags: [`product-${slug}`, "products", `book-${slug}`, "books"],
-        revalidate: 60, // Cache for 1 minute to allow static rendering
+        revalidate: 300, // 🚀 PERFORMANCE: Cache for 5 minutes for better performance
       },
+      // 🚀 PERFORMANCE: Add browser cache headers
+      cache: "force-cache",
     });
 
     if (!response.ok) {

@@ -1,6 +1,8 @@
-import { auth } from "./auth";
-import { db } from "../db";
 import type { Order, OrderItem, Address, Review } from "@prisma/client";
+
+import { db } from "../db";
+
+import { auth } from "./auth";
 
 /**
  * Fetches all orders for the currently authenticated user, including items, products/books, reviews, and shipping address.

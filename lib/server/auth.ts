@@ -4,12 +4,14 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
 import "../env"; // Load environment variables early
+import { createAuth } from "@/lib/auth-wrapper";
+
 import { hashAdminPassword, verifyAdminPassword } from "../admin-auth";
+import { verifyPassword } from "../auth-utils";
 import { db } from "../db";
 import { withRetry } from "../db-helpers";
 import { logger } from "../logger";
 
-import { verifyPassword } from "../auth-utils";
 let env: Record<string, string | undefined>;
 let serviceConfig: Record<string, () => boolean>;
 
@@ -572,7 +574,6 @@ export const authOptions: NextAuthConfig = {
 };
 
 // Import the wrapper
-import { createAuth } from "@/lib/auth-wrapper";
 
 // For Next Auth v5 - use the wrapper with error handling
 let authInstance: any;

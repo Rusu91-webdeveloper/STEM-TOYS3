@@ -120,7 +120,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
   });
 
   // Format the reviews for the frontend
-  const formattedReviews = reviews.map((review) => ({
+  const formattedReviews = reviews.map(review => ({
     id: review.id,
     productId: review.productId,
     userId: review.userId,
@@ -137,5 +137,10 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
     count: reviews.length,
   });
 
-  return NextResponse.json(formattedReviews);
+  return NextResponse.json(formattedReviews, {
+    headers: {
+      // 🚀 PERFORMANCE: Add caching headers for reviews
+      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+    },
+  });
 });

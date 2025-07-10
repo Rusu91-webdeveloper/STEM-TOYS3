@@ -8,31 +8,36 @@ export async function GET(
 ) {
   const { slug } = await params;
   try {
-    // First, try to find a product with this slug
-    const product = await db.product.findFirst({
-      where: {
-        slug,
-        isActive: true,
-      },
-      include: {
-        category: true,
-      },
-    });
+    // 🚀 PERFORMANCE: Execute both queries in parallel instead of sequential
+    const [product, book] = await Promise.all([
+      db.product.findFirst({
+        where: {
+          slug,
+          isActive: true,
+        },
+        include: {
+          category: true,
+        },
+      }),
+      db.book.findFirst({
+        where: {
+          slug,
+          isActive: true,
+        },
+        include: {
+          languages: true,
+        },
+      }),
+    ]);
 
     if (product) {
-      return NextResponse.json(product);
+      return NextResponse.json(product, {
+        headers: {
+          // 🚀 PERFORMANCE: Add caching headers
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+        },
+      });
     }
-
-    // If no product found, try to find a book
-    const book = await db.book.findFirst({
-      where: {
-        slug,
-        isActive: true,
-      },
-      include: {
-        languages: true,
-      },
-    });
 
     if (book) {
       // Transform book to product-like structure
@@ -63,7 +68,12 @@ export async function GET(
         isBook: true, // Flag to identify this as a book
       };
 
-      return NextResponse.json(bookAsProduct);
+      return NextResponse.json(bookAsProduct, {
+        headers: {
+          // 🚀 PERFORMANCE: Add caching headers
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+        },
+      });
     }
 
     // If neither product nor book found

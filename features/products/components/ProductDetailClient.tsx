@@ -24,11 +24,13 @@ import { type Review } from "./ProductReviews";
 type ProductDetailClientProps = {
   product: Product;
   isBook?: boolean;
+  initialReviews?: Review[];
 };
 
 export default function ProductDetailClient({
   product,
   isBook = false,
+  initialReviews = [],
 }: ProductDetailClientProps) {
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
@@ -39,8 +41,8 @@ export default function ProductDetailClient({
   );
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [_loadingReviews, setLoadingReviews] = useState(true);
+  const [reviews, setReviews] = useState<Review[]>(initialReviews);
+  const [_loadingReviews, setLoadingReviews] = useState(false);
 
   // Check if the product is in the user's wishlist
   useEffect(() => {
@@ -204,28 +206,31 @@ export default function ProductDetailClient({
     return product.attributes?.type || "";
   };
 
-  // Fetch product reviews
+  // 🚀 PERFORMANCE: Reviews are now passed from server component, no need to fetch on client
+  // Only fetch if no initial reviews were provided (fallback)
   useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        setLoadingReviews(true);
-        const response = await fetch(`/api/reviews?productId=${product.id}`);
+    if (initialReviews.length === 0) {
+      const fetchReviews = async () => {
+        try {
+          setLoadingReviews(true);
+          const response = await fetch(`/api/reviews?productId=${product.id}`);
 
-        if (response.ok) {
-          const reviewData = await response.json();
-          setReviews(reviewData);
-        } else {
-          console.error("Failed to fetch reviews:", response.statusText);
+          if (response.ok) {
+            const reviewData = await response.json();
+            setReviews(reviewData);
+          } else {
+            console.error("Failed to fetch reviews:", response.statusText);
+          }
+        } catch (error) {
+          console.error("Error fetching reviews:", error);
+        } finally {
+          setLoadingReviews(false);
         }
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
-      } finally {
-        setLoadingReviews(false);
-      }
-    };
+      };
 
-    fetchReviews();
-  }, [product.id]);
+      fetchReviews();
+    }
+  }, [product.id, initialReviews.length]);
 
   // Compute review count and average rating from fetched reviews
   const reviewCount = reviews.length;

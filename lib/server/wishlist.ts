@@ -1,5 +1,6 @@
-import { auth } from "./auth";
 import { db } from "@/lib/db";
+
+import { auth } from "./auth";
 
 export async function getWishlistItems() {
   const session = await auth();

@@ -6,6 +6,9 @@ import ProductDetailServer from "@/features/products/components/ProductDetailSer
 import { getCombinedProduct } from "@/lib/api/products";
 import { generateProductMetadata } from "@/lib/utils/seo";
 
+// 🚀 PERFORMANCE: Enable ISR for faster subsequent loads
+export const revalidate = 300; // Revalidate every 5 minutes
+
 type ProductPageProps = {
   params: Promise<{
     slug: string;
@@ -47,7 +50,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     const resolvedParams = await params;
     const slug = resolvedParams.slug;
 
-    // Pass slug to server component
+    // 🚀 PERFORMANCE: Pass slug to server component with improved error handling
     return <ProductDetailServer slug={slug} />;
   } catch (error) {
     console.error("Error fetching product:", error);

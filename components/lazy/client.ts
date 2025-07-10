@@ -21,7 +21,7 @@ export const LazyNewsletterSignup = createIntersectionLazyComponent(
 export const LazyProductReviews = createIntersectionLazyComponent(
   () =>
     import("@/features/products/components/ProductReviews").then(mod => ({
-      default: mod.ProductReviews,
+      default: mod.ProductReviews as ComponentType<any>,
     })),
   "ProductReviews",
   { rootMargin: "100px" }
@@ -31,7 +31,7 @@ export const LazyProductReviews = createIntersectionLazyComponent(
 export const LazyRelatedProducts = createIntersectionLazyComponent(
   () =>
     import("@/features/products/components/RelatedProducts").then(mod => ({
-      default: mod.RelatedProducts,
+      default: mod.RelatedProducts as ComponentType<any>,
     })),
   "RelatedProducts",
   { rootMargin: "100px" }
