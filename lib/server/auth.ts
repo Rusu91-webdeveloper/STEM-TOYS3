@@ -12,6 +12,16 @@ import { db } from "../db";
 import { withRetry } from "../db-helpers";
 import { logger } from "../logger";
 
+interface ExtendedUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  isActive?: boolean;
+  role?: string;
+  accountLinked?: boolean;
+}
+
 let env: Record<string, string | undefined>;
 let serviceConfig: Record<string, () => boolean>;
 
@@ -71,16 +81,6 @@ try {
   };
 }
 
-// Extended user type that includes our custom fields
-interface ExtendedUser {
-  id: string;
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-  isActive?: boolean;
-  role?: string;
-}
-
 // Extend the session types
 declare module "next-auth" {
   interface Session {
@@ -129,7 +129,7 @@ const createDevAdminFromEnv = async () => {
   logger.warn("🚨 This feature is disabled in production for security reasons");
 
   const adminEmail = env.ADMIN_EMAIL!;
-  const adminName = env.ADMIN_NAME || "Development Admin";
+  const adminName = env.ADMIN_NAME ?? "Development Admin";
   const adminPasswordHash = env.ADMIN_PASSWORD_HASH;
   const adminPassword = env.ADMIN_PASSWORD;
 
@@ -217,7 +217,7 @@ export const authOptions: NextAuthConfig = {
 
         try {
           // Find user in database
-          let user: any = null;
+          let user: ExtendedUser | null = null;
 
           // Check if we should use the development admin account
           const isDevelopmentEnv = process.env.NODE_ENV === "development";
@@ -229,7 +229,7 @@ export const authOptions: NextAuthConfig = {
             logger.info("Attempting development admin login");
             const envAdmin = await createDevAdminFromEnv();
             if (envAdmin) {
-              user = envAdmin;
+              user = envAdmin as ExtendedUser;
             }
           }
 
@@ -240,12 +240,13 @@ export const authOptions: NextAuthConfig = {
               email,
             });
             try {
-              user = await db.user.findUnique({
+              const dbUser = await db.user.findUnique({
                 where: { email },
               });
 
-              if (user) {
-                logger.debug("Found user in database", { userId: user.id });
+              if (dbUser) {
+                logger.debug("Found user in database", { userId: dbUser.id });
+                user = dbUser as ExtendedUser;
               }
             } catch (dbError) {
               logger.error("Database error during login", dbError);
@@ -266,25 +267,27 @@ export const authOptions: NextAuthConfig = {
           let passwordMatch = false;
           if (user.id === "admin_env") {
             // For environment variable admin - check if we have a hash or need to use custom hashing
-            if (user.passwordIsHashed) {
+            const adminUser = user as ExtendedUser & {
+              passwordIsHashed?: boolean;
+              password: string;
+            };
+            if (adminUser.passwordIsHashed) {
               // We have a pre-computed bcrypt hash - use our server-side utility
               passwordMatch = await verifyPassword(
                 password,
-                user.password as string
+                adminUser.password
               );
             } else {
               // Use our custom secure hashing for legacy admin passwords
               passwordMatch = await verifyAdminPassword(
                 password,
-                user.password as string
+                adminUser.password
               );
             }
           } else {
             // Standard database user with bcrypt hash
-            passwordMatch = await verifyPassword(
-              password,
-              user.password as string
-            );
+            const dbUser = user as ExtendedUser & { password: string };
+            passwordMatch = await verifyPassword(password, dbUser.password);
           }
 
           if (!passwordMatch) {
@@ -351,165 +354,102 @@ export const authOptions: NextAuthConfig = {
                   : String(findError),
               email: profile.email,
             });
+
+            // Return false to prevent sign-in on database error
+            return false;
           }
 
           if (existingUser) {
-            // User already exists with this email
-            logger.info(
-              "User already exists with this email, signing in as existing user",
-              {
-                userId: existingUser.id,
-                email: profile.email as string,
-              }
-            );
+            logger.info("Found existing user for Google login", {
+              userId: existingUser.id,
+              email: profile.email,
+              isActive: existingUser.isActive,
+            });
 
-            // Check if this is a regular account (non-empty password) trying to sign in with Google
-            const isRegularAccount =
-              existingUser.password && existingUser.password !== "";
-
-            if (isRegularAccount) {
-              // For security, still link the account but inform the user through an error
-              logger.warn("Regular user attempting to sign in with Google", {
-                userId: existingUser.id,
-                email: profile.email as string,
-              });
-
-              // Update existing user to mark as active and store Google credentials
-              // but preserve their role and other important fields
-              await withRetry(
-                () =>
-                  db.user.update({
-                    where: { id: existingUser!.id },
-                    data: {
-                      name: profile.name || existingUser!.name,
-                      isActive: true,
-                      emailVerified: new Date(),
-                      // Do NOT change role - preserve the existing user's role
-                      // role is intentionally omitted to keep the original value
-                    },
-                  }),
-                {
-                  name: "Update Google user",
-                  maxRetries: 5,
-                  delayMs: 300,
-                  logParams: {
-                    userId: existingUser.id,
-                    email: profile.email as string,
-                  },
-                }
-              );
-
-              // Store the user ID to be used in the JWT callback
-              if (user) {
-                user.id = existingUser.id;
-              }
-
-              // We'll display a message on the client side about account linking
-              // Add a custom property to pass through to jwt callback
-              (user as any).accountLinked = true;
-            } else {
-              // This is a Google account - regular update flow
-              await withRetry(
-                () =>
-                  db.user.update({
-                    where: { id: existingUser!.id },
-                    data: {
-                      name: profile.name || existingUser!.name,
-                      isActive: true, // Ensure Google-authenticated users are active
-                      emailVerified: new Date(),
-                    },
-                  }),
-                {
-                  name: "Update Google user",
-                  maxRetries: 5,
-                  delayMs: 300,
-                  logParams: {
-                    userId: existingUser.id,
-                    email: profile.email as string,
-                  },
-                }
-              );
-
-              logger.info("Updated existing user from Google login", {
-                userId: existingUser.id,
-                email: profile.email as string,
-              });
-
-              // Store the user ID to be used in the JWT callback
-              if (user) {
-                user.id = existingUser.id;
-              }
+            // Store the user ID to be used in the JWT callback
+            if (user) {
+              user.id = existingUser.id;
             }
-          } else {
-            // No user with this email exists - create new user for Google authentication
-            let newUser: any;
-            try {
-              newUser = await withRetry(
-                () =>
-                  db.user.create({
-                    data: {
-                      email: profile.email!,
-                      name: profile.name ?? "Google User",
-                      // For Google users, we don't need a password since they authenticate via Google
-                      password: "", // Empty password for Google users
-                      isActive: true, // Google-authenticated users are verified by default
-                      emailVerified: new Date(),
-                      role: "CUSTOMER", // Use the enum value from the Prisma schema
-                    },
-                  }),
-                {
-                  name: "Create Google user",
-                  maxRetries: 5,
-                  delayMs: 300,
-                  logParams: { email: profile.email },
-                }
-              );
 
-              logger.info("Created new user from Google login", {
-                userId: newUser.id,
-                email: profile.email,
-              });
-
-              // Store the user ID to be used in the JWT callback
-              if (user) {
-                user.id = newUser.id;
-              }
-
-              // Double check user exists right after creation
-              const verifyCreation = await withRetry(
-                () =>
-                  db.user.findUnique({
-                    where: { id: newUser.id },
-                    select: { id: true },
-                  }),
-                {
-                  name: "Verify Google user creation",
-                  maxRetries: 3,
-                  delayMs: 300,
-                  logParams: { userId: newUser.id, email: profile.email },
-                }
-              );
-
-              if (!verifyCreation) {
-                logger.error(
-                  "User created but not found in verification check",
-                  {
-                    userId: newUser.id,
-                    email: profile.email,
-                  }
-                );
-                return false;
-              }
-            } catch (createError) {
-              logger.error("Failed to create user after multiple attempts", {
-                error:
-                  createError instanceof Error
-                    ? createError.message
-                    : String(createError),
+            // Check if the user is active
+            if (!existingUser.isActive) {
+              logger.warn("Login attempt with inactive Google account", {
+                userId: existingUser.id,
                 email: profile.email,
               });
               return false;
             }
+
+            // If user exists and is active, allow sign-in
+            return true;
+          }
+          // No user with this email exists - create new user for Google authentication
+          let newUser: ExtendedUser;
+          try {
+            const createdUser = await withRetry(
+              () =>
+                db.user.create({
+                  data: {
+                    email: profile.email!,
+                    name: profile.name ?? "Google User",
+                    // For Google users, we don't need a password since they authenticate via Google
+                    password: "", // Empty password for Google users
+                    isActive: true, // Google-authenticated users are verified by default
+                    emailVerified: new Date(),
+                    role: "CUSTOMER", // Use the enum value from the Prisma schema
+                  },
+                }),
+              {
+                name: "Create Google user",
+                maxRetries: 5,
+                delayMs: 300,
+                logParams: { email: profile.email },
+              }
+            );
+
+            newUser = createdUser as ExtendedUser;
+
+            logger.info("Created new user from Google login", {
+              userId: newUser.id,
+              email: profile.email,
+            });
+
+            // Store the user ID to be used in the JWT callback
+            if (user) {
+              user.id = newUser.id;
+            }
+
+            // Double check user exists right after creation
+            const verifyCreation = await withRetry(
+              () =>
+                db.user.findUnique({
+                  where: { id: newUser.id },
+                  select: { id: true },
+                }),
+              {
+                name: "Verify Google user creation",
+                maxRetries: 3,
+                delayMs: 300,
+                logParams: { userId: newUser.id, email: profile.email },
+              }
+            );
+
+            if (!verifyCreation) {
+              logger.error("User created but not found in verification check", {
+                userId: newUser.id,
+                email: profile.email,
+              });
+              return false;
+            }
+          } catch (createError) {
+            logger.error("Failed to create user after multiple attempts", {
+              error:
+                createError instanceof Error
+                  ? createError.message
+                  : String(createError),
+              email: profile.email,
+            });
+            return false;
           }
 
           // Force a delay to ensure database operations complete
@@ -525,13 +465,13 @@ export const authOptions: NextAuthConfig = {
 
       return true; // Allow sign-in
     },
-    async session({ session, token }) {
+    session({ session, token }) {
       // Assign token data to session
       if (token) {
-        session.user.id = token.id || token.sub || "";
-        session.user.isActive = token.isActive || false;
-        session.user.role = token.role || "CUSTOMER";
-        session.user.accountLinked = token.accountLinked || false;
+        session.user.id = token.id ?? token.sub ?? "";
+        session.user.isActive = token.isActive ?? false;
+        session.user.role = token.role ?? "CUSTOMER";
+        session.user.accountLinked = token.accountLinked ?? false;
       }
       return session;
     },
@@ -541,9 +481,9 @@ export const authOptions: NextAuthConfig = {
         // User object is available on initial sign-in
         token.id = user.id;
         const extendedUser = user as ExtendedUser;
-        token.isActive = extendedUser.isActive || false;
-        token.role = extendedUser.role || "CUSTOMER";
-        token.accountLinked = (user as any).accountLinked || false;
+        token.isActive = extendedUser.isActive ?? false;
+        token.role = extendedUser.role ?? "CUSTOMER";
+        token.accountLinked = (user as ExtendedUser).accountLinked ?? false;
       } else if (token.id) {
         // On subsequent requests, token.id is available, refresh data from DB
         try {
@@ -577,7 +517,7 @@ export const authOptions: NextAuthConfig = {
     error: "/auth/error",
   },
   secret:
-    process.env.NEXTAUTH_SECRET ||
+    process.env.NEXTAUTH_SECRET ??
     (process.env.NODE_ENV === "development"
       ? "development-secret-please-change"
       : undefined),
@@ -595,19 +535,19 @@ try {
   // Use a basic fallback for development
   authInstance = {
     handlers: {
-      GET: async () =>
+      GET: () =>
         new Response(JSON.stringify({ user: null }), {
           headers: { "Content-Type": "application/json" },
         }),
-      POST: async () =>
+      POST: () =>
         new Response(JSON.stringify({ error: "Auth not configured" }), {
           status: 500,
           headers: { "Content-Type": "application/json" },
         }),
     },
-    auth: async () => null,
-    signIn: async () => ({ error: "Auth not configured" }),
-    signOut: async () => ({ error: "Auth not configured" }),
+    auth: () => null,
+    signIn: () => ({ error: "Auth not configured" }),
+    signOut: () => ({ error: "Auth not configured" }),
   };
 }
 

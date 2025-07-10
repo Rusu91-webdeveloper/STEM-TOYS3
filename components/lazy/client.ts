@@ -1,6 +1,7 @@
 "use client";
 
 import { type ComponentType } from "react";
+
 import { createIntersectionLazyComponent } from "@/lib/bundle-analyzer-client";
 
 // Using the createIntersectionLazyComponent from lib/bundle-analyzer-client

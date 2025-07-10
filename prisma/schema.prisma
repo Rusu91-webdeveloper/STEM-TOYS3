@@ -20,16 +20,17 @@ model User {
   updatedAt           DateTime             @updatedAt
   addresses           Address[]
   blogs               Blog[]
+  contentVersions     ContentVersion[]
+  couponsCreated      Coupon[]             @relation("CouponCreatedBy")
+  couponUsages        CouponUsage[]
   digitalDownloads    DigitalDownload[]
   orders              Order[]
   passwordResetTokens PasswordResetToken[]
   paymentCards        PaymentCard[]
   returns             Return[]
   reviews             Review[]
+  Session             Session[]
   wishlistItems       Wishlist[]
-  couponsCreated      Coupon[]             @relation("CouponCreatedBy")
-  couponUsages        CouponUsage[]
-  contentVersions     ContentVersion[]
 
   @@index([email])
 }
@@ -100,35 +101,35 @@ model Category {
 }
 
 model Product {
-  id                  String              @id @default(cuid())
-  name                String
-  slug                String              @unique
-  description         String?
-  price               Float
-  compareAtPrice      Float?
-  sku                 String?             @unique
-  barcode             String?
-  images              String[]
-  category            Category?           @relation(fields: [categoryId], references: [id])
-  categoryId          String?
-  tags                String[]
-  attributes          Json?
-  metadata            Json?
-  isActive            Boolean             @default(true)
-  featured            Boolean             @default(false)
-  stockQuantity       Int                 @default(0)
-  reservedQuantity    Int                 @default(0)
-  reorderPoint        Int?
-  weight              Float?
-  dimensions          Json?
-  orderItems          OrderItem[]
-  reviews             Review[]
-  wishlistItems       Wishlist[]
-  averageRating       Float?
-  reviewCount         Int                 @default(0)
-  totalSold           Int                 @default(0)
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+  id               String      @id @default(cuid())
+  name             String
+  slug             String      @unique
+  description      String?
+  price            Float
+  compareAtPrice   Float?
+  sku              String?     @unique
+  images           String[]
+  categoryId       String?
+  tags             String[]
+  attributes       Json?
+  metadata         Json?
+  isActive         Boolean     @default(true)
+  featured         Boolean     @default(false)
+  stockQuantity    Int         @default(0)
+  reservedQuantity Int         @default(0)
+  reorderPoint     Int?
+  weight           Float?
+  dimensions       Json?
+  averageRating    Float?
+  reviewCount      Int         @default(0)
+  totalSold        Int         @default(0)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  barcode          String?
+  orderItems       OrderItem[]
+  category         Category?   @relation(fields: [categoryId], references: [id])
+  reviews          Review[]
+  wishlistItems    Wishlist[]
 
   @@index([categoryId])
   @@index([isActive])
@@ -199,8 +200,8 @@ model Book {
   metadata     Json?
   isDigital    Boolean       @default(true)
   digitalFiles DigitalFile[]
-  languages    Language[]
   orderItems   OrderItem[]
+  languages    Language[]    @relation("BookToLanguage")
 }
 
 model DigitalFile {
@@ -229,35 +230,35 @@ model Language {
   code        String  @unique
   nativeName  String?
   isAvailable Boolean @default(true)
-  books       Book[]
+  books       Book[]  @relation("BookToLanguage")
 }
 
 model Order {
-  id                String        @id @default(cuid())
-  orderNumber       String        @unique
-  userId            String
-  total             Float
-  subtotal          Float
-  tax               Float
-  shippingCost      Float
-  discountAmount    Float         @default(0)
-  couponCode        String?
-  couponId          String?
-  status            OrderStatus   @default(PROCESSING)
-  paymentStatus     PaymentStatus @default(PENDING)
-  paymentMethod     String
+  id                    String        @id @default(cuid())
+  orderNumber           String        @unique
+  userId                String
+  total                 Float
+  subtotal              Float
+  tax                   Float
+  shippingCost          Float
+  discountAmount        Float         @default(0)
+  couponCode            String?
+  couponId              String?
+  status                OrderStatus   @default(PROCESSING)
+  paymentStatus         PaymentStatus @default(PENDING)
+  paymentMethod         String
+  notes                 String?
+  shippingAddressId     String
+  billingAddressId      String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deliveredAt           DateTime?
   stripePaymentIntentId String?
-  notes             String?
-  shippingAddressId String
-  billingAddressId  String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  deliveredAt       DateTime?
-  shippingAddress   Address       @relation(fields: [shippingAddressId], references: [id])
-  user              User          @relation(fields: [userId], references: [id])
-  coupon            Coupon?       @relation(fields: [couponId], references: [id])
-  items             OrderItem[]
-  returns           Return[]
+  coupon                Coupon?       @relation(fields: [couponId], references: [id])
+  shippingAddress       Address       @relation(fields: [shippingAddressId], references: [id])
+  user                  User          @relation(fields: [userId], references: [id])
+  items                 OrderItem[]
+  returns               Return[]
 
   @@index([userId])
   @@index([status])
@@ -314,20 +315,20 @@ model StoreSettings {
 }
 
 model Return {
-  id          String       @id @default(cuid())
-  userId      String
-  orderId     String
-  orderItemId String
-  reason      ReturnReason
-  details     String?
-  status      ReturnStatus @default(PENDING)
-  refundStatus String?
+  id           String       @id @default(cuid())
+  userId       String
+  orderId      String
+  orderItemId  String
+  reason       ReturnReason
+  details      String?
+  status       ReturnStatus @default(PENDING)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   refundError  String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  order       Order        @relation(fields: [orderId], references: [id])
-  orderItem   OrderItem    @relation(fields: [orderItemId], references: [id])
-  user        User         @relation(fields: [userId], references: [id])
+  refundStatus String?
+  order        Order        @relation(fields: [orderId], references: [id])
+  orderItem    OrderItem    @relation(fields: [orderItemId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([orderId])
@@ -396,47 +397,74 @@ model Coupon {
   name              String
   description       String?
   type              CouponType    @default(PERCENTAGE)
-  value             Float         // Percentage (e.g., 20) or fixed amount (e.g., 10.00)
-  minimumOrderValue Float?        // Minimum cart value to apply coupon
-  maxDiscountAmount Float?        // Maximum discount amount for percentage coupons
-  maxUses           Int?          // Maximum total uses (null = unlimited)
+  value             Float
+  minimumOrderValue Float?
+  maxDiscountAmount Float?
+  maxUses           Int?
   currentUses       Int           @default(0)
-  maxUsesPerUser    Int?          // Maximum uses per user (null = unlimited)
+  maxUsesPerUser    Int?
   isActive          Boolean       @default(true)
-  startsAt          DateTime?     // When coupon becomes active (null = immediately)
-  expiresAt         DateTime?     // When coupon expires (null = never)
-  isInfluencer      Boolean       @default(false) // Flag for influencer coupons
-  influencerName    String?       // Name of influencer for tracking
-  image             String?       // URL to coupon promotional image
-  showAsPopup       Boolean       @default(false) // Whether to show this coupon in popup
-  popupPriority     Int           @default(0) // Higher priority = shown first
-  createdBy         String        // Admin user ID who created it
+  startsAt          DateTime?
+  expiresAt         DateTime?
+  isInfluencer      Boolean       @default(false)
+  influencerName    String?
+  image             String?
+  showAsPopup       Boolean       @default(false)
+  popupPriority     Int           @default(0)
+  createdBy         String
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
-  orders            Order[]
-  usages            CouponUsage[]
   admin             User          @relation("CouponCreatedBy", fields: [createdBy], references: [id])
+  usages            CouponUsage[]
+  orders            Order[]
 
   @@index([code])
   @@index([expiresAt])
   @@index([isInfluencer])
   @@index([createdBy])
-  @@index([isActive, showAsPopup, popupPriority, expiresAt, startsAt], name: "idx_popup_coupon")
+  @@index([isActive, showAsPopup, popupPriority, expiresAt, startsAt], map: "idx_popup_coupon")
 }
 
 model CouponUsage {
-  id        String   @id @default(cuid())
-  couponId  String
-  userId    String
-  orderId   String?  // Null if coupon was applied but order failed
-  usedAt    DateTime @default(now())
-  coupon    Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String   @id @default(cuid())
+  couponId String
+  userId   String
+  orderId  String?
+  usedAt   DateTime @default(now())
+  coupon   Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([couponId, orderId]) // Prevent duplicate usage for same order
+  @@unique([couponId, orderId])
   @@index([couponId])
   @@index([userId])
   @@index([usedAt])
+}
+
+model ContentVersion {
+  id                String      @id @default(cuid())
+  contentId         String
+  contentType       ContentType
+  version           Int
+  title             String
+  content           Json
+  changeDescription String?
+  createdBy         String
+  createdAt         DateTime    @default(now())
+  isPublished       Boolean     @default(false)
+  creator           User        @relation(fields: [createdBy], references: [id])
+
+  @@unique([contentId, contentType, version])
+  @@index([contentId, contentType])
+  @@index([createdBy])
+  @@index([createdAt])
+}
+
+model Session {
+  id           String   @id
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum OrderItemReturnStatus {
@@ -502,23 +530,4 @@ enum ReturnStatus {
 enum CouponType {
   PERCENTAGE
   FIXED_AMOUNT
-}
-
-model ContentVersion {
-  id                String      @id @default(cuid())
-  contentId         String
-  contentType       ContentType
-  version           Int
-  title             String
-  content           Json
-  changeDescription String?
-  createdBy         String
-  createdAt         DateTime    @default(now())
-  isPublished       Boolean     @default(false)
-  creator           User        @relation(fields: [createdBy], references: [id])
-
-  @@unique([contentId, contentType, version])
-  @@index([contentId, contentType])
-  @@index([createdBy])
-  @@index([createdAt])
 }

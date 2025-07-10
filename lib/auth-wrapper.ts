@@ -8,8 +8,8 @@ import NextAuth, { NextAuthConfig } from "next-auth";
 export function createAuth(config: NextAuthConfig) {
   try {
     // Log configuration attempt for debugging
-    console.log("Creating NextAuth instance with config:", {
-      providersCount: config.providers?.length || 0,
+    console.warn("Creating NextAuth instance with config:", {
+      providersCount: config.providers?.length ?? 0,
       hasSecret: !!config.secret,
       hasCallbacks: !!config.callbacks,
       NODE_ENV: process.env.NODE_ENV,
@@ -44,13 +44,13 @@ export function createAuth(config: NextAuthConfig) {
       process.env.NEXTAUTH_URL = nextAuthUrl;
     }
 
-    console.log("NextAuth URL set to:", nextAuthUrl);
+    console.warn("NextAuth URL set to:", nextAuthUrl);
 
     // Add default secret for development if not set
     const authConfig: NextAuthConfig = {
       ...config,
       secret:
-        process.env.NEXTAUTH_SECRET ||
+        process.env.NEXTAUTH_SECRET ??
         (process.env.NODE_ENV === "development"
           ? "development-secret-please-change-in-production"
           : undefined),
@@ -58,7 +58,7 @@ export function createAuth(config: NextAuthConfig) {
       trustHost: process.env.NODE_ENV === "development",
     };
 
-    console.log("NextAuth configuration validated successfully");
+    console.warn("NextAuth configuration validated successfully");
     return NextAuth(authConfig);
   } catch (error) {
     console.error("Failed to initialize NextAuth:", error);
@@ -85,7 +85,7 @@ export function createAuth(config: NextAuthConfig) {
       // Return mock auth functions
       return {
         handlers: {
-          GET: async (_req: Request) =>
+          GET: (_req: Request) =>
             new Response(
               JSON.stringify({
                 user: null,
@@ -98,7 +98,7 @@ export function createAuth(config: NextAuthConfig) {
                 headers: { "Content-Type": "application/json" },
               }
             ),
-          POST: async (_req: Request) =>
+          POST: (_req: Request) =>
             new Response(
               JSON.stringify({
                 error:
@@ -115,9 +115,9 @@ export function createAuth(config: NextAuthConfig) {
               }
             ),
         },
-        auth: async () => null,
-        signIn: async () => ({ error: "Auth not configured" }),
-        signOut: async () => ({ error: "Auth not configured" }),
+        auth: () => null,
+        signIn: () => ({ error: "Auth not configured" }),
+        signOut: () => ({ error: "Auth not configured" }),
       };
     }
 
