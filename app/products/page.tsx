@@ -34,17 +34,21 @@ export default async function ProductsPage({
   // Use await for searchParams to avoid the Next.js error
   const params = await searchParams;
 
-  console.log("Environment:", process.env.NODE_ENV);
-  console.log("API URL:", process.env.NEXT_PUBLIC_API_URL || "Not set");
-  console.log("SITE URL:", process.env.NEXT_PUBLIC_SITE_URL || "Not set");
-  console.log("NEXTAUTH URL:", process.env.NEXTAUTH_URL || "Not set");
+  console.log("🔍 ProductsPage - Environment Check:", {
+    NODE_ENV: process.env.NODE_ENV,
+    API_URL: process.env.NEXT_PUBLIC_API_URL || "Not set",
+    SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || "Not set",
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || "Not set",
+    DATABASE_URL_START:
+      `${process.env.DATABASE_URL?.substring(0, 50)}...` || "Not set",
+  });
 
   const requestedCategory =
     typeof params.category === "string" ? params.category : undefined;
 
   try {
-    console.log("Fetching products from API...");
-    console.log("Requested category:", requestedCategory);
+    console.log("🚀 Fetching products from API...");
+    console.log("📂 Requested category:", requestedCategory || "ALL");
 
     let booksData: Book[] = [];
     let productsData: Product[] = [];
@@ -52,34 +56,61 @@ export default async function ProductsPage({
     // 🚀 PERFORMANCE & LOGIC FIX: Conditionally fetch books and products
     if (!requestedCategory) {
       // No category selected, fetch both
-      [booksData, productsData] = await Promise.all([
-        getBooks().catch(error => {
-          console.error("Error fetching books:", error);
-          return []; // Return empty array on error
-        }),
-        getProducts().catch(error => {
-          console.error("Error fetching products:", error);
-          return []; // Return empty array on error
-        }),
+      console.log("📦 Fetching both books and products...");
+
+      const [booksResult, productsResult] = await Promise.allSettled([
+        getBooks(),
+        getProducts(),
       ]);
+
+      if (booksResult.status === "fulfilled") {
+        booksData = booksResult.value;
+        console.log(`✅ Books fetch successful: ${booksData.length} items`);
+      } else {
+        console.error("❌ Books fetch failed:", booksResult.reason);
+        booksData = [];
+      }
+
+      if (productsResult.status === "fulfilled") {
+        productsData = productsResult.value;
+        console.log(
+          `✅ Products fetch successful: ${productsData.length} items`
+        );
+      } else {
+        console.error("❌ Products fetch failed:", productsResult.reason);
+        productsData = [];
+      }
     } else if (requestedCategory === "educational-books") {
       // Only fetch books for the "educational-books" category
-      booksData = await getBooks().catch(error => {
-        console.error("Error fetching books for category:", error);
-        return [];
-      });
+      console.log("📚 Fetching books only for educational-books category...");
+      try {
+        booksData = await getBooks();
+        console.log(`✅ Books fetch successful: ${booksData.length} items`);
+      } catch (error) {
+        console.error("❌ Books fetch failed:", error);
+        booksData = [];
+      }
     } else {
       // Fetch STEM products for any other category
-      productsData = await getProducts({ category: requestedCategory }).catch(
-        error => {
-          console.error("Error fetching products for category:", error);
-          return [];
-        }
+      console.log(
+        `🔬 Fetching STEM products for category: ${requestedCategory}`
       );
+      try {
+        productsData = await getProducts({ category: requestedCategory });
+        console.log(
+          `✅ Products fetch successful: ${productsData.length} items`
+        );
+      } catch (error) {
+        console.error("❌ Products fetch failed:", error);
+        productsData = [];
+      }
     }
 
-    console.log(`📚 Found ${booksData.length} digital books`);
-    console.log(`📦 Found ${productsData.length} STEM products`);
+    console.log(`📊 Final Results:`, {
+      books: booksData.length,
+      products: productsData.length,
+      category: requestedCategory || "ALL",
+    });
 
     // Transform books to look like products
     const bookProducts = booksData.map(book => ({
@@ -150,9 +181,25 @@ export default async function ProductsPage({
     // Combine both books and STEM products
     const products = [...bookProducts, ...stemProducts];
 
-    console.log(
-      `🎯 Total combined products: ${products.length} (${bookProducts.length} books + ${stemProducts.length} STEM products)`
-    );
+    console.log(`🎯 FINAL RESULT:`, {
+      totalProducts: products.length,
+      bookProducts: bookProducts.length,
+      stemProducts: stemProducts.length,
+      category: requestedCategory || "ALL",
+      firstFewProducts: products
+        .slice(0, 3)
+        .map(p => ({ id: p.id, name: p.name })),
+    });
+
+    if (products.length === 0) {
+      console.warn("⚠️ WARNING: No products found!");
+      console.warn("Debug info:", {
+        booksDataLength: booksData.length,
+        productsDataLength: productsData.length,
+        requestedCategory,
+        params,
+      });
+    }
 
     return (
       <CurrencyProvider>
@@ -165,12 +212,25 @@ export default async function ProductsPage({
       </CurrencyProvider>
     );
   } catch (error) {
-    console.error("Error in ProductsPage component:", error);
+    console.error("💥 CRITICAL ERROR in ProductsPage component:", error);
     return (
       <div className="container mx-auto py-12">
         <h1 className="text-2xl font-bold mb-4">Error Loading Products</h1>
         <p>There was an error loading the products. Please try again later.</p>
-        <pre className="bg-gray-100 p-4 mt-4 rounded overflow-auto max-h-96">
+        <div className="bg-gray-100 p-4 mt-4 rounded">
+          <h3 className="font-bold mb-2">Debug Information:</h3>
+          <p>
+            <strong>Error:</strong>{" "}
+            {error instanceof Error ? error.message : "Unknown error"}
+          </p>
+          <p>
+            <strong>Category:</strong> {requestedCategory || "All products"}
+          </p>
+          <p>
+            <strong>Environment:</strong> {process.env.NODE_ENV}
+          </p>
+        </div>
+        <pre className="bg-gray-100 p-4 mt-4 rounded overflow-auto max-h-96 text-xs">
           {JSON.stringify(error, null, 2)}
         </pre>
       </div>
