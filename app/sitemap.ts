@@ -11,7 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const sitemapEntries: MetadataRoute.Sitemap = [];
 
   // Add homepage for each language
-  languages.forEach((lang) => {
+  languages.forEach(lang => {
     // Root URLs have higher priority
     sitemapEntries.push({
       url: lang === "ro" ? baseUrl : `${baseUrl}/${lang}`,
@@ -29,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       { path: "contact", priority: 0.7, changeFreq: "monthly" },
     ];
 
-    mainSections.forEach((section) => {
+    mainSections.forEach(section => {
       sitemapEntries.push({
         url:
           lang === "ro"
@@ -57,20 +57,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const products = await productsResponse.json();
 
       // Add product routes for each language
-      languages.forEach((lang) => {
-        products.forEach((product: { slug: string; updatedAt?: string }) => {
-          sitemapEntries.push({
-            url:
-              lang === "ro"
-                ? `${baseUrl}/products/${product.slug}`
-                : `${baseUrl}/${lang}/products/${product.slug}`,
-            lastModified: product.updatedAt
-              ? new Date(product.updatedAt)
-              : new Date(),
-            changeFrequency: "weekly",
-            priority: 0.8,
+      languages.forEach(lang => {
+        // Ensure products is an array before calling forEach
+        if (Array.isArray(products)) {
+          products.forEach((product: { slug: string; updatedAt?: string }) => {
+            sitemapEntries.push({
+              url:
+                lang === "ro"
+                  ? `${baseUrl}/products/${product.slug}`
+                  : `${baseUrl}/${lang}/products/${product.slug}`,
+              lastModified: product.updatedAt
+                ? new Date(product.updatedAt)
+                : new Date(),
+              changeFrequency: "weekly",
+              priority: 0.8,
+            });
           });
-        });
+        }
       });
     }
   } catch (error) {
@@ -93,22 +96,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const blogPosts = await blogResponse.json();
 
       // Add blog post routes for each language
-      languages.forEach((lang) => {
-        blogPosts.forEach(
-          (post: { slug: string; updatedAt?: string; publishedAt: string }) => {
-            sitemapEntries.push({
-              url:
-                lang === "ro"
-                  ? `${baseUrl}/blog/${post.slug}`
-                  : `${baseUrl}/${lang}/blog/${post.slug}`,
-              lastModified: post.updatedAt
-                ? new Date(post.updatedAt)
-                : new Date(post.publishedAt),
-              changeFrequency: "monthly",
-              priority: 0.7,
-            });
-          }
-        );
+      languages.forEach(lang => {
+        // Ensure blogPosts is an array before calling forEach
+        if (Array.isArray(blogPosts)) {
+          blogPosts.forEach(
+            (post: {
+              slug: string;
+              updatedAt?: string;
+              publishedAt: string;
+            }) => {
+              sitemapEntries.push({
+                url:
+                  lang === "ro"
+                    ? `${baseUrl}/blog/${post.slug}`
+                    : `${baseUrl}/${lang}/blog/${post.slug}`,
+                lastModified: post.updatedAt
+                  ? new Date(post.updatedAt)
+                  : new Date(post.publishedAt),
+                changeFrequency: "monthly",
+                priority: 0.7,
+              });
+            }
+          );
+        }
       });
     }
   } catch (error) {
@@ -131,18 +141,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const categories = await categoriesResponse.json();
 
       // Add category routes for each language
-      languages.forEach((lang) => {
-        categories.forEach((category: { slug: string }) => {
-          sitemapEntries.push({
-            url:
-              lang === "ro"
-                ? `${baseUrl}/categories/${category.slug}`
-                : `${baseUrl}/${lang}/categories/${category.slug}`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.7,
+      languages.forEach(lang => {
+        // Ensure categories is an array before calling forEach
+        if (Array.isArray(categories)) {
+          categories.forEach((category: { slug: string }) => {
+            sitemapEntries.push({
+              url:
+                lang === "ro"
+                  ? `${baseUrl}/categories/${category.slug}`
+                  : `${baseUrl}/${lang}/categories/${category.slug}`,
+              lastModified: new Date(),
+              changeFrequency: "monthly",
+              priority: 0.7,
+            });
           });
-        });
+        }
       });
     }
   } catch (error) {
@@ -158,8 +171,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "mathematics",
   ];
 
-  languages.forEach((lang) => {
-    stemCategories.forEach((category) => {
+  languages.forEach(lang => {
+    stemCategories.forEach(category => {
       sitemapEntries.push({
         url:
           lang === "ro"

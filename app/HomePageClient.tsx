@@ -2,12 +2,13 @@
 
 import React from "react";
 
-
 // Import home page components
-import { CategoriesSection } from "@/features/home/components/CategoriesSection";
-import { FeaturedProductsSection } from "@/features/home/components/FeaturedProductsSection";
-import { HeroSection } from "@/features/home/components/HeroSection";
-import ValuePropositionSection from "@/features/home/components/ValuePropositionSection";
+import {
+  CategoriesSection,
+  FeaturedProductsSection,
+  HeroSection,
+  ValuePropositionSection,
+} from "@/features/home/components";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import type { Product } from "@/types/product";
