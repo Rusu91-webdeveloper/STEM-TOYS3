@@ -34,11 +34,12 @@ export default async function ProductsPage({
   // Use await for searchParams to avoid the Next.js error
   const params = await searchParams;
 
+  // eslint-disable-next-line no-console
   console.log("🔍 ProductsPage - Environment Check:", {
     NODE_ENV: process.env.NODE_ENV,
-    API_URL: process.env.NEXT_PUBLIC_API_URL || "Not set",
-    SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || "Not set",
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || "Not set",
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || "Not set",
+    VERCEL_URL: process.env.VERCEL_URL || "Not set",
     DATABASE_URL_START:
       `${process.env.DATABASE_URL?.substring(0, 50)}...` || "Not set",
   });
@@ -47,11 +48,14 @@ export default async function ProductsPage({
     typeof params.category === "string" ? params.category : undefined;
 
   try {
+    // eslint-disable-next-line no-console
     console.log("🚀 Fetching products from API...");
+    // eslint-disable-next-line no-console
     console.log("📂 Requested category:", requestedCategory || "ALL");
 
     let booksData: Book[] = [];
     let productsData: Product[] = [];
+    const fetchErrors: { books?: string; products?: string } = {};
 
     // 🚀 PERFORMANCE & LOGIC FIX: Conditionally fetch books and products
     if (!requestedCategory) {
@@ -68,6 +72,8 @@ export default async function ProductsPage({
         console.log(`✅ Books fetch successful: ${booksData.length} items`);
       } else {
         console.error("❌ Books fetch failed:", booksResult.reason);
+        fetchErrors.books =
+          booksResult.reason?.message || "Unknown error fetching books";
         booksData = [];
       }
 
@@ -78,6 +84,8 @@ export default async function ProductsPage({
         );
       } else {
         console.error("❌ Products fetch failed:", productsResult.reason);
+        fetchErrors.products =
+          productsResult.reason?.message || "Unknown error fetching products";
         productsData = [];
       }
     } else if (requestedCategory === "educational-books") {
@@ -88,6 +96,10 @@ export default async function ProductsPage({
         console.log(`✅ Books fetch successful: ${booksData.length} items`);
       } catch (error) {
         console.error("❌ Books fetch failed:", error);
+        fetchErrors.books =
+          error instanceof Error
+            ? error.message
+            : "Unknown error fetching books";
         booksData = [];
       }
     } else {
@@ -102,6 +114,10 @@ export default async function ProductsPage({
         );
       } catch (error) {
         console.error("❌ Products fetch failed:", error);
+        fetchErrors.products =
+          error instanceof Error
+            ? error.message
+            : "Unknown error fetching products";
         productsData = [];
       }
     }
@@ -110,6 +126,7 @@ export default async function ProductsPage({
       books: booksData.length,
       products: productsData.length,
       category: requestedCategory || "ALL",
+      errors: fetchErrors,
     });
 
     // Transform books to look like products
@@ -198,7 +215,47 @@ export default async function ProductsPage({
         productsDataLength: productsData.length,
         requestedCategory,
         params,
+        fetchErrors,
       });
+
+      // Show a more informative message if no products were found
+      if (Object.keys(fetchErrors).length > 0) {
+        return (
+          <div className="container mx-auto py-12">
+            <h1 className="text-2xl font-bold mb-4">Unable to Load Products</h1>
+            <p className="mb-4">
+              We&apos;re having trouble loading products at the moment. Please
+              try again later.
+            </p>
+            {process.env.NODE_ENV === "development" && (
+              <div className="bg-gray-100 p-4 mt-4 rounded">
+                <h3 className="font-bold mb-2">Debug Information:</h3>
+                <p>
+                  <strong>Environment:</strong> {process.env.NODE_ENV}
+                </p>
+                <p>
+                  <strong>NEXTAUTH_URL:</strong>{" "}
+                  {process.env.NEXTAUTH_URL || "Not set"}
+                </p>
+                <p>
+                  <strong>NEXT_PUBLIC_SITE_URL:</strong>{" "}
+                  {process.env.NEXT_PUBLIC_SITE_URL || "Not set"}
+                </p>
+                {fetchErrors.books && (
+                  <p>
+                    <strong>Books Error:</strong> {fetchErrors.books}
+                  </p>
+                )}
+                {fetchErrors.products && (
+                  <p>
+                    <strong>Products Error:</strong> {fetchErrors.products}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      }
     }
 
     return (
@@ -217,22 +274,32 @@ export default async function ProductsPage({
       <div className="container mx-auto py-12">
         <h1 className="text-2xl font-bold mb-4">Error Loading Products</h1>
         <p>There was an error loading the products. Please try again later.</p>
-        <div className="bg-gray-100 p-4 mt-4 rounded">
-          <h3 className="font-bold mb-2">Debug Information:</h3>
-          <p>
-            <strong>Error:</strong>{" "}
-            {error instanceof Error ? error.message : "Unknown error"}
-          </p>
-          <p>
-            <strong>Category:</strong> {requestedCategory || "All products"}
-          </p>
-          <p>
-            <strong>Environment:</strong> {process.env.NODE_ENV}
-          </p>
-        </div>
-        <pre className="bg-gray-100 p-4 mt-4 rounded overflow-auto max-h-96 text-xs">
-          {JSON.stringify(error, null, 2)}
-        </pre>
+        {process.env.NODE_ENV === "development" && (
+          <div className="bg-gray-100 p-4 mt-4 rounded">
+            <h3 className="font-bold mb-2">Debug Information:</h3>
+            <p>
+              <strong>Error:</strong>{" "}
+              {error instanceof Error ? error.message : "Unknown error"}
+            </p>
+            <p>
+              <strong>Category:</strong> {requestedCategory || "All products"}
+            </p>
+            <p>
+              <strong>Environment:</strong> {process.env.NODE_ENV}
+            </p>
+            <p>
+              <strong>NEXTAUTH_URL:</strong>{" "}
+              {process.env.NEXTAUTH_URL || "Not set"}
+            </p>
+            <p>
+              <strong>NEXT_PUBLIC_SITE_URL:</strong>{" "}
+              {process.env.NEXT_PUBLIC_SITE_URL || "Not set"}
+            </p>
+            <pre className="bg-gray-100 p-4 mt-4 rounded overflow-auto max-h-96 text-xs">
+              {JSON.stringify(error, null, 2)}
+            </pre>
+          </div>
+        )}
       </div>
     );
   }

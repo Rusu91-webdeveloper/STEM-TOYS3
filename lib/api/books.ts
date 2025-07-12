@@ -1,9 +1,6 @@
 import type { Book } from "@/types/book";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.NEXTAUTH_URL ||
-  "http://localhost:3000";
+import { buildApiUrl } from "../utils/api-url";
 
 /**
  * Get all books
@@ -26,35 +23,12 @@ export async function getBooks(
 
     const queryString = params.toString() ? `?${params.toString()}` : "";
 
-    // In server components, we need to ensure absolute URLs
-    let url: string;
+    // Use the utility function to build the URL
+    const url = buildApiUrl(`/api/books${queryString}`);
 
-    if (typeof window !== "undefined") {
-      // Browser environment
-      url = `${window.location.origin}/api/books${queryString}`;
-    } else {
-      // Server environment - use environment variable or default to localhost
-      const apiBase =
-        process.env.NEXT_PUBLIC_API_URL ||
-        process.env.NEXT_PUBLIC_SITE_URL ||
-        process.env.NEXTAUTH_URL ||
-        "http://localhost:3000";
-
-      // Make sure we have a complete URL with protocol
-      const baseUrl = apiBase.startsWith("http")
-        ? apiBase
-        : `http://${apiBase}`;
-
-      // Remove trailing slash if present
-      const cleanBaseUrl = baseUrl.endsWith("/")
-        ? baseUrl.slice(0, -1)
-        : baseUrl;
-
-      console.log(`Using API base URL: ${cleanBaseUrl}`);
-      url = `${cleanBaseUrl}/api/books${queryString}`;
-    }
-
-    console.log(`Fetching books with URL: ${url}`);
+    console.log(`[getBooks] Fetching books with URL: ${url}`);
+    console.log(`[getBooks] Environment: ${process.env.NODE_ENV}`);
+    console.log(`[getBooks] Query: ${queryString}`);
 
     const response = await fetch(url, {
       next: {
@@ -65,12 +39,31 @@ export async function getBooks(
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        `[getBooks] API error (${response.status}): ${response.statusText}`,
+        errorText
+      );
       throw new Error(`Failed to fetch books: ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log("[getBooks] API response type:", typeof data);
+
+    // Ensure we return an array
+    if (Array.isArray(data)) {
+      console.log(`[getBooks] Retrieved ${data.length} books from API`);
+      return data;
+    }
+
+    console.error("[getBooks] Unexpected API response format:", data);
+    return [];
   } catch (error) {
-    console.error("Error fetching books:", error);
+    console.error("[getBooks] Error fetching books:", error);
+    console.error("[getBooks] Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return [];
   }
 }
@@ -83,35 +76,10 @@ export async function getBook(slug: string): Promise<Book | null> {
     // Encode the slug to handle special characters
     const encodedSlug = encodeURIComponent(slug);
 
-    // In server components, we need to ensure absolute URLs
-    let url: string;
+    // Use the utility function to build the URL
+    const url = buildApiUrl(`/api/books?slug=${encodedSlug}`);
 
-    if (typeof window !== "undefined") {
-      // Browser environment
-      url = `${window.location.origin}/api/books?slug=${encodedSlug}`;
-    } else {
-      // Server environment - use environment variable or default to localhost
-      const apiBase =
-        process.env.NEXT_PUBLIC_API_URL ||
-        process.env.NEXT_PUBLIC_SITE_URL ||
-        process.env.NEXTAUTH_URL ||
-        "http://localhost:3000";
-
-      // Make sure we have a complete URL with protocol
-      const baseUrl = apiBase.startsWith("http")
-        ? apiBase
-        : `http://${apiBase}`;
-
-      // Remove trailing slash if present
-      const cleanBaseUrl = baseUrl.endsWith("/")
-        ? baseUrl.slice(0, -1)
-        : baseUrl;
-
-      console.log(`Using API base URL: ${cleanBaseUrl}`);
-      url = `${cleanBaseUrl}/api/books?slug=${encodedSlug}`;
-    }
-
-    console.log(`Fetching book with URL: ${url}`);
+    console.log(`[getBook] Fetching book with URL: ${url}`);
 
     const response = await fetch(url, {
       next: {
@@ -131,7 +99,7 @@ export async function getBook(slug: string): Promise<Book | null> {
     const books = await response.json();
     return books.length > 0 ? books[0] : null;
   } catch (error) {
-    console.error("Error fetching book:", error);
+    console.error("[getBook] Error fetching book:", error);
     return null;
   }
 }
