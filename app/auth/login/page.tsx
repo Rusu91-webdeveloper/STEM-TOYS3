@@ -196,11 +196,10 @@ function LoginForm() {
 
         const redirectTimer = setTimeout(validateAndRedirect, 500);
         return () => clearTimeout(redirectTimer);
-      } 
-        // User has valid session but no callback URL - they might want to access account
-        // Show a message suggesting they might want to go to their account
-        console.warn("User is already authenticated - no redirect needed");
-      
+      }
+      // User has valid session but no callback URL - they might want to access account
+      // Show a message suggesting they might want to go to their account
+      console.warn("User is already authenticated - no redirect needed");
     }
   }, [session, status, searchParams]);
 
@@ -381,12 +380,17 @@ function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">{t("password")}</Label>
-              <Link
-                href="/auth/forgot-password"
-                className="text-sm text-primary hover:underline"
-              >
-                {t("forgotPassword")}
-              </Link>
+              <div className="flex flex-col items-end">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm text-primary hover:underline"
+                >
+                  {t("forgotPassword")}
+                </Link>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t("oauthUserHint")}
+                </p>
+              </div>
             </div>
             <Input
               id="password"

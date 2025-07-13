@@ -265,6 +265,46 @@ export const en = {
   termsMustAgree: "You must agree to the terms and conditions",
   passwordsNoMatch: "Passwords do not match",
 
+  // OAuth User Messages
+  googleAccountDetected: "Google Account Detected",
+  oauthUserPasswordReset:
+    "This account uses Google sign-in. Please use the 'Sign in with Google' button instead of resetting your password.",
+  oauthUserExplanation:
+    "Since you signed up with Google, you don't need a password. Simply use the Google sign-in button to access your account.",
+  oauthUserHint: "Signed up with Google? Use the Google button below",
+  goToYourAccount: "Go to Your Account",
+  backToLogin: "Back to Login",
+  alreadySignedInOauth:
+    "You're already signed in with Google. You don't need to reset your password.",
+  oauthAccountExplanation:
+    "Google accounts don't use passwords for our platform. Simply use the Google sign-in button to access your account.",
+  signInNow: "Sign In Now",
+  invalidResetToken: "Invalid Reset Token",
+  tokenExpiredMessage: "This password reset link is invalid or has expired.",
+  requestNewResetLink: "Request New Reset Link",
+  verifyingResetToken: "Verifying reset token...",
+  passwordResetEmailSent: "Password Reset Email Sent",
+  passwordResetInstructions:
+    "If an account exists with this email, we've sent password reset instructions. Please check your inbox and spam folder.",
+  sendingResetInstructions: "Sending reset instructions...",
+  enterNewPasswordBelow: "Enter your new password below",
+  enterYourNewPassword: "Enter your new password",
+  confirmYourNewPassword: "Confirm your new password",
+  resettingPassword: "Resetting Password...",
+  passwordResetSuccessful: "Password Reset Successful",
+  passwordResetSuccessMessage:
+    "Your password has been successfully reset. You can now sign in with your new password.",
+
+  // Additional forgot password messages
+  enterEmailToReset: "Enter your email to reset your password",
+  failedToSendResetEmail: "Failed to send reset email",
+  anErrorOccurred: "An error occurred",
+
+  // Additional reset password messages
+  invalidOrMissingResetToken: "Invalid or missing reset token",
+  unableToVerifyToken: "Unable to verify reset token. Please try again",
+  failedToResetPassword: "Failed to reset password",
+
   // Order history
   all: "All",
   processing: "Processing",

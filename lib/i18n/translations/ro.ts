@@ -276,6 +276,49 @@ export const ro = {
   termsMustAgree: "Trebuie să fii de acord cu termenii și condițiile",
   passwordsNoMatch: "Parolele nu se potrivesc",
 
+  // OAuth User Messages
+  googleAccountDetected: "Cont Google Detectat",
+  oauthUserPasswordReset:
+    "Acest cont folosește autentificarea Google. Te rugăm să folosești butonul 'Conectează-te cu Google' în loc să îți resetezi parola.",
+  oauthUserExplanation:
+    "Întrucât te-ai înregistrat cu Google, nu ai nevoie de o parolă. Folosește pur și simplu butonul de conectare Google pentru a-ți accesa contul.",
+  oauthUserHint:
+    "Te-ai înregistrat cu Google? Folosește butonul Google de mai jos",
+  goToYourAccount: "Mergi la Contul Tău",
+  backToLogin: "Înapoi la Autentificare",
+  alreadySignedInOauth:
+    "Ești deja conectat cu Google. Nu trebuie să îți resetezi parola.",
+  oauthAccountExplanation:
+    "Conturile Google nu folosesc parole pentru platforma noastră. Folosește pur și simplu butonul de conectare Google pentru a-ți accesa contul.",
+  signInNow: "Conectează-te Acum",
+  invalidResetToken: "Token de Resetare Invalid",
+  tokenExpiredMessage:
+    "Acest link de resetare parolă este invalid sau a expirat.",
+  requestNewResetLink: "Solicită Link Nou de Resetare",
+  verifyingResetToken: "Se verifică token-ul de resetare...",
+  passwordResetEmailSent: "Email de Resetare Parolă Trimis",
+  passwordResetInstructions:
+    "Dacă există un cont cu acest email, am trimis instrucțiuni de resetare parolă. Te rugăm să verifici căsuța de email și folderul spam.",
+  sendingResetInstructions: "Se trimit instrucțiunile de resetare...",
+  enterNewPasswordBelow: "Introdu noua ta parolă mai jos",
+  enterYourNewPassword: "Introdu noua ta parolă",
+  confirmYourNewPassword: "Confirmă noua ta parolă",
+  resettingPassword: "Se resetează parola...",
+  passwordResetSuccessful: "Resetarea Parolei a Reușit",
+  passwordResetSuccessMessage:
+    "Parola ta a fost resetată cu succes. Acum te poți conecta cu noua parolă.",
+
+  // Additional forgot password messages
+  enterEmailToReset: "Introdu emailul tău pentru a-ți reseta parola",
+  failedToSendResetEmail: "Nu s-a putut trimite emailul de resetare",
+  anErrorOccurred: "A apărut o eroare",
+
+  // Additional reset password messages
+  invalidOrMissingResetToken: "Token de resetare invalid sau lipsă",
+  unableToVerifyToken:
+    "Nu s-a putut verifica token-ul de resetare. Te rugăm să încerci din nou",
+  failedToResetPassword: "Nu s-a putut reseta parola",
+
   // Order history
   all: "Toate",
   shipped: "Expediat",
@@ -356,7 +399,7 @@ export const ro = {
   exploreCategories: "Explorează Categoriile",
   stemCategories: "Explorează Categoriile STEM",
   stemCategoriesDesc:
-    "Descoperă gama noastră de jucării educaționale categorizate pe discipline STEM pentru a ajuta copilul tău să-și dezvolte abilități esențiale în timp ce se distrează.",
+    "Descoperă gama noastră de jucării educaționale categorizate pe discipline STEM pentru a ajuta copilul tău să-și dezvolde abilități esențiale în timp ce se distrează.",
   featuredProducts: "Produse Recomandate",
   featuredProductsDesc:
     "Produse atent selectate care s-au dovedit a fi preferate de părinți și educatori pentru valoarea lor educațională excepțională.",
@@ -369,11 +412,11 @@ export const ro = {
   scienceCategoryDesc:
     "Descoperă minunile lumii naturale prin experimente practice și explorare. Jucăriile noastre științifice promovează curiozitatea, abilitățile de observare și o înțelegere mai profundă a modului în care funcționează lucrurile.",
   technologyCategoryDesc:
-    "Explorează programarea, robotica și inovația digitală cu jucăriile noastre tehnologice. Aceste produse ajută copiii să dezvolte gândirea computațională și să se pregătească pentru un viitor digital.",
+    "Explorează programarea, robotica și inovația digitală cu jucăriile noastre tehnologice. Aceste produse ajută copiii să dezvolde gândirea computațională și să se pregătească pentru un viitor digital.",
   engineeringCategoryDesc:
     "Construiește, proiectează și rezolvă probleme cu jucăriile și kiturile noastre de inginerie. Aceste produse încurajează gândirea critică, raționamentul spațial și procesul de proiectare inginerească.",
   mathCategoryDesc:
-    "Fă matematica distractivă și atractivă cu jucăriile și jocurile noastre matematice. Aceste produse dezvoltă abilități matematice fundamentale prin joc și ajută copiii să dezvolte gândirea logică.",
+    "Fă matematica distractivă și atractivă cu jucăriile și jocurile noastre matematice. Aceste produse dezvoltă abilități matematice fundamentale prin joc și ajută copiii să dezvolde gândirea logică.",
 
   // Footer specific translations
   shop: "Magazin",
@@ -699,7 +742,7 @@ export const ro = {
   // Engineering Learning
   engineeringLearningTitle: "Concepte de Inginerie și Învățare",
   engineeringLearningDescription:
-    "Aceste jucării ajută copiii să dezvolte abilități de inginerie prin proiecte și experimente practice și captivante.",
+    "Aceste jucării ajută copiii să dezvolde abilități de inginerie prin proiecte și experimente practice și captivante.",
 
   // Mathematics Learning
   mathematicsLearning: "Învățare prin Matematică",
