@@ -53,8 +53,14 @@ export default function AuthDebugPage() {
         throw new Error(data.error || "Failed to fetch debug info");
       }
 
+      // Ensure recommendations array exists
+      if (!data.recommendations) {
+        data.recommendations = [];
+      }
+
       setDebugInfo(data);
     } catch (err) {
+      console.error("Debug fetch error:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
@@ -103,7 +109,17 @@ export default function AuthDebugPage() {
           </CardHeader>
           <CardContent>
             <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={fetchDebugInfo}>Retry</Button>
+            <div className="space-y-2">
+              <Button onClick={fetchDebugInfo}>Retry</Button>
+              <details className="mt-4">
+                <summary className="cursor-pointer text-sm text-gray-600">
+                  Show Technical Details
+                </summary>
+                <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
+                  Error: {error}
+                </pre>
+              </details>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -113,10 +129,24 @@ export default function AuthDebugPage() {
   if (!debugInfo) {
     return (
       <div className="container mx-auto py-10">
-        <p>No debug information available.</p>
+        <Card className="max-w-2xl mx-auto">
+          <CardContent>
+            <p>No debug information available.</p>
+            <Button onClick={fetchDebugInfo} className="mt-4">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
+
+  // Safely access properties with fallbacks
+  const recommendations = debugInfo.recommendations || [];
+  const environmentVariables = debugInfo.environmentVariables || {};
+  const environment = debugInfo.environment || {};
+  const googleOAuthUrls = debugInfo.googleOAuthUrls || {};
+  const database = debugInfo.database;
 
   return (
     <div className="container mx-auto py-10 space-y-6">
@@ -128,19 +158,22 @@ export default function AuthDebugPage() {
           Diagnose authentication configuration issues
         </p>
         <p className="text-sm text-gray-500">
-          Generated: {new Date(debugInfo.timestamp).toLocaleString()}
+          Generated:{" "}
+          {debugInfo.timestamp
+            ? new Date(debugInfo.timestamp).toLocaleString()
+            : "Unknown"}
         </p>
       </div>
 
       {/* Critical Recommendations */}
-      {debugInfo.recommendations.length > 0 && (
+      {recommendations.length > 0 && (
         <Card className="max-w-4xl mx-auto">
           <CardHeader>
             <CardTitle>🚨 Recommendations & Issues</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {debugInfo.recommendations.map((rec, index) => (
+              {recommendations.map((rec, index) => (
                 <div
                   key={index}
                   className={`p-3 rounded-lg border ${getRecommendationColor(rec)}`}
@@ -164,22 +197,18 @@ export default function AuthDebugPage() {
               <h3 className="font-semibold">NextAuth Configuration</h3>
               <div className="space-y-1">
                 <div className="flex items-center">
-                  {getStatusIcon(
-                    debugInfo.environmentVariables.hasNEXTAUTH_URL
-                  )}
+                  {getStatusIcon(environmentVariables.hasNEXTAUTH_URL)}
                   <span>
                     NEXTAUTH_URL:{" "}
-                    {debugInfo.environmentVariables.NEXTAUTH_URL || "NOT SET"}
+                    {environmentVariables.NEXTAUTH_URL || "NOT SET"}
                   </span>
                 </div>
                 <div className="flex items-center">
-                  {getStatusIcon(
-                    debugInfo.environmentVariables.hasNEXTAUTH_SECRET
-                  )}
+                  {getStatusIcon(environmentVariables.hasNEXTAUTH_SECRET)}
                   <span>
                     NEXTAUTH_SECRET:{" "}
-                    {debugInfo.environmentVariables.hasNEXTAUTH_SECRET
-                      ? `Present (${debugInfo.environmentVariables.NEXTAUTH_SECRET_LENGTH} chars)`
+                    {environmentVariables.hasNEXTAUTH_SECRET
+                      ? `Present (${environmentVariables.NEXTAUTH_SECRET_LENGTH || 0} chars)`
                       : "NOT SET"}
                   </span>
                 </div>
@@ -190,23 +219,19 @@ export default function AuthDebugPage() {
               <h3 className="font-semibold">Google OAuth</h3>
               <div className="space-y-1">
                 <div className="flex items-center">
-                  {getStatusIcon(
-                    debugInfo.environmentVariables.hasGOOGLE_CLIENT_ID
-                  )}
+                  {getStatusIcon(environmentVariables.hasGOOGLE_CLIENT_ID)}
                   <span>
                     GOOGLE_CLIENT_ID:{" "}
-                    {debugInfo.environmentVariables.hasGOOGLE_CLIENT_ID
+                    {environmentVariables.hasGOOGLE_CLIENT_ID
                       ? "Present"
                       : "NOT SET"}
                   </span>
                 </div>
                 <div className="flex items-center">
-                  {getStatusIcon(
-                    debugInfo.environmentVariables.hasGOOGLE_CLIENT_SECRET
-                  )}
+                  {getStatusIcon(environmentVariables.hasGOOGLE_CLIENT_SECRET)}
                   <span>
                     GOOGLE_CLIENT_SECRET:{" "}
-                    {debugInfo.environmentVariables.hasGOOGLE_CLIENT_SECRET
+                    {environmentVariables.hasGOOGLE_CLIENT_SECRET
                       ? "Present"
                       : "NOT SET"}
                   </span>
@@ -218,22 +243,20 @@ export default function AuthDebugPage() {
           <div className="mt-4 space-y-2">
             <h3 className="font-semibold">Database</h3>
             <div className="flex items-center">
-              {getStatusIcon(debugInfo.environmentVariables.hasDATABASE_URL)}
+              {getStatusIcon(environmentVariables.hasDATABASE_URL)}
               <span>
                 DATABASE_URL:{" "}
-                {debugInfo.environmentVariables.hasDATABASE_URL
-                  ? debugInfo.environmentVariables.DATABASE_URL_START
+                {environmentVariables.hasDATABASE_URL
+                  ? environmentVariables.DATABASE_URL_START || "Present"
                   : "NOT SET"}
               </span>
             </div>
-            {debugInfo.database && (
+            {database && (
               <div className="flex items-center">
-                {getStatusIcon(debugInfo.database.status === "connected")}
-                <span>Database Connection: {debugInfo.database.status}</span>
-                {debugInfo.database.error && (
-                  <span className="text-red-600 ml-2">
-                    ({debugInfo.database.error})
-                  </span>
+                {getStatusIcon(database.status === "connected")}
+                <span>Database Connection: {database.status}</span>
+                {database.error && (
+                  <span className="text-red-600 ml-2">({database.error})</span>
                 )}
               </div>
             )}
@@ -250,16 +273,16 @@ export default function AuthDebugPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p>
-                <strong>Environment:</strong> {debugInfo.environment.NODE_ENV}
+                <strong>Environment:</strong>{" "}
+                {environment.NODE_ENV || "Unknown"}
               </p>
               <p>
                 <strong>Platform:</strong>{" "}
-                {debugInfo.environment.isVercel ? "Vercel" : "Other"}
+                {environment.isVercel ? "Vercel" : "Other"}
               </p>
-              {debugInfo.environment.VERCEL_URL && (
+              {environment.VERCEL_URL && (
                 <p>
-                  <strong>Vercel URL:</strong>{" "}
-                  {debugInfo.environment.VERCEL_URL}
+                  <strong>Vercel URL:</strong> {environment.VERCEL_URL}
                 </p>
               )}
             </div>
@@ -268,34 +291,40 @@ export default function AuthDebugPage() {
       </Card>
 
       {/* Google OAuth URLs */}
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle>Google OAuth Configuration</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-semibold mb-2">Required Redirect URI</h3>
-              <p className="text-sm text-gray-600 mb-1">
-                Add this URL to your Google Cloud Console OAuth configuration:
-              </p>
-              <code className="block p-2 bg-gray-100 rounded text-sm break-all">
-                {debugInfo.googleOAuthUrls.expectedRedirectUri}
-              </code>
-            </div>
+      {googleOAuthUrls.expectedRedirectUri && (
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle>Google OAuth Configuration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold mb-2">Required Redirect URI</h3>
+                <p className="text-sm text-gray-600 mb-1">
+                  Add this URL to your Google Cloud Console OAuth configuration:
+                </p>
+                <code className="block p-2 bg-gray-100 rounded text-sm break-all">
+                  {googleOAuthUrls.expectedRedirectUri}
+                </code>
+              </div>
 
-            <div>
-              <h3 className="font-semibold mb-2">Test Authentication URL</h3>
-              <p className="text-sm text-gray-600 mb-1">
-                Use this URL to test authentication:
-              </p>
-              <code className="block p-2 bg-gray-100 rounded text-sm break-all">
-                {debugInfo.googleOAuthUrls.testAuthUrl}
-              </code>
+              {googleOAuthUrls.testAuthUrl && (
+                <div>
+                  <h3 className="font-semibold mb-2">
+                    Test Authentication URL
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-1">
+                    Use this URL to test authentication:
+                  </p>
+                  <code className="block p-2 bg-gray-100 rounded text-sm break-all">
+                    {googleOAuthUrls.testAuthUrl}
+                  </code>
+                </div>
+              )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Actions */}
       <Card className="max-w-4xl mx-auto">
