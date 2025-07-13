@@ -1,6 +1,5 @@
 export type CheckoutStep =
   | "loading"
-  | "guest-info"
   | "shipping-address"
   | "shipping-method"
   | "payment"
@@ -47,6 +46,6 @@ export interface CheckoutData {
   paymentDetails?: PaymentDetails;
   billingAddressSameAsShipping?: boolean;
   billingAddress?: ShippingAddress;
-  guestInformation?: GuestInformation;
-  isGuestCheckout?: boolean;
+  // Guest checkout removed - authentication is required
+  isGuestCheckout?: boolean; // Kept for backwards compatibility, but always false
 }

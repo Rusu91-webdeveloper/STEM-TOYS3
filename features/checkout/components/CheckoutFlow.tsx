@@ -1,22 +1,22 @@
 "use client";
 
+import { Shield, Award, ShieldCheck, Loader2 } from "lucide-react";
+import { useRouter, useRouter as useNextRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
+
+import { useCart } from "@/features/cart";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
+import { useTranslation } from "@/lib/i18n";
+
+import { createOrder } from "../lib/checkoutApi";
 import { CheckoutStep, CheckoutData } from "../types";
-import { ShippingAddressForm } from "./ShippingAddressForm";
-import { ShippingMethodSelector } from "./ShippingMethodSelector";
-import { PaymentForm } from "./PaymentForm";
-import { OrderReview } from "./OrderReview";
+
 import { CheckoutSummary } from "./CheckoutSummary";
 import { EnhancedCheckoutStepper } from "./EnhancedCheckoutStepper";
-import { createOrder } from "../lib/checkoutApi";
-import { useRouter } from "next/navigation";
-import { useCart } from "@/features/cart";
-import { useTranslation } from "@/lib/i18n";
-import { Shield, Award, ShieldCheck } from "lucide-react";
-import { useOptimizedSession } from "@/lib/auth/SessionContext";
-import { useRouter as useNextRouter } from "next/navigation";
-import { GuestInformationForm } from "./GuestInformationForm";
-import { Loader2 } from "lucide-react";
+import { OrderReview } from "./OrderReview";
+import { PaymentForm } from "./PaymentForm";
+import { ShippingAddressForm } from "./ShippingAddressForm";
+import { ShippingMethodSelector } from "./ShippingMethodSelector";
 
 export function CheckoutFlow() {
   const router = useRouter();
@@ -31,10 +31,10 @@ export function CheckoutFlow() {
 
     const syncCartData = async () => {
       try {
-        console.log("🔄 [CHECKOUT] Force syncing cart data on mount...");
+        console.warn("🔄 [CHECKOUT] Force syncing cart data on mount...");
         await forceSyncWithServer();
         if (isMounted) {
-          console.log("✅ [CHECKOUT] Cart data synced successfully");
+          console.warn("✅ [CHECKOUT] Cart data synced successfully");
         }
       } catch (error) {
         console.error("❌ [CHECKOUT] Failed to sync cart data:", error);
@@ -49,26 +49,22 @@ export function CheckoutFlow() {
     return () => {
       isMounted = false;
     };
-  }, [status]); // Removed forceSyncWithServer from dependencies to prevent infinite loop
-
-  // Determine initial step based on authentication status
-  const getInitialStep = (): CheckoutStep => {
-    if (status === "loading") {
-      return "loading"; // Special case for loading state
-    }
-    return session?.user ? "shipping-address" : "guest-info";
-  };
+  }, [status, forceSyncWithServer]);
 
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("loading");
   const [checkoutData, setCheckoutData] = useState<CheckoutData>({
     billingAddressSameAsShipping: true,
-    isGuestCheckout: !session?.user,
+    isGuestCheckout: false, // Authentication is required, so never guest checkout
   });
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
 
   // **COUPON STATE MANAGEMENT**
-  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    type: string;
+    value: number;
+  } | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
 
   // **CART SYNCHRONIZATION** - Removed automatic sync to prevent infinite loops
@@ -79,45 +75,44 @@ export function CheckoutFlow() {
   };
 
   // **COUPON HANDLERS**
-  const handleCouponApplied = (coupon: any, discountAmount: number) => {
+  const handleCouponApplied = (
+    coupon: { code: string; type: string; value: number },
+    discountAmount: number
+  ) => {
     setAppliedCoupon(coupon);
     setDiscountAmount(discountAmount);
-    console.log("Coupon applied in checkout:", coupon.code, discountAmount);
+    console.warn("Coupon applied in checkout:", coupon.code, discountAmount);
   };
 
   const handleCouponRemoved = () => {
     setAppliedCoupon(null);
     setDiscountAmount(0);
-    console.log("Coupon removed from checkout");
+    console.warn("Coupon removed from checkout");
   };
 
   const goToNextStep = () => {
-    if (currentStep === "guest-info") setCurrentStep("shipping-address");
-    else if (currentStep === "shipping-address")
-      setCurrentStep("shipping-method");
+    if (currentStep === "shipping-address") setCurrentStep("shipping-method");
     else if (currentStep === "shipping-method") setCurrentStep("payment");
     else if (currentStep === "payment") setCurrentStep("review");
   };
 
   const goToPreviousStep = () => {
-    if (currentStep === "shipping-address") {
-      setCurrentStep(session?.user ? "shipping-address" : "guest-info");
-    } else if (currentStep === "shipping-method") {
+    if (currentStep === "shipping-method") {
       setCurrentStep("shipping-address");
     } else if (currentStep === "payment") {
       setCurrentStep("shipping-method");
     } else if (currentStep === "review") {
       setCurrentStep("payment");
     }
+    // Note: shipping-address is now the first step since authentication is required
   };
 
   const goToStep = (step: CheckoutStep) => {
     // Only allow navigating to steps that come before the current step
     // or the next step if the current step is complete
+    // Authentication is required, so start from shipping-address
     if (
-      (step === "guest-info" && !session?.user) ||
-      (step === "shipping-address" &&
-        (session?.user || checkoutData.guestInformation?.email)) ||
+      (step === "shipping-address" && session?.user) ||
       (step === "shipping-method" && checkoutData.shippingAddress) ||
       (step === "payment" &&
         checkoutData.shippingAddress &&
@@ -131,16 +126,19 @@ export function CheckoutFlow() {
     }
   };
 
-  // Update step based on session status
+  // Update step based on session status - REQUIRE AUTHENTICATION FOR CHECKOUT
   useEffect(() => {
     if (status === "authenticated") {
       setCurrentStep("shipping-address");
       updateCheckoutData({ isGuestCheckout: false });
     } else if (status === "unauthenticated") {
-      setCurrentStep("guest-info");
-      updateCheckoutData({ isGuestCheckout: true });
+      // Redirect unauthenticated users to login with checkout callback
+      console.warn(
+        "🚫 [CHECKOUT] User not authenticated, redirecting to login"
+      );
+      nextRouter.push("/auth/login?callbackUrl=/checkout");
     }
-  }, [status]);
+  }, [status, nextRouter]);
 
   const handlePlaceOrder = async () => {
     setIsProcessingOrder(true);
@@ -156,7 +154,7 @@ export function CheckoutFlow() {
         const taxSettings = await fetch("/api/checkout/tax-settings");
         if (taxSettings.ok) {
           const taxData = await taxSettings.json();
-          if (taxData.taxSettings && taxData.taxSettings.active) {
+          if (taxData.taxSettings?.active) {
             taxRate = parseFloat(taxData.taxSettings.rate) / 100;
           }
         }
@@ -166,14 +164,14 @@ export function CheckoutFlow() {
       }
 
       // Get initial shipping cost
-      let shippingCost = checkoutData.shippingMethod?.price || 0;
+      let shippingCost = checkoutData.shippingMethod?.price ?? 0;
 
       // Check for free shipping threshold
       try {
         const shippingSettings = await fetch("/api/checkout/shipping-settings");
         if (shippingSettings.ok) {
           const shippingData = await shippingSettings.json();
-          if (shippingData.freeThreshold && shippingData.freeThreshold.active) {
+          if (shippingData.freeThreshold?.active) {
             const freeShippingThreshold = parseFloat(
               shippingData.freeThreshold.price
             );
@@ -204,8 +202,8 @@ export function CheckoutFlow() {
         shippingCost,
         total,
         // **COUPON FIELDS**
-        couponCode: appliedCoupon?.code || null,
-        discountAmount: discountAmount || 0,
+        couponCode: appliedCoupon?.code ?? null,
+        discountAmount: discountAmount ?? 0,
         items: cartItems.map(item => ({
           productId: item.productId,
           name: item.name,
@@ -216,7 +214,7 @@ export function CheckoutFlow() {
         })),
       };
 
-      console.log("Creating order with coupon data:", {
+      console.warn("Creating order with coupon data:", {
         couponCode: orderData.couponCode,
         discountAmount: orderData.discountAmount,
         subtotal: orderData.subtotal,
@@ -239,7 +237,7 @@ export function CheckoutFlow() {
       router.push(`/checkout/confirmation?orderId=${result.orderId}`);
     } catch (error) {
       setOrderError(
-        (error as Error).message ||
+        (error as Error).message ??
           t(
             "orderProcessingError",
             "An error occurred while placing your order"
@@ -262,22 +260,6 @@ export function CheckoutFlow() {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-12 w-12 animate-spin text-indigo-600" />
           </div>
-        )}
-
-        {currentStep === "guest-info" && (
-          <GuestInformationForm
-            initialData={checkoutData.guestInformation}
-            onSubmit={guestInfo => {
-              updateCheckoutData({
-                guestInformation: guestInfo,
-                isGuestCheckout: true,
-              });
-              goToNextStep();
-            }}
-            onLoginRedirect={() => {
-              nextRouter.push("/auth/login?callbackUrl=/checkout");
-            }}
-          />
         )}
 
         {currentStep === "shipping-address" && (
@@ -354,7 +336,7 @@ export function CheckoutFlow() {
 
       <div className="md:col-span-1">
         <CheckoutSummary
-          shippingCost={checkoutData.shippingMethod?.price || 0}
+          shippingCost={checkoutData.shippingMethod?.price ?? 0}
           appliedCoupon={appliedCoupon}
           onCouponApplied={handleCouponApplied}
           onCouponRemoved={handleCouponRemoved}
