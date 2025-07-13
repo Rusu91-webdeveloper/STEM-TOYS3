@@ -1,24 +1,14 @@
 import { Prisma, Product } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-import {
-  getCached,
-  CacheKeys,
-  invalidateCache,
-  invalidateCachePattern,
-} from "@/lib/cache";
+import { getCached } from "@/lib/cache";
 import { TIME } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { withPerformanceMonitoring } from "@/lib/performance";
 import { getCacheKey } from "@/lib/utils/cache-key";
 import { getFilterParams } from "@/lib/utils/filtering";
 import { getPaginationParams } from "@/lib/utils/pagination";
-import {
-  validateQueryParams,
-  productQuerySchema,
-  createValidationErrorResponse,
-  type ValidatedProductQuery,
-} from "@/lib/validations/api";
+// Validation imports removed as they're currently unused
 
 type ProductWithOptionalCategory = Product & {
   category?: {
@@ -55,7 +45,7 @@ const optimizedIncludes = {
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const { page, limit, skip } = getPaginationParams(searchParams, {
+    const { page, limit } = getPaginationParams(searchParams, {
       defaultLimit: 12,
       maxLimit: 100,
     });
@@ -90,9 +80,9 @@ export async function GET(request: NextRequest) {
     try {
       const cachedResult = await getCached(
         cacheKey,
-        async () =>
+        () =>
           // This will only run if cache miss
-          await fetchProductsFromDatabase({
+          fetchProductsFromDatabase({
             category,
             featured,
             minPrice,
@@ -181,11 +171,21 @@ async function fetchProductsFromDatabase(params: {
     };
 
     if (stemCategoryMap[normalizedCategory as keyof StemCategoryMap]) {
-      // Use attributes for STEM categories (faster than string matching)
-      where.attributes = {
-        path: ["stemCategory"],
-        equals: normalizedCategory,
-      };
+      // For STEM categories, check both attributes.stemCategory AND category.slug
+      where.OR = [
+        {
+          attributes: {
+            path: ["stemCategory"],
+            equals: normalizedCategory,
+          },
+        },
+        {
+          category: {
+            slug: normalizedCategory,
+            isActive: true,
+          },
+        },
+      ];
     } else {
       // Single query for custom categories
       where.category = {
@@ -217,14 +217,17 @@ async function fetchProductsFromDatabase(params: {
     ];
   }
 
-  console.log("API Request Params:", {
-    category: category || null,
-    featured: featured || null,
-    minPrice: minPrice || null,
-    maxPrice: maxPrice || null,
-  });
+  // Debug logging for API request params
+  if (process.env.NODE_ENV === "development") {
+    console.warn("API Request Params:", {
+      category: category ?? null,
+      featured: featured ?? null,
+      minPrice: minPrice ?? null,
+      maxPrice: maxPrice ?? null,
+    });
 
-  console.log("Final query where clause:", JSON.stringify(where, null, 2));
+    console.warn("Final query where clause:", JSON.stringify(where, null, 2));
+  }
 
   try {
     const startTime = Date.now();
@@ -253,13 +256,15 @@ async function fetchProductsFromDatabase(params: {
     // **PERFORMANCE**: Execute optimized parallel queries
     const fetchProducts = withPerformanceMonitoring(
       "product_list_query",
-      async () => {
+      () => {
         // **PERFORMANCE-FIX**: Conditionally include category data
         // Avoid the JOIN for featured products query to improve speed
         const queryOptions: {
           where: Prisma.ProductWhereInput;
           include?: typeof optimizedIncludes;
-          orderBy: any;
+          orderBy:
+            | Prisma.ProductOrderByWithRelationInput
+            | Prisma.ProductOrderByWithRelationInput[];
           skip: number;
           take: number;
         } = {
@@ -283,7 +288,9 @@ async function fetchProductsFromDatabase(params: {
 
     const [products, totalCount] = await fetchProducts();
 
-    console.log(`Found ${products.length} products matching criteria`);
+    if (process.env.NODE_ENV === "development") {
+      console.warn(`Found ${products.length} products matching criteria`);
+    }
 
     // **PERFORMANCE**: Optimized data transformation
     const transformedProducts = (products as ProductWithOptionalCategory[]).map(
@@ -313,12 +320,16 @@ async function fetchProductsFromDatabase(params: {
 
         // **PERFORMANCE**: Faster attribute extraction
         if (product.attributes && typeof product.attributes === "object") {
-          const attrs = product.attributes as Record<string, any>;
-          if (attrs.stemCategory) {
-            (productData as any).stemCategory = attrs.stemCategory;
+          const attrs = product.attributes as Record<string, unknown>;
+          if (attrs.stemCategory && typeof attrs.stemCategory === "string") {
+            (
+              productData as typeof productData & { stemCategory: string }
+            ).stemCategory = attrs.stemCategory;
           }
-          if (attrs.ageRange) {
-            (productData as any).ageRange = attrs.ageRange;
+          if (attrs.ageRange && typeof attrs.ageRange === "string") {
+            (
+              productData as typeof productData & { ageRange: string }
+            ).ageRange = attrs.ageRange;
           }
         }
 
@@ -328,14 +339,16 @@ async function fetchProductsFromDatabase(params: {
 
     const executionTime = Date.now() - startTime;
 
-    console.log("Response structure format:", {
-      count: products.length,
-      totalCount,
-      page,
-      limit,
-      hasProducts: true,
-      format: "paginated",
-    });
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Response structure format:", {
+        count: products.length,
+        totalCount,
+        page,
+        limit,
+        hasProducts: true,
+        format: "paginated",
+      });
+    }
 
     const responseData = {
       products: transformedProducts,
@@ -355,19 +368,21 @@ async function fetchProductsFromDatabase(params: {
       },
     };
 
-    console.log(
-      `API response structure: [${transformedProducts.map((_, i) => `'${i}'`)}]`
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        `API response structure: [${transformedProducts.map((_, i) => `'${i}'`)}]`
+      );
 
-    console.log("[INFO] Performance Metric", {
-      success: true,
-      resultSize: transformedProducts.length,
-      performance: {
-        operation: "product_list_query",
-        duration: executionTime,
-        timestamp: Date.now(),
-      },
-    });
+      console.warn("[INFO] Performance Metric", {
+        success: true,
+        resultSize: transformedProducts.length,
+        performance: {
+          operation: "product_list_query",
+          duration: executionTime,
+          timestamp: Date.now(),
+        },
+      });
+    }
 
     if (executionTime > 500) {
       console.warn(`[WARN] Slow database operation detected`, {
