@@ -9,7 +9,6 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -114,7 +113,7 @@ function ResetPasswordContent() {
             );
           }
         }
-      } catch (error) {
+      } catch {
         setTokenValid(false);
         setError(
           t(
@@ -143,7 +142,7 @@ function ResetPasswordContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           token,
-          email: email || undefined,
+          email: email ?? undefined,
           password: data.password,
         }),
       });
@@ -152,15 +151,17 @@ function ResetPasswordContent() {
 
       if (!response.ok) {
         setError(
-          result.message ||
+          result.message ??
             t("failedToResetPassword", "Failed to reset password")
         );
         return;
       }
 
       setSuccess(true);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : t("anErrorOccurred"));
+    } catch (catchError) {
+      setError(
+        catchError instanceof Error ? catchError.message : t("anErrorOccurred")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -249,7 +250,7 @@ function ResetPasswordContent() {
                 {t("invalidResetToken")}
               </h2>
               <p className="text-muted-foreground">
-                {error || t("tokenExpiredMessage")}
+                {error ?? t("tokenExpiredMessage")}
               </p>
             </div>
             <div className="space-y-4">

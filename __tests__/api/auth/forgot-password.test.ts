@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+
 import { POST } from "@/app/api/auth/forgot-password/route";
 
 // Mock the dependencies
@@ -41,11 +42,10 @@ describe("/api/auth/forgot-password", () => {
     jest.restoreAllMocks();
   });
 
-  const createMockRequest = (body: any) => {
-    return {
+  const createMockRequest = (body: any) =>
+    ({
       json: jest.fn().mockResolvedValue(body),
-    } as unknown as NextRequest;
-  };
+    }) as unknown as NextRequest;
 
   describe("OAuth User Handling", () => {
     it("should reject OAuth users with appropriate message", async () => {

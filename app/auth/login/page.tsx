@@ -142,6 +142,7 @@ function LoginForm() {
       };
 
       clearAuthData();
+      return;
     }
   }, [searchParams, t]);
 
@@ -177,7 +178,7 @@ function LoginForm() {
 
             // If validation passes, proceed with redirect
             const isRedirectedFromCallbackUrl =
-              document.referrer && document.referrer.includes(callbackUrl);
+              document.referrer?.includes(callbackUrl) ?? false;
 
             if (isRedirectedFromCallbackUrl) {
               console.warn(
@@ -191,6 +192,7 @@ function LoginForm() {
             console.error("Error validating session:", error);
             // Silently clear invalid session and let user log in normally
             await signOut({ redirect: false });
+            return;
           }
         };
 
@@ -200,7 +202,10 @@ function LoginForm() {
       // User has valid session but no callback URL - they might want to access account
       // Show a message suggesting they might want to go to their account
       console.warn("User is already authenticated - no redirect needed");
+      return;
     }
+    // If user is not authenticated or session is loading, do nothing
+    return;
   }, [session, status, searchParams]);
 
   const {

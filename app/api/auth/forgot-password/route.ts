@@ -29,86 +29,71 @@ async function handleForgotPassword(request: NextRequest) {
       );
     }
 
-    const { email } = validationResult.data;
+    const validatedData = validationResult.data;
 
     // Check if user exists
-    const user = await db.user.findUnique({
-      where: { email },
+    const existingUser = await db.user.findUnique({
+      where: { email: validatedData.email },
     });
 
-    // If user doesn't exist, return success for security (prevents enumeration)
-    if (!user) {
-      return NextResponse.json({ message: "Password reset instructions sent" });
+    if (!existingUser) {
+      // For security, we don't reveal if the user exists or not
+      // Return success response even if user doesn't exist
+      return NextResponse.json({
+        success: true,
+        message:
+          "If an account with this email exists, we've sent a password reset email.",
+      });
     }
 
-    // Check if this is an OAuth user (empty password indicates OAuth user)
-    if (user.password === "") {
+    // Check if user is an OAuth user (has empty password)
+    const isOAuthUser = !existingUser.password || existingUser.password === "";
+
+    if (isOAuthUser) {
       return NextResponse.json(
         {
-          message:
-            "This account uses Google sign-in. Please use the 'Sign in with Google' button instead of resetting your password.",
+          success: false,
           isOAuthUser: true,
+          message:
+            "This account uses OAuth authentication. Please use the OAuth provider to sign in.",
         },
         { status: 400 }
       );
     }
 
-    // Generate a random token
-    const token = crypto.randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + TOKEN_EXPIRY);
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + TOKEN_EXPIRY);
 
-    // Delete any existing tokens for this user
+    // Delete any existing reset tokens for this user
     await db.passwordResetToken.deleteMany({
-      where: { email },
+      where: { email: existingUser.email },
     });
 
-    // Store the token in the database
+    // Create new reset token
     await db.passwordResetToken.create({
       data: {
-        token,
-        email,
-        expires,
+        token: resetToken,
+        email: existingUser.email,
+        expires: expiresAt,
       },
     });
 
-    // Log token for development purposes
-    if (process.env.NODE_ENV === "development") {
-      console.log(`Password reset token for ${email}: ${token}`);
-    }
+    // Send reset email
+    await sendPasswordResetEmail(existingUser.email, resetToken);
 
-    // Send password reset email
-    try {
-      // In development mode, always send to the Resend account owner's email
-      // This is a workaround for Resend's testing mode restrictions
-      const isDev = process.env.NODE_ENV === "development";
-      const resendAccountEmail =
-        process.env.RESEND_ACCOUNT_EMAIL || "webira.rem.srl@gmail.com";
-
-      // In development, we'll send the test email to the account owner
-      // but still store the reset token for the actual user
-      const emailRecipient = isDev ? resendAccountEmail : email;
-
-      await sendPasswordResetEmail(emailRecipient, token);
-
-      // In development mode, log the reset link to console
-      if (isDev) {
-        const baseUrl =
-          process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-        const resetLink = `${baseUrl}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
-        console.log("\n------- FOR TESTING: PASSWORD RESET LINK -------");
-        console.log(resetLink);
-        console.log("--------------------------------------------------\n");
-      }
-    } catch (emailError) {
-      console.error("Failed to send reset email:", emailError);
-      // Continue even if email fails
-    }
-
-    // Return success for regular users
-    return NextResponse.json({ message: "Password reset instructions sent" });
+    return NextResponse.json({
+      success: true,
+      message: "Password reset email sent successfully.",
+    });
   } catch (error) {
-    console.error("Error in forgot-password endpoint:", error);
-    return NextResponse.json({ message: "An error occurred" }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: error instanceof Error ? error.message : "An error occurred",
+      },
+      { status: 500 }
+    );
   }
 }
 

@@ -79,7 +79,7 @@ function ForgotPasswordForm() {
           setError(result.message);
         } else {
           setError(
-            result.message ||
+            result.message ??
               t("failedToSendResetEmail", "Failed to send reset email")
           );
         }
