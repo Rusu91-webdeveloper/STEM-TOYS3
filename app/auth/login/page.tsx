@@ -151,9 +151,13 @@ function LoginForm() {
 
   // FIXED: Handle authenticated users without infinite loops
   useEffect(() => {
+    let redirectTimer: NodeJS.Timeout | null = null;
+
     // Prevent infinite loops - only run once per session
     if (hasValidated) {
-      return;
+      return () => {
+        if (redirectTimer) clearTimeout(redirectTimer);
+      };
     }
 
     if (status === "authenticated" && session?.user) {
@@ -169,11 +173,9 @@ function LoginForm() {
       console.warn("Redirecting authenticated user to:", redirectToPath);
 
       // Small delay to prevent flash, then redirect
-      const redirectTimer = setTimeout(() => {
+      redirectTimer = setTimeout(() => {
         window.location.href = redirectToPath;
       }, 300);
-
-      return () => clearTimeout(redirectTimer);
     }
 
     // If user is not authenticated, make sure hasValidated is false
@@ -181,15 +183,19 @@ function LoginForm() {
       setHasValidated(false);
     }
 
-    return undefined;
+    // Always return cleanup function
+    return () => {
+      if (redirectTimer) clearTimeout(redirectTimer);
+    };
   }, [status, session?.user, searchParams, hasValidated]);
 
   // Reset validation flag when component unmounts or user changes
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       setHasValidated(false);
-    };
-  }, []);
+    },
+    []
+  );
 
   const {
     register,
