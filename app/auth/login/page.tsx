@@ -151,35 +151,32 @@ function LoginForm() {
     if (status === "authenticated" && session) {
       const callbackUrl = searchParams.get("callbackUrl");
 
-      // FIXED: Only redirect if there's a specific callback URL
-      // If user is just visiting /auth/login normally, don't redirect them
-      if (callbackUrl) {
-        console.warn(
-          "User is authenticated and has callback URL, redirecting to:",
-          callbackUrl
-        );
+      console.warn("User is authenticated, checking session validity...");
 
-        const validateAndRedirect = async () => {
-          try {
-            // Quick session validation only for redirects
-            const validationResponse = await fetch(
-              "/api/auth/validate-session"
+      const validateAndRedirect = async () => {
+        try {
+          // Quick session validation
+          const validationResponse = await fetch("/api/auth/validate-session");
+          const validationData = await validationResponse.json();
+
+          if (!validationData.valid) {
+            console.warn("Session validation failed, clearing session");
+            await signOut({ redirect: false });
+            // Clear the error and stay on login page for fresh login
+            setError(null);
+            return;
+          }
+
+          // Session is valid - redirect user away from login page
+          if (callbackUrl) {
+            console.warn(
+              "Redirecting authenticated user to callback URL:",
+              callbackUrl
             );
-            const validationData = await validationResponse.json();
 
-            if (!validationData.valid) {
-              console.warn(
-                "Session validation failed, clearing session silently"
-              );
-              await signOut({ redirect: false });
-              // Don't show error - user can just log in normally
-              return;
-            }
-
-            // If validation passes, proceed with redirect
+            // Prevent redirect loops
             const isRedirectedFromCallbackUrl =
               document.referrer?.includes(callbackUrl) ?? false;
-
             if (isRedirectedFromCallbackUrl) {
               console.warn(
                 "Detected potential redirect loop, navigating to homepage instead"
@@ -188,24 +185,29 @@ function LoginForm() {
             } else {
               window.location.href = callbackUrl;
             }
-          } catch (error) {
-            console.error("Error validating session:", error);
-            // Silently clear invalid session and let user log in normally
-            await signOut({ redirect: false });
-            return;
+          } else {
+            // No callback URL - redirect to account page instead of staying on login
+            console.warn(
+              "Authenticated user accessing login page, redirecting to account"
+            );
+            window.location.href = "/account";
           }
-        };
+        } catch (error) {
+          console.error("Error validating session:", error);
+          // On validation error, clear session and let user log in normally
+          await signOut({ redirect: false });
+          setError(null);
+          return;
+        }
+      };
 
-        const redirectTimer = setTimeout(validateAndRedirect, 500);
-        return () => clearTimeout(redirectTimer);
-      }
-      // User has valid session but no callback URL - they might want to access account
-      // Show a message suggesting they might want to go to their account
-      console.warn("User is already authenticated - no redirect needed");
-      return;
+      // Small delay to prevent flash
+      const redirectTimer = setTimeout(validateAndRedirect, 300);
+      return () => clearTimeout(redirectTimer);
     }
-    // If user is not authenticated or session is loading, do nothing
-    return;
+
+    // If user is not authenticated or session is loading, return undefined
+    return undefined;
   }, [session, status, searchParams]);
 
   const {
@@ -323,16 +325,63 @@ function LoginForm() {
               <strong>Callback URL:</strong>{" "}
               {searchParams.get("callbackUrl") ?? "None"}
             </p>
-            <div className="mt-2">
+            <div className="mt-2 space-y-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleSignOut}
-                className="text-xs h-7"
+                className="text-xs h-7 w-full"
               >
                 Force Sign Out
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  // Clear all authentication data
+                  await signOut({ redirect: false });
+
+                  // Clear local storage
+                  localStorage.clear();
+                  sessionStorage.clear();
+
+                  // Force reload to clear any cached states
+                  window.location.reload();
+                }}
+                className="text-xs h-7 w-full bg-red-50 hover:bg-red-100 text-red-600"
+              >
+                Clear All Auth Data
+              </Button>
             </div>
+          </div>
+        )}
+
+        {/* Auth stuck notice */}
+        {status === "authenticated" && session && (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md mb-4">
+            <p className="text-yellow-800 text-sm font-medium mb-2">
+              ⚠️ Pare că ești deja autentificat
+            </p>
+            <p className="text-yellow-700 text-sm mb-3">
+              Dacă vezi această pagină, este posibil să ai o sesiune invalidă.
+              Apasă butonul de mai jos pentru a rezolva problema.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                console.warn("Clearing stuck authentication state");
+                await signOut({ redirect: false });
+                localStorage.clear();
+                sessionStorage.clear();
+                setError(null);
+                setSuccess(null);
+                window.location.reload();
+              }}
+              className="w-full text-sm"
+            >
+              Resetează Autentificarea
+            </Button>
           </div>
         )}
 
