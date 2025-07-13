@@ -1,9 +1,32 @@
 import { NextRequest } from "next/server";
 
-import { handlers } from "@/lib/auth";
+// Create handlers directly to avoid cached fallback handlers
+let authHandlers: { GET: Function; POST: Function } | null = null;
 
-// Get the original NextAuth handlers
-const { GET: originalGet, POST: originalPost } = handlers;
+const getHandlers = async () => {
+  if (!authHandlers) {
+    try {
+      // Force fresh creation of auth instance
+      const { createAuth } = await import("@/lib/auth-wrapper");
+      const { authOptions } = await import("@/lib/server/auth");
+
+      console.log("Creating fresh auth instance for handlers...");
+      const authInstance = createAuth(authOptions);
+      authHandlers = authInstance.handlers;
+      console.log("Fresh auth handlers created successfully");
+    } catch (error) {
+      console.error("Failed to create fresh auth handlers:", error);
+      throw error;
+    }
+  }
+  return authHandlers;
+};
+
+// Function to get the original NextAuth handlers
+const getOriginalHandlers = async () => {
+  const handlers = await getHandlers();
+  return { GET: handlers.GET, POST: handlers.POST };
+};
 
 // Simple in-memory rate limiting store (would use Redis in production)
 // Using a module-level variable to persist between requests
@@ -65,6 +88,8 @@ cleanupRateLimitStore();
 
 // Create a middleware function that applies selective rate limiting before NextAuth
 const rateLimitedPost = async (req: NextRequest) => {
+  const { POST: originalPost } = await getOriginalHandlers();
+
   // Check if this request should be rate limited
   if (!shouldRateLimit(req)) {
     // Skip rate limiting for excluded operations
@@ -142,6 +167,12 @@ const rateLimitedPost = async (req: NextRequest) => {
   return response;
 };
 
+// Create GET handler that gets fresh auth handlers
+const rateLimitedGet = async (req: NextRequest) => {
+  const { GET: originalGet } = await getOriginalHandlers();
+  return originalGet(req);
+};
+
 // Export the handlers
 export const POST = rateLimitedPost;
-export const GET = originalGet;
+export const GET = rateLimitedGet;
