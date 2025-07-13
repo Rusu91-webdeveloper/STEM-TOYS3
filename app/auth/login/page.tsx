@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle, Info } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { signIn, useSession, signOut } from "next-auth/react";
@@ -54,7 +54,6 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [debugVisible, setDebugVisible] = useState<boolean>(false);
   const [hasValidated, setHasValidated] = useState<boolean>(false); // Prevent infinite loops
 
   // Check for loop and clear cookies if needed
@@ -274,12 +273,6 @@ function LoginForm() {
     }
   };
 
-  // Function to help debug authentication issues
-  const handleSignOut = async () => {
-    await signOut({ redirect: false });
-    window.location.reload();
-  };
-
   return (
     <div className="flex flex-col items-center justify-center space-y-6 max-w-md mx-auto">
       <div className="space-y-2 text-center">
@@ -288,90 +281,6 @@ function LoginForm() {
       </div>
 
       <div className="w-full p-6 space-y-6 bg-card rounded-lg border shadow-sm">
-        {/* Debug information */}
-        <div className="flex justify-end">
-          <button
-            onClick={() => setDebugVisible(!debugVisible)}
-            className="text-gray-400 hover:text-gray-600 p-1"
-          >
-            <Info size={16} />
-          </button>
-        </div>
-
-        {debugVisible && (
-          <div className="p-3 bg-gray-100 rounded-md text-xs mb-4">
-            <p>
-              <strong>Auth Status:</strong> {status}
-            </p>
-            {session && (
-              <p>
-                <strong>User:</strong> {session.user?.email}
-              </p>
-            )}
-            <p>
-              <strong>Callback URL:</strong>{" "}
-              {searchParams.get("callbackUrl") ?? "None"}
-            </p>
-            <div className="mt-2 space-y-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSignOut}
-                className="text-xs h-7 w-full"
-              >
-                Force Sign Out
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  // Clear all authentication data
-                  await signOut({ redirect: false });
-
-                  // Clear local storage
-                  localStorage.clear();
-                  sessionStorage.clear();
-
-                  // Force reload to clear any cached states
-                  window.location.reload();
-                }}
-                className="text-xs h-7 w-full bg-red-50 hover:bg-red-100 text-red-600"
-              >
-                Clear All Auth Data
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Auth stuck notice */}
-        {status === "authenticated" && session && (
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md mb-4">
-            <p className="text-yellow-800 text-sm font-medium mb-2">
-              ⚠️ Pare că ești deja autentificat
-            </p>
-            <p className="text-yellow-700 text-sm mb-3">
-              Dacă vezi această pagină, este posibil să ai o sesiune invalidă.
-              Apasă butonul de mai jos pentru a rezolva problema.
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                console.warn("Clearing stuck authentication state");
-                await signOut({ redirect: false });
-                localStorage.clear();
-                sessionStorage.clear();
-                setError(null);
-                setSuccess(null);
-                window.location.reload();
-              }}
-              className="w-full text-sm"
-            >
-              Resetează Autentificarea
-            </Button>
-          </div>
-        )}
-
         {error && (
           <div className="p-4 rounded-md bg-destructive/15 text-destructive border border-destructive/30 flex flex-col space-y-1">
             <p className="font-medium">{t("signInFailed")}</p>
