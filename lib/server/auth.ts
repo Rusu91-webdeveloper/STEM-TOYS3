@@ -521,7 +521,7 @@ export const authOptions: NextAuthConfig = {
     (process.env.NODE_ENV === "development"
       ? "development-secret-please-change"
       : undefined),
-  trustHost: process.env.NODE_ENV === "development",
+  trustHost: true, // Required for Vercel deployment
 };
 
 // Import the wrapper

@@ -54,8 +54,8 @@ export function createAuth(config: NextAuthConfig) {
         (process.env.NODE_ENV === "development"
           ? "development-secret-please-change-in-production"
           : undefined),
-      // Add trustHost for development
-      trustHost: process.env.NODE_ENV === "development",
+      // Trust host for all environments (required for Vercel)
+      trustHost: true,
     };
 
     console.warn("NextAuth configuration validated successfully");
