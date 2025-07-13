@@ -55,6 +55,7 @@ function LoginForm() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [debugVisible, setDebugVisible] = useState<boolean>(false);
+  const [hasValidated, setHasValidated] = useState<boolean>(false); // Prevent infinite loops
 
   // Check for loop and clear cookies if needed
   useEffect(() => {
@@ -69,7 +70,9 @@ function LoginForm() {
       setSuccess(t("email_verification_greeting"));
     } else if (searchParams.get("from") === "register") {
       setSuccess(t("registrationSuccess"));
-    } else if (searchParams.get("error") === "UserDeleted") {
+    }
+
+    if (searchParams.get("error") === "UserDeleted") {
       // Check if we're in an active Google auth flow first
       const isGoogleAuthInProgress = localStorage.getItem(
         "googleAuthInProgress"
@@ -146,69 +149,47 @@ function LoginForm() {
     }
   }, [searchParams, t]);
 
-  // If user is already authenticated, handle redirects intelligently
+  // FIXED: Handle authenticated users without infinite loops
   useEffect(() => {
-    if (status === "authenticated" && session) {
+    // Prevent infinite loops - only run once per session
+    if (hasValidated) {
+      return;
+    }
+
+    if (status === "authenticated" && session?.user) {
+      setHasValidated(true); // Mark as validated to prevent re-runs
+
       const callbackUrl = searchParams.get("callbackUrl");
+      console.warn("User is authenticated, redirecting...");
 
-      console.warn("User is authenticated, checking session validity...");
+      // Simple redirect without complex validation to avoid loops
+      const redirectToPath =
+        callbackUrl && callbackUrl !== "/auth/login" ? callbackUrl : "/account";
 
-      const validateAndRedirect = async () => {
-        try {
-          // Quick session validation
-          const validationResponse = await fetch("/api/auth/validate-session");
-          const validationData = await validationResponse.json();
+      console.warn("Redirecting authenticated user to:", redirectToPath);
 
-          if (!validationData.valid) {
-            console.warn("Session validation failed, clearing session");
-            await signOut({ redirect: false });
-            // Clear the error and stay on login page for fresh login
-            setError(null);
-            return;
-          }
+      // Small delay to prevent flash, then redirect
+      const redirectTimer = setTimeout(() => {
+        window.location.href = redirectToPath;
+      }, 300);
 
-          // Session is valid - redirect user away from login page
-          if (callbackUrl) {
-            console.warn(
-              "Redirecting authenticated user to callback URL:",
-              callbackUrl
-            );
-
-            // Prevent redirect loops
-            const isRedirectedFromCallbackUrl =
-              document.referrer?.includes(callbackUrl) ?? false;
-            if (isRedirectedFromCallbackUrl) {
-              console.warn(
-                "Detected potential redirect loop, navigating to homepage instead"
-              );
-              window.location.href = "/";
-            } else {
-              window.location.href = callbackUrl;
-            }
-          } else {
-            // No callback URL - redirect to account page instead of staying on login
-            console.warn(
-              "Authenticated user accessing login page, redirecting to account"
-            );
-            window.location.href = "/account";
-          }
-        } catch (error) {
-          console.error("Error validating session:", error);
-          // On validation error, clear session and let user log in normally
-          await signOut({ redirect: false });
-          setError(null);
-          return;
-        }
-      };
-
-      // Small delay to prevent flash
-      const redirectTimer = setTimeout(validateAndRedirect, 300);
       return () => clearTimeout(redirectTimer);
     }
 
-    // If user is not authenticated or session is loading, return undefined
+    // If user is not authenticated, make sure hasValidated is false
+    if (status === "unauthenticated") {
+      setHasValidated(false);
+    }
+
     return undefined;
-  }, [session, status, searchParams]);
+  }, [status, session?.user, searchParams, hasValidated]);
+
+  // Reset validation flag when component unmounts or user changes
+  useEffect(() => {
+    return () => {
+      setHasValidated(false);
+    };
+  }, []);
 
   const {
     register,
