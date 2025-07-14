@@ -1,28 +1,13 @@
-import { revalidateTag } from "next/cache";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import {
-  withErrorHandling,
-  badRequest,
-  notFound,
-  handleZodError,
-  handleUnexpectedError,
-} from "@/lib/api-error";
-import { handleFormData } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
 import { isAdmin } from "@/lib/auth/admin";
-import {
-  getCached,
-  CacheKeys,
-  invalidateCache,
-  invalidateCachePattern,
-} from "@/lib/cache";
+import { getCached, CacheKeys, invalidateCachePattern } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { withRateLimit } from "@/lib/rate-limit";
 import { applyStandardHeaders } from "@/lib/response-headers";
-import { utapi } from "@/lib/uploadthing";
-import { slugify } from "@/lib/utils";
 import { productSchema as baseProductSchema } from "@/lib/validations";
 
 // Extend the base product schema with additional fields specific to this API
@@ -119,16 +104,16 @@ export async function POST(request: NextRequest) {
   try {
     // Get the auth session and enforce admin role check
     const session = await auth();
-    console.log("Auth session in POST /api/admin/products:", session);
+    console.warn("Auth session in POST /api/admin/products:", session);
 
     if (session?.user?.role !== "ADMIN") {
-      console.log("Unauthorized access attempt: User is not an admin");
+      console.warn("Unauthorized access attempt: User is not an admin");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("Creating new product");
+    console.warn("Creating new product");
     const body = await request.json();
-    console.log("Request body:", JSON.stringify(body, null, 2));
+    console.warn("Request body:", JSON.stringify(body, null, 2));
 
     // Validate input
     const validationResult = productSchema.safeParse(body);
@@ -141,7 +126,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = validationResult.data;
-    console.log("Validated data:", JSON.stringify(data, null, 2));
+    console.warn("Validated data:", JSON.stringify(data, null, 2));
 
     // Check if slug is already in use
     const existingProduct = await db.product.findUnique({
@@ -149,7 +134,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingProduct) {
-      console.log("Slug already in use:", data.slug);
+      console.warn("Slug already in use:", data.slug);
       return NextResponse.json(
         { error: "Slug already in use" },
         { status: 400 }
@@ -158,7 +143,7 @@ export async function POST(request: NextRequest) {
 
     // Create product in database
     try {
-      console.log("Attempting to create product in database");
+      console.warn("Attempting to create product in database");
       const product = await db.product.create({
         data: {
           name: data.name,
@@ -168,14 +153,14 @@ export async function POST(request: NextRequest) {
           compareAtPrice: data.compareAtPrice,
           images: data.images,
           categoryId: data.categoryId,
-          tags: data.tags || [],
-          stockQuantity: data.stock || 0,
+          tags: data.tags ?? [],
+          stockQuantity: data.stock ?? 0,
           attributes: {
             // Include SEO metadata in attributes
-            metaTitle: data.metaTitle || data.name,
+            metaTitle: data.metaTitle ?? data.name,
             metaDescription:
-              data.metaDescription || data.description.substring(0, 160),
-            metaKeywords: data.metaKeywords || data.tags || [],
+              data.metaDescription ?? data.description.substring(0, 160),
+            metaKeywords: data.metaKeywords ?? data.tags ?? [],
             ageRange: data.ageRange,
             stemCategory: data.stemCategory
               ? data.stemCategory.toUpperCase()
@@ -183,7 +168,7 @@ export async function POST(request: NextRequest) {
             difficultyLevel: data.difficultyLevel,
             learningObjectives: data.learningObjectives,
             // Any other custom attributes
-            ...(data.attributes || {}),
+            ...(data.attributes ?? {}),
           },
           isActive: data.isActive,
         },
@@ -192,13 +177,14 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      console.log("Product created successfully:", product.id);
+      console.warn("Product created successfully:", product.id);
 
       // Revalidate caches to ensure new product is visible immediately
-      console.log("Revalidating cache tags for new product creation");
+      console.warn("Revalidating cache tags for new product creation");
 
       // Revalidate the products list
       revalidateTag("products");
+      revalidatePath("/admin/products");
 
       // Revalidate specific product
       revalidateTag(`product-${data.slug}`);
@@ -330,7 +316,7 @@ export async function PUT(request: NextRequest) {
         ...(data.learningObjectives !== undefined && {
           learningObjectives: data.learningObjectives,
         }),
-        ...(data.attributes || {}),
+        ...(data.attributes ?? {}),
       };
 
       updateData.attributes = updatedAttributes;
@@ -363,7 +349,7 @@ export async function PUT(request: NextRequest) {
         ...(data.learningObjectives && {
           learningObjectives: data.learningObjectives,
         }),
-        ...(data.attributes || {}),
+        ...(data.attributes ?? {}),
       };
     }
 
@@ -381,10 +367,11 @@ export async function PUT(request: NextRequest) {
     const categoryId = updatedProduct.categoryId;
 
     // Revalidate caches to ensure product updates are visible immediately
-    console.log("Revalidating cache tags for product update");
+    console.warn("Revalidating cache tags for product update");
 
     // Revalidate the products list
     revalidateTag("products");
+    revalidatePath("/admin/products");
 
     // Revalidate specific product
     revalidateTag(`product-${productSlug}`);
@@ -465,7 +452,7 @@ export async function DELETE(request: NextRequest) {
       try {
         const { deleteUploadThingFiles } = await import("@/lib/uploadthing");
         const deleteResult = await deleteUploadThingFiles(productImages);
-        console.log("UploadThing delete result:", deleteResult);
+        console.warn("UploadThing delete result:", deleteResult);
       } catch (imageError) {
         // Log but don't fail the request if image deletion fails
         console.error("Failed to delete product images:", imageError);
@@ -473,10 +460,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Revalidate caches to ensure product disappears from the UI
-    console.log("Revalidating cache tags for product deletion");
+    console.warn("Revalidating cache tags for product deletion");
 
     // Revalidate the products list
     revalidateTag("products");
+    revalidatePath("/admin/products");
 
     // Revalidate specific product
     revalidateTag(`product-${productSlug}`);

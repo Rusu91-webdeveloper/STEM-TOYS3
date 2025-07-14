@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
 
+import { getApiUrl } from "@/lib/utils/api-url";
+
 interface DashboardStat {
   title: string;
   value: string;
@@ -37,8 +39,9 @@ export async function getDashboardData(
   period: number = 30
 ): Promise<DashboardData> {
   try {
+    const baseUrl = getApiUrl();
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || ""}/api/admin/dashboard?period=${period}`,
+      `${baseUrl}/api/admin/dashboard?period=${period}`,
       {
         headers: {
           Cookie: cookies().toString(),
@@ -59,7 +62,7 @@ export async function getDashboardData(
       stats: [
         {
           title: "Total Revenue",
-          value: "$0.00",
+          value: "0.00 RON",
           change: "+0.0%",
           trend: "up",
           description: `Last ${period} days`,

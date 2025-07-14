@@ -1,17 +1,12 @@
-import { revalidateTag } from "next/cache";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { handleFormData } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
-import { isAdmin } from "@/lib/auth/admin";
 import { db } from "@/lib/db";
 import { deleteUploadThingFiles } from "@/lib/uploadthing";
 import { slugify } from "@/lib/utils";
-
-// In a production application, you would properly implement auth checks
-// For this demo, we'll add a fallback for development mode
-const isDevelopment = process.env.NODE_ENV === "development";
 
 // Validation schema for product updates
 const productUpdateSchema = z.object({
@@ -99,6 +94,15 @@ export async function DELETE(
         },
       });
 
+      // Revalidate caches and pages
+      revalidateTag("products");
+      revalidateTag(`product-${product.slug}`);
+      revalidatePath("/admin/products");
+
+      if (product.categoryId) {
+        revalidateTag(`category-${product.categoryId}`);
+      }
+
       return NextResponse.json({
         success: true,
         message: "Product marked as inactive due to existing orders",
@@ -118,27 +122,30 @@ export async function DELETE(
       product.images.length > 0
     ) {
       try {
-        console.log(
+        console.warn(
           `Deleting ${product.images.length} images for product ${productId}`
         );
         await deleteUploadThingFiles(product.images as string[]);
-        console.log(`Successfully deleted images for product ${productId}`);
+        console.warn(`Successfully deleted images for product ${productId}`);
       } catch (uploadError) {
         console.error("Error deleting product images:", uploadError);
         // Continue with the response even if image deletion fails
       }
     } else {
-      console.log(`No images to delete for product ${productId}`);
+      console.warn(`No images to delete for product ${productId}`);
     }
 
     // Revalidate caches to ensure product disappears from the UI
-    console.log("Revalidating cache tags for product deletion");
+    console.warn("Revalidating cache tags for product deletion");
 
     // Revalidate the products list
     revalidateTag("products");
 
     // Revalidate specific product
     revalidateTag(`product-${product.slug}`);
+
+    // Revalidate the admin products page
+    revalidatePath("/admin/products");
 
     // Revalidate category if it exists
     if (product.categoryId) {
@@ -264,13 +271,16 @@ export async function PATCH(
     const categoryId = updatedProduct.categoryId;
 
     // Revalidate caches to ensure product updates are visible immediately
-    console.log("Revalidating cache tags for product update");
+    console.warn("Revalidating cache tags for product update");
 
     // Revalidate the products list
     revalidateTag("products");
 
     // Revalidate specific product
     revalidateTag(`product-${productSlug}`);
+
+    // Revalidate the admin products page
+    revalidatePath("/admin/products");
 
     // If old slug is different from new slug, revalidate the old one too
     if (existingProduct.slug !== productSlug) {
@@ -325,6 +335,15 @@ export async function PUT(
         category: true,
       },
     });
+
+    // Revalidate caches and admin page
+    revalidateTag("products");
+    revalidateTag(`product-${product.slug}`);
+    revalidatePath("/admin/products");
+
+    if (product.categoryId) {
+      revalidateTag(`category-${product.categoryId}`);
+    }
 
     return NextResponse.json(product);
   } catch (error) {

@@ -1,4 +1,5 @@
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
@@ -11,18 +12,13 @@ import {
   CardDescription,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CurrencyProvider } from "@/lib/currency";
 import { db } from "@/lib/db";
 
 import { ProductDeleteButton } from "./components/ProductDeleteButton";
-import { ProductTable } from "./components/ProductTable";
+
+// Force this page to be dynamic and not cached
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 // Add this interface at the top of the file with the imports
 interface Category {
@@ -109,7 +105,7 @@ async function getProducts(): Promise<Product[]> {
 
 // Main component now returns a server component that wraps the client component with CurrencyProvider
 export default async function AdminProductsPage() {
-  const categories = await getCategories();
+  const _categories = await getCategories();
   const products = await getProducts();
 
   // Get STEM categories for info display
@@ -206,11 +202,14 @@ export default async function AdminProductsPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-start gap-3">
                   {product.images && product.images.length > 0 ? (
-                    <img
-                      src={product.images[0]}
-                      alt={product.name}
-                      className="w-16 h-20 object-cover rounded-md border"
-                    />
+                    <div className="relative w-16 h-20">
+                      <Image
+                        src={product.images[0]}
+                        alt={product.name}
+                        fill
+                        className="object-cover rounded-md border"
+                      />
+                    </div>
                   ) : (
                     <div className="w-16 h-20 bg-muted rounded-md border flex items-center justify-center">
                       <Plus className="h-8 w-8 text-muted-foreground" />
@@ -250,7 +249,7 @@ export default async function AdminProductsPage() {
                         Detalii Produs
                       </span>
                       <Badge variant="outline">
-                        {product.stockQuantity} în stoc
+                        {product.stockQuantity ?? 0} în stoc
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">
@@ -264,7 +263,7 @@ export default async function AdminProductsPage() {
                       <span>📦 {product._count.orderItems} vânzări</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span>🏷️ {product.tags?.length || 0} etichete</span>
+                      <span>🏷️ {product.tags?.length ?? 0} etichete</span>
                     </div>
                   </div>
 

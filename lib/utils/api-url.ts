@@ -11,14 +11,7 @@ export function getApiUrl(): string {
 
   // Server-side: Check environment variables in order of preference
 
-  // 1. NEXTAUTH_URL - Most reliable for production
-  if (process.env.NEXTAUTH_URL) {
-    // eslint-disable-next-line no-console
-    console.log("[getApiUrl] Using NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
-    return process.env.NEXTAUTH_URL;
-  }
-
-  // 2. NEXT_PUBLIC_SITE_URL - Public site URL
+  // 1. NEXT_PUBLIC_SITE_URL - Public site URL
   if (process.env.NEXT_PUBLIC_SITE_URL) {
     // eslint-disable-next-line no-console
     console.log(
@@ -26,6 +19,13 @@ export function getApiUrl(): string {
       process.env.NEXT_PUBLIC_SITE_URL
     );
     return process.env.NEXT_PUBLIC_SITE_URL;
+  }
+
+  // 2. NEXTAUTH_URL - Most reliable for production
+  if (process.env.NEXTAUTH_URL) {
+    // eslint-disable-next-line no-console
+    console.log("[getApiUrl] Using NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+    return process.env.NEXTAUTH_URL;
   }
 
   // 3. VERCEL_URL - Automatically set by Vercel

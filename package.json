@@ -37,7 +37,8 @@
     "seed:books": "npx ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed-books-romanian.ts",
     "seed:admin": "npx ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed-admin.ts",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test:admin": "node -e \"console.log('Testing API URL utility...'); const { getApiUrl } = require('./lib/utils/api-url.ts'); console.log('API URL:', getApiUrl());\""
   },
   "prisma": {
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"

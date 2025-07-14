@@ -1,5 +1,7 @@
 "use client";
 
+import { getApiUrl } from "@/lib/utils/api-url";
+
 // Remove the import of cookies from next/headers
 // import { cookies } from "next/headers";
 
@@ -40,18 +42,13 @@ export async function getDashboardData(
   period: number = 30
 ): Promise<DashboardData> {
   try {
-    // Use an absolute URL for fetch - this works for client components
-    const url = new URL(
-      "/api/admin/dashboard",
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+    const baseUrl = getApiUrl();
+    const response = await fetch(
+      `${baseUrl}/api/admin/dashboard?period=${period}`,
+      {
+        cache: "no-store", // Don't cache this data
+      }
     );
-    url.searchParams.append("period", period.toString());
-
-    // Client-side fetch will automatically include cookies
-    const response = await fetch(url.toString(), {
-      // No need to manually add cookies, they are included automatically
-      cache: "no-store", // Don't cache this data
-    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch dashboard data: ${response.status}`);
@@ -65,7 +62,7 @@ export async function getDashboardData(
       stats: [
         {
           title: "Total Revenue",
-          value: "0.00 lei", // Default to RON currency
+          value: "0.00 RON", // Default to RON currency
           change: "+0.0%",
           trend: "up",
           description: `Last ${period} days`,

@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 
+import { getApiUrl } from "@/lib/utils/api-url";
+
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
 
 interface SalesData {
@@ -79,35 +81,34 @@ export function ClientAnalytics({
     initialSalesByCategory
   );
   const [salesChartData, setSalesChartData] = useState(initialSalesChartData);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Handle period change - this would normally fetch new data from an API
   const handlePeriodChange = async (newPeriod: string) => {
-    setIsLoading(true);
     setPeriod(newPeriod);
 
     try {
       // Fetch new data based on the period
-      const response = await fetch(`/api/admin/dashboard?period=${newPeriod}`);
+      const baseUrl = getApiUrl();
+      const response = await fetch(
+        `${baseUrl}/api/admin/dashboard?period=${newPeriod}`
+      );
       const data = await response.json();
 
       // Update the state with new data
       if (data) {
-        setSalesData(data.salesData || initialSalesData);
-        setOrderStats(data.orderStats || initialOrderStats);
+        setSalesData(data.salesData ?? initialSalesData);
+        setOrderStats(data.orderStats ?? initialOrderStats);
         setTopSellingProducts(
-          data.topSellingProducts || initialTopSellingProducts
+          data.topSellingProducts ?? initialTopSellingProducts
         );
-        setSalesByCategory(data.salesByCategory || initialSalesByCategory);
+        setSalesByCategory(data.salesByCategory ?? initialSalesByCategory);
         setSalesChartData({
-          salesData: data.salesChartData || initialSalesChartData.salesData,
+          salesData: data.salesChartData ?? initialSalesChartData.salesData,
         });
       }
     } catch (error) {
       console.error("Error fetching data:", error);
       // Fallback to initial data on error
-    } finally {
-      setIsLoading(false);
     }
   };
 
