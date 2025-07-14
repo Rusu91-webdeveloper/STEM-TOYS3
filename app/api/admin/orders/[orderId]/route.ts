@@ -198,7 +198,7 @@ export async function PATCH(
       },
     });
 
-    // Send email notification if status changed to SHIPPED or COMPLETED
+    // Send email notification if status changed to SHIPPED or DELIVERED
     try {
       const userEmail = updatedOrder.user?.email;
       const customerName = updatedOrder.user?.name || "Client";
@@ -221,11 +221,11 @@ export async function PATCH(
             estimatedDelivery,
             courierName,
           });
-        } else if (status === "COMPLETED") {
-          const { sendOrderCompletedEmail } = await import(
+        } else if (status === "DELIVERED") {
+          const { sendOrderDeliveredEmail } = await import(
             "@/lib/email/order-templates"
           );
-          await sendOrderCompletedEmail({
+          await sendOrderDeliveredEmail({
             to: userEmail,
             customerName,
             orderId: updatedOrder.orderNumber,
@@ -239,9 +239,9 @@ export async function PATCH(
             shippingAddress: updatedOrder.shippingAddress
               ? `${updatedOrder.shippingAddress.addressLine1}, ${updatedOrder.shippingAddress.city}, ${updatedOrder.shippingAddress.state}, ${updatedOrder.shippingAddress.postalCode}, ${updatedOrder.shippingAddress.country}`
               : "",
-            completedAt: new Date(updatedOrder.updatedAt).toLocaleDateString(
-              "ro-RO"
-            ),
+            deliveredAt: new Date(
+              updatedOrder.deliveredAt ?? new Date()
+            ).toLocaleDateString("ro-RO"),
           });
         }
       }
@@ -251,6 +251,8 @@ export async function PATCH(
         emailError
       );
     }
+
+    // TODO: Implement a scheduled job/cron to set status to COMPLETED 30 days after deliveredAt
 
     // Format the response
     const formattedOrder = {
