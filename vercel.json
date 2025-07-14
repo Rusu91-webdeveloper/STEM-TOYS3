@@ -2,7 +2,7 @@
   "buildCommand": "pnpm run build",
   "installCommand": "pnpm install",
   "framework": "nextjs",
-  "scheduled": [
+  "crons": [
     {
       "path": "/api/cron/auto-complete-orders",
       "schedule": "0 2 * * *"
