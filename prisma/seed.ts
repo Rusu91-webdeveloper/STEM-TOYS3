@@ -1,8 +1,9 @@
+import * as fs from "fs";
+import * as path from "path";
+
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcrypt";
 import * as dotenv from "dotenv";
-import * as path from "path";
-import * as fs from "fs";
 
 // Load environment variables from .env.local file
 const envLocalPath = path.resolve(process.cwd(), ".env.local");
@@ -73,6 +74,13 @@ async function main() {
       description:
         "Games and puzzles that make learning math concepts fun and engaging",
       image: "https://placehold.co/800x600/3B82F6/FFFFFF.png?text=Mathematics",
+    },
+    {
+      name: "Educational Books",
+      slug: "educational-books",
+      description:
+        "Digital and physical books that educate and inspire young minds",
+      image: "https://placehold.co/800x600/8B5CF6/FFFFFF.png?text=Books",
     },
   ];
 
