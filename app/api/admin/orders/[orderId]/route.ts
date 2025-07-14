@@ -187,10 +187,70 @@ export async function PATCH(
           select: {
             id: true,
             quantity: true,
+            name: true,
+            price: true,
+            product: {
+              select: { images: true },
+            },
           },
         },
+        shippingAddress: true,
       },
     });
+
+    // Send email notification if status changed to SHIPPED or COMPLETED
+    try {
+      const userEmail = updatedOrder.user?.email;
+      const customerName = updatedOrder.user?.name || "Client";
+      if (userEmail) {
+        if (status === "SHIPPED") {
+          // You may want to fetch real tracking info from the order if available
+          const trackingNumber = "N/A"; // Replace with real tracking number if available
+          const estimatedDelivery = new Date(
+            Date.now() + 3 * 24 * 60 * 60 * 1000
+          ).toLocaleDateString("ro-RO");
+          const courierName = "Curier";
+          const { sendShippingNotificationEmail } = await import(
+            "@/lib/email/order-templates"
+          );
+          await sendShippingNotificationEmail({
+            to: userEmail,
+            customerName,
+            orderId: updatedOrder.orderNumber,
+            trackingNumber,
+            estimatedDelivery,
+            courierName,
+          });
+        } else if (status === "COMPLETED") {
+          const { sendOrderCompletedEmail } = await import(
+            "@/lib/email/order-templates"
+          );
+          await sendOrderCompletedEmail({
+            to: userEmail,
+            customerName,
+            orderId: updatedOrder.orderNumber,
+            orderItems: updatedOrder.items.map(item => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              image: item.product?.images?.[0] || undefined,
+            })),
+            totalAmount: updatedOrder.total,
+            shippingAddress: updatedOrder.shippingAddress
+              ? `${updatedOrder.shippingAddress.addressLine1}, ${updatedOrder.shippingAddress.city}, ${updatedOrder.shippingAddress.state}, ${updatedOrder.shippingAddress.postalCode}, ${updatedOrder.shippingAddress.country}`
+              : "",
+            completedAt: new Date(updatedOrder.updatedAt).toLocaleDateString(
+              "ro-RO"
+            ),
+          });
+        }
+      }
+    } catch (emailError) {
+      console.error(
+        "Error sending order status email notification:",
+        emailError
+      );
+    }
 
     // Format the response
     const formattedOrder = {

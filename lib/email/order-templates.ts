@@ -315,3 +315,90 @@ export async function sendShippingNotificationEmail({
     params: { email: to },
   });
 }
+
+/**
+ * Order completed email
+ */
+export async function sendOrderCompletedEmail({
+  to,
+  customerName,
+  orderId,
+  orderItems,
+  totalAmount,
+  shippingAddress,
+  completedAt,
+}: {
+  to: string;
+  customerName: string;
+  orderId: string;
+  orderItems: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+    image?: string;
+  }>;
+  totalAmount: number;
+  shippingAddress: string;
+  completedAt: string;
+}) {
+  const storeSettings = await getStoreSettings();
+  const baseUrl = getBaseUrl();
+
+  const content = `
+    ${generateEmailHeader(storeSettings)}
+    
+    <h1 style="color: #1f2937; margin-bottom: 24px; text-align: center; font-size: 28px; font-weight: 700;">🎉 Comanda ta a fost finalizată!</h1>
+    
+    <p style="font-size: 16px; margin-bottom: 16px;">Salut <strong>${customerName}</strong>,</p>
+    
+    <p style="font-size: 16px; margin-bottom: 20px;">Comanda ta <strong>#${orderId}</strong> a fost finalizată cu succes pe data de <strong>${completedAt}</strong>. Sperăm că ai fost mulțumit(ă) de experiența cu noi!</p>
+    
+    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 24px 0;">
+      <h3 style="color: #047857; margin: 0 0 16px 0; text-align: center;">🛒 Detaliile comenzii tale</h3>
+      
+      ${orderItems
+        .map(
+          item => `
+        <div style="border-bottom: 1px solid #d1fae5; padding: 12px 0; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center;">
+            ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 12px;">` : ""}
+            <div>
+              <p style="margin: 0; font-weight: 600; color: #1f2937;">${item.name}</p>
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">Cantitate: ${item.quantity}</p>
+            </div>
+          </div>
+          <p style="margin: 0; font-weight: 600; color: #047857;">${formatPrice(item.price * item.quantity)}</p>
+        </div>
+      `
+        )
+        .join("")}
+      
+      <div style="text-align: right; margin-top: 16px; padding-top: 16px; border-top: 2px solid #047857;">
+        <p style="margin: 0; font-size: 18px; font-weight: 700; color: #047857;">Total: ${formatPrice(totalAmount)}</p>
+      </div>
+    </div>
+    
+    <div style="background-color: #eff6ff; border-radius: 8px; padding: 20px; margin: 24px 0;">
+      <h3 style="color: #1e40af; margin: 0 0 12px 0;">📦 Informații de livrare:</h3>
+      <p style="margin: 0 0 8px 0; color: #1f2937;"><strong>Adresa:</strong> ${shippingAddress}</p>
+    </div>
+    
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${baseUrl}/account/orders/${orderId}" 
+         style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+        👁️ Vezi Comanda
+      </a>
+    </div>
+    
+    <p style="font-size: 16px; text-align: center; margin-top: 32px;">Îți mulțumim că ai ales ${storeSettings.storeName}!<br><strong>Echipa ${storeSettings.storeName}</strong></p>
+  `;
+
+  const html = generateEmailHTML(content, storeSettings, "Comanda finalizată");
+
+  return sendMail({
+    to,
+    subject: `🎉 Comanda #${orderId} a fost finalizată - ${storeSettings.storeName}`,
+    html,
+    params: { email: to },
+  });
+}
