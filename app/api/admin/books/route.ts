@@ -40,20 +40,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the default language (e.g., the first one in the database)
-    const defaultLanguage = await db.language.findFirst();
-
-    if (!defaultLanguage) {
-      return NextResponse.json(
-        {
-          error:
-            "No languages found in the database. Please add a language before creating a book.",
-        },
-        { status: 500 }
-      );
-    }
-
-    // Create the book
+    // Create the book without requiring languages
+    // Languages will be associated when digital files are uploaded
     const book = await db.book.create({
       data: {
         name: validatedData.name,
@@ -63,9 +51,6 @@ export async function POST(request: NextRequest) {
         coverImage: validatedData.coverImage,
         isActive: validatedData.isActive,
         slug: validatedData.slug,
-        languages: {
-          connect: { id: defaultLanguage.id },
-        },
       },
     });
 
@@ -90,7 +75,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Check authentication
     const session = await auth();

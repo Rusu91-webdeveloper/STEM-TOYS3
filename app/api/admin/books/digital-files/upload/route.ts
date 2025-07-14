@@ -38,8 +38,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
 
+    // Handle language creation and book association
+    await handleLanguageAssociation(bookId, language);
+
     // Validate file types
-    const validFiles = files.filter((file) => {
+    const validFiles = files.filter(file => {
       const extension = file.name.toLowerCase().split(".").pop();
       return extension === "epub" || extension === "pdf";
     });
@@ -107,7 +110,7 @@ export async function POST(request: NextRequest) {
           uploadedFiles.push(digitalFile);
         }
 
-        console.log(`Successfully uploaded and saved: ${file.name}`);
+        console.warn(`Successfully uploaded and saved: ${file.name}`);
       } catch (fileError) {
         console.error(`Error processing file ${file.name}:`, fileError);
         // Continue with other files
@@ -125,5 +128,84 @@ export async function POST(request: NextRequest) {
       { error: "Internal server error" },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * Handles language creation and book association
+ * Creates the language if it doesn't exist and associates it with the book
+ */
+async function handleLanguageAssociation(bookId: string, languageCode: string) {
+  try {
+    // Check if language exists
+    let language = await db.language.findUnique({
+      where: { code: languageCode },
+    });
+
+    // Create language if it doesn't exist
+    if (!language) {
+      // Map common language codes to names
+      const languageNames: Record<
+        string,
+        { name: string; nativeName?: string }
+      > = {
+        en: { name: "English", nativeName: "English" },
+        ro: { name: "Romanian", nativeName: "Română" },
+        es: { name: "Spanish", nativeName: "Español" },
+        fr: { name: "French", nativeName: "Français" },
+        de: { name: "German", nativeName: "Deutsch" },
+        it: { name: "Italian", nativeName: "Italiano" },
+        pt: { name: "Portuguese", nativeName: "Português" },
+        // Add more mappings as needed
+      };
+
+      const languageInfo = languageNames[languageCode.toLowerCase()] || {
+        name: languageCode.toUpperCase(),
+        nativeName: languageCode.toUpperCase(),
+      };
+
+      language = await db.language.create({
+        data: {
+          code: languageCode,
+          name: languageInfo.name,
+          nativeName: languageInfo.nativeName,
+          isAvailable: true,
+        },
+      });
+
+      console.warn(`Created new language: ${language.name} (${language.code})`);
+    }
+
+    // Check if book is already associated with this language
+    const existingAssociation = await db.book.findFirst({
+      where: {
+        id: bookId,
+        languages: {
+          some: {
+            id: language.id,
+          },
+        },
+      },
+    });
+
+    // Associate language with book if not already associated
+    if (!existingAssociation) {
+      await db.book.update({
+        where: { id: bookId },
+        data: {
+          languages: {
+            connect: { id: language.id },
+          },
+        },
+      });
+
+      console.warn(`Associated language ${language.name} with book ${bookId}`);
+    }
+  } catch (error) {
+    console.error(
+      `Error handling language association for ${languageCode}:`,
+      error
+    );
+    // Don't throw here - let the file upload continue even if language association fails
   }
 }
