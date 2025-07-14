@@ -175,18 +175,138 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       syncInProgress.current = true;
       setIsLoading(true);
 
-      // Simple force sync - fetch from server and replace local state
-      const serverCart = await fetchCart();
-      setCartItems(serverCart);
+      // Store current cart as backup before sync
+      const clientCartBackup = [...cartItems];
 
-      debugCartState(serverCart, "After Force Sync");
+      // Fetch server cart
+      const serverCart = await fetchCart();
+
+      debugCartState(serverCart, "Server Cart Fetched");
+      debugCartState(cartItems, "Current Client Cart");
+
+      // Smart sync logic: preserve client cart if server is empty
+      if (serverCart.length === 0 && cartItems.length > 0) {
+        console.warn(
+          "🔄 [FORCE SYNC] Server cart is empty but client has items. Syncing client to server..."
+        );
+
+        // Save client cart to server
+        const saveSuccess = await saveCart(cartItems);
+        if (saveSuccess) {
+          console.warn(
+            "✅ [FORCE SYNC] Successfully synced client cart to server"
+          );
+          // Keep current client cart as it's now synced
+          debugCartState(cartItems, "After Sync to Server");
+        } else {
+          console.error("❌ [FORCE SYNC] Failed to sync client cart to server");
+          // Keep client cart anyway - don't lose user's items
+          debugCartState(cartItems, "Keeping Client Cart Due to Sync Failure");
+        }
+      } else if (serverCart.length > 0 && cartItems.length === 0) {
+        console.warn(
+          "🔄 [FORCE SYNC] Client cart is empty but server has items. Using server cart..."
+        );
+
+        // Use server cart
+        setCartItems(serverCart);
+        debugCartState(serverCart, "After Using Server Cart");
+      } else if (serverCart.length > 0 && cartItems.length > 0) {
+        console.warn(
+          "🔄 [FORCE SYNC] Both client and server have items. Merging intelligently..."
+        );
+
+        // Both have items - merge them intelligently
+        const { mergeCarts } = await import("../lib/cartMerge");
+        const mergedCart = mergeCarts(cartItems, serverCart);
+
+        // Save merged cart to server
+        const saveSuccess = await saveCart(mergedCart);
+        if (saveSuccess) {
+          setCartItems(mergedCart);
+          console.warn("✅ [FORCE SYNC] Successfully merged and synced carts");
+          debugCartState(mergedCart, "After Intelligent Merge");
+        } else {
+          // If merge save failed, prefer client cart (user's current session)
+          console.error(
+            "❌ [FORCE SYNC] Failed to save merged cart, keeping client cart"
+          );
+          debugCartState(
+            cartItems,
+            "Keeping Client Cart Due to Merge Save Failure"
+          );
+        }
+      } else {
+        // Both are empty - check if we can restore from localStorage as last resort
+        if (typeof window !== "undefined") {
+          try {
+            const { loadCartFromStorage } = await import("../lib/cartStorage");
+            const storageCart = loadCartFromStorage();
+
+            if (storageCart && storageCart.length > 0) {
+              console.warn(
+                "🔄 [FORCE SYNC] Both carts empty, but found items in localStorage. Restoring..."
+              );
+              setCartItems(storageCart);
+              // Try to save restored cart to server
+              await saveCart(storageCart);
+              debugCartState(storageCart, "Restored from localStorage");
+            } else {
+              console.warn(
+                "ℹ️ [FORCE SYNC] Both client and server carts are empty, no localStorage backup"
+              );
+              setCartItems([]);
+              debugCartState([], "Both Carts Empty");
+            }
+          } catch (storageError) {
+            console.error(
+              "❌ [FORCE SYNC] Failed to restore from localStorage:",
+              storageError
+            );
+            setCartItems([]);
+            debugCartState([], "Both Carts Empty - Storage Restore Failed");
+          }
+        } else {
+          console.warn(
+            "ℹ️ [FORCE SYNC] Both client and server carts are empty"
+          );
+          setCartItems([]);
+          debugCartState([], "Both Carts Empty");
+        }
+      }
     } catch (error) {
-      console.error("❌ Failed to force sync cart with server:", error);
+      console.error(
+        "❌ [FORCE SYNC] Failed to force sync cart with server:",
+        error
+      );
+      // On error, keep the current client cart - don't lose user's items
+      debugCartState(cartItems, "Keeping Client Cart Due to Sync Error");
+
+      // As a last resort, try to restore from localStorage if current cart is empty
+      if (cartItems.length === 0 && typeof window !== "undefined") {
+        try {
+          const { loadCartFromStorage } = await import("../lib/cartStorage");
+          const storageCart = loadCartFromStorage();
+
+          if (storageCart && storageCart.length > 0) {
+            console.warn(
+              "🔄 [FORCE SYNC] Emergency restore from localStorage after sync error"
+            );
+            setCartItems(storageCart);
+            debugCartState(storageCart, "Emergency Restore from localStorage");
+          }
+        } catch (storageError) {
+          console.error(
+            "❌ [FORCE SYNC] Emergency localStorage restore also failed:",
+            storageError
+          );
+        }
+      }
     } finally {
       setIsLoading(false);
       syncInProgress.current = false;
     }
-  }, []); // No dependencies to prevent infinite loops
+  }, [cartItems]); // Add cartItems as dependency so we can access current state
 
   const addToCart = async (
     itemToAdd: Omit<CartItem, "id">,

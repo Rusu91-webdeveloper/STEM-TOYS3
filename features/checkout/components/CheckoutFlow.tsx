@@ -32,12 +32,30 @@ export function CheckoutFlow() {
     const syncCartData = async () => {
       try {
         console.warn("🔄 [CHECKOUT] Force syncing cart data on mount...");
+        console.warn(
+          `🔄 [CHECKOUT] Current cart items before sync: ${cartItems.length} items`
+        );
+        cartItems.forEach((item, index) => {
+          console.warn(
+            `   ${index + 1}. ${item.name} (qty: ${item.quantity}, id: ${item.id})`
+          );
+        });
+
         await forceSyncWithServer();
+
         if (isMounted) {
           console.warn("✅ [CHECKOUT] Cart data synced successfully");
+          // Log final cart state after sync
+          console.warn(
+            `✅ [CHECKOUT] Final cart items after sync: ${cartItems.length} items`
+          );
         }
       } catch (error) {
         console.error("❌ [CHECKOUT] Failed to sync cart data:", error);
+        // Still show the error but don't block checkout if sync fails
+        console.warn(
+          "⚠️ [CHECKOUT] Continuing with checkout despite sync error"
+        );
       }
     };
 
