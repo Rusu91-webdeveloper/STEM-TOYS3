@@ -60,6 +60,7 @@ export function CheckoutFlow() {
     };
 
     // Only sync if we're not already loading and have session info
+    // Also only sync once when component mounts or status changes, not when cartItems changes
     if (status !== "loading") {
       syncCartData();
     }
@@ -67,7 +68,8 @@ export function CheckoutFlow() {
     return () => {
       isMounted = false;
     };
-  }, [status, forceSyncWithServer]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, forceSyncWithServer]); // Don't include cartItems to prevent sync loops
 
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("loading");
   const [checkoutData, setCheckoutData] = useState<CheckoutData>({

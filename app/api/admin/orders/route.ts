@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
-import {
-  getCached,
-  CacheKeys,
-  invalidateCache,
-  invalidateCachePattern,
-} from "@/lib/cache";
+import { getCached } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { withRateLimit } from "@/lib/rate-limit";
 import { getCacheKey } from "@/lib/utils/cache-key";
@@ -36,7 +31,19 @@ export const GET = withRateLimit(
       ]);
 
       // Build where clause for filtering
-      const where: any = {};
+      const where: {
+        status?: string;
+        createdAt?: { gte: Date };
+        OR?: Array<{
+          orderNumber?: { contains: string; mode: "insensitive" };
+          user?: {
+            OR: Array<{
+              name?: { contains: string; mode: "insensitive" };
+              email?: { contains: string; mode: "insensitive" };
+            }>;
+          };
+        }>;
+      } = {};
 
       if (filters.status && filters.status !== "all") {
         where.status = String(filters.status).toUpperCase();
@@ -83,15 +90,27 @@ export const GET = withRateLimit(
       // Use shared cache key utility
       const cacheKey = getCacheKey("admin-orders", { ...filters, page, limit });
       const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
+      // Get total count for pagination (not cached to ensure accuracy)
+      const totalCount = await db.order.count({ where });
+
+      // Get orders with proper relations
       const orders = await getCached(
         cacheKey,
-        async () => await db.order.findMany({
+        () =>
+          db.order.findMany({
             where,
             include: {
               user: {
                 select: {
                   name: true,
                   email: true,
+                },
+              },
+              items: {
+                select: {
+                  id: true,
+                  quantity: true,
                 },
               },
             },
@@ -104,7 +123,32 @@ export const GET = withRateLimit(
         CACHE_TTL
       );
 
-      return NextResponse.json(orders);
+      // Format orders for frontend
+      const formattedOrders = orders.map(order => ({
+        id: order.orderNumber ?? order.id,
+        customer: order.user?.name ?? "Guest User",
+        email: order.user?.email ?? "N/A",
+        date: order.createdAt.toISOString().split("T")[0], // Format as YYYY-MM-DD
+        total: order.total,
+        status: formatStatus(order.status),
+        payment: order.paymentMethod ?? "N/A",
+        items: order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
+      }));
+
+      // Calculate pagination
+      const totalPages = Math.ceil(totalCount / limit);
+      const pagination = {
+        total: totalCount,
+        page,
+        limit,
+        pages: totalPages,
+      };
+
+      // Return formatted response that matches frontend expectations
+      return NextResponse.json({
+        orders: formattedOrders,
+        pagination,
+      });
     } catch (error) {
       return NextResponse.json(
         { error: "Failed to fetch admin orders", details: error },

@@ -7,6 +7,9 @@ import React, {
   useEffect,
   type ReactNode,
 } from "react";
+
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
+
 import {
   fetchCart,
   saveCart,
@@ -14,9 +17,7 @@ import {
   removeCartItem,
   addItemToCart,
 } from "../lib/cartApi";
-import { mergeCarts, needsMerging } from "../lib/cartMerge";
 import { debugCartState } from "../lib/cartSync";
-import { useOptimizedSession } from "@/lib/auth/SessionContext";
 
 // Define a specific type for CartItem based on our product structure
 export interface CartItem {
@@ -126,7 +127,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   const loadingInProgress = React.useRef(false);
 
   // Move loadCart outside useEffect so it can be exposed
-  const loadCart = async () => {
+  const loadCart = React.useCallback(async () => {
     if (status === "loading" || loadingInProgress.current) {
       return;
     }
@@ -143,12 +144,12 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       setIsLoading(false);
       loadingInProgress.current = false;
     }
-  };
+  }, [status]);
 
   // Load cart on initial mount and when auth state changes
   useEffect(() => {
     loadCart();
-  }, [isAuthenticated, status]);
+  }, [isAuthenticated, status, loadCart]);
 
   // Sync cart with server (simplified)
   const syncWithServer = async () => {
@@ -174,9 +175,6 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     try {
       syncInProgress.current = true;
       setIsLoading(true);
-
-      // Store current cart as backup before sync
-      const clientCartBackup = [...cartItems];
 
       // Fetch server cart
       const serverCart = await fetchCart();
@@ -326,13 +324,12 @@ export const CartProvider = ({ children }: CartProviderProps) => {
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
-      } else {
-        // Include slug if present
-        return [
-          ...prevItems,
-          { ...itemToAdd, id: cartItemId, quantity, slug: itemToAdd.slug },
-        ];
       }
+      // Include slug if present
+      return [
+        ...prevItems,
+        { ...itemToAdd, id: cartItemId, quantity, slug: itemToAdd.slug },
+      ];
     });
 
     // Try to sync with server in the background
@@ -377,9 +374,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
   };
 
-  const removeFromCart = async (itemId: string) => {
-    return removeItem(itemId);
-  };
+  const removeFromCart = (itemId: string) => removeItem(itemId);
 
   const updateItemQuantity = async (
     itemId: string,
@@ -418,9 +413,8 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
   };
 
-  const updateQuantity = async (itemId: string, quantity: number) => {
-    return updateItemQuantity(itemId, quantity);
-  };
+  const updateQuantity = (itemId: string, quantity: number) =>
+    updateItemQuantity(itemId, quantity);
 
   const clearCart = async () => {
     setCartItems([]);
@@ -433,20 +427,13 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
   };
 
-  const getTotal = () => {
-    return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
-  };
+  const getTotal = () =>
+    cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
-  const getCartTotal = () => {
-    return getTotal();
-  };
+  const getCartTotal = () => getTotal();
 
-  const getItemCount = () => {
-    return cartItems.reduce((count, item) => count + item.quantity, 0);
-  };
+  const getItemCount = () =>
+    cartItems.reduce((count, item) => count + item.quantity, 0);
 
   const cartCount = getItemCount(); // Calculate cart count
 
@@ -530,7 +517,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     setCartItems(prev => prev.filter(item => !selectedItems.has(item.id)));
     clearSelection();
 
-    console.log("📦 Moved selected items to saved for later (ephemeral)");
+    console.warn("📦 Moved selected items to saved for later (ephemeral)");
   };
 
   const moveFromSavedForLater = (itemId: string) => {
@@ -538,7 +525,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     if (itemToMove) {
       setCartItems(prev => [...prev, itemToMove]);
       setSavedForLaterItems(prev => prev.filter(item => item.id !== itemId));
-      console.log("📦 Moved item from saved for later to cart (ephemeral)");
+      console.warn("📦 Moved item from saved for later to cart (ephemeral)");
     }
   };
 
