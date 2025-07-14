@@ -105,6 +105,46 @@ async function main() {
     }
   }
 
+  // Create basic languages for digital files
+  console.log("Seeding basic languages...");
+
+  const basicLanguages = [
+    {
+      code: "en",
+      name: "English",
+      nativeName: "English",
+      isAvailable: true,
+    },
+    {
+      code: "ro",
+      name: "Romanian",
+      nativeName: "Română",
+      isAvailable: true,
+    },
+  ];
+
+  for (const language of basicLanguages) {
+    const existingLanguage = await prisma.language.findUnique({
+      where: { code: language.code },
+    });
+
+    if (!existingLanguage) {
+      const createdLanguage = await prisma.language.create({
+        data: language,
+      });
+      console.log(
+        `Created language: ${createdLanguage.name} (${createdLanguage.code})`
+      );
+    } else {
+      console.log(`Language ${language.name} already exists`);
+      // Update to ensure it's available
+      await prisma.language.update({
+        where: { code: language.code },
+        data: { isAvailable: true },
+      });
+    }
+  }
+
   // Products data with metadata
   const products = [
     {
