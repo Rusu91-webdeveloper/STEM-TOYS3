@@ -20,6 +20,9 @@ export default function AboutPage() {
     book2: "romanian",
   });
 
+  // Collapsible state for Our Story section (mobile)
+  const [storyExpanded, setStoryExpanded] = useState(false);
+
   // Image error handling state
   const [imageErrors, setImageErrors] = useState({
     book1_ro: false,
@@ -174,25 +177,67 @@ export default function AboutPage() {
                   {t("ourStory")}
                 </h2>
               </div>
-              <div className="space-y-4 sm:space-y-5 text-sm sm:text-base md:text-lg">
-                <p className="leading-relaxed text-gray-800 font-medium">
-                  {t(
-                    "ourStoryParagraph1",
-                    'Established in 2025, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.'
+              {/* Collapsible text for mobile */}
+              <div className="space-y-4 sm:space-y-5 text-sm sm:text-base md:text-lg bg-white/80 rounded-xl shadow-md p-4 sm:p-6 border border-indigo-100 transition-all">
+                {/* Mobile: show only first paragraph unless expanded */}
+                <div className="block sm:hidden">
+                  <p className="leading-relaxed text-gray-800 font-medium">
+                    {t(
+                      "ourStoryParagraph1",
+                      'Established in 2025, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.'
+                    )}
+                  </p>
+                  {storyExpanded && (
+                    <>
+                      <p className="leading-relaxed text-gray-700">
+                        {t(
+                          "ourStoryParagraph2",
+                          'At TechTots, we believe STEM toys are essential catalysts for cognitive growth in all children, igniting natural curiosity and building foundations in computational thinking and scientific reasoning. We champion an approach where learning aligns with a child\'s natural interests and neurology. We are especially committed to neurodiverse children, including those with ADHD and autism. Drawing inspiration from "STEM Play for Neurodiverse Minds," we offer tools designed for sensory-rich experiences that enhance focus and cognitive skills, transforming their unique strengths into pathways for learning and confidence.'
+                        )}
+                      </p>
+                      <p className="leading-relaxed text-gray-700 italic border-l-4 border-indigo-300 pl-4">
+                        {t(
+                          "ourStoryParagraph3",
+                          'Further shaped by "Born for the Future," which emphasizes preparing children with critical human skills for an AI-driven world, we understand that STEM integration builds crucial technical and creative problem-solving abilities. Our mission at TechTots is to be your trusted partner, providing enriching educational toys and parental guidance. We aim to show how these carefully selected tools foster development, nurture curiosity, and equip all children with essential skills for tomorrow—all through the power of joyful play.'
+                        )}
+                      </p>
+                    </>
                   )}
-                </p>
-                <p className="leading-relaxed text-gray-700">
-                  {t(
-                    "ourStoryParagraph2",
-                    'At TechTots, we believe STEM toys are essential catalysts for cognitive growth in all children, igniting natural curiosity and building foundations in computational thinking and scientific reasoning. We champion an approach where learning aligns with a child\'s natural interests and neurology. We are especially committed to neurodiverse children, including those with ADHD and autism. Drawing inspiration from "STEM Play for Neurodiverse Minds," we offer tools designed for sensory-rich experiences that enhance focus and cognitive skills, transforming their unique strengths into pathways for learning and confidence.'
-                  )}
-                </p>
-                <p className="leading-relaxed text-gray-700 italic border-l-4 border-indigo-300 pl-4">
-                  {t(
-                    "ourStoryParagraph3",
-                    'Further shaped by "Born for the Future," which emphasizes preparing children with critical human skills for an AI-driven world, we understand that STEM integration builds crucial technical and creative problem-solving abilities. Our mission at TechTots is to be your trusted partner, providing enriching educational toys and parental guidance. We aim to show how these carefully selected tools foster development, nurture curiosity, and equip all children with essential skills for tomorrow—all through the power of joyful play.'
-                  )}
-                </p>
+                  <div className="flex justify-center mt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-indigo-400 text-indigo-700 hover:bg-indigo-50 px-4 py-1 text-xs font-semibold rounded-full shadow-sm"
+                      onClick={() => setStoryExpanded(v => !v)}
+                      aria-expanded={storyExpanded}
+                    >
+                      {storyExpanded
+                        ? t("showLess", "Show less")
+                        : t("readMore", "Read more")}
+                    </Button>
+                  </div>
+                </div>
+                {/* Desktop/tablet: always show all paragraphs */}
+                <div className="hidden sm:block">
+                  <p className="leading-relaxed text-gray-800 font-medium">
+                    {t(
+                      "ourStoryParagraph1",
+                      'Established in 2025, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.'
+                    )}
+                  </p>
+                  <p className="leading-relaxed text-gray-700">
+                    {t(
+                      "ourStoryParagraph2",
+                      'At TechTots, we believe STEM toys are essential catalysts for cognitive growth in all children, igniting natural curiosity and building foundations in computational thinking and scientific reasoning. We champion an approach where learning aligns with a child\'s natural interests and neurology. We are especially committed to neurodiverse children, including those with ADHD and autism. Drawing inspiration from "STEM Play for Neurodiverse Minds," we offer tools designed for sensory-rich experiences that enhance focus and cognitive skills, transforming their unique strengths into pathways for learning and confidence.'
+                    )}
+                  </p>
+                  <p className="leading-relaxed text-gray-700 italic border-l-4 border-indigo-300 pl-4">
+                    {t(
+                      "ourStoryParagraph3",
+                      'Further shaped by "Born for the Future," which emphasizes preparing children with critical human skills for an AI-driven world, we understand that STEM integration builds crucial technical and creative problem-solving abilities. Our mission at TechTots is to be your trusted partner, providing enriching educational toys and parental guidance. We aim to show how these carefully selected tools foster development, nurture curiosity, and equip all children with essential skills for tomorrow—all through the power of joyful play.'
+                    )}
+                  </p>
+                </div>
               </div>
             </div>
             <div className="mt-6 lg:mt-0">
