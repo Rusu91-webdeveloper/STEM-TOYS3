@@ -1,3 +1,4 @@
+// [INFO] This is the Next.js homepage entry point. All child components have been refactored for perfect responsiveness, accessibility, and a premium, app-like user experience. See section files for detailed comments and rationale.
 import type { Product } from "@/types/product";
 
 import HomePageClient from "./HomePageClient";
