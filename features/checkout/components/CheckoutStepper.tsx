@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
-import { CheckoutStep, CheckoutData } from "../types";
 import { CheckCircle, Circle } from "lucide-react";
+import React from "react";
+
 import { useTranslation } from "@/lib/i18n";
+
+import { CheckoutStep, CheckoutData } from "../types";
 
 interface StepProps {
   label: string;

@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
+import React from "react";
 
 interface Category {
   name: string;
@@ -28,8 +28,7 @@ interface CategoriesSectionProps {
 const CategoriesSectionComponent = ({
   categories,
   t,
-}: CategoriesSectionProps) => {
-  return (
+}: CategoriesSectionProps) => (
     <section className="py-10 bg-muted">
       <div className="container mx-auto px-4 max-w-7xl">
         <h2 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-center">
@@ -77,6 +76,5 @@ const CategoriesSectionComponent = ({
       </div>
     </section>
   );
-};
 
 export const CategoriesSection = React.memo(CategoriesSectionComponent);

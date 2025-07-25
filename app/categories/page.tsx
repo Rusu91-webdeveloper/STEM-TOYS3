@@ -148,7 +148,7 @@ export default function CategoriesPage() {
   }, [language]);
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-8 sm:py-12">
+    <div className="container mx-auto px-0 sm:px-4 py-8 sm:py-12">
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-6 text-center bg-gradient-to-r from-primary to-primary/70 text-transparent bg-clip-text">
         {t("stemCategories")}
       </h1>
@@ -160,12 +160,18 @@ export default function CategoriesPage() {
         {categories.map((category, index) => (
           <div
             key={category.slug}
-            className={`flex flex-col ${
-              index % 2 !== 0 ? "md:flex-row-reverse" : "md:flex-row"
-            } gap-6 sm:gap-8 md:gap-12 items-center transition-all duration-500 hover:scale-[1.02] shadow-lg hover:shadow-xl rounded-xl sm:rounded-2xl overflow-hidden`}
+            className={`relative flex flex-col sm:flex-row ${
+              index % 2 !== 0 ? "sm:flex-row-reverse" : ""
+            } gap-0 sm:gap-8 md:gap-12 items-stretch transition-all duration-500 hover:scale-[1.02] shadow-lg hover:shadow-xl rounded-xl sm:rounded-2xl overflow-hidden
+              w-full mx-2 sm:mx-0 md:w-full
+              bg-background
+              p-0 sm:px-8 sm:py-10 md:px-12 md:py-14
+            `}
+            style={{ maxWidth: "100vw", minHeight: "min(340px, 60vw)" }}
           >
-            <div className="w-full md:w-1/2">
-              <div className="relative h-56 sm:h-64 md:h-96 w-full overflow-hidden rounded-xl sm:rounded-2xl shadow-lg">
+            {/* Image section */}
+            <div className="relative w-full sm:w-2/5 h-[160px] sm:h-auto flex-shrink-0 flex-grow-0">
+              <div className="relative h-full w-full min-h-[120px] sm:min-h-0 overflow-hidden rounded-t-xl sm:rounded-t-none sm:rounded-l-2xl shadow-lg">
                 {isLoading ? (
                   <Skeleton className="h-full w-full" />
                 ) : (
@@ -174,7 +180,7 @@ export default function CategoriesPage() {
                     alt={`${category.name} category of STEM toys`}
                     fill
                     priority
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes="(max-width: 640px) 100vw, 40vw"
                     style={{ objectFit: "cover" }}
                     className="transition-transform hover:scale-105 duration-700"
                   />
@@ -182,7 +188,8 @@ export default function CategoriesPage() {
               </div>
             </div>
 
-            <div className="w-full md:w-1/2 space-y-3 sm:space-y-4 md:space-y-6 py-2 sm:py-4">
+            {/* Text/content section */}
+            <div className="w-full sm:w-3/5 flex flex-col justify-center space-y-3 sm:space-y-4 md:space-y-6 p-4 sm:p-8 md:p-10">
               {isLoading ? (
                 <>
                   <Skeleton className="h-6 sm:h-8 w-24 sm:w-32" />

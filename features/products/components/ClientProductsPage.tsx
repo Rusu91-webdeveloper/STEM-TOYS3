@@ -1,20 +1,5 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useTranslation } from "@/lib/i18n";
-import Image from "next/image";
-import Link from "next/link";
-import {
-  ProductCard,
-  ProductGrid,
-  ProductFilters,
-  ProductVariantProvider,
-  type FilterGroup,
-  type PriceRange,
-  type FilterOption,
-} from "@/features/products";
-import type { Product } from "@/types/product";
 import {
   Lightbulb,
   Atom,
@@ -25,9 +10,26 @@ import {
   Rocket,
   Brain,
   LucideIcon,
+  SlidersHorizontal,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  ProductCard,
+  ProductGrid,
+  ProductFilters,
+  ProductVariantProvider,
+  type FilterGroup,
+  type PriceRange,
+  type FilterOption,
+} from "@/features/products";
+import { useTranslation } from "@/lib/i18n";
+import type { Product } from "@/types/product";
 
 interface CategoryIconInfo {
   icon: LucideIcon;
@@ -184,26 +186,10 @@ function ClientProductsPageContent({
 
   // State Management (using initial server-side data)
   const [products] = useState<ProductData[]>(initialProducts);
-  const [isLoading, setIsLoading] = useState(false);
 
-  // State for filters
+  // Calculate filtered products based on all filters applied (must be above paging logic)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
-
-  // Handle hydration and URL parameters
-  useEffect(() => {
-    const categoryParam = urlSearchParams.get("category");
-    console.log("URL category param:", categoryParam);
-
-    if (categoryParam) {
-      const normalizedCategory = normalizeCategory(categoryParam);
-      console.log("Setting selected categories:", [normalizedCategory]);
-      setSelectedCategories([normalizedCategory]);
-    }
-
-    setIsHydrated(true);
-  }, [urlSearchParams]);
-
   const [selectedFilters, setSelectedFilters] = useState<
     Record<string, string[]>
   >({});
@@ -213,204 +199,7 @@ function ClientProductsPageContent({
   });
   const [noPriceFilter, setNoPriceFilter] = useState<boolean>(true); // Default to no price filter
 
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-
-  // Create category filter from initial data
-  const categoryFilter = useMemo(() => {
-    // Track normalized category names to avoid duplicates
-    const categoryMap = new Map<
-      string,
-      {
-        id: string;
-        label: string;
-        count: number;
-        originalName: string;
-      }
-    >();
-
-    // Always ensure all standard STEM categories are added
-    // These categories should always be available in the filter
-    const standardCategories = [
-      "science",
-      "technology",
-      "engineering",
-      "mathematics",
-      "educational-books",
-    ];
-
-    // Get translations for standard categories
-    const categoryTranslations: Record<string, string> = {
-      science: t("scienceCategory", "Știință"),
-      technology: t("technologyCategory", "Tehnologie"),
-      engineering: t("engineeringCategory", "Inginerie"),
-      mathematics: t("mathematicsCategory", "Matematică"),
-      "educational-books": t("educationalBooksCategory", "Cărți educaționale"),
-      engineeringLearning: t(
-        "engineeringLearningCategory",
-        "Inginerie și Învățare"
-      ),
-    };
-
-    // Add all standard categories first
-    standardCategories.forEach(cat => {
-      const normalizedCat = normalizeCategory(cat);
-      categoryMap.set(normalizedCat, {
-        id: normalizedCat,
-        label:
-          categoryTranslations[normalizedCat] ||
-          normalizedCat.charAt(0).toUpperCase() + normalizedCat.slice(1),
-        count: 0,
-        originalName: cat,
-      });
-    });
-
-    // Count products for each category (avoid double counting)
-    products.forEach(product => {
-      // Determine the primary category for this product to avoid double counting
-      let primaryCategory = "";
-      let categoryLabel = "";
-      let originalName = "";
-
-      // Priority order: stemCategory > category.name > attributes.stemCategory
-      if (product.stemCategory) {
-        primaryCategory = normalizeCategory(product.stemCategory);
-        categoryLabel =
-          categoryTranslations[primaryCategory] || product.stemCategory;
-        originalName = product.stemCategory;
-      } else if (product.category?.name) {
-        primaryCategory = normalizeCategory(product.category.name);
-        categoryLabel =
-          categoryTranslations[primaryCategory] || product.category.name;
-        originalName = product.category.name;
-      } else if (product.attributes && typeof product.attributes === "object") {
-        const attrs = product.attributes as Record<string, any>;
-        if (attrs.stemCategory) {
-          primaryCategory = normalizeCategory(attrs.stemCategory);
-          categoryLabel =
-            categoryTranslations[primaryCategory] || attrs.stemCategory;
-          originalName = attrs.stemCategory;
-        }
-      }
-
-      // Only count if we found a valid category
-      if (primaryCategory) {
-        const existingCategory = categoryMap.get(primaryCategory);
-
-        if (existingCategory) {
-          existingCategory.count += 1;
-        } else {
-          categoryMap.set(primaryCategory, {
-            id: primaryCategory,
-            label: categoryLabel,
-            count: 1,
-            originalName: originalName,
-          });
-        }
-      }
-    });
-
-    // Convert map to array
-    const categories = Array.from(categoryMap.values());
-    console.log("Available categories for filter:", categories);
-
-    return {
-      id: "category",
-      name: t("stemCategory", "STEM Category"),
-      options: categories
-        // Sort options: first by standard categories in their defined order, then by name
-        .sort((a, b) => {
-          const aIndex = standardCategories.indexOf(a.id);
-          const bIndex = standardCategories.indexOf(b.id);
-
-          // If both are standard categories, sort by their order in standardCategories
-          if (aIndex >= 0 && bIndex >= 0) {
-            return aIndex - bIndex;
-          }
-
-          // If only a is a standard category, it should come first
-          if (aIndex >= 0) return -1;
-
-          // If only b is a standard category, it should come first
-          if (bIndex >= 0) return 1;
-
-          // If neither is a standard category, sort alphabetically
-          return a.label.localeCompare(b.label);
-        }),
-    };
-  }, [products, t]);
-
-  // Create dynamic filters from product data
-  const dynamicFilters = useMemo(() => {
-    const ageRangeMap = new Map<
-      string,
-      { id: string; label: string; count: number }
-    >();
-    const difficultyMap = new Map<
-      string,
-      { id: string; label: string; count: number }
-    >();
-
-    products.forEach(product => {
-      // Process Age Range
-      if (product.ageRange) {
-        const age = product.ageRange.trim();
-        if (age) {
-          const existing = ageRangeMap.get(age);
-          if (existing) {
-            existing.count++;
-          } else {
-            ageRangeMap.set(age, {
-              id: age,
-              label: `${age} years`, // Use raw value
-              count: 1,
-            });
-          }
-        }
-      }
-
-      // Process Difficulty Level
-      const difficulty = product.attributes?.difficultyLevel as string;
-      if (difficulty) {
-        const d = difficulty.trim().toLowerCase();
-        if (d) {
-          const existing = difficultyMap.get(d);
-          if (existing) {
-            existing.count++;
-          } else {
-            difficultyMap.set(d, {
-              id: d,
-              label: d.charAt(0).toUpperCase() + d.slice(1), // Use raw value
-              count: 1,
-            });
-          }
-        }
-      }
-    });
-
-    const filters: FilterGroup[] = [];
-
-    if (ageRangeMap.size > 0) {
-      filters.push({
-        id: "ageRange",
-        name: t("ageRange"),
-        options: Array.from(ageRangeMap.values()).sort((a, b) =>
-          a.label.localeCompare(b.label)
-        ),
-      });
-    }
-
-    if (difficultyMap.size > 0) {
-      filters.push({
-        id: "difficulty",
-        name: t("difficultyLevel"),
-        options: Array.from(difficultyMap.values()),
-      });
-    }
-
-    return filters;
-  }, [products, t]);
-
-  // Calculate filtered products based on all filters applied
+  // Calculate filtered products based on all filters applied (must be above paging logic)
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
@@ -527,14 +316,14 @@ function ClientProductsPageContent({
             return values.includes(productDifficulty);
           });
         } else if (filterId === "productType") {
-          filtered = filtered.filter(product => {
+          filtered = filtered.filter(product =>
             // Check product attributes for type
-            return values.some(value =>
+            values.some(value =>
               product.attributes?.type
                 ?.toLowerCase()
                 .includes(value.toLowerCase())
-            );
-          });
+            )
+          );
         }
       }
     });
@@ -557,6 +346,237 @@ function ClientProductsPageContent({
     noPriceFilter,
     isHydrated,
   ]);
+
+  // 1. Add paging state for 'Load More' (mobile-first)
+  const PAGE_SIZE = 12; // Number of products per page (tweak as needed)
+  const [page, setPage] = useState(1);
+  const [displayedProducts, setDisplayedProducts] = useState<ProductData[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+
+  // 2. Update displayedProducts when filteredProducts or page changes
+  useEffect(() => {
+    const start = 0;
+    const end = page * PAGE_SIZE;
+    setDisplayedProducts(filteredProducts.slice(start, end));
+    setHasMore(filteredProducts.length > end);
+  }, [filteredProducts, page]);
+
+  // 3. Handler for 'Load More'
+  const handleLoadMore = () => setPage(p => p + 1);
+
+  // 4. Refactor filter panel for mobile: true slide-in from bottom, sticky 'Show Results' button
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // Handle hydration and URL parameters
+  useEffect(() => {
+    const categoryParam = urlSearchParams.get("category");
+    console.log("URL category param:", categoryParam);
+
+    if (categoryParam) {
+      const normalizedCategory = normalizeCategory(categoryParam);
+      console.log("Setting selected categories:", [normalizedCategory]);
+      setSelectedCategories([normalizedCategory]);
+    }
+
+    setIsHydrated(true);
+  }, [urlSearchParams]);
+
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  // Create category filter from initial data
+  const categoryFilter = useMemo(() => {
+    // Track normalized category names to avoid duplicates
+    const categoryMap = new Map<
+      string,
+      {
+        id: string;
+        label: string;
+        count: number;
+        originalName: string;
+      }
+    >();
+
+    // Always ensure all standard STEM categories are added
+    // These categories should always be available in the filter
+    const standardCategories = [
+      "science",
+      "technology",
+      "engineering",
+      "mathematics",
+      "educational-books",
+    ];
+
+    // Get translations for standard categories
+    const categoryTranslations: Record<string, string> = {
+      science: t("scienceCategory", "Știință"),
+      technology: t("technologyCategory", "Tehnologie"),
+      engineering: t("engineeringCategory", "Inginerie"),
+      mathematics: t("mathematicsCategory", "Matematică"),
+      "educational-books": t("educationalBooksCategory", "Cărți educaționale"),
+      engineeringLearning: t(
+        "engineeringLearningCategory",
+        "Inginerie și Învățare"
+      ),
+    };
+
+    // Add all standard categories first
+    standardCategories.forEach(cat => {
+      const normalizedCat = normalizeCategory(cat);
+      categoryMap.set(normalizedCat, {
+        id: normalizedCat,
+        label:
+          categoryTranslations[normalizedCat] ||
+          normalizedCat.charAt(0).toUpperCase() + normalizedCat.slice(1),
+        count: 0,
+        originalName: cat,
+      });
+    });
+
+    // Count products for each category (avoid double counting)
+    products.forEach(product => {
+      // Determine the primary category for this product to avoid double counting
+      let primaryCategory = "";
+      let categoryLabel = "";
+      let originalName = "";
+
+      // Priority order: stemCategory > category.name > attributes.stemCategory
+      if (product.stemCategory) {
+        primaryCategory = normalizeCategory(product.stemCategory);
+        categoryLabel =
+          categoryTranslations[primaryCategory] || product.stemCategory;
+        originalName = product.stemCategory;
+      } else if (product.category?.name) {
+        primaryCategory = normalizeCategory(product.category.name);
+        categoryLabel =
+          categoryTranslations[primaryCategory] || product.category.name;
+        originalName = product.category.name;
+      } else if (product.attributes && typeof product.attributes === "object") {
+        const attrs = product.attributes as Record<string, any>;
+        if (attrs.stemCategory) {
+          primaryCategory = normalizeCategory(attrs.stemCategory);
+          categoryLabel =
+            categoryTranslations[primaryCategory] || attrs.stemCategory;
+          originalName = attrs.stemCategory;
+        }
+      }
+
+      // Only count if we found a valid category
+      if (primaryCategory) {
+        const existingCategory = categoryMap.get(primaryCategory);
+
+        if (existingCategory) {
+          existingCategory.count += 1;
+        } else {
+          categoryMap.set(primaryCategory, {
+            id: primaryCategory,
+            label: categoryLabel,
+            count: 1,
+            originalName,
+          });
+        }
+      }
+    });
+
+    // Convert map to array
+    const categories = Array.from(categoryMap.values());
+    console.log("Available categories for filter:", categories);
+
+    return {
+      id: "category",
+      name: t("stemCategory", "STEM Category"),
+      options: categories
+        // Sort options: first by standard categories in their defined order, then by name
+        .sort((a, b) => {
+          const aIndex = standardCategories.indexOf(a.id);
+          const bIndex = standardCategories.indexOf(b.id);
+
+          // If both are standard categories, sort by their order in standardCategories
+          if (aIndex >= 0 && bIndex >= 0) {
+            return aIndex - bIndex;
+          }
+
+          // If only a is a standard category, it should come first
+          if (aIndex >= 0) return -1;
+
+          // If only b is a standard category, it should come first
+          if (bIndex >= 0) return 1;
+
+          // If neither is a standard category, sort alphabetically
+          return a.label.localeCompare(b.label);
+        }),
+    };
+  }, [products, t]);
+
+  // Create dynamic filters from product data
+  const dynamicFilters = useMemo(() => {
+    const ageRangeMap = new Map<
+      string,
+      { id: string; label: string; count: number }
+    >();
+    const difficultyMap = new Map<
+      string,
+      { id: string; label: string; count: number }
+    >();
+
+    products.forEach(product => {
+      // Process Age Range
+      if (product.ageRange) {
+        const age = product.ageRange.trim();
+        if (age) {
+          const existing = ageRangeMap.get(age);
+          if (existing) {
+            existing.count++;
+          } else {
+            ageRangeMap.set(age, {
+              id: age,
+              label: `${age} years`, // Use raw value
+              count: 1,
+            });
+          }
+        }
+      }
+
+      // Process Difficulty Level
+      const difficulty = product.attributes?.difficultyLevel as string;
+      if (difficulty) {
+        const d = difficulty.trim().toLowerCase();
+        if (d) {
+          const existing = difficultyMap.get(d);
+          if (existing) {
+            existing.count++;
+          } else {
+            difficultyMap.set(d, {
+              id: d,
+              label: d.charAt(0).toUpperCase() + d.slice(1), // Use raw value
+              count: 1,
+            });
+          }
+        }
+      }
+    });
+
+    const filters: FilterGroup[] = [];
+
+    if (ageRangeMap.size > 0) {
+      filters.push({
+        id: "ageRange",
+        name: t("ageRange"),
+        options: Array.from(ageRangeMap.values()).sort((a, b) =>
+          a.label.localeCompare(b.label)
+        ),
+      });
+    }
+
+    if (difficultyMap.size > 0) {
+      filters.push({
+        id: "difficulty",
+        name: t("difficultyLevel"),
+        options: Array.from(difficultyMap.values()),
+      });
+    }
+
+    return filters;
+  }, [products, t]);
 
   // Update the URL when filters change
   useEffect(() => {
@@ -591,11 +611,10 @@ function ClientProductsPageContent({
         return prev.filter(
           cat => normalizeCategory(cat) !== normalizedCategoryId
         );
-      } else {
-        // Add this category, replacing any existing ones
-        // This ensures only one category is selected at a time
-        return [normalizedCategoryId];
       }
+      // Add this category, replacing any existing ones
+      // This ensures only one category is selected at a time
+      return [normalizedCategoryId];
     });
   };
 
@@ -609,12 +628,11 @@ function ClientProductsPageContent({
           ...prev,
           [filterId]: newValues,
         };
-      } else {
-        return {
-          ...prev,
-          [filterId]: [...currentValues, optionId],
-        };
       }
+      return {
+        ...prev,
+        [filterId]: [...currentValues, optionId],
+      };
     });
   };
 
@@ -642,12 +660,11 @@ function ClientProductsPageContent({
   // Get the active category for the header
   const activeCategory =
     selectedCategories.length === 1
-      ? categoryFilter.options.find(c => {
-          // Use normalizeCategory for consistent category matching
-          return (
+      ? categoryFilter.options.find(
+          c =>
+            // Use normalizeCategory for consistent category matching
             normalizeCategory(c.id) === normalizeCategory(selectedCategories[0])
-          );
-        })
+        )
       : null;
 
   // Get appropriate category info
@@ -924,6 +941,18 @@ function ClientProductsPageContent({
         </div>
       </div>
 
+      {/* After the category icon row, add a Filter button for mobile/tablet */}
+      <div className="md:hidden flex justify-center py-2">
+        <Button
+          className="w-full max-w-xs rounded-full bg-primary text-white text-base font-semibold py-3 shadow-md"
+          onClick={() => setMobileFiltersOpen(true)}
+          aria-label="Open filters"
+        >
+          <SlidersHorizontal className="inline-block mr-2 h-5 w-5" />
+          {t("filterOptions", "Filtrează")}
+        </Button>
+      </div>
+
       {/* STEM Benefits Section - Made more compact and only show when no category is selected */}
       {!activeCategory && (
         <div className="bg-white py-6 sm:py-8">
@@ -968,7 +997,8 @@ function ClientProductsPageContent({
 
         <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
           {/* Sidebar with filters */}
-          <div className="w-full md:w-64 shrink-0">
+          {/* In the sidebar filter section, only render on desktop */}
+          <div className="w-full md:w-64 shrink-0 hidden md:block">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 sticky top-20 sm:top-24">
               <h3 className="text-sm sm:text-base font-bold mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2">
                 <div className="p-1 sm:p-1.5 rounded-full bg-primary/10">
@@ -1005,6 +1035,8 @@ function ClientProductsPageContent({
                 onPriceChange={handlePriceChange}
                 onNoPriceFilterChange={handleNoPriceFilterChange}
                 onClearFilters={handleClearFilters}
+                // Pass handler to close mobile filter panel
+                onCloseMobile={() => setMobileFiltersOpen(false)}
               />
             </div>
           </div>
@@ -1054,10 +1086,10 @@ function ClientProductsPageContent({
               {viewMode === "grid" ? (
                 <div className="bg-gray-50/50 rounded-xl p-2 sm:p-4">
                   <ProductGrid
-                    products={filteredProducts.map(product => {
+                    products={displayedProducts.map(product => {
                       // If the product name or description contains raw translation keys,
                       // replace them with properly translated content
-                      let modifiedProduct = { ...product };
+                      const modifiedProduct = { ...product };
 
                       // Check if the product has raw translation keys in name or description
                       if (
@@ -1077,7 +1109,7 @@ function ClientProductsPageContent({
                 </div>
               ) : (
                 <div className="bg-gray-50/50 rounded-xl p-2 sm:p-4 space-y-2 sm:space-y-3">
-                  {filteredProducts.map(product => {
+                  {displayedProducts.map(product => {
                     // Get appropriate content for this product if it contains raw translation keys
                     let displayName = product.name;
                     let displayDescription = product.description;
@@ -1183,6 +1215,17 @@ function ClientProductsPageContent({
               )}
             </div>
 
+            {hasMore && (
+              <div className="flex justify-center mt-4 sm:mt-6">
+                <Button
+                  onClick={handleLoadMore}
+                  className="rounded-full px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium bg-primary text-white hover:bg-primary/90 transition-colors"
+                >
+                  {t("loadMore")}
+                </Button>
+              </div>
+            )}
+
             {filteredProducts.length === 0 && (
               <div className="text-center py-8 sm:py-12 bg-white rounded-xl shadow-sm border border-gray-100">
                 <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 mb-2 sm:mb-3 bg-gray-100 rounded-full flex items-center justify-center">
@@ -1219,6 +1262,28 @@ function ClientProductsPageContent({
           </div>
         </div>
       </div>
+
+      {/* At the root of the component, render ProductFilters for mobile as a modal, only when mobileFiltersOpen is true */}
+      {mobileFiltersOpen && (
+        <ProductFilters
+          categories={categoryFilter}
+          filters={dynamicFilters}
+          priceRange={{
+            min: 0,
+            max: 500,
+            current: priceRangeFilter,
+          }}
+          selectedCategories={selectedCategories}
+          selectedFilters={selectedFilters}
+          noPriceFilter={noPriceFilter}
+          onCategoryChange={handleCategoryChange}
+          onFilterChange={handleFilterChange}
+          onPriceChange={handlePriceChange}
+          onNoPriceFilterChange={handleNoPriceFilterChange}
+          onClearFilters={handleClearFilters}
+          onCloseMobile={() => setMobileFiltersOpen(false)}
+        />
+      )}
     </ProductVariantProvider>
   );
 }

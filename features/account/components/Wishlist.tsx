@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import { Trash, Heart, ShoppingCart, Share2, AlertCircle } from "lucide-react";
 import Image from "next/image";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import Link from "next/link";
+import React, { useState } from "react";
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/use-toast";
-import { Trash, Heart, ShoppingCart, Share2, AlertCircle } from "lucide-react";
-import { useTranslation } from "@/lib/i18n";
 import { useShoppingCart } from "@/features/cart";
 import { useCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
 
 // Define wishlist item interface
 interface WishlistItem {

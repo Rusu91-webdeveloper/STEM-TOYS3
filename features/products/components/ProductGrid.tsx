@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import { Grid2X2, List } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { Product } from "@/types/product";
-import { ProductCard } from "./ProductCard";
+import React, { useState, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -14,6 +12,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+import type { Product } from "@/types/product";
+
+import { ProductCard } from "./ProductCard";
 
 interface ProductGridProps {
   products: Product[];
@@ -123,9 +125,9 @@ export function ProductGrid({
 
   const sortedProducts = sortProducts(products, sortOption);
 
-  // Generate grid template columns classes based on breakpoints
+  // 1. Ensure grid is 2 columns on mobile (grid-cols-2)
   const gridColsClass = cn(
-    `grid-cols-1`,
+    `grid-cols-2`, // Mobile-first: 2 columns
     columns.sm && `sm:grid-cols-${columns.sm}`,
     columns.md && `md:grid-cols-${columns.md}`,
     columns.lg && `lg:grid-cols-${columns.lg}`,
@@ -138,36 +140,39 @@ export function ProductGrid({
         <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:justify-between sm:items-center">
           {showSortOptions && (
             <div className="w-full sm:w-48">
-              <Select
-                value={sortOption}
-                onValueChange={setSortOption}>
+              <Select value={sortOption} onValueChange={setSortOption}>
                 <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm">
                   <SelectValue placeholder={t("sortBy")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem
                     value="featured"
-                    className="text-xs sm:text-sm hover:bg-gray-100">
+                    className="text-xs sm:text-sm hover:bg-gray-100"
+                  >
                     {t("featured")}
                   </SelectItem>
                   <SelectItem
                     value="price-low"
-                    className="text-xs sm:text-sm hover:bg-gray-100">
+                    className="text-xs sm:text-sm hover:bg-gray-100"
+                  >
                     {t("priceLowToHigh")}
                   </SelectItem>
                   <SelectItem
                     value="price-high"
-                    className="text-xs sm:text-sm hover:bg-gray-100">
+                    className="text-xs sm:text-sm hover:bg-gray-100"
+                  >
                     {t("priceHighToLow")}
                   </SelectItem>
                   <SelectItem
                     value="newest"
-                    className="text-xs sm:text-sm hover:bg-gray-100">
+                    className="text-xs sm:text-sm hover:bg-gray-100"
+                  >
                     {t("newest")}
                   </SelectItem>
                   <SelectItem
                     value="rating"
-                    className="text-xs sm:text-sm hover:bg-gray-100">
+                    className="text-xs sm:text-sm hover:bg-gray-100"
+                  >
                     {t("topRated")}
                   </SelectItem>
                 </SelectContent>
@@ -185,7 +190,8 @@ export function ProductGrid({
                 size="sm"
                 className="px-1.5 sm:px-2 h-7 sm:h-8 shadow-md hover:shadow-lg transition-shadow duration-300"
                 onClick={() => setLayout("grid")}
-                aria-label={t("gridView")}>
+                aria-label={t("gridView")}
+              >
                 <Grid2X2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
               <Button
@@ -193,7 +199,8 @@ export function ProductGrid({
                 size="sm"
                 className="px-1.5 sm:px-2 h-7 sm:h-8 shadow-md hover:shadow-lg transition-shadow duration-300"
                 onClick={() => setLayout("list")}
-                aria-label={t("listView")}>
+                aria-label={t("listView")}
+              >
                 <List className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
             </div>

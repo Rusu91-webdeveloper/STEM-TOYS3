@@ -2,8 +2,9 @@
  * @jest-environment node
  */
 
-import { GET, POST } from "@/app/api/cart/route";
 import { NextRequest } from "next/server";
+
+import { GET, POST } from "@/app/api/cart/route";
 
 // Mock dependencies
 jest.mock("@/lib/db", () => ({

@@ -1,7 +1,5 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import {
   ShoppingCart,
   Clock,
@@ -10,9 +8,11 @@ import {
   Gift,
   AlertTriangle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -20,12 +20,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { toast } from "@/hooks/use-toast";
-import { useTranslation } from "@/lib/i18n";
-import { useCurrency } from "@/lib/currency";
 import { useCart } from "@/features/cart/context/CartContext";
+import { toast } from "@/hooks/use-toast";
 import { CART, TIME } from "@/lib/constants";
+import { useCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
 
 interface AbandonmentPreventionProps {
   enabled?: boolean;

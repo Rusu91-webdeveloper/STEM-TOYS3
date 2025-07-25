@@ -4,6 +4,7 @@
  */
 
 import type { CartItem } from "../context/CartContext";
+
 import { fetchCart, saveCart } from "./cartApi";
 
 // Throttling mechanism to prevent rapid sync calls

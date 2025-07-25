@@ -2,15 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Container } from "@/components/ui/container";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Container } from "@/components/ui/container";
 import {
   Icon,
   StatusIcons,
   CommunicationIcons,
 } from "@/components/ui/icon-system";
+import { Separator } from "@/components/ui/separator";
 
 export default function GDPRPage() {
   return (

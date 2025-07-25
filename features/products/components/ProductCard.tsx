@@ -1,14 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import React, { useEffect, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { Product } from "@/types/product";
-import { Badge } from "@/components/ui/badge";
+
 import { ProductAddToCartButton } from "./ProductAddToCartButton";
-import { StarIcon } from "lucide-react";
-import { useCurrency } from "@/lib/currency";
+
+
 
 interface ProductCardProps {
   product: Product;

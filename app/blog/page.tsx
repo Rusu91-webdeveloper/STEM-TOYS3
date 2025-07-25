@@ -8,6 +8,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n";
+import { Container } from "@/components/ui/container";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { SkeletonCard } from "@/components/ui/skeleton";
 
 interface BlogPost {
   id: string;
@@ -19,6 +24,7 @@ interface BlogPost {
   publishedAt: string;
   author: {
     name: string | null;
+    avatarUrl?: string;
   };
   category: {
     id: string;
@@ -154,208 +160,162 @@ export default function BlogPage() {
     setActiveCategoryId("all");
   };
 
-  return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="relative h-[250px] sm:h-[300px] md:h-[400px] flex items-center">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/category_banner_science_01.png"
-            alt="STEM Toys Blog - Educational articles and insights"
-            fill
-            sizes="100vw"
-            style={{ objectFit: "cover" }}
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/70 via-purple-900/60 to-pink-900/70" />
-        </div>
-        <div className="container relative z-10 text-white px-3 sm:px-4 lg:px-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4 drop-shadow-md">
-            {t("blogTitle")}
-          </h1>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-3 sm:mb-6 max-w-2xl leading-relaxed drop-shadow-sm">
-            {t("blogDescription")}
-          </p>
+  // --- HERO SECTION ---
+  const Hero = () => (
+    <section className="relative w-full min-h-[320px] flex items-center justify-center bg-black">
+      <Image
+        src="/images/category_banner_science_01.png"
+        alt="STEM Toys Blog - Educational articles and insights"
+        fill
+        sizes="100vw"
+        style={{ objectFit: "cover" }}
+        priority
+        className="z-0"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-indigo-900/80 z-10" />
+      <Container className="relative z-20 flex flex-col items-center justify-center py-16 md:py-24 text-center text-white">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4 drop-shadow-xl">
+          {t("blogTitle")}
+        </h1>
+        <p className="text-base sm:text-lg md:text-2xl max-w-2xl mb-6 drop-shadow-md">
+          {t("blogDescription")}
+        </p>
+      </Container>
+    </section>
+  );
 
-          {/* Language switch button */}
-          <div className="mb-4">
-            <Button
-              onClick={toggleLanguage}
-              className="bg-white/20 hover:bg-white/30 text-white border border-white/30 shadow-md transition-all"
-              size="sm">
-              <span className="flex items-center gap-2">
-                <span className="text-lg">
-                  {language === "ro" ? "🇷🇴" : "🇬🇧"}
-                </span>
-                <span>
-                  {language === "ro"
-                    ? "Switch to English"
-                    : "Schimbă în Română"}
-                </span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="ml-1">
-                  <path d="m18 7-6 6-6-6" />
-                </svg>
-              </span>
-            </Button>
-          </div>
-
-          <div className="mb-3 sm:mb-4">
-            <h3 className="text-sm sm:text-lg font-semibold mb-1.5 sm:mb-2">
-              STEM Categories
-            </h3>
-            <div className="flex flex-wrap gap-1.5 sm:gap-3">
-              {stemCategories.map((category) => (
-                <Button
-                  key={category.key}
-                  className={`bg-gradient-to-r ${category.color} hover:opacity-90 text-white border-none shadow-md transition-all text-xs sm:text-sm h-7 sm:h-8 px-2 sm:px-3 py-0 ${
-                    activeCategory === category.key ? "ring-2 ring-white" : ""
-                  }`}
-                  size="sm"
-                  onClick={() => {
-                    setActiveCategory(category.key);
-                    if (category.key === "all") {
-                      setActiveCategoryId("all"); // Reset category filter when selecting "All"
-                    }
-                  }}>
-                  {category.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {categories.length > 0 && (
-            <div>
-              <h3 className="text-sm sm:text-lg font-semibold mb-1.5 sm:mb-2">
-                Content Categories
-              </h3>
-              <div className="flex flex-wrap gap-1.5 sm:gap-3">
-                <Button
-                  className={`bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 hover:opacity-90 text-white border-none shadow-md transition-all text-xs sm:text-sm h-7 sm:h-8 px-2 sm:px-3 py-0 ${
-                    activeCategoryId === "all" ? "ring-2 ring-white" : ""
-                  }`}
-                  size="sm"
-                  onClick={() => setActiveCategoryId("all")}>
-                  All Categories
-                </Button>
-                {categories.map((category) => (
-                  <Button
-                    key={category.id}
-                    className={`bg-gradient-to-r from-purple-600 to-purple-700 hover:opacity-90 text-white border-none shadow-md transition-all text-xs sm:text-sm h-7 sm:h-8 px-2 sm:px-3 py-0 ${
-                      activeCategoryId === category.id
-                        ? "ring-2 ring-white"
-                        : ""
-                    }`}
-                    size="sm"
-                    onClick={() => {
-                      setActiveCategoryId(category.id);
-                      if (activeCategory !== "all") {
-                        setActiveCategory("all"); // Reset STEM filter when selecting a category
-                      }
-                    }}>
-                    {category.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {(activeCategory !== "all" || activeCategoryId !== "all") && (
-            <div className="mt-3 sm:mt-4">
+  // --- CATEGORY BAR ---
+  const CategoryBar = () => (
+    <nav className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 shadow-sm">
+      <Container className="py-2 flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-indigo-200">
+        {stemCategories.map(category => (
+          <Button
+            key={category.key}
+            className={`rounded-full px-4 py-1 text-sm font-medium transition-all ${activeCategory === category.key ? "bg-indigo-700 text-white" : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"}`}
+            onClick={() => {
+              setActiveCategory(category.key);
+              if (category.key === "all") setActiveCategoryId("all");
+            }}
+            aria-pressed={activeCategory === category.key}
+          >
+            {category.label}
+          </Button>
+        ))}
+        {categories.length > 0 && (
+          <>
+            <span className="mx-2 text-gray-400">|</span>
+            {categories.map(category => (
               <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm h-7 sm:h-8 px-2 sm:px-3 py-0"
-                onClick={resetFilters}>
-                Clear Filters
+                key={category.id}
+                className={`rounded-full px-4 py-1 text-sm font-medium transition-all ${activeCategoryId === category.id ? "bg-purple-700 text-white" : "bg-purple-100 text-purple-700 hover:bg-purple-200"}`}
+                onClick={() => {
+                  setActiveCategoryId(category.id);
+                  if (activeCategory !== "all") setActiveCategory("all");
+                }}
+                aria-pressed={activeCategoryId === category.id}
+              >
+                {category.name}
               </Button>
-            </div>
-          )}
+            ))}
+          </>
+        )}
+      </Container>
+    </nav>
+  );
+
+  // --- BLOG GRID ---
+  const BlogGrid = () => (
+    <Container className="py-10">
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
-      </section>
-
-      {/* Featured Posts */}
-      <section className="py-6 sm:py-8 md:py-12 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50">
-        <div className="container px-3 sm:px-4 lg:px-8 mx-auto">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 md:mb-8 text-indigo-900">
-            {activeCategory !== "all"
-              ? `${stemCategories.find((c) => c.key === activeCategory)?.label} Articles`
-              : activeCategoryId !== "all"
-                ? `${categories.find((c) => c.id === activeCategoryId)?.name || ""} Articles`
-                : t("latestArticles")}
-          </h2>
-
-          {isLoading ? (
-            <div className="text-center py-6 sm:py-10">
-              Loading blog posts...
-            </div>
-          ) : error ? (
-            <div className="text-center py-6 sm:py-10 text-red-500">
-              {error}
-            </div>
-          ) : blogPosts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mx-auto max-w-7xl">
-              {blogPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className="bg-white rounded-lg overflow-hidden shadow-md border border-indigo-100 hover:shadow-xl hover:border-indigo-200 transition-all transform hover:-translate-y-1 duration-300">
-                  <div className="relative h-40 sm:h-48 w-full">
-                    <Image
-                      src={
-                        post.coverImage || getDefaultImage(post.stemCategory)
-                      }
-                      alt={post.title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      style={{ objectFit: "cover" }}
-                      className="transition-transform hover:scale-105 duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                    <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3">
-                      <span className="inline-block px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 font-medium shadow-sm border border-indigo-200/50">
-                        {post.category?.name || post.stemCategory}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-3 sm:p-4">
-                    <Link href={`/blog/post/${post.slug}`}>
-                      <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 hover:text-indigo-700 transition-colors line-clamp-2">
-                        {post.title}
-                      </h3>
-                    </Link>
-                    <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 line-clamp-2">
-                      {post.excerpt}
-                    </p>
-                    <div className="flex justify-between items-center text-[10px] sm:text-xs text-gray-500">
-                      <span className="truncate max-w-[120px]">
-                        {post.author?.name || "TechTots Team"}
-                      </span>
-                      <span>
-                        {post.publishedAt
-                          ? format(new Date(post.publishedAt), "MMM d, yyyy")
-                          : ""}
-                      </span>
-                    </div>
-                  </div>
+      ) : error ? (
+        <div className="text-center text-red-500 py-12 text-lg font-semibold">
+          {error}
+        </div>
+      ) : blogPosts.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {blogPosts.map(post => (
+            <Card
+              key={post.id}
+              className="flex flex-col h-full group transition-shadow hover:shadow-xl"
+            >
+              <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
+                <Image
+                  src={post.coverImage || getDefaultImage(post.stemCategory)}
+                  alt={post.title}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute top-3 left-3">
+                  <Badge
+                    variant="secondary"
+                    className="bg-white/80 text-indigo-700 font-bold shadow"
+                  >
+                    {post.category?.name || post.stemCategory}
+                  </Badge>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-6 sm:py-10 text-sm sm:text-base">
-              No blog posts found in this category. Check back soon!
-            </div>
-          )}
+              </div>
+              <CardContent className="flex flex-col flex-1 p-5">
+                <Link href={`/blog/post/${post.slug}`} className="flex-1 group">
+                  <h3 className="text-lg font-bold mb-2 group-hover:text-indigo-700 transition-colors line-clamp-2">
+                    {post.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                    {post.excerpt}
+                  </p>
+                </Link>
+                <div className="flex items-center gap-3 mt-auto pt-2 border-t border-gray-100">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src={post.author?.avatarUrl || undefined}
+                      alt={post.author?.name || "Author"}
+                    />
+                    <AvatarFallback>
+                      {post.author?.name?.[0] || "T"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm text-gray-700 font-medium truncate max-w-[100px]">
+                    {post.author?.name || "TechTots Team"}
+                  </span>
+                  <span className="ml-auto text-xs text-gray-400">
+                    {post.publishedAt
+                      ? format(new Date(post.publishedAt), "MMM d, yyyy")
+                      : ""}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      </section>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-24">
+          <Image
+            src="/images/empty-state.svg"
+            alt="No blog posts"
+            width={180}
+            height={180}
+            className="mb-6"
+          />
+          <h2 className="text-2xl font-bold mb-2">No blog posts found</h2>
+          <p className="text-gray-500 mb-4">
+            Check back soon for new articles and insights!
+          </p>
+        </div>
+      )}
+    </Container>
+  );
+
+  // --- MAIN RENDER ---
+  return (
+    <div className="flex flex-col min-h-screen bg-white">
+      <Hero />
+      <CategoryBar />
+      <BlogGrid />
     </div>
   );
 }

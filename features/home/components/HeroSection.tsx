@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
+import React from "react";
 
 interface HeroSectionProps {
   t: (key: string, defaultValue?: string) => string;
@@ -17,8 +17,7 @@ interface HeroSectionProps {
 // - No horizontal scrolling at any breakpoint
 // - Comments explain all major changes and rationale
 
-const HeroSectionComponent = ({ t }: HeroSectionProps) => {
-  return (
+const HeroSectionComponent = ({ t }: HeroSectionProps) => (
     <section
       className="relative flex items-center justify-center min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] max-h-[900px] overflow-hidden"
       aria-label={t("heroSection", "Homepage Hero Section")}
@@ -87,6 +86,5 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
       </div>
     </section>
   );
-};
 
 export const HeroSection = React.memo(HeroSectionComponent);

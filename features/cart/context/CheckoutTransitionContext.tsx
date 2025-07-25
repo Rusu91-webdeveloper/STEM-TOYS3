@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import React, {
   createContext,
   useState,
@@ -7,8 +9,7 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+
 import { CheckoutTransition } from "../components/CheckoutTransition";
 
 type TransitionDestination = "checkout" | "login" | null;

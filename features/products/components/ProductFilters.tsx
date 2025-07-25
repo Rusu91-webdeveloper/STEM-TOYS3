@@ -1,20 +1,21 @@
 "use client";
 
+import { X, SlidersHorizontal } from "lucide-react";
 import React, { useState } from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, SlidersHorizontal } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { useCurrency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 export interface FilterOption {
   id: string;
@@ -49,6 +50,7 @@ export interface ProductFiltersProps {
   onPriceChange?: (range: PriceRange) => void;
   onNoPriceFilterChange?: (checked: boolean) => void;
   onClearFilters?: () => void;
+  onCloseMobile?: () => void;
   className?: string;
 }
 
@@ -64,9 +66,10 @@ export function ProductFilters({
   onPriceChange,
   onNoPriceFilterChange,
   onClearFilters,
+  onCloseMobile,
   className,
 }: ProductFiltersProps) {
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  // Remove local mobileFiltersOpen state (should be controlled by parent)
   const [localPriceRange, setLocalPriceRange] = useState<PriceRange>(
     priceRange?.current || {
       min: priceRange?.min || 0,
@@ -115,7 +118,8 @@ export function ProductFilters({
             variant="ghost"
             size="sm"
             onClick={onClearFilters}
-            className="h-6 sm:h-8 text-xs py-0">
+            className="h-6 sm:h-8 text-xs py-0"
+          >
             Clear All
           </Button>
         </div>
@@ -123,13 +127,11 @@ export function ProductFilters({
 
       {/* Categories filter */}
       {categories && categories.options.length > 0 && (
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-3 sm:space-y-4 hidden md:block">
           <h3 className="text-xs sm:text-sm font-medium">{categories.name}</h3>
           <div className="space-y-1.5 sm:space-y-2">
-            {categories.options.map((category) => (
-              <div
-                key={category.id}
-                className="flex items-center space-x-2">
+            {categories.options.map(category => (
+              <div key={category.id} className="flex items-center space-x-2">
                 <Checkbox
                   id={`category-${category.id}`}
                   checked={selectedCategories.includes(category.id)}
@@ -138,7 +140,8 @@ export function ProductFilters({
                 />
                 <Label
                   htmlFor={`category-${category.id}`}
-                  className="flex-grow text-xs sm:text-sm">
+                  className="flex-grow text-xs sm:text-sm"
+                >
                   {category.label}
                 </Label>
                 {category.count !== undefined && (
@@ -167,7 +170,8 @@ export function ProductFilters({
             />
             <Label
               htmlFor="no-price-filter"
-              className="text-xs sm:text-sm font-medium">
+              className="text-xs sm:text-sm font-medium"
+            >
               No price filter
             </Label>
           </div>
@@ -186,7 +190,7 @@ export function ProductFilters({
                     value={localPriceRange.min}
                     min={priceRange.min}
                     max={localPriceRange.max - 1}
-                    onChange={(e) => {
+                    onChange={e => {
                       const value = Number(e.target.value);
                       if (
                         !isNaN(value) &&
@@ -211,7 +215,7 @@ export function ProductFilters({
                     value={localPriceRange.max}
                     min={localPriceRange.min + 1}
                     max={priceRange.max}
-                    onChange={(e) => {
+                    onChange={e => {
                       const value = Number(e.target.value);
                       if (
                         !isNaN(value) &&
@@ -255,20 +259,20 @@ export function ProductFilters({
         <Accordion
           type="multiple"
           className="space-y-1 sm:space-y-2 w-full"
-          defaultValue={filters.map((f) => f.id)}>
-          {filters.map((filter) => (
-            <AccordionItem
-              key={filter.id}
-              value={filter.id}>
+          defaultValue={filters.map(f => f.id)}
+        >
+          {filters.map(filter => (
+            <AccordionItem key={filter.id} value={filter.id}>
               <AccordionTrigger className="text-xs sm:text-sm font-medium py-2 sm:py-3">
                 {filter.name}
               </AccordionTrigger>
               <AccordionContent className="pt-1 sm:pt-2 pb-3 sm:pb-4">
                 <div className="space-y-1.5 sm:space-y-2">
-                  {filter.options.map((option) => (
+                  {filter.options.map(option => (
                     <div
                       key={option.id}
-                      className="flex items-center space-x-2">
+                      className="flex items-center space-x-2"
+                    >
                       <Checkbox
                         id={`${filter.id}-${option.id}`}
                         checked={
@@ -282,7 +286,8 @@ export function ProductFilters({
                       />
                       <Label
                         htmlFor={`${filter.id}-${option.id}`}
-                        className="flex-grow text-xs sm:text-sm">
+                        className="flex-grow text-xs sm:text-sm"
+                      >
                         {option.label}
                       </Label>
                       {option.count !== undefined && (
@@ -308,14 +313,15 @@ export function ProductFilters({
     return (
       <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
         {selectedCategories.map((categoryId, index) => {
-          const category = categories?.options.find((c) => c.id === categoryId);
+          const category = categories?.options.find(c => c.id === categoryId);
           if (!category) return null;
 
           return (
             <Badge
               key={`category-${categoryId}-${index}`}
               variant="outline"
-              className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6">
+              className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6"
+            >
               {category.label}
               <X
                 className="h-2.5 w-2.5 sm:h-3 sm:w-3 cursor-pointer"
@@ -327,15 +333,16 @@ export function ProductFilters({
 
         {Object.entries(selectedFilters).map(([filterId, optionIds]) =>
           optionIds.map((optionId, index) => {
-            const filterGroup = filters.find((f) => f.id === filterId);
-            const option = filterGroup?.options.find((o) => o.id === optionId);
+            const filterGroup = filters.find(f => f.id === filterId);
+            const option = filterGroup?.options.find(o => o.id === optionId);
             if (!filterGroup || !option) return null;
 
             return (
               <Badge
                 key={`${filterId}-${optionId}-${index}`}
                 variant="outline"
-                className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6">
+                className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6"
+              >
                 {option.label}
                 <X
                   className="h-2.5 w-2.5 sm:h-3 sm:w-3 cursor-pointer"
@@ -351,7 +358,8 @@ export function ProductFilters({
             priceRange?.current.max !== priceRange?.max) && (
             <Badge
               variant="outline"
-              className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6">
+              className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6"
+            >
               {formatPrice(priceRange!.current.min)} -{" "}
               {formatPrice(priceRange!.current.max)}
               <X
@@ -376,68 +384,152 @@ export function ProductFilters({
 
       {/* Mobile filters */}
       <div className="md:hidden">
-        <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-1.5 sm:gap-2 h-7 sm:h-8 text-xs sm:text-sm py-0"
-            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}>
-            <SlidersHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            Filters
-            {activeFilterCount > 0 && (
-              <Badge
-                variant="secondary"
-                className="ml-1 h-4 sm:h-5 w-4 sm:w-5 p-0 flex items-center justify-center text-[10px] sm:text-xs">
-                {activeFilterCount}
-              </Badge>
-            )}
-          </Button>
-
-          {activeFilterCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClearFilters}
-              className="text-xs h-7 py-0">
-              Clear All
-            </Button>
-          )}
-        </div>
-
-        {renderSelectedFilters()}
-
-        {mobileFiltersOpen && (
-          <div className="fixed inset-0 z-50 bg-background/95 pt-14 sm:pt-16 pb-16 sm:pb-20 px-3 sm:px-6 lg:px-8 overflow-y-auto">
-            <div className="max-w-2xl mx-auto">
+        {/* 1. Refactor mobile filter panel: slide-in from bottom, sticky button */}
+        {/* 1. Make overlay fully opaque and high z-index for mobile/tablet filter panel */}
+        {/* Only render the overlay when mobileFiltersOpen is true */}
+        {/* In the mobile filter overlay: */}
+        {onCloseMobile && (
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30">
+            <div className="w-full max-w-2xl bg-white rounded-t-2xl shadow-lg pt-6 pb-24 px-3 sm:px-6 lg:px-8 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <h2 className="text-base sm:text-lg font-semibold">Filters</h2>
                 <Button
                   variant="ghost"
                   size="sm"
+                  // Improved: Use onCloseMobile, larger touch area, better accessibility
+                  className="h-12 w-12 p-0 flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
+                  onClick={() => {
+                    if (onCloseMobile) onCloseMobile();
+                  }}
+                  aria-label="Close filters"
+                  tabIndex={0}
+                >
+                  <X className="h-6 w-6 sm:h-7 sm:w-7" />
+                </Button>
+              </div>
+
+              {/* 2. Add ARIA labels to filter button and panel */}
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h3
+                  className="text-base sm:text-lg font-semibold"
+                  id="mobile-filters-heading"
+                >
+                  Filters
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="h-8 w-8 p-0"
-                  onClick={() => setMobileFiltersOpen(false)}>
+                  onClick={() => onCloseMobile?.()}
+                  aria-label="Close filters"
+                >
                   <X className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </div>
 
+              {/* 3. Hide category checkboxes on phone/tablet, show only on desktop */}
+              {categories && categories.options.length > 0 && (
+                <div className="space-y-3 sm:space-y-4 hidden md:block">
+                  <h3 className="text-xs sm:text-sm font-medium">
+                    {categories.name}
+                  </h3>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    {categories.options.map(category => (
+                      <div
+                        key={category.id}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={`category-${category.id}`}
+                          checked={selectedCategories.includes(category.id)}
+                          onCheckedChange={() =>
+                            onCategoryChange?.(category.id)
+                          }
+                          className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                        />
+                        <Label
+                          htmlFor={`category-${category.id}`}
+                          className="flex-grow text-xs sm:text-sm"
+                        >
+                          {category.label}
+                        </Label>
+                        {category.count !== undefined && (
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">
+                            ({category.count})
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 3. Make all controls large/touch-friendly */}
               {filterContent}
 
-              <div className="mt-6 sm:mt-8 flex gap-3 sm:gap-4">
+              {/* 2. Sticky footer for Apply/Cancel on mobile/tablet */}
+              <div className="md:hidden fixed left-0 right-0 bottom-0 z-50 bg-white border-t border-gray-200 flex gap-3 p-4 shadow-lg">
                 <Button
                   variant="outline"
-                  className="flex-1 text-xs sm:text-sm h-9 sm:h-10"
-                  onClick={() => setMobileFiltersOpen(false)}>
+                  className="flex-1 text-base h-12"
+                  onClick={() => {
+                    if (onCloseMobile) onCloseMobile();
+                  }}
+                  aria-label="Cancel filters"
+                >
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 text-xs sm:text-sm h-9 sm:h-10"
-                  onClick={() => setMobileFiltersOpen(false)}>
+                  className="flex-1 text-base h-12"
+                  onClick={() => {
+                    if (onCloseMobile) onCloseMobile();
+                  }}
+                  aria-label="Apply filters"
+                >
                   Apply Filters
                 </Button>
               </div>
             </div>
           </div>
         )}
+
+        {/* 5. Selected filter badges for mobile view */}
+        <div className="md:hidden">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1.5 sm:gap-2 h-12 sm:h-14 text-base sm:text-lg py-0"
+              onClick={() => onCloseMobile?.()}
+              aria-label="Open filters"
+            >
+              <SlidersHorizontal className="h-4 w-4 sm:h-5 sm:w-5" />
+              Filters
+              {activeFilterCount > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="ml-1 h-5 sm:h-6 w-5 sm:w-6 p-0 flex items-center justify-center text-[10px] sm:text-xs"
+                >
+                  {activeFilterCount}
+                </Badge>
+              )}
+            </Button>
+
+            {activeFilterCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClearFilters}
+                className="text-base sm:text-lg h-12 sm:h-14 py-0"
+                aria-label="Clear all filters"
+              >
+                Clear All
+              </Button>
+            )}
+          </div>
+
+          {renderSelectedFilters()}
+        </div>
       </div>
     </>
   );

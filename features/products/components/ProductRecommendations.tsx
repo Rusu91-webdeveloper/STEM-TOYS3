@@ -1,8 +1,5 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import {
   Star,
   Heart,
@@ -13,14 +10,18 @@ import {
   Target,
   Shuffle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useState, useEffect, useMemo } from "react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
 import { useCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product";
 
 interface RecommendationProduct extends Omit<Product, "category"> {

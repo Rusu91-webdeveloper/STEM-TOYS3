@@ -1,6 +1,9 @@
 "use client";
 
+import { ShoppingBag } from "lucide-react";
 import React from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -9,10 +12,10 @@ import {
   SheetDescription,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { MiniCart } from "./MiniCart";
+
 import { useShoppingCart } from "../context/CartContext";
-import { Button } from "@/components/ui/button";
-import { ShoppingBag } from "lucide-react";
+
+import { MiniCart } from "./MiniCart";
 
 export function CartDrawer() {
   const { cartCount, isCartOpen, setIsCartOpen } = useShoppingCart();

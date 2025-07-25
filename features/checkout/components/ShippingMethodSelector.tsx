@@ -1,15 +1,17 @@
 "use client";
 
+import { Loader2, Truck, Gift } from "lucide-react";
 import React, { useState, useEffect } from "react";
-import { ShippingMethod } from "../types";
+
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useCart } from "@/features/cart";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
-import { useCart } from "@/features/cart";
+
 import { fetchShippingSettings } from "../lib/checkoutApi";
-import { Loader2, Truck, Gift } from "lucide-react";
+import { ShippingMethod } from "../types";
 
 interface ShippingMethodSelectorProps {
   initialMethod?: ShippingMethod;
@@ -46,7 +48,7 @@ export function ShippingMethodSelector({
         let isFreeShipping = false;
         let threshold = null;
 
-        if (settings.freeThreshold && settings.freeThreshold.active) {
+        if (settings.freeThreshold?.active) {
           threshold = parseFloat(settings.freeThreshold.price);
           isFreeShipping = cartTotal >= threshold;
           setFreeShippingThreshold(threshold);
@@ -58,7 +60,7 @@ export function ShippingMethodSelector({
         const methods: ShippingMethod[] = [];
 
         // Add standard shipping if active
-        if (settings.standard && settings.standard.active) {
+        if (settings.standard?.active) {
           methods.push({
             id: "standard",
             name: t("standardShipping", "Standard Shipping"),
@@ -69,7 +71,7 @@ export function ShippingMethodSelector({
         }
 
         // Add express shipping if active
-        if (settings.express && settings.express.active) {
+        if (settings.express?.active) {
           methods.push({
             id: "express",
             name: t("expressShipping", "Express Shipping"),

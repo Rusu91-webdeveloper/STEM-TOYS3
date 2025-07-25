@@ -1,19 +1,5 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useShoppingCart } from "../context/CartContext";
-import { useTranslation } from "@/lib/i18n";
-import { useCurrency } from "@/lib/currency";
 import {
   CheckSquare,
   Square,
@@ -28,6 +14,17 @@ import {
   X,
   Plus,
 } from "lucide-react";
+import React, { useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +32,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import { useCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+
+import { useShoppingCart } from "../context/CartContext";
 
 interface BulkCartOperationsProps {
   className?: string;
