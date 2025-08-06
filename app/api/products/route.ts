@@ -1,4 +1,4 @@
-import { Prisma, Product } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 import { getCached } from "@/lib/cache";
@@ -9,14 +9,6 @@ import { getCacheKey } from "@/lib/utils/cache-key";
 import { getFilterParams } from "@/lib/utils/filtering";
 import { getPaginationParams } from "@/lib/utils/pagination";
 // Validation imports removed as they're currently unused
-
-type ProductWithOptionalCategory = Product & {
-  category?: {
-    id: string;
-    name: string;
-    slug: string;
-  } | null;
-};
 
 // Type definitions to help with type safety
 type StemCategoryMap = {
@@ -348,28 +340,50 @@ async function fetchProductsFromDatabase(params: {
     const fetchProducts = withPerformanceMonitoring(
       "product_list_query",
       () => {
-        // **PERFORMANCE-FIX**: Conditionally include category data
-        // Avoid the JOIN for featured products query to improve speed
-        const queryOptions: {
-          where: Prisma.ProductWhereInput;
-          include?: typeof optimizedIncludes;
-          orderBy:
-            | Prisma.ProductOrderByWithRelationInput
-            | Prisma.ProductOrderByWithRelationInput[];
-          skip: number;
-          take: number;
-        } = {
+        // **PERFORMANCE-FIX**: Optimized query for featured products
+        if (featured === "true") {
+          // For featured products, use a simpler query without category join
+          const queryOptions = {
+            where,
+            orderBy,
+            skip,
+            take: limit,
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+              price: true,
+              compareAtPrice: true,
+              images: true,
+              featured: true,
+              isActive: true,
+              stockQuantity: true,
+              reservedQuantity: true,
+              attributes: true,
+              tags: true,
+              ageGroup: true,
+              stemDiscipline: true,
+              learningOutcomes: true,
+              productType: true,
+              specialCategories: true,
+            },
+          };
+
+          return db.$transaction([
+            db.product.findMany(queryOptions),
+            db.product.count({ where }),
+          ]);
+        }
+        // For regular products, include category data
+        const queryOptions = {
           where,
+          include: optimizedIncludes,
           orderBy,
           skip,
           take: limit,
         };
 
-        if (featured !== "true") {
-          queryOptions.include = optimizedIncludes;
-        }
-
-        // Use an interactive transaction for concurrent execution
         return db.$transaction([
           db.product.findMany(queryOptions),
           db.product.count({ where }),
@@ -384,55 +398,52 @@ async function fetchProductsFromDatabase(params: {
     }
 
     // **PERFORMANCE**: Optimized data transformation
-    const transformedProducts = (products as ProductWithOptionalCategory[]).map(
-      product => {
-        const productData = {
-          id: product.id,
-          name: product.name,
-          slug: product.slug,
-          description: product.description,
-          price: product.price,
-          compareAtPrice: product.compareAtPrice,
-          images: product.images,
-          featured: product.featured,
-          isActive: product.isActive,
-          stockQuantity: product.stockQuantity,
-          reservedQuantity: product.reservedQuantity,
-          category: product.category
-            ? {
-                id: product.category.id,
-                name: product.category.name,
-                slug: product.category.slug,
-              }
-            : null,
-          attributes: product.attributes,
-          tags: product.tags,
-          // Include new categorization fields
-          ageGroup: (product as any).ageGroup,
-          stemDiscipline: (product as any).stemDiscipline,
-          learningOutcomes: (product as any).learningOutcomes,
-          productType: (product as any).productType,
-          specialCategories: (product as any).specialCategories,
-        };
+    const transformedProducts = products.map((product: any) => {
+      const productData = {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        description: product.description,
+        price: product.price,
+        compareAtPrice: product.compareAtPrice,
+        images: product.images,
+        featured: product.featured,
+        isActive: product.isActive,
+        stockQuantity: product.stockQuantity,
+        reservedQuantity: product.reservedQuantity,
+        category: product.category
+          ? {
+              id: product.category.id,
+              name: product.category.name,
+              slug: product.category.slug,
+            }
+          : null,
+        attributes: product.attributes,
+        tags: product.tags,
+        // Include new categorization fields
+        ageGroup: product.ageGroup,
+        stemDiscipline: product.stemDiscipline,
+        learningOutcomes: product.learningOutcomes,
+        productType: product.productType,
+        specialCategories: product.specialCategories,
+      };
 
-        // **PERFORMANCE**: Faster attribute extraction
-        if (product.attributes && typeof product.attributes === "object") {
-          const attrs = product.attributes as Record<string, unknown>;
-          if (attrs.stemCategory && typeof attrs.stemCategory === "string") {
-            (
-              productData as typeof productData & { stemCategory: string }
-            ).stemCategory = attrs.stemCategory;
-          }
-          if (attrs.ageRange && typeof attrs.ageRange === "string") {
-            (
-              productData as typeof productData & { ageRange: string }
-            ).ageRange = attrs.ageRange;
-          }
+      // **PERFORMANCE**: Faster attribute extraction
+      if (product.attributes && typeof product.attributes === "object") {
+        const attrs = product.attributes as Record<string, unknown>;
+        if (attrs.stemCategory && typeof attrs.stemCategory === "string") {
+          (
+            productData as typeof productData & { stemCategory: string }
+          ).stemCategory = attrs.stemCategory;
         }
-
-        return productData;
+        if (attrs.ageRange && typeof attrs.ageRange === "string") {
+          (productData as typeof productData & { ageRange: string }).ageRange =
+            attrs.ageRange;
+        }
       }
-    );
+
+      return productData;
+    });
 
     const executionTime = Date.now() - startTime;
 

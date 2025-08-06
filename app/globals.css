@@ -223,3 +223,149 @@
     max-width: 150px;
   }
 }
+
+/* Critical fix for 640px-1223px range - ensure header height and visibility */
+@media (min-width: 640px) and (max-width: 1223px) {
+  /* Ensure header has enough height for all elements */
+  header {
+    min-height: 80px;
+  }
+
+  /* Ensure all navigation elements are visible */
+  .header-container {
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Prevent any vertical overflow */
+  .header-container > div {
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Ensure proper spacing for navigation elements */
+  .nav-spacing {
+    gap: 0.5rem;
+  }
+
+  /* Make sure all buttons are properly sized */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.5rem;
+  }
+
+  /* Ensure right side utilities don't get cut off */
+  .header-container > div > div:last-child {
+    flex-shrink: 0;
+    overflow: visible;
+  }
+}
+
+/* Desktop navigation improvements */
+@media (min-width: 640px) {
+  /* Ensure desktop header has proper spacing */
+  header .hidden.sm\:block {
+    display: block !important;
+  }
+
+  /* Ensure navigation links are properly spaced */
+  header nav {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Ensure all navigation elements are visible and properly spaced */
+  header .flex.items-center.space-x-4 {
+    gap: 1rem;
+  }
+
+  header .flex.items-center.space-x-6 {
+    gap: 1.5rem;
+  }
+
+  /* Ensure user actions are properly visible */
+  header .border-l {
+    border-left-width: 1px;
+    border-left-color: rgb(229 231 235);
+  }
+
+  /* Improve button visibility and interactions */
+  header a,
+  header button {
+    transition: all 0.2s ease-in-out;
+  }
+
+  header a:hover,
+  header button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Ensure proper text sizing */
+  header .text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  header .text-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  /* Ensure icons are properly sized */
+  header svg {
+    flex-shrink: 0;
+  }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1024px) {
+  /* Ensure proper spacing on large screens */
+  header .space-x-8 {
+    gap: 2rem;
+  }
+
+  header .space-x-12 {
+    gap: 3rem;
+  }
+
+  /* Ensure navigation links have proper padding */
+  header nav a {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Ensure user actions have proper spacing */
+  header .space-x-2 {
+    gap: 0.5rem;
+  }
+
+  header .space-x-3 {
+    gap: 0.75rem;
+  }
+}
+
+/* Extra large screen optimizations */
+@media (min-width: 1280px) {
+  /* Ensure maximum comfort on extra large screens */
+  header .space-x-4 {
+    gap: 1rem;
+  }
+
+  header .space-x-6 {
+    gap: 1.5rem;
+  }
+
+  /* Ensure proper padding for all elements */
+  header a,
+  header button {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}

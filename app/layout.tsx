@@ -21,13 +21,13 @@ const inter = Inter({
 
 export const metadata: Metadata = appMetadata;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   // Read the language cookie on the server side
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const initialLanguage = cookieStore.get("language")?.value ?? "ro";
 
   return (
@@ -37,6 +37,10 @@ export default function RootLayout({
       suppressHydrationWarning={true}
     >
       <head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+        />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         {/* Preload critical resources */}

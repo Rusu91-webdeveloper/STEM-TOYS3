@@ -40,11 +40,12 @@ export async function getDashboardData(
 ): Promise<DashboardData> {
   try {
     const baseUrl = getApiUrl();
+    const cookieStore = await cookies();
     const response = await fetch(
       `${baseUrl}/api/admin/dashboard?period=${period}`,
       {
         headers: {
-          Cookie: cookies().toString(),
+          Cookie: cookieStore.toString(),
         },
         cache: "no-store", // Don't cache this data
       }

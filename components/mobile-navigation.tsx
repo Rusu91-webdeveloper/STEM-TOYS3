@@ -118,7 +118,7 @@ export function MobileTabBar({ isAuthenticated = false }: MobileNavProps) {
   );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg xl:hidden">
       <div className="grid grid-cols-5 h-16">
         {visibleItems.map(item => {
           const isActive =
@@ -226,7 +226,7 @@ export function MobileSlideMenu({
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 z-40 xl:hidden"
           onClick={onClose}
         />
       )}
@@ -235,7 +235,7 @@ export function MobileSlideMenu({
       <div
         ref={menuRef}
         className={cn(
-          "fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white z-50 transform transition-transform duration-300 ease-out md:hidden",
+          "fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white z-50 transform transition-transform duration-300 ease-out xl:hidden",
           "shadow-2xl overflow-y-auto",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
@@ -357,7 +357,7 @@ export function MobileHeader({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm md:hidden">
+    <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm xl:hidden">
       <div className="flex items-center justify-between h-14 px-4">
         {/* Left side */}
         <div className="flex items-center">
