@@ -34,7 +34,7 @@ export function OrderReview({
 }: OrderReviewProps) {
   const { getCartTotal } = useCart();
   const { formatPrice } = useCurrency();
-  const [taxRate, setTaxRate] = useState(0.1); // Default 10%
+  const [taxRate, setTaxRate] = useState(0.21); // Default 21%
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<
     number | null
   >(null);
@@ -97,46 +97,59 @@ export function OrderReview({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg border p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Order Review</h2>
-          <p className="text-sm text-gray-500">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-white rounded-lg border p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
+          <h2 className="text-lg sm:text-xl font-semibold">Order Review</h2>
+          <p className="text-xs sm:text-sm text-gray-500">
             Te rugăm să verifici comanda înainte de a o plasa.
           </p>
         </div>
 
         {/* Shipping Address */}
         <div className="border-b pb-4 mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">Shipping Address</h3>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 gap-2">
+            <h3 className="font-medium text-sm sm:text-base">
+              Shipping Address
+            </h3>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 text-primary"
-              onClick={() => onEditStep("shipping-address")}>
-              <Edit className="h-4 w-4 mr-1" />
+              className="h-8 text-primary text-xs sm:text-sm"
+              onClick={() => onEditStep("shipping-address")}
+            >
+              <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               Editează
             </Button>
           </div>
 
           {checkoutData.shippingAddress ? (
-            <div className="text-sm">
-              <p>{checkoutData.shippingAddress.fullName}</p>
-              <p>{checkoutData.shippingAddress.addressLine1}</p>
+            <div className="text-xs sm:text-sm">
+              <p className="break-words">
+                {checkoutData.shippingAddress.fullName}
+              </p>
+              <p className="break-words">
+                {checkoutData.shippingAddress.addressLine1}
+              </p>
               {checkoutData.shippingAddress.addressLine2 && (
-                <p>{checkoutData.shippingAddress.addressLine2}</p>
+                <p className="break-words">
+                  {checkoutData.shippingAddress.addressLine2}
+                </p>
               )}
-              <p>
+              <p className="break-words">
                 {checkoutData.shippingAddress.city},{" "}
                 {checkoutData.shippingAddress.state}{" "}
                 {checkoutData.shippingAddress.postalCode}
               </p>
-              <p>{checkoutData.shippingAddress.country}</p>
-              <p>{checkoutData.shippingAddress.phone}</p>
+              <p className="break-words">
+                {checkoutData.shippingAddress.country}
+              </p>
+              <p className="break-words">
+                {checkoutData.shippingAddress.phone}
+              </p>
             </div>
           ) : (
-            <p className="text-red-500">
+            <p className="text-red-500 text-xs sm:text-sm">
               Nu a fost furnizată o adresă de livrare
             </p>
           )}
@@ -144,23 +157,30 @@ export function OrderReview({
 
         {/* Shipping Method */}
         <div className="border-b pb-4 mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">Shipping Method</h3>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 gap-2">
+            <h3 className="font-medium text-sm sm:text-base">
+              Shipping Method
+            </h3>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 text-primary"
-              onClick={() => onEditStep("shipping-method")}>
-              <Edit className="h-4 w-4 mr-1" />
+              className="h-8 text-primary text-xs sm:text-sm"
+              onClick={() => onEditStep("shipping-method")}
+            >
+              <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               Editează
             </Button>
           </div>
 
           {checkoutData.shippingMethod ? (
-            <div className="text-sm">
-              <p className="font-medium">{checkoutData.shippingMethod.name}</p>
-              <p>{checkoutData.shippingMethod.description}</p>
-              <p>
+            <div className="text-xs sm:text-sm">
+              <p className="font-medium break-words">
+                {checkoutData.shippingMethod.name}
+              </p>
+              <p className="break-words">
+                {checkoutData.shippingMethod.description}
+              </p>
+              <p className="break-words">
                 Estimated delivery:{" "}
                 {checkoutData.shippingMethod.estimatedDelivery}
               </p>
@@ -169,7 +189,7 @@ export function OrderReview({
               </p>
             </div>
           ) : (
-            <p className="text-red-500">
+            <p className="text-red-500 text-xs sm:text-sm">
               Nu a fost selectată o metodă de livrare
             </p>
           )}
@@ -177,29 +197,34 @@ export function OrderReview({
 
         {/* Payment Method */}
         <div className="border-b pb-4 mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">Payment Method</h3>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 gap-2">
+            <h3 className="font-medium text-sm sm:text-base">Payment Method</h3>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 text-primary"
-              onClick={() => onEditStep("payment")}>
-              <Edit className="h-4 w-4 mr-1" />
+              className="h-8 text-primary text-xs sm:text-sm"
+              onClick={() => onEditStep("payment")}
+            >
+              <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               Editează
             </Button>
           </div>
 
           {checkoutData.paymentDetails ? (
-            <div className="text-sm">
-              <p>
+            <div className="text-xs sm:text-sm">
+              <p className="break-words">
                 Credit Card:{" "}
                 {formatCreditCard(checkoutData.paymentDetails.cardNumber)}
               </p>
-              <p>Name on card: {checkoutData.paymentDetails.cardholderName}</p>
-              <p>Expires: {checkoutData.paymentDetails.expiryDate}</p>
+              <p className="break-words">
+                Name on card: {checkoutData.paymentDetails.cardholderName}
+              </p>
+              <p className="break-words">
+                Expires: {checkoutData.paymentDetails.expiryDate}
+              </p>
             </div>
           ) : (
-            <p className="text-red-500">
+            <p className="text-red-500 text-xs sm:text-sm">
               Nu au fost furnizate detalii de plată
             </p>
           )}
@@ -207,37 +232,48 @@ export function OrderReview({
 
         {/* Billing Address */}
         <div>
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">Billing Address</h3>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 gap-2">
+            <h3 className="font-medium text-sm sm:text-base">
+              Billing Address
+            </h3>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 text-primary"
-              onClick={() => onEditStep("payment")}>
-              <Edit className="h-4 w-4 mr-1" />
+              className="h-8 text-primary text-xs sm:text-sm"
+              onClick={() => onEditStep("payment")}
+            >
+              <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               Editează
             </Button>
           </div>
 
           {checkoutData.billingAddressSameAsShipping ? (
-            <p className="text-sm">Aceeași cu adresa de livrare</p>
+            <p className="text-xs sm:text-sm">Aceeași cu adresa de livrare</p>
           ) : checkoutData.billingAddress ? (
-            <div className="text-sm">
-              <p>{checkoutData.billingAddress.fullName}</p>
-              <p>{checkoutData.billingAddress.addressLine1}</p>
+            <div className="text-xs sm:text-sm">
+              <p className="break-words">
+                {checkoutData.billingAddress.fullName}
+              </p>
+              <p className="break-words">
+                {checkoutData.billingAddress.addressLine1}
+              </p>
               {checkoutData.billingAddress.addressLine2 && (
-                <p>{checkoutData.billingAddress.addressLine2}</p>
+                <p className="break-words">
+                  {checkoutData.billingAddress.addressLine2}
+                </p>
               )}
-              <p>
+              <p className="break-words">
                 {checkoutData.billingAddress.city},{" "}
                 {checkoutData.billingAddress.state}{" "}
                 {checkoutData.billingAddress.postalCode}
               </p>
-              <p>{checkoutData.billingAddress.country}</p>
-              <p>{checkoutData.billingAddress.phone}</p>
+              <p className="break-words">
+                {checkoutData.billingAddress.country}
+              </p>
+              <p className="break-words">{checkoutData.billingAddress.phone}</p>
             </div>
           ) : (
-            <p className="text-red-500">
+            <p className="text-red-500 text-xs sm:text-sm">
               Nu a fost furnizată o adresă de facturare
             </p>
           )}
@@ -245,38 +281,40 @@ export function OrderReview({
       </div>
 
       {/* Order Summary - Using the CheckoutSummary component */}
-      <div className="bg-white rounded-lg border p-6">
-        <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
+      <div className="bg-white rounded-lg border p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold mb-4">
+          Order Summary
+        </h3>
 
         <div className="space-y-3">
-          <div className="flex justify-between">
+          <div className="flex justify-between text-sm sm:text-base">
             <span>Subtotal</span>
             <span>{formatPrice(subtotal)}</span>
           </div>
 
           {/* **DISCOUNT LINE** */}
           {discountAmount > 0 && appliedCoupon && (
-            <div className="flex justify-between text-green-600">
-              <span className="font-medium">
+            <div className="flex justify-between text-green-600 text-sm sm:text-base">
+              <span className="font-medium truncate">
                 Discount ({appliedCoupon.code})
               </span>
-              <span className="font-medium">
+              <span className="font-medium flex-shrink-0">
                 -{formatPrice(discountAmount)}
               </span>
             </div>
           )}
 
-          <div className="flex justify-between">
+          <div className="flex justify-between text-sm sm:text-base">
             <span>Tax</span>
             <span>{formatPrice(tax)}</span>
           </div>
 
-          <div className="flex justify-between">
+          <div className="flex justify-between text-sm sm:text-base">
             <span>Shipping</span>
             <span>{formatPrice(shippingCost)}</span>
           </div>
 
-          <div className="border-t pt-3 flex justify-between font-semibold text-lg">
+          <div className="border-t pt-3 flex justify-between font-semibold text-base sm:text-lg">
             <span>Total</span>
             <span>{formatPrice(total)}</span>
           </div>
@@ -284,7 +322,7 @@ export function OrderReview({
           {/* **SAVINGS HIGHLIGHT** */}
           {discountAmount > 0 && (
             <div className="text-center pt-2">
-              <p className="text-sm text-green-600 font-medium">
+              <p className="text-xs sm:text-sm text-green-600 font-medium">
                 🎉 You saved {formatPrice(discountAmount)}!
               </p>
             </div>
@@ -305,19 +343,22 @@ export function OrderReview({
         </div>
       )}
 
-      <div className="flex justify-between">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <Button
           type="button"
           variant="outline"
           onClick={onBack}
-          disabled={isProcessingOrder}>
+          disabled={isProcessingOrder}
+          className="text-sm sm:text-base"
+        >
           Back to Payment
         </Button>
         <Button
           type="button"
-          className="bg-indigo-600 hover:bg-indigo-700"
+          className="bg-indigo-600 hover:bg-indigo-700 text-sm sm:text-base"
           onClick={onPlaceOrder}
-          disabled={isProcessingOrder}>
+          disabled={isProcessingOrder}
+        >
           {isProcessingOrder ? "Processing..." : "Place Order"}
         </Button>
       </div>

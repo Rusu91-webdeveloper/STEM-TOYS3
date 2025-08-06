@@ -20,8 +20,8 @@ export function CheckoutContent() {
   }, []);
 
   return (
-    <div className="container py-10 px-4">
-      <h1 className="text-3xl font-bold mb-8">
+    <div className="container py-6 sm:py-10 px-3 sm:px-4">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">
         {t("checkout", "Finalizare comandă")}
       </h1>
 

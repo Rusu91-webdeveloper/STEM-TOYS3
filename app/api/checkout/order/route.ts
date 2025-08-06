@@ -249,9 +249,9 @@ export async function POST(request: Request) {
         : 0);
 
     // Get tax and shipping settings from the database
-    let taxRate = 0.1; // Default tax rate (10%)
+    let taxRate = 0.21; // Default tax rate (21%)
     let applyTax = true; // Default to applying tax
-    let taxRatePercentage = "10"; // For display purposes
+    let taxRatePercentage = "21"; // For display purposes
     let freeShippingThreshold = null;
     let isFreeShippingActive = false;
 

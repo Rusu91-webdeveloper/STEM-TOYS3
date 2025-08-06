@@ -27,7 +27,7 @@ export async function GET(_req: NextRequest) {
         const taxSettings = settings.taxSettings
           ? (settings.taxSettings as any)
           : {
-              rate: "19",
+              rate: "21",
               active: true,
               includeInPrice: false,
             };

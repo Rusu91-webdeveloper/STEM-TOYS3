@@ -93,7 +93,7 @@ const defaultSettings: StoreSettings = {
     },
   },
   taxSettings: {
-    rate: "19",
+    rate: "21",
     active: true,
     includeInPrice: false,
   },
@@ -137,7 +137,7 @@ export default function SettingsPage() {
         // Ensure taxSettings exists
         if (!data.taxSettings) {
           data.taxSettings = {
-            rate: "19",
+            rate: "21",
             active: true,
             includeInPrice: false,
           };
@@ -162,7 +162,7 @@ export default function SettingsPage() {
 
   // Generic save handler with section parameter
   const handleSave = async (section: keyof typeof isSaving) => {
-    setIsSaving((prev) => ({ ...prev, [section]: true }));
+    setIsSaving(prev => ({ ...prev, [section]: true }));
 
     try {
       let sectionData: Record<string, any> = {};
@@ -223,7 +223,7 @@ export default function SettingsPage() {
       }
 
       const updatedSettings = await response.json();
-      setSettings((prevSettings) => ({
+      setSettings(prevSettings => ({
         ...prevSettings,
         ...updatedSettings,
       }));
@@ -240,7 +240,7 @@ export default function SettingsPage() {
         variant: "destructive",
       });
     } finally {
-      setIsSaving((prev) => ({ ...prev, [section]: false }));
+      setIsSaving(prev => ({ ...prev, [section]: false }));
     }
   };
 
@@ -249,7 +249,7 @@ export default function SettingsPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { id, value } = e.target;
-    setSettings((prev) => ({
+    setSettings(prev => ({
       ...prev,
       [id]: value,
     }));
@@ -257,7 +257,7 @@ export default function SettingsPage() {
 
   // Handle select change
   const handleSelectChange = (id: string, value: string) => {
-    setSettings((prev) => ({
+    setSettings(prev => ({
       ...prev,
       [id]: value,
     }));
@@ -268,7 +268,7 @@ export default function SettingsPage() {
     id: "standard" | "express" | "freeThreshold",
     value: string
   ) => {
-    setSettings((prev) => {
+    setSettings(prev => {
       // Initialize shippingSettings if it doesn't exist
       const currentSettings = prev.shippingSettings || {
         standard: { price: "5.99", active: true },
@@ -294,7 +294,7 @@ export default function SettingsPage() {
     id: "standard" | "express" | "freeThreshold",
     checked: boolean
   ) => {
-    setSettings((prev) => {
+    setSettings(prev => {
       // Initialize shippingSettings if it doesn't exist
       const currentSettings = prev.shippingSettings || {
         standard: { price: "5.99", active: true },
@@ -324,10 +324,10 @@ export default function SettingsPage() {
 
   // Handle tax rate change
   const handleTaxRateChange = (value: string) => {
-    setSettings((prev) => {
+    setSettings(prev => {
       // Initialize taxSettings if it doesn't exist
       const currentSettings = prev.taxSettings || {
-        rate: "19",
+        rate: "21",
         active: true,
         includeInPrice: false,
       };
@@ -344,10 +344,10 @@ export default function SettingsPage() {
 
   // Handle tax active change
   const handleTaxActiveChange = (checked: boolean) => {
-    setSettings((prev) => {
+    setSettings(prev => {
       // Initialize taxSettings if it doesn't exist
       const currentSettings = prev.taxSettings || {
-        rate: "19",
+        rate: "21",
         active: true,
         includeInPrice: false,
       };
@@ -364,10 +364,10 @@ export default function SettingsPage() {
 
   // Handle tax includeInPrice change
   const handleTaxIncludeInPriceChange = (checked: boolean) => {
-    setSettings((prev) => {
+    setSettings(prev => {
       // Initialize taxSettings if it doesn't exist
       const currentSettings = prev.taxSettings || {
-        rate: "19",
+        rate: "21",
         active: true,
         includeInPrice: false,
       };
@@ -403,9 +403,7 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <Tabs
-        defaultValue="general"
-        className="space-y-4">
+      <Tabs defaultValue="general" className="space-y-4">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="shipping">Shipping</TabsTrigger>
@@ -416,9 +414,7 @@ export default function SettingsPage() {
         </TabsList>
 
         {/* General Settings */}
-        <TabsContent
-          value="general"
-          className="space-y-4">
+        <TabsContent value="general" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Store Information</CardTitle>
@@ -475,7 +471,8 @@ export default function SettingsPage() {
             <CardFooter className="flex justify-end">
               <Button
                 onClick={() => handleSave("general")}
-                disabled={isSaving.general}>
+                disabled={isSaving.general}
+              >
                 {isSaving.general ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
@@ -494,9 +491,10 @@ export default function SettingsPage() {
                   <Label htmlFor="currency">Currency</Label>
                   <Select
                     value={settings.currency}
-                    onValueChange={(value) =>
+                    onValueChange={value =>
                       handleSelectChange("currency", value)
-                    }>
+                    }
+                  >
                     <SelectTrigger id="currency">
                       <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
@@ -514,9 +512,10 @@ export default function SettingsPage() {
                   <Label htmlFor="timezone">Timezone</Label>
                   <Select
                     value={settings.timezone}
-                    onValueChange={(value) =>
+                    onValueChange={value =>
                       handleSelectChange("timezone", value)
-                    }>
+                    }
+                  >
                     <SelectTrigger id="timezone">
                       <SelectValue placeholder="Select timezone" />
                     </SelectTrigger>
@@ -543,9 +542,10 @@ export default function SettingsPage() {
                   <Label htmlFor="dateFormat">Date Format</Label>
                   <Select
                     value={settings.dateFormat}
-                    onValueChange={(value) =>
+                    onValueChange={value =>
                       handleSelectChange("dateFormat", value)
-                    }>
+                    }
+                  >
                     <SelectTrigger id="dateFormat">
                       <SelectValue placeholder="Select date format" />
                     </SelectTrigger>
@@ -560,9 +560,10 @@ export default function SettingsPage() {
                   <Label htmlFor="weightUnit">Weight Unit</Label>
                   <Select
                     value={settings.weightUnit}
-                    onValueChange={(value) =>
+                    onValueChange={value =>
                       handleSelectChange("weightUnit", value)
-                    }>
+                    }
+                  >
                     <SelectTrigger id="weightUnit">
                       <SelectValue placeholder="Select weight unit" />
                     </SelectTrigger>
@@ -578,7 +579,8 @@ export default function SettingsPage() {
             <CardFooter className="flex justify-end">
               <Button
                 onClick={() => handleSave("regional")}
-                disabled={isSaving.regional}>
+                disabled={isSaving.regional}
+              >
                 {isSaving.regional ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
@@ -629,9 +631,7 @@ export default function SettingsPage() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button
-                onClick={() => handleSave("seo")}
-                disabled={isSaving.seo}>
+              <Button onClick={() => handleSave("seo")} disabled={isSaving.seo}>
                 {isSaving.seo ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
@@ -639,9 +639,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* Shipping Settings */}
-        <TabsContent
-          value="shipping"
-          className="space-y-4">
+        <TabsContent value="shipping" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Shipping Methods</CardTitle>
@@ -665,7 +663,7 @@ export default function SettingsPage() {
                         value={
                           settings.shippingSettings?.standard?.price || "5.99"
                         }
-                        onChange={(e) =>
+                        onChange={e =>
                           handleShippingPriceChange("standard", e.target.value)
                         }
                         type="number"
@@ -677,7 +675,7 @@ export default function SettingsPage() {
                       checked={
                         settings.shippingSettings?.standard?.active || false
                       }
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={checked =>
                         handleShippingActiveChange("standard", checked)
                       }
                       id="standard-shipping-active"
@@ -699,7 +697,7 @@ export default function SettingsPage() {
                         value={
                           settings.shippingSettings?.express?.price || "12.99"
                         }
-                        onChange={(e) =>
+                        onChange={e =>
                           handleShippingPriceChange("express", e.target.value)
                         }
                         type="number"
@@ -711,7 +709,7 @@ export default function SettingsPage() {
                       checked={
                         settings.shippingSettings?.express?.active || false
                       }
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={checked =>
                         handleShippingActiveChange("express", checked)
                       }
                       id="express-shipping-active"
@@ -736,7 +734,7 @@ export default function SettingsPage() {
                           settings.shippingSettings?.freeThreshold?.price ||
                           "75.00"
                         }
-                        onChange={(e) =>
+                        onChange={e =>
                           handleShippingPriceChange(
                             "freeThreshold",
                             e.target.value
@@ -752,7 +750,7 @@ export default function SettingsPage() {
                         settings.shippingSettings?.freeThreshold?.active ||
                         false
                       }
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={checked =>
                         handleShippingActiveChange("freeThreshold", checked)
                       }
                       id="free-shipping-active"
@@ -764,7 +762,8 @@ export default function SettingsPage() {
             <CardFooter className="flex justify-end">
               <Button
                 onClick={() => handleSave("shipping")}
-                disabled={isSaving.shipping}>
+                disabled={isSaving.shipping}
+              >
                 {isSaving.shipping ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
@@ -772,9 +771,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* Payments Settings */}
-        <TabsContent
-          value="payments"
-          className="space-y-4">
+        <TabsContent value="payments" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Payment Methods</CardTitle>
@@ -791,10 +788,7 @@ export default function SettingsPage() {
                       Accept Visa, Mastercard, American Express
                     </span>
                   </div>
-                  <Switch
-                    defaultChecked
-                    id="credit-card-active"
-                  />
+                  <Switch defaultChecked id="credit-card-active" />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between space-x-2">
@@ -804,10 +798,7 @@ export default function SettingsPage() {
                       Allow customers to pay with PayPal
                     </span>
                   </div>
-                  <Switch
-                    defaultChecked
-                    id="paypal-active"
-                  />
+                  <Switch defaultChecked id="paypal-active" />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between space-x-2">
@@ -834,7 +825,8 @@ export default function SettingsPage() {
             <CardFooter className="flex justify-end">
               <Button
                 onClick={() => handleSave("payments")}
-                disabled={isSaving.payments}>
+                disabled={isSaving.payments}
+              >
                 {isSaving.payments ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
@@ -842,9 +834,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* Tax Settings */}
-        <TabsContent
-          value="tax"
-          className="space-y-4">
+        <TabsContent value="tax" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Tax Settings</CardTitle>
@@ -865,8 +855,8 @@ export default function SettingsPage() {
                     <div className="w-[100px]">
                       <Input
                         id="tax-rate"
-                        value={settings.taxSettings?.rate || "19"}
-                        onChange={(e) => handleTaxRateChange(e.target.value)}
+                        value={settings.taxSettings?.rate || "21"}
+                        onChange={e => handleTaxRateChange(e.target.value)}
                         type="number"
                         min="0"
                         max="100"
@@ -900,18 +890,14 @@ export default function SettingsPage() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button
-                onClick={() => handleSave("tax")}
-                disabled={isSaving.tax}>
+              <Button onClick={() => handleSave("tax")} disabled={isSaving.tax}>
                 {isSaving.tax ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
           </Card>
         </TabsContent>
 
-        <TabsContent
-          value="notifications"
-          className="space-y-4">
+        <TabsContent value="notifications" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Notification Settings</CardTitle>
@@ -929,9 +915,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent
-          value="users"
-          className="space-y-4">
+        <TabsContent value="users" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>User Management</CardTitle>

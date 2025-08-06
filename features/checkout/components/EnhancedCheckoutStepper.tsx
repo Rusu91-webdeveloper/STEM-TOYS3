@@ -281,7 +281,7 @@ export function EnhancedCheckoutStepper({
   ).length;
 
   return (
-    <div className="bg-white border rounded-lg p-6 mb-8">
+    <div className="bg-white border rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
       {/* Progress Bar */}
       <ProgressBar
         currentStep={currentStep}
@@ -307,7 +307,7 @@ export function EnhancedCheckoutStepper({
       </div>
 
       {/* Mobile Stepper */}
-      <div className="md:hidden space-y-3">
+      <div className="md:hidden space-y-2 sm:space-y-3">
         {stepDefinitions.map((step, index) => {
           const isActive = currentStep === step.id;
           const isComplete = isCompleted(step.id);
@@ -317,7 +317,7 @@ export function EnhancedCheckoutStepper({
             <button
               key={step.id}
               className={cn(
-                "w-full flex items-center p-3 rounded-lg border transition-all",
+                "w-full flex items-center p-2 sm:p-3 rounded-lg border transition-all",
                 isActive && "border-primary bg-primary/5",
                 isComplete && "border-green-200 bg-green-50",
                 !isActive && !isComplete && "border-gray-200",
@@ -333,26 +333,28 @@ export function EnhancedCheckoutStepper({
               {/* Step Icon/Number */}
               <div
                 className={cn(
-                  "flex items-center justify-center w-8 h-8 rounded-full mr-3",
+                  "flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full mr-2 sm:mr-3",
                   isComplete && "bg-green-100 text-green-600",
                   isActive && !isComplete && "bg-primary/10 text-primary",
                   !isActive && !isComplete && "bg-gray-100 text-gray-400"
                 )}
               >
                 {isComplete ? (
-                  <Check className="w-4 h-4" />
+                  <Check className="w-3 h-3 sm:w-4 sm:h-4" />
                 ) : isActive ? (
-                  <IconComponent className="w-4 h-4" />
+                  <IconComponent className="w-3 h-3 sm:w-4 sm:h-4" />
                 ) : (
-                  <span className="text-sm font-medium">{index + 1}</span>
+                  <span className="text-xs sm:text-sm font-medium">
+                    {index + 1}
+                  </span>
                 )}
               </div>
 
               {/* Step Content */}
-              <div className="flex-1 text-left">
+              <div className="flex-1 text-left min-w-0">
                 <div
                   className={cn(
-                    "font-medium text-sm",
+                    "font-medium text-xs sm:text-sm truncate",
                     isActive && "text-primary",
                     isComplete && "text-green-900",
                     !isActive && !isComplete && "text-gray-600"
@@ -360,7 +362,7 @@ export function EnhancedCheckoutStepper({
                 >
                   {step.label}
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5">
+                <div className="text-xs text-gray-500 mt-0.5 truncate">
                   {isComplete && getCompletionInfo(step.id)
                     ? getCompletionInfo(step.id)
                     : step.description}

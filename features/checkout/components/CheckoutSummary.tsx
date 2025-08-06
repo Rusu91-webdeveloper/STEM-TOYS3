@@ -36,7 +36,7 @@ export function CheckoutSummary({
   >(null);
   const [isFreeShippingActive, setIsFreeShippingActive] = useState(false);
   const [taxSettings, setTaxSettings] = useState<TaxSettings>({
-    rate: "19",
+    rate: "21",
     active: true,
     includeInPrice: false,
   });
@@ -61,9 +61,7 @@ export function CheckoutSummary({
       try {
         // Load shipping settings
         const shippingSettings = await fetchShippingSettings();
-        if (
-          shippingSettings.freeThreshold?.active
-        ) {
+        if (shippingSettings.freeThreshold?.active) {
           setFreeShippingThreshold(
             parseFloat(shippingSettings.freeThreshold.price)
           );
@@ -143,15 +141,14 @@ export function CheckoutSummary({
           {t("freeShippingApplied", "Free shipping applied!")}
         </div>
       );
-    } 
-      const amountNeeded = freeShippingThreshold - subtotal;
-      return (
-        <div className="mt-2 p-2 bg-blue-50 text-blue-700 rounded-md text-sm">
-          {t("addMoreForFreeShipping", "Add")} {formatPrice(amountNeeded)}{" "}
-          {t("moreForFreeShipping", "more for free shipping")}
-        </div>
-      );
-    
+    }
+    const amountNeeded = freeShippingThreshold - subtotal;
+    return (
+      <div className="mt-2 p-2 bg-blue-50 text-blue-700 rounded-md text-sm">
+        {t("addMoreForFreeShipping", "Add")} {formatPrice(amountNeeded)}{" "}
+        {t("moreForFreeShipping", "more for free shipping")}
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -159,10 +156,8 @@ export function CheckoutSummary({
       <div className="border rounded-lg p-6 space-y-4 animate-pulse">
         <div className="h-6 bg-gray-200 rounded w-1/2"></div>
         <div className="space-y-2">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="flex gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="flex gap-4">
               <div className="h-16 w-16 bg-gray-200 rounded"></div>
               <div className="flex-1 space-y-2">
                 <div className="h-4 bg-gray-200 rounded"></div>
@@ -201,31 +196,31 @@ export function CheckoutSummary({
   }
 
   return (
-    <div className="border rounded-lg p-6 space-y-4 sticky top-4">
+    <div className="border rounded-lg p-4 sm:p-6 space-y-4 lg:sticky lg:top-4">
       <h2 className="text-xl font-semibold">
         {t("orderSummary", "Order Summary")}
       </h2>
 
-      <div className="space-y-4 max-h-80 overflow-y-auto">
-        {cartItems.map((item) => (
-          <div
-            key={item.id}
-            className="flex gap-4">
+      <div className="space-y-3 max-h-60 sm:max-h-80 overflow-y-auto">
+        {cartItems.map(item => (
+          <div key={item.id} className="flex gap-3 sm:gap-4">
             {item.image ? (
               <img
                 src={item.image}
                 alt={item.name}
-                className="h-16 w-16 object-cover rounded"
+                className="h-12 w-12 sm:h-16 sm:w-16 object-cover rounded flex-shrink-0"
               />
             ) : (
-              <div className="h-16 w-16 bg-gray-200 rounded"></div>
+              <div className="h-12 w-12 sm:h-16 sm:w-16 bg-gray-200 rounded flex-shrink-0"></div>
             )}
-            <div>
-              <p className="font-medium">{item.name}</p>
-              <p className="text-sm text-gray-500">
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm sm:text-base truncate">
+                {item.name}
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">
                 {t("qty", "Qty")}: {item.quantity}
               </p>
-              <p className="text-sm">{formatPrice(item.price)}</p>
+              <p className="text-xs sm:text-sm">{formatPrice(item.price)}</p>
             </div>
           </div>
         ))}
@@ -242,30 +237,32 @@ export function CheckoutSummary({
       </div>
 
       <div className="space-y-2 pt-4 border-t">
-        <div className="flex justify-between">
+        <div className="flex justify-between text-sm sm:text-base">
           <span className="text-gray-600">{t("subtotal", "Subtotal")}</span>
           <span>{formatPrice(subtotal)}</span>
         </div>
 
         {/* **DISCOUNT LINE** */}
         {discountAmount > 0 && (
-          <div className="flex justify-between text-green-600">
-            <span className="font-medium">
+          <div className="flex justify-between text-green-600 text-sm sm:text-base">
+            <span className="font-medium truncate">
               Discount ({localAppliedCoupon?.code})
             </span>
-            <span className="font-medium">-{formatPrice(discountAmount)}</span>
+            <span className="font-medium flex-shrink-0">
+              -{formatPrice(discountAmount)}
+            </span>
           </div>
         )}
 
         {taxSettings.active && (
-          <div className="flex justify-between">
+          <div className="flex justify-between text-sm sm:text-base">
             <span className="text-gray-600">
               {t("tax", "TVA")} ({taxSettings.rate}%)
             </span>
             <span>{formatPrice(tax)}</span>
           </div>
         )}
-        <div className="flex justify-between">
+        <div className="flex justify-between text-sm sm:text-base">
           <span className="text-gray-600">{t("shipping", "Shipping")}</span>
           <span>
             {finalShippingCost === 0 && shippingCost > 0 ? (
@@ -279,7 +276,7 @@ export function CheckoutSummary({
 
         {renderFreeShippingMessage()}
 
-        <div className="flex justify-between font-semibold text-lg pt-2 border-t">
+        <div className="flex justify-between font-semibold text-base sm:text-lg pt-2 border-t">
           <span>{t("total", "Total")}</span>
           <span>{formatPrice(total)}</span>
         </div>

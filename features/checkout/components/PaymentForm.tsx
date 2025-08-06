@@ -89,9 +89,7 @@ export function PaymentForm({
 
         // Get shipping settings for free shipping threshold
         const shippingSettings = await fetchShippingSettings();
-        if (
-          shippingSettings.freeThreshold?.active
-        ) {
+        if (shippingSettings.freeThreshold?.active) {
           const freeShippingThreshold = parseFloat(
             shippingSettings.freeThreshold.price
           );
@@ -171,7 +169,7 @@ export function PaymentForm({
     // If using a saved card, populate the payment details
     if (!useNewCard && selectedPaymentMethod !== "new") {
       const selectedCard = savedCards.find(
-        (card) => card.id === selectedPaymentMethod
+        card => card.id === selectedPaymentMethod
       );
       if (selectedCard) {
         // Create payment details from the selected card
@@ -239,9 +237,9 @@ export function PaymentForm({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg border p-6">
-        <h2 className="text-xl font-semibold mb-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-white rounded-lg border p-4 sm:p-6">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4">
           {t("paymentMethod", "Metodă de plată")}
         </h2>
 
@@ -257,11 +255,13 @@ export function PaymentForm({
             <RadioGroup
               value={selectedPaymentMethod}
               onValueChange={handlePaymentMethodChange}
-              className="space-y-3">
-              {savedCards.map((card) => (
+              className="space-y-3"
+            >
+              {savedCards.map(card => (
                 <div
                   key={card.id}
-                  className="flex items-start space-x-2 p-3 border rounded-md hover:bg-gray-50">
+                  className="flex items-start space-x-2 p-3 border rounded-md hover:bg-gray-50"
+                >
                   <RadioGroupItem
                     value={card.id}
                     id={`card-${card.id}`}
@@ -271,7 +271,8 @@ export function PaymentForm({
                     <div className="flex items-center">
                       <Label
                         htmlFor={`card-${card.id}`}
-                        className="font-medium cursor-pointer flex items-center gap-2">
+                        className="font-medium cursor-pointer flex items-center gap-2"
+                      >
                         {getCardIcon(card.cardType)}
                         •••• {card.lastFourDigits}
                         <span className="text-sm text-gray-500 ml-2">
@@ -292,14 +293,11 @@ export function PaymentForm({
                 </div>
               ))}
               <div className="flex items-start space-x-2 p-3 border rounded-md hover:bg-gray-50">
-                <RadioGroupItem
-                  value="new"
-                  id="payment-new"
-                  className="mt-1"
-                />
+                <RadioGroupItem value="new" id="payment-new" className="mt-1" />
                 <Label
                   htmlFor="payment-new"
-                  className="font-medium cursor-pointer">
+                  className="font-medium cursor-pointer"
+                >
                   {t("useNewCard", "Folosește un card nou")}
                 </Label>
               </div>
@@ -316,7 +314,8 @@ export function PaymentForm({
           />
           <Label
             htmlFor="billing-same"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
             {t("sameAsShipping", "Aceeași ca adresa de livrare")}
           </Label>
         </div>
@@ -376,7 +375,7 @@ export function PaymentForm({
             </div>
             <ShippingAddressForm
               initialData={currentBillingAddress}
-              onSubmit={(address) => {
+              onSubmit={address => {
                 setCurrentBillingAddress(address);
               }}
             />
@@ -391,10 +390,12 @@ export function PaymentForm({
         )}
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between mt-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6">
           <Button
             variant="outline"
-            onClick={onBack}>
+            onClick={onBack}
+            className="text-sm sm:text-base"
+          >
             {t("backToShippingMethod", "Înapoi la metoda de livrare")}
           </Button>
           <Button
@@ -402,7 +403,7 @@ export function PaymentForm({
               // If using a saved card, handle submission here
               if (!useNewCard && selectedPaymentMethod !== "new") {
                 const selectedCard = savedCards.find(
-                  (card) => card.id === selectedPaymentMethod
+                  card => card.id === selectedPaymentMethod
                 );
                 if (selectedCard) {
                   // Create payment details from the selected card
@@ -435,7 +436,9 @@ export function PaymentForm({
                   submitButton.click();
                 }
               }
-            }}>
+            }}
+            className="text-sm sm:text-base"
+          >
             {t("continueToReview", "Continuă la verificare")}
           </Button>
         </div>

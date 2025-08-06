@@ -104,7 +104,7 @@ export const emailTemplates = {
 
     const itemsHtml = order.items
       .map(
-        (item) =>
+        item =>
           `<tr style="border-bottom: 1px solid #e5e7eb;">
             <td style="padding: 12px 8px; color: #374151;">${item.name}</td>
             <td style="padding: 12px 8px; text-align: center; color: #374151;">${item.quantity}</td>
@@ -164,7 +164,7 @@ export const emailTemplates = {
                   <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${order.shippingCost > 0 ? `${order.shippingCost.toFixed(2)} Lei` : `<span style="color: #10b981;">Gratuit</span>`}</td>
                 </tr>
                 <tr>
-                  <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">TVA (${order.taxRatePercentage || "19"}%):</td>
+                  <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">TVA (${order.taxRatePercentage || "21"}%):</td>
                   <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${order.tax.toFixed(2)} Lei</td>
                 </tr>
               </tfoot>

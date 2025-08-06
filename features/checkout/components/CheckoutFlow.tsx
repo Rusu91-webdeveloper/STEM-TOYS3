@@ -169,7 +169,7 @@ export function CheckoutFlow() {
       const subtotal = getCartTotal();
 
       // Get tax settings from the store
-      let taxRate = 0.1; // Default to 10%
+      let taxRate = 0.21; // Default to 21%
       try {
         const taxSettings = await fetch("/api/checkout/tax-settings");
         if (taxSettings.ok) {
@@ -268,8 +268,8 @@ export function CheckoutFlow() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div className="md:col-span-2 space-y-8">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
+      <div className="lg:col-span-2 space-y-6 lg:space-y-8">
         <EnhancedCheckoutStepper
           currentStep={currentStep}
           onStepClick={goToStep}
@@ -305,20 +305,24 @@ export function CheckoutFlow() {
 
         {currentStep === "payment" && (
           <div>
-            <div className="trust-badges flex justify-center space-x-6 mb-6 py-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border">
+            <div className="trust-badges flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mb-6 py-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border">
               <div className="flex items-center space-x-2 text-green-700">
-                <Shield className="h-6 w-6" />
-                <span className="text-sm font-medium">Secure Payment</span>
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="text-xs sm:text-sm font-medium">
+                  Secure Payment
+                </span>
               </div>
               <div className="flex items-center space-x-2 text-blue-700">
-                <Award className="h-6 w-6" />
-                <span className="text-sm font-medium">
+                <Award className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="text-xs sm:text-sm font-medium">
                   Money-Back Guarantee
                 </span>
               </div>
               <div className="flex items-center space-x-2 text-indigo-700">
-                <ShieldCheck className="h-6 w-6" />
-                <span className="text-sm font-medium">Trusted Seller</span>
+                <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="text-xs sm:text-sm font-medium">
+                  Trusted Seller
+                </span>
               </div>
             </div>
             <PaymentForm
@@ -354,7 +358,7 @@ export function CheckoutFlow() {
         )}
       </div>
 
-      <div className="md:col-span-1">
+      <div className="lg:col-span-1">
         <CheckoutSummary
           shippingCost={checkoutData.shippingMethod?.price ?? 0}
           appliedCoupon={appliedCoupon}

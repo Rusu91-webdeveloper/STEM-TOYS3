@@ -139,7 +139,7 @@ export async function fetchTaxSettings() {
     console.error("Failed to fetch tax settings:", error);
     // Return default settings if fetch fails
     return {
-      rate: "19",
+      rate: "21",
       active: true,
       includeInPrice: false,
     };

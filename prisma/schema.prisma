@@ -101,43 +101,40 @@ model Category {
 }
 
 model Product {
-  id               String      @id @default(cuid())
-  name             String
-  slug             String      @unique
-  description      String?
-  price            Float
-  compareAtPrice   Float?
-  sku              String?     @unique
-  images           String[]
-  categoryId       String?
-  tags             String[]
-  attributes       Json?
-  metadata         Json?
-  isActive         Boolean     @default(true)
-  featured         Boolean     @default(false)
-  stockQuantity    Int         @default(0)
-  reservedQuantity Int         @default(0)
-  reorderPoint     Int?
-  weight           Float?
-  dimensions       Json?
-  averageRating    Float?
-  reviewCount      Int         @default(0)
-  totalSold        Int         @default(0)
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-  barcode          String?
-  
-  // Enhanced categorization fields
-  ageGroup         AgeGroup?
-  stemDiscipline   StemCategory @default(GENERAL)
-  learningOutcomes LearningOutcome[]
-  productType      ProductType?
+  id                String            @id @default(cuid())
+  name              String
+  slug              String            @unique
+  description       String?
+  price             Float
+  compareAtPrice    Float?
+  sku               String?           @unique
+  images            String[]
+  categoryId        String?
+  tags              String[]
+  attributes        Json?
+  metadata          Json?
+  isActive          Boolean           @default(true)
+  featured          Boolean           @default(false)
+  stockQuantity     Int               @default(0)
+  reservedQuantity  Int               @default(0)
+  reorderPoint      Int?
+  weight            Float?
+  dimensions        Json?
+  averageRating     Float?
+  reviewCount       Int               @default(0)
+  totalSold         Int               @default(0)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  barcode           String?
+  ageGroup          AgeGroup?
+  learningOutcomes  LearningOutcome[]
+  productType       ProductType?
   specialCategories SpecialCategory[]
-  
-  orderItems       OrderItem[]
-  category         Category?   @relation(fields: [categoryId], references: [id])
-  reviews          Review[]
-  wishlistItems    Wishlist[]
+  stemDiscipline    StemCategory      @default(GENERAL)
+  orderItems        OrderItem[]
+  category          Category?         @relation(fields: [categoryId], references: [id])
+  reviews           Review[]
+  wishlistItems     Wishlist[]
 
   @@index([categoryId])
   @@index([isActive])
