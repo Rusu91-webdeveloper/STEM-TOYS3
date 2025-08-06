@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  Menu,
-  X,
-  User,
-  Settings,
-  LogOut,
-  Heart,
-  ShoppingCart,
-} from "lucide-react";
+import { Menu, X, User, Settings, LogOut, Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,7 +11,6 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
 import { CurrencySwitcher } from "@/components/ui/currency-switcher";
 import { CartButton } from "@/features/cart";
-import { useCart } from "@/features/cart/context/CartContext";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation, TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -38,7 +29,6 @@ export default function Header() {
   const pathname = usePathname();
   const { t } = useTranslation();
   const { data: session, status } = useOptimizedSession();
-  const { cartCount, setIsCartOpen } = useCart();
 
   // FIXED: Simplified and consistent authentication state logic
   const isAuthenticated =
@@ -119,23 +109,8 @@ export default function Header() {
               )}
             </button>
 
-            {/* Cart Icon */}
-            <button
-              type="button"
-              className="relative inline-flex items-center justify-center rounded-md p-1.5 md:p-2 lg:p-2.5 text-gray-700 hover:bg-gray-100 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer transition-colors"
-              onClick={() => setIsCartOpen(true)}
-              aria-label="Shopping cart"
-            >
-              <ShoppingCart
-                className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6"
-                aria-hidden="true"
-              />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs rounded-full w-4 h-4 md:w-5 md:h-5 lg:w-5 lg:h-5 flex items-center justify-center font-bold">
-                  {cartCount > 9 ? "9+" : cartCount}
-                </span>
-              )}
-            </button>
+            {/* Cart Button - Now using the CartButton component for consistency */}
+            <CartButton variant="header" />
 
             {/* Mobile/Tablet menu button */}
             <button
@@ -311,7 +286,7 @@ export default function Header() {
                   <div className="flex flex-wrap gap-3 mb-6 mt-2">
                     <CurrencySwitcher />
                     <LanguageSwitcher />
-                    <CartButton />
+                    {/* Removed CartButton from mobile menu since it's already in the header */}
                   </div>
 
                   {/* User Actions Section */}

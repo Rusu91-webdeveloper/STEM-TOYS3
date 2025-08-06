@@ -57,7 +57,7 @@ export const GET = withRateLimit(
     }
   },
   {
-    limit: 50, // 50 requests
+    limit: 100, // Increased from 50 to 100 requests
     windowMs: 60000, // per minute
   }
 );
@@ -110,22 +110,21 @@ export const POST = withRateLimit(
           }
         }
 
-        const id =
-          item.variantId || item.selectedLanguage
-            ? `${item.productId}_${item.variantId || ""}_${
-                item.selectedLanguage || ""
-              }`
+        // Create cart item with proper ID
+        const cartItemId = item.variantId
+          ? `${item.productId}_${item.variantId}`
+          : item.selectedLanguage
+            ? `${item.productId}_${item.selectedLanguage}`
             : item.productId;
 
-        cartWithIds.push({ ...item, id });
+        cartWithIds.push({
+          ...item,
+          id: cartItemId,
+        });
       }
 
-      // Update cart in session storage only (no persistence)
-      if (cartWithIds.length > 0) {
-        SESSION_CART_STORAGE.set(cartId, cartWithIds);
-      } else {
-        SESSION_CART_STORAGE.delete(cartId);
-      }
+      // Store in session storage
+      SESSION_CART_STORAGE.set(cartId, cartWithIds);
 
       console.log(
         `🛒 [POST] Updated ephemeral cart for session: ${cartId} with ${cartWithIds.length} items`
@@ -136,26 +135,13 @@ export const POST = withRateLimit(
 
       return NextResponse.json({
         success: true,
-        message: "Cart updated in session",
+        message: "Cart updated successfully",
         data: cartWithIds,
-        user: cartId.includes("@") ? cartId : null, // If cartId is email, use it as user
+        user: cartId.includes("@") ? cartId : null,
         ephemeral: true,
       });
     } catch (error) {
       console.error("Failed to update cart:", error);
-
-      // Handle validation errors
-      if (error instanceof z.ZodError) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Invalid cart data",
-            error: error.errors,
-          },
-          { status: 400 }
-        );
-      }
-
       return NextResponse.json(
         {
           success: false,
@@ -167,7 +153,7 @@ export const POST = withRateLimit(
     }
   },
   {
-    limit: 20, // 20 requests
+    limit: 200, // Increased from 50 to 200 requests for POST operations
     windowMs: 60000, // per minute
   }
 );

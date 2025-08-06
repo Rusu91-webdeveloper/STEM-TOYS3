@@ -42,10 +42,16 @@ export interface GuestInformation {
 
 export interface CheckoutData {
   shippingAddress?: ShippingAddress;
-  shippingMethod?: ShippingMethod;
-  paymentDetails?: PaymentDetails;
-  billingAddressSameAsShipping?: boolean;
   billingAddress?: ShippingAddress;
-  // Guest checkout removed - authentication is required
-  isGuestCheckout?: boolean; // Kept for backwards compatibility, but always false
+  billingAddressSameAsShipping?: boolean;
+  shippingMethod?: ShippingMethod;
+  paymentMethod?: PaymentMethod;
+  paymentDetails?: PaymentDetails;
+  couponCode?: string;
+  discountAmount?: number;
+  appliedCoupon?: {
+    code: string;
+    type: string;
+    value: number;
+  } | null;
 }

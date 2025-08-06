@@ -9,9 +9,13 @@ import { MiniCart } from "./MiniCart";
 
 interface CartButtonProps {
   className?: string;
+  variant?: "default" | "header";
 }
 
-export function CartButton({ className = "" }: CartButtonProps) {
+export function CartButton({
+  className = "",
+  variant = "default",
+}: CartButtonProps) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
   const { isLoading, items } = useShoppingCart();
@@ -33,23 +37,47 @@ export function CartButton({ className = "" }: CartButtonProps) {
 
   const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
+  // Default styling based on variant
+  const defaultClassName =
+    variant === "header"
+      ? "flex items-center justify-center relative p-1.5 md:p-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer transition-colors"
+      : "flex items-center justify-center relative p-1.5 md:p-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-all touch-target";
+
+  // Badge styling based on variant
+  const badgeClassName =
+    variant === "header"
+      ? "absolute -top-1 -right-1 bg-indigo-600 text-white text-xs rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center font-bold"
+      : "absolute -top-1 -right-1 bg-white text-indigo-700 text-xs font-bold rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center border border-indigo-100 shadow-sm";
+
+  // Icon styling based on variant
+  const iconClassName =
+    variant === "header"
+      ? "h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6"
+      : "h-4 w-4 md:h-5 md:w-5";
+
   return (
     <>
       <button
         onClick={openCart}
-        className={`flex items-center justify-center relative p-1.5 md:p-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-all touch-target ${className}`}
+        className={`${defaultClassName} ${className}`}
         aria-label="Open cart"
       >
         {showLoading ? (
           <div className="relative">
-            <ShoppingCart className="h-4 w-4 md:h-5 md:w-5 text-white opacity-70" />
-            <Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin text-white absolute top-0 left-0" />
+            <ShoppingCart
+              className={`${iconClassName} ${variant === "header" ? "text-gray-700" : "text-white opacity-70"}`}
+            />
+            <Loader2
+              className={`${iconClassName} animate-spin ${variant === "header" ? "text-gray-700" : "text-white"} absolute top-0 left-0`}
+            />
           </div>
         ) : (
           <>
-            <ShoppingCart className="h-4 w-4 md:h-5 md:w-5 text-white" />
+            <ShoppingCart
+              className={`${iconClassName} ${variant === "header" ? "text-gray-700" : "text-white"}`}
+            />
             {itemCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-white text-indigo-700 text-xs font-bold rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center border border-indigo-100 shadow-sm">
+              <span className={badgeClassName}>
                 {itemCount > 9 ? "9+" : itemCount}
               </span>
             )}

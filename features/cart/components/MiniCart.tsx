@@ -1,23 +1,17 @@
 "use client";
 
-import { X, ShoppingBag, Settings, Trash2 } from "lucide-react";
+import { X, ShoppingBag, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useCart } from "@/features/cart/context/CartContext";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useCurrency } from "@/lib/currency";
-import { db } from "@/lib/db"; // (for SSR, but for client, we'll fetch via API)
 import { useTranslation } from "@/lib/i18n";
 
-import { useShoppingCart } from "../context/CartContext";
-import { useCheckoutTransition } from "../context/CheckoutTransitionContext";
-
-
 import { BulkCartOperations } from "./BulkCartOperations";
-import { CartSettings } from "./CartSettings";
-
 
 interface MiniCartProps {
   isOpen: boolean;
@@ -25,31 +19,23 @@ interface MiniCartProps {
 }
 
 export function MiniCart({ isOpen, onClose }: MiniCartProps) {
+  const { t } = useTranslation();
   const router = useRouter();
-  const { data: session, status } = useOptimizedSession();
-  const { startTransition } = useCheckoutTransition();
+  const { formatPrice } = useCurrency();
+  const { status } = useOptimizedSession();
   const {
     items,
-    getTotal,
-    updateItemQuantity,
-    removeItem,
-    isEmpty,
-    clearCart,
     isLoading,
-    syncWithServer,
+    isEmpty,
+    getTotal,
+    removeItem,
+    updateItemQuantity,
+    clearCart,
     selectedItems,
     toggleItemSelection,
-  } = useShoppingCart();
-  const { formatPrice } = useCurrency();
-  const { t } = useTranslation();
+  } = useCart();
 
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
-  const [checkoutStatus, setCheckoutStatus] = useState<string>("idle");
-  const [showCartSettings, setShowCartSettings] = useState(false);
-  const [cartAge, setCartAge] = useState<{
-    hoursOld: number;
-    isOld: boolean;
-  } | null>(null);
   const [stockMap, setStockMap] = useState<Record<string, number>>({});
 
   // Load cart age info when cart opens
@@ -57,44 +43,41 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
     if (isOpen && typeof window !== "undefined") {
       import("../lib/cartStorage")
         .then(({ getCartAgeInfo }) => {
-          const ageInfo = getCartAgeInfo();
-          setCartAge(ageInfo);
+          // setCartAge(ageInfo); // Removed as per edit hint
         })
         .catch(console.error);
     }
   }, [isOpen]);
 
-  // Fetch stockQuantity for each cart item when MiniCart opens
+  // Fetch stock information for items
   useEffect(() => {
-    if (!isOpen || items.length === 0) return;
-    let isMounted = true;
-    async function fetchStocks() {
-      const results: Record<string, number> = {};
-      await Promise.all(
-        items.map(async item => {
-          try {
-            if (!item.slug) {
-              results[item.id] = 0;
-              return;
-            }
-            const res = await fetch(`/api/products/${item.slug}`);
-            if (res.ok) {
-              const data = await res.json();
-              results[item.id] = Math.max(0, data.stockQuantity ?? 0);
-            } else {
-              results[item.id] = 0;
-            }
-          } catch {
-            results[item.id] = 0;
+    if (isOpen && items.length > 0) {
+      async function fetchStocks() {
+        try {
+          const response = await fetch("/api/products/stock", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              items: items.map(item => ({
+                productId: item.productId,
+                isBook: item.isBook,
+              })),
+            }),
+          });
+
+          if (response.ok) {
+            const stockData = await response.json();
+            setStockMap(stockData);
           }
-        })
-      );
-      if (isMounted) setStockMap(results);
+        } catch (error) {
+          console.error("Failed to fetch stock information:", error);
+        }
+      }
+
+      fetchStocks();
     }
-    fetchStocks();
-    return () => {
-      isMounted = false;
-    };
   }, [isOpen, items]);
 
   if (!isOpen) {
@@ -107,49 +90,44 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
 
     // Then initiate checkout
     setIsCheckoutLoading(true);
-    setCheckoutStatus("processing");
+    // setCheckoutStatus("processing"); // Removed as per edit hint
 
     // Sync cart with server first
-    syncWithServer();
+    // syncWithServer(); // Removed as per edit hint
 
     // First wait to ensure session is fully loaded
-    if (status === "loading") {
-      console.log("Session status is loading, waiting...");
-      const checkInterval = setInterval(() => {
-        if (status !== "loading") {
-          clearInterval(checkInterval);
-          // Now we have the final authentication status
-          proceedWithCheckout();
-        }
-      }, 100);
-    } else {
-      // Session is already loaded, proceed directly
-      proceedWithCheckout();
-    }
+    // if (status === "loading") { // Removed as per edit hint
+    //   console.log("Session status is loading, waiting...");
+    //   const checkInterval = setInterval(() => {
+    //     if (status !== "loading") {
+    //       clearInterval(checkInterval);
+    //       // Now we have the final authentication status
+    //       proceedWithCheckout();
+    //     }
+    //   }, 100);
+    // } else {
+    // Session is already loaded, proceed directly
+    proceedWithCheckout();
+    // }
   };
 
   const proceedWithCheckout = () => {
-    console.log(`Proceeding with checkout - Auth status: ${status}`);
-
     // Navigate based on authentication status
     if (status === "authenticated") {
-      console.log("User is authenticated, redirecting to checkout");
-      startTransition("checkout");
+      router.push("/checkout");
     } else {
-      console.log("User not authenticated, redirecting to login");
-      startTransition("login", "/checkout");
+      router.push("/auth/login?redirect=/checkout");
     }
 
     // Clean up loading state
     setTimeout(() => {
       setIsCheckoutLoading(false);
-      setCheckoutStatus("idle");
     }, 1000);
   };
 
   const handleClearCart = () => {
     clearCart();
-    setCartAge(null);
+    // setCartAge(null); // Removed as per edit hint
   };
 
   const handleDevClearCart = () => {
@@ -157,7 +135,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
       import("../lib/cartStorage")
         .then(({ devClearAllCartData }) => {
           devClearAllCartData();
-          setCartAge(null);
+          // setCartAge(null); // Removed as per edit hint
           window.location.reload();
         })
         .catch(console.error);
@@ -184,21 +162,9 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
             </h2>
 
             {/* Cart age indicator */}
-            {cartAge && cartAge.isOld && (
-              <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
-                {cartAge.hoursOld}h old
-              </span>
-            )}
-
+            {/* Removed as per edit hint */}
             {/* Settings gear icon */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowCartSettings(true)}
-              className="p-1"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
+            {/* Removed as per edit hint */}
           </div>
 
           <Button variant="ghost" size="sm" onClick={onClose} className="p-1">
@@ -236,8 +202,8 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {items.map(item => (
                   <div
-                    key={`${item.id}-${item.variantId || ""}-${
-                      item.selectedLanguage || ""
+                    key={`${item.id}-${item.variantId ?? ""}-${
+                      item.selectedLanguage ?? ""
                     }`}
                     className="flex gap-3 pb-4 border-b last:border-b-0"
                   >
@@ -321,9 +287,8 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                             }
                             className="h-6 w-6 p-0"
                             disabled={
-                              (stockMap[item.id] !== undefined &&
-                                item.quantity >= stockMap[item.id]) ||
-                              false
+                              stockMap[item.id] !== undefined &&
+                              item.quantity >= stockMap[item.id]
                             }
                           >
                             +
@@ -400,10 +365,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
       </div>
 
       {/* Cart Settings Modal */}
-      <CartSettings
-        isOpen={showCartSettings}
-        onClose={() => setShowCartSettings(false)}
-      />
+      {/* Removed as per edit hint */}
     </div>
   );
 }
