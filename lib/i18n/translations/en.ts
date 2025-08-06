@@ -378,6 +378,7 @@ export const en = {
     "Explore our collection of educational toys designed to inspire curiosity and foster learning in science, technology, engineering, and mathematics.",
 
   // Homepage specific translations
+  heroSection: "Hero Section",
   inspireMinds: "Inspire Curious Minds",
   discoverCollection:
     "Discover our curated collection of STEM toys that make learning fun and engaging for children of all ages.",

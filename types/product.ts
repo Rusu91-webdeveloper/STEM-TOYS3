@@ -1,4 +1,4 @@
-import { Book } from "./book";
+// import { Book } from "./book";
 
 export interface ProductVariant {
   id: string;
@@ -18,32 +18,56 @@ export interface Product {
   name: string;
   slug: string;
   description: string;
-  translationKey?: string;
   price: number;
   compareAtPrice?: number;
   images: string[];
-  categoryId?: string;
-  category?: string;
-  tags?: string[];
-  attributes?: {
-    [key: string]: string;
+  category?: {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
   };
-  variants?: ProductVariant[];
-  isActive?: boolean;
-  featured?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-  ageRange?: string;
-  stemCategory?:
-    | "science"
-    | "technology"
-    | "engineering"
-    | "mathematics"
-    | string;
-  rating?: number;
-  reviewCount?: number;
-  stockQuantity?: number;
-  reservedQuantity?: number;
+  tags: string[];
+  attributes?: Record<string, any>;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  stockQuantity: number;
+  reservedQuantity: number;
+  featured: boolean;
   isBook?: boolean;
-  book?: Book;
+  stemCategory?: string;
+  ageRange?: string;
+  // Enhanced categorization fields
+  ageGroup?:
+    | "TODDLERS_1_3"
+    | "PRESCHOOL_3_5"
+    | "ELEMENTARY_6_8"
+    | "MIDDLE_SCHOOL_9_12"
+    | "TEENS_13_PLUS";
+  stemDiscipline?:
+    | "SCIENCE"
+    | "TECHNOLOGY"
+    | "ENGINEERING"
+    | "MATHEMATICS"
+    | "GENERAL";
+  learningOutcomes?: (
+    | "PROBLEM_SOLVING"
+    | "CREATIVITY"
+    | "CRITICAL_THINKING"
+    | "MOTOR_SKILLS"
+    | "LOGIC"
+  )[];
+  productType?:
+    | "ROBOTICS"
+    | "PUZZLES"
+    | "CONSTRUCTION_SETS"
+    | "EXPERIMENT_KITS"
+    | "BOARD_GAMES";
+  specialCategories?: (
+    | "NEW_ARRIVALS"
+    | "BEST_SELLERS"
+    | "GIFT_IDEAS"
+    | "SALE_ITEMS"
+  )[];
 }

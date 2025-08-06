@@ -126,6 +126,14 @@ model Product {
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
   barcode          String?
+  
+  // Enhanced categorization fields
+  ageGroup         AgeGroup?
+  stemDiscipline   StemCategory @default(GENERAL)
+  learningOutcomes LearningOutcome[]
+  productType      ProductType?
+  specialCategories SpecialCategory[]
+  
   orderItems       OrderItem[]
   category         Category?   @relation(fields: [categoryId], references: [id])
   reviews          Review[]
@@ -145,6 +153,11 @@ model Product {
   @@index([stockQuantity, isActive])
   @@index([featured, createdAt(sort: Desc)])
   @@index([featured])
+  @@index([ageGroup])
+  @@index([stemDiscipline])
+  @@index([productType])
+  @@index([learningOutcomes])
+  @@index([specialCategories])
   @@map("Product")
 }
 
@@ -530,4 +543,35 @@ enum ReturnStatus {
 enum CouponType {
   PERCENTAGE
   FIXED_AMOUNT
+}
+
+enum AgeGroup {
+  TODDLERS_1_3
+  PRESCHOOL_3_5
+  ELEMENTARY_6_8
+  MIDDLE_SCHOOL_9_12
+  TEENS_13_PLUS
+}
+
+enum LearningOutcome {
+  PROBLEM_SOLVING
+  CREATIVITY
+  CRITICAL_THINKING
+  MOTOR_SKILLS
+  LOGIC
+}
+
+enum ProductType {
+  ROBOTICS
+  PUZZLES
+  CONSTRUCTION_SETS
+  EXPERIMENT_KITS
+  BOARD_GAMES
+}
+
+enum SpecialCategory {
+  NEW_ARRIVALS
+  BEST_SELLERS
+  GIFT_IDEAS
+  SALE_ITEMS
 }

@@ -56,6 +56,12 @@ export async function GET(request: NextRequest) {
       "maxPrice",
       "search",
       "sort",
+      // New categorization filters
+      "ageGroup",
+      "stemDiscipline",
+      "learningOutcomes",
+      "productType",
+      "specialCategories",
     ]);
     // Normalize and parse filter values for DB
     const category = filters.category ? String(filters.category) : undefined;
@@ -64,6 +70,22 @@ export async function GET(request: NextRequest) {
     const maxPrice = filters.maxPrice ? Number(filters.maxPrice) : undefined;
     const search = filters.search ? String(filters.search) : undefined;
     const sort = filters.sort ? String(filters.sort) : undefined;
+
+    // New categorization filters
+    const ageGroup = filters.ageGroup ? String(filters.ageGroup) : undefined;
+    const stemDiscipline = filters.stemDiscipline
+      ? String(filters.stemDiscipline)
+      : undefined;
+    const learningOutcomes = filters.learningOutcomes
+      ? String(filters.learningOutcomes).split(",")
+      : undefined;
+    const productType = filters.productType
+      ? String(filters.productType)
+      : undefined;
+    const specialCategories = filters.specialCategories
+      ? String(filters.specialCategories).split(",")
+      : undefined;
+
     // Use shared cache key utility
     const cacheKey = getCacheKey("products", {
       category,
@@ -74,6 +96,12 @@ export async function GET(request: NextRequest) {
       sort,
       page,
       limit,
+      // Include new filters in cache key
+      ageGroup,
+      stemDiscipline,
+      learningOutcomes,
+      productType,
+      specialCategories,
     });
 
     // **PERFORMANCE**: Check cache first with distributed caching
@@ -91,6 +119,12 @@ export async function GET(request: NextRequest) {
             sort,
             limit,
             page,
+            // Pass new filters to database function
+            ageGroup,
+            stemDiscipline,
+            learningOutcomes,
+            productType,
+            specialCategories,
           }),
         CACHE_DURATION
       );
@@ -120,6 +154,12 @@ export async function GET(request: NextRequest) {
       sort,
       limit,
       page,
+      // Pass new filters to database function
+      ageGroup,
+      stemDiscipline,
+      learningOutcomes,
+      productType,
+      specialCategories,
     });
 
     const response = NextResponse.json(result);
@@ -148,9 +188,29 @@ async function fetchProductsFromDatabase(params: {
   sort?: string;
   limit: number;
   page: number;
+  // New categorization filter parameters
+  ageGroup?: string;
+  stemDiscipline?: string;
+  learningOutcomes?: string[];
+  productType?: string;
+  specialCategories?: string[];
 }) {
-  const { category, featured, minPrice, maxPrice, search, sort, limit, page } =
-    params;
+  const {
+    category,
+    featured,
+    minPrice,
+    maxPrice,
+    search,
+    sort,
+    limit,
+    page,
+    // Destructure new filters
+    ageGroup,
+    stemDiscipline,
+    learningOutcomes,
+    productType,
+    specialCategories,
+  } = params;
 
   // **PERFORMANCE**: Build optimized where clause
   const where: Prisma.ProductWhereInput = {
@@ -217,6 +277,31 @@ async function fetchProductsFromDatabase(params: {
     ];
   }
 
+  // New categorization filters
+  if (ageGroup) {
+    (where as any).ageGroup = ageGroup;
+  }
+
+  if (stemDiscipline) {
+    (where as any).stemDiscipline = stemDiscipline;
+  }
+
+  if (learningOutcomes && learningOutcomes.length > 0) {
+    (where as any).learningOutcomes = {
+      hasEvery: learningOutcomes,
+    };
+  }
+
+  if (productType) {
+    (where as any).productType = productType;
+  }
+
+  if (specialCategories && specialCategories.length > 0) {
+    (where as any).specialCategories = {
+      hasEvery: specialCategories,
+    };
+  }
+
   // Debug logging for API request params
   if (process.env.NODE_ENV === "development") {
     console.warn("API Request Params:", {
@@ -224,6 +309,12 @@ async function fetchProductsFromDatabase(params: {
       featured: featured ?? null,
       minPrice: minPrice ?? null,
       maxPrice: maxPrice ?? null,
+      // Log new filters
+      ageGroup: ageGroup ?? null,
+      stemDiscipline: stemDiscipline ?? null,
+      learningOutcomes: learningOutcomes ?? null,
+      productType: productType ?? null,
+      specialCategories: specialCategories ?? null,
     });
 
     console.warn("Final query where clause:", JSON.stringify(where, null, 2));
@@ -316,6 +407,12 @@ async function fetchProductsFromDatabase(params: {
             : null,
           attributes: product.attributes,
           tags: product.tags,
+          // Include new categorization fields
+          ageGroup: (product as any).ageGroup,
+          stemDiscipline: (product as any).stemDiscipline,
+          learningOutcomes: (product as any).learningOutcomes,
+          productType: (product as any).productType,
+          specialCategories: (product as any).specialCategories,
         };
 
         // **PERFORMANCE**: Faster attribute extraction

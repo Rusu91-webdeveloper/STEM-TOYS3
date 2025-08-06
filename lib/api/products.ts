@@ -16,7 +16,6 @@ export async function getCombinedProduct(
 
     // Use the utility function to build the URL
     const url = buildApiUrl(`/api/products/combined/${encodedSlug}`);
-    console.log(`Fetching combined product/book with URL: ${url}`);
 
     const response = await fetch(url, {
       next: {
@@ -91,18 +90,16 @@ export async function getProducts(
     // Use the utility function to build the URL
     const url = buildApiUrl(`/api/products${queryString}`);
 
-    console.log(`[getProducts] Fetching products with URL: ${url}`);
-    console.log(`[getProducts] Environment: ${process.env.NODE_ENV}`);
-    console.log(`[getProducts] Query: ${queryString}`);
-
     const response = await fetch(url, {
       next: {
         // Use tags for more precise invalidation
         tags: ["products", category ? `category-${category}` : ""].filter(
           Boolean
         ),
-        revalidate: 60,
+        revalidate: 300, // 🚀 PERFORMANCE: Increase cache time to 5 minutes
       },
+      // 🚀 PERFORMANCE: Add browser cache for better performance
+      cache: "force-cache",
     });
 
     if (!response.ok) {
@@ -117,8 +114,6 @@ export async function getProducts(
     }
 
     const data = await response.json();
-    console.log("[getProducts] API response type:", typeof data);
-    console.log("[getProducts] API response keys:", Object.keys(data));
 
     // The API returns { products, pagination, meta } structure
     if (
@@ -127,43 +122,25 @@ export async function getProducts(
       "products" in data &&
       Array.isArray(data.products)
     ) {
-      console.log(
-        `[getProducts] Retrieved ${data.products.length} products from API (structured response)`
-      );
       return data.products;
     }
 
     // Fallback: if the response is already an array
     if (Array.isArray(data)) {
-      console.log(
-        `[getProducts] Retrieved ${data.length} products from API (array response)`
-      );
       return data;
     }
 
     // Fallback: if it's a single product object
     if (data && typeof data === "object" && "id" in data && "name" in data) {
-      console.log(
-        "[getProducts] Found single product object, converting to array"
-      );
       return [data];
     }
 
     console.error("[getProducts] Unexpected API response format:", data);
-    console.error("[getProducts] Response type:", typeof data);
-    console.error(
-      "[getProducts] Response keys:",
-      data ? Object.keys(data) : "null"
-    );
 
     // Return empty array if we can't parse the response
     return [];
   } catch (error) {
     console.error("[getProducts] Error fetching products:", error);
-    console.error("[getProducts] Error details:", {
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    });
     return [];
   }
 }

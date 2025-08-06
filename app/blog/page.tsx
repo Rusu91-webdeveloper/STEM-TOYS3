@@ -1,18 +1,28 @@
 "use client";
 
 import { format } from "date-fns";
+import { SlidersHorizontal } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
-import { useTranslation } from "@/lib/i18n";
-import { Container } from "@/components/ui/container";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+// import { toast } from "@/components/ui/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
+import { Container } from "@/components/ui/container";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Icon, STEMIcons } from "@/components/ui/icon-system";
 import { SkeletonCard } from "@/components/ui/skeleton";
+import { useTranslation } from "@/lib/i18n";
 
 interface BlogPost {
   id: string;
@@ -43,7 +53,7 @@ interface Category {
 }
 
 // Define STEM categories
-const stemCategories = [
+const _stemCategories = [
   {
     key: "all",
     label: "All",
@@ -67,6 +77,24 @@ const stemCategories = [
   },
 ];
 
+// STEM category icon mapping
+const stemCategoryIconMap: Record<string, keyof typeof STEMIcons> = {
+  SCIENCE: "Science",
+  TECHNOLOGY: "Technology",
+  ENGINEERING: "Engineering",
+  MATHEMATICS: "Math",
+};
+
+// Helper to get icon for a category name
+const getCategoryIcon = (name: string) => {
+  const upper = name.trim().toUpperCase();
+  if (stemCategoryIconMap[upper]) {
+    return STEMIcons[stemCategoryIconMap[upper]];
+  }
+  // Default icon for non-STEM categories
+  return STEMIcons.Logic;
+};
+
 export default function BlogPage() {
   const { t, language, setLanguage } = useTranslation();
   const [activeCategory, setActiveCategory] = useState("all");
@@ -77,7 +105,7 @@ export default function BlogPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Handle language switch
-  const toggleLanguage = () => {
+  const _toggleLanguage = () => {
     setLanguage(language === "ro" ? "en" : "ro");
   };
 
@@ -185,43 +213,158 @@ export default function BlogPage() {
   );
 
   // --- CATEGORY BAR ---
-  const CategoryBar = () => (
-    <nav className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 shadow-sm">
-      <Container className="py-2 flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-indigo-200">
-        {stemCategories.map(category => (
-          <Button
-            key={category.key}
-            className={`rounded-full px-4 py-1 text-sm font-medium transition-all ${activeCategory === category.key ? "bg-indigo-700 text-white" : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"}`}
-            onClick={() => {
-              setActiveCategory(category.key);
-              if (category.key === "all") setActiveCategoryId("all");
-            }}
-            aria-pressed={activeCategory === category.key}
-          >
-            {category.label}
-          </Button>
-        ))}
-        {categories.length > 0 && (
-          <>
-            <span className="mx-2 text-gray-400">|</span>
+  // Responsive CategoryBar with only fetched categories and icons
+  const CategoryBar = () => {
+    // Determine if any filter is active (not 'all')
+    const isFiltered = activeCategoryId !== "all";
+
+    // --- MOBILE: Filter Button + Modal ---
+    return (
+      <>
+        {/* Mobile: Filter Button (sticky) */}
+        <div className="md:hidden sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm flex items-center px-4 py-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 w-full justify-center"
+                aria-label="Open filters"
+              >
+                <Icon icon={SlidersHorizontal} size="md" decorative />
+                <span className="font-medium">{t("Filters") || "Filters"}</span>
+                {isFiltered && (
+                  <span className="ml-2 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold animate-pulse">
+                    ●
+                  </span>
+                )}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md w-full rounded-t-2xl sm:rounded-lg p-0 overflow-hidden">
+              <DialogHeader className="p-4 border-b">
+                <DialogTitle>
+                  {t("Filter by Category") || "Filter by Category"}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="p-4 space-y-4">
+                {/* 'All' Button */}
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <Button
+                    key="all"
+                    variant={activeCategoryId === "all" ? "default" : "outline"}
+                    className={`flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium transition-all border ${activeCategoryId === "all" ? "border-indigo-700 bg-indigo-700 text-white shadow" : "border-gray-200 bg-white text-indigo-700 hover:bg-indigo-50"}`}
+                    onClick={() => {
+                      setActiveCategoryId("all");
+                    }}
+                    aria-pressed={activeCategoryId === "all"}
+                  >
+                    <Icon icon={STEMIcons.Logic} size="sm" decorative />
+                    {t("All") || "All"}
+                  </Button>
+                </div>
+                {/* Fetched Categories with icons */}
+                <div className="flex flex-wrap gap-2">
+                  {categories.map(category => (
+                    <Button
+                      key={category.id}
+                      variant={
+                        activeCategoryId === category.id ? "default" : "outline"
+                      }
+                      className={`flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium transition-all border ${activeCategoryId === category.id ? "border-purple-700 bg-purple-700 text-white shadow" : "border-gray-200 bg-white text-purple-700 hover:bg-purple-50"}`}
+                      onClick={() => {
+                        setActiveCategoryId(category.id);
+                      }}
+                      aria-pressed={activeCategoryId === category.id}
+                    >
+                      <Icon
+                        icon={getCategoryIcon(category.name)}
+                        size="sm"
+                        decorative
+                      />
+                      {category.name}
+                    </Button>
+                  ))}
+                </div>
+                {/* Reset Filters Button */}
+                {isFiltered && (
+                  <Button
+                    variant="secondary"
+                    className="w-full mt-4"
+                    onClick={resetFilters}
+                  >
+                    {t("Reset Filters") || "Reset Filters"}
+                  </Button>
+                )}
+              </div>
+              <DialogClose asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full border-t rounded-none"
+                >
+                  {t("Close") || "Close"}
+                </Button>
+              </DialogClose>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Desktop: Horizontal Filter Bar */}
+        <nav className="hidden md:block sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 shadow-sm">
+          <Container className="py-2 flex gap-2 items-center overflow-x-auto scrollbar-thin scrollbar-thumb-indigo-200">
+            {/* 'All' Button */}
+            <Button
+              key="all"
+              variant={activeCategoryId === "all" ? "default" : "outline"}
+              className={`flex items-center gap-2 rounded-full px-4 py-1 text-sm font-medium transition-all border ${activeCategoryId === "all" ? "border-indigo-700 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 text-white shadow-lg" : "border-gray-200 bg-white text-indigo-700 hover:bg-indigo-50"}`}
+              onClick={() => {
+                setActiveCategoryId("all");
+              }}
+              aria-pressed={activeCategoryId === "all"}
+              tabIndex={0}
+            >
+              <Icon icon={STEMIcons.Logic} size="sm" decorative />
+              {t("All") || "All"}
+            </Button>
+            {/* Divider */}
+            {categories.length > 0 && (
+              <span className="mx-2 text-gray-400">|</span>
+            )}
+            {/* Fetched Categories with icons */}
             {categories.map(category => (
               <Button
                 key={category.id}
-                className={`rounded-full px-4 py-1 text-sm font-medium transition-all ${activeCategoryId === category.id ? "bg-purple-700 text-white" : "bg-purple-100 text-purple-700 hover:bg-purple-200"}`}
+                variant={
+                  activeCategoryId === category.id ? "default" : "outline"
+                }
+                className={`flex items-center gap-2 rounded-full px-4 py-1 text-sm font-medium transition-all border ${activeCategoryId === category.id ? "border-purple-700 bg-gradient-to-r from-purple-600 to-indigo-700 text-white shadow-lg" : "border-gray-200 bg-white text-purple-700 hover:bg-purple-50"}`}
                 onClick={() => {
                   setActiveCategoryId(category.id);
-                  if (activeCategory !== "all") setActiveCategory("all");
                 }}
                 aria-pressed={activeCategoryId === category.id}
+                tabIndex={0}
               >
+                <Icon
+                  icon={getCategoryIcon(category.name)}
+                  size="sm"
+                  decorative
+                />
                 {category.name}
               </Button>
             ))}
-          </>
-        )}
-      </Container>
-    </nav>
-  );
+            {/* Reset Filters Button */}
+            {isFiltered && (
+              <Button
+                variant="secondary"
+                className="ml-4"
+                onClick={resetFilters}
+              >
+                {t("Reset Filters") || "Reset Filters"}
+              </Button>
+            )}
+          </Container>
+        </nav>
+      </>
+    );
+  };
 
   // --- BLOG GRID ---
   const BlogGrid = () => (

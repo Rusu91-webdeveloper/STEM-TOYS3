@@ -13,6 +13,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { db } from "@/lib/db";
+import {
+  getAgeGroupDisplayName,
+  getStemDisciplineDisplayName,
+  getProductTypeDisplayName,
+  getLearningOutcomeDisplayName,
+  getSpecialCategoryDisplayName,
+} from "@/lib/utils/product-categorization";
 
 import { ProductDeleteButton } from "./components/ProductDeleteButton";
 
@@ -45,6 +52,12 @@ interface Product {
   images: string[];
   tags?: string[];
   createdAt: Date;
+  // New categorization fields
+  ageGroup?: string;
+  stemDiscipline?: string;
+  learningOutcomes?: string[];
+  productType?: string;
+  specialCategories?: string[];
   _count: {
     orderItems: number;
   };
@@ -255,6 +268,68 @@ export default async function AdminProductsPage() {
                     <p className="text-xs text-muted-foreground line-clamp-2">
                       {product.description}
                     </p>
+                  </div>
+
+                  {/* Categorization Badges */}
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-1">
+                      {product.ageGroup && (
+                        <Badge variant="secondary" className="text-xs">
+                          {getAgeGroupDisplayName(product.ageGroup as any)}
+                        </Badge>
+                      )}
+                      {product.stemDiscipline && (
+                        <Badge variant="secondary" className="text-xs">
+                          {getStemDisciplineDisplayName(
+                            product.stemDiscipline as any
+                          )}
+                        </Badge>
+                      )}
+                      {product.productType && (
+                        <Badge variant="secondary" className="text-xs">
+                          {getProductTypeDisplayName(
+                            product.productType as any
+                          )}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Learning Outcomes */}
+                    {product.learningOutcomes &&
+                      product.learningOutcomes.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {product.learningOutcomes.slice(0, 3).map(outcome => (
+                            <Badge
+                              key={outcome}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {getLearningOutcomeDisplayName(outcome as any)}
+                            </Badge>
+                          ))}
+                          {product.learningOutcomes.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{product.learningOutcomes.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+
+                    {/* Special Categories */}
+                    {product.specialCategories &&
+                      product.specialCategories.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {product.specialCategories.map(category => (
+                            <Badge
+                              key={category}
+                              variant="default"
+                              className="text-xs bg-orange-500"
+                            >
+                              {getSpecialCategoryDisplayName(category as any)}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                   </div>
 
                   {/* Sales Info */}

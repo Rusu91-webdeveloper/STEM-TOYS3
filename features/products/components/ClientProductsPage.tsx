@@ -20,14 +20,12 @@ import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  ProductCard,
   ProductGrid,
-  ProductFilters,
   ProductVariantProvider,
   type FilterGroup,
   type PriceRange,
-  type FilterOption,
 } from "@/features/products";
+import { EnhancedProductFilters } from "@/features/products/components/EnhancedProductFilters";
 import { useTranslation } from "@/lib/i18n";
 import type { Product } from "@/types/product";
 
@@ -121,6 +119,38 @@ interface CategoryData {
 interface ProductData extends Omit<Product, "category"> {
   category?: CategoryData;
   stemCategory?: string;
+  // Enhanced categorization fields
+  ageGroup?:
+    | "TODDLERS_1_3"
+    | "PRESCHOOL_3_5"
+    | "ELEMENTARY_6_8"
+    | "MIDDLE_SCHOOL_9_12"
+    | "TEENS_13_PLUS";
+  stemDiscipline?:
+    | "SCIENCE"
+    | "TECHNOLOGY"
+    | "ENGINEERING"
+    | "MATHEMATICS"
+    | "GENERAL";
+  learningOutcomes?: (
+    | "PROBLEM_SOLVING"
+    | "CREATIVITY"
+    | "CRITICAL_THINKING"
+    | "MOTOR_SKILLS"
+    | "LOGIC"
+  )[];
+  productType?:
+    | "ROBOTICS"
+    | "PUZZLES"
+    | "CONSTRUCTION_SETS"
+    | "EXPERIMENT_KITS"
+    | "BOARD_GAMES";
+  specialCategories?: (
+    | "NEW_ARRIVALS"
+    | "BEST_SELLERS"
+    | "GIFT_IDEAS"
+    | "SALE_ITEMS"
+  )[];
 }
 
 interface ClientProductsPageProps {
@@ -178,9 +208,9 @@ const normalizeCategory = (name: string): string => {
 // Internal component that uses useSearchParams
 function ClientProductsPageContent({
   initialProducts,
-  searchParams,
+  searchParams: _searchParams,
 }: ClientProductsPageProps) {
-  const router = useRouter();
+  const _router = useRouter();
   const urlSearchParams = useSearchParams();
   const { t } = useTranslation();
 
@@ -199,13 +229,21 @@ function ClientProductsPageContent({
   });
   const [noPriceFilter, setNoPriceFilter] = useState<boolean>(true); // Default to no price filter
 
+  // New categorization filter states
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>("all");
+  const [selectedStemDiscipline, setSelectedStemDiscipline] =
+    useState<string>("all");
+  const [selectedLearningOutcomes, setSelectedLearningOutcomes] = useState<
+    string[]
+  >([]);
+  const [selectedProductType, setSelectedProductType] = useState<string>("all");
+  const [selectedSpecialCategories, setSelectedSpecialCategories] = useState<
+    string[]
+  >([]);
+
   // Calculate filtered products based on all filters applied (must be above paging logic)
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
-
-    console.log("All products:", products.length);
-    console.log("Selected categories:", selectedCategories);
-    console.log("Is hydrated:", isHydrated);
 
     // Only apply category filtering if we have selected categories AND we're hydrated
     // This prevents hydration mismatches and ensures all products show initially
@@ -230,7 +268,7 @@ function ClientProductsPageContent({
         }
 
         // Improved category matching with better logging
-        return selectedCategories.some(cat => {
+        return selectedCategories.some((cat: string) => {
           const lowerCat = cat.toLowerCase();
 
           // Special case for engineering category
@@ -243,15 +281,11 @@ function ClientProductsPageContent({
               prodCategoryName.includes("inginerie") ||
               prodCategoryName.includes("engineer");
 
-            const match =
+            return (
               matchByCategorySlug ||
               matchByStemCategory ||
-              matchByEngineeringInName;
-
-            console.log(
-              `  Engineering match for ${product.name}: ${match} (slug:${matchByCategorySlug}, stem:${matchByStemCategory}, name:${matchByEngineeringInName})`
+              matchByEngineeringInName
             );
-            return match;
           }
 
           // Special case for educational-books
@@ -264,27 +298,18 @@ function ClientProductsPageContent({
               prodCategoryName.includes("carti") ||
               stemCategoryValue === "educational-books";
 
-            console.log(
-              `  Book match for ${product.name}: ${isBook} (name:${prodCategoryName}, slug:${prodCategorySlug}, stem:${stemCategoryValue})`
-            );
             return isBook;
           }
 
           // Regular matching for other categories
-          const match =
+          return (
             prodCategoryName === lowerCat ||
             prodCategorySlug === lowerCat ||
-            stemCategoryValue === lowerCat;
-
-          console.log(
-            `  Matching ${product.name} with ${lowerCat}: ${match} (name:${prodCategoryName}, slug:${prodCategorySlug}, stem:${stemCategoryValue})`
+            stemCategoryValue === lowerCat
           );
-          return match;
         });
       });
     }
-
-    console.log("Filtered products count:", filtered.length);
 
     // Filter by attributes
     Object.entries(selectedFilters).forEach(([filterId, values]) => {
@@ -297,7 +322,7 @@ function ClientProductsPageContent({
               .split("-")
               .map(Number);
 
-            return values.some(range => {
+            return values.some((range: string) => {
               const [filterMin, filterMax] = range.split("-").map(Number);
 
               // Check if product age range overlaps with filter age range
@@ -307,44 +332,89 @@ function ClientProductsPageContent({
               );
             });
           });
-        } else if (filterId === "difficulty") {
+        } else {
+          // For other filters, check if product has any of the selected values
           filtered = filtered.filter(product => {
-            const productDifficulty = (
-              product.attributes?.difficultyLevel as string
-            )?.toLowerCase();
-            if (!productDifficulty) return false;
-            return values.includes(productDifficulty);
+            if (!product.attributes) return false;
+
+            const attrs = product.attributes as Record<string, any>;
+            const productValue = attrs[filterId];
+
+            if (!productValue) return false;
+
+            // Handle both string and array values
+            if (Array.isArray(productValue)) {
+              return productValue.some(val => values.includes(val.toString()));
+            }
+
+            return values.includes(productValue.toString());
           });
-        } else if (filterId === "productType") {
-          filtered = filtered.filter(product =>
-            // Check product attributes for type
-            values.some(value =>
-              product.attributes?.type
-                ?.toLowerCase()
-                .includes(value.toLowerCase())
-            )
-          );
         }
       }
     });
 
-    // Filter by price range (only if price filter is enabled)
+    // Filter by price range
     if (!noPriceFilter) {
+      filtered = filtered.filter(product => {
+        const price = product.price;
+        return price >= priceRangeFilter.min && price <= priceRangeFilter.max;
+      });
+    }
+
+    // Filter by age group
+    if (selectedAgeGroup !== "all") {
       filtered = filtered.filter(
-        product =>
-          product.price >= priceRangeFilter.min &&
-          product.price <= priceRangeFilter.max
+        product => product.ageGroup === selectedAgeGroup
       );
+    }
+
+    // Filter by STEM discipline
+    if (selectedStemDiscipline !== "all") {
+      filtered = filtered.filter(
+        product => product.stemDiscipline === selectedStemDiscipline
+      );
+    }
+
+    // Filter by learning outcomes
+    if (selectedLearningOutcomes.length > 0) {
+      filtered = filtered.filter(product => {
+        if (!product.learningOutcomes) return false;
+        return selectedLearningOutcomes.some(outcome =>
+          product.learningOutcomes!.includes(outcome as any)
+        );
+      });
+    }
+
+    // Filter by product type
+    if (selectedProductType !== "all") {
+      filtered = filtered.filter(
+        product => product.productType === selectedProductType
+      );
+    }
+
+    // Filter by special categories
+    if (selectedSpecialCategories.length > 0) {
+      filtered = filtered.filter(product => {
+        if (!product.specialCategories) return false;
+        return selectedSpecialCategories.some(category =>
+          product.specialCategories!.includes(category as any)
+        );
+      });
     }
 
     return filtered;
   }, [
     products,
     selectedCategories,
+    isHydrated,
     selectedFilters,
     priceRangeFilter,
     noPriceFilter,
-    isHydrated,
+    selectedAgeGroup,
+    selectedStemDiscipline,
+    selectedLearningOutcomes,
+    selectedProductType,
+    selectedSpecialCategories,
   ]);
 
   // 1. Add paging state for 'Load More' (mobile-first)
@@ -370,18 +440,16 @@ function ClientProductsPageContent({
   // Handle hydration and URL parameters
   useEffect(() => {
     const categoryParam = urlSearchParams.get("category");
-    console.log("URL category param:", categoryParam);
 
     if (categoryParam) {
       const normalizedCategory = normalizeCategory(categoryParam);
-      console.log("Setting selected categories:", [normalizedCategory]);
       setSelectedCategories([normalizedCategory]);
     }
 
     setIsHydrated(true);
   }, [urlSearchParams]);
 
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, _setViewMode] = useState<"grid" | "list">("grid");
 
   // Create category filter from initial data
   const categoryFilter = useMemo(() => {
@@ -479,7 +547,6 @@ function ClientProductsPageContent({
 
     // Convert map to array
     const categories = Array.from(categoryMap.values());
-    console.log("Available categories for filter:", categories);
 
     return {
       id: "category",
@@ -655,6 +722,12 @@ function ClientProductsPageContent({
       max: 500,
     });
     setNoPriceFilter(true); // Reset to no price filter
+    // Clear new categorization filters
+    setSelectedAgeGroup("all");
+    setSelectedStemDiscipline("all");
+    setSelectedLearningOutcomes([]);
+    setSelectedProductType("all");
+    setSelectedSpecialCategories([]);
   };
 
   // Get the active category for the header
@@ -1019,7 +1092,7 @@ function ClientProductsPageContent({
                 </div>
                 {t("filterOptions")}
               </h3>
-              <ProductFilters
+              <EnhancedProductFilters
                 categories={categoryFilter}
                 filters={dynamicFilters}
                 priceRange={{
@@ -1030,12 +1103,21 @@ function ClientProductsPageContent({
                 selectedCategories={selectedCategories}
                 selectedFilters={selectedFilters}
                 noPriceFilter={noPriceFilter}
+                selectedAgeGroup={selectedAgeGroup}
+                selectedStemDiscipline={selectedStemDiscipline}
+                selectedLearningOutcomes={selectedLearningOutcomes}
+                selectedProductType={selectedProductType}
+                selectedSpecialCategories={selectedSpecialCategories}
                 onCategoryChange={handleCategoryChange}
                 onFilterChange={handleFilterChange}
                 onPriceChange={handlePriceChange}
                 onNoPriceFilterChange={handleNoPriceFilterChange}
+                onAgeGroupChange={setSelectedAgeGroup}
+                onStemDisciplineChange={setSelectedStemDiscipline}
+                onLearningOutcomesChange={setSelectedLearningOutcomes}
+                onProductTypeChange={setSelectedProductType}
+                onSpecialCategoriesChange={setSelectedSpecialCategories}
                 onClearFilters={handleClearFilters}
-                // Pass handler to close mobile filter panel
                 onCloseMobile={() => setMobileFiltersOpen(false)}
               />
             </div>
@@ -1168,18 +1250,75 @@ function ClientProductsPageContent({
                             >
                               {product.category?.name}
                             </Badge>
-                            <Badge
-                              variant="outline"
-                              className="bg-gray-100 text-gray-700 border-gray-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5"
-                            >
-                              {product.ageRange} years
-                            </Badge>
-                            <Badge
-                              variant="outline"
-                              className="bg-gray-100 text-gray-700 border-gray-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5"
-                            >
-                              {product.attributes?.difficulty}
-                            </Badge>
+                            {product.ageGroup && (
+                              <Badge
+                                variant="outline"
+                                className="bg-blue-50 text-blue-600 border-blue-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5"
+                              >
+                                {product.ageGroup.replace(/_/g, " ")}
+                              </Badge>
+                            )}
+                            {product.stemDiscipline && (
+                              <Badge
+                                variant="outline"
+                                className="bg-green-50 text-green-600 border-green-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5"
+                              >
+                                {product.stemDiscipline}
+                              </Badge>
+                            )}
+                            {product.productType && (
+                              <Badge
+                                variant="outline"
+                                className="bg-purple-50 text-purple-600 border-purple-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5"
+                              >
+                                {product.productType.replace(/_/g, " ")}
+                              </Badge>
+                            )}
+                            {product.learningOutcomes &&
+                              product.learningOutcomes.length > 0 && (
+                                <Badge
+                                  variant="outline"
+                                  className="bg-yellow-50 text-yellow-600 border-yellow-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5"
+                                >
+                                  {product.learningOutcomes
+                                    .slice(0, 2)
+                                    .map(lo => lo.replace(/_/g, " "))
+                                    .join(", ")}
+                                  {product.learningOutcomes.length > 2 &&
+                                    ` +${product.learningOutcomes.length - 2}`}
+                                </Badge>
+                              )}
+                            {product.specialCategories &&
+                              product.specialCategories.length > 0 && (
+                                <Badge
+                                  variant="outline"
+                                  className="bg-red-50 text-red-600 border-red-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5"
+                                >
+                                  {product.specialCategories
+                                    .slice(0, 2)
+                                    .map(sc => sc.replace(/_/g, " "))
+                                    .join(", ")}
+                                  {product.specialCategories.length > 2 &&
+                                    ` +${product.specialCategories.length - 2}`}
+                                </Badge>
+                              )}
+                            {/* Legacy badges for backward compatibility */}
+                            {product.ageRange && (
+                              <Badge
+                                variant="outline"
+                                className="bg-gray-100 text-gray-700 border-gray-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5"
+                              >
+                                {product.ageRange} years
+                              </Badge>
+                            )}
+                            {product.attributes?.difficulty && (
+                              <Badge
+                                variant="outline"
+                                className="bg-gray-100 text-gray-700 border-gray-200 text-xs px-1.5 py-0 sm:px-2 sm:py-0.5"
+                              >
+                                {product.attributes?.difficulty}
+                              </Badge>
+                            )}
                           </div>
                           <h3 className="text-sm sm:text-base font-semibold mb-0.5 sm:mb-1">
                             {displayName}
@@ -1263,9 +1402,9 @@ function ClientProductsPageContent({
         </div>
       </div>
 
-      {/* At the root of the component, render ProductFilters for mobile as a modal, only when mobileFiltersOpen is true */}
+      {/* At the root of the component, render EnhancedProductFilters for mobile as a modal, only when mobileFiltersOpen is true */}
       {mobileFiltersOpen && (
-        <ProductFilters
+        <EnhancedProductFilters
           categories={categoryFilter}
           filters={dynamicFilters}
           priceRange={{
@@ -1276,10 +1415,20 @@ function ClientProductsPageContent({
           selectedCategories={selectedCategories}
           selectedFilters={selectedFilters}
           noPriceFilter={noPriceFilter}
+          selectedAgeGroup={selectedAgeGroup}
+          selectedStemDiscipline={selectedStemDiscipline}
+          selectedLearningOutcomes={selectedLearningOutcomes}
+          selectedProductType={selectedProductType}
+          selectedSpecialCategories={selectedSpecialCategories}
           onCategoryChange={handleCategoryChange}
           onFilterChange={handleFilterChange}
           onPriceChange={handlePriceChange}
           onNoPriceFilterChange={handleNoPriceFilterChange}
+          onAgeGroupChange={setSelectedAgeGroup}
+          onStemDisciplineChange={setSelectedStemDiscipline}
+          onLearningOutcomesChange={setSelectedLearningOutcomes}
+          onProductTypeChange={setSelectedProductType}
+          onSpecialCategoriesChange={setSelectedSpecialCategories}
           onClearFilters={handleClearFilters}
           onCloseMobile={() => setMobileFiltersOpen(false)}
         />

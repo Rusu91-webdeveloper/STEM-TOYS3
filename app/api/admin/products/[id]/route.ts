@@ -21,6 +21,42 @@ const productUpdateSchema = z.object({
   categoryId: z.string().optional(),
   tags: z.array(z.string()).optional(),
   images: z.array(z.string()).optional(),
+  // Enhanced categorization fields
+  ageGroup: z
+    .enum([
+      "TODDLERS_1_3",
+      "PRESCHOOL_3_5",
+      "ELEMENTARY_6_8",
+      "MIDDLE_SCHOOL_9_12",
+      "TEENS_13_PLUS",
+    ])
+    .optional(),
+  stemDiscipline: z
+    .enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"])
+    .optional(),
+  learningOutcomes: z
+    .array(
+      z.enum([
+        "PROBLEM_SOLVING",
+        "CREATIVITY",
+        "CRITICAL_THINKING",
+        "MOTOR_SKILLS",
+        "LOGIC",
+      ])
+    )
+    .optional(),
+  productType: z
+    .enum([
+      "ROBOTICS",
+      "PUZZLES",
+      "CONSTRUCTION_SETS",
+      "EXPERIMENT_KITS",
+      "BOARD_GAMES",
+    ])
+    .optional(),
+  specialCategories: z
+    .array(z.enum(["NEW_ARRIVALS", "BEST_SELLERS", "GIFT_IDEAS", "SALE_ITEMS"]))
+    .optional(),
   attributes: z.record(z.any()).optional(),
 });
 
@@ -242,6 +278,33 @@ export async function PATCH(
       updateData.tags = Array.isArray(updatedData.tags)
         ? updatedData.tags
         : JSON.parse(updatedData.tags);
+    }
+
+    // Handle new categorization fields
+    if (updatedData.ageGroup !== undefined) {
+      updateData.ageGroup = updatedData.ageGroup;
+    }
+
+    if (updatedData.stemDiscipline !== undefined) {
+      updateData.stemDiscipline = updatedData.stemDiscipline;
+    }
+
+    if (updatedData.learningOutcomes !== undefined) {
+      updateData.learningOutcomes = Array.isArray(updatedData.learningOutcomes)
+        ? updatedData.learningOutcomes
+        : JSON.parse(updatedData.learningOutcomes);
+    }
+
+    if (updatedData.productType !== undefined) {
+      updateData.productType = updatedData.productType;
+    }
+
+    if (updatedData.specialCategories !== undefined) {
+      updateData.specialCategories = Array.isArray(
+        updatedData.specialCategories
+      )
+        ? updatedData.specialCategories
+        : JSON.parse(updatedData.specialCategories);
     }
 
     // Handle attributes as JSON

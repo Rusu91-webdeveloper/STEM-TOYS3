@@ -1,7 +1,7 @@
 import "server-only";
 import crypto from "crypto";
 
-import { hash, compare } from "bcrypt";
+import { hash } from "bcrypt";
 
 /**
  * Generates a hash that combines the admin password with a secret key
@@ -10,7 +10,7 @@ import { hash, compare } from "bcrypt";
  * @param password The plaintext password
  * @returns A secure one-way hash of the password
  */
-export async function hashAdminPassword(password: string): Promise<string> {
+export function hashAdminPassword(password: string): Promise<string> {
   // First, create a derived key using PBKDF2 with env secret as salt
   const secret =
     process.env.NEXTAUTH_SECRET || "fallback-secret-key-for-hashing";
@@ -25,21 +25,22 @@ export async function hashAdminPassword(password: string): Promise<string> {
     .toString("hex");
 
   // Then, hash the derived key with bcrypt
-  return await hash(derivedKey, 12);
+  return hash(derivedKey, 12);
 }
 
 /**
  * Validates an admin password against a stored hash
+ * This function handles PBKDF2 hashes stored in environment variables
  *
  * @param password The plaintext password to verify
- * @param storedHash The stored hash to compare against
+ * @param storedHash The stored PBKDF2 hash to compare against
  * @returns True if the password matches the hash
  */
-export async function verifyAdminPassword(
+export function verifyAdminPassword(
   password: string,
   storedHash: string
-): Promise<boolean> {
-  // First, create a derived key using PBKDF2 with env secret as salt
+): boolean {
+  // Create a derived key using PBKDF2 with env secret as salt
   const secret =
     process.env.NEXTAUTH_SECRET || "fallback-secret-key-for-hashing";
   const derivedKey = crypto
@@ -52,8 +53,8 @@ export async function verifyAdminPassword(
     )
     .toString("hex");
 
-  // Then, compare with bcrypt
-  return await compare(derivedKey, storedHash);
+  // Compare the derived key directly with the stored hash
+  return derivedKey === storedHash;
 }
 
 /**

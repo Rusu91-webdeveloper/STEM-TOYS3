@@ -35,11 +35,46 @@ const productSchema = baseProductSchema
     metaTitle: z.string().optional(),
     metaDescription: z.string().optional(),
     metaKeywords: z.array(z.string()).optional(),
-    // Optional product attributes - redefine ageRange as string
-    ageRange: z.string().optional(),
-    stemCategory: z.string().optional(),
+    // Enhanced categorization fields
+    ageGroup: z
+      .enum([
+        "TODDLERS_1_3",
+        "PRESCHOOL_3_5",
+        "ELEMENTARY_6_8",
+        "MIDDLE_SCHOOL_9_12",
+        "TEENS_13_PLUS",
+      ])
+      .optional(),
+    stemDiscipline: z
+      .enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"])
+      .default("GENERAL"),
+    learningOutcomes: z
+      .array(
+        z.enum([
+          "PROBLEM_SOLVING",
+          "CREATIVITY",
+          "CRITICAL_THINKING",
+          "MOTOR_SKILLS",
+          "LOGIC",
+        ])
+      )
+      .optional(),
+    productType: z
+      .enum([
+        "ROBOTICS",
+        "PUZZLES",
+        "CONSTRUCTION_SETS",
+        "EXPERIMENT_KITS",
+        "BOARD_GAMES",
+      ])
+      .optional(),
+    specialCategories: z
+      .array(
+        z.enum(["NEW_ARRIVALS", "BEST_SELLERS", "GIFT_IDEAS", "SALE_ITEMS"])
+      )
+      .optional(),
+    // Additional attributes (non-categorization)
     difficultyLevel: z.string().optional(),
-    learningObjectives: z.array(z.string()).optional(),
     attributes: z.record(z.any()).optional(),
   });
 
@@ -155,18 +190,20 @@ export async function POST(request: NextRequest) {
           categoryId: data.categoryId,
           tags: data.tags ?? [],
           stockQuantity: data.stock ?? 0,
+          // New categorization fields
+          ageGroup: data.ageGroup,
+          stemDiscipline: data.stemDiscipline,
+          learningOutcomes: data.learningOutcomes ?? [],
+          productType: data.productType,
+          specialCategories: data.specialCategories ?? [],
           attributes: {
             // Include SEO metadata in attributes
             metaTitle: data.metaTitle ?? data.name,
             metaDescription:
               data.metaDescription ?? data.description.substring(0, 160),
             metaKeywords: data.metaKeywords ?? data.tags ?? [],
-            ageRange: data.ageRange,
-            stemCategory: data.stemCategory
-              ? data.stemCategory.toUpperCase()
-              : undefined,
+            // Additional non-categorization attributes
             difficultyLevel: data.difficultyLevel,
-            learningObjectives: data.learningObjectives,
             // Any other custom attributes
             ...(data.attributes ?? {}),
           },
@@ -284,6 +321,17 @@ export async function PUT(request: NextRequest) {
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
     if (data.stock !== undefined) updateData.stockQuantity = data.stock;
 
+    // Add new categorization fields if they exist
+    if (data.ageGroup !== undefined) updateData.ageGroup = data.ageGroup;
+    if (data.stemDiscipline !== undefined)
+      updateData.stemDiscipline = data.stemDiscipline;
+    if (data.learningOutcomes !== undefined)
+      updateData.learningOutcomes = data.learningOutcomes;
+    if (data.productType !== undefined)
+      updateData.productType = data.productType;
+    if (data.specialCategories !== undefined)
+      updateData.specialCategories = data.specialCategories;
+
     // Handle attributes update
     if (existingProduct.attributes) {
       const currentAttributes = existingProduct.attributes as Record<
@@ -304,6 +352,7 @@ export async function PUT(request: NextRequest) {
         ...(data.metaKeywords !== undefined && {
           metaKeywords: data.metaKeywords,
         }),
+        // Legacy fields for backward compatibility
         ...(data.ageRange !== undefined && { ageRange: data.ageRange }),
         ...(data.stemCategory !== undefined && {
           stemCategory: data.stemCategory
@@ -339,6 +388,7 @@ export async function PUT(request: NextRequest) {
             (data.description ? data.description.substring(0, 160) : undefined),
         }),
         ...(data.metaKeywords && { metaKeywords: data.metaKeywords }),
+        // Legacy fields for backward compatibility
         ...(data.ageRange && { ageRange: data.ageRange }),
         ...(data.stemCategory && {
           stemCategory: data.stemCategory

@@ -22,8 +22,8 @@ interface ProductData extends Omit<Product, "category"> {
   stemCategory?: string;
 }
 
-// Set fetch directive at the page level to always get fresh data
-export const dynamic = "force-dynamic";
+// 🚀 PERFORMANCE: Use ISR instead of force-dynamic for better caching
+export const revalidate = 300; // Revalidate every 5 minutes
 
 // Metadata is exported from a separate file
 export default async function ProductsPage({
@@ -34,34 +34,17 @@ export default async function ProductsPage({
   // Use await for searchParams to avoid the Next.js error
   const params = await searchParams;
 
-  // eslint-disable-next-line no-console
-  console.log("🔍 ProductsPage - Environment Check:", {
-    NODE_ENV: process.env.NODE_ENV,
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL || "Not set",
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || "Not set",
-    VERCEL_URL: process.env.VERCEL_URL || "Not set",
-    DATABASE_URL_START:
-      `${process.env.DATABASE_URL?.substring(0, 50)}...` || "Not set",
-  });
-
   const requestedCategory =
     typeof params.category === "string" ? params.category : undefined;
 
   try {
-    // eslint-disable-next-line no-console
-    console.log("🚀 Fetching products from API...");
-    // eslint-disable-next-line no-console
-    console.log("📂 Requested category:", requestedCategory || "ALL");
-
     let booksData: Book[] = [];
     let productsData: Product[] = [];
     const fetchErrors: { books?: string; products?: string } = {};
 
     // 🚀 PERFORMANCE & LOGIC FIX: Conditionally fetch books and products
     if (!requestedCategory) {
-      // No category selected, fetch both
-      console.log("📦 Fetching both books and products...");
-
+      // No category selected, fetch both with proper caching
       const [booksResult, productsResult] = await Promise.allSettled([
         getBooks(),
         getProducts(),
@@ -69,9 +52,7 @@ export default async function ProductsPage({
 
       if (booksResult.status === "fulfilled") {
         booksData = booksResult.value;
-        console.log(`✅ Books fetch successful: ${booksData.length} items`);
       } else {
-        console.error("❌ Books fetch failed:", booksResult.reason);
         fetchErrors.books =
           booksResult.reason?.message || "Unknown error fetching books";
         booksData = [];
@@ -79,23 +60,16 @@ export default async function ProductsPage({
 
       if (productsResult.status === "fulfilled") {
         productsData = productsResult.value;
-        console.log(
-          `✅ Products fetch successful: ${productsData.length} items`
-        );
       } else {
-        console.error("❌ Products fetch failed:", productsResult.reason);
         fetchErrors.products =
           productsResult.reason?.message || "Unknown error fetching products";
         productsData = [];
       }
     } else if (requestedCategory === "educational-books") {
       // Only fetch books for the "educational-books" category
-      console.log("📚 Fetching books only for educational-books category...");
       try {
         booksData = await getBooks();
-        console.log(`✅ Books fetch successful: ${booksData.length} items`);
       } catch (error) {
-        console.error("❌ Books fetch failed:", error);
         fetchErrors.books =
           error instanceof Error
             ? error.message
@@ -104,16 +78,9 @@ export default async function ProductsPage({
       }
     } else {
       // Fetch STEM products for any other category
-      console.log(
-        `🔬 Fetching STEM products for category: ${requestedCategory}`
-      );
       try {
         productsData = await getProducts({ category: requestedCategory });
-        console.log(
-          `✅ Products fetch successful: ${productsData.length} items`
-        );
       } catch (error) {
-        console.error("❌ Products fetch failed:", error);
         fetchErrors.products =
           error instanceof Error
             ? error.message
@@ -121,13 +88,6 @@ export default async function ProductsPage({
         productsData = [];
       }
     }
-
-    console.log(`📊 Final Results:`, {
-      books: booksData.length,
-      products: productsData.length,
-      category: requestedCategory || "ALL",
-      errors: fetchErrors,
-    });
 
     // Transform books to look like products
     const bookProducts = booksData.map(book => ({
@@ -152,9 +112,10 @@ export default async function ProductsPage({
         languages: book.languages?.map(lang => lang.name).join(", ") || "",
       },
       isActive: book.isActive,
-      createdAt: book.createdAt,
-      updatedAt: book.updatedAt,
+      createdAt: new Date(book.createdAt),
+      updatedAt: new Date(book.updatedAt),
       stockQuantity: 999, // Digital books don't have stock limits
+      reservedQuantity: 0, // Digital books don't have reserved quantity
       featured: true,
       isBook: true, // Mark as book for proper cart handling
       stemCategory: "educational-books",
@@ -192,32 +153,19 @@ export default async function ProductsPage({
         ...product,
         category: categoryData,
         stemCategory,
+        // Include new categorization fields
+        ageGroup: (product as any).ageGroup,
+        stemDiscipline: (product as any).stemDiscipline,
+        learningOutcomes: (product as any).learningOutcomes,
+        productType: (product as any).productType,
+        specialCategories: (product as any).specialCategories,
       } as ProductData;
     });
 
     // Combine both books and STEM products
     const products = [...bookProducts, ...stemProducts];
 
-    console.log(`🎯 FINAL RESULT:`, {
-      totalProducts: products.length,
-      bookProducts: bookProducts.length,
-      stemProducts: stemProducts.length,
-      category: requestedCategory || "ALL",
-      firstFewProducts: products
-        .slice(0, 3)
-        .map(p => ({ id: p.id, name: p.name })),
-    });
-
     if (products.length === 0) {
-      console.warn("⚠️ WARNING: No products found!");
-      console.warn("Debug info:", {
-        booksDataLength: booksData.length,
-        productsDataLength: productsData.length,
-        requestedCategory,
-        params,
-        fetchErrors,
-      });
-
       // Show a more informative message if no products were found
       if (Object.keys(fetchErrors).length > 0) {
         return (

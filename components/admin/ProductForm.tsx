@@ -1,28 +1,29 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus, X, Upload, Image } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+// import {
+//   Accordion,
+//   AccordionContent,
+//   AccordionItem,
+//   AccordionTrigger,
+// } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
+  // CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -46,8 +47,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { slugify } from "@/lib/utils";
+import {
+  AGE_GROUP_DISPLAY_NAMES,
+  STEM_DISCIPLINE_DISPLAY_NAMES,
+  LEARNING_OUTCOME_DISPLAY_NAMES,
+  PRODUCT_TYPE_DISPLAY_NAMES,
+  SPECIAL_CATEGORY_DISPLAY_NAMES,
+} from "@/lib/utils/product-categorization";
 
-// Define form schema
+// Define form schema with new categorization fields
 const formSchema = z.object({
   name: z.string().min(3, {
     message: "Product name must be at least 3 characters.",
@@ -83,11 +91,42 @@ const formSchema = z.object({
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
   metaKeywords: z.array(z.string()),
-  // STEM specific fields
-  ageRange: z.string().optional(),
-  stemCategory: z.string().optional(),
+  // Enhanced categorization fields
+  ageGroup: z
+    .enum([
+      "TODDLERS_1_3",
+      "PRESCHOOL_3_5",
+      "ELEMENTARY_6_8",
+      "MIDDLE_SCHOOL_9_12",
+      "TEENS_13_PLUS",
+    ])
+    .optional(),
+  stemDiscipline: z
+    .enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"])
+    .default("GENERAL"),
+  learningOutcomes: z.array(
+    z.enum([
+      "PROBLEM_SOLVING",
+      "CREATIVITY",
+      "CRITICAL_THINKING",
+      "MOTOR_SKILLS",
+      "LOGIC",
+    ])
+  ),
+  productType: z
+    .enum([
+      "ROBOTICS",
+      "PUZZLES",
+      "CONSTRUCTION_SETS",
+      "EXPERIMENT_KITS",
+      "BOARD_GAMES",
+    ])
+    .optional(),
+  specialCategories: z.array(
+    z.enum(["NEW_ARRIVALS", "BEST_SELLERS", "GIFT_IDEAS", "SALE_ITEMS"])
+  ),
+  // Additional attributes (non-categorization)
   difficultyLevel: z.string().optional(),
-  learningObjectives: z.array(z.string()),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -132,10 +171,12 @@ export default function ProductForm({
       metaTitle: "",
       metaDescription: "",
       metaKeywords: [],
-      ageRange: "",
-      stemCategory: "",
+      ageGroup: undefined,
+      stemDiscipline: "GENERAL",
+      learningOutcomes: [],
+      productType: undefined,
+      specialCategories: [],
       difficultyLevel: "",
-      learningObjectives: [],
     },
   });
 
@@ -202,23 +243,23 @@ export default function ProductForm({
     );
   };
 
-  const addLearningObjective = () => {
+  const _addLearningObjective = () => {
     if (newLearningObjective.trim() !== "") {
-      const currentObjectives = form.getValues("learningObjectives") || [];
-      if (!currentObjectives.includes(newLearningObjective.trim())) {
-        form.setValue("learningObjectives", [
+      const currentObjectives = form.getValues("learningOutcomes") || [];
+      if (!currentObjectives.includes(newLearningObjective.trim() as any)) {
+        form.setValue("learningOutcomes", [
           ...currentObjectives,
-          newLearningObjective.trim(),
+          newLearningObjective.trim() as any,
         ]);
       }
       setNewLearningObjective("");
     }
   };
 
-  const removeLearningObjective = (objective: string) => {
-    const currentObjectives = form.getValues("learningObjectives");
+  const _removeLearningObjective = (objective: string) => {
+    const currentObjectives = form.getValues("learningOutcomes");
     form.setValue(
-      "learningObjectives",
+      "learningOutcomes",
       currentObjectives.filter(o => o !== objective)
     );
   };
@@ -234,7 +275,7 @@ export default function ProductForm({
     }
   };
 
-  const removeImage = (imageUrl: string) => {
+  const _removeImage = (imageUrl: string) => {
     const currentImages = form.getValues("images");
     form.setValue(
       "images",
@@ -283,17 +324,10 @@ export default function ProductForm({
 
       const method = isEditing ? "PATCH" : "POST";
 
-      // Prepare the attributes object with STEM-specific fields
+      // Prepare the attributes object with only non-categorization fields
       const attributes = {
-        ...(data.ageRange ? { ageRange: data.ageRange } : {}),
-        ...(data.stemCategory
-          ? { stemCategory: data.stemCategory.toUpperCase() }
-          : {}),
         ...(data.difficultyLevel
           ? { difficultyLevel: data.difficultyLevel }
-          : {}),
-        ...(data.learningObjectives && data.learningObjectives.length > 0
-          ? { learningObjectives: data.learningObjectives }
           : {}),
       };
 
@@ -305,11 +339,17 @@ export default function ProductForm({
         keywords: data.metaKeywords,
       };
 
-      // Prepare the request body
+      // Prepare the request body with new categorization fields
       const requestBody = {
         ...data,
         attributes,
         metadata,
+        // Include new categorization fields
+        ageGroup: data.ageGroup,
+        stemDiscipline: data.stemDiscipline,
+        learningOutcomes: data.learningOutcomes,
+        productType: data.productType,
+        specialCategories: data.specialCategories,
       };
 
       console.log("Sending request to:", endpoint);
@@ -402,8 +442,9 @@ export default function ProductForm({
       >
         <div className="space-y-6">
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="categorization">Categorization</TabsTrigger>
               <TabsTrigger value="images">Images</TabsTrigger>
               <TabsTrigger value="attributes">Attributes</TabsTrigger>
               <TabsTrigger value="seo">SEO</TabsTrigger>
@@ -545,26 +586,6 @@ export default function ProductForm({
 
                   <FormField
                     control={form.control}
-                    name="stock"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Stock</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="1"
-                            placeholder="0"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
                     name="categoryId"
                     render={({ field }) => (
                       <FormItem>
@@ -699,6 +720,214 @@ export default function ProductForm({
               </Card>
             </TabsContent>
 
+            {/* Categorization Tab - NEW */}
+            <TabsContent value="categorization" className="space-y-4 py-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Product Categorization</CardTitle>
+                  <CardDescription>
+                    Categorize your STEM product for better organization and
+                    filtering.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Age Group */}
+                  <FormField
+                    control={form.control}
+                    name="ageGroup"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Age Group</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value || ""}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select age group" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Object.entries(AGE_GROUP_DISPLAY_NAMES).map(
+                              ([key, name]) => (
+                                <SelectItem key={key} value={key}>
+                                  {name}
+                                </SelectItem>
+                              )
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Recommended age range for this product.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* STEM Discipline */}
+                  <FormField
+                    control={form.control}
+                    name="stemDiscipline"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>STEM Discipline</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select STEM discipline" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Object.entries(STEM_DISCIPLINE_DISPLAY_NAMES).map(
+                              ([key, name]) => (
+                                <SelectItem key={key} value={key}>
+                                  {name}
+                                </SelectItem>
+                              )
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Primary STEM discipline this product focuses on.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Product Type */}
+                  <FormField
+                    control={form.control}
+                    name="productType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Product Type</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value || ""}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select product type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Object.entries(PRODUCT_TYPE_DISPLAY_NAMES).map(
+                              ([key, name]) => (
+                                <SelectItem key={key} value={key}>
+                                  {name}
+                                </SelectItem>
+                              )
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Type of educational product.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Learning Outcomes */}
+                  <div>
+                    <FormLabel>Learning Outcomes</FormLabel>
+                    <FormDescription>
+                      Select the skills and outcomes this product develops.
+                    </FormDescription>
+                    <div className="grid grid-cols-2 gap-4 mt-3">
+                      {Object.entries(LEARNING_OUTCOME_DISPLAY_NAMES).map(
+                        ([key, name]) => (
+                          <FormField
+                            key={key}
+                            control={form.control}
+                            name="learningOutcomes"
+                            render={({ field }) => (
+                              <FormItem
+                                key={key}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(key as any)}
+                                    onCheckedChange={checked =>
+                                      checked
+                                        ? field.onChange([...field.value, key])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              value => value !== key
+                                            )
+                                          )
+                                    }
+                                  />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel className="text-sm font-normal">
+                                    {name}
+                                  </FormLabel>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        )
+                      )}
+                    </div>
+                    <FormMessage />
+                  </div>
+
+                  {/* Special Categories */}
+                  <div>
+                    <FormLabel>Special Categories</FormLabel>
+                    <FormDescription>
+                      Mark this product for special promotional categories.
+                    </FormDescription>
+                    <div className="grid grid-cols-2 gap-4 mt-3">
+                      {Object.entries(SPECIAL_CATEGORY_DISPLAY_NAMES).map(
+                        ([key, name]) => (
+                          <FormField
+                            key={key}
+                            control={form.control}
+                            name="specialCategories"
+                            render={({ field }) => (
+                              <FormItem
+                                key={key}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(key as any)}
+                                    onCheckedChange={checked =>
+                                      checked
+                                        ? field.onChange([...field.value, key])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              value => value !== key
+                                            )
+                                          )
+                                    }
+                                  />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel className="text-sm font-normal">
+                                    {name}
+                                  </FormLabel>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        )
+                      )}
+                    </div>
+                    <FormMessage />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             {/* Images Tab */}
             <TabsContent value="images" className="space-y-4 py-4">
               <Card>
@@ -729,82 +958,12 @@ export default function ProductForm({
             <TabsContent value="attributes" className="space-y-4 py-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>STEM-Specific Attributes</CardTitle>
+                  <CardTitle>Additional Attributes</CardTitle>
                   <CardDescription>
-                    Add educational information about your product.
+                    Add additional educational information about your product.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="ageRange"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Age Range</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select age range" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="3-5">3-5 years</SelectItem>
-                            <SelectItem value="6-8">6-8 years</SelectItem>
-                            <SelectItem value="9-12">9-12 years</SelectItem>
-                            <SelectItem value="13-16">13-16 years</SelectItem>
-                            <SelectItem value="17+">17+ years</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Recommended age range for this product.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="stemCategory"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>STEM Category</FormLabel>
-                        <Select
-                          disabled={isLoading}
-                          onValueChange={field.onChange}
-                          value={field.value || ""}
-                          defaultValue={field.value || ""}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select STEM category" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="SCIENCE">Science</SelectItem>
-                            <SelectItem value="TECHNOLOGY">
-                              Technology
-                            </SelectItem>
-                            <SelectItem value="ENGINEERING">
-                              Engineering
-                            </SelectItem>
-                            <SelectItem value="MATHEMATICS">
-                              Mathematics
-                            </SelectItem>
-                            <SelectItem value="GENERAL">General</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Categorize this product by STEM discipline
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
                   <FormField
                     control={form.control}
                     name="difficultyLevel"
@@ -838,52 +997,6 @@ export default function ProductForm({
                       </FormItem>
                     )}
                   />
-
-                  <div>
-                    <FormLabel>Learning Objectives</FormLabel>
-                    <div className="flex items-center space-x-2 mt-1.5">
-                      <Input
-                        placeholder="Add a learning objective"
-                        value={newLearningObjective}
-                        onChange={e => setNewLearningObjective(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            addLearningObjective();
-                          }
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        onClick={addLearningObjective}
-                        variant="outline"
-                        size="sm"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <FormDescription>
-                      What will children learn by using this product?
-                    </FormDescription>
-                    <div className="flex flex-col gap-2 mt-3">
-                      {form.watch("learningObjectives").map(objective => (
-                        <div
-                          key={objective}
-                          className="flex items-center justify-between rounded-md border px-3 py-2"
-                        >
-                          <span>{objective}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeLearningObjective(objective)}
-                            className="text-destructive"
-                          >
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Remove</span>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

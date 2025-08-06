@@ -272,8 +272,8 @@ export const authOptions: NextAuthConfig = {
               password: string;
             };
             if (adminUser.passwordIsHashed) {
-              // We have a pre-computed bcrypt hash - use our server-side utility
-              passwordMatch = await verifyPassword(
+              // We have a PBKDF2 hash stored in ADMIN_PASSWORD_HASH - use our custom verification
+              passwordMatch = await verifyAdminPassword(
                 password,
                 adminUser.password
               );

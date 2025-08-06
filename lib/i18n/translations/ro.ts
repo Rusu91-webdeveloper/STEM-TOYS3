@@ -392,6 +392,7 @@ export const ro = {
     "Explorează colecția noastră de jucării educaționale concepute pentru a inspira curiozitatea și a încuraja învățarea în știință, tehnologie, inginerie și matematică.",
 
   // Homepage specific translations
+  heroSection: "Secțiunea Principală",
   inspireMinds: "Inspiră Minți Curioase",
   discoverCollection:
     "Descoperă colecția noastră de jucării STEM care fac învățarea distractivă și atractivă pentru copii de toate vârstele.",
@@ -448,6 +449,8 @@ export const ro = {
   listView: "Vizualizare listă",
   noProductsFound:
     "Nu s-au găsit produse. Încercați filtre diferite sau termeni de căutare diferiți.",
+  noFeaturedProducts: "Nu există produse recomandate momentan",
+  loadMore: "Încarcă mai multe",
 
   // Blog Page
   blogTitle: "Blog educațional STEM | TechTots",

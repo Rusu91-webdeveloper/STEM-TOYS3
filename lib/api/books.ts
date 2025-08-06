@@ -26,16 +26,14 @@ export async function getBooks(
     // Use the utility function to build the URL
     const url = buildApiUrl(`/api/books${queryString}`);
 
-    console.log(`[getBooks] Fetching books with URL: ${url}`);
-    console.log(`[getBooks] Environment: ${process.env.NODE_ENV}`);
-    console.log(`[getBooks] Query: ${queryString}`);
-
     const response = await fetch(url, {
       next: {
         // Use tags for more precise invalidation
         tags: ["books"],
-        revalidate: 60, // Revalidate every minute
+        revalidate: 300, // 🚀 PERFORMANCE: Increase cache time to 5 minutes
       },
+      // 🚀 PERFORMANCE: Add browser cache for better performance
+      cache: "force-cache",
     });
 
     if (!response.ok) {
@@ -48,11 +46,9 @@ export async function getBooks(
     }
 
     const data = await response.json();
-    console.log("[getBooks] API response type:", typeof data);
 
     // Ensure we return an array
     if (Array.isArray(data)) {
-      console.log(`[getBooks] Retrieved ${data.length} books from API`);
       return data;
     }
 
@@ -60,10 +56,6 @@ export async function getBooks(
     return [];
   } catch (error) {
     console.error("[getBooks] Error fetching books:", error);
-    console.error("[getBooks] Error details:", {
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    });
     return [];
   }
 }
@@ -78,8 +70,6 @@ export async function getBook(slug: string): Promise<Book | null> {
 
     // Use the utility function to build the URL
     const url = buildApiUrl(`/api/books?slug=${encodedSlug}`);
-
-    console.log(`[getBook] Fetching book with URL: ${url}`);
 
     const response = await fetch(url, {
       next: {
@@ -99,7 +89,7 @@ export async function getBook(slug: string): Promise<Book | null> {
     const books = await response.json();
     return books.length > 0 ? books[0] : null;
   } catch (error) {
-    console.error("[getBook] Error fetching book:", error);
+    console.error("Error fetching book:", error);
     return null;
   }
 }
