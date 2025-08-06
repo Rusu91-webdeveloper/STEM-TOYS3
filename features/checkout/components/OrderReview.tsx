@@ -9,7 +9,7 @@ import { useCurrency } from "@/lib/currency";
 
 import { CheckoutData, CheckoutStep } from "../types";
 
-import { CheckoutSummary } from "./CheckoutSummary";
+// import { CheckoutSummary } from "./CheckoutSummary";
 
 interface OrderReviewProps {
   checkoutData: CheckoutData;

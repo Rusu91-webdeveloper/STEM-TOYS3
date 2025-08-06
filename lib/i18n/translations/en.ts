@@ -410,6 +410,7 @@ export const en = {
   company: "Company",
   support: "Support",
   legal: "Legal",
+  explore: "Explore",
   allRightsReserved: "All rights reserved.",
   termsOfService: "Terms of Service",
   privacyPolicy: "Privacy Policy",
@@ -702,7 +703,6 @@ export const en = {
   shippingInfoLink: "Shipping Info",
   returnPolicyLink: "Return Policy",
   warrantyLink: "Warranty",
-  faqLink: "FAQ",
   productReviews: "Product Reviews",
   safetyInformation: "Safety Information",
 

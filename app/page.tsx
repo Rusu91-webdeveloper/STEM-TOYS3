@@ -7,9 +7,9 @@ async function getFeaturedProducts(): Promise<Product[]> {
   try {
     // We can use the full URL here for server-side fetching
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/products?featured=true`,
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/products?featured=true&limit=3`, // Reduced from 4 to 3 for faster loading
       {
-        next: { revalidate: 60 }, // Cache for 1 minute to allow static rendering
+        next: { revalidate: 120 }, // Increased cache time to 2 minutes for better performance
       }
     );
 
@@ -17,7 +17,7 @@ async function getFeaturedProducts(): Promise<Product[]> {
       throw new Error("Failed to fetch featured products");
     }
     const data = await res.json();
-    return data.products?.slice(0, 4) ?? [];
+    return data.products?.slice(0, 3) ?? []; // Reduced from 4 to 3
   } catch (error) {
     console.error("Error fetching featured products in Home page:", error);
     return []; // Return empty array on error

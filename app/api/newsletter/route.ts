@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
 
     const { email, firstName, lastName, categories } = result.data;
 
+    console.log("📧 Newsletter subscription attempt for:", email);
+
     // Check if the email already exists
     const existingSubscriber = await prisma.newsletter.findUnique({
       where: { email },
@@ -54,12 +56,20 @@ export async function POST(request: NextRequest) {
           },
         });
 
+        console.log("📧 Sending resubscribe email to:", email);
+
         // Send welcome back email
-        await emailTemplates.newsletterResubscribe({
-          to: email,
-          name:
-            firstName || existingSubscriber.firstName || email.split("@")[0],
-        });
+        try {
+          await emailTemplates.newsletterResubscribe({
+            to: email,
+            name:
+              firstName || existingSubscriber.firstName || email.split("@")[0],
+          });
+          console.log("✅ Resubscribe email sent successfully to:", email);
+        } catch (emailError) {
+          console.error("❌ Failed to send resubscribe email:", emailError);
+          // Don't fail the subscription, just log the error
+        }
 
         return NextResponse.json({
           success: true,
@@ -68,6 +78,7 @@ export async function POST(request: NextRequest) {
       }
 
       // If already active, just return success
+      console.log("📧 User already subscribed:", email);
       return NextResponse.json({
         success: true,
         message: "Ești deja abonat la newsletter-ul nostru!",
@@ -85,11 +96,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    console.log("📧 Sending welcome email to:", email);
+
     // Send welcome email
-    await emailTemplates.newsletterWelcome({
-      to: email,
-      name: firstName || email.split("@")[0],
-    });
+    try {
+      await emailTemplates.newsletterWelcome({
+        to: email,
+        name: firstName || email.split("@")[0],
+      });
+      console.log("✅ Welcome email sent successfully to:", email);
+    } catch (emailError) {
+      console.error("❌ Failed to send welcome email:", emailError);
+      // Don't fail the subscription, just log the error
+    }
 
     return NextResponse.json({
       success: true,

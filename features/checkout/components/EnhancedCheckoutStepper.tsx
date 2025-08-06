@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  CheckCircle,
-  Circle,
   MapPin,
   Truck,
   CreditCard,
@@ -134,7 +132,7 @@ interface ProgressBarProps {
 }
 
 function ProgressBar({
-  currentStep,
+  _currentStep,
   completedSteps,
   totalSteps,
 }: ProgressBarProps) {

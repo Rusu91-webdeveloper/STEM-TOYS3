@@ -424,7 +424,8 @@ export const ro = {
   company: "Companie",
   support: "Asistență",
   legal: "Legal",
-  allRightsReserved: "Toate drepturile rezervate.",
+  explore: "Explorează",
+  allRightsReserved: "toate drepturile rezervate",
   termsOfService: "Termeni și Condiții",
   privacyPolicy: "Politica de Confidențialitate",
   cookiePolicy: "Politica de Cookie-uri",
@@ -804,8 +805,7 @@ export const ro = {
   // Order Support links
   shippingInfoLink: "Informații Livrare",
   returnPolicyLink: "Politica de Returnare",
-  warrantyLink: "Garanție",
-  faqLink: "Întrebări Frecvente",
+  warrantyLink: "Garantie",
   productReviews: "Recenzii Produse",
   safetyInformation: "Informații de Siguranță",
 

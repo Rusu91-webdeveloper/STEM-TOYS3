@@ -1,7 +1,7 @@
 // [INFO] This file orchestrates the homepage layout. All child sections (Hero, Categories, Value Proposition, Featured Products) have been refactored for perfect responsiveness, accessibility, and a premium, app-like user experience. See individual section files for detailed comments and rationale.
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 
 // Import home page components
 import {
@@ -42,6 +42,13 @@ const categories = [
   },
 ];
 
+// Loading fallback for sections
+const SectionLoader = () => (
+  <div className="animate-pulse">
+    <div className="h-64 bg-gray-200 rounded-lg mb-4"></div>
+  </div>
+);
+
 export default function HomePageClient({
   initialFeaturedProducts,
 }: {
@@ -52,21 +59,23 @@ export default function HomePageClient({
 
   return (
     <div className="flex flex-col">
-      {/* Hero Section with Hero Image */}
+      {/* Hero Section with Hero Image - Load immediately */}
       <HeroSection t={t} />
 
-      {/* Categories Section */}
+      {/* Categories Section - Load immediately */}
       <CategoriesSection categories={categories} t={t} />
 
-      {/* Value Proposition Section */}
+      {/* Value Proposition Section - Load immediately */}
       <ValuePropositionSection t={t} />
 
-      {/* Featured Products Section - Now after Value Proposition */}
-      <FeaturedProductsSection
-        products={initialFeaturedProducts}
-        formatPrice={formatPrice}
-        t={t}
-      />
+      {/* Featured Products Section - Load with suspense for better performance */}
+      <Suspense fallback={<SectionLoader />}>
+        <FeaturedProductsSection
+          products={initialFeaturedProducts}
+          formatPrice={formatPrice}
+          t={t}
+        />
+      </Suspense>
     </div>
   );
 }

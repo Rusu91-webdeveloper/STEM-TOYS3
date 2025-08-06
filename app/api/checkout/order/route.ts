@@ -159,7 +159,7 @@ export async function POST(request: Request) {
     }
 
     // Determine if this is a guest checkout
-    const isGuestCheckout = !user && orderData.isGuestCheckout;
+    const _isGuestCheckout = !user && orderData.isGuestCheckout;
 
     // Check if Stripe environment variables are set
     const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;

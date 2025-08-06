@@ -116,7 +116,7 @@ const getCartItemId = (
 
 export const CartProvider = ({ children }: CartProviderProps) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Changed from true to false for faster initial render
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [savedForLaterItems, setSavedForLaterItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false); // Add state for drawer
@@ -148,7 +148,13 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
   // Load cart on initial mount and when auth state changes
   useEffect(() => {
-    loadCart();
+    // Only load cart if authenticated, otherwise keep empty cart for faster loading
+    if (isAuthenticated) {
+      loadCart();
+    } else {
+      // For unauthenticated users, set loading to false immediately
+      setIsLoading(false);
+    }
   }, [isAuthenticated, status, loadCart]);
 
   // Sync cart with server (simplified)

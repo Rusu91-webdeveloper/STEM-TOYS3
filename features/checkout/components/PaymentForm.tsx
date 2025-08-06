@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+// import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/features/cart";
@@ -199,7 +199,7 @@ export function PaymentForm({
     });
   };
 
-  const handlePaymentError = (error: string) => {
+  const handlePaymentError = (_error: string) => {
     setPaymentError(
       t("paymentError", "A apărut o eroare la procesarea plății.")
     );
@@ -337,7 +337,7 @@ export function PaymentForm({
               </span>
             </div>
             <p className="text-sm text-green-700 mt-2">
-              You're saving {discountAmount.toFixed(2)} LEI on this order!
+              You&apos;re saving {discountAmount.toFixed(2)} LEI on this order!
             </p>
           </div>
         )}

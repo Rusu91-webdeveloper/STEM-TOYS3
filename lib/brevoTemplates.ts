@@ -15,7 +15,6 @@ import { prisma } from "@/lib/prisma";
 
 import { sendMail } from "./brevo";
 
-
 // Type for SEO metadata
 type SEOMetadata = {
   metaTitle?: string;
@@ -48,7 +47,34 @@ async function getStoreSettings(): Promise<StoreSettings> {
 
   const settings = await prisma.storeSettings.findFirst();
   if (!settings) {
-    throw new Error("Store settings not found");
+    // Provide default store settings if none exist in database
+    console.warn("⚠️ No store settings found in database, using defaults");
+    const defaultSettings: StoreSettings = {
+      id: "default",
+      storeName: "TechTots STEM Store",
+      storeUrl: "https://stem-toys-3.vercel.app",
+      storeDescription: "Jucării STEM pentru Minți Curioase",
+      contactEmail: "webira.rem.srl@gmail.com",
+      contactPhone: "+40 771 248 029",
+      currency: "RON",
+      timezone: "Europe/Bucharest",
+      dateFormat: "dd-mm-yyyy",
+      weightUnit: "kg",
+      metaTitle: "TechTots | Jucării STEM pentru Minți Curioase",
+      metaDescription:
+        "Descoperă cele mai bune jucării STEM pentru minți curioase la TechTots. Jucării educaționale care fac învățarea distractivă pentru copii de toate vârstele.",
+      metaKeywords:
+        "jucării STEM, jucării educaționale, jucării știință, jucării tehnologie, jucării inginerie, jucării matematică",
+      shippingSettings: {},
+      paymentSettings: {},
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      metadata: {},
+      taxSettings: {},
+    };
+
+    cachedStoreSettings = defaultSettings;
+    return defaultSettings;
   }
 
   cachedStoreSettings = settings;
@@ -206,7 +232,7 @@ export const emailTemplates = {
                 <p style="margin: 0 0 8px 0; color: #374151; font-weight: 600; font-size: 14px;">📥 Link-uri de descărcare:</p>
                 ${bookLinks
                   .map(
-                    (link) => `
+                    link => `
                   <div style="margin-bottom: 8px;">
                     <a href="${link.downloadUrl}" 
                        style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px; display: inline-block; margin-right: 8px;">
@@ -406,7 +432,7 @@ export const emailTemplates = {
           <ul style="margin: 0; padding-left: 20px; color: #1f2937;">
             ${latestBlogs
               .map(
-                (blog) =>
+                blog =>
                   `<li style="margin-bottom: 8px;"><a href="${baseUrl}/blog/${blog.slug}" style="color: #3b82f6; text-decoration: none;">${blog.title}</a></li>`
               )
               .join("")}
@@ -582,7 +608,7 @@ export const emailTemplates = {
         <div style="display: flex; justify-content: space-between; margin-bottom: 32px; text-align: center;">
       `;
 
-      latestBlogs.forEach((blog) => {
+      latestBlogs.forEach(blog => {
         const blogUrl = `${baseUrl}/blog/${blog.slug}`;
         const coverImage =
           blog.coverImage || `${baseUrl}/images/blog/default-cover.jpg`;
@@ -779,7 +805,7 @@ export const emailTemplates = {
         });
 
     // Create an excerpt if needed
-    const excerpt = blog.excerpt || `${blog.content.substring(0, 180)  }...`;
+    const excerpt = blog.excerpt || `${blog.content.substring(0, 180)}...`;
     const blogUrl = `${baseUrl}/blog/${blog.slug}`;
     const coverImage =
       blog.coverImage || `${baseUrl}/images/blog/default-cover.jpg`;
@@ -806,7 +832,7 @@ export const emailTemplates = {
           <h2 style="color: #1f2937; text-align: center; margin-bottom: 24px; font-size: 20px; font-weight: 700;">📚 Alte Articole care Te-ar Putea Interesa</h2>
           <div style="display: flex; justify-content: space-between; gap: 16px;">
             ${relatedBlogs
-              .map((relatedBlog) => {
+              .map(relatedBlog => {
                 const relatedBlogUrl = `${baseUrl}/blog/${relatedBlog.slug}`;
                 const relatedCoverImage =
                   relatedBlog.coverImage ||
@@ -1077,7 +1103,7 @@ export const emailTemplates = {
             <h2 style="color: #1f2937; text-align: center; margin-bottom: 24px; font-size: 20px;">🎯 Ți-ar Putea Plăcea și</h2>
             <div style="display: flex; justify-content: space-between;">
               ${relatedProducts
-                .map((product) => {
+                .map(product => {
                   // Safely get the first image URL or use placeholder
                   let imageUrl = `${baseUrl}/images/placeholder.png`;
                   const productImages = product.images as string[] | null;
@@ -1556,7 +1582,7 @@ export const emailTemplates = {
           <h4 style="color: #1f2937; margin: 0 0 12px 0; font-size: 16px;">🛍️ Produse pentru retur:</h4>
           ${returnItems
             .map(
-              (item) => `
+              item => `
             <div style="border-bottom: 1px solid #e5e7eb; padding: 8px 0; margin-bottom: 8px;">
               <p style="margin: 0; color: #1f2937; font-weight: 500;">• ${item.name}</p>
               <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">Cantitate: ${item.quantity} ${item.sku ? `• SKU: ${item.sku}` : ""}</p>
@@ -1705,7 +1731,7 @@ export const emailTemplates = {
           <h4 style="color: #1f2937; margin: 0 0 12px 0; font-size: 16px;">🛍️ Produse pentru retur:</h4>
           ${returnItems
             .map(
-              (item) => `
+              item => `
             <div style="border-bottom: 1px solid #e5e7eb; padding: 8px 0; margin-bottom: 8px;">
               <p style="margin: 0; color: #1f2937; font-weight: 500;">• ${item.name}</p>
               <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">Cantitate: ${item.quantity} ${item.sku ? `• SKU: ${item.sku}` : ""}</p>

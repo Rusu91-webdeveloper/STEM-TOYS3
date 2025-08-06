@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2, ShoppingCart } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { useShoppingCart } from "../hooks/useShoppingCart";
 
@@ -13,7 +13,20 @@ interface CartButtonProps {
 
 export function CartButton({ className = "" }: CartButtonProps) {
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
   const { isLoading, items } = useShoppingCart();
+
+  // Show loading state immediately but with a subtle animation
+  useEffect(() => {
+    if (isLoading) {
+      // Show loading immediately for better perceived performance
+      setShowLoading(true);
+    } else {
+      // Hide loading after a short delay to avoid flashing
+      const timeoutId = setTimeout(() => setShowLoading(false), 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isLoading]);
 
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);
@@ -25,8 +38,9 @@ export function CartButton({ className = "" }: CartButtonProps) {
       <button
         onClick={openCart}
         className={`flex items-center justify-center relative p-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-all ${className}`}
-        aria-label="Open cart">
-        {isLoading ? (
+        aria-label="Open cart"
+      >
+        {showLoading ? (
           <div className="relative">
             <ShoppingCart className="h-5 w-5 text-white opacity-70" />
             <Loader2 className="h-5 w-5 animate-spin text-white absolute top-0 left-0" />
@@ -43,10 +57,7 @@ export function CartButton({ className = "" }: CartButtonProps) {
         )}
       </button>
 
-      <MiniCart
-        isOpen={isCartOpen}
-        onClose={closeCart}
-      />
+      <MiniCart isOpen={isCartOpen} onClose={closeCart} />
     </>
   );
 }

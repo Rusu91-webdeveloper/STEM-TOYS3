@@ -8,11 +8,11 @@ import { createIntersectionLazyComponent } from "@/lib/bundle-analyzer-client";
 
 // =================== CLIENT-SAFE LAZY COMPONENTS ===================
 
-// Newsletter Signup (Footer area)
+// Newsletter Signup (Footer area) - Increased rootMargin for faster loading
 export const LazyNewsletterSignup = createIntersectionLazyComponent(
   () => import("@/components/NewsletterSignup"),
   "NewsletterSignup",
-  { rootMargin: "50px" }
+  { rootMargin: "200px" } // Increased from 50px to 200px for faster loading
 );
 
 // =================== INTERSECTION OBSERVER LAZY COMPONENTS ===================

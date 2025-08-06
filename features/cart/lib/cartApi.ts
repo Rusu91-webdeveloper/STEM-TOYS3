@@ -7,11 +7,47 @@ import type { CartItem } from "../context/CartContext";
 // Default timeout for API requests (10 seconds)
 const API_TIMEOUT_MS = 10000;
 
+// Cache for cart data to reduce API calls
+let cartCache: CartItem[] | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_DURATION_MS = 30000; // 30 seconds cache
+
+/**
+ * Check if cache is valid
+ */
+function isCacheValid(): boolean {
+  return cartCache !== null && Date.now() - cacheTimestamp < CACHE_DURATION_MS;
+}
+
+/**
+ * Update cache
+ */
+function updateCache(items: CartItem[]): void {
+  cartCache = items;
+  cacheTimestamp = Date.now();
+}
+
+/**
+ * Clear cache
+ */
+function clearCache(): void {
+  cartCache = null;
+  cacheTimestamp = 0;
+}
+
 /**
  * Fetch the user's cart from the server
  */
 export async function fetchCart(): Promise<CartItem[]> {
+  // Return cached data if valid
+  if (isCacheValid() && cartCache) {
+    console.log("📦 [CART API] Returning cached cart data");
+    return cartCache;
+  }
+
   try {
+    console.log("📦 [CART API] Fetching fresh cart data from server");
+
     // Create an AbortController for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
@@ -32,16 +68,21 @@ export async function fetchCart(): Promise<CartItem[]> {
     }
 
     const data = await response.json();
-    return data.data || [];
+    const cartItems = data.data || [];
+
+    // Update cache with fresh data
+    updateCache(cartItems);
+
+    return cartItems;
   } catch (error) {
     // Handle abort/timeout specifically
     if (error instanceof DOMException && error.name === "AbortError") {
       console.error("Cart fetch request timed out after", API_TIMEOUT_MS, "ms");
-      return []; // Return empty cart on timeout
+      return cartCache || []; // Return cached data if available, otherwise empty
     }
 
     console.error("Error fetching cart:", error);
-    return [];
+    return cartCache || []; // Return cached data if available, otherwise empty
   }
 }
 
@@ -69,6 +110,9 @@ export async function saveCart(items: CartItem[]): Promise<boolean> {
     if (!response.ok) {
       throw new Error(`Failed to save cart: ${response.statusText}`);
     }
+
+    // Update cache with saved data
+    updateCache(items);
 
     return true;
   } catch (error) {
@@ -111,6 +155,10 @@ export async function addItemToCart(
     }
 
     const data = await response.json();
+
+    // Clear cache to force fresh fetch on next request
+    clearCache();
+
     return data.data;
   } catch (error) {
     // Handle abort/timeout specifically
@@ -158,6 +206,10 @@ export async function updateCartItemQuantity(
 
     const result = await response.json();
     console.log(`Update result:`, result);
+
+    // Clear cache to force fresh fetch on next request
+    clearCache();
+
     return true;
   } catch (error) {
     // Handle abort/timeout specifically
@@ -207,6 +259,10 @@ export async function removeCartItem(itemId: string): Promise<boolean> {
 
     const result = await response.json();
     console.log(`Remove result:`, result);
+
+    // Clear cache to force fresh fetch on next request
+    clearCache();
+
     return true;
   } catch (error) {
     // Handle abort/timeout specifically
@@ -223,4 +279,11 @@ export async function removeCartItem(itemId: string): Promise<boolean> {
     // Return false instead of throwing to prevent UI disruption
     return false;
   }
+}
+
+/**
+ * Clear the cart cache (useful for testing or manual cache invalidation)
+ */
+export function clearCartCache(): void {
+  clearCache();
 }
