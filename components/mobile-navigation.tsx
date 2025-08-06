@@ -16,6 +16,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
+import { useCart } from "@/features/cart/context/CartContext";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTouchGestures } from "@/lib/touch-interactions";
 import { cn } from "@/lib/utils";
 
@@ -49,11 +51,18 @@ const mainNavItems: MobileNavItem[] = [
     icon: Search,
   },
   {
+    id: "wishlist",
+    label: "Wishlist",
+    href: "/account/wishlist",
+    icon: Heart,
+    requiresAuth: true,
+  },
+  {
     id: "cart",
     label: "Cart",
     href: "/cart",
     icon: ShoppingBag,
-    badge: 0, // This would be populated from cart context
+    badge: 0, // This will be populated from cart context
   },
   {
     id: "account",
@@ -71,12 +80,6 @@ const extendedNavItems = [
   { label: "About", href: "/about", icon: Home },
   { label: "Contact", href: "/contact", icon: User },
   {
-    label: "Wishlist",
-    href: "/account/wishlist",
-    icon: Heart,
-    requiresAuth: true,
-  },
-  {
     label: "Settings",
     href: "/account/settings",
     icon: Settings,
@@ -85,12 +88,29 @@ const extendedNavItems = [
 ];
 
 // Mobile Tab Bar Navigation Component
-export function MobileTabBar({
-  isAuthenticated = false,
-  onSignOut,
-}: MobileNavProps) {
+export function MobileTabBar({ isAuthenticated = false }: MobileNavProps) {
   const pathname = usePathname();
-  const [cartCount, setCartCount] = useState(0);
+  const { cartCount } = useCart();
+  const [wishlistCount, setWishlistCount] = useState(0);
+
+  // Fetch wishlist count for authenticated users
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchWishlistCount();
+    }
+  }, [isAuthenticated]);
+
+  const fetchWishlistCount = async () => {
+    try {
+      const response = await fetch("/api/account/wishlist");
+      if (response.ok) {
+        const wishlistItems = await response.json();
+        setWishlistCount(wishlistItems.length);
+      }
+    } catch (error) {
+      console.error("Error fetching wishlist count:", error);
+    }
+  };
 
   // Filter items based on authentication
   const visibleItems = mainNavItems.filter(
@@ -99,11 +119,20 @@ export function MobileTabBar({
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg md:hidden">
-      <div className="grid grid-cols-4 h-16">
+      <div className="grid grid-cols-5 h-16">
         {visibleItems.map(item => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/" && pathname.startsWith(item.href));
+
+          // Get badge count based on item type
+          const getBadgeCount = () => {
+            if (item.id === "cart") return cartCount;
+            if (item.id === "wishlist") return wishlistCount;
+            return item.badge ?? 0;
+          };
+
+          const badgeCount = getBadgeCount();
 
           return (
             <Link
@@ -131,10 +160,10 @@ export function MobileTabBar({
                   )}
                 />
 
-                {/* Badge for cart */}
-                {item.id === "cart" && cartCount > 0 && (
+                {/* Badge for cart and wishlist */}
+                {badgeCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                    {cartCount > 9 ? "9+" : cartCount}
+                    {badgeCount > 9 ? "9+" : badgeCount}
                   </span>
                 )}
               </div>
@@ -282,13 +311,51 @@ export function MobileHeader({
   onBack,
   showMenu = true,
   onMenuToggle,
+  showCart = true,
+  showWishlist = true,
 }: {
   title?: string;
   showBack?: boolean;
   onBack?: () => void;
   showMenu?: boolean;
   onMenuToggle?: () => void;
+  showCart?: boolean;
+  showWishlist?: boolean;
 }) {
+  const { cartCount, setIsCartOpen } = useCart();
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const { data: session, status } = useOptimizedSession();
+
+  const isAuthenticated =
+    status === "authenticated" && !!session?.user && !session.user.error;
+
+  // Fetch wishlist count for authenticated users
+  useEffect(() => {
+    if (isAuthenticated && showWishlist) {
+      fetchWishlistCount();
+    }
+  }, [isAuthenticated, showWishlist]);
+
+  const fetchWishlistCount = async () => {
+    try {
+      const response = await fetch("/api/account/wishlist");
+      if (response.ok) {
+        const wishlistItems = await response.json();
+        setWishlistCount(wishlistItems.length);
+      }
+    } catch (error) {
+      console.error("Error fetching wishlist count:", error);
+    }
+  };
+
+  const handleWishlistClick = () => {
+    if (isAuthenticated) {
+      window.location.href = "/account/wishlist";
+    } else {
+      window.location.href = "/auth/login";
+    }
+  };
+
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm md:hidden">
       <div className="flex items-center justify-between h-14 px-4">
@@ -312,7 +379,45 @@ export function MobileHeader({
         </h1>
 
         {/* Right side */}
-        <div className="flex items-center">
+        <div className="flex items-center space-x-2">
+          {/* Wishlist Icon */}
+          {showWishlist && (
+            <button
+              type="button"
+              className="relative inline-flex items-center justify-center rounded-md p-1.5 sm:p-2 text-gray-700 hover:bg-gray-100 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500 cursor-pointer transition-colors"
+              onClick={handleWishlistClick}
+              aria-label="Wishlist"
+            >
+              <Heart className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                  {wishlistCount > 9 ? "9+" : wishlistCount}
+                </span>
+              )}
+            </button>
+          )}
+
+          {/* Cart Icon */}
+          {showCart && (
+            <button
+              type="button"
+              className="relative inline-flex items-center justify-center rounded-md p-1.5 sm:p-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer transition-colors"
+              onClick={() => setIsCartOpen(true)}
+              aria-label="Shopping cart"
+            >
+              <ShoppingBag
+                className="h-5 w-5 sm:h-6 sm:w-6"
+                aria-hidden="true"
+              />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                  {cartCount > 9 ? "9+" : cartCount}
+                </span>
+              )}
+            </button>
+          )}
+
+          {/* Menu button */}
           {showMenu && (
             <button
               onClick={onMenuToggle}

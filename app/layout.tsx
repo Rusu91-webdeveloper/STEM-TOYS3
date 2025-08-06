@@ -1,6 +1,7 @@
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { cookies } from "next/headers";
 import { SessionProvider } from "next-auth/react";
 
 import ClientLayout from "@/components/layout/ClientLayout";
@@ -25,8 +26,16 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Read the language cookie on the server side
+  const cookieStore = cookies();
+  const initialLanguage = cookieStore.get("language")?.value ?? "ro";
+
   return (
-    <html lang="ro" className="scroll-smooth" suppressHydrationWarning={true}>
+    <html
+      lang={initialLanguage}
+      className="scroll-smooth"
+      suppressHydrationWarning={true}
+    >
       <head>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -45,7 +54,7 @@ export default function RootLayout({
       >
         <SessionProvider>
           <CentralizedSessionProvider>
-            <I18nProvider>
+            <I18nProvider initialLanguage={initialLanguage}>
               <CurrencyProvider>
                 <CartProviderWrapper>
                   <ClientLayout>

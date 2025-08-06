@@ -1,16 +1,25 @@
 "use client";
 
-import { Menu, X, User, Settings, LogOut } from "lucide-react";
+import {
+  Menu,
+  X,
+  User,
+  Settings,
+  LogOut,
+  Heart,
+  ShoppingCart,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
 import { CurrencySwitcher } from "@/components/ui/currency-switcher";
 import { CartButton } from "@/features/cart";
+import { useCart } from "@/features/cart/context/CartContext";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation, TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -25,9 +34,11 @@ const navigation: { name: TranslationKey; href: string }[] = [
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [wishlistCount, setWishlistCount] = useState(0);
   const pathname = usePathname();
   const { t } = useTranslation();
   const { data: session, status } = useOptimizedSession();
+  const { cartCount, setIsCartOpen } = useCart();
 
   // FIXED: Simplified and consistent authentication state logic
   const isAuthenticated =
@@ -38,8 +49,35 @@ export default function Header() {
   // FIXED: Only show authenticated UI if truly authenticated
   const shouldShowAuthenticatedUI = isAuthenticated && !isLoading;
 
+  // Fetch wishlist count for authenticated users
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchWishlistCount();
+    }
+  }, [isAuthenticated]);
+
+  const fetchWishlistCount = async () => {
+    try {
+      const response = await fetch("/api/account/wishlist");
+      if (response.ok) {
+        const wishlistItems = await response.json();
+        setWishlistCount(wishlistItems.length);
+      }
+    } catch (error) {
+      console.error("Error fetching wishlist count:", error);
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
+  };
+
+  const handleWishlistClick = () => {
+    if (isAuthenticated) {
+      window.location.href = "/account/wishlist";
+    } else {
+      window.location.href = "/auth/login";
+    }
   };
 
   return (
@@ -88,8 +126,42 @@ export default function Header() {
             ))}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="flex md:hidden">
+          {/* Mobile navigation icons */}
+          <div className="flex md:hidden items-center space-x-2">
+            {/* Wishlist Icon */}
+            <button
+              type="button"
+              className="relative inline-flex items-center justify-center rounded-md p-1.5 sm:p-2 text-gray-700 hover:bg-gray-100 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500 cursor-pointer transition-colors"
+              onClick={handleWishlistClick}
+              aria-label="Wishlist"
+            >
+              <Heart className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                  {wishlistCount > 9 ? "9+" : wishlistCount}
+                </span>
+              )}
+            </button>
+
+            {/* Cart Icon */}
+            <button
+              type="button"
+              className="relative inline-flex items-center justify-center rounded-md p-1.5 sm:p-2 text-gray-700 hover:bg-gray-100 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer transition-colors"
+              onClick={() => setIsCartOpen(true)}
+              aria-label="Shopping cart"
+            >
+              <ShoppingCart
+                className="h-5 w-5 sm:h-6 sm:w-6"
+                aria-hidden="true"
+              />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                  {cartCount > 9 ? "9+" : cartCount}
+                </span>
+              )}
+            </button>
+
+            {/* Mobile menu button */}
             <button
               type="button"
               className="inline-flex items-center justify-center rounded-md p-1.5 sm:p-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer"

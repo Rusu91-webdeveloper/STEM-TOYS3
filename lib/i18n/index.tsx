@@ -1,5 +1,6 @@
 "use client";
 
+import { getCookie, setCookie } from "cookies-next";
 import React, {
   useState,
   useEffect,
@@ -33,34 +34,36 @@ const I18nContext = createContext<I18nContextType>({
 
 interface I18nProviderProps {
   children: ReactNode;
+  initialLanguage?: string;
 }
 
 // Provider component to wrap the app with
-export function I18nProvider({ children }: I18nProviderProps) {
-  const [language, setLanguage] = useState("ro");
+export function I18nProvider({
+  children,
+  initialLanguage = "ro",
+}: I18nProviderProps) {
+  const [language, setLanguageState] = useState(initialLanguage);
 
-  // On mount, try to get the language from localStorage
+  // On mount, try to get the language from cookie
   useEffect(() => {
-    const storedLang =
-      typeof window !== "undefined" ? localStorage.getItem("language") : null;
+    const storedLang = getCookie("language") as string;
 
     if (storedLang && languages.some(lang => lang.code === storedLang)) {
-      setLanguage(storedLang);
+      setLanguageState(storedLang);
     } else {
       // If no stored language or invalid language, set to Romanian
-      setLanguage("ro");
-      if (typeof window !== "undefined") {
-        localStorage.setItem("language", "ro");
-      }
+      setLanguageState("ro");
+      setCookie("language", "ro");
     }
   }, []);
 
-  // When language changes, update localStorage
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("language", language);
+  // When language changes, update cookie
+  const setLanguage = (lang: string) => {
+    if (languages.some(l => l.code === lang)) {
+      setLanguageState(lang);
+      setCookie("language", lang);
     }
-  }, [language]);
+  };
 
   // Translation function
   const t = (key: string, defaultValue?: string): string => {
@@ -68,11 +71,11 @@ export function I18nProvider({ children }: I18nProviderProps) {
       translations[language as keyof typeof translations];
 
     if (currentTranslations && key in currentTranslations) {
-      return (currentTranslations as any)[key];
+      return (currentTranslations as Record<string, string>)[key];
     }
 
     if (translations.en && key in translations.en) {
-      return (translations.en as any)[key];
+      return (translations.en as Record<string, string>)[key];
     }
 
     if (process.env.NODE_ENV !== "production") {
@@ -80,7 +83,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
         `Missing translation for key: '${key}' in language: '${language}'`
       );
     }
-    return defaultValue || String(key);
+    return defaultValue ?? String(key);
   };
 
   const value: I18nContextType = {
@@ -100,6 +103,27 @@ export function useTranslation() {
     throw new Error("useTranslation must be used within an I18nProvider");
   }
   return context;
+}
+
+// Server-side translation function
+export function getTranslations(language: string = "ro") {
+  const currentTranslations =
+    translations[language as keyof typeof translations];
+
+  return {
+    t: (key: string, defaultValue?: string): string => {
+      if (currentTranslations && key in currentTranslations) {
+        return (currentTranslations as Record<string, string>)[key];
+      }
+
+      if (translations.en && key in translations.en) {
+        return (translations.en as Record<string, string>)[key];
+      }
+
+      return defaultValue ?? String(key);
+    },
+    language,
+  };
 }
 
 // Export the I18nContextType for use in other components

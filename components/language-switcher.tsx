@@ -1,7 +1,8 @@
 "use client";
 
+import { getCookie } from "cookies-next";
 import { Globe } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
+import { useTranslation } from "@/lib/i18n";
 
 // Define languages locally to ensure they're always available
 const languages = [
@@ -21,42 +22,25 @@ const languages = [
 
 export function LanguageSwitcher() {
   const router = useRouter();
-  const pathname = usePathname();
   const [currentLangCode, setCurrentLangCode] = useState("ro");
-  const [isClient, setIsClient] = useState(false);
 
-  // Try to use the translation context - hooks must be called unconditionally at top level
-  let contextLanguage, contextSetLanguage;
-  try {
-    const { useTranslation } = require("@/lib/i18n");
-    const translationContext = useTranslation();
-    contextLanguage = translationContext.language;
-    contextSetLanguage = translationContext.setLanguage;
-  } catch (error) {
-    // If the context is not available, silently continue with local state
-    contextLanguage = null;
-    contextSetLanguage = null;
-  }
+  // Use the translation context
+  const { language: contextLanguage, setLanguage: contextSetLanguage } =
+    useTranslation();
 
   useEffect(() => {
-    setIsClient(true);
-    // Try to get language from localStorage
-    if (typeof window !== "undefined") {
-      const storedLang = localStorage.getItem("language");
-      if (storedLang && languages.some((l) => l.code === storedLang)) {
-        setCurrentLangCode(storedLang);
-      }
+    // Try to get language from cookie
+    const storedLang = getCookie("language") as string;
+    if (storedLang && languages.some(l => l.code === storedLang)) {
+      setCurrentLangCode(storedLang);
     }
   }, []);
 
-  const language = contextLanguage || currentLangCode;
+  const language = contextLanguage ?? currentLangCode;
   const setLanguage =
-    contextSetLanguage ||
+    contextSetLanguage ??
     ((lang: string) => {
       setCurrentLangCode(lang);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("language", lang);
-      }
     });
 
   const switchLanguage = (langCode: string) => {
@@ -69,7 +53,7 @@ export function LanguageSwitcher() {
 
   // Find current language details
   const currentLanguage =
-    languages.find((l) => l.code === language) || languages[0];
+    languages.find(l => l.code === language) ?? languages[0];
 
   return (
     <DropdownMenu>
@@ -77,7 +61,8 @@ export function LanguageSwitcher() {
         <Button
           variant="ghost"
           size="sm"
-          className="flex items-center gap-1 h-8 px-2">
+          className="flex items-center gap-1 h-8 px-2"
+        >
           <Globe className="h-4 w-4" />
           <span className="hidden md:inline-block text-xs">
             {currentLanguage.flag} {currentLanguage.name}
@@ -86,11 +71,12 @@ export function LanguageSwitcher() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {languages.map((lang) => (
+        {languages.map(lang => (
           <DropdownMenuItem
             key={lang.code}
             onClick={() => switchLanguage(lang.code)}
-            className={`cursor-pointer ${language === lang.code ? "font-bold bg-accent" : ""}`}>
+            className={`cursor-pointer ${language === lang.code ? "font-bold bg-accent" : ""}`}
+          >
             <span className="mr-2">{lang.flag}</span>
             {lang.name}
           </DropdownMenuItem>
