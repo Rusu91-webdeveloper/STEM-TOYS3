@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { redis } from "@/lib/redis";
+import { redis, isRedisConfigured } from "@/lib/redis";
 
 import { RATE_LIMITS } from "./constants";
 
@@ -68,9 +68,9 @@ export function rateLimit(config: RateLimitConfig) {
     // Get identifier (default to IP from headers)
     const identifier = identifierFn
       ? identifierFn(req)
-      : req.headers.get("x-forwarded-for") ||
-        req.headers.get("x-real-ip") ||
-        "unknown";
+      : (req.headers.get("x-forwarded-for") ??
+        req.headers.get("x-real-ip") ??
+        "unknown");
 
     // Create a unique Redis key for this rate limit
     const rateLimitKey = `ratelimit:${identifier}`;
@@ -85,14 +85,14 @@ export function rateLimit(config: RateLimitConfig) {
       );
 
       if (isRedisConfigured) {
-        console.log("Using Redis for rate limiting");
+        // Using Redis for rate limiting
         // Use Redis for distributed rate limiting with timeout protection
 
         // First, get the current count with timeout
-        const result = await withRedisTimeout(redis.get(rateLimitKey), () => {
-          console.log("Redis get timeout in rate limiting, using fallback");
-          return null;
-        });
+        const result = await withRedisTimeout(
+          redis.get(rateLimitKey),
+          () => null
+        );
 
         if (result === null) {
           // If Redis timed out or failed, fall back to in-memory
@@ -102,10 +102,7 @@ export function rateLimit(config: RateLimitConfig) {
         currentCount = result ? parseInt(result as string, 10) : 0;
 
         // Get TTL to calculate reset time with timeout
-        const ttl = await withRedisTimeout(redis.ttl(rateLimitKey), () => {
-          console.log("Redis TTL timeout in rate limiting, using fallback");
-          return -1;
-        });
+        const ttl = await withRedisTimeout(redis.ttl(rateLimitKey), () => -1);
 
         if (ttl === -1) {
           // If TTL operation failed, fall back to in-memory
@@ -122,10 +119,7 @@ export function rateLimit(config: RateLimitConfig) {
           redis.set(rateLimitKey, currentCount.toString(), {
             ex: windowSeconds,
           }),
-          () => {
-            console.log("Redis set timeout in rate limiting, using fallback");
-            return "OK"; // Redis set returns "OK" on success
-          }
+          () => "OK" // Redis set returns "OK" on success
         );
 
         if (setResult !== "OK") {
@@ -133,12 +127,13 @@ export function rateLimit(config: RateLimitConfig) {
           return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
         }
       } else {
-        console.log("Redis not configured, using in-memory rate limiting");
+        // Redis not configured, using in-memory rate limiting
         // Fallback to in-memory rate limiting if Redis is not available
         return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
       }
     } catch (error) {
       // If Redis fails, fall back to in-memory rate limiting
+
       console.error("Redis rate limiting error, using fallback:", error);
       return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
     }
@@ -345,11 +340,44 @@ class RateLimiter {
       : this.getKey(identifier, endpoint);
 
     const now = Date.now();
-    const windowStart = now - options.windowMs;
 
+    // Prefer Redis for distributed rate limiting when configured
+    if (isRedisConfigured) {
+      try {
+        const windowSeconds = Math.ceil(options.windowMs / 1000);
+        const count = await redis.incr(key);
+        if (count === 1) {
+          await redis.expire(key, windowSeconds);
+        }
+        const ttl = await redis.ttl(key);
+        const resetTime = now + (ttl > 0 ? ttl * 1000 : options.windowMs);
+
+        if (count > options.maxRequests) {
+          const retryAfter = Math.ceil((resetTime - now) / 1000);
+          return {
+            success: false,
+            limit: options.maxRequests,
+            remaining: 0,
+            reset: resetTime,
+            retryAfter,
+          };
+        }
+
+        return {
+          success: true,
+          limit: options.maxRequests,
+          remaining: Math.max(0, options.maxRequests - count),
+          reset: resetTime,
+        };
+      } catch {
+        // Fall through to in-memory store on Redis error
+
+        console.error("Redis rate limiter error, using in-memory fallback");
+      }
+    }
+
+    // In-memory fallback
     let record = this.store.get(key);
-
-    // Create new record if doesn't exist or window has passed
     if (!record || record.resetTime < now) {
       record = {
         count: 0,
@@ -357,8 +385,6 @@ class RateLimiter {
         lastRequest: now,
       };
     }
-
-    // Check if we're within the rate limit
     if (record.count >= options.maxRequests) {
       const retryAfter = Math.ceil((record.resetTime - now) / 1000);
       return {
@@ -369,12 +395,9 @@ class RateLimiter {
         retryAfter,
       };
     }
-
-    // Increment counter and update record
     record.count++;
     record.lastRequest = now;
     this.store.set(key, record);
-
     return {
       success: true,
       limit: options.maxRequests,
@@ -475,8 +498,8 @@ export function getClientIdentifier(request: Request): string {
   if (cfConnectingIP) return cfConnectingIP;
 
   // Fallback to user agent + other headers for identification
-  const userAgent = request.headers.get("user-agent") || "unknown";
-  const acceptLanguage = request.headers.get("accept-language") || "unknown";
+  const userAgent = request.headers.get("user-agent") ?? "unknown";
+  const acceptLanguage = request.headers.get("accept-language") ?? "unknown";
 
   // Create a hash of identifying information using Web Crypto API (Edge Runtime compatible)
   try {
@@ -493,7 +516,7 @@ export function getClientIdentifier(request: Request): string {
 
     const identifier = Math.abs(hash).toString(16).substring(0, 16);
     return `fallback:${identifier}`;
-  } catch (error) {
+  } catch {
     // Final fallback - use timestamp + random
     return `fallback:${Date.now().toString(16)}${Math.random().toString(16).substr(2, 8)}`;
   }

@@ -3,20 +3,7 @@
  * Allows more frequent checks since these are necessary for auth state
  */
 
-import { Redis } from "@upstash/redis";
-
-// Initialize Redis client only if credentials are available
-let redis: Redis | null = null;
-
-if (
-  process.env.UPSTASH_REDIS_REST_URL &&
-  process.env.UPSTASH_REDIS_REST_TOKEN
-) {
-  redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  });
-}
+import { redis, isRedisConfigured } from "@/lib/redis";
 
 interface RateLimitResult {
   success: boolean;
@@ -37,15 +24,15 @@ export async function sessionRateLimit(
   const key = `session_ratelimit:${identifier}`;
   const reset = now + window * 1000;
 
-  // Use Redis if available
-  if (redis) {
+  // Use Redis if available and configured
+  if (isRedisConfigured) {
     try {
-      const pipeline = redis.pipeline();
-      pipeline.incr(key);
-      pipeline.expire(key, window);
-
-      const results = await pipeline.exec();
-      const count = Number(results?.[0] || 1);
+      // Use atomic increment with expiry. If key is new, set expiry too.
+      const count = await redis.incr(key);
+      if (count === 1) {
+        // Set expiry on first increment
+        await redis.expire(key, window);
+      }
 
       return {
         success: count <= limit,
@@ -83,7 +70,7 @@ export async function sessionRateLimit(
 }
 
 // Clean up old entries periodically in memory store
-if (!redis) {
+if (!isRedisConfigured) {
   setInterval(() => {
     const now = Date.now();
     for (const [key, value] of memoryStore.entries()) {
