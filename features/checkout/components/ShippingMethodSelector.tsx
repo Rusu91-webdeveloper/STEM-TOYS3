@@ -61,11 +61,15 @@ export function ShippingMethodSelector({
 
         // Add standard shipping if active
         if (settings.standard?.active) {
+          // Apply free shipping only to standard shipping if threshold is met
+          const standardPrice = isFreeShipping
+            ? 0
+            : parseFloat(settings.standard.price);
           methods.push({
             id: "standard",
             name: t("standardShipping", "Standard Shipping"),
             description: t("deliveryIn35Days", "Delivery in 3-5 business days"),
-            price: parseFloat(settings.standard.price),
+            price: standardPrice,
             estimatedDelivery: t("businessDays35", "3-5 business days"),
           });
         }
@@ -92,22 +96,22 @@ export function ShippingMethodSelector({
 
         setShippingMethods(methods);
 
-        // If free shipping applies, auto-select the fastest method (priority)
-        if (isFreeShipping && methods.length > 0) {
-          const priorityMethod = methods.find((m) => m.id === "priority");
-          const expressMethod = methods.find((m) => m.id === "express");
-          const standardMethod = methods.find((m) => m.id === "standard");
-
-          // Auto-select the best available method
-          const bestMethod = priorityMethod || expressMethod || standardMethod;
-          if (bestMethod) {
-            setSelectedMethodId(bestMethod.id);
+        // Only auto-select if no method is currently selected or current selection is invalid
+        if (methods.length > 0) {
+          const currentMethodExists = methods.some(
+            m => m.id === selectedMethodId
+          );
+          if (!selectedMethodId || !currentMethodExists) {
+            // If free shipping applies, suggest standard method but don't force it
+            if (isFreeShipping) {
+              const standardMethod = methods.find(m => m.id === "standard");
+              if (standardMethod) {
+                setSelectedMethodId("standard");
+              }
+            } else {
+              setSelectedMethodId(methods[0].id);
+            }
           }
-        } else if (
-          methods.length > 0 &&
-          !methods.some((m) => m.id === selectedMethodId)
-        ) {
-          setSelectedMethodId(methods[0].id);
         }
       } catch (error) {
         console.error("Error loading shipping settings:", error);
@@ -141,12 +145,12 @@ export function ShippingMethodSelector({
     }
 
     loadShippingSettings();
-  }, [t, selectedMethodId, getCartTotal]);
+  }, [t, getCartTotal]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const selectedMethod = shippingMethods.find(
-      (method) => method.id === selectedMethodId
+      method => method.id === selectedMethodId
     );
     if (selectedMethod) {
       onSubmit(selectedMethod);
@@ -165,9 +169,7 @@ export function ShippingMethodSelector({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* Free Shipping Banner */}
       {freeShippingApplied && (
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 mb-6">
@@ -181,8 +183,9 @@ export function ShippingMethodSelector({
               </h3>
               <p className="text-green-700 text-sm">
                 Comanda ta depășește pragul de{" "}
-                {formatPrice(freeShippingThreshold || 100)} - toate opțiunile de
-                livrare sunt gratuite! Alege viteza de livrare preferată.
+                {formatPrice(freeShippingThreshold || 100)} - livrarea standard
+                este gratuită! Pentru livrare mai rapidă, poți opta pentru
+                express sau prioritar.
               </p>
             </div>
           </div>
@@ -194,7 +197,7 @@ export function ShippingMethodSelector({
           <Truck className="h-5 w-5 text-indigo-600" />
           <h2 className="text-xl font-semibold">
             {freeShippingApplied
-              ? "Alege Viteza de Livrare (Gratuit)"
+              ? "Alege Viteza de Livrare"
               : t("shippingMethod", "Shipping Method")}
           </h2>
         </div>
@@ -203,8 +206,9 @@ export function ShippingMethodSelector({
           <RadioGroup
             value={selectedMethodId}
             onValueChange={setSelectedMethodId}
-            className="space-y-4">
-            {shippingMethods.map((method) => (
+            className="space-y-4"
+          >
+            {shippingMethods.map(method => (
               <div
                 key={method.id}
                 className={`flex items-center space-x-2 border p-4 rounded-lg transition-all ${
@@ -215,16 +219,15 @@ export function ShippingMethodSelector({
                   freeShippingApplied
                     ? "bg-gradient-to-r from-green-50 to-emerald-50"
                     : ""
-                }`}>
-                <RadioGroupItem
-                  value={method.id}
-                  id={method.id}
-                />
+                }`}
+              >
+                <RadioGroupItem value={method.id} id={method.id} />
                 <div className="flex-1">
                   <div className="flex justify-between items-center">
                     <Label
                       htmlFor={method.id}
-                      className="font-medium flex items-center space-x-2">
+                      className="font-medium flex items-center space-x-2"
+                    >
                       <span>{method.name}</span>
                       {freeShippingApplied && method.id === "priority" && (
                         <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
@@ -234,11 +237,12 @@ export function ShippingMethodSelector({
                     </Label>
                     <span
                       className={`font-medium ${
-                        freeShippingApplied
+                        method.price === 0
                           ? "text-green-600 text-lg"
                           : "text-indigo-700"
-                      }`}>
-                      {freeShippingApplied ? (
+                      }`}
+                    >
+                      {method.price === 0 ? (
                         <span className="flex items-center space-x-1">
                           <Gift className="h-4 w-4" />
                           <span>GRATUIT</span>
@@ -253,12 +257,14 @@ export function ShippingMethodSelector({
                     {t("estimatedDelivery", "Estimated delivery")}:{" "}
                     {method.estimatedDelivery}
                   </p>
-                  {freeShippingApplied && (
-                    <p className="text-xs text-green-600 mt-1">
-                      Preț normal: {formatPrice(method.price)} - Economisești{" "}
-                      {formatPrice(method.price)}!
-                    </p>
-                  )}
+                  {method.price === 0 &&
+                    method.id === "standard" &&
+                    freeShippingApplied && (
+                      <p className="text-xs text-green-600 mt-1">
+                        Preț normal: {formatPrice(5.99)} - Economisești{" "}
+                        {formatPrice(5.99)}!
+                      </p>
+                    )}
                 </div>
               </div>
             ))}
@@ -274,10 +280,7 @@ export function ShippingMethodSelector({
       </div>
 
       <div className="flex justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onBack}>
+        <Button type="button" variant="outline" onClick={onBack}>
           {t("backToShippingAddress", "Back to Shipping Address")}
         </Button>
         <Button
@@ -285,9 +288,10 @@ export function ShippingMethodSelector({
           disabled={shippingMethods.length === 0}
           className={
             freeShippingApplied ? "bg-green-600 hover:bg-green-700" : ""
-          }>
+          }
+        >
           {freeShippingApplied
-            ? "Continuă cu Livrare Gratuită"
+            ? "Continuă cu Opțiunea Selectată"
             : t("continueToPayment", "Continue to Payment")}
         </Button>
       </div>

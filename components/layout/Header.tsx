@@ -1,6 +1,15 @@
 "use client";
 
-import { Menu, X, User, Settings, LogOut, Heart } from "lucide-react";
+import {
+  Menu,
+  X,
+  User,
+  Settings,
+  LogOut,
+  Heart,
+  Boxes,
+  LogIn,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -109,8 +118,45 @@ export default function Header() {
               )}
             </button>
 
+            {/* Products Icon */}
+            <Link
+              href="/products"
+              aria-label={t("products")}
+              className="relative inline-flex items-center justify-center rounded-md p-1.5 md:p-2 lg:p-2.5 text-gray-700 hover:bg-gray-100 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer transition-colors"
+            >
+              <Boxes
+                className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6"
+                aria-hidden="true"
+              />
+            </Link>
+
             {/* Cart Button - Now using the CartButton component for consistency */}
             <CartButton variant="header" />
+
+            {/* Login/Account Icon (mobile/tablet) */}
+            {shouldShowAuthenticatedUI ? (
+              <Link
+                href="/account"
+                aria-label={t("account")}
+                className="relative inline-flex items-center justify-center rounded-md p-1.5 md:p-2 lg:p-2.5 text-gray-700 hover:bg-gray-100 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer transition-colors"
+              >
+                <User
+                  className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6"
+                  aria-hidden="true"
+                />
+              </Link>
+            ) : (
+              <Link
+                href="/auth/login"
+                aria-label={t("login")}
+                className="relative inline-flex items-center justify-center rounded-md p-1.5 md:p-2 lg:p-2.5 text-gray-700 hover:bg-gray-100 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer transition-colors"
+              >
+                <LogIn
+                  className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6"
+                  aria-hidden="true"
+                />
+              </Link>
+            )}
 
             {/* Mobile/Tablet menu button */}
             <button
@@ -264,85 +310,49 @@ export default function Header() {
               <div className="flex-1 px-4 md:px-6 lg:px-8 py-4 space-y-2 overflow-y-auto">
                 {/* Navigation Links */}
                 <div className="space-y-1">
-                  {navigation.map(item => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={cn(
-                        "block rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium transition-colors cursor-pointer",
-                        pathname === item.href
-                          ? "bg-indigo-50 text-indigo-600"
-                          : "text-gray-900 hover:bg-gray-50 hover:text-indigo-600"
-                      )}
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {t(item.name)}
-                    </Link>
-                  ))}
+                  {navigation
+                    .filter(item => item.href !== "/products")
+                    .map(item => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={cn(
+                          "block rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium transition-colors cursor-pointer",
+                          pathname === item.href
+                            ? "bg-indigo-50 text-indigo-600"
+                            : "text-gray-900 hover:bg-gray-50 hover:text-indigo-600"
+                        )}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {t(item.name)}
+                      </Link>
+                    ))}
                 </div>
 
                 {/* Utilities Section */}
                 <div className="py-4 border-t border-gray-200">
-                  <div className="flex flex-wrap gap-3 mb-6 mt-2">
-                    <CurrencySwitcher />
+                  <div className="flex flex-wrap gap-3 mb-2 mt-2">
+                    <CurrencySwitcher allowedCodes={["RON", "EUR"]} />
                     <LanguageSwitcher />
                     {/* Removed CartButton from mobile menu since it's already in the header */}
                   </div>
-
-                  {/* User Actions Section */}
-                  <div className="border-t border-gray-200 pt-4 mt-2">
-                    {shouldShowAuthenticatedUI ? (
-                      <div className="space-y-2">
-                        <Link
-                          href="/account"
-                          className="block rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium text-gray-900 hover:bg-gray-50 hover:text-indigo-600 cursor-pointer"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <div className="flex items-center">
-                            <User className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6 mr-3" />
-                            <span>{t("account")}</span>
-                          </div>
-                        </Link>
-                        {isAdmin && (
-                          <Link
-                            href="/admin"
-                            className="block rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium bg-indigo-50 text-indigo-600 hover:bg-indigo-100 cursor-pointer"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <div className="flex items-center">
-                              <Settings className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6 mr-3" />
-                              <span>{t("admin")}</span>
-                            </div>
-                          </Link>
-                        )}
-                        <button
-                          onClick={() => {
-                            handleSignOut();
-                            setMobileMenuOpen(false);
-                          }}
-                          className="w-full block rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium text-red-600 hover:bg-red-50 cursor-pointer"
-                        >
-                          <div className="flex items-center">
-                            <LogOut className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6 mr-3" />
-                            <span>{t("logout")}</span>
-                          </div>
-                        </button>
-                      </div>
-                    ) : (
-                      // Not authenticated - show login for mobile/tablet
-                      <Link
-                        href="/auth/login"
-                        className="flex items-center w-full justify-center gap-2 px-4 py-3 rounded-md bg-indigo-600 text-white text-base md:text-lg lg:text-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm hover:shadow cursor-pointer"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        {t("login")}
-                        <span aria-hidden="true" className="ml-1">
-                          &rarr;
-                        </span>
-                      </Link>
-                    )}
-                  </div>
                 </div>
+
+                {/* Keep only Disconnect (Logout) in burger menu when authenticated */}
+                {shouldShowAuthenticatedUI && (
+                  <div className="border-t border-gray-200 py-3">
+                    <button
+                      onClick={() => {
+                        handleSignOut();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6" />
+                      <span>{t("logout")}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

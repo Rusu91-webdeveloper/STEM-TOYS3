@@ -50,6 +50,7 @@ export function OrderReview({
           const taxData = await taxResponse.json();
           if (taxData.taxSettings?.active) {
             setTaxRate(parseFloat(taxData.taxSettings.rate) / 100);
+            // Note: includeInPrice is handled in calculation logic below
           }
         }
 
@@ -72,22 +73,25 @@ export function OrderReview({
     loadSettings();
   }, []);
 
-  // Calculate totals WITH DISCOUNT
-  const subtotal = getCartTotal();
+  // Calculate totals WITH DISCOUNT (prices include VAT for EU compliance)
+  const cartTotalIncludingVAT = getCartTotal();
   let shippingCost = checkoutData.shippingMethod?.price || 0;
 
-  // Apply free shipping if threshold is met
+  // Apply free shipping if threshold is met and it's standard shipping
   if (
     isFreeShippingActive &&
     freeShippingThreshold !== null &&
-    subtotal >= freeShippingThreshold
+    cartTotalIncludingVAT >= freeShippingThreshold &&
+    checkoutData.shippingMethod?.id === "standard"
   ) {
     shippingCost = 0;
   }
 
-  const tax = subtotal * taxRate;
+  // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
+  const subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
+  const tax = cartTotalIncludingVAT - subtotalExcludingVAT;
   // **UPDATED TOTAL CALCULATION WITH DISCOUNT**
-  const totalBeforeDiscount = subtotal + tax + shippingCost;
+  const totalBeforeDiscount = cartTotalIncludingVAT + shippingCost;
   const total = Math.max(0, totalBeforeDiscount - discountAmount);
 
   // Format a credit card number for display

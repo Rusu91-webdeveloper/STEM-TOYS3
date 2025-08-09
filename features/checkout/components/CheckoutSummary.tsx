@@ -111,42 +111,58 @@ export function CheckoutSummary({
     }
   };
 
-  const subtotal = getCartTotal();
+  const cartTotalIncludingVAT = getCartTotal();
 
-  // Calculate tax based on settings
+  // Calculate tax based on settings (prices already include VAT for EU compliance)
   const taxRate = parseFloat(taxSettings.rate) / 100; // Convert percentage to decimal
-  const tax = taxSettings.active ? subtotal * taxRate : 0;
+  const includeInPrice = taxSettings.includeInPrice !== false;
 
-  // Apply free shipping if threshold is met
+  // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
+  const subtotalExcludingVAT = includeInPrice
+    ? cartTotalIncludingVAT / (1 + taxRate)
+    : cartTotalIncludingVAT;
+  const tax = taxSettings.active
+    ? includeInPrice
+      ? cartTotalIncludingVAT - subtotalExcludingVAT
+      : cartTotalIncludingVAT * taxRate
+    : 0;
+
+  // Apply free shipping if threshold is met (only for standard shipping)
   let finalShippingCost = shippingCost;
+  // Note: We can't check shipping method here since CheckoutSummary doesn't have access to it
+  // The free shipping logic is handled in the shipping method selector
   if (
     isFreeShippingActive &&
     freeShippingThreshold !== null &&
-    subtotal >= freeShippingThreshold
+    cartTotalIncludingVAT >= freeShippingThreshold &&
+    shippingCost === 0 // Only show as free if shipping cost is already 0 from method selector
   ) {
     finalShippingCost = 0;
   }
 
   // **CALCULATE FINAL TOTAL WITH DISCOUNT**
-  const totalBeforeDiscount = subtotal + tax + finalShippingCost;
+  const totalBeforeDiscount = cartTotalIncludingVAT + finalShippingCost;
   const total = Math.max(0, totalBeforeDiscount - discountAmount);
 
   // Calculate how much more needed for free shipping
   const renderFreeShippingMessage = () => {
     if (!isFreeShippingActive || freeShippingThreshold === null) return null;
 
-    if (subtotal >= freeShippingThreshold) {
+    if (cartTotalIncludingVAT >= freeShippingThreshold) {
       return (
         <div className="mt-2 p-2 bg-green-50 text-green-700 rounded-md text-sm">
-          {t("freeShippingApplied", "Free shipping applied!")}
+          {t(
+            "freeStandardShippingApplied",
+            "Free standard shipping available!"
+          )}
         </div>
       );
     }
-    const amountNeeded = freeShippingThreshold - subtotal;
+    const amountNeeded = freeShippingThreshold - cartTotalIncludingVAT;
     return (
       <div className="mt-2 p-2 bg-blue-50 text-blue-700 rounded-md text-sm">
         {t("addMoreForFreeShipping", "Add")} {formatPrice(amountNeeded)}{" "}
-        {t("moreForFreeShipping", "more for free shipping")}
+        {t("moreForFreeStandardShipping", "more for free standard shipping")}
       </div>
     );
   };
@@ -229,7 +245,7 @@ export function CheckoutSummary({
       {/* **COUPON INPUT SECTION** */}
       <div className="border-t pt-4">
         <CouponInput
-          cartTotal={subtotal}
+          cartTotal={cartTotalIncludingVAT}
           appliedCoupon={localAppliedCoupon}
           onCouponApplied={handleCouponApplied}
           onCouponRemoved={handleCouponRemoved}
@@ -239,7 +255,7 @@ export function CheckoutSummary({
       <div className="space-y-2 pt-4 border-t">
         <div className="flex justify-between text-sm sm:text-base">
           <span className="text-gray-600">{t("subtotal", "Subtotal")}</span>
-          <span>{formatPrice(subtotal)}</span>
+          <span>{formatPrice(cartTotalIncludingVAT)}</span>
         </div>
 
         {/* **DISCOUNT LINE** */}
@@ -254,14 +270,7 @@ export function CheckoutSummary({
           </div>
         )}
 
-        {taxSettings.active && (
-          <div className="flex justify-between text-sm sm:text-base">
-            <span className="text-gray-600">
-              {t("tax", "TVA")} ({taxSettings.rate}%)
-            </span>
-            <span>{formatPrice(tax)}</span>
-          </div>
-        )}
+        {/* VAT line removed - prices already include VAT for EU compliance */}
         <div className="flex justify-between text-sm sm:text-base">
           <span className="text-gray-600">{t("shipping", "Shipping")}</span>
           <span>

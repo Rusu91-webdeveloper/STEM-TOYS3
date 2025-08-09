@@ -99,23 +99,28 @@ export function CheckoutFlow() {
     try {
       // Get tax settings from database
       let taxRate = 0.21; // Default 21% VAT
+      let includeInPrice = true; // Default: prices include VAT (EU compliance)
       try {
         const response = await fetch("/api/checkout/tax-settings");
         if (response.ok) {
-          const taxSettings = await response.json();
-          if (taxSettings.active) {
-            taxRate = parseFloat(taxSettings.rate) / 100;
+          const taxData = await response.json();
+          if (taxData.taxSettings?.active) {
+            taxRate = parseFloat(taxData.taxSettings.rate) / 100;
+            includeInPrice = taxData.taxSettings.includeInPrice !== false;
           }
         }
       } catch (error) {
         console.warn("Failed to fetch tax settings, using default:", error);
       }
 
-      // Calculate proper total including tax and shipping
-      const subtotal = getCartTotal();
+      // Calculate proper total - prices already include VAT for EU compliance
+      const cartTotalIncludingVAT = getCartTotal();
       const shippingCost = checkoutData.shippingMethod?.price ?? 0;
-      const tax = subtotal * taxRate;
-      const total = subtotal + tax + shippingCost - discountAmount;
+
+      // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
+      const subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
+      const tax = cartTotalIncludingVAT - subtotalExcludingVAT;
+      const total = cartTotalIncludingVAT + shippingCost - discountAmount;
 
       const orderData = {
         items: cartItems,
@@ -127,7 +132,7 @@ export function CheckoutFlow() {
         paymentMethod: checkoutData.paymentMethod!,
         coupon: appliedCoupon,
         discountAmount,
-        subtotal,
+        subtotal: subtotalExcludingVAT,
         tax,
         shippingCost,
         total,

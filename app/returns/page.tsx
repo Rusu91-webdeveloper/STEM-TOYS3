@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Politica de Returnare | TechTots Educational Solutions",
   description:
-    "Politica de returnare pentru produsele STEM educaționale. Returnări gratuite în 14 zile, conformă cu legislația UE din 2025.",
+    "Politica de returnare pentru produsele STEM educaționale. Returnări gratuite în 14 zile pentru comenzi peste 50 € sau 250 lei, conformă cu legislația UE din 2025.",
   keywords:
     "politica returnare, returnare produse, garanție, drepturile consumatorului, UE, România",
 };
@@ -48,7 +48,8 @@ export default function ReturnsPage() {
               </div>
               <a
                 href="/account/orders"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors inline-flex items-center">
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors inline-flex items-center"
+              >
                 <span className="mr-2">🛒</span>
                 Mergi la Comenzile Mele
               </a>
@@ -57,37 +58,63 @@ export default function ReturnsPage() {
 
           {/* Quick Summary */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold text-green-800 mb-4">
+            <h2 className="text-xl font-semibold text-green-800 mb-6 text-center">
               📋 Rezumat Rapid - Drepturile Tale
             </h2>
-            <div className="grid md:grid-cols-2 gap-4 text-sm">
-              <div className="space-y-2">
-                <p className="flex items-center">
-                  <span className="text-green-600 mr-2">✅</span>
-                  <strong>14 zile</strong> pentru returnare fără justificare
-                </p>
-                <p className="flex items-center">
-                  <span className="text-green-600 mr-2">✅</span>
-                  <strong>2 ani</strong> garanție legală pentru produse defecte
-                </p>
-                <p className="flex items-center">
-                  <span className="text-green-600 mr-2">✅</span>
-                  Returnare <strong>gratuită</strong> pentru produse defecte
-                </p>
+            <div className="grid md:grid-cols-2 gap-6 text-sm">
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3">
+                  <span className="text-green-600 text-lg mt-0.5 flex-shrink-0">
+                    ✅
+                  </span>
+                  <div className="leading-relaxed">
+                    <strong>14 zile</strong> pentru returnare fără justificare
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <span className="text-green-600 text-lg mt-0.5 flex-shrink-0">
+                    ✅
+                  </span>
+                  <div className="leading-relaxed">
+                    <strong>2 ani</strong> garanție legală pentru produse
+                    defecte
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <span className="text-green-600 text-lg mt-0.5 flex-shrink-0">
+                    ✅
+                  </span>
+                  <div className="leading-relaxed">
+                    Returnare <strong>gratuită</strong> pentru comenzi peste{" "}
+                    <strong>50 € sau 250 lei</strong>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <p className="flex items-center">
-                  <span className="text-green-600 mr-2">✅</span>
-                  Rambursare <strong>completă</strong> în 14 zile
-                </p>
-                <p className="flex items-center">
-                  <span className="text-green-600 mr-2">✅</span>
-                  Proces <strong>sustenabil</strong> și eco-friendly
-                </p>
-                <p className="flex items-center">
-                  <span className="text-green-600 mr-2">✅</span>
-                  Suport <strong>multilingv</strong> disponibil
-                </p>
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3">
+                  <span className="text-green-600 text-lg mt-0.5 flex-shrink-0">
+                    ✅
+                  </span>
+                  <div className="leading-relaxed">
+                    Rambursare <strong>completă</strong> în 14 zile
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <span className="text-green-600 text-lg mt-0.5 flex-shrink-0">
+                    ✅
+                  </span>
+                  <div className="leading-relaxed">
+                    Proces <strong>sustenabil</strong> și eco-friendly
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <span className="text-green-600 text-lg mt-0.5 flex-shrink-0">
+                    ✅
+                  </span>
+                  <div className="leading-relaxed">
+                    Suport <strong>multilingv</strong> disponibil
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -119,10 +146,10 @@ export default function ReturnsPage() {
                   </h3>
                   <p className="text-blue-700 text-sm">
                     Perioada de 14 zile începe din ziua în care{" "}
-                    <strong>tu sau o persoană desemnată de tine</strong>
-                    (alta decât transportatorul) ia în posesie produsul. Dacă
-                    comanda conține mai multe produse livrate separat, termenul
-                    începe din ziua primirii ultimului produs.
+                    <strong>tu sau o persoană desemnată de tine</strong> (alta
+                    decât transportatorul) iei în posesie produsul. Dacă comanda
+                    conține mai multe produse livrate separat, termenul începe
+                    din ziua primirii ultimului produs.
                   </p>
                 </div>
 
@@ -139,7 +166,8 @@ export default function ReturnsPage() {
                         Accesează contul tău și mergi la{" "}
                         <a
                           href="/account/orders"
-                          className="font-semibold underline hover:text-blue-800">
+                          className="font-semibold underline hover:text-blue-800"
+                        >
                           Comenzile Mele (/account/orders)
                         </a>
                       </li>
@@ -181,7 +209,8 @@ export default function ReturnsPage() {
                     Contactează-ne prin email la{" "}
                     <a
                       href="mailto:webira.rem.srl@gmail.com"
-                      className="text-blue-600 hover:underline">
+                      className="text-blue-600 hover:underline"
+                    >
                       webira.rem.srl@gmail.com
                     </a>{" "}
                     sau telefon la 0771 248 029
@@ -228,7 +257,8 @@ export default function ReturnsPage() {
                     Accesează{" "}
                     <a
                       href="/account/orders"
-                      className="text-blue-600 underline">
+                      className="text-blue-600 underline"
+                    >
                       Comenzile Mele
                     </a>{" "}
                     din contul tău
@@ -275,7 +305,9 @@ export default function ReturnsPage() {
                     <strong>
                       Returnări în perioada de răgândire (14 zile):
                     </strong>{" "}
-                    Costurile de transport sunt suportate de client
+                    Returnare gratuită pentru comenzi ≥{" "}
+                    <strong>50 € sau 250 lei</strong>, altfel costurile sunt
+                    suportate de client
                   </li>
                   <li>
                     • <strong>Produse defecte sau neconforme:</strong> Suportăm
@@ -448,7 +480,8 @@ export default function ReturnsPage() {
                   rapid prin{" "}
                   <a
                     href="/account/orders"
-                    className="text-white underline font-semibold">
+                    className="text-white underline font-semibold"
+                  >
                     Comenzile Mele
                   </a>{" "}
                   - unde poți iniția returnarea în câteva clickuri și vei primi
@@ -466,7 +499,8 @@ export default function ReturnsPage() {
                       📧 Email:{" "}
                       <a
                         href="mailto:webira.rem.srl@gmail.com"
-                        className="text-white underline">
+                        className="text-white underline"
+                      >
                         webira.rem.srl@gmail.com
                       </a>
                     </p>
@@ -474,7 +508,8 @@ export default function ReturnsPage() {
                       📱 Telefon:{" "}
                       <a
                         href="tel:+40771248029"
-                        className="text-white underline">
+                        className="text-white underline"
+                      >
                         0771 248 029
                       </a>
                     </p>

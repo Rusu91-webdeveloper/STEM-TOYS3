@@ -11,8 +11,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { CurrencyProvider } from "@/lib/currency";
 import { I18nProvider } from "@/lib/i18n";
 
-import { CartLoader } from "@/features/cart/components/CartLoader";
-
 const CartProviderWrapper = dynamic(
   () => import("@/features/cart/components/CartProviderWrapper.client"),
   {
@@ -27,7 +25,6 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <I18nProvider>
         <CurrencyProvider>
           <CartProviderWrapper>
-            <CartLoader />
             <ClientLayout>
               {children}
               <SpeedInsights />

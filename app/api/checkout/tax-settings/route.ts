@@ -29,7 +29,7 @@ export async function GET(_req: NextRequest) {
           : {
               rate: "21",
               active: true,
-              includeInPrice: false,
+              includeInPrice: true, // VAT is included in displayed prices (EU law compliance)
             };
 
         return { taxSettings };

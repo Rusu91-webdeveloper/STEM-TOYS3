@@ -1,7 +1,7 @@
 "use client";
 
 import { Coins } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,58 +18,73 @@ const CURRENCIES = [
   { code: "USD", symbol: "$", name: "US Dollar" },
 ];
 
-export function CurrencySwitcher() {
+interface CurrencySwitcherProps {
+  allowedCodes?: string[]; // Optional: limit which currencies are shown (e.g., ["RON", "EUR"])
+}
+
+export function CurrencySwitcher({ allowedCodes }: CurrencySwitcherProps) {
   const [isClient, setIsClient] = useState(false);
   const [localCurrency, setLocalCurrency] = useState(CURRENCIES[0]);
   const [hasError, setHasError] = useState(false);
 
+  // Compute the effective currency list based on allowedCodes (preserves default order)
+  const effectiveCurrencies = useMemo(() => {
+    if (!allowedCodes || allowedCodes.length === 0) return CURRENCIES;
+    const allowed = new Set(allowedCodes);
+    return CURRENCIES.filter(c => allowed.has(c.code));
+  }, [allowedCodes]);
+
   useEffect(() => {
     setIsClient(true);
 
-    // Initialize currency from localStorage
+    // Initialize currency from localStorage, but clamp to allowed list
     try {
       const storedCurrency = localStorage.getItem("currency");
       if (storedCurrency) {
-        const found = CURRENCIES.find(c => c.code === storedCurrency);
-        if (found) {
-          setLocalCurrency(found);
-        }
+        const found = effectiveCurrencies.find(c => c.code === storedCurrency);
+        setLocalCurrency(found ?? effectiveCurrencies[0]);
+      } else {
+        setLocalCurrency(effectiveCurrencies[0]);
       }
     } catch (error) {
       console.warn("Failed to load currency from localStorage:", error);
     }
-  }, []);
+  }, [effectiveCurrencies]);
 
-  const handleCurrencySwitch = React.useCallback((currencyCode: string) => {
-    try {
-      const newCurrency =
-        CURRENCIES.find(c => c.code === currencyCode) ?? CURRENCIES[0];
-
-      // Update local state
-      setLocalCurrency(newCurrency);
+  const handleCurrencySwitch = React.useCallback(
+    (currencyCode: string) => {
       try {
-        localStorage.setItem("currency", currencyCode);
-      } catch (error) {
-        console.warn("Failed to save currency to localStorage:", error);
-      }
+        const newCurrency =
+          effectiveCurrencies.find(c => c.code === currencyCode) ??
+          effectiveCurrencies[0];
 
-      // Refresh page if not in checkout
-      if (
-        typeof window !== "undefined" &&
-        window.location.pathname &&
-        !window.location.pathname.startsWith("/checkout")
-      ) {
+        // Update local state
+        setLocalCurrency(newCurrency);
         try {
-          window.location.reload();
+          localStorage.setItem("currency", currencyCode);
         } catch (error) {
-          console.warn("Failed to refresh page:", error);
+          console.warn("Failed to save currency to localStorage:", error);
         }
+
+        // Refresh page if not in checkout
+        if (
+          typeof window !== "undefined" &&
+          window.location.pathname &&
+          !window.location.pathname.startsWith("/checkout")
+        ) {
+          try {
+            window.location.reload();
+          } catch (error) {
+            console.warn("Failed to refresh page:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Error switching currency:", error);
+        setHasError(true);
       }
-    } catch (error) {
-      console.error("Error switching currency:", error);
-      setHasError(true);
-    }
-  }, []);
+    },
+    [effectiveCurrencies]
+  );
 
   // Show error state if something went wrong
   if (hasError) {
@@ -113,7 +128,7 @@ export function CurrencySwitcher() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        {CURRENCIES.map(currency => (
+        {effectiveCurrencies.map(currency => (
           <DropdownMenuItem
             key={currency.code}
             onClick={() => handleCurrencySwitch(currency.code)}

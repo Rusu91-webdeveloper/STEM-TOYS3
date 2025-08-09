@@ -12,8 +12,6 @@ import { Product } from "@/types/product";
 
 import { ProductAddToCartButton } from "./ProductAddToCartButton";
 
-
-
 interface ProductCardProps {
   product: Product;
   className?: string;
@@ -245,15 +243,18 @@ export function ProductCard({
           {renderRating()}
         </div>
 
-        <div className="flex items-center space-x-2 mt-auto pt-2">
-          <div className="text-xl font-bold text-primary">
-            {formatPrice(product.price)}
-          </div>
-          {isOnSale && product.compareAtPrice && (
-            <div className="text-sm text-muted-foreground line-through">
-              {formatPrice(product.compareAtPrice)}
+        <div className="flex flex-col space-y-1 mt-auto pt-2">
+          <div className="flex items-center space-x-2">
+            <div className="text-xl font-bold text-primary">
+              {formatPrice(product.price)}
             </div>
-          )}
+            {isOnSale && product.compareAtPrice && (
+              <div className="text-sm text-muted-foreground line-through">
+                {formatPrice(product.compareAtPrice)}
+              </div>
+            )}
+          </div>
+          <div className="text-xs text-muted-foreground">inclusiv TVA</div>
         </div>
 
         <div className="mt-auto">

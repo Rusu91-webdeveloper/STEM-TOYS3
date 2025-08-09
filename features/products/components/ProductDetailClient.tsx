@@ -342,14 +342,17 @@ export default function ProductDetailClient({
             </div>
 
             <div className="mt-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {formatPrice(product.price)}
-              </h2>
-              {isOnSale && (
-                <span className="text-sm text-red-500 ml-2">
-                  {discountPercentage}% off
-                </span>
-              )}
+              <div className="flex items-center space-x-2">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {formatPrice(product.price)}
+                </h2>
+                {isOnSale && (
+                  <span className="text-sm text-red-500">
+                    {discountPercentage}% off
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">inclusiv TVA</p>
             </div>
 
             <p className="text-muted-foreground">
@@ -407,22 +410,24 @@ export default function ProductDetailClient({
               </Button>
             </div>
 
-            {/* Shipping Info */}
+            {/* Shipping & Returns Info */}
             <div className="space-y-4 pt-6">
               <Separator />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
                 <div className="flex flex-col items-center text-center p-4">
-                  <Truck className="h-5 w-5 mb-2" />
-                  <div className="text-sm font-medium">{t("freeShipping")}</div>
+                  <RotateCcw className="h-5 w-5 mb-2" />
+                  <div className="text-sm font-medium">
+                    {t("freeReturns", "Free Returns")}
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    {t("onOrdersOver")} {formatPrice(50)}
+                    {t("onOrdersOver", "On orders over")} {formatPrice(250)}
                   </div>
                 </div>
                 <div className="flex flex-col items-center text-center p-4">
-                  <RotateCcw className="h-5 w-5 mb-2" />
-                  <div className="text-sm font-medium">{t("returnPeriod")}</div>
+                  <Truck className="h-5 w-5 mb-2" />
+                  <div className="text-sm font-medium">{t("freeShipping")}</div>
                   <div className="text-xs text-muted-foreground">
-                    {t("moneyBackGuarantee")}
+                    {t("onOrdersOver")} {formatPrice(250)}
                   </div>
                 </div>
                 <div className="flex flex-col items-center text-center p-4">

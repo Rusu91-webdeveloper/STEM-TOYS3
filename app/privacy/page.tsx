@@ -44,7 +44,7 @@ export default function PrivacyPage() {
           </h1>
           <p className="mt-2 text-lg sm:text-xl text-indigo-100 max-w-2xl mx-auto">
             Cum colectăm, folosim și protejăm datele dvs. personale pe platforma
-            TechTots.
+            TechTots Educational Solutions.
           </p>
         </div>
       </div>
@@ -62,7 +62,12 @@ export default function PrivacyPage() {
               Politica de Confidențialitate
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              Ultima actualizare: 9 august 2024
+              Ultima actualizare:{" "}
+              {new Date().toLocaleDateString("ro-RO", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
             </p>
           </CardHeader>
           <CardContent>
@@ -85,10 +90,11 @@ export default function PrivacyPage() {
               <section id="intro">
                 <h2>1. Introducere</h2>
                 <p>
-                  La TechTots ("noi", "al nostru"), respectăm confidențialitatea
-                  dvs. și ne angajăm să protejăm datele personale. Această
-                  politică explică modul în care colectăm, folosim și protejăm
-                  informațiile dvs. când vizitați site-ul sau faceți achiziții.
+                  La TechTots Educational Solutions ("noi", "al nostru"),
+                  respectăm confidențialitatea dvs. și ne angajăm să protejăm
+                  datele personale. Această politică explică modul în care
+                  colectăm, folosim și protejăm informațiile dvs. când vizitați
+                  site-ul sau faceți achiziții.
                 </p>
                 <p>
                   Prin utilizarea serviciilor noastre, confirmați că ați citit
@@ -191,9 +197,16 @@ export default function PrivacyPage() {
                 <p>
                   Pentru întrebări despre confidențialitate, ne puteți contacta
                   la{" "}
-                  <a href="mailto:privacy@techtots.com">privacy@techtots.com</a>{" "}
-                  sau la adresa: TechTots, 123 Innovation Lane, Silicon Valley,
-                  CA 94024.
+                  <a href="mailto:webira.rem.srl@gmail.com">
+                    webira.rem.srl@gmail.com
+                  </a>{" "}
+                  sau la adresa: TechTots Educational Solutions, Mehedinti
+                  54-56, Bl D5, sc 2, apt 70, Cluj-Napoca, Cluj, România.
+                </p>
+                <p>
+                  Telefon: <a href="tel:+40771248029">+40 771 248 029</a>
+                  <br />
+                  Program: Luni-Vineri, 9:00 AM - 6:00 PM CET
                 </p>
               </section>
             </div>
@@ -210,7 +223,9 @@ export default function PrivacyPage() {
                 Aveți nevoie de ajutor sau clarificări suplimentare?
               </p>
               <Button asChild size="lg" className="mt-2">
-                <Link href="/contact">Contactați Suportul TechTots</Link>
+                <Link href="/contact">
+                  Contactați Suportul TechTots Educational Solutions
+                </Link>
               </Button>
             </div>
           </CardContent>

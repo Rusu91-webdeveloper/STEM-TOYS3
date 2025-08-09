@@ -11,6 +11,7 @@ import {
   Heart,
   Settings,
   LogOut,
+  LogIn,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -69,7 +70,6 @@ const mainNavItems: MobileNavItem[] = [
     label: "Account",
     href: "/account",
     icon: User,
-    requiresAuth: true,
   },
 ];
 
@@ -113,7 +113,18 @@ export function MobileTabBar({ isAuthenticated = false }: MobileNavProps) {
   };
 
   // Filter items based on authentication
-  const visibleItems = mainNavItems.filter(
+  const adjustedItems = mainNavItems.map(item =>
+    item.id === "account"
+      ? {
+          ...item,
+          label: isAuthenticated ? "Account" : "Login",
+          href: isAuthenticated ? "/account" : "/auth/login",
+          icon: isAuthenticated ? User : LogIn,
+        }
+      : item
+  );
+
+  const visibleItems = adjustedItems.filter(
     item => !item.requiresAuth || isAuthenticated
   );
 

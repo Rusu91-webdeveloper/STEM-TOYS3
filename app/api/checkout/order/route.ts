@@ -268,6 +268,8 @@ export async function POST(request: Request) {
         }
         // Only apply tax if it's active
         applyTax = taxSettings.active !== false;
+        // Check if prices include VAT (EU compliance)
+        const includeInPrice = taxSettings.includeInPrice !== false;
       }
 
       // Get shipping settings for free shipping threshold
@@ -295,8 +297,10 @@ export async function POST(request: Request) {
       finalShippingCost = 0;
     }
 
-    // Calculate tax based on settings
-    const tax = orderData.tax || (applyTax ? subtotal * taxRate : 0);
+    // Calculate tax based on settings (VAT-inclusive pricing for EU compliance)
+    // Note: subtotal already includes VAT, so we calculate VAT backwards for breakdown
+    const tax =
+      orderData.tax || (applyTax ? subtotal - subtotal / (1 + taxRate) : 0);
 
     // Handle coupon application
     let appliedCoupon = null;

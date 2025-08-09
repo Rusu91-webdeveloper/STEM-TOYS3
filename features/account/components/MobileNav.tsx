@@ -7,6 +7,7 @@ import {
   Settings,
   LogOut,
   RotateCcw,
+  LogIn,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,10 +15,14 @@ import { signOut } from "next-auth/react";
 import React from "react";
 
 import { useTranslation } from "@/lib/i18n";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 
 export function MobileNav() {
   const pathname = usePathname();
   const { t } = useTranslation();
+  const { data: session, status } = useOptimizedSession();
+  const isAuthenticated =
+    status === "authenticated" && !!session?.user && !session.user.error;
 
   const navItems = [
     {
@@ -57,7 +62,7 @@ export function MobileNav() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-background/80 backdrop-blur-md border-t border-gray-200 shadow-lg md:hidden">
+    <div className="fixed bottom-0 left-0 z-50 w-full h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-background/80 backdrop-blur-md border-t border-gray-200 shadow-lg md:hidden">
       <div className="grid h-full grid-cols-5 mx-auto">
         {navItems.slice(0, 4).map(item => {
           const isActive = item.exact
@@ -86,15 +91,27 @@ export function MobileNav() {
             </Link>
           );
         })}
-        <button
-          onClick={handleSignOut}
-          className="flex flex-col items-center justify-center relative text-muted-foreground hover:text-red-500"
-        >
-          <LogOut className="w-5 h-5 transition-transform hover:scale-110" />
-          <span className="text-xs mt-1 text-center font-medium">
-            {t("logout")}
-          </span>
-        </button>
+        {isAuthenticated ? (
+          <Link
+            href="/account"
+            className="flex flex-col items-center justify-center relative text-muted-foreground hover:text-primary"
+          >
+            <User className="w-5 h-5 transition-transform hover:scale-110" />
+            <span className="text-xs mt-1 text-center font-medium">
+              {t("account")}
+            </span>
+          </Link>
+        ) : (
+          <Link
+            href="/auth/login"
+            className="flex flex-col items-center justify-center relative text-muted-foreground hover:text-primary"
+          >
+            <LogIn className="w-5 h-5 transition-transform hover:scale-110" />
+            <span className="text-xs mt-1 text-center font-medium">
+              {t("login")}
+            </span>
+          </Link>
+        )}
       </div>
     </div>
   );

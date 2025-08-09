@@ -1074,8 +1074,14 @@ export const emailTemplates = {
             </div>
           </td>
           <td style="padding: 16px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${item.quantity}</td>
-          <td style="padding: 16px; text-align: right; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${formatPrice(item.price)}</td>
-          <td style="padding: 16px; text-align: right; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #3b82f6;">${formatPrice(item.price * item.quantity)}</td>
+          <td style="padding: 16px; text-align: right; border-bottom: 1px solid #e5e7eb; font-weight: 600;">
+            ${formatPrice(item.price)}<br>
+            <span style="font-size: 11px; color: #6b7280;">(inclusiv TVA)</span>
+          </td>
+          <td style="padding: 16px; text-align: right; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #3b82f6;">
+            ${formatPrice(item.price * item.quantity)}<br>
+            <span style="font-size: 11px; color: #6b7280;">(inclusiv TVA)</span>
+          </td>
         </tr>
       `;
       })
@@ -1130,6 +1136,7 @@ export const emailTemplates = {
                       <div style="padding: 12px;">
                         <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #1f2937;">${product.name}</h3>
                         <p style="color: #3b82f6; font-weight: 700; margin: 0; font-size: 16px;">${formatPrice(product.price)}</p>
+                        <p style="color: #6b7280; font-size: 11px; margin: 2px 0 0 0;">(inclusiv TVA)</p>
                       </div>
                     </a>
                   </div>
@@ -1179,8 +1186,8 @@ export const emailTemplates = {
         </tbody>
         <tfoot style="background-color: #f8fafc;">
           <tr>
-            <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">Subtotal:</td>
-            <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${formatPrice(order.subtotal)}</td>
+            <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">Subtotal (inclusiv TVA):</td>
+            <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${formatPrice(order.subtotal + order.tax)}</td>
           </tr>
           ${
             order.discountAmount && order.discountAmount > 0
@@ -1198,10 +1205,7 @@ export const emailTemplates = {
             <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">Transport:</td>
             <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${formatPrice(order.shippingCost)}</td>
           </tr>
-          <tr>
-            <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">TVA:</td>
-            <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${formatPrice(order.tax)}</td>
-          </tr>
+          <!-- TVA line removed - prices already include VAT for EU compliance -->
           <tr style="font-weight: 700; font-size: 18px; background-color: #dbeafe;">
             <td colspan="3" style="text-align: right; padding: 16px; border-top: 2px solid #3b82f6;">TOTAL:</td>
             <td style="text-align: right; padding: 16px; border-top: 2px solid #3b82f6; color: #3b82f6;">${formatPrice(order.total)}</td>

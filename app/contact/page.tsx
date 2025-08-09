@@ -24,7 +24,7 @@ export default function ContactPage() {
     >
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
     if (error) setError(null);
   };
@@ -110,9 +110,7 @@ export default function ContactPage() {
                   confirmarea că am primit mesajul tău.
                 </p>
               </div>
-              <Button
-                className="mt-4"
-                onClick={() => setSubmitted(false)}>
+              <Button className="mt-4" onClick={() => setSubmitted(false)}>
                 {t("sendAnotherMessage" as any, "Send Another Message")}
               </Button>
             </div>
@@ -127,13 +125,12 @@ export default function ContactPage() {
                 </div>
               )}
 
-              <form
-                onSubmit={handleSubmit}
-                className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium mb-1">
+                    className="block text-sm font-medium mb-1"
+                  >
                     {t("name" as any, "Name")}*
                   </label>
                   <input
@@ -151,7 +148,8 @@ export default function ContactPage() {
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium mb-1">
+                    className="block text-sm font-medium mb-1"
+                  >
                     {t("email" as any, "Email")}*
                   </label>
                   <input
@@ -169,7 +167,8 @@ export default function ContactPage() {
                 <div>
                   <label
                     htmlFor="subject"
-                    className="block text-sm font-medium mb-1">
+                    className="block text-sm font-medium mb-1"
+                  >
                     {t("subject" as any, "Subject")}*
                   </label>
                   <select
@@ -179,7 +178,8 @@ export default function ContactPage() {
                     onChange={handleChange}
                     required
                     disabled={isSubmitting}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     <option value="">
                       {t("selectSubject" as any, "Select a subject")}
                     </option>
@@ -201,7 +201,8 @@ export default function ContactPage() {
                 <div>
                   <label
                     htmlFor="message"
-                    className="block text-sm font-medium mb-1">
+                    className="block text-sm font-medium mb-1"
+                  >
                     {t("message" as any, "Message")}*
                   </label>
                   <textarea
@@ -231,7 +232,8 @@ export default function ContactPage() {
                 <Button
                   type="submit"
                   className="w-full py-3"
-                  disabled={isSubmitting}>
+                  disabled={isSubmitting}
+                >
                   {isSubmitting ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -258,13 +260,13 @@ export default function ContactPage() {
                 {t("address" as any, "Address")}
               </h3>
               <p>
-                TechTots Headquarters
+                TechTots Educational Solutions
                 <br />
-                Mehedinti 54-56
+                Mehedinti 54-56, Bl D5, sc 2, apt 70
                 <br />
-                Cluj-Napoca
+                Cluj-Napoca, Cluj
                 <br />
-                Cluj
+                România
               </p>
             </div>
 
@@ -276,18 +278,20 @@ export default function ContactPage() {
                 Email:{" "}
                 <a
                   href="mailto:webira.rem.srl@gmail.com"
-                  className="text-indigo-600 hover:text-indigo-800">
+                  className="text-indigo-600 hover:text-indigo-800"
+                >
                   webira.rem.srl@gmail.com
                 </a>
                 <br />
                 Phone:{" "}
                 <a
                   href="tel:+40771248029"
-                  className="text-indigo-600 hover:text-indigo-800">
+                  className="text-indigo-600 hover:text-indigo-800"
+                >
                   +40771 248 029
                 </a>
                 <br />
-                Hours: Monday-Friday, 9am-5pm PST
+                Hours: Monday-Friday, 9:00 AM - 6:00 PM CET
               </p>
             </div>
 
@@ -296,24 +300,16 @@ export default function ContactPage() {
                 {t("followUs" as any, "Follow Us")}
               </h3>
               <div className="flex space-x-4">
-                <a
-                  href="#"
-                  className="text-indigo-600 hover:text-indigo-800">
+                <a href="#" className="text-indigo-600 hover:text-indigo-800">
                   Facebook
                 </a>
-                <a
-                  href="#"
-                  className="text-indigo-600 hover:text-indigo-800">
+                <a href="#" className="text-indigo-600 hover:text-indigo-800">
                   Twitter
                 </a>
-                <a
-                  href="#"
-                  className="text-indigo-600 hover:text-indigo-800">
+                <a href="#" className="text-indigo-600 hover:text-indigo-800">
                   Instagram
                 </a>
-                <a
-                  href="#"
-                  className="text-indigo-600 hover:text-indigo-800">
+                <a href="#" className="text-indigo-600 hover:text-indigo-800">
                   LinkedIn
                 </a>
               </div>

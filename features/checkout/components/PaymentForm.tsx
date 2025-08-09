@@ -86,20 +86,33 @@ export function PaymentForm({
         const taxRate = taxSettings.active
           ? parseFloat(taxSettings.rate) / 100
           : 0;
+        const includeInPrice = taxSettings.includeInPrice !== false;
 
-        // Get shipping settings for free shipping threshold
+        // Get shipping settings for free shipping threshold (only for standard shipping)
         const shippingSettings = await fetchShippingSettings();
-        if (shippingSettings.freeThreshold?.active) {
+        const cartTotalIncludingVAT = subtotal; // Cart total already includes VAT
+
+        if (
+          shippingSettings.freeThreshold?.active &&
+          shippingMethod?.id === "standard"
+        ) {
           const freeShippingThreshold = parseFloat(
             shippingSettings.freeThreshold.price
           );
-          if (subtotal >= freeShippingThreshold) {
+          if (cartTotalIncludingVAT >= freeShippingThreshold) {
             shippingCost = 0;
           }
         }
 
-        const tax = subtotal * taxRate;
-        const totalBeforeDiscount = subtotal + tax + shippingCost;
+        // For VAT-inclusive pricing, calculate VAT backwards for display
+        const subtotalExcludingVAT = includeInPrice
+          ? cartTotalIncludingVAT / (1 + taxRate)
+          : cartTotalIncludingVAT;
+        const tax = includeInPrice
+          ? cartTotalIncludingVAT - subtotalExcludingVAT
+          : cartTotalIncludingVAT * taxRate;
+
+        const totalBeforeDiscount = cartTotalIncludingVAT + shippingCost;
         const total = Math.max(0, totalBeforeDiscount - discountAmount);
         setTotalAmount(total);
       } catch (error) {

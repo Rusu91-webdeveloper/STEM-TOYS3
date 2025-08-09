@@ -94,8 +94,12 @@ export const ro = {
   backToShippingAddress: "Înapoi la adresa de livrare",
   continueToPayment: "Continuă la plată",
   freeShippingApplied: "Transport gratuit aplicat!",
+  freeStandardShippingApplied: "Transport standard gratuit disponibil!",
   addMoreForFreeShipping: "Adaugă",
   moreForFreeShipping: "pentru transport gratuit",
+  moreForFreeStandardShipping: "pentru transport standard gratuit",
+  vatIncluded: "inclusiv TVA",
+  inclusiveTVA: "inclusiv TVA",
   loadingShippingOptions: "Se încarcă opțiunile de livrare...",
   noShippingMethodsAvailable:
     "Nu există metode de livrare disponibile momentan.",
@@ -565,8 +569,10 @@ export const ro = {
   off: "REDUCERE",
   freeShipping: "Transport Gratuit",
   onOrdersOver: "La comenzi peste",
-  returnPeriod: "Returnare în 30 de Zile",
+  returnPeriod: "Returnare în 14 zile",
   moneyBackGuarantee: "Garanția returnării banilor",
+  freeReturns: "Returnări Gratuite",
+  seeReturnPolicy: "Vezi politica de returnare",
   secureCheckout: "Plată Securizată",
   protectedBySSL: "Protejat prin SSL",
   stemToyDesigned:
@@ -781,8 +787,9 @@ export const ro = {
     "Împuterniciți următoarea generație prin învățarea STEM practică. Descoperă colecția noastră curată de jucării educaționale și resurse concepute de educatori, pentru educatori.",
 
   // Trust signals
-  freeShippingOver50: "Transport GRATUIT la comenzi peste 50€",
-  thirtyDayReturns: "Returnări fără probleme în 30 de zile",
+  freeShippingOver50: "Transport GRATUIT la comenzi peste 50 € sau 250 lei",
+  thirtyDayReturns: "Returnări fără probleme în 14 zile",
+  freeReturnsOver50: "Returnări gratuite la comenzi peste 50 € sau 250 lei",
   bankLevelSecurity: "Securitate și criptare la nivel bancar",
   trustedEducators: "De încredere pentru 50.000+ educatori din întreaga lume",
 

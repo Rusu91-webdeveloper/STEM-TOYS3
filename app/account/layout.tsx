@@ -134,7 +134,7 @@ export default async function AccountLayout({
             </aside>
 
             {/* Main content with glass effect */}
-            <main className="min-h-screen w-full pb-24 md:pb-16 mt-6">
+            <main className="min-h-screen w-full pb-28 md:pb-16 mt-6">
               <div className="rounded-xl bg-white/70 backdrop-blur-sm shadow-lg border border-gray-100 p-3 sm:p-6 mb-6">
                 {children}
               </div>
@@ -142,8 +142,8 @@ export default async function AccountLayout({
           </div>
         </div>
 
-        {/* Add padding to ensure mobile nav doesn't cover content - Only on small mobile screens */}
-        <div className="md:hidden h-16"></div>
+        {/* Spacer for bottom nav on small devices (accounts for safe-area) */}
+        <div className="md:hidden h-[calc(4rem+env(safe-area-inset-bottom))]"></div>
         <MobileNav />
       </div>
     </div>

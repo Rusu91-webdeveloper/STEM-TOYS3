@@ -123,7 +123,7 @@ export async function fetchShippingSettings() {
     return {
       standard: { price: "5.99", active: true },
       express: { price: "12.99", active: true },
-      freeThreshold: { price: "75.00", active: false },
+      freeThreshold: { price: "250.00", active: true },
     };
   }
 }

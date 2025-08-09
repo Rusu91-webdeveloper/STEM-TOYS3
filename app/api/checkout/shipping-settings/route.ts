@@ -18,12 +18,12 @@ export async function GET(_req: NextRequest) {
         // Get the store settings from the database
         const storeSettings = await prisma.storeSettings.findFirst();
 
-        // If no settings exist, return default values with free shipping disabled
+        // If no settings exist, return default values with free shipping enabled at €50/250 lei
         if (!storeSettings?.shippingSettings) {
           return {
             standard: { price: "5.99", active: true },
             express: { price: "12.99", active: true },
-            freeThreshold: { price: "75.00", active: false }, // Free shipping disabled by default
+            freeThreshold: { price: "250.00", active: true }, // Free standard shipping over 250 lei (€50)
           };
         }
 

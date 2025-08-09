@@ -13,6 +13,11 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
+// Ensure node runtime to avoid edge chunk issues
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // Schema for validating review submission
 const reviewSchema = z.object({
   orderItemId: z.string(),

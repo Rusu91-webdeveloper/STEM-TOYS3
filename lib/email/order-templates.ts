@@ -209,14 +209,14 @@ export async function sendOrderConfirmationEmail({
               <p style="margin: 0; color: #6b7280; font-size: 14px;">Cantitate: ${item.quantity}</p>
             </div>
           </div>
-          <p style="margin: 0; font-weight: 600; color: #047857;">${formatPrice(item.price * item.quantity)}</p>
+          <p style="margin: 0; font-weight: 600; color: #047857;">${formatPrice(item.price * item.quantity)} <span style="font-size: 12px; color: #6b7280;">(inclusiv TVA)</span></p>
         </div>
       `
         )
         .join("")}
       
       <div style="text-align: right; margin-top: 16px; padding-top: 16px; border-top: 2px solid #047857;">
-        <p style="margin: 0; font-size: 18px; font-weight: 700; color: #047857;">Total: ${formatPrice(totalAmount)}</p>
+        <p style="margin: 0; font-size: 18px; font-weight: 700; color: #047857;">Total (inclusiv TVA): ${formatPrice(totalAmount)}</p>
       </div>
     </div>
     
@@ -367,14 +367,14 @@ export async function sendOrderCompletedEmail({
               <p style="margin: 0; color: #6b7280; font-size: 14px;">Cantitate: ${item.quantity}</p>
             </div>
           </div>
-          <p style="margin: 0; font-weight: 600; color: #047857;">${formatPrice(item.price * item.quantity)}</p>
+          <p style="margin: 0; font-weight: 600; color: #047857;">${formatPrice(item.price * item.quantity)} <span style="font-size: 12px; color: #6b7280;">(inclusiv TVA)</span></p>
         </div>
       `
         )
         .join("")}
       
       <div style="text-align: right; margin-top: 16px; padding-top: 16px; border-top: 2px solid #047857;">
-        <p style="margin: 0; font-size: 18px; font-weight: 700; color: #047857;">Total: ${formatPrice(totalAmount)}</p>
+        <p style="margin: 0; font-size: 18px; font-weight: 700; color: #047857;">Total (inclusiv TVA): ${formatPrice(totalAmount)}</p>
       </div>
     </div>
     
@@ -453,13 +453,13 @@ export async function sendOrderDeliveredEmail({
               <p style="margin: 0; color: #6b7280; font-size: 14px;">Cantitate: ${item.quantity}</p>
             </div>
           </div>
-          <p style="margin: 0; font-weight: 600; color: #047857;">${formatPrice(item.price * item.quantity)}</p>
+          <p style="margin: 0; font-weight: 600; color: #047857;">${formatPrice(item.price * item.quantity)} <span style="font-size: 12px; color: #6b7280;">(inclusiv TVA)</span></p>
         </div>
       `
         )
         .join("")}
       <div style="text-align: right; margin-top: 16px; padding-top: 16px; border-top: 2px solid #047857;">
-        <p style="margin: 0; font-size: 18px; font-weight: 700; color: #047857;">Total: ${formatPrice(totalAmount)}</p>
+        <p style="margin: 0; font-size: 18px; font-weight: 700; color: #047857;">Total (inclusiv TVA): ${formatPrice(totalAmount)}</p>
       </div>
     </div>
     

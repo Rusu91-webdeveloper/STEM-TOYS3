@@ -6,7 +6,8 @@
 
 import React, { type ComponentType } from "react";
 
-import { logger } from "./logger";
+// Use a browser-safe logger to avoid bundling server-only deps like pino
+import { logger } from "./logger-lite";
 
 // Lazy loading with intersection observer (CLIENT ONLY)
 export function createIntersectionLazyComponent<

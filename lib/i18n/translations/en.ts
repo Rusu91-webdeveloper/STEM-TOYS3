@@ -93,8 +93,12 @@ export const en = {
   backToShippingAddress: "Back to Shipping Address",
   continueToPayment: "Continue to Payment",
   freeShippingApplied: "Free shipping applied!",
+  freeStandardShippingApplied: "Free standard shipping available!",
   addMoreForFreeShipping: "Add",
   moreForFreeShipping: "more for free shipping",
+  moreForFreeStandardShipping: "more for free standard shipping",
+  vatIncluded: "VAT included",
+  inclusiveTVA: "inclusiv TVA",
   loadingShippingOptions: "Loading shipping options...",
   noShippingMethodsAvailable: "No shipping methods are currently available.",
 
@@ -541,8 +545,10 @@ export const en = {
   off: "OFF",
   freeShipping: "Free Shipping",
   onOrdersOver: "On orders over",
-  returnPeriod: "30-Day Returns",
+  returnPeriod: "14-Day Returns",
   moneyBackGuarantee: "Money back guarantee",
+  freeReturns: "Free Returns",
+  seeReturnPolicy: "See return policy",
   secureCheckout: "Secure Checkout",
   protectedBySSL: "Protected by SSL",
   stemToyDesigned:
@@ -680,6 +686,7 @@ export const en = {
   // Trust signals
   freeShippingOver50: "FREE shipping on orders over €50",
   thirtyDayReturns: "30-day hassle-free returns",
+  freeReturnsOver50: "Free returns on orders over €50 / 250 lei",
   bankLevelSecurity: "Bank-level security & encryption",
   trustedEducators: "Trusted by 50,000+ educators worldwide",
 
