@@ -71,15 +71,17 @@ export function ProductTable({ products }: { products: Product[] }) {
               <tr>
                 <td
                   colSpan={6}
-                  className="py-8 text-center text-muted-foreground">
+                  className="py-8 text-center text-muted-foreground"
+                >
                   No products found
                 </td>
               </tr>
             ) : (
-              products.map((product) => (
+              products.map(product => (
                 <tr
                   key={product.id}
-                  className="border-b text-sm hover:bg-muted/50">
+                  className="border-b text-sm hover:bg-muted/50"
+                >
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       <div className="relative h-10 w-10 overflow-hidden rounded-md">
@@ -93,7 +95,8 @@ export function ProductTable({ products }: { products: Product[] }) {
                       <div>
                         <Link
                           href={`/admin/products/${product.id}`}
-                          className="font-medium text-primary hover:underline">
+                          className="font-medium text-primary hover:underline"
+                        >
                           {product.name}
                         </Link>
                         <p className="text-xs text-muted-foreground">
@@ -117,7 +120,8 @@ export function ProductTable({ products }: { products: Product[] }) {
                         product.isActive
                           ? "bg-green-100 text-green-700"
                           : "bg-gray-100 text-gray-700"
-                      }`}>
+                      }`}
+                    >
                       {product.isActive ? (
                         <CheckCircle2 className="mr-1 h-3 w-3" />
                       ) : (

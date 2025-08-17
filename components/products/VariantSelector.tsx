@@ -50,7 +50,7 @@ export function VariantSelector({
     // Extract all possible attribute types and their values
     const attributeMap = new Map<string, Set<string>>();
 
-    variants.forEach((variant) => {
+    variants.forEach(variant => {
       if (variant.attributes) {
         Object.entries(variant.attributes).forEach(([key, value]) => {
           if (!attributeMap.has(key)) {
@@ -65,11 +65,11 @@ export function VariantSelector({
     const groups: VariantGroup[] = Array.from(attributeMap.entries()).map(
       ([name, values]) => ({
         name,
-        options: Array.from(values).map((value) => ({
+        options: Array.from(values).map(value => ({
           value,
           label: value,
           isAvailable: variants.some(
-            (v) => v.attributes?.[name] === value && (v.isAvailable ?? true)
+            v => v.attributes?.[name] === value && (v.isAvailable ?? true)
           ),
         })),
       })
@@ -79,7 +79,7 @@ export function VariantSelector({
 
     // Initialize selected attributes if a variant is already selected
     if (selectedVariantId) {
-      const selectedVariant = variants.find((v) => v.id === selectedVariantId);
+      const selectedVariant = variants.find(v => v.id === selectedVariantId);
       if (selectedVariant?.attributes) {
         setSelectedAttributes(selectedVariant.attributes);
       }
@@ -89,7 +89,7 @@ export function VariantSelector({
   // Update selected attributes when selectedVariantId changes
   useEffect(() => {
     if (selectedVariantId) {
-      const selectedVariant = variants.find((v) => v.id === selectedVariantId);
+      const selectedVariant = variants.find(v => v.id === selectedVariantId);
       if (selectedVariant?.attributes) {
         setSelectedAttributes(selectedVariant.attributes);
       }
@@ -99,14 +99,14 @@ export function VariantSelector({
   // Find the matching variant based on attributes
   const findMatchingVariant = (attrs: Record<string, string>) => {
     // Check if all groups have a selection
-    const allGroupsSelected = variantGroups.every((group) => attrs[group.name]);
+    const allGroupsSelected = variantGroups.every(group => attrs[group.name]);
 
     if (!allGroupsSelected) {
       return undefined;
     }
 
     // Find the variant that matches all selected attributes
-    return variants.find((variant) => {
+    return variants.find(variant => {
       if (!variant.attributes) return false;
 
       return Object.entries(attrs).every(
@@ -129,7 +129,7 @@ export function VariantSelector({
     // Only call onVariantChange if we found a matching variant or if all attributes are selected
     if (
       matchingVariant ||
-      variantGroups.every((group) => newAttributes[group.name])
+      variantGroups.every(group => newAttributes[group.name])
     ) {
       onVariantChange(matchingVariant?.id);
     }
@@ -141,21 +141,18 @@ export function VariantSelector({
 
   return (
     <div className={cn("space-y-4", className)}>
-      {variantGroups.map((group) => (
-        <div
-          key={group.name}
-          className="space-y-2">
+      {variantGroups.map(group => (
+        <div key={group.name} className="space-y-2">
           <h3 className="text-sm font-medium capitalize">{group.name}</h3>
           <RadioGroup
             value={selectedAttributes[group.name] || ""}
             onValueChange={(value: string) =>
               handleAttributeChange(group.name, value)
             }
-            className="flex flex-wrap gap-2">
-            {group.options.map((option) => (
-              <div
-                key={option.value}
-                className="flex items-center">
+            className="flex flex-wrap gap-2"
+          >
+            {group.options.map(option => (
+              <div key={option.value} className="flex items-center">
                 <RadioGroupItem
                   value={option.value}
                   id={`${group.name}-${option.value}`}
@@ -170,7 +167,8 @@ export function VariantSelector({
                     "hover:bg-muted peer-disabled:hover:bg-transparent",
                     "peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground",
                     "peer-data-[state=checked]:border-primary"
-                  )}>
+                  )}
+                >
                   {option.label}
                 </Label>
               </div>

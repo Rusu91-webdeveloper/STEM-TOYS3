@@ -576,7 +576,8 @@ export function useProductComparison() {
     localStorage.removeItem(COMPARISON_STORAGE_KEY);
   };
 
-  const isInComparison = (productId: string) => products.some(p => p.id === productId);
+  const isInComparison = (productId: string) =>
+    products.some(p => p.id === productId);
 
   return {
     products,

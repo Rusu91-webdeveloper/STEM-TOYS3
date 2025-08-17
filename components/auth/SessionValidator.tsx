@@ -11,7 +11,6 @@ import {
   getAuthPreferences,
 } from "@/lib/auth/smartSessionManager";
 
-
 /**
  * Smart Session Validator - Uses intelligent session management
  * Dramatically reduced validation calls for better performance

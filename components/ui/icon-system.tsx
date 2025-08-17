@@ -1,4 +1,4 @@
-import { cva, type VariantProps } from "class-variance-authority"
+import { cva, type VariantProps } from "class-variance-authority";
 import {
   // Navigation & UI
   Menu,
@@ -14,7 +14,7 @@ import {
   MoreHorizontal,
   MoreVertical,
   Settings,
-  
+
   // E-commerce
   ShoppingCart,
   ShoppingBag,
@@ -25,7 +25,7 @@ import {
   MapPin,
   Truck,
   Gift,
-  
+
   // User & Account
   User,
   Users,
@@ -37,7 +37,7 @@ import {
   Lock,
   Unlock,
   Shield,
-  
+
   // Content & Media
   Search,
   Filter,
@@ -50,7 +50,7 @@ import {
   Music,
   BookOpen,
   Book,
-  
+
   // Communication
   Mail,
   Phone,
@@ -60,7 +60,7 @@ import {
   BellOff,
   Share,
   Share2,
-  
+
   // Status & Feedback
   Check,
   CheckCircle,
@@ -73,7 +73,7 @@ import {
   HelpCircle,
   Loader,
   Loader2,
-  
+
   // Actions
   Plus,
   Minus,
@@ -86,7 +86,7 @@ import {
   RefreshCw,
   RotateCcw,
   Save,
-  
+
   // Categories & STEM
   Atom,
   Beaker,
@@ -98,20 +98,20 @@ import {
   Puzzle,
   Rocket,
   Zap,
-  
+
   // Media & Social
   Facebook,
   Twitter,
   Instagram,
   Youtube,
   Github,
-  
+
   // Time & Calendar
   Calendar,
   Clock,
   Clock3,
   Timer,
-  
+
   // File & Data
   Folder,
   FolderOpen,
@@ -121,49 +121,45 @@ import {
   Cloud,
   CloudDownload,
   CloudUpload,
-} from "lucide-react"
-import * as React from "react"
+} from "lucide-react";
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-
-const iconVariants = cva(
-  "inline-flex items-center justify-center",
-  {
-    variants: {
-      size: {
-        xs: "w-3 h-3",
-        sm: "w-4 h-4", 
-        default: "w-5 h-5",
-        md: "w-6 h-6",
-        lg: "w-8 h-8",
-        xl: "w-10 h-10",
-        "2xl": "w-12 h-12",
-      },
-      variant: {
-        default: "text-current",
-        muted: "text-muted-foreground",
-        primary: "text-primary",
-        secondary: "text-secondary",
-        destructive: "text-destructive",
-        success: "text-success",
-        warning: "text-warning",
-        info: "text-info",
-      },
+const iconVariants = cva("inline-flex items-center justify-center", {
+  variants: {
+    size: {
+      xs: "w-3 h-3",
+      sm: "w-4 h-4",
+      default: "w-5 h-5",
+      md: "w-6 h-6",
+      lg: "w-8 h-8",
+      xl: "w-10 h-10",
+      "2xl": "w-12 h-12",
     },
-    defaultVariants: {
-      size: "default",
-      variant: "default",
+    variant: {
+      default: "text-current",
+      muted: "text-muted-foreground",
+      primary: "text-primary",
+      secondary: "text-secondary",
+      destructive: "text-destructive",
+      success: "text-success",
+      warning: "text-warning",
+      info: "text-info",
     },
-  }
-)
+  },
+  defaultVariants: {
+    size: "default",
+    variant: "default",
+  },
+});
 
 interface IconProps
   extends React.SVGProps<SVGSVGElement>,
     VariantProps<typeof iconVariants> {
-  icon: React.ComponentType<any>
-  label?: string
-  decorative?: boolean
+  icon: React.ComponentType<any>;
+  label?: string;
+  decorative?: boolean;
 }
 
 function Icon({
@@ -183,7 +179,7 @@ function Icon({
       role={decorative ? "presentation" : undefined}
       {...props}
     />
-  )
+  );
 }
 
 // Predefined icon collections for common use cases
@@ -201,7 +197,7 @@ export const NavigationIcons = {
   MoreHorizontal,
   MoreVertical,
   Settings,
-} as const
+} as const;
 
 export const EcommerceIcons = {
   Cart: ShoppingCart,
@@ -213,7 +209,7 @@ export const EcommerceIcons = {
   Location: MapPin,
   Shipping: Truck,
   Gift,
-} as const
+} as const;
 
 export const UserIcons = {
   User,
@@ -226,7 +222,7 @@ export const UserIcons = {
   Lock,
   Unlock,
   Security: Shield,
-} as const
+} as const;
 
 export const ContentIcons = {
   Search,
@@ -240,7 +236,7 @@ export const ContentIcons = {
   Audio: Music,
   DigitalBook: BookOpen,
   PhysicalBook: Book,
-} as const
+} as const;
 
 export const CommunicationIcons = {
   Email: Mail,
@@ -251,7 +247,7 @@ export const CommunicationIcons = {
   NotificationOff: BellOff,
   Share,
   ShareExternal: Share2,
-} as const
+} as const;
 
 export const StatusIcons = {
   Success: CheckCircle,
@@ -262,7 +258,7 @@ export const StatusIcons = {
   Loading: Loader2,
   Check,
   Close: XIcon,
-} as const
+} as const;
 
 export const ActionIcons = {
   Add: Plus,
@@ -275,7 +271,7 @@ export const ActionIcons = {
   Refresh: RefreshCw,
   Undo: RotateCcw,
   Save,
-} as const
+} as const;
 
 export const STEMIcons = {
   Science: Atom,
@@ -288,7 +284,7 @@ export const STEMIcons = {
   Logic: Puzzle,
   Space: Rocket,
   Energy: Zap,
-} as const
+} as const;
 
 export const SocialIcons = {
   Facebook,
@@ -296,13 +292,13 @@ export const SocialIcons = {
   Instagram,
   Youtube,
   Github,
-} as const
+} as const;
 
 export const TimeIcons = {
   Calendar,
   Clock,
   Timer,
-} as const
+} as const;
 
 export const DataIcons = {
   Folder,
@@ -313,7 +309,7 @@ export const DataIcons = {
   Cloud,
   CloudDownload,
   CloudUpload,
-} as const
+} as const;
 
 // Icon size guidelines
 export const IconSizes = {
@@ -324,36 +320,37 @@ export const IconSizes = {
   lg: "32px", // Large icons for headers, empty states
   xl: "40px", // Extra large for illustrations
   "2xl": "48px", // Hero icons, main illustrations
-} as const
+} as const;
 
 // Usage guidelines and best practices
 export const IconGuidelines = {
   // Accessibility
   accessibility: {
-    decorative: "Use aria-hidden='true' for decorative icons that don't convey meaning",
+    decorative:
+      "Use aria-hidden='true' for decorative icons that don't convey meaning",
     meaningful: "Provide aria-label for icons that convey meaning without text",
     redundant: "Icons with adjacent text are usually decorative",
   },
-  
+
   // Sizing
   sizing: {
     buttons: "Use 'sm' (16px) for button icons",
-    navigation: "Use 'default' (20px) for navigation icons", 
+    navigation: "Use 'default' (20px) for navigation icons",
     headers: "Use 'lg' (32px) for section headers",
     emptyStates: "Use 'xl' or '2xl' (40-48px) for empty state illustrations",
     inline: "Use 'xs' or 'sm' (12-16px) for inline text icons",
   },
-  
+
   // Context
   context: {
     ecommerce: "Use EcommerceIcons for shopping-related actions",
-    content: "Use ContentIcons for file and media operations", 
+    content: "Use ContentIcons for file and media operations",
     user: "Use UserIcons for authentication and profile actions",
     status: "Use StatusIcons for feedback and states",
     navigation: "Use NavigationIcons for UI navigation",
     stem: "Use STEMIcons for educational content categories",
   },
-  
+
   // Consistency
   consistency: {
     family: "Stick to Lucide React icons for visual consistency",
@@ -361,26 +358,27 @@ export const IconGuidelines = {
     spacing: "Use consistent spacing around icons (usually 8px)",
     alignment: "Align icons to pixel grid for crisp rendering",
   },
-  
+
   // Colors
   colors: {
     default: "Use default variant to inherit text color",
     muted: "Use muted variant for less important icons",
-    semantic: "Use semantic variants (success, warning, destructive) for status",
+    semantic:
+      "Use semantic variants (success, warning, destructive) for status",
     brand: "Use primary/secondary variants for brand colors",
   },
-} as const
+} as const;
 
 // Icon usage examples
 interface IconUsageExampleProps {
-  title: string
+  title: string;
   examples: Array<{
-    name: string
-    icon: React.ComponentType<any>
-    size?: VariantProps<typeof iconVariants>['size']
-    variant?: VariantProps<typeof iconVariants>['variant']
-    usage: string
-  }>
+    name: string;
+    icon: React.ComponentType<any>;
+    size?: VariantProps<typeof iconVariants>["size"];
+    variant?: VariantProps<typeof iconVariants>["variant"];
+    usage: string;
+  }>;
 }
 
 function IconUsageExample({ title, examples }: IconUsageExampleProps) {
@@ -389,7 +387,10 @@ function IconUsageExample({ title, examples }: IconUsageExampleProps) {
       <h3 className="text-lg font-semibold">{title}</h3>
       <div className="grid gap-4 md:grid-cols-2">
         {examples.map((example, index) => (
-          <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+          <div
+            key={index}
+            className="flex items-center gap-3 p-3 border rounded-lg"
+          >
             <Icon
               icon={example.icon}
               size={example.size || "default"}
@@ -398,13 +399,15 @@ function IconUsageExample({ title, examples }: IconUsageExampleProps) {
             />
             <div>
               <div className="font-medium text-sm">{example.name}</div>
-              <div className="text-xs text-muted-foreground">{example.usage}</div>
+              <div className="text-xs text-muted-foreground">
+                {example.usage}
+              </div>
             </div>
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 // Quick reference component
@@ -421,34 +424,83 @@ function IconReference() {
       <IconUsageExample
         title="Size Guidelines"
         examples={[
-          { name: "Button Icon", icon: Plus, size: "sm", usage: "16px - Icons in buttons and inputs" },
-          { name: "Navigation Icon", icon: Menu, size: "default", usage: "20px - Standard UI icons" },
-          { name: "Header Icon", icon: Rocket, size: "lg", usage: "32px - Section headers" },
-          { name: "Empty State Icon", icon: ShoppingCart, size: "2xl", usage: "48px - Illustrations" },
+          {
+            name: "Button Icon",
+            icon: Plus,
+            size: "sm",
+            usage: "16px - Icons in buttons and inputs",
+          },
+          {
+            name: "Navigation Icon",
+            icon: Menu,
+            size: "default",
+            usage: "20px - Standard UI icons",
+          },
+          {
+            name: "Header Icon",
+            icon: Rocket,
+            size: "lg",
+            usage: "32px - Section headers",
+          },
+          {
+            name: "Empty State Icon",
+            icon: ShoppingCart,
+            size: "2xl",
+            usage: "48px - Illustrations",
+          },
         ]}
       />
 
       <IconUsageExample
         title="Status & Feedback"
         examples={[
-          { name: "Success", icon: CheckCircle, variant: "success", usage: "Positive feedback" },
-          { name: "Error", icon: XCircle, variant: "destructive", usage: "Error states" },
-          { name: "Warning", icon: AlertTriangle, variant: "warning", usage: "Caution messages" },
-          { name: "Info", icon: Info, variant: "info", usage: "Informational content" },
+          {
+            name: "Success",
+            icon: CheckCircle,
+            variant: "success",
+            usage: "Positive feedback",
+          },
+          {
+            name: "Error",
+            icon: XCircle,
+            variant: "destructive",
+            usage: "Error states",
+          },
+          {
+            name: "Warning",
+            icon: AlertTriangle,
+            variant: "warning",
+            usage: "Caution messages",
+          },
+          {
+            name: "Info",
+            icon: Info,
+            variant: "info",
+            usage: "Informational content",
+          },
         ]}
       />
 
       <IconUsageExample
         title="E-commerce Actions"
         examples={[
-          { name: "Add to Cart", icon: ShoppingCart, usage: "Shopping actions" },
+          {
+            name: "Add to Cart",
+            icon: ShoppingCart,
+            usage: "Shopping actions",
+          },
           { name: "Wishlist", icon: Heart, usage: "Save for later" },
-          { name: "Rating", icon: Star, variant: "warning", usage: "Product ratings" },
+          {
+            name: "Rating",
+            icon: Star,
+            variant: "warning",
+            usage: "Product ratings",
+          },
           { name: "Shipping", icon: Truck, usage: "Delivery information" },
         ]}
       />
     </div>
-  )
+  );
 }
 
 export {
@@ -458,4 +510,4 @@ export {
   iconVariants,
   type IconProps,
   type IconUsageExampleProps,
-} 
+};

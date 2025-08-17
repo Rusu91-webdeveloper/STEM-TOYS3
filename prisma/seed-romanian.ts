@@ -192,7 +192,7 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error("Error updating database to Romanian:", e);
     process.exit(1);
   })

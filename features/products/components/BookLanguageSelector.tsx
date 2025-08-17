@@ -113,7 +113,7 @@ export function BookLanguageSelector({
         headers: {
           Accept: "application/json",
         },
-      }).then(async (response) => {
+      }).then(async response => {
         if (!response.ok) {
           throw new Error("Failed to fetch languages");
         }
@@ -214,7 +214,8 @@ export function BookLanguageSelector({
           <span>Digital formats coming soon</span>
         </div>
         <p className="text-xs mt-1">
-          This book is available for purchase. Digital files will be added after upload.
+          This book is available for purchase. Digital files will be added after
+          upload.
         </p>
       </div>
     );
@@ -228,9 +229,7 @@ export function BookLanguageSelector({
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <FileText className="h-4 w-4" />
           <span>Available in {language.name}</span>
-          <Badge
-            variant="secondary"
-            className="text-xs">
+          <Badge variant="secondary" className="text-xs">
             {language.formats.join(", ").toUpperCase()}
           </Badge>
         </div>
@@ -246,7 +245,7 @@ export function BookLanguageSelector({
           Choose Language:
         </div>
         <div className="flex flex-wrap gap-2">
-          {availableLanguages.map((language) => (
+          {availableLanguages.map(language => (
             <Badge
               key={language.code}
               variant={
@@ -257,7 +256,8 @@ export function BookLanguageSelector({
                 selectedLanguage === language.code &&
                   "bg-primary text-primary-foreground"
               )}
-              onClick={() => onLanguageSelect(language.code)}>
+              onClick={() => onLanguageSelect(language.code)}
+            >
               {language.name}
             </Badge>
           ))}
@@ -273,7 +273,7 @@ export function BookLanguageSelector({
         Choose Language & Format:
       </div>
       <div className="grid gap-2">
-        {availableLanguages.map((language) => (
+        {availableLanguages.map(language => (
           <label
             key={language.code}
             className={cn(
@@ -281,7 +281,8 @@ export function BookLanguageSelector({
               selectedLanguage === language.code
                 ? "border-primary bg-primary/5"
                 : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-            )}>
+            )}
+          >
             <div className="flex items-center gap-3">
               <input
                 type="radio"
@@ -293,9 +294,7 @@ export function BookLanguageSelector({
               />
               <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">{language.name}</span>
-                <Badge
-                  variant="secondary"
-                  className="text-xs">
+                <Badge variant="secondary" className="text-xs">
                   {language.formats.join(", ").toUpperCase()}
                 </Badge>
               </div>

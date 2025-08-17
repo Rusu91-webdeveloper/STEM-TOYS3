@@ -222,7 +222,7 @@ function logError(
 function handleZodError(error: ZodError): ApiError {
   const validationErrors: Record<string, string[]> = {};
 
-  error.errors.forEach((err) => {
+  error.errors.forEach(err => {
     const path = err.path.join(".");
     if (!validationErrors[path]) {
       validationErrors[path] = [];

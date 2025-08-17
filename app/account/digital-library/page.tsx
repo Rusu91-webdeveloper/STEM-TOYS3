@@ -69,15 +69,19 @@ export default async function DigitalLibraryPage() {
           </p>
         </div>
 
-        <DigitalLibrary orders={orders.filter(order => 
-          order.items.some(item => item.book !== null)
-        ).map(order => ({
-          ...order,
-          items: order.items.filter(item => item.book !== null).map(item => ({
-            ...item,
-            book: item.book!
-          }))
-        }))} />
+        <DigitalLibrary
+          orders={orders
+            .filter(order => order.items.some(item => item.book !== null))
+            .map(order => ({
+              ...order,
+              items: order.items
+                .filter(item => item.book !== null)
+                .map(item => ({
+                  ...item,
+                  book: item.book!,
+                })),
+            }))}
+        />
       </div>
     </div>
   );

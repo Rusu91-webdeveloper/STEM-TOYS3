@@ -11,7 +11,7 @@ export function mergeCarts(
 ): CartItem[] {
   // Create a map of local cart items for easy lookup
   const localCartMap = new Map<string, CartItem>();
-  localCart.forEach((item) => {
+  localCart.forEach(item => {
     localCartMap.set(item.id, item);
   });
 
@@ -19,7 +19,7 @@ export function mergeCarts(
   const mergedCart: CartItem[] = [];
 
   // First, add all server items
-  serverCart.forEach((serverItem) => {
+  serverCart.forEach(serverItem => {
     const localItem = localCartMap.get(serverItem.id);
 
     if (localItem) {
@@ -39,7 +39,7 @@ export function mergeCarts(
   });
 
   // Add remaining local items (ones that didn't exist in server cart)
-  localCartMap.forEach((localItem) => {
+  localCartMap.forEach(localItem => {
     mergedCart.push(localItem);
   });
 
@@ -63,8 +63,8 @@ export function needsMerging(
   }
 
   // Create maps of items by ID for both carts
-  const localItemsMap = new Map(localCart.map((item) => [item.id, item]));
-  const serverItemsMap = new Map(serverCart.map((item) => [item.id, item]));
+  const localItemsMap = new Map(localCart.map(item => [item.id, item]));
+  const serverItemsMap = new Map(serverCart.map(item => [item.id, item]));
 
   // Check if all items match between carts
   for (const [id, localItem] of localItemsMap.entries()) {

@@ -33,7 +33,7 @@ export function LanguageSwitcher() {
 
   // Find current language details
   const currentLanguage =
-    languages.find((l) => l.code === language) || languages[0];
+    languages.find(l => l.code === language) || languages[0];
 
   return (
     <DropdownMenu>
@@ -41,7 +41,8 @@ export function LanguageSwitcher() {
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center gap-1.5 h-9 px-3 bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700 hover:border-indigo-700 shadow-sm transition-all cursor-pointer font-medium">
+          className="flex items-center gap-1.5 h-9 px-3 bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700 hover:border-indigo-700 shadow-sm transition-all cursor-pointer font-medium"
+        >
           <Globe className="h-4 w-4" />
           <span className="hidden md:inline-block text-xs font-medium">
             {currentLanguage.flag} {currentLanguage.name}
@@ -51,8 +52,9 @@ export function LanguageSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-40 bg-white border border-gray-200 shadow-lg rounded-md p-1">
-        {languages.map((lang) => (
+        className="w-40 bg-white border border-gray-200 shadow-lg rounded-md p-1"
+      >
+        {languages.map(lang => (
           <DropdownMenuItem
             key={lang.code}
             onClick={() => switchLanguage(lang.code)}
@@ -60,7 +62,8 @@ export function LanguageSwitcher() {
               language === lang.code
                 ? "font-medium bg-indigo-50 text-indigo-700"
                 : "text-gray-700 hover:bg-gray-50"
-            } transition-colors hover:text-indigo-600`}>
+            } transition-colors hover:text-indigo-600`}
+          >
             <span className="mr-2 text-lg">{lang.flag}</span>
             {lang.name}
           </DropdownMenuItem>

@@ -1,35 +1,35 @@
-import * as React from "react"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 interface SkipLink {
-  href: string
-  text: string
-  description?: string
+  href: string;
+  text: string;
+  description?: string;
 }
 
 interface SkipLinksProps {
-  links?: SkipLink[]
-  className?: string
+  links?: SkipLink[];
+  className?: string;
 }
 
 const defaultSkipLinks: SkipLink[] = [
   {
-    href: '#main-content',
-    text: 'Skip to main content',
-    description: 'Jump to the primary content of the page'
+    href: "#main-content",
+    text: "Skip to main content",
+    description: "Jump to the primary content of the page",
   },
   {
-    href: '#navigation',
-    text: 'Skip to navigation',
-    description: 'Jump to the main navigation menu'
+    href: "#navigation",
+    text: "Skip to navigation",
+    description: "Jump to the main navigation menu",
   },
   {
-    href: '#footer',
-    text: 'Skip to footer',
-    description: 'Jump to the page footer'
-  }
-]
+    href: "#footer",
+    text: "Skip to footer",
+    description: "Jump to the page footer",
+  },
+];
 
 function SkipLinks({ links = defaultSkipLinks, className }: SkipLinksProps) {
   return (
@@ -58,43 +58,46 @@ function SkipLinks({ links = defaultSkipLinks, className }: SkipLinksProps) {
             // Skip link specific positioning
             "sr-only focus:not-sr-only"
           )}
-          onClick={(e) => {
+          onClick={e => {
             // Prevent default and manually handle navigation
-            e.preventDefault()
-            const target = document.querySelector(link.href)
+            e.preventDefault();
+            const target = document.querySelector(link.href);
             if (target) {
-              target.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start' 
-              })
+              target.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
               // Set focus to the target element if it's focusable
               if (target instanceof HTMLElement) {
-                target.focus()
+                target.focus();
                 // If target is not naturally focusable, add tabindex temporarily
-                if (!target.hasAttribute('tabindex')) {
-                  target.setAttribute('tabindex', '-1')
-                  target.addEventListener('blur', () => {
-                    target.removeAttribute('tabindex')
-                  }, { once: true })
+                if (!target.hasAttribute("tabindex")) {
+                  target.setAttribute("tabindex", "-1");
+                  target.addEventListener(
+                    "blur",
+                    () => {
+                      target.removeAttribute("tabindex");
+                    },
+                    { once: true }
+                  );
                 }
               }
             }
           }}
-          aria-describedby={link.description ? `skip-link-desc-${index}` : undefined}
+          aria-describedby={
+            link.description ? `skip-link-desc-${index}` : undefined
+          }
         >
           {link.text}
           {link.description && (
-            <span
-              id={`skip-link-desc-${index}`}
-              className="sr-only"
-            >
+            <span id={`skip-link-desc-${index}`} className="sr-only">
               {link.description}
             </span>
           )}
         </a>
       ))}
     </nav>
-  )
+  );
 }
 
-export { SkipLinks, defaultSkipLinks, type SkipLink, type SkipLinksProps } 
+export { SkipLinks, defaultSkipLinks, type SkipLink, type SkipLinksProps };

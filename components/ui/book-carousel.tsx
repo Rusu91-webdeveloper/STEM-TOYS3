@@ -7,7 +7,6 @@ import React, { useState, useEffect, useCallback } from "react";
 
 import { Button } from "@/components/ui/button";
 
-
 type BookImage = {
   src: string;
   alt: string;
@@ -92,10 +91,9 @@ export function BookCarousel({
       onMouseEnter={stopAutoplay}
       onMouseLeave={startAutoplay}
       onTouchStart={stopAutoplay}
-      onTouchEnd={startAutoplay}>
-      <div
-        className="overflow-hidden"
-        ref={emblaRef}>
+      onTouchEnd={startAutoplay}
+    >
+      <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
           {books.map((book, index) => {
             const currentLang = currentLanguages[index] || "english";
@@ -104,7 +102,8 @@ export function BookCarousel({
             return (
               <div
                 className="flex-[0_0_100%] min-w-0 relative h-[300px] sm:h-[350px] md:h-[400px] px-2 sm:px-4"
-                key={index}>
+                key={index}
+              >
                 <div className="h-full rounded-lg overflow-hidden shadow-xl group flex items-center justify-center bg-white">
                   <div className="relative w-full h-full">
                     <Image
@@ -122,7 +121,8 @@ export function BookCarousel({
                         size="sm"
                         variant="outline"
                         className="bg-white/80 hover:bg-white border-indigo-300 text-indigo-700 text-xs h-6 sm:h-7 px-1.5 sm:px-2 py-0"
-                        onClick={() => onLanguageToggle(index)}>
+                        onClick={() => onLanguageToggle(index)}
+                      >
                         {currentLang === "english" ? "🇷🇴 RO" : "🇬🇧 EN"}
                       </Button>
                     </div>
@@ -143,7 +143,8 @@ export function BookCarousel({
           stopAutoplay();
           setTimeout(startAutoplay, 10000); // Resume autoplay after 10 seconds of inactivity
         }}
-        disabled={!prevBtnEnabled}>
+        disabled={!prevBtnEnabled}
+      >
         <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
       </Button>
 
@@ -156,7 +157,8 @@ export function BookCarousel({
           stopAutoplay();
           setTimeout(startAutoplay, 10000); // Resume autoplay after 10 seconds of inactivity
         }}
-        disabled={!nextBtnEnabled}>
+        disabled={!nextBtnEnabled}
+      >
         <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
       </Button>
 

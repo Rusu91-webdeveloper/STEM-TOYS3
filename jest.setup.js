@@ -62,10 +62,10 @@ process.env.NEXTAUTH_URL = "http://localhost:3000";
 global.fetch = jest.fn();
 
 // Setup global mocks only in jsdom environment
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   Object.defineProperty(window, "matchMedia", {
     writable: true,
-    value: jest.fn().mockImplementation((query) => ({
+    value: jest.fn().mockImplementation(query => ({
       matches: false,
       media: query,
       onchange: null,

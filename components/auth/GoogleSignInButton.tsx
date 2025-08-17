@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { FcGoogle } from "react-icons/fc";
+import { Chrome } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -15,7 +15,7 @@ export function GoogleSignInButton({
   callbackUrl = "/account",
 }: GoogleSignInButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const _router = useRouter();
 
   const handleGoogleSignIn = async () => {
     try {
@@ -60,7 +60,7 @@ export function GoogleSignInButton({
       {isLoading ? (
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-900 border-t-transparent" />
       ) : (
-        <FcGoogle className="h-5 w-5" />
+        <Chrome className="h-5 w-5 text-red-500" />
       )}
       <span>Sign in with Google</span>
     </Button>

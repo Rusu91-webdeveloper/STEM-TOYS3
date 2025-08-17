@@ -5,7 +5,7 @@ import { Loader2, ArrowLeft, ShoppingBag, Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect , use } from "react";
+import { useState, useEffect, use } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 

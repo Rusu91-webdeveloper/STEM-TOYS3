@@ -1,27 +1,30 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
+import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "@storybook/test";
 
-import { 
-  LoadingSpinner, 
-  LoadingButton, 
-  LoadingOverlay, 
+import {
+  LoadingSpinner,
+  LoadingButton,
+  LoadingOverlay,
   ProgressLoading,
   LoadingDots,
   LoadingOperation,
-  InlineLoading
-} from './loading';
+  InlineLoading,
+} from "./loading";
 
 // LoadingSpinner Stories
 const spinnerMeta: Meta<typeof LoadingSpinner> = {
-  title: 'UI/Loading/LoadingSpinner',
+  title: "UI/Loading/LoadingSpinner",
   component: LoadingSpinner,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    size: { control: 'select', options: ['sm', 'md', 'lg'] },
-    variant: { control: 'select', options: ['default', 'secondary', 'destructive'] },
+    size: { control: "select", options: ["sm", "md", "lg"] },
+    variant: {
+      control: "select",
+      options: ["default", "secondary", "destructive"],
+    },
   },
 };
 
@@ -30,50 +33,57 @@ type SpinnerStory = StoryObj<typeof spinnerMeta>;
 
 export const SmallSpinner: SpinnerStory = {
   args: {
-    size: 'sm',
+    size: "sm",
   },
 };
 
 export const MediumSpinner: SpinnerStory = {
   args: {
-    size: 'md',
+    size: "md",
   },
 };
 
 export const LargeSpinner: SpinnerStory = {
   args: {
-    size: 'lg',
+    size: "lg",
   },
 };
 
 export const SecondarySpinner: SpinnerStory = {
   args: {
-    variant: 'secondary',
-    size: 'md',
+    variant: "secondary",
+    size: "md",
   },
 };
 
 export const DestructiveSpinner: SpinnerStory = {
   args: {
-    variant: 'destructive',
-    size: 'md',
+    variant: "destructive",
+    size: "md",
   },
 };
 
 // LoadingButton Stories
 const buttonMeta: Meta<typeof LoadingButton> = {
-  title: 'UI/Loading/LoadingButton',
+  title: "UI/Loading/LoadingButton",
   component: LoadingButton,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    variant: { 
-      control: 'select', 
-      options: ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'] 
+    variant: {
+      control: "select",
+      options: [
+        "default",
+        "destructive",
+        "outline",
+        "secondary",
+        "ghost",
+        "link",
+      ],
     },
-    isLoading: { control: 'boolean' },
+    isLoading: { control: "boolean" },
   },
   args: { onClick: fn() },
 };
@@ -83,44 +93,44 @@ type ButtonStory = StoryObj<typeof buttonMeta>;
 
 export const IdleButton: ButtonStory = {
   args: {
-    children: 'Click me',
+    children: "Click me",
     isLoading: false,
   },
 };
 
 export const LoadingButtonStory: ButtonStory = {
   args: {
-    children: 'Processing...',
+    children: "Processing...",
     isLoading: true,
   },
 };
 
 export const LoadingPrimaryButton: ButtonStory = {
   args: {
-    children: 'Save Changes',
+    children: "Save Changes",
     isLoading: true,
-    variant: 'default',
+    variant: "default",
   },
 };
 
 export const LoadingSecondaryButton: ButtonStory = {
   args: {
-    children: 'Cancel',
+    children: "Cancel",
     isLoading: true,
-    variant: 'secondary',
+    variant: "secondary",
   },
 };
 
 // LoadingDots Stories
 const dotsMeta: Meta<typeof LoadingDots> = {
-  title: 'UI/Loading/LoadingDots',
+  title: "UI/Loading/LoadingDots",
   component: LoadingDots,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    size: { control: "select", options: ["sm", "md", "lg"] },
   },
 };
 
@@ -129,34 +139,41 @@ type DotsStory = StoryObj<typeof dotsMeta>;
 
 export const SmallDots: DotsStory = {
   args: {
-    size: 'sm',
+    size: "sm",
   },
 };
 
 export const MediumDots: DotsStory = {
   args: {
-    size: 'md',
+    size: "md",
   },
 };
 
 export const LargeDots: DotsStory = {
   args: {
-    size: 'lg',
+    size: "lg",
   },
 };
 
 // LoadingOperation Stories
 const operationMeta: Meta<typeof LoadingOperation> = {
-  title: 'UI/Loading/LoadingOperation',
+  title: "UI/Loading/LoadingOperation",
   component: LoadingOperation,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    operation: { 
-      control: 'select', 
-      options: ['search', 'upload', 'download', 'refresh', 'cart', 'processing'] 
+    operation: {
+      control: "select",
+      options: [
+        "search",
+        "upload",
+        "download",
+        "refresh",
+        "cart",
+        "processing",
+      ],
     },
   },
 };
@@ -166,47 +183,47 @@ type OperationStory = StoryObj<typeof operationMeta>;
 
 export const SearchOperation: OperationStory = {
   args: {
-    operation: 'search',
-    children: 'Searching products...',
+    operation: "search",
+    children: "Searching products...",
   },
 };
 
 export const UploadOperation: OperationStory = {
   args: {
-    operation: 'upload',
-    children: 'Uploading files...',
+    operation: "upload",
+    children: "Uploading files...",
   },
 };
 
 export const DownloadOperation: OperationStory = {
   args: {
-    operation: 'download',
-    children: 'Downloading...',
+    operation: "download",
+    children: "Downloading...",
   },
 };
 
 export const CartOperation: OperationStory = {
   args: {
-    operation: 'cart',
-    children: 'Adding to cart...',
+    operation: "cart",
+    children: "Adding to cart...",
   },
 };
 
 export const ProcessingOperation: OperationStory = {
   args: {
-    operation: 'processing',
-    children: 'Processing payment...',
+    operation: "processing",
+    children: "Processing payment...",
   },
 };
 
 // InlineLoading Stories
 const inlineMeta: Meta<typeof InlineLoading> = {
-  title: 'UI/Loading/InlineLoading',
+  title: "UI/Loading/InlineLoading",
   component: InlineLoading,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export const InlineLoadingMeta = inlineMeta;
@@ -214,26 +231,26 @@ type InlineStory = StoryObj<typeof inlineMeta>;
 
 export const BasicInline: InlineStory = {
   args: {
-    children: 'Loading...',
+    children: "Loading...",
   },
 };
 
 export const InlineWithText: InlineStory = {
   args: {
-    children: 'Fetching product details',
+    children: "Fetching product details",
   },
 };
 
 // ProgressLoading Stories
 const progressMeta: Meta<typeof ProgressLoading> = {
-  title: 'UI/Loading/ProgressLoading',
+  title: "UI/Loading/ProgressLoading",
   component: ProgressLoading,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    progress: { control: { type: 'range', min: 0, max: 100, step: 1 } },
+    progress: { control: { type: "range", min: 0, max: 100, step: 1 } },
   },
 };
 
@@ -243,27 +260,27 @@ type ProgressStory = StoryObj<typeof progressMeta>;
 export const ZeroProgress: ProgressStory = {
   args: {
     progress: 0,
-    children: 'Starting...',
+    children: "Starting...",
   },
 };
 
 export const HalfProgress: ProgressStory = {
   args: {
     progress: 50,
-    children: 'Half way there...',
+    children: "Half way there...",
   },
 };
 
 export const NearComplete: ProgressStory = {
   args: {
     progress: 85,
-    children: 'Almost done...',
+    children: "Almost done...",
   },
 };
 
 export const CompleteProgress: ProgressStory = {
   args: {
     progress: 100,
-    children: 'Complete!',
+    children: "Complete!",
   },
-}; 
+};

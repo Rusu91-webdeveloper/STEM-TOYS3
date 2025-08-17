@@ -116,9 +116,7 @@ export default function ReturnsPage() {
           <p className="text-gray-500 mb-4">
             You haven't initiated any returns yet.
           </p>
-          <Link
-            href="/account/orders"
-            className="text-primary hover:underline">
+          <Link href="/account/orders" className="text-primary hover:underline">
             View your orders
           </Link>
         </div>
@@ -131,10 +129,11 @@ export default function ReturnsPage() {
       <h1 className="text-2xl font-bold">Your Returns</h1>
 
       <div className="space-y-4">
-        {returns.map((returnItem) => (
+        {returns.map(returnItem => (
           <div
             key={returnItem.id}
-            className="bg-white p-6 rounded-lg shadow-sm">
+            className="bg-white p-6 rounded-lg shadow-sm"
+          >
             <div className="flex justify-between items-start">
               <div className="flex items-center space-x-4">
                 {returnItem.orderItem.product.images?.[0] && (

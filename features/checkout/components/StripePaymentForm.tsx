@@ -143,22 +143,18 @@ export function StripePaymentForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-white rounded-lg border p-4">
         <div className="space-y-4">
           <div>
             <label
               htmlFor="card-element"
-              className="block text-sm font-medium mb-1">
+              className="block text-sm font-medium mb-1"
+            >
               Card de credit sau debit
             </label>
             <div className="border rounded-md p-3">
-              <CardElement
-                id="card-element"
-                options={cardElementOptions}
-              />
+              <CardElement id="card-element" options={cardElementOptions} />
             </div>
             {cardError && (
               <p className="text-red-500 text-sm mt-1">{cardError}</p>
@@ -182,7 +178,8 @@ export function StripePaymentForm({
         <Button
           type="submit"
           disabled={!stripe || isProcessing || isCalculatingTotal}
-          className="px-8">
+          className="px-8"
+        >
           {isProcessing ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />

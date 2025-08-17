@@ -65,7 +65,7 @@ export function AccountNav() {
 
   return (
     <nav className="space-y-2">
-      {navItems.map((item) => {
+      {navItems.map(item => {
         const isActive = pathname === item.href;
         return (
           <Link
@@ -75,7 +75,8 @@ export function AccountNav() {
               isActive
                 ? "bg-gradient-to-r from-primary to-primary/70 text-white font-medium shadow-md"
                 : "text-gray-700 hover:bg-white/80 hover:shadow-sm hover:translate-x-1"
-            }`}>
+            }`}
+          >
             <item.icon
               className={`w-5 h-5 mr-3 ${isActive ? "" : "text-primary/70"}`}
             />
@@ -89,7 +90,8 @@ export function AccountNav() {
       <div className="pt-4 mt-4 border-t border-gray-200">
         <button
           onClick={handleSignOut}
-          className="flex items-center w-full px-4 py-3 text-sm text-gray-700 rounded-lg transition-all duration-200 hover:bg-white/80 hover:shadow-sm hover:translate-x-1 group">
+          className="flex items-center w-full px-4 py-3 text-sm text-gray-700 rounded-lg transition-all duration-200 hover:bg-white/80 hover:shadow-sm hover:translate-x-1 group"
+        >
           <LogOut className="w-5 h-5 mr-3 text-red-500/70 group-hover:text-red-500" />
           <span className="font-medium group-hover:text-red-500">
             {t("logout")}

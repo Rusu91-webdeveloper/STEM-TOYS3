@@ -34,7 +34,7 @@ export default async function AddPaymentMethodPage() {
   });
 
   // Format addresses for the form
-  const formattedAddresses = addresses.map((address) => ({
+  const formattedAddresses = addresses.map(address => ({
     id: address.id,
     name: `${address.name} - ${address.fullName}, ${address.addressLine1}, ${address.city}, ${address.state}`,
   }));

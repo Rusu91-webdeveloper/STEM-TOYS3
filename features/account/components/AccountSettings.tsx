@@ -41,7 +41,7 @@ export function AccountSettings() {
   const [currency, setCurrency] = useState("RON");
 
   const handleToggleNotification = (key: keyof typeof emailNotifications) => {
-    setEmailNotifications((prev) => ({
+    setEmailNotifications(prev => ({
       ...prev,
       [key]: !prev[key],
     }));
@@ -51,7 +51,7 @@ export function AccountSettings() {
     setIsLoading(true);
     try {
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
         title: t("settingsUpdated", "Setări actualizate"),
         description: t(
@@ -83,7 +83,7 @@ export function AccountSettings() {
     setIsLoading(true);
     try {
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Apply language change if different from current
       if (selectedLanguage !== language) {
@@ -143,9 +143,7 @@ export function AccountSettings() {
         <CardContent className="space-y-4">
           <div className="flex justify-between items-center p-3 hover:bg-white/70 rounded-lg transition-all">
             <div className="space-y-0.5">
-              <Label
-                htmlFor="marketing"
-                className="text-gray-800 font-medium">
+              <Label htmlFor="marketing" className="text-gray-800 font-medium">
                 {t("marketingEmails", "Email-uri de marketing")}
               </Label>
               <p className="text-sm text-muted-foreground">
@@ -166,7 +164,8 @@ export function AccountSettings() {
             <div className="space-y-0.5">
               <Label
                 htmlFor="orderUpdates"
-                className="text-gray-800 font-medium">
+                className="text-gray-800 font-medium"
+              >
                 {t("orderUpdates", "Actualizări comandă")}
               </Label>
               <p className="text-sm text-muted-foreground">
@@ -187,7 +186,8 @@ export function AccountSettings() {
             <div className="space-y-0.5">
               <Label
                 htmlFor="newProducts"
-                className="text-gray-800 font-medium">
+                className="text-gray-800 font-medium"
+              >
                 {t("newProducts", "Produse noi")}
               </Label>
               <p className="text-sm text-muted-foreground">
@@ -208,7 +208,8 @@ export function AccountSettings() {
             <div className="space-y-0.5">
               <Label
                 htmlFor="accountActivity"
-                className="text-gray-800 font-medium">
+                className="text-gray-800 font-medium"
+              >
                 {t("accountActivity", "Activitate cont")}
               </Label>
               <p className="text-sm text-muted-foreground">
@@ -231,7 +232,8 @@ export function AccountSettings() {
             <Button
               onClick={handleSaveNotifications}
               disabled={isLoading}
-              className="bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary transition-all duration-300 shadow-sm hover:shadow-md">
+              className="bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary transition-all duration-300 shadow-sm hover:shadow-md"
+            >
               {isLoading ? (
                 <>
                   <span className="animate-spin mr-2">⏳</span>
@@ -263,14 +265,13 @@ export function AccountSettings() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label
-                htmlFor="language"
-                className="text-gray-800 font-medium">
+              <Label htmlFor="language" className="text-gray-800 font-medium">
                 {t("language", "Limbă")}
               </Label>
               <Select
                 value={selectedLanguage}
-                onValueChange={handleLanguageChange}>
+                onValueChange={handleLanguageChange}
+              >
                 <SelectTrigger className="bg-white/70 transition-all focus:ring-primary/30">
                   <SelectValue
                     placeholder={t("selectLanguage", "Selectează limba")}
@@ -283,14 +284,10 @@ export function AccountSettings() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label
-                htmlFor="currency"
-                className="text-gray-800 font-medium">
+              <Label htmlFor="currency" className="text-gray-800 font-medium">
                 {t("currency", "Monedă")}
               </Label>
-              <Select
-                value={currency}
-                onValueChange={setCurrency}>
+              <Select value={currency} onValueChange={setCurrency}>
                 <SelectTrigger className="bg-white/70 transition-all focus:ring-primary/30">
                   <SelectValue
                     placeholder={t("selectCurrency", "Selectează moneda")}
@@ -308,7 +305,8 @@ export function AccountSettings() {
             <Button
               onClick={handleSavePreferences}
               disabled={isLoading}
-              className="bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary transition-all duration-300 shadow-sm hover:shadow-md">
+              className="bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary transition-all duration-300 shadow-sm hover:shadow-md"
+            >
               {isLoading ? (
                 <>
                   <span className="animate-spin mr-2">⏳</span>
@@ -345,7 +343,8 @@ export function AccountSettings() {
             <Button
               onClick={handleDeleteAccount}
               variant="destructive"
-              className="bg-red-600 hover:bg-red-700 transition-all shadow-sm hover:shadow-md">
+              className="bg-red-600 hover:bg-red-700 transition-all shadow-sm hover:shadow-md"
+            >
               {t("deleteAccount", "Șterge contul meu")}
             </Button>
           </div>

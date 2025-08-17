@@ -158,7 +158,7 @@ export function PaymentMethods() {
 
       // Update local state
       setCards(
-        cards.map((card) => ({
+        cards.map(card => ({
           ...card,
           isDefault: card.id === id,
         }))
@@ -189,7 +189,7 @@ export function PaymentMethods() {
       }
 
       // Update local state
-      setCards(cards.filter((card) => card.id !== id));
+      setCards(cards.filter(card => card.id !== id));
       setCardToDelete(null);
 
       toast({
@@ -212,7 +212,7 @@ export function PaymentMethods() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        {[1, 2].map((i) => (
+        {[1, 2].map(i => (
           <Card key={i}>
             <CardHeader className="pb-2">
               <div className="flex justify-between">
@@ -258,7 +258,7 @@ export function PaymentMethods() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4">
-        {cards.map((card) => (
+        {cards.map(card => (
           <Card key={card.id}>
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
@@ -287,7 +287,8 @@ export function PaymentMethods() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleSetDefault(card.id)}>
+                  onClick={() => handleSetDefault(card.id)}
+                >
                   Set as Default
                 </Button>
               )}
@@ -297,19 +298,22 @@ export function PaymentMethods() {
                 className="flex items-center"
                 onClick={() =>
                   router.push(`/account/payment-methods/${card.id}/edit`)
-                }>
+                }
+              >
                 <Edit className="h-4 w-4 mr-1" />
                 Edit
               </Button>
               <AlertDialog
                 open={cardToDelete === card.id}
-                onOpenChange={(open) => !open && setCardToDelete(null)}>
+                onOpenChange={open => !open && setCardToDelete(null)}
+              >
                 <AlertDialogTrigger asChild>
                   <Button
                     variant="outline"
                     size="sm"
                     className="text-red-500"
-                    onClick={() => setCardToDelete(card.id)}>
+                    onClick={() => setCardToDelete(card.id)}
+                  >
                     <Trash className="h-4 w-4 mr-1" />
                     Remove
                   </Button>
@@ -326,7 +330,8 @@ export function PaymentMethods() {
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => handleDelete(card.id)}
-                      className="bg-red-500 hover:bg-red-600">
+                      className="bg-red-500 hover:bg-red-600"
+                    >
                       Remove
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -340,7 +345,8 @@ export function PaymentMethods() {
       <div className="mt-6">
         <Button
           className="flex items-center"
-          onClick={() => router.push("/account/payment-methods/new")}>
+          onClick={() => router.push("/account/payment-methods/new")}
+        >
           <PlusCircle className="h-4 w-4 mr-2" />
           Add New Payment Method
         </Button>

@@ -38,7 +38,8 @@ export function ProductsPageSkeleton() {
             {Array.from({ length: 9 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl overflow-hidden border border-gray-100 animate-pulse">
+                className="bg-white rounded-xl overflow-hidden border border-gray-100 animate-pulse"
+              >
                 <div className="h-48 bg-gray-200" />
                 <div className="p-4">
                   <div className="h-4 w-1/2 bg-gray-200 rounded mb-3" />

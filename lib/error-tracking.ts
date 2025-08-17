@@ -34,8 +34,11 @@ export class ErrorTracker {
     logger.error(errorMessage, isErrorObject ? error : undefined, context);
 
     // Send to Sentry if available and enabled
-    if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "preview") {
-      Sentry.withScope((scope) => {
+    if (
+      process.env.NODE_ENV === "production" ||
+      process.env.VERCEL_ENV === "preview"
+    ) {
+      Sentry.withScope(scope => {
         // Set user context
         if (context?.userId) {
           scope.setUser({ id: context.userId });
@@ -123,7 +126,9 @@ export class ErrorTracker {
   /**
    * Map our severity levels to Sentry levels
    */
-  private static mapSeverityToSentryLevel(severity: ErrorSeverity): Sentry.SeverityLevel {
+  private static mapSeverityToSentryLevel(
+    severity: ErrorSeverity
+  ): Sentry.SeverityLevel {
     switch (severity) {
       case "low":
         return "info";
@@ -141,4 +146,4 @@ export class ErrorTracker {
 
 // Convenience functions for common error patterns
 export const trackError = ErrorTracker.captureError;
-export const trackAPIError = ErrorTracker.captureAPIError; 
+export const trackAPIError = ErrorTracker.captureAPIError;

@@ -9,10 +9,7 @@ import React, {
   type ReactNode,
 } from "react";
 
-import {
-  fetchCart,
-  saveCart,
-} from "../lib/cartApi";
+import { fetchCart, saveCart } from "../lib/cartApi";
 import { debugCartState } from "../lib/cartSync";
 
 // Define a specific type for CartItem based on our product structure
@@ -283,10 +280,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     loadCart();
   }, [loadCart]);
 
-  const addToCart = (
-    itemToAdd: Omit<CartItem, "id">,
-    quantity: number = 1
-  ) => {
+  const addToCart = (itemToAdd: Omit<CartItem, "id">, quantity: number = 1) => {
     const cartItemId = getCartItemId(
       itemToAdd.productId,
       itemToAdd.variantId,
@@ -371,13 +365,13 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   const clearCart = () => {
     setCartItems([]);
     setSelectedItems(new Set());
-    
+
     // Clear pending updates and sync immediately
     pendingUpdatesRef.current.clear();
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
-    
+
     try {
       saveCart([]);
     } catch (error) {
@@ -423,7 +417,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       prevItems.filter(item => !itemsToRemove.includes(item.id))
     );
     setSelectedItems(new Set());
-    
+
     // Add to pending updates and trigger debounced sync
     itemsToRemove.forEach(itemId => pendingUpdatesRef.current.add(itemId));
     debouncedSync();
@@ -438,7 +432,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
           : item
       )
     );
-    
+
     // Add to pending updates and trigger debounced sync
     itemsToUpdate.forEach(itemId => pendingUpdatesRef.current.add(itemId));
     debouncedSync();
@@ -451,7 +445,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       prevItems.filter(item => !selectedItems.has(item.id))
     );
     setSelectedItems(new Set());
-    
+
     // Add to pending updates and trigger debounced sync
     itemsToMove.forEach(item => pendingUpdatesRef.current.add(item.id));
     debouncedSync();
@@ -461,10 +455,8 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     const itemToMove = savedForLaterItems.find(item => item.id === itemId);
     if (itemToMove) {
       setCartItems(prev => [...prev, itemToMove]);
-      setSavedForLaterItems(prev =>
-        prev.filter(item => item.id !== itemId)
-      );
-      
+      setSavedForLaterItems(prev => prev.filter(item => item.id !== itemId));
+
       // Add to pending updates and trigger debounced sync
       pendingUpdatesRef.current.add(itemId);
       debouncedSync();

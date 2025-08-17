@@ -43,7 +43,8 @@ export default function VerifyPage() {
             Please wait while we prepare verification...
           </p>
         </div>
-      }>
+      }
+    >
       <VerifyContent />
     </Suspense>
   );

@@ -110,7 +110,7 @@ export function ProductReviewForm({
   // Render stars for rating
   const renderStars = () => (
     <div className="flex">
-      {[1, 2, 3, 4, 5].map((star) => (
+      {[1, 2, 3, 4, 5].map(star => (
         <StarIcon
           key={star}
           className={cn(
@@ -128,9 +128,7 @@ export function ProductReviewForm({
   );
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="rating">
           {t("rating", "Evaluare")} <span className="text-red-500">*</span>
@@ -156,7 +154,7 @@ export function ProductReviewForm({
         <Input
           id="title"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={e => setTitle(e.target.value)}
           placeholder={t("titlePlaceholder", "Rezumă experiența ta")}
           className={errors.title ? "border-red-500" : ""}
         />
@@ -173,7 +171,7 @@ export function ProductReviewForm({
         <Textarea
           id="content"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={e => setContent(e.target.value)}
           placeholder={t(
             "reviewPlaceholder",
             "Împărtășește detalii despre experiența ta cu acest produs"
@@ -187,9 +185,7 @@ export function ProductReviewForm({
       </div>
 
       <div className="flex gap-4 pt-2">
-        <Button
-          type="submit"
-          disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
             ? t("submitting", "Se trimite...")
             : t("submitReview", "Trimite recenzia")}
@@ -198,7 +194,8 @@ export function ProductReviewForm({
           type="button"
           variant="outline"
           onClick={() => router.push(`/account/orders/${orderId}`)}
-          disabled={isSubmitting}>
+          disabled={isSubmitting}
+        >
           {t("cancel", "Anulează")}
         </Button>
       </div>

@@ -2,7 +2,7 @@ import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { auth , mockUsers } from "@/lib/auth";
+import { auth, mockUsers } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 // Profile update schema
@@ -71,8 +71,7 @@ export async function PUT(req: Request) {
     // If we're in development mode, check if this is a mock user and update it
     if (useMockData) {
       const mockUserIndex = mockUsers.findIndex(
-        (user) =>
-          user.id === session.user.id || user.email === session.user.email
+        user => user.id === session.user.id || user.email === session.user.email
       );
 
       if (mockUserIndex >= 0) {
@@ -114,9 +113,9 @@ export async function PUT(req: Request) {
       }
 
       // Use transaction to ensure atomicity
-      updatedUser = await db.$transaction(async (tx) => 
+      updatedUser = await db.$transaction(async tx =>
         // Update the user in the database
-         tx.user.update({
+        tx.user.update({
           where: {
             id: session.user.id,
           },
