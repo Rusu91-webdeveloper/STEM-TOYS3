@@ -4,7 +4,10 @@ import dynamic from "next/dynamic";
 import React from "react";
 
 const EnhancedProductFilters = dynamic(
-  () => import("./EnhancedProductFilters").then(mod => ({ default: mod.EnhancedProductFilters })),
+  () =>
+    import("./EnhancedProductFilters").then(mod => ({
+      default: mod.EnhancedProductFilters,
+    })),
   {
     loading: () => (
       <div className="animate-pulse space-y-3">

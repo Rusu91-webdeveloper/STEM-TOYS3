@@ -1,12 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { ProductGrid } from "@/features/products";
 import type { Product } from "@/types/product";
+
+import { OptimizedProductImage } from "./OptimizedProductImage";
 
 interface CategoryInfo {
   id: string;
@@ -152,12 +153,13 @@ export function ProductsMainDisplay({
                   {/* Product image */}
                   <div className="relative w-full xs:w-32 sm:w-40 h-32 xs:h-32 sm:h-40 flex-shrink-0 bg-gray-50 rounded-xl xs:rounded-none xs:rounded-l-xl overflow-hidden">
                     {product.images && product.images.length > 0 ? (
-                      <Image
+                      <OptimizedProductImage
                         src={product.images[0]}
                         alt={displayName}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
+                        priority={false}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">

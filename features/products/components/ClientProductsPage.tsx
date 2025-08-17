@@ -19,6 +19,11 @@ import { ProductsCategoryNavigation } from "./ProductsCategoryNavigation";
 import { StemBenefitsSection } from "./StemBenefitsSection";
 import { ProductsSidebar } from "./ProductsSidebar";
 import { ProductsMainDisplay } from "./ProductsMainDisplay";
+import {
+  ProductsErrorBoundary,
+  ProductFiltersErrorBoundary,
+  ProductGridErrorBoundary,
+} from "./ProductsErrorBoundary";
 import { useProductFilters } from "../hooks/useProductFilters";
 import { useTranslation } from "@/lib/i18n";
 import type { Product } from "@/types/product";
@@ -446,73 +451,90 @@ function ClientProductsPageContent({
   }
 
   return (
-    <ProductVariantProvider>
-      <ProductsHeroSection
-        categoryImagePath={getCategoryImagePath()}
-        activeCategory={activeCategory}
-        activeCategoryInfo={activeCategoryInfo}
-        getCategoryTitle={getCategoryTitle}
-        getCategoryDescription={getCategoryDescription}
-        t={t}
-      />
+    <ProductsErrorBoundary>
+      <ProductVariantProvider>
+        <ProductsHeroSection
+          categoryImagePath={getCategoryImagePath()}
+          activeCategory={activeCategory}
+          activeCategoryInfo={activeCategoryInfo}
+          getCategoryTitle={getCategoryTitle}
+          getCategoryDescription={getCategoryDescription}
+          t={t}
+        />
 
-      <ProductsCategoryNavigation
-        categoryInfo={categoryInfo}
-        selectedCategories={state.selectedCategories}
-        normalizeCategory={normalizeCategory}
-        handleCategoryChange={handleCategoryChange}
-        setMobileFiltersOpen={actions.setMobileFiltersOpen}
-        t={t}
-      />
+        <ProductsCategoryNavigation
+          categoryInfo={categoryInfo}
+          selectedCategories={state.selectedCategories}
+          normalizeCategory={normalizeCategory}
+          handleCategoryChange={handleCategoryChange}
+          setMobileFiltersOpen={actions.setMobileFiltersOpen}
+          t={t}
+        />
 
-      <StemBenefitsSection
-        stemBenefits={stemBenefits}
-        activeCategory={activeCategory}
-        t={t}
-      />
+        <StemBenefitsSection
+          stemBenefits={stemBenefits}
+          activeCategory={activeCategory}
+          t={t}
+        />
 
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 relative z-10">
-        <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
-          <ProductsSidebar
-            categoryFilter={categoryFilter}
-            dynamicFilters={dynamicFilters}
-            priceRangeFilter={state.priceRangeFilter}
-            selectedCategories={state.selectedCategories}
-            selectedFilters={state.selectedFilters}
-            noPriceFilter={state.noPriceFilter}
-            selectedAgeGroup={state.selectedAgeGroup}
-            selectedStemDiscipline={state.selectedStemDiscipline}
-            selectedLearningOutcomes={state.selectedLearningOutcomes}
-            selectedProductType={state.selectedProductType}
-            selectedSpecialCategories={state.selectedSpecialCategories}
-            handleCategoryChange={handleCategoryChange}
-            handleFilterChange={handleFilterChange}
-            handlePriceChange={handlePriceChange}
-            handleNoPriceFilterChange={handleNoPriceFilterChange}
-            setSelectedAgeGroup={actions.setAgeGroup}
-            setSelectedStemDiscipline={actions.setStemDiscipline}
-            setSelectedLearningOutcomes={actions.setLearningOutcomes}
-            setSelectedProductType={actions.setProductType}
-            setSelectedSpecialCategories={actions.setSpecialCategories}
-            handleClearFilters={handleClearFilters}
-            setMobileFiltersOpen={actions.setMobileFiltersOpen}
-            t={t}
-          />
+        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 relative z-10">
+          <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
+            <ProductFiltersErrorBoundary
+              onError={() => {
+                // Fallback: clear filters and reload
+                handleClearFilters();
+              }}
+            >
+              <ProductsSidebar
+                categoryFilter={categoryFilter}
+                dynamicFilters={dynamicFilters}
+                priceRangeFilter={state.priceRangeFilter}
+                selectedCategories={state.selectedCategories}
+                selectedFilters={state.selectedFilters}
+                noPriceFilter={state.noPriceFilter}
+                selectedAgeGroup={state.selectedAgeGroup}
+                selectedStemDiscipline={state.selectedStemDiscipline}
+                selectedLearningOutcomes={state.selectedLearningOutcomes}
+                selectedProductType={state.selectedProductType}
+                selectedSpecialCategories={state.selectedSpecialCategories}
+                handleCategoryChange={handleCategoryChange}
+                handleFilterChange={handleFilterChange}
+                handlePriceChange={handlePriceChange}
+                handleNoPriceFilterChange={handleNoPriceFilterChange}
+                setSelectedAgeGroup={actions.setAgeGroup}
+                setSelectedStemDiscipline={actions.setStemDiscipline}
+                setSelectedLearningOutcomes={actions.setLearningOutcomes}
+                setSelectedProductType={actions.setProductType}
+                setSelectedSpecialCategories={actions.setSpecialCategories}
+                handleClearFilters={handleClearFilters}
+                setMobileFiltersOpen={actions.setMobileFiltersOpen}
+                t={t}
+              />
+            </ProductFiltersErrorBoundary>
 
-          <ProductsMainDisplay
-            activeCategory={activeCategory}
-            categoryInfo={categoryInfo}
-            filteredProducts={filteredProducts}
-            displayedProducts={filteredProducts}
-            viewMode={state.viewMode}
-            getLearningTitle={getLearningTitle}
-            getLearningDescription={getLearningDescription}
-            getProductCardContent={getProductCardContent}
-            t={t}
-          />
+            <ProductGridErrorBoundary
+              onRetry={() => {
+                // Retry by clearing filters and resetting state
+                handleClearFilters();
+                window.location.reload();
+              }}
+            >
+              <ProductsMainDisplay
+                activeCategory={activeCategory}
+                categoryInfo={categoryInfo}
+                filteredProducts={filteredProducts}
+                displayedProducts={filteredProducts}
+                viewMode={state.viewMode}
+                getLearningTitle={getLearningTitle}
+                getLearningDescription={getLearningDescription}
+                getProductCardContent={getProductCardContent}
+                t={t}
+              />
+            </ProductGridErrorBoundary>
+          </div>
         </div>
-      </div>
-    </ProductVariantProvider>
+      </ProductVariantProvider>
+    </ProductsErrorBoundary>
   );
 }
 
