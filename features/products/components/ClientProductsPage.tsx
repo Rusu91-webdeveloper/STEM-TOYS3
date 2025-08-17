@@ -13,12 +13,13 @@ import {
 } from "lucide-react";
 import React, { useState, useEffect, useMemo, Suspense } from "react";
 
-import { ProductVariantProvider, type FilterGroup } from "@/features/products";
+import { ProductVariantProvider } from "@/features/products";
 import { useTranslation } from "@/lib/i18n";
 import type { Product } from "@/types/product";
 
 import { useProductFilters } from "../hooks/useProductFilters";
 
+import type { FilterGroup } from "./EnhancedProductFilters";
 import { ProductsCategoryNavigation } from "./ProductsCategoryNavigation";
 import {
   ProductsErrorBoundary,
@@ -29,8 +30,6 @@ import { ProductsHeroSection } from "./ProductsHeroSection";
 import { ProductsMainDisplay } from "./ProductsMainDisplay";
 import { ProductsSidebar } from "./ProductsSidebar";
 import { StemBenefitsSection } from "./StemBenefitsSection";
-
-
 
 interface CategoryIconInfo {
   icon: LucideIcon;
@@ -159,6 +158,7 @@ interface ProductData extends Omit<Product, "category"> {
 interface ClientProductsPageProps {
   initialProducts: ProductData[];
   searchParams: { [key: string]: string | string[] | undefined };
+  allSidebarCategories?: Array<{ id: string; label: string; count: number }>;
 }
 
 // Helper function to standardize category names to avoid duplicates
@@ -212,6 +212,7 @@ const normalizeCategory = (name: string): string => {
 function ClientProductsPageContent({
   initialProducts,
   searchParams: _searchParams,
+  allSidebarCategories = [],
 }: ClientProductsPageProps) {
   const { t } = useTranslation();
   const { state, actions, initFromSearchParams, updateURL } =
@@ -278,8 +279,24 @@ function ClientProductsPageContent({
     return filters;
   }, [products, t]);
 
-  // Generate category filter
+  // Use comprehensive category filter that shows all available categories
   const categoryFilter: FilterGroup[] = useMemo(() => {
+    if (allSidebarCategories.length > 0) {
+      // Use server-provided categories that include all available categories
+      return [
+        {
+          id: "category",
+          name: t("categories"),
+          options: allSidebarCategories.map(cat => ({
+            id: cat.id,
+            label: cat.label,
+            count: cat.count,
+          })),
+        },
+      ];
+    }
+
+    // Fallback to dynamic generation if server categories are not available
     const categories = Array.from(
       new Set(
         products.map(p => p.category?.name ?? p.stemCategory).filter(Boolean)
@@ -303,73 +320,77 @@ function ClientProductsPageContent({
         })),
       },
     ];
-  }, [products, t]);
+  }, [allSidebarCategories, products, t]);
 
   // Filter products based on current filters
-  const filteredProducts = useMemo(() => products.filter(product => {
-      // Category filter
-      if (state.selectedCategories.length > 0) {
-        const productCategory =
-          product.category?.name ?? product.stemCategory ?? "";
-        const normalizedProductCategory = normalizeCategory(productCategory);
-        const matchesCategory = state.selectedCategories.some(
-          cat => normalizeCategory(cat) === normalizedProductCategory
-        );
-        if (!matchesCategory) return false;
-      }
+  const filteredProducts = useMemo(
+    () =>
+      products.filter(product => {
+        // Category filter
+        if (state.selectedCategories.length > 0) {
+          const productCategory =
+            product.category?.name ?? product.stemCategory ?? "";
+          const normalizedProductCategory = normalizeCategory(productCategory);
+          const matchesCategory = state.selectedCategories.some(
+            cat => normalizeCategory(cat) === normalizedProductCategory
+          );
+          if (!matchesCategory) return false;
+        }
 
-      // Price filter
-      if (!state.noPriceFilter && product.price) {
-        const price =
-          typeof product.price === "string"
-            ? parseFloat(product.price)
-            : product.price;
+        // Price filter
+        if (!state.noPriceFilter && product.price) {
+          const price =
+            typeof product.price === "string"
+              ? parseFloat(product.price)
+              : product.price;
+          if (
+            price < state.priceRangeFilter[0] ||
+            price > state.priceRangeFilter[1]
+          ) {
+            return false;
+          }
+        }
+
+        // Search query
+        if (state.searchQuery) {
+          const query = state.searchQuery.toLowerCase();
+          const searchableText = [
+            product.name,
+            product.description,
+            product.category?.name,
+            product.stemCategory,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+
+          if (!searchableText.includes(query)) {
+            return false;
+          }
+        }
+
+        // Age group filter
         if (
-          price < state.priceRangeFilter[0] ||
-          price > state.priceRangeFilter[1]
+          state.selectedAgeGroup &&
+          state.selectedAgeGroup !== "" &&
+          product.ageGroup
         ) {
-          return false;
+          if (state.selectedAgeGroup !== product.ageGroup) return false;
         }
-      }
 
-      // Search query
-      if (state.searchQuery) {
-        const query = state.searchQuery.toLowerCase();
-        const searchableText = [
-          product.name,
-          product.description,
-          product.category?.name,
-          product.stemCategory,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-
-        if (!searchableText.includes(query)) {
-          return false;
+        // Product type filter
+        if (
+          state.selectedProductType &&
+          state.selectedProductType !== "" &&
+          product.productType
+        ) {
+          if (state.selectedProductType !== product.productType) return false;
         }
-      }
 
-      // Age group filter
-      if (
-        state.selectedAgeGroup &&
-        state.selectedAgeGroup !== "" &&
-        product.ageGroup
-      ) {
-        if (state.selectedAgeGroup !== product.ageGroup) return false;
-      }
-
-      // Product type filter
-      if (
-        state.selectedProductType &&
-        state.selectedProductType !== "" &&
-        product.productType
-      ) {
-        if (state.selectedProductType !== product.productType) return false;
-      }
-
-      return true;
-    }), [products, state]);
+        return true;
+      }),
+    [products, state]
+  );
 
   // Get active category for hero section
   const activeCategory = useMemo(() => {
@@ -430,9 +451,9 @@ function ClientProductsPageContent({
   };
 
   const getProductCardContent = (product: ProductData) => ({
-      title: product.name ?? t("untitledProduct"),
-      description: product.description ?? t("noDescription"),
-    });
+    title: product.name ?? t("untitledProduct"),
+    description: product.description ?? t("noDescription"),
+  });
 
   // Event handlers
   const handleCategoryChange = (category: string) => {

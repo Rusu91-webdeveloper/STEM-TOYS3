@@ -6,6 +6,7 @@ import ClientProductsPage from "@/features/products/components/ClientProductsPag
 import { getBooks } from "@/lib/api/books";
 import { getProducts } from "@/lib/api/products";
 import { CurrencyProvider } from "@/lib/currency";
+import { getAllCategoriesForSidebar } from "@/lib/services/categories-service";
 import type { Book } from "@/types/book";
 import type { Product } from "@/types/product";
 
@@ -41,6 +42,14 @@ export default async function ProductsPage({
     let booksData: Book[] = [];
     let productsData: Product[] = [];
     const fetchErrors: { books?: string; products?: string } = {};
+
+    // Get locale from cookies for sidebar categories
+    const { cookies } = await import("next/headers");
+    const cookieStore = cookies();
+    const locale = cookieStore.get("locale")?.value ?? "en";
+
+    // Fetch all categories for sidebar (always show all categories)
+    const allSidebarCategories = await getAllCategoriesForSidebar(locale);
 
     // 🚀 PERFORMANCE & LOGIC FIX: Conditionally fetch books and products
     if (!requestedCategory) {
@@ -212,6 +221,7 @@ export default async function ProductsPage({
           <ClientProductsPage
             initialProducts={products}
             searchParams={params}
+            allSidebarCategories={allSidebarCategories}
           />
         </Suspense>
       </CurrencyProvider>
