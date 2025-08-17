@@ -45,19 +45,19 @@ interface ProductsSidebarProps {
   selectedCategories: string[];
   selectedFilters: Record<string, string[]>;
   noPriceFilter: boolean;
-  selectedAgeGroup: string[];
-  selectedStemDiscipline: string[];
+  selectedAgeGroup: string;
+  selectedStemDiscipline: string;
   selectedLearningOutcomes: string[];
-  selectedProductType: string[];
+  selectedProductType: string;
   selectedSpecialCategories: string[];
   handleCategoryChange: (category: string) => void;
   handleFilterChange: (filterId: string, optionId: string) => void;
   handlePriceChange: (range: [number, number]) => void;
   handleNoPriceFilterChange: (enabled: boolean) => void;
-  setSelectedAgeGroup: (value: string[]) => void;
-  setSelectedStemDiscipline: (value: string[]) => void;
+  setSelectedAgeGroup: (value: string) => void;
+  setSelectedStemDiscipline: (value: string) => void;
   setSelectedLearningOutcomes: (value: string[]) => void;
-  setSelectedProductType: (value: string[]) => void;
+  setSelectedProductType: (value: string) => void;
   setSelectedSpecialCategories: (value: string[]) => void;
   handleClearFilters: () => void;
   setMobileFiltersOpen: (open: boolean) => void;
@@ -118,7 +118,7 @@ export function ProductsSidebar({
           {t("filterOptions")}
         </h3>
         <EnhancedProductFilters
-          categories={categoryFilter}
+          categories={categoryFilter[0]}
           filters={dynamicFilters}
           priceRange={priceRange}
           selectedCategories={selectedCategories}

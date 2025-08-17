@@ -106,9 +106,9 @@ export function EnhancedProductFilters({
   className,
 }: EnhancedProductFiltersProps) {
   const [localPriceRange, setLocalPriceRange] = useState<PriceRange>(
-    priceRange?.current || {
-      min: priceRange?.min || 0,
-      max: priceRange?.max || 100,
+    priceRange?.current ?? {
+      min: priceRange?.min ?? 0,
+      max: priceRange?.max ?? 100,
     }
   );
 
@@ -166,7 +166,7 @@ export function EnhancedProductFilters({
       )}
 
       {/* Categories filter */}
-      {categories && categories.options.length > 0 && (
+      {categories?.options && categories.options.length > 0 && (
         <div className="space-y-3 sm:space-y-4 hidden md:block">
           <h3 className="text-xs sm:text-sm font-medium">{categories.name}</h3>
           <div className="space-y-1.5 sm:space-y-2">
@@ -199,7 +199,7 @@ export function EnhancedProductFilters({
       <div className="space-y-3 sm:space-y-4">
         <h3 className="text-xs sm:text-sm font-medium">Age Group</h3>
         <Select
-          value={selectedAgeGroup || "all"}
+          value={selectedAgeGroup ?? "all"}
           onValueChange={onAgeGroupChange}
         >
           <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm">
@@ -220,7 +220,7 @@ export function EnhancedProductFilters({
       <div className="space-y-3 sm:space-y-4">
         <h3 className="text-xs sm:text-sm font-medium">STEM Discipline</h3>
         <Select
-          value={selectedStemDiscipline || "all"}
+          value={selectedStemDiscipline ?? "all"}
           onValueChange={onStemDisciplineChange}
         >
           <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm">
@@ -281,7 +281,7 @@ export function EnhancedProductFilters({
       <div className="space-y-3 sm:space-y-4">
         <h3 className="text-xs sm:text-sm font-medium">Product Type</h3>
         <Select
-          value={selectedProductType || "all"}
+          value={selectedProductType ?? "all"}
           onValueChange={onProductTypeChange}
         >
           <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm">
@@ -494,7 +494,7 @@ export function EnhancedProductFilters({
     return (
       <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
         {selectedCategories.map((categoryId, index) => {
-          const category = categories?.options.find(c => c.id === categoryId);
+          const category = categories?.options?.find(c => c.id === categoryId);
           if (!category) return null;
 
           return (

@@ -9,10 +9,10 @@ interface FilterState {
   selectedFilters: Record<string, string[]>;
   priceRangeFilter: [number, number];
   noPriceFilter: boolean;
-  selectedAgeGroup: string[];
-  selectedStemDiscipline: string[];
+  selectedAgeGroup: string;
+  selectedStemDiscipline: string;
   selectedLearningOutcomes: string[];
-  selectedProductType: string[];
+  selectedProductType: string;
   selectedSpecialCategories: string[];
   searchQuery: string;
   sortBy: string;
@@ -26,10 +26,10 @@ type FilterAction =
   | { type: "SET_FILTER"; payload: { filterId: string; optionId: string } }
   | { type: "SET_PRICE_RANGE"; payload: [number, number] }
   | { type: "SET_NO_PRICE_FILTER"; payload: boolean }
-  | { type: "SET_AGE_GROUP"; payload: string[] }
-  | { type: "SET_STEM_DISCIPLINE"; payload: string[] }
+  | { type: "SET_AGE_GROUP"; payload: string }
+  | { type: "SET_STEM_DISCIPLINE"; payload: string }
   | { type: "SET_LEARNING_OUTCOMES"; payload: string[] }
-  | { type: "SET_PRODUCT_TYPE"; payload: string[] }
+  | { type: "SET_PRODUCT_TYPE"; payload: string }
   | { type: "SET_SPECIAL_CATEGORIES"; payload: string[] }
   | { type: "SET_SEARCH_QUERY"; payload: string }
   | { type: "SET_SORT_BY"; payload: string }
@@ -44,10 +44,10 @@ const initialState: FilterState = {
   selectedFilters: {},
   priceRangeFilter: [0, 500],
   noPriceFilter: false,
-  selectedAgeGroup: [],
-  selectedStemDiscipline: [],
+  selectedAgeGroup: "",
+  selectedStemDiscipline: "",
   selectedLearningOutcomes: [],
-  selectedProductType: [],
+  selectedProductType: "",
   selectedSpecialCategories: [],
   searchQuery: "",
   sortBy: "relevance",
@@ -208,7 +208,7 @@ export function useProductFilters() {
     router.push(newURL, { scroll: false });
   }, [state, router]);
 
-  // Action creators
+  // Action creators - stable functions that don't depend on changing values
   const actions = useMemo(
     () => ({
       setCategories: (categories: string[]) =>
@@ -226,16 +226,16 @@ export function useProductFilters() {
       setNoPriceFilter: (enabled: boolean) =>
         dispatch({ type: "SET_NO_PRICE_FILTER", payload: enabled }),
 
-      setAgeGroup: (ageGroup: string[]) =>
+      setAgeGroup: (ageGroup: string) =>
         dispatch({ type: "SET_AGE_GROUP", payload: ageGroup }),
 
-      setStemDiscipline: (discipline: string[]) =>
+      setStemDiscipline: (discipline: string) =>
         dispatch({ type: "SET_STEM_DISCIPLINE", payload: discipline }),
 
       setLearningOutcomes: (outcomes: string[]) =>
         dispatch({ type: "SET_LEARNING_OUTCOMES", payload: outcomes }),
 
-      setProductType: (type: string[]) =>
+      setProductType: (type: string) =>
         dispatch({ type: "SET_PRODUCT_TYPE", payload: type }),
 
       setSpecialCategories: (categories: string[]) =>
@@ -254,12 +254,10 @@ export function useProductFilters() {
         dispatch({ type: "SET_MOBILE_FILTERS_OPEN", payload: open }),
 
       clearFilters: () => dispatch({ type: "CLEAR_FILTERS" }),
-
-      initFromSearchParams,
-      updateURL,
     }),
-    [initFromSearchParams, updateURL]
+    // Only dispatch is needed as dependency since it's stable from useReducer
+    []
   );
 
-  return { state, actions };
+  return { state, actions, initFromSearchParams, updateURL };
 }
