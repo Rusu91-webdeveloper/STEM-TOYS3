@@ -325,7 +325,7 @@ function ClientProductsPageContent({
       // Search query
       if (state.searchQuery) {
         const query = state.searchQuery.toLowerCase();
-                const searchableText = [
+        const searchableText = [
           product.name,
           product.description,
           product.category?.name,
@@ -334,7 +334,7 @@ function ClientProductsPageContent({
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
-        
+
         if (!searchableText.includes(query)) {
           return false;
         }
