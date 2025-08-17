@@ -20,25 +20,36 @@ interface OptimizedProductImageProps {
 }
 
 // Generate a better blur placeholder with proper aspect ratio
-const generateBlurDataURL = (width = 400, height = 400) => {
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx)
+// Currently unused but kept for future enhancement
+const _generateBlurDataURL = (width = 400, height = 400) => {
+  // Check if we're in a browser environment
+  if (typeof window === "undefined" || typeof document === "undefined") {
     return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+  }
 
-  // Create a subtle gradient blur
-  const gradient = ctx.createLinearGradient(0, 0, width, height);
-  gradient.addColorStop(0, "#f3f4f6");
-  gradient.addColorStop(0.5, "#e5e7eb");
-  gradient.addColorStop(1, "#d1d5db");
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
 
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, width, height);
+    if (!ctx)
+      return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
 
-  return canvas.toDataURL();
+    // Create a subtle gradient blur
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, "#f3f4f6");
+    gradient.addColorStop(0.5, "#e5e7eb");
+    gradient.addColorStop(1, "#d1d5db");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+
+    return canvas.toDataURL();
+  } catch (error) {
+    console.warn("Error generating blur data URL:", error);
+    return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+  }
 };
 
 // Default blur data URL for SSR compatibility
@@ -93,7 +104,7 @@ export function OptimizedProductImage({
   };
 
   const optimizedSrc = getOptimizedSrc(src);
-  const fallbackBlurDataURL = blurDataURL || DEFAULT_BLUR_DATA_URL;
+  const fallbackBlurDataURL = blurDataURL ?? DEFAULT_BLUR_DATA_URL;
 
   // Error fallback component
   if (imageError) {
@@ -137,7 +148,7 @@ export function OptimizedProductImage({
 
   return (
     <>
-      <Image {...imageProps} />
+      <Image {...imageProps} alt={alt} />
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">

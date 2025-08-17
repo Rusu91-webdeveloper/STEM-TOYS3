@@ -14,19 +14,23 @@ import {
 import React, { useState, useEffect, useMemo, Suspense } from "react";
 
 import { ProductVariantProvider, type FilterGroup } from "@/features/products";
-import { ProductsHeroSection } from "./ProductsHeroSection";
+import { useTranslation } from "@/lib/i18n";
+import type { Product } from "@/types/product";
+
+import { useProductFilters } from "../hooks/useProductFilters";
+
 import { ProductsCategoryNavigation } from "./ProductsCategoryNavigation";
-import { StemBenefitsSection } from "./StemBenefitsSection";
-import { ProductsSidebar } from "./ProductsSidebar";
-import { ProductsMainDisplay } from "./ProductsMainDisplay";
 import {
   ProductsErrorBoundary,
   ProductFiltersErrorBoundary,
   ProductGridErrorBoundary,
 } from "./ProductsErrorBoundary";
-import { useProductFilters } from "../hooks/useProductFilters";
-import { useTranslation } from "@/lib/i18n";
-import type { Product } from "@/types/product";
+import { ProductsHeroSection } from "./ProductsHeroSection";
+import { ProductsMainDisplay } from "./ProductsMainDisplay";
+import { ProductsSidebar } from "./ProductsSidebar";
+import { StemBenefitsSection } from "./StemBenefitsSection";
+
+
 
 interface CategoryIconInfo {
   icon: LucideIcon;
@@ -210,28 +214,30 @@ function ClientProductsPageContent({
   searchParams: _searchParams,
 }: ClientProductsPageProps) {
   const { t } = useTranslation();
-  const { state, actions } = useProductFilters();
+  const { state, actions, initFromSearchParams, updateURL } =
+    useProductFilters();
   const [products] = useState<ProductData[]>(initialProducts);
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Initialize from search params on mount
   useEffect(() => {
-    actions.initFromSearchParams();
+    initFromSearchParams();
     setIsHydrated(true);
-  }, [actions]);
+  }, [initFromSearchParams]);
 
   // Update URL when filters change (debounced)
   useEffect(() => {
     if (!isHydrated) return;
 
     const timeoutId = setTimeout(() => {
-      actions.updateURL();
+      updateURL();
     }, 300);
 
+    // eslint-disable-next-line consistent-return
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [state, actions, isHydrated]);
+  }, [state, updateURL, isHydrated]);
 
   // Generate dynamic filters based on available product data
   const dynamicFilters: FilterGroup[] = useMemo(() => {
@@ -247,7 +253,7 @@ function ClientProductsPageContent({
         name: t("ageGroup"),
         options: ageGroups.map(age => ({
           id: age!,
-          name: t(`ageGroup.${age}`),
+          label: t(`ageGroup.${age}`),
           count: products.filter(p => p.ageGroup === age).length,
         })),
       });
@@ -263,7 +269,7 @@ function ClientProductsPageContent({
         name: t("productType"),
         options: productTypes.map(type => ({
           id: type!,
-          name: t(`productType.${type}`),
+          label: t(`productType.${type}`),
           count: products.filter(p => p.productType === type).length,
         })),
       });
@@ -276,7 +282,7 @@ function ClientProductsPageContent({
   const categoryFilter: FilterGroup[] = useMemo(() => {
     const categories = Array.from(
       new Set(
-        products.map(p => p.category?.name || p.stemCategory).filter(Boolean)
+        products.map(p => p.category?.name ?? p.stemCategory).filter(Boolean)
       )
     );
 
@@ -286,12 +292,12 @@ function ClientProductsPageContent({
         name: t("categories"),
         options: categories.map(cat => ({
           id: normalizeCategory(cat!),
-          name: cat!,
+          label: cat!,
           count: products.filter(
             p =>
-              normalizeCategory(p.category?.name || "") ===
+              normalizeCategory(p.category?.name ?? "") ===
                 normalizeCategory(cat!) ||
-              normalizeCategory(p.stemCategory || "") ===
+              normalizeCategory(p.stemCategory ?? "") ===
                 normalizeCategory(cat!)
           ).length,
         })),
@@ -300,12 +306,11 @@ function ClientProductsPageContent({
   }, [products, t]);
 
   // Filter products based on current filters
-  const filteredProducts = useMemo(() => {
-    return products.filter(product => {
+  const filteredProducts = useMemo(() => products.filter(product => {
       // Category filter
       if (state.selectedCategories.length > 0) {
         const productCategory =
-          product.category?.name || product.stemCategory || "";
+          product.category?.name ?? product.stemCategory ?? "";
         const normalizedProductCategory = normalizeCategory(productCategory);
         const matchesCategory = state.selectedCategories.some(
           cat => normalizeCategory(cat) === normalizedProductCategory
@@ -346,19 +351,25 @@ function ClientProductsPageContent({
       }
 
       // Age group filter
-      if (state.selectedAgeGroup.length > 0 && product.ageGroup) {
-        if (!state.selectedAgeGroup.includes(product.ageGroup)) return false;
+      if (
+        state.selectedAgeGroup &&
+        state.selectedAgeGroup !== "" &&
+        product.ageGroup
+      ) {
+        if (state.selectedAgeGroup !== product.ageGroup) return false;
       }
 
       // Product type filter
-      if (state.selectedProductType.length > 0 && product.productType) {
-        if (!state.selectedProductType.includes(product.productType))
-          return false;
+      if (
+        state.selectedProductType &&
+        state.selectedProductType !== "" &&
+        product.productType
+      ) {
+        if (state.selectedProductType !== product.productType) return false;
       }
 
       return true;
-    });
-  }, [products, state]);
+    }), [products, state]);
 
   // Get active category for hero section
   const activeCategory = useMemo(() => {
@@ -418,12 +429,10 @@ function ClientProductsPageContent({
     );
   };
 
-  const getProductCardContent = (product: ProductData) => {
-    return {
+  const getProductCardContent = (product: ProductData) => ({
       title: product.name ?? t("untitledProduct"),
       description: product.description ?? t("noDescription"),
-    };
-  };
+    });
 
   // Event handlers
   const handleCategoryChange = (category: string) => {
@@ -446,11 +455,10 @@ function ClientProductsPageContent({
     actions.clearFilters();
   };
 
-  if (!isHydrated) {
-    return <ClientProductsPageFallback />;
-  }
-
-  return (
+  // Render content conditionally to avoid hooks rule violation
+  const content = !isHydrated ? (
+    <ClientProductsPageFallback />
+  ) : (
     <ProductsErrorBoundary>
       <ProductVariantProvider>
         <ProductsHeroSection
@@ -536,6 +544,8 @@ function ClientProductsPageContent({
       </ProductVariantProvider>
     </ProductsErrorBoundary>
   );
+
+  return content;
 }
 
 function ClientProductsPageFallback() {
