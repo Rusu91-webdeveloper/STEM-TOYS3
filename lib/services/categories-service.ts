@@ -2,6 +2,24 @@ import { getCached } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { getCacheKey } from "@/lib/utils/cache-key";
 
+// Normalize category function - matches the one used in ClientProductsPage
+function normalizeCategory(category: string): string {
+  const lower = category.toLowerCase().trim();
+
+  // Handle "mathematics" -> "mathematics" (keep as is)
+  if (lower === "mathematics" || lower === "math") {
+    return "mathematics";
+  }
+
+  // Handle "educational books" -> "educational-books"
+  if (lower === "educational books" || lower === "educational-books") {
+    return "educational-books";
+  }
+
+  // Default normalization - just return lowercase
+  return lower;
+}
+
 interface ServerCategoryData {
   id: string;
   name: string;
@@ -171,8 +189,8 @@ export async function getAllCategoriesForSidebar(
     return await getCached(
       cacheKey,
       async () => {
-        // Get all categories from database with product counts
-        const [dbCategories, bookCount] = await Promise.all([
+        // Get all categories from database with product counts AND actual products for accurate counting
+        const [dbCategories, bookCount, allProducts] = await Promise.all([
           db.category.findMany({
             where: {
               isActive: true,
@@ -194,6 +212,22 @@ export async function getAllCategoriesForSidebar(
               isActive: true,
             },
           }),
+          // Get all products to count them the same way the frontend filters them
+          db.product.findMany({
+            where: {
+              isActive: true,
+            },
+            select: {
+              id: true,
+              stemCategory: true,
+              category: {
+                select: {
+                  name: true,
+                  slug: true,
+                },
+              },
+            },
+          }),
         ]);
 
         // Create a comprehensive list including all static categories
@@ -202,9 +236,24 @@ export async function getAllCategoriesForSidebar(
             dbCat => dbCat.slug.toLowerCase() === staticCat.slug.toLowerCase()
           );
 
-          let productCount = dbCategory?._count.products ?? 0;
+          let productCount = 0;
+
           if (staticCat.slug === "educational-books") {
             productCount = bookCount;
+          } else {
+            // Count products the same way the frontend filters them
+            // This matches the logic in ClientProductsPage.tsx lines 330-338
+            productCount = allProducts.filter(product => {
+              const productCategory =
+                product.category?.name ?? product.stemCategory ?? "";
+              const normalizedProductCategory =
+                normalizeCategory(productCategory);
+              const normalizedStaticCategory = normalizeCategory(
+                staticCat.slug
+              );
+
+              return normalizedProductCategory === normalizedStaticCategory;
+            }).length;
           }
 
           // Debug logging for development
