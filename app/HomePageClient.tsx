@@ -7,6 +7,7 @@ import React, { Suspense } from "react";
 import {
   CategoriesSection,
   FeaturedProductsSection,
+  FeaturedProductsSkeleton,
   HeroSection,
   ValuePropositionSection,
 } from "@/features/home/components";
@@ -42,11 +43,24 @@ const categories = [
   },
 ];
 
-// Loading fallback for sections
-const SectionLoader = () => (
-  <div className="animate-pulse">
-    <div className="h-64 bg-gray-200 rounded-lg mb-4"></div>
-  </div>
+// Loading fallback for featured products section
+const FeaturedProductsLoader = () => (
+  <section className="py-10">
+    <div className="container mx-auto px-4 max-w-7xl">
+      <div className="mb-8 text-center">
+        <span className="inline-block px-3 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full mb-2">
+          Recommended For You
+        </span>
+        <h2 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-center">
+          Featured Products
+        </h2>
+        <p className="text-center text-muted-foreground mb-0 max-w-3xl mx-auto px-2 text-base xs:text-lg sm:text-xl">
+          Discover our carefully curated selection of educational toys
+        </p>
+      </div>
+      <FeaturedProductsSkeleton count={4} />
+    </div>
+  </section>
 );
 
 export default function HomePageClient({
@@ -69,11 +83,12 @@ export default function HomePageClient({
       <ValuePropositionSection t={t} />
 
       {/* Featured Products Section - Load with suspense for better performance */}
-      <Suspense fallback={<SectionLoader />}>
+      <Suspense fallback={<FeaturedProductsLoader />}>
         <FeaturedProductsSection
           products={initialFeaturedProducts}
           formatPrice={formatPrice}
           t={t}
+          isLoading={initialFeaturedProducts.length === 0}
         />
       </Suspense>
     </div>
