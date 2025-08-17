@@ -207,6 +207,17 @@ export async function getAllCategoriesForSidebar(
             productCount = bookCount;
           }
 
+          // Debug logging for development
+          if (process.env.NODE_ENV === "development") {
+            console.log(`[SIDEBAR CATEGORIES] ${staticCat.slug}:`, {
+              dbCategoryFound: !!dbCategory,
+              dbCategorySlug: dbCategory?.slug,
+              productCount,
+              bookCount:
+                staticCat.slug === "educational-books" ? bookCount : "N/A",
+            });
+          }
+
           return {
             id: staticCat.slug, // Use original slug for consistency
             label: getCategoryName(staticCat.slug, language),
@@ -214,17 +225,18 @@ export async function getAllCategoriesForSidebar(
           };
         });
 
-        return allCategories.filter(cat => cat.count > 0); // Only show categories with products
+        // Show all categories regardless of count - let users see all available options
+        return allCategories;
       },
       CACHE_TTL
     );
   } catch (error) {
     console.error("Error fetching sidebar categories:", error);
-    // Return fallback categories
+    // Return fallback categories - always show all 5 categories even if DB fails
     return staticCategoryData.map(cat => ({
       id: cat.slug, // Use original slug for consistency
       label: getCategoryName(cat.slug, language),
-      count: 0,
+      count: 0, // Show 0 count but still display the category
     }));
   }
 }
