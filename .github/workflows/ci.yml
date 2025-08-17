@@ -2,70 +2,80 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 env:
-  NODE_VERSION: '20'
-  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+  NODE_VERSION: "20"
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
 
 jobs:
   # Job 1: Code Quality & Linting
   code-quality:
     name: Code Quality
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Check TypeScript
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
       - name: Run ESLint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Check Prettier formatting
-        run: npm run format:check
+        run: pnpm run format:check
 
       - name: Validate package.json
-        run: npm audit --omit=dev
+        run: pnpm audit --omit=dev
 
   # Job 2: Unit Tests
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
     needs: code-quality
-    
+
     strategy:
       matrix:
-        node-version: ['18', '20']
-    
+        node-version: ["18", "20"]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Run unit tests
-        run: npm run test:ci
+        run: pnpm run test:ci
         env:
           NODE_ENV: test
 
@@ -82,25 +92,30 @@ jobs:
     name: Build Application
     runs-on: ubuntu-latest
     needs: code-quality
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: npx prisma generate
+        run: pnpm exec prisma generate
 
       - name: Build application
-        run: npm run build
+        run: pnpm run build
         env:
           NODE_ENV: production
           # Mock required environment variables for build
@@ -118,28 +133,33 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     needs: [unit-tests, build]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: pnpm exec playwright install --with-deps
 
       - name: Generate Prisma client
-        run: npx prisma generate
+        run: pnpm exec prisma generate
 
       - name: Build application
-        run: npm run build
+        run: pnpm run build
         env:
           NODE_ENV: production
           DATABASE_URL: "postgresql://user:pass@localhost:5432/test"
@@ -147,7 +167,7 @@ jobs:
           NEXTAUTH_URL: "http://localhost:3000"
 
       - name: Run E2E tests
-        run: npm run test:e2e
+        run: pnpm run test:e2e
         env:
           NODE_ENV: test
           DATABASE_URL: "postgresql://user:pass@localhost:5432/test"
@@ -166,22 +186,27 @@ jobs:
   security:
     name: Security Scan
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
-      - name: Run npm audit
-        run: npm audit --audit-level high
+      - name: Run pnpm audit
+        run: pnpm audit --audit-level high
 
       - name: Run Snyk security scan
         uses: snyk/actions/node@master
@@ -196,11 +221,11 @@ jobs:
     name: Dependency Review
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Dependency Review
         uses: actions/dependency-review-action@v3
         with:
@@ -211,25 +236,30 @@ jobs:
     name: Performance Check
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: npx prisma generate
+        run: pnpm exec prisma generate
 
       - name: Build application
-        run: npm run build
+        run: pnpm run build
         env:
           NODE_ENV: production
           DATABASE_URL: "postgresql://user:pass@localhost:5432/test"
@@ -248,7 +278,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [code-quality, unit-tests, build, e2e-tests, security]
     if: always()
-    
+
     steps:
       - name: Check all jobs status
         run: |
@@ -257,7 +287,7 @@ jobs:
           echo "Build: ${{ needs.build.result }}"
           echo "E2E Tests: ${{ needs.e2e-tests.result }}"
           echo "Security: ${{ needs.security.result }}"
-          
+
           if [[ "${{ needs.code-quality.result }}" != "success" ]] || 
              [[ "${{ needs.unit-tests.result }}" != "success" ]] || 
              [[ "${{ needs.build.result }}" != "success" ]] || 
@@ -266,4 +296,4 @@ jobs:
             exit 1
           else
             echo "✅ CI Pipeline succeeded"
-          fi 
+          fi
