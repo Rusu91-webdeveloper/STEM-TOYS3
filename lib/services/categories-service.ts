@@ -158,6 +158,78 @@ export async function getCategories(
 }
 
 /**
+ * Get all available categories for sidebar filtering
+ * This ensures the sidebar always shows all categories, not just those with current products
+ */
+export async function getAllCategoriesForSidebar(
+  language = "en"
+): Promise<Array<{ id: string; label: string; count: number }>> {
+  try {
+    const cacheKey = getCacheKey("sidebar-categories", { language });
+    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache
+
+    return await getCached(
+      cacheKey,
+      async () => {
+        // Get all categories from database with product counts
+        const [dbCategories, bookCount] = await Promise.all([
+          db.category.findMany({
+            where: {
+              isActive: true,
+            },
+            include: {
+              _count: {
+                select: {
+                  products: {
+                    where: {
+                      isActive: true,
+                    },
+                  },
+                },
+              },
+            },
+          }),
+          db.book.count({
+            where: {
+              isActive: true,
+            },
+          }),
+        ]);
+
+        // Create a comprehensive list including all static categories
+        const allCategories = staticCategoryData.map(staticCat => {
+          const dbCategory = dbCategories.find(
+            dbCat => dbCat.slug.toLowerCase() === staticCat.slug.toLowerCase()
+          );
+
+          let productCount = dbCategory?._count.products ?? 0;
+          if (staticCat.slug === "educational-books") {
+            productCount = bookCount;
+          }
+
+          return {
+            id: slugToQueryCategory[staticCat.slug] || staticCat.slug,
+            label: getCategoryName(staticCat.slug, language),
+            count: productCount,
+          };
+        });
+
+        return allCategories.filter(cat => cat.count > 0); // Only show categories with products
+      },
+      CACHE_TTL
+    );
+  } catch (error) {
+    console.error("Error fetching sidebar categories:", error);
+    // Return fallback categories
+    return staticCategoryData.map(cat => ({
+      id: slugToQueryCategory[cat.slug] || cat.slug,
+      label: getCategoryName(cat.slug, language),
+      count: 0,
+    }));
+  }
+}
+
+/**
  * Generate structured data for categories page SEO
  */
 export function generateCategoriesStructuredData(

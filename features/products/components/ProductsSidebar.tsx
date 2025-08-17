@@ -22,15 +22,7 @@ const EnhancedProductFilters = dynamic(
   }
 );
 
-interface FilterGroup {
-  id: string;
-  name: string;
-  options: Array<{
-    id: string;
-    name: string;
-    count: number;
-  }>;
-}
+import type { FilterGroup } from "./EnhancedProductFilters";
 
 interface PriceRange {
   min: number;
