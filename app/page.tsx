@@ -3,6 +3,28 @@ import type { Product } from "@/types/product";
 
 import HomePageClient from "./HomePageClient";
 
+// Critical CSS for hero section to prevent layout shift
+const heroSectionCriticalCSS = `
+  .hero-section {
+    min-height: 60vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  @media (min-width: 640px) {
+    .hero-section {
+      min-height: 70vh;
+    }
+  }
+  @media (min-width: 768px) {
+    .hero-section {
+      min-height: 80vh;
+    }
+  }
+`;
+
 async function getFeaturedProducts(): Promise<Product[]> {
   try {
     // We can use the full URL here for server-side fetching
@@ -27,5 +49,24 @@ async function getFeaturedProducts(): Promise<Product[]> {
 export default async function Home() {
   const featuredProducts = await getFeaturedProducts();
 
-  return <HomePageClient initialFeaturedProducts={featuredProducts} />;
+  return (
+    <>
+      {/* Inline critical CSS for hero section */}
+      <style dangerouslySetInnerHTML={{ __html: heroSectionCriticalCSS }} />
+      <HomePageClient initialFeaturedProducts={featuredProducts} />
+    </>
+  );
+}
+
+// Metadata for home page with preload hints
+export function generateMetadata() {
+  return {
+    title: "TechTots - STEM Toys for Creative Learning",
+    description:
+      "Discover innovative STEM toys that inspire creativity and learning in children",
+    other: {
+      // Preload critical resources for hero section
+      "link-preload-hero": "/images/homepage_hero_banner_01.png",
+    },
+  };
 }
