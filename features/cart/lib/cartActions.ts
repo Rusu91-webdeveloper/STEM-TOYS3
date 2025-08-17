@@ -54,7 +54,7 @@ export async function getCart(userId: string): Promise<{ items: CartItem[] }> {
     }
 
     // Map database products to cart items
-    const cartItems: CartItem[] = products.map((product) => ({
+    const cartItems: CartItem[] = products.map(product => ({
       id: product.id,
       productId: product.id,
       name: product.name,

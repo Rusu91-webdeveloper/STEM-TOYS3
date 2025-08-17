@@ -41,10 +41,9 @@ export const brevoTransporter = nodemailer.createTransport({
 
 // For development environment, provide console-based email simulation
 const devTransporter = {
-  sendMail: async (options: any) => 
+  sendMail: async (options: any) =>
     // Development mode: Email not sent, but would be sent with these details
-     ({ messageId: `dev-${Date.now()}@localhost` })
-  ,
+    ({ messageId: `dev-${Date.now()}@localhost` }),
 };
 
 // Use dev transporter in development mode if credentials are missing

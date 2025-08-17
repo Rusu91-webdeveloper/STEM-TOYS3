@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     // Filter blogs by language using the metadata field
     // If metadata.language exists, use it for filtering
     // Otherwise assume it's available in the user's language
-    const filteredBlogs = blogs.filter((blog) => {
+    const filteredBlogs = blogs.filter(blog => {
       // If requesting all blogs (admin dashboard), don't filter by language
       if (publishedParam === "all") return true;
 

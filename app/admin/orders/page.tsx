@@ -99,7 +99,8 @@ const getStatusColor = (status: string) => {
 };
 
 // Helper function to format status
-const formatStatus = (status: string): string => status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+const formatStatus = (status: string): string =>
+  status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 
 export default function OrdersPage() {
   const { toast } = useToast();

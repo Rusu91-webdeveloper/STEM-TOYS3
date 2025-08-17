@@ -110,7 +110,8 @@ export default function AdminDashboard() {
           <Button
             size="sm"
             variant="outline"
-            className="flex items-center gap-2">
+            className="flex items-center gap-2"
+          >
             <Calendar className="h-4 w-4" />
             <span>Last 30 days</span>
           </Button>
@@ -193,9 +194,7 @@ export default function AdminDashboard() {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat: DashboardStat) => (
-              <Card
-                key={stat.title}
-                className="p-6">
+              <Card key={stat.title} className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
@@ -214,7 +213,8 @@ export default function AdminDashboard() {
                           stat.trend === "up"
                             ? "text-green-500"
                             : "text-red-500"
-                        }`}>
+                        }`}
+                      >
                         {stat.trend === "up" ? (
                           <ArrowUpRight className="h-3 w-3 mr-1" />
                         ) : (
@@ -242,7 +242,8 @@ export default function AdminDashboard() {
                 <h2 className="text-lg font-semibold">Recent Orders</h2>
                 <Link
                   href="/admin/orders"
-                  className="text-sm text-primary hover:underline">
+                  className="text-sm text-primary hover:underline"
+                >
                   View all
                 </Link>
               </div>
@@ -261,11 +262,13 @@ export default function AdminDashboard() {
                     {recentOrders.map((order: RecentOrder) => (
                       <tr
                         key={order.id}
-                        className="border-b last:border-0 text-sm">
+                        className="border-b last:border-0 text-sm"
+                      >
                         <td className="py-3 pr-4">
                           <Link
                             href={`/admin/orders/${order.id}`}
-                            className="font-medium text-primary hover:underline">
+                            className="font-medium text-primary hover:underline"
+                          >
                             {order.id}
                           </Link>
                         </td>
@@ -282,7 +285,8 @@ export default function AdminDashboard() {
                                 : order.status === "Processing"
                                   ? "bg-blue-100 text-blue-700"
                                   : "bg-amber-100 text-amber-700"
-                            }`}>
+                            }`}
+                          >
                             {order.status}
                           </span>
                         </td>
@@ -292,7 +296,8 @@ export default function AdminDashboard() {
                       <tr>
                         <td
                           colSpan={5}
-                          className="py-4 text-center text-muted-foreground">
+                          className="py-4 text-center text-muted-foreground"
+                        >
                           No orders found
                         </td>
                       </tr>
@@ -308,7 +313,8 @@ export default function AdminDashboard() {
                 <h2 className="text-lg font-semibold">Top Products</h2>
                 <Link
                   href="/admin/products"
-                  className="text-sm text-primary hover:underline">
+                  className="text-sm text-primary hover:underline"
+                >
                   View all
                 </Link>
               </div>
@@ -326,11 +332,13 @@ export default function AdminDashboard() {
                     {topProducts.map((product: TopProduct) => (
                       <tr
                         key={product.id}
-                        className="border-b last:border-0 text-sm">
+                        className="border-b last:border-0 text-sm"
+                      >
                         <td className="py-3 pr-4">
                           <Link
                             href={`/admin/products/${product.id}`}
-                            className="font-medium text-primary hover:underline">
+                            className="font-medium text-primary hover:underline"
+                          >
                             {product.name}
                           </Link>
                         </td>
@@ -346,7 +354,8 @@ export default function AdminDashboard() {
                                 : product.inventory > 0
                                   ? "bg-amber-100 text-amber-700"
                                   : "bg-red-100 text-red-700"
-                            }`}>
+                            }`}
+                          >
                             {product.inventory === 0
                               ? "Out of Stock"
                               : product.inventory < 5
@@ -360,7 +369,8 @@ export default function AdminDashboard() {
                       <tr>
                         <td
                           colSpan={4}
-                          className="py-4 text-center text-muted-foreground">
+                          className="py-4 text-center text-muted-foreground"
+                        >
                           No products found
                         </td>
                       </tr>

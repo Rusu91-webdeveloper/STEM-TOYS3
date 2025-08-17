@@ -20,7 +20,7 @@ export function CheckoutTransition({
   useEffect(() => {
     // Simulate progress to make animation smoother
     const progressInterval = setInterval(() => {
-      setProgress((prev) => Math.min(prev + 2, 100));
+      setProgress(prev => Math.min(prev + 2, 100));
     }, 50);
 
     // This will run our transition animation and then navigate
@@ -69,7 +69,8 @@ export function CheckoutTransition({
         <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4 overflow-hidden">
           <div
             className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300 ease-out"
-            style={{ width: `${progress}%` }}></div>
+            style={{ width: `${progress}%` }}
+          ></div>
         </div>
 
         {/* Spinner */}

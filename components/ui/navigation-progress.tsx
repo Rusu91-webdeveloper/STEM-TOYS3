@@ -52,7 +52,8 @@ function NavigationProgressContent() {
       className={cn(
         "fixed top-0 left-0 right-0 h-1 z-50 transition-opacity duration-200",
         isNavigating ? "opacity-100" : "opacity-0"
-      )}>
+      )}
+    >
       <div
         className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-300 ease-out"
         style={{ width: `${progress}%` }}

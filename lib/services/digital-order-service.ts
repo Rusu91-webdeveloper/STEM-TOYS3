@@ -386,7 +386,7 @@ export class DigitalOrderService {
               orderId,
               itemId: item.id,
               fileId: digitalFile.id,
-              token: `${downloadToken.substring(0, 8)  }...`,
+              token: `${downloadToken.substring(0, 8)}...`,
             });
           }
         }

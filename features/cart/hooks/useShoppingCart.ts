@@ -53,7 +53,7 @@ export function useShoppingCart() {
      * Get a specific item from the cart by its ID
      */
     getItem: (itemId: string) =>
-      cart.cartItems.find((item) => item.id === itemId),
+      cart.cartItems.find(item => item.id === itemId),
 
     /**
      * Whether the cart is currently loading

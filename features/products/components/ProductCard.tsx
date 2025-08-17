@@ -1,7 +1,6 @@
 "use client";
 
 import { StarIcon } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
@@ -9,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { Product } from "@/types/product";
+
+import { OptimizedProductImage } from "./OptimizedProductImage";
 
 import { ProductAddToCartButton } from "./ProductAddToCartButton";
 
@@ -198,17 +199,15 @@ export function ProductCard({
     >
       <div className="relative overflow-hidden aspect-square">
         <Link href={`/products/${product.slug}`}>
-          <Image
+          <OptimizedProductImage
             src={imageUrl}
             alt={product.name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             priority={priority}
-            loading="eager"
-            quality={80}
+            quality={85}
             placeholder="blur"
-            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
           />
           {isOnSale && (
             <Badge className="absolute top-3 left-3 bg-red-500 text-xs px-2 py-1 shadow-md">

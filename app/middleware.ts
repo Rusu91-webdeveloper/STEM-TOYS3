@@ -250,74 +250,72 @@ export async function middleware(request: NextRequest) {
       }
 
       return response;
-    } 
-      // Check if coming directly from a checkout button click in cart
-      const referer = request.headers.get("referer") || "";
-      const isComingFromCart = referer.includes("/cart");
+    }
+    // Check if coming directly from a checkout button click in cart
+    const referer = request.headers.get("referer") || "";
+    const isComingFromCart = referer.includes("/cart");
 
-      // If this is a client navigation or coming from cart, allow it
-      // The client-side code will handle the redirect
-      if (isClientNav || isComingFromCart) {
+    // If this is a client navigation or coming from cart, allow it
+    // The client-side code will handle the redirect
+    if (isClientNav || isComingFromCart) {
+      console.log(
+        `Client-side navigation to checkout, bypassing middleware redirect`
+      );
+      return NextResponse.next();
+    }
+
+    // Check for potential redirect loops using our cookie
+    const redirectCount = parseInt(
+      request.cookies.get(REDIRECT_COOKIE)?.value || "0"
+    );
+
+    // Don't redirect if:
+    // 1. Coming from login page
+    // 2. Coming from the same page (likely a language/currency change)
+    // 3. We've already redirected too many times in a short period
+    if (
+      referer.includes("/auth/login") ||
+      referer.split("?")[0] === request.nextUrl.origin + pathname ||
+      redirectCount > 2
+    ) {
+      if (redirectCount > 2) {
         console.log(
-          `Client-side navigation to checkout, bypassing middleware redirect`
+          `Detected potential redirect loop (${redirectCount} redirects), allowing access`
         );
-        return NextResponse.next();
+      } else {
+        console.log(
+          `Coming from login page or same page, not redirecting again`
+        );
       }
 
-      // Check for potential redirect loops using our cookie
-      const redirectCount = parseInt(
-        request.cookies.get(REDIRECT_COOKIE)?.value || "0"
-      );
+      // Create a response that allows access
+      const response = NextResponse.next();
 
-      // Don't redirect if:
-      // 1. Coming from login page
-      // 2. Coming from the same page (likely a language/currency change)
-      // 3. We've already redirected too many times in a short period
-      if (
-        referer.includes("/auth/login") ||
-        referer.split("?")[0] === request.nextUrl.origin + pathname ||
-        redirectCount > 2
-      ) {
-        if (redirectCount > 2) {
-          console.log(
-            `Detected potential redirect loop (${redirectCount} redirects), allowing access`
-          );
-        } else {
-          console.log(
-            `Coming from login page or same page, not redirecting again`
-          );
-        }
+      // Reset the redirect counter
+      response.cookies.set(REDIRECT_COOKIE, "0", {
+        maxAge: 60, // 1 minute expiry
+        path: "/",
+      });
 
-        // Create a response that allows access
-        const response = NextResponse.next();
+      return response;
+    }
+    // Store the original checkout URL in a cookie so we can redirect back after login
+    const signInUrl = new URL("/auth/login", request.url);
+    signInUrl.searchParams.set("callbackUrl", pathname);
+    console.log(
+      `Redirecting unauthenticated user to login with callback to ${pathname}`
+    );
 
-        // Reset the redirect counter
-        response.cookies.set(REDIRECT_COOKIE, "0", {
-          maxAge: 60, // 1 minute expiry
-          path: "/",
-        });
+    // Create the redirect response
+    const response = NextResponse.redirect(signInUrl);
 
-        return response;
-      } 
-        // Store the original checkout URL in a cookie so we can redirect back after login
-        const signInUrl = new URL("/auth/login", request.url);
-        signInUrl.searchParams.set("callbackUrl", pathname);
-        console.log(
-          `Redirecting unauthenticated user to login with callback to ${pathname}`
-        );
+    // Increment the redirect counter
+    response.cookies.set(REDIRECT_COOKIE, String(redirectCount + 1), {
+      maxAge: 60, // 1 minute expiry
+      path: "/",
+    });
 
-        // Create the redirect response
-        const response = NextResponse.redirect(signInUrl);
-
-        // Increment the redirect counter
-        response.cookies.set(REDIRECT_COOKIE, String(redirectCount + 1), {
-          maxAge: 60, // 1 minute expiry
-          path: "/",
-        });
-
-        return response;
-      
-    
+    return response;
   }
 
   // For now, we'll disable automatic locale redirection until we have the proper i18n setup

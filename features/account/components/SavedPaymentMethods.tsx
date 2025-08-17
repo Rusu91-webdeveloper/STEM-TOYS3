@@ -43,7 +43,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-
 interface PaymentCard {
   id: string;
   cardType: string;
@@ -128,9 +127,8 @@ export function SavedPaymentMethods() {
     }
     if (parts.length) {
       return parts.join(" ");
-    } 
-      return v;
-    
+    }
+    return v;
   };
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {

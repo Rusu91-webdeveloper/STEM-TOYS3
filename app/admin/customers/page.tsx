@@ -155,7 +155,7 @@ export default function CustomersPage() {
 
       // Update the customer in the local state
       setCustomers(
-        customers.map((customer) => {
+        customers.map(customer => {
           if (customer.id === userId) {
             return {
               ...customer,
@@ -204,7 +204,7 @@ export default function CustomersPage() {
       }
 
       // Remove the customer from the local state
-      setCustomers(customers.filter((customer) => customer.id !== userId));
+      setCustomers(customers.filter(customer => customer.id !== userId));
 
       // Update pagination if needed
       if (customers.length === 1 && pagination.page > 1) {
@@ -241,15 +241,11 @@ export default function CustomersPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
             <span>Email All</span>
           </Button>
-          <Button
-            variant="outline"
-            className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
             <span>Export</span>
           </Button>
@@ -261,18 +257,16 @@ export default function CustomersPage() {
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <form
               onSubmit={handleSearch}
-              className="flex w-full max-w-sm items-center space-x-2">
+              className="flex w-full max-w-sm items-center space-x-2"
+            >
               <Input
                 type="search"
                 placeholder="Search customers..."
                 className="w-full"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
               />
-              <Button
-                type="submit"
-                variant="outline"
-                size="icon">
+              <Button type="submit" variant="outline" size="icon">
                 <Search className="h-4 w-4" />
               </Button>
             </form>
@@ -280,7 +274,8 @@ export default function CustomersPage() {
               <Select
                 defaultValue="all"
                 value={status}
-                onValueChange={(value) => setStatus(value)}>
+                onValueChange={value => setStatus(value)}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -293,7 +288,8 @@ export default function CustomersPage() {
               <Select
                 defaultValue="newest"
                 value={sortBy}
-                onValueChange={(value) => setSortBy(value)}>
+                onValueChange={value => setSortBy(value)}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Sort By" />
                 </SelectTrigger>
@@ -308,7 +304,8 @@ export default function CustomersPage() {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => fetchCustomers()}>
+                onClick={() => fetchCustomers()}
+              >
                 <Filter className="h-4 w-4" />
               </Button>
             </div>
@@ -357,15 +354,17 @@ export default function CustomersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {customers.map((customer) => (
+                  {customers.map(customer => (
                     <tr
                       key={customer.id}
-                      className="border-b text-sm hover:bg-muted/50">
+                      className="border-b text-sm hover:bg-muted/50"
+                    >
                       <td className="px-4 py-4">
                         <div>
                           <Link
                             href={`/admin/customers/${customer.id.toLowerCase()}`}
-                            className="font-medium text-primary hover:underline">
+                            className="font-medium text-primary hover:underline"
+                          >
                             {customer.name}
                           </Link>
                           <div className="text-xs text-muted-foreground">
@@ -384,7 +383,8 @@ export default function CustomersPage() {
                             customer.status === "Active"
                               ? "bg-green-100 text-green-700"
                               : "bg-gray-100 text-gray-700"
-                          }`}>
+                          }`}
+                        >
                           {customer.status === "Active" ? (
                             <UserCheck className="mr-1 h-3 w-3" />
                           ) : (
@@ -399,7 +399,8 @@ export default function CustomersPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8">
+                              className="h-8 w-8"
+                            >
                               <MoreHorizontal className="h-4 w-4" />
                               <span className="sr-only">Actions</span>
                             </Button>
@@ -411,14 +412,16 @@ export default function CustomersPage() {
                                 router.push(
                                   `/admin/customers/${customer.id.toLowerCase()}`
                                 )
-                              }>
+                              }
+                            >
                               <Eye className="mr-2 h-4 w-4" />
                               View Profile
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
                                 (window.location.href = `mailto:${customer.email}`)
-                              }>
+                              }
+                            >
                               <Mail className="mr-2 h-4 w-4" />
                               Send Email
                             </DropdownMenuItem>
@@ -428,7 +431,8 @@ export default function CustomersPage() {
                                 onClick={() =>
                                   toggleUserStatus(customer.id, customer.status)
                                 }
-                                className="text-destructive focus:text-destructive">
+                                className="text-destructive focus:text-destructive"
+                              >
                                 <UserX className="mr-2 h-4 w-4" />
                                 Deactivate Account
                               </DropdownMenuItem>
@@ -436,7 +440,8 @@ export default function CustomersPage() {
                               <DropdownMenuItem
                                 onClick={() =>
                                   toggleUserStatus(customer.id, customer.status)
-                                }>
+                                }
+                              >
                                 <UserCheck className="mr-2 h-4 w-4" />
                                 Activate Account
                               </DropdownMenuItem>
@@ -446,7 +451,8 @@ export default function CustomersPage() {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   onClick={() => deleteUser(customer.id)}
-                                  className="text-destructive focus:text-destructive">
+                                  className="text-destructive focus:text-destructive"
+                                >
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   Delete Account
                                 </DropdownMenuItem>
@@ -471,7 +477,8 @@ export default function CustomersPage() {
                 variant="outline"
                 size="sm"
                 onClick={handlePrevPage}
-                disabled={pagination.page <= 1 || loading}>
+                disabled={pagination.page <= 1 || loading}
+              >
                 Previous
               </Button>
               <Button
@@ -479,7 +486,8 @@ export default function CustomersPage() {
                 size="sm"
                 onClick={handleNextPage}
                 disabled={pagination.page >= pagination.pages || loading}
-                className="gap-1">
+                className="gap-1"
+              >
                 Next
               </Button>
             </div>

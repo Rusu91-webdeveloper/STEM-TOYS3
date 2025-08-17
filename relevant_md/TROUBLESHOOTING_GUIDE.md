@@ -2,7 +2,9 @@
 
 ## Overview
 
-This guide provides solutions for common issues encountered while developing, testing, and deploying the STEM Toys e-commerce platform. Issues are organized by category for quick reference.
+This guide provides solutions for common issues encountered while developing,
+testing, and deploying the STEM Toys e-commerce platform. Issues are organized
+by category for quick reference.
 
 ## Quick Diagnosis
 
@@ -46,6 +48,7 @@ echo "Health check complete!"
 ### Node.js and npm Problems
 
 #### Issue: Wrong Node.js Version
+
 ```bash
 # Error: Node.js version is not supported
 # Solution: Install correct Node.js version
@@ -54,6 +57,7 @@ nvm use 18
 ```
 
 #### Issue: npm Install Fails
+
 ```bash
 # Clear npm cache and reinstall
 npm cache clean --force
@@ -64,6 +68,7 @@ npm install
 ### Environment Variables
 
 #### Issue: Missing Environment Variables
+
 ```bash
 # Check if .env.local exists
 ls -la .env*
@@ -75,6 +80,7 @@ cp .env.example .env.local
 ### Database Issues
 
 #### Issue: Database Connection Failed
+
 ```bash
 # Test direct database connection
 psql $DATABASE_URL
@@ -85,6 +91,7 @@ brew services start postgresql
 ```
 
 #### Issue: Prisma Migration Errors
+
 ```bash
 # Reset migrations (development only!)
 npx prisma migrate reset
@@ -98,6 +105,7 @@ npx prisma db push --force-reset
 ### Next.js Build Problems
 
 #### Issue: TypeScript Compilation Errors
+
 ```bash
 # Check specific errors
 npm run type-check
@@ -107,6 +115,7 @@ rm -rf .next
 ```
 
 #### Issue: Module Resolution Errors
+
 ```bash
 # Clear module cache
 rm -rf node_modules/.cache
@@ -119,6 +128,7 @@ npm run dev
 ### Authentication Issues
 
 #### Issue: NextAuth Session Not Working
+
 ```bash
 # Check NEXTAUTH_SECRET is set
 echo $NEXTAUTH_SECRET
@@ -133,6 +143,7 @@ echo $NEXTAUTH_SECRET
 ### Unit Test Problems
 
 #### Issue: Jest Configuration Errors
+
 ```bash
 # Clear Jest cache
 npx jest --clearCache
@@ -144,6 +155,7 @@ npm run test -- --verbose
 ### E2E Test Problems
 
 #### Issue: Playwright Tests Failing
+
 ```bash
 # Install browsers
 npx playwright install
@@ -157,6 +169,7 @@ npx playwright test --headed
 ### Deployment Failures
 
 #### Issue: Vercel Build Failing
+
 ```bash
 # Check build logs in Vercel dashboard
 # Build locally to test
@@ -164,6 +177,7 @@ npm run build
 ```
 
 #### Issue: Database Connection in Production
+
 ```bash
 # Check DATABASE_URL format
 # Should include SSL for production:
@@ -201,6 +215,7 @@ useEffect(() => {
 ## Useful Commands Reference
 
 ### Development
+
 ```bash
 npm run dev              # Start development server
 npm run build            # Build for production
@@ -210,6 +225,7 @@ npm run test             # Run tests
 ```
 
 ### Database
+
 ```bash
 npx prisma studio        # Open database GUI
 npx prisma generate      # Generate Prisma client
@@ -218,10 +234,12 @@ npx prisma migrate dev   # Create and apply migration
 ```
 
 ### Cache Clearing
+
 ```bash
 rm -rf .next                     # Clear Next.js cache
 rm -rf node_modules/.cache       # Clear module cache
 npm cache clean --force          # Clear npm cache
 ```
 
-Remember: When in doubt, restart your development server and clear caches. Many issues are resolved by a fresh start!
+Remember: When in doubt, restart your development server and clear caches. Many
+issues are resolved by a fresh start!

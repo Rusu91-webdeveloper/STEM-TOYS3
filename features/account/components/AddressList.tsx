@@ -29,7 +29,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/use-toast";
 
-
 interface Address {
   id: string;
   name: string;
@@ -81,7 +80,7 @@ export function AddressList() {
   const handleSetDefault = async (id: string) => {
     try {
       // Find the address to update
-      const address = addresses.find((a) => a.id === id);
+      const address = addresses.find(a => a.id === id);
       if (!address) return;
 
       // Update the address with isDefault = true
@@ -99,7 +98,7 @@ export function AddressList() {
 
       // Update local state
       setAddresses(
-        addresses.map((address) => ({
+        addresses.map(address => ({
           ...address,
           isDefault: address.id === id,
         }))
@@ -130,7 +129,7 @@ export function AddressList() {
       }
 
       // Update local state
-      setAddresses(addresses.filter((address) => address.id !== id));
+      setAddresses(addresses.filter(address => address.id !== id));
       setAddressToDelete(null);
 
       toast({
@@ -153,10 +152,8 @@ export function AddressList() {
   if (loading) {
     return (
       <div className="grid gap-6 md:grid-cols-2">
-        {[1, 2].map((i) => (
-          <Card
-            key={i}
-            className="relative">
+        {[1, 2].map(i => (
+          <Card key={i} className="relative">
             <CardHeader>
               <Skeleton className="h-6 w-32 mb-2" />
               <Skeleton className="h-4 w-24" />
@@ -205,10 +202,8 @@ export function AddressList() {
 
   return (
     <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
-      {addresses.map((address) => (
-        <Card
-          key={address.id}
-          className="relative">
+      {addresses.map(address => (
+        <Card key={address.id} className="relative">
           {address.isDefault && (
             <Badge className="absolute top-4 right-4 bg-green-500 hover:bg-green-600">
               Default
@@ -233,10 +228,7 @@ export function AddressList() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-2 pt-0">
-            <Button
-              variant="outline"
-              asChild
-              className="w-full sm:w-auto">
+            <Button variant="outline" asChild className="w-full sm:w-auto">
               <Link href={`/account/addresses/${address.id}/edit`}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
@@ -247,19 +239,22 @@ export function AddressList() {
               <Button
                 variant="outline"
                 className="w-full sm:w-auto"
-                onClick={() => handleSetDefault(address.id)}>
+                onClick={() => handleSetDefault(address.id)}
+              >
                 Set as Default
               </Button>
             )}
 
             <AlertDialog
               open={addressToDelete === address.id}
-              onOpenChange={(open) => !open && setAddressToDelete(null)}>
+              onOpenChange={open => !open && setAddressToDelete(null)}
+            >
               <AlertDialogTrigger asChild>
                 <Button
                   variant="outline"
                   className="w-full sm:w-auto text-red-500 hover:text-red-600"
-                  onClick={() => setAddressToDelete(address.id)}>
+                  onClick={() => setAddressToDelete(address.id)}
+                >
                   <Trash className="h-4 w-4 mr-2" />
                   Delete
                 </Button>
@@ -276,7 +271,8 @@ export function AddressList() {
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => handleDelete(address.id)}
-                    className="bg-red-500 hover:bg-red-600">
+                    className="bg-red-500 hover:bg-red-600"
+                  >
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>

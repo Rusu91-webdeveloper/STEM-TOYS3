@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/use-toast";
 
-
 interface ProductActionsDropdownProps {
   productId: string;
   productSlug?: string; // Add optional slug property for view link
@@ -143,7 +142,8 @@ export function ProductActionsDropdown({
           <Button
             ref={triggerRef}
             variant="ghost"
-            className="h-8 w-8 p-0 data-[state=open]:bg-muted">
+            className="h-8 w-8 p-0 data-[state=open]:bg-muted"
+          >
             <span className="sr-only">Open menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
@@ -158,7 +158,8 @@ export function ProductActionsDropdown({
                 description: "Product ID copied to clipboard",
                 duration: 3000,
               });
-            }}>
+            }}
+          >
             Copy product ID
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -170,9 +171,7 @@ export function ProductActionsDropdown({
           </DropdownMenuItem>
           {slug && (
             <DropdownMenuItem asChild>
-              <Link
-                href={`/products/${slug}`}
-                target="_blank">
+              <Link href={`/products/${slug}`} target="_blank">
                 <ExternalLink className="h-4 w-4 mr-2" />
                 View on Site
               </Link>
@@ -181,16 +180,15 @@ export function ProductActionsDropdown({
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="text-red-600"
-            onClick={() => setShowDeleteDialog(true)}>
+            onClick={() => setShowDeleteDialog(true)}
+          >
             <Trash2 className="h-4 w-4 mr-2" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog
-        open={showDeleteDialog}
-        onOpenChange={handleDialogChange}>
+      <AlertDialog open={showDeleteDialog} onOpenChange={handleDialogChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -204,7 +202,8 @@ export function ProductActionsDropdown({
             <AlertDialogAction
               onClick={handleDeleteClick}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700">
+              className="bg-red-600 hover:bg-red-700"
+            >
               {isDeleting ? "Deleting..." : "Delete Product"}
             </AlertDialogAction>
           </AlertDialogFooter>

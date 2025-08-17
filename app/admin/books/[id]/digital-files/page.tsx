@@ -48,7 +48,7 @@ export default async function DigitalFilesPage({ params }: Props) {
         book={book}
         availableLanguages={availableLanguages.map(lang => ({
           ...lang,
-          nativeName: lang.nativeName || undefined
+          nativeName: lang.nativeName || undefined,
         }))}
       />
     </div>

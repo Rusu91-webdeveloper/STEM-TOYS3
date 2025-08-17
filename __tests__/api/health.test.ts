@@ -20,11 +20,11 @@ describe("/api/health", () => {
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
-    
+
     // Get the mocked Prisma instance
     const { PrismaClient } = require("@prisma/client");
     mockPrisma = new PrismaClient();
-    
+
     // Mock successful database connection by default
     mockPrisma.$queryRaw.mockResolvedValue([{ "?column?": 1 }]);
     mockPrisma.$disconnect.mockResolvedValue(undefined);
@@ -52,13 +52,17 @@ describe("/api/health", () => {
       expect(data.timestamp).toBeDefined();
       expect(data.responseTime).toBeDefined();
       expect(data.memory).toBeDefined();
-      expect(mockPrisma.$queryRaw).toHaveBeenCalledWith(expect.arrayContaining(["SELECT 1"]));
+      expect(mockPrisma.$queryRaw).toHaveBeenCalledWith(
+        expect.arrayContaining(["SELECT 1"])
+      );
       expect(mockPrisma.$disconnect).toHaveBeenCalled();
     });
 
     it("should return degraded status when database is unhealthy", async () => {
       // Arrange
-      mockPrisma.$queryRaw.mockRejectedValue(new Error("Database connection failed"));
+      mockPrisma.$queryRaw.mockRejectedValue(
+        new Error("Database connection failed")
+      );
       const request = new NextRequest("http://localhost:3000/api/health");
 
       // Act
@@ -74,8 +78,10 @@ describe("/api/health", () => {
 
     it("should return unhealthy status when multiple critical systems fail", async () => {
       // Arrange
-      mockPrisma.$queryRaw.mockRejectedValue(new Error("Database connection failed"));
-      
+      mockPrisma.$queryRaw.mockRejectedValue(
+        new Error("Database connection failed")
+      );
+
       // Mock high memory usage to trigger critical memory status
       const originalMemoryUsage = process.memoryUsage;
       (process as any).memoryUsage = jest.fn(() => ({
@@ -83,7 +89,7 @@ describe("/api/health", () => {
         heapTotal: 900000000, // 900MB
         heapUsed: 850000000, // 850MB (over 800MB threshold)
         external: 10000000,
-        arrayBuffers: 1000000
+        arrayBuffers: 1000000,
       }));
 
       const request = new NextRequest("http://localhost:3000/api/health");
@@ -124,16 +130,16 @@ describe("/api/health", () => {
       // Arrange
       const originalEnv = process.env.NODE_ENV;
       const originalVersion = process.env.npm_package_version;
-      
-      Object.defineProperty(process.env, 'NODE_ENV', {
-        value: 'test',
-        configurable: true
+
+      Object.defineProperty(process.env, "NODE_ENV", {
+        value: "test",
+        configurable: true,
       });
-      Object.defineProperty(process.env, 'npm_package_version', {
-        value: '1.0.0',
-        configurable: true
+      Object.defineProperty(process.env, "npm_package_version", {
+        value: "1.0.0",
+        configurable: true,
       });
-      
+
       const request = new NextRequest("http://localhost:3000/api/health");
 
       // Act
@@ -146,13 +152,13 @@ describe("/api/health", () => {
       expect(data.uptime).toBeGreaterThan(0);
 
       // Restore environment
-      Object.defineProperty(process.env, 'NODE_ENV', {
+      Object.defineProperty(process.env, "NODE_ENV", {
         value: originalEnv,
-        configurable: true
+        configurable: true,
       });
-      Object.defineProperty(process.env, 'npm_package_version', {
+      Object.defineProperty(process.env, "npm_package_version", {
         value: originalVersion,
-        configurable: true
+        configurable: true,
       });
     });
 
@@ -169,7 +175,7 @@ describe("/api/health", () => {
       // Assert
       const measuredTime = endTime - startTime;
       const reportedTime = parseInt(data.responseTime.replace("ms", ""));
-      
+
       // Allow some tolerance for timing differences
       expect(reportedTime).toBeGreaterThanOrEqual(0);
       expect(reportedTime).toBeLessThanOrEqual(measuredTime + 50); // 50ms tolerance
@@ -183,13 +189,17 @@ describe("/api/health", () => {
 
       // Assert
       expect(response.status).toBe(200);
-      expect(mockPrisma.$queryRaw).toHaveBeenCalledWith(expect.arrayContaining(["SELECT 1"]));
+      expect(mockPrisma.$queryRaw).toHaveBeenCalledWith(
+        expect.arrayContaining(["SELECT 1"])
+      );
       expect(mockPrisma.$disconnect).toHaveBeenCalled();
     });
 
     it("should return 503 when database is unhealthy", async () => {
       // Arrange
-      mockPrisma.$queryRaw.mockRejectedValue(new Error("Database connection failed"));
+      mockPrisma.$queryRaw.mockRejectedValue(
+        new Error("Database connection failed")
+      );
 
       // Act
       const response = await HEAD();
@@ -227,7 +237,7 @@ describe("/api/health", () => {
           heapTotal: testCase.heapUsed + 50000000,
           heapUsed: testCase.heapUsed,
           external: 10000000,
-          arrayBuffers: 1000000
+          arrayBuffers: 1000000,
         }));
 
         const request = new NextRequest("http://localhost:3000/api/health");
@@ -244,4 +254,4 @@ describe("/api/health", () => {
       }
     });
   });
-}); 
+});

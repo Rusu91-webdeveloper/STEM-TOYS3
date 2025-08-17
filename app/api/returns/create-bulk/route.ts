@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     }
 
     // Verify all items belong to the same order
-    const orderIds = [...new Set(orderItems.map((item) => item.orderId))];
+    const orderIds = [...new Set(orderItems.map(item => item.orderId))];
     if (orderIds.length > 1) {
       return NextResponse.json(
         { error: "All items must belong to the same order" },
@@ -85,11 +85,11 @@ export async function POST(request: Request) {
 
     // Check if any items are already returned
     const alreadyReturnedItems = orderItems.filter(
-      (item) => item.returnStatus !== "NONE"
+      item => item.returnStatus !== "NONE"
     );
 
     if (alreadyReturnedItems.length > 0) {
-      const returnedNames = alreadyReturnedItems.map((item) => item.name);
+      const returnedNames = alreadyReturnedItems.map(item => item.name);
       return NextResponse.json(
         {
           error: `Some items have already been returned: ${returnedNames.join(
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
     }
 
     // Create return records for all items
-    const returnData = orderItems.map((item) => ({
+    const returnData = orderItems.map(item => ({
       orderItemId: item.id,
       orderId: item.orderId,
       userId: session.user.id,
@@ -170,14 +170,14 @@ export async function POST(request: Request) {
           customerName: user?.name || "Unknown Customer",
           customerEmail: user?.email || "unknown@email.com",
           orderNumber: order.orderNumber,
-          returnItems: orderItems.map((item) => ({
+          returnItems: orderItems.map(item => ({
             name: item.name,
             quantity: item.quantity,
             sku: item.product?.sku || undefined,
           })),
           reason,
           details,
-          returnIds: createdReturns.map((r) => r.id),
+          returnIds: createdReturns.map(r => r.id),
         });
       });
 
@@ -195,14 +195,14 @@ export async function POST(request: Request) {
               to: userEmail,
               customerName: user?.name || "Valued Customer",
               orderNumber: order.orderNumber,
-              returnItems: orderItems.map((item) => ({
+              returnItems: orderItems.map(item => ({
                 name: item.name,
                 quantity: item.quantity,
                 sku: item.product?.sku || undefined,
               })),
               reason,
               details,
-              returnIds: createdReturns.map((r) => r.id),
+              returnIds: createdReturns.map(r => r.id),
             });
           }
         );
@@ -220,7 +220,7 @@ export async function POST(request: Request) {
       success: true,
       message: `Successfully initiated return for ${orderItems.length} item(s)`,
       data: {
-        returnIds: createdReturns.map((r) => r.id),
+        returnIds: createdReturns.map(r => r.id),
         orderNumber: order.orderNumber,
         itemCount: orderItems.length,
       },

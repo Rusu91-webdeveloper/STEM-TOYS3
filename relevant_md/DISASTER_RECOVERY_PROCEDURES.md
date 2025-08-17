@@ -27,14 +27,12 @@ data loss in case of various failure scenarios.
 ### First 5 Minutes
 
 1. **Assess the Situation**
-
    - [ ] Identify the scope of the incident
    - [ ] Check monitoring dashboards (health endpoints, Sentry, etc.)
    - [ ] Determine if this is a partial or complete outage
    - [ ] Check if user data is at risk
 
 2. **Initial Communication**
-
    - [ ] Notify the response team via emergency channels
    - [ ] Update status page if available
    - [ ] Begin incident documentation
@@ -224,28 +222,24 @@ vercel --prod env set DATABASE_CONNECTION_LIMIT 10
 ### Data Breach Suspected
 
 1. **Immediate Actions** (< 5 minutes)
-
    - [ ] Isolate affected systems
    - [ ] Preserve evidence
    - [ ] Change all administrative passwords
    - [ ] Enable additional logging
 
 2. **Assessment** (< 1 hour)
-
    - [ ] Determine scope of breach
    - [ ] Identify affected data
    - [ ] Assess ongoing threats
    - [ ] Document timeline of events
 
 3. **Containment** (< 4 hours)
-
    - [ ] Patch vulnerabilities
    - [ ] Revoke compromised credentials
    - [ ] Implement additional security measures
    - [ ] Monitor for continued threats
 
 4. **Recovery** (< 24 hours)
-
    - [ ] Restore from clean backups if necessary
    - [ ] Update security configurations
    - [ ] Implement monitoring improvements
@@ -272,7 +266,6 @@ vercel --prod env set DATABASE_CONNECTION_LIMIT 10
 ### Monitoring System Down
 
 1. **Backup Monitoring**
-
    - [ ] Enable Vercel edge monitoring
    - [ ] Set up basic uptime monitoring
    - [ ] Use third-party monitoring services
@@ -342,7 +335,6 @@ Objective (how much data loss is acceptable)_
 ### Immediate Post-Recovery (< 2 hours)
 
 1. **Verify Full Functionality**
-
    - [ ] Run comprehensive health checks
    - [ ] Test critical user journeys
    - [ ] Verify data integrity
@@ -357,14 +349,12 @@ Objective (how much data loss is acceptable)_
 ### Post-Incident Review (< 48 hours)
 
 1. **Documentation**
-
    - [ ] Complete incident timeline
    - [ ] Document root cause analysis
    - [ ] List all actions taken
    - [ ] Calculate actual RTO/RPO
 
 2. **Analysis**
-
    - [ ] Identify what worked well
    - [ ] Document what could be improved
    - [ ] Create action items for prevention

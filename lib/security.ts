@@ -95,7 +95,8 @@ function getCsrfSecretKey(): string {
 }
 
 // Helper to convert ArrayBuffer to Hex string
-const arrayBufferToHex = (buffer: ArrayBuffer) => Array.from(new Uint8Array(buffer))
+const arrayBufferToHex = (buffer: ArrayBuffer) =>
+  Array.from(new Uint8Array(buffer))
     .map(b => b.toString(16).padStart(2, "0"))
     .join("");
 

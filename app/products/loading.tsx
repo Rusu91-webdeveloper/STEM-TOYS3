@@ -9,10 +9,7 @@ export default function ProductsLoading() {
       </div>
 
       {/* Product grid with loading skeletons */}
-      <LoadingGrid
-        count={12}
-        columns={4}
-      />
+      <LoadingGrid count={12} columns={4} />
     </div>
   );
 }

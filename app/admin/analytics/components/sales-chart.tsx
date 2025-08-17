@@ -26,9 +26,7 @@ export function SalesChart({ data }: SalesChartProps) {
   const { formatPrice, currency } = useCurrency();
 
   return (
-    <ResponsiveContainer
-      width="100%"
-      height="100%">
+    <ResponsiveContainer width="100%" height="100%">
       <LineChart
         data={data}
         margin={{
@@ -36,7 +34,8 @@ export function SalesChart({ data }: SalesChartProps) {
           right: 30,
           left: 20,
           bottom: 5,
-        }}>
+        }}
+      >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           dataKey="date"
@@ -49,9 +48,8 @@ export function SalesChart({ data }: SalesChartProps) {
           tickFormatter={(value: number) => {
             if (currency.code === "RON") {
               return `${value} ${currency.symbol}`;
-            } 
-              return `${currency.symbol}${value}`;
-            
+            }
+            return `${currency.symbol}${value}`;
           }}
         />
         <Tooltip

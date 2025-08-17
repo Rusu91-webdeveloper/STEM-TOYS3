@@ -61,7 +61,8 @@ async function handleRegistration(req: Request) {
     const verificationToken = randomBytes(32).toString("hex");
 
     // Create user with verification token using transaction
-    const newUser = await db.$transaction(async (tx) => tx.user.create({
+    const newUser = await db.$transaction(async tx =>
+      tx.user.create({
         data: {
           name,
           email,
@@ -69,7 +70,8 @@ async function handleRegistration(req: Request) {
           verificationToken,
           isActive: false,
         },
-      }));
+      })
+    );
 
     // In a production environment, we would send verification email here
     // For demo purposes, we'll simulate a successful email delivery

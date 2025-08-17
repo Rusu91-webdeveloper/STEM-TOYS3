@@ -1,68 +1,69 @@
-import { cva, type VariantProps } from "class-variance-authority"
-import { Loader2, RefreshCcw, Download, Upload, Search, ShoppingCart } from "lucide-react"
-import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority";
+import {
+  Loader2,
+  RefreshCcw,
+  Download,
+  Upload,
+  Search,
+  ShoppingCart,
+} from "lucide-react";
+import * as React from "react";
 
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
-const loadingVariants = cva(
-  "inline-flex items-center justify-center",
-  {
-    variants: {
-      variant: {
-        default: "text-muted-foreground",
-        primary: "text-primary",
-        secondary: "text-secondary",
-        success: "text-success",
-        warning: "text-warning",
-        destructive: "text-destructive",
-      },
-      size: {
-        sm: "w-4 h-4",
-        default: "w-5 h-5",
-        lg: "w-6 h-6",
-        xl: "w-8 h-8",
-      },
+const loadingVariants = cva("inline-flex items-center justify-center", {
+  variants: {
+    variant: {
+      default: "text-muted-foreground",
+      primary: "text-primary",
+      secondary: "text-secondary",
+      success: "text-success",
+      warning: "text-warning",
+      destructive: "text-destructive",
     },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
+    size: {
+      sm: "w-4 h-4",
+      default: "w-5 h-5",
+      lg: "w-6 h-6",
+      xl: "w-8 h-8",
     },
-  }
-)
+  },
+  defaultVariants: {
+    variant: "default",
+    size: "default",
+  },
+});
 
-const spinnerVariants = cva(
-  "animate-spin",
-  {
-    variants: {
-      speed: {
-        slow: "animate-spin-slow",
-        default: "animate-spin",
-        fast: "animate-spin duration-500",
-      },
+const spinnerVariants = cva("animate-spin", {
+  variants: {
+    speed: {
+      slow: "animate-spin-slow",
+      default: "animate-spin",
+      fast: "animate-spin duration-500",
     },
-    defaultVariants: {
-      speed: "default",
-    },
-  }
-)
+  },
+  defaultVariants: {
+    speed: "default",
+  },
+});
 
 interface LoadingSpinnerProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof loadingVariants>,
     VariantProps<typeof spinnerVariants> {
-  icon?: React.ComponentType<any>
-  label?: string
+  icon?: React.ComponentType<any>;
+  label?: string;
 }
 
-function LoadingSpinner({ 
-  className, 
-  variant, 
-  size, 
+function LoadingSpinner({
+  className,
+  variant,
+  size,
   speed = "default",
   icon: Icon = Loader2,
   label,
-  ...props 
+  ...props
 }: LoadingSpinnerProps) {
   return (
     <div
@@ -74,7 +75,7 @@ function LoadingSpinner({
       <Icon className={cn(spinnerVariants({ speed }))} />
       {label && <span className="sr-only">{label}</span>}
     </div>
-  )
+  );
 }
 
 interface LoadingSkeletonCardProps {
@@ -135,13 +136,10 @@ export function LoadingGrid({
           columns > 4 ? 4 : columns
         } lg:grid-cols-${columns}`,
         className
-      )}>
+      )}
+    >
       {Array.from({ length: count }).map((_, i) => (
-        <LoadingSkeletonCard
-          key={i}
-          lines={3}
-          footer={true}
-        />
+        <LoadingSkeletonCard key={i} lines={3} footer={true} />
       ))}
     </div>
   );
@@ -163,24 +161,24 @@ export function FullPageLoading({
 }
 
 interface LoadingButtonProps {
-  isLoading?: boolean
-  children: React.ReactNode
-  loadingText?: string
-  className?: string
-  disabled?: boolean
-  variant?: VariantProps<typeof loadingVariants>['variant']
-  icon?: React.ComponentType<any>
+  isLoading?: boolean;
+  children: React.ReactNode;
+  loadingText?: string;
+  className?: string;
+  disabled?: boolean;
+  variant?: VariantProps<typeof loadingVariants>["variant"];
+  icon?: React.ComponentType<any>;
 }
 
-function LoadingButton({ 
-  isLoading = false, 
-  children, 
-  loadingText, 
+function LoadingButton({
+  isLoading = false,
+  children,
+  loadingText,
   className,
   disabled,
   variant = "primary",
   icon: Icon = Loader2,
-  ...props 
+  ...props
 }: LoadingButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
@@ -197,30 +195,30 @@ function LoadingButton({
       {isLoading && <Icon className="w-4 h-4 animate-spin" />}
       {isLoading ? loadingText || "Loading..." : children}
     </button>
-  )
+  );
 }
 
 interface LoadingOverlayProps {
-  isVisible: boolean
-  children?: React.ReactNode
-  className?: string
-  variant?: VariantProps<typeof loadingVariants>['variant']
-  size?: VariantProps<typeof loadingVariants>['size']
-  label?: string
-  backdrop?: boolean
+  isVisible: boolean;
+  children?: React.ReactNode;
+  className?: string;
+  variant?: VariantProps<typeof loadingVariants>["variant"];
+  size?: VariantProps<typeof loadingVariants>["size"];
+  label?: string;
+  backdrop?: boolean;
 }
 
-function LoadingOverlay({ 
-  isVisible, 
-  children, 
+function LoadingOverlay({
+  isVisible,
+  children,
   className,
   variant = "primary",
   size = "lg",
   label = "Loading",
   backdrop = true,
-  ...props 
+  ...props
 }: LoadingOverlayProps) {
-  if (!isVisible) return null
+  if (!isVisible) return null;
 
   return (
     <div
@@ -242,26 +240,26 @@ function LoadingOverlay({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 interface ProgressLoadingProps {
-  progress: number
-  label?: string
-  showPercentage?: boolean
-  className?: string
-  variant?: VariantProps<typeof loadingVariants>['variant']
+  progress: number;
+  label?: string;
+  showPercentage?: boolean;
+  className?: string;
+  variant?: VariantProps<typeof loadingVariants>["variant"];
 }
 
-function ProgressLoading({ 
-  progress, 
-  label, 
+function ProgressLoading({
+  progress,
+  label,
   showPercentage = true,
   className,
   variant = "primary",
-  ...props 
+  ...props
 }: ProgressLoadingProps) {
-  const clampedProgress = Math.max(0, Math.min(100, progress))
+  const clampedProgress = Math.max(0, Math.min(100, progress));
 
   return (
     <div className={cn("space-y-2", className)} {...props}>
@@ -290,31 +288,32 @@ function ProgressLoading({
         />
       </div>
     </div>
-  )
+  );
 }
 
 interface LoadingDotsProps {
-  className?: string
-  variant?: VariantProps<typeof loadingVariants>['variant']
-  size?: VariantProps<typeof loadingVariants>['size']
-  label?: string
+  className?: string;
+  variant?: VariantProps<typeof loadingVariants>["variant"];
+  size?: VariantProps<typeof loadingVariants>["size"];
+  label?: string;
 }
 
-function LoadingDots({ 
-  className, 
+function LoadingDots({
+  className,
   variant = "default",
   size = "default",
-  label = "Loading"
+  label = "Loading",
 }: LoadingDotsProps) {
-  const dotSize = size === "sm" ? "w-1.5 h-1.5" : size === "lg" ? "w-3 h-3" : "w-2 h-2"
-  
+  const dotSize =
+    size === "sm" ? "w-1.5 h-1.5" : size === "lg" ? "w-3 h-3" : "w-2 h-2";
+
   return (
     <div
       className={cn("flex items-center space-x-1", className)}
       role="status"
       aria-label={label}
     >
-      {[0, 1, 2].map((i) => (
+      {[0, 1, 2].map(i => (
         <div
           key={i}
           className={cn(
@@ -335,24 +334,30 @@ function LoadingDots({
       ))}
       <span className="sr-only">{label}</span>
     </div>
-  )
+  );
 }
 
 // Specialized loading components for common operations
 interface LoadingOperationProps {
-  operation: 'search' | 'upload' | 'download' | 'refresh' | 'cart' | 'processing'
-  isVisible: boolean
-  message?: string
-  className?: string
+  operation:
+    | "search"
+    | "upload"
+    | "download"
+    | "refresh"
+    | "cart"
+    | "processing";
+  isVisible: boolean;
+  message?: string;
+  className?: string;
 }
 
-function LoadingOperation({ 
-  operation, 
-  isVisible, 
+function LoadingOperation({
+  operation,
+  isVisible,
   message,
-  className 
+  className,
 }: LoadingOperationProps) {
-  if (!isVisible) return null
+  if (!isVisible) return null;
 
   const icons = {
     search: Search,
@@ -361,7 +366,7 @@ function LoadingOperation({
     refresh: RefreshCcw,
     cart: ShoppingCart,
     processing: Loader2,
-  }
+  };
 
   const messages = {
     search: "Searching...",
@@ -370,41 +375,42 @@ function LoadingOperation({
     refresh: "Refreshing...",
     cart: "Adding to cart...",
     processing: "Processing...",
-  }
+  };
 
-  const Icon = icons[operation]
-  const defaultMessage = messages[operation]
+  const Icon = icons[operation];
+  const defaultMessage = messages[operation];
 
   return (
-    <div className={cn("flex items-center gap-2 text-sm text-muted-foreground", className)}>
+    <div
+      className={cn(
+        "flex items-center gap-2 text-sm text-muted-foreground",
+        className
+      )}
+    >
       <Icon className="w-4 h-4 animate-spin" />
       <span>{message || defaultMessage}</span>
     </div>
-  )
+  );
 }
 
 interface InlineLoadingProps {
-  isLoading: boolean
-  children: React.ReactNode
-  fallback?: React.ReactNode
-  className?: string
+  isLoading: boolean;
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+  className?: string;
 }
 
-function InlineLoading({ 
-  isLoading, 
-  children, 
+function InlineLoading({
+  isLoading,
+  children,
   fallback,
-  className 
+  className,
 }: InlineLoadingProps) {
   return (
     <div className={cn("min-h-[1.5rem] flex items-center", className)}>
-      {isLoading ? (
-        fallback || <LoadingDots size="sm" />
-      ) : (
-        children
-      )}
+      {isLoading ? fallback || <LoadingDots size="sm" /> : children}
     </div>
-  )
+  );
 }
 
 export {
@@ -424,4 +430,4 @@ export {
   type LoadingDotsProps,
   type LoadingOperationProps,
   type InlineLoadingProps,
-}
+};

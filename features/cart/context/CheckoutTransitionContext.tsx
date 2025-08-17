@@ -107,7 +107,8 @@ export function CheckoutTransitionProvider({
       value={{
         startTransition,
         isTransitioning: destination !== null,
-      }}>
+      }}
+    >
       {children}
       {destination && status !== "loading" && (
         <CheckoutTransition

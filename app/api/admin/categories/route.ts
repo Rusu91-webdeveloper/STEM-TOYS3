@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform the response to include counts
-    const categoriesWithCounts = categories.map((category) => ({
+    const categoriesWithCounts = categories.map(category => ({
       ...category,
       productCount: category._count.products,
       blogCount: category._count.blogs,

@@ -29,7 +29,8 @@ function Step({
       } ${isClickable ? "cursor-pointer" : "cursor-not-allowed"}`}
       onClick={isClickable ? onClick : undefined}
       disabled={!isClickable}
-      type="button">
+      type="button"
+    >
       {isCompleted ? (
         <CheckCircle className="h-5 w-5 text-primary mr-2" />
       ) : (

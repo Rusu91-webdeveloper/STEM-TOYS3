@@ -4,14 +4,14 @@ services:
     environment:
       POSTGRES_PASSWORD: Admin1234!
     ports:
-      - "5433:5432"
+      - '5433:5432'
 
   app:
     build:
       context: .
     image: nextcommerce
     ports:
-      - "3001:3000"
+      - '3001:3000'
     environment:
       NODE_ENV: development
     develop:

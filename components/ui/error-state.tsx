@@ -1,10 +1,10 @@
-import { cva, type VariantProps } from "class-variance-authority"
-import { 
-  AlertTriangle, 
-  RefreshCcw, 
-  Wifi, 
-  WifiOff, 
-  FileX, 
+import { cva, type VariantProps } from "class-variance-authority";
+import {
+  AlertTriangle,
+  RefreshCcw,
+  Wifi,
+  WifiOff,
+  FileX,
   SearchX,
   UserX,
   Lock,
@@ -13,13 +13,12 @@ import {
   Bug,
   Server,
   Database,
-  Mail
-} from "lucide-react"
-import * as React from "react"
+  Mail,
+} from "lucide-react";
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const errorStateVariants = cva(
   "flex flex-col items-center justify-center text-center space-y-4 p-8",
@@ -42,18 +41,18 @@ const errorStateVariants = cva(
       size: "default",
     },
   }
-)
+);
 
 interface ErrorStateProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof errorStateVariants> {
-  title?: string
-  description?: string
-  icon?: React.ComponentType<any>
-  action?: React.ReactNode
-  retry?: () => void
-  retryText?: string
-  showRetry?: boolean
+  title?: string;
+  description?: string;
+  icon?: React.ComponentType<any>;
+  action?: React.ReactNode;
+  retry?: () => void;
+  retryText?: string;
+  showRetry?: boolean;
 }
 
 function ErrorState({
@@ -77,7 +76,10 @@ function ErrorState({
       {...props}
     >
       <div className="flex flex-col items-center space-y-4">
-        <Icon className="w-12 h-12 text-muted-foreground/60" aria-hidden="true" />
+        <Icon
+          className="w-12 h-12 text-muted-foreground/60"
+          aria-hidden="true"
+        />
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">{title}</h3>
           {description && (
@@ -104,13 +106,13 @@ function ErrorState({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 // Specialized error components for common scenarios
 interface NetworkErrorProps {
-  onRetry?: () => void
-  className?: string
+  onRetry?: () => void;
+  className?: string;
 }
 
 function NetworkError({ onRetry, className }: NetworkErrorProps) {
@@ -124,21 +126,21 @@ function NetworkError({ onRetry, className }: NetworkErrorProps) {
       retryText="Reconnect"
       variant="warning"
     />
-  )
+  );
 }
 
 interface NotFoundErrorProps {
-  resource?: string
-  onGoBack?: () => void
-  onGoHome?: () => void
-  className?: string
+  resource?: string;
+  onGoBack?: () => void;
+  onGoHome?: () => void;
+  className?: string;
 }
 
-function NotFoundError({ 
-  resource = "page", 
-  onGoBack, 
-  onGoHome, 
-  className 
+function NotFoundError({
+  resource = "page",
+  onGoBack,
+  onGoHome,
+  className,
 }: NotFoundErrorProps) {
   return (
     <ErrorState
@@ -162,16 +164,20 @@ function NotFoundError({
         </div>
       }
     />
-  )
+  );
 }
 
 interface PermissionErrorProps {
-  onLogin?: () => void
-  onGoBack?: () => void
-  className?: string
+  onLogin?: () => void;
+  onGoBack?: () => void;
+  className?: string;
 }
 
-function PermissionError({ onLogin, onGoBack, className }: PermissionErrorProps) {
+function PermissionError({
+  onLogin,
+  onGoBack,
+  className,
+}: PermissionErrorProps) {
   return (
     <ErrorState
       className={className}
@@ -195,13 +201,13 @@ function PermissionError({ onLogin, onGoBack, className }: PermissionErrorProps)
         </div>
       }
     />
-  )
+  );
 }
 
 interface ServerErrorProps {
-  onRetry?: () => void
-  onContact?: () => void
-  className?: string
+  onRetry?: () => void;
+  onContact?: () => void;
+  className?: string;
 }
 
 function ServerError({ onRetry, onContact, className }: ServerErrorProps) {
@@ -215,19 +221,24 @@ function ServerError({ onRetry, onContact, className }: ServerErrorProps) {
       variant="destructive"
       action={
         onContact && (
-          <Button onClick={onContact} variant="outline" size="sm" className="gap-2">
+          <Button
+            onClick={onContact}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
             <Mail className="w-4 h-4" />
             Contact Support
           </Button>
         )
       }
     />
-  )
+  );
 }
 
 interface TimeoutErrorProps {
-  onRetry?: () => void
-  className?: string
+  onRetry?: () => void;
+  className?: string;
 }
 
 function TimeoutError({ onRetry, className }: TimeoutErrorProps) {
@@ -240,15 +251,15 @@ function TimeoutError({ onRetry, className }: TimeoutErrorProps) {
       retry={onRetry}
       variant="warning"
     />
-  )
+  );
 }
 
 interface EmptyStateProps {
-  title?: string
-  description?: string
-  icon?: React.ComponentType<any>
-  action?: React.ReactNode
-  className?: string
+  title?: string;
+  description?: string;
+  icon?: React.ComponentType<any>;
+  action?: React.ReactNode;
+  className?: string;
 }
 
 function EmptyState({
@@ -268,21 +279,21 @@ function EmptyState({
       action={action}
       variant="info"
     />
-  )
+  );
 }
 
 interface LoadFailedErrorProps {
-  resource?: string
-  onRetry?: () => void
-  onRefresh?: () => void
-  className?: string
+  resource?: string;
+  onRetry?: () => void;
+  onRefresh?: () => void;
+  className?: string;
 }
 
-function LoadFailedError({ 
-  resource = "content", 
-  onRetry, 
+function LoadFailedError({
+  resource = "content",
+  onRetry,
   onRefresh,
-  className 
+  className,
 }: LoadFailedErrorProps) {
   return (
     <ErrorState
@@ -293,13 +304,13 @@ function LoadFailedError({
       retry={onRetry || onRefresh}
       variant="destructive"
     />
-  )
+  );
 }
 
 interface DatabaseErrorProps {
-  onRetry?: () => void
-  onReport?: () => void
-  className?: string
+  onRetry?: () => void;
+  onReport?: () => void;
+  className?: string;
 }
 
 function DatabaseError({ onRetry, onReport, className }: DatabaseErrorProps) {
@@ -313,32 +324,37 @@ function DatabaseError({ onRetry, onReport, className }: DatabaseErrorProps) {
       variant="destructive"
       action={
         onReport && (
-          <Button onClick={onReport} variant="outline" size="sm" className="gap-2">
+          <Button
+            onClick={onReport}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
             <Bug className="w-4 h-4" />
             Report Issue
           </Button>
         )
       }
     />
-  )
+  );
 }
 
 // Error boundary component
 interface ErrorBoundaryFallbackProps {
-  error: Error
-  resetError: () => void
-  className?: string
+  error: Error;
+  resetError: () => void;
+  className?: string;
 }
 
-function ErrorBoundaryFallback({ 
-  error, 
-  resetError, 
-  className 
+function ErrorBoundaryFallback({
+  error,
+  resetError,
+  className,
 }: ErrorBoundaryFallbackProps) {
   React.useEffect(() => {
     // Log error to monitoring service
-    console.error('Error Boundary caught an error:', error)
-  }, [error])
+    console.error("Error Boundary caught an error:", error);
+  }, [error]);
 
   return (
     <ErrorState
@@ -359,7 +375,7 @@ function ErrorBoundaryFallback({
         </Button>
       }
     />
-  )
+  );
 }
 
 export {
@@ -384,4 +400,4 @@ export {
   type LoadFailedErrorProps,
   type DatabaseErrorProps,
   type ErrorBoundaryFallbackProps,
-} 
+};

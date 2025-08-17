@@ -69,7 +69,6 @@ hosting providers including Vercel, AWS, and self-hosted solutions.
 2. **Configure Environment Variables**:
 
    **In Vercel Dashboard**:
-
    - Go to Project Settings → Environment Variables
    - Add all required environment variables for each environment
 
@@ -162,12 +161,14 @@ hosting providers including Vercel, AWS, and self-hosted solutions.
    - URL: `https://staging-techtots.vercel.app`
 
 2. **Production Deployment**:
+
    ```bash
    # Merge to main branch
    git checkout main
    git merge develop
    git push origin main
    ```
+
    - Automatically deploys to production
    - URL: `https://techtots.com`
 
@@ -205,7 +206,6 @@ vercel --target production
 ### Using AWS Amplify
 
 1. **Connect Repository**:
-
    - Go to AWS Amplify Console
    - Connect your GitHub repository
    - Choose the appropriate branch for each environment
@@ -768,13 +768,11 @@ npx prisma migrate deploy
 ### Critical Issue Response
 
 1. **Immediate Response**:
-
    - Assess impact and severity
    - Implement rollback if necessary
    - Communicate with stakeholders
 
 2. **Investigation**:
-
    - Check logs and monitoring
    - Identify root cause
    - Document findings

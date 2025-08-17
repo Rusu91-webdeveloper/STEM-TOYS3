@@ -64,7 +64,8 @@ export function BookForm({ initialData, isEditing }: Props) {
     slug: initialData?.slug || "",
   });
 
-  const generateSlug = (name: string) => name
+  const generateSlug = (name: string) =>
+    name
       .toLowerCase()
       .trim()
       .replace(/[^\w\s-]/g, "")
@@ -72,7 +73,7 @@ export function BookForm({ initialData, isEditing }: Props) {
       .replace(/^-+|-+$/g, "");
 
   const handleInputChange = (field: keyof BookFormData, value: any) => {
-    setFormData((prev) => {
+    setFormData(prev => {
       const updated = { ...prev, [field]: value };
 
       // Auto-generate slug when name changes
@@ -147,10 +148,7 @@ export function BookForm({ initialData, isEditing }: Props) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="sm"
-          asChild>
+        <Button variant="outline" size="sm" asChild>
           <Link href="/admin/books">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Books
@@ -158,9 +156,7 @@ export function BookForm({ initialData, isEditing }: Props) {
         </Button>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-6 md:grid-cols-2">
           {/* Basic Information */}
           <Card>
@@ -178,7 +174,7 @@ export function BookForm({ initialData, isEditing }: Props) {
                   type="text"
                   placeholder="Enter book title"
                   value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  onChange={e => handleInputChange("name", e.target.value)}
                   required
                 />
               </div>
@@ -190,7 +186,7 @@ export function BookForm({ initialData, isEditing }: Props) {
                   type="text"
                   placeholder="Enter author name"
                   value={formData.author}
-                  onChange={(e) => handleInputChange("author", e.target.value)}
+                  onChange={e => handleInputChange("author", e.target.value)}
                   required
                 />
               </div>
@@ -202,7 +198,7 @@ export function BookForm({ initialData, isEditing }: Props) {
                   type="text"
                   placeholder="book-slug"
                   value={formData.slug}
-                  onChange={(e) => handleInputChange("slug", e.target.value)}
+                  onChange={e => handleInputChange("slug", e.target.value)}
                   required
                 />
                 <p className="text-sm text-muted-foreground">
@@ -216,7 +212,7 @@ export function BookForm({ initialData, isEditing }: Props) {
                   id="description"
                   placeholder="Enter book description"
                   value={formData.description}
-                  onChange={(e) =>
+                  onChange={e =>
                     handleInputChange("description", e.target.value)
                   }
                   rows={4}
@@ -248,7 +244,7 @@ export function BookForm({ initialData, isEditing }: Props) {
                   min="0"
                   step="0.01"
                   value={formData.price}
-                  onChange={(e) =>
+                  onChange={e =>
                     handleInputChange("price", parseFloat(e.target.value) || 0)
                   }
                   required
@@ -257,33 +253,31 @@ export function BookForm({ initialData, isEditing }: Props) {
 
               <div className="space-y-2">
                 <Label>Cover Image</Label>
-                <Tabs
-                  defaultValue="url"
-                  className="w-full">
+                <Tabs defaultValue="url" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger
                       value="url"
-                      className="flex items-center gap-2">
+                      className="flex items-center gap-2"
+                    >
                       <LinkIcon className="h-4 w-4" />
                       URL
                     </TabsTrigger>
                     <TabsTrigger
                       value="upload"
-                      className="flex items-center gap-2">
+                      className="flex items-center gap-2"
+                    >
                       <ImageIcon className="h-4 w-4" />
                       Upload
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent
-                    value="url"
-                    className="space-y-2">
+                  <TabsContent value="url" className="space-y-2">
                     <Input
                       id="coverImage"
                       type="url"
                       placeholder="https://example.com/cover.jpg"
                       value={formData.coverImage || ""}
-                      onChange={(e) =>
+                      onChange={e =>
                         handleInputChange("coverImage", e.target.value || null)
                       }
                     />
@@ -292,13 +286,11 @@ export function BookForm({ initialData, isEditing }: Props) {
                     </p>
                   </TabsContent>
 
-                  <TabsContent
-                    value="upload"
-                    className="space-y-2">
+                  <TabsContent value="upload" className="space-y-2">
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
                       <UploadButton<OurFileRouter, "bookCoverImage">
                         endpoint="bookCoverImage"
-                        onClientUploadComplete={(res) => {
+                        onClientUploadComplete={res => {
                           if (res && res[0]) {
                             handleInputChange("coverImage", res[0].url);
                             toast.success("Cover image uploaded successfully!");
@@ -329,7 +321,7 @@ export function BookForm({ initialData, isEditing }: Props) {
                       src={formData.coverImage}
                       alt="Cover preview"
                       className="w-32 h-40 object-cover rounded-md border"
-                      onError={(e) => {
+                      onError={e => {
                         e.currentTarget.style.display = "none";
                       }}
                     />
@@ -341,7 +333,7 @@ export function BookForm({ initialData, isEditing }: Props) {
                 <Switch
                   id="isActive"
                   checked={formData.isActive}
-                  onCheckedChange={(checked) =>
+                  onCheckedChange={checked =>
                     handleInputChange("isActive", checked)
                   }
                 />
@@ -356,10 +348,7 @@ export function BookForm({ initialData, isEditing }: Props) {
 
         {/* Form Actions */}
         <div className="flex items-center gap-4">
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="min-w-[120px]">
+          <Button type="submit" disabled={isLoading} className="min-w-[120px]">
             {isLoading ? (
               <>
                 <Upload className="h-4 w-4 mr-2 animate-spin" />
@@ -373,10 +362,7 @@ export function BookForm({ initialData, isEditing }: Props) {
             )}
           </Button>
 
-          <Button
-            type="button"
-            variant="outline"
-            asChild>
+          <Button type="button" variant="outline" asChild>
             <Link href="/admin/books">Cancel</Link>
           </Button>
         </div>

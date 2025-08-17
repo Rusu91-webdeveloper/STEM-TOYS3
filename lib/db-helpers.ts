@@ -41,7 +41,7 @@ export async function withRetry<T>(
 
       if (attempt < maxRetries - 1) {
         // Wait before retrying
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }
   }

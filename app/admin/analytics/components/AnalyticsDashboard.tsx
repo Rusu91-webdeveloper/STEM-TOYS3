@@ -32,7 +32,6 @@ import { SalesChart } from "./sales-chart";
 import { SalesByCategoryChart } from "./SalesByCategoryChart";
 import { TopSellingProductsTable } from "./TopSellingProductsTable";
 
-
 interface SalesData {
   daily: number;
   weekly: number;
@@ -104,9 +103,7 @@ export function AnalyticsDashboard({
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
         <div className="flex items-center gap-2">
-          <Select
-            value={period}
-            onValueChange={onPeriodChange}>
+          <Select value={period} onValueChange={onPeriodChange}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Select Period" />
             </SelectTrigger>
@@ -142,7 +139,8 @@ export function AnalyticsDashboard({
                     salesData.trending === "up"
                       ? "text-green-500"
                       : "text-red-500"
-                  }`}>
+                  }`}
+                >
                   {salesData.trending === "up" ? (
                     <ArrowUpRight className="h-3 w-3 mr-1" />
                   ) : (
@@ -190,7 +188,8 @@ export function AnalyticsDashboard({
                     orderStats.conversionRate.trending === "up"
                       ? "text-green-500"
                       : "text-red-500"
-                  }`}>
+                  }`}
+                >
                   {orderStats.conversionRate.trending === "up" ? (
                     <ArrowUpRight className="h-3 w-3 mr-1" />
                   ) : (
@@ -229,7 +228,8 @@ export function AnalyticsDashboard({
                     orderStats.averageOrderValue.trending === "up"
                       ? "text-green-500"
                       : "text-red-500"
-                  }`}>
+                  }`}
+                >
                   {orderStats.averageOrderValue.trending === "up" ? (
                     <ArrowUpRight className="h-3 w-3 mr-1" />
                   ) : (
@@ -266,7 +266,8 @@ export function AnalyticsDashboard({
                     orderStats.totalCustomers.trending === "up"
                       ? "text-green-500"
                       : "text-red-500"
-                  }`}>
+                  }`}
+                >
                   {orderStats.totalCustomers.trending === "up" ? (
                     <ArrowUpRight className="h-3 w-3 mr-1" />
                   ) : (

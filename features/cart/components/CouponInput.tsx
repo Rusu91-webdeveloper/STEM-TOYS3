@@ -133,14 +133,13 @@ export default function CouponInput({
                   </span>
                   <Badge
                     variant="outline"
-                    className="text-green-700 border-green-300">
+                    className="text-green-700 border-green-300"
+                  >
                     {getDiscountText(appliedCoupon)}
                   </Badge>
                   {appliedCoupon.isInfluencer &&
                     appliedCoupon.influencerName && (
-                      <Badge
-                        variant="secondary"
-                        className="text-xs">
+                      <Badge variant="secondary" className="text-xs">
                         {appliedCoupon.influencerName}
                       </Badge>
                     )}
@@ -160,7 +159,8 @@ export default function CouponInput({
               size="sm"
               onClick={handleRemoveCoupon}
               disabled={disabled}
-              className="text-green-700 hover:text-green-900 hover:bg-green-100">
+              className="text-green-700 hover:text-green-900 hover:bg-green-100"
+            >
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -181,15 +181,16 @@ export default function CouponInput({
               <Input
                 placeholder="Enter coupon code"
                 value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                onKeyPress={(e) => e.key === "Enter" && handleApplyCoupon()}
+                onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                onKeyPress={e => e.key === "Enter" && handleApplyCoupon()}
                 disabled={disabled || isValidating}
                 className="flex-1"
               />
               <Button
                 onClick={handleApplyCoupon}
                 disabled={disabled || isValidating || !couponCode.trim()}
-                size="sm">
+                size="sm"
+              >
                 {isValidating ? "Checking..." : "Apply"}
               </Button>
             </div>

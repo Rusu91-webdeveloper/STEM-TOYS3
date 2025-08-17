@@ -63,7 +63,7 @@ export const productSchema = z.object({
       min: z.number().int().nonnegative(),
       max: z.number().int().positive(),
     })
-    .refine((data) => data.min < data.max, {
+    .refine(data => data.min < data.max, {
       message: "Minimum age must be less than maximum age",
     })
     .optional(),

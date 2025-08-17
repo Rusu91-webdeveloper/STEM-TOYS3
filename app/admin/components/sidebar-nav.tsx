@@ -33,10 +33,8 @@ export default function SidebarNav({
   const pathname = usePathname();
 
   return (
-    <nav
-      className={cn("space-y-1", className)}
-      {...props}>
-      {items.map((item) => {
+    <nav className={cn("space-y-1", className)} {...props}>
+      {items.map(item => {
         const Icon = item.icon;
         return (
           <Link
@@ -47,7 +45,8 @@ export default function SidebarNav({
               pathname === item.href
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}>
+            )}
+          >
             <Icon className="h-5 w-5" />
             <span>{item.title}</span>
           </Link>

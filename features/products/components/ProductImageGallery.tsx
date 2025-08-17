@@ -7,8 +7,6 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-
-
 interface ProductImageGalleryProps {
   images: string[];
   alt: string;
@@ -29,12 +27,12 @@ export function ProductImageGallery({
 
   // Navigate to previous image
   const handlePrevImage = () => {
-    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    setCurrentImageIndex(prev => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   // Navigate to next image
   const handleNextImage = () => {
-    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    setCurrentImageIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
   if (!images || images.length === 0) {
@@ -68,7 +66,8 @@ export function ProductImageGallery({
               size="icon"
               className="absolute left-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm"
               onClick={handlePrevImage}
-              aria-label="Previous image">
+              aria-label="Previous image"
+            >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
@@ -76,7 +75,8 @@ export function ProductImageGallery({
               size="icon"
               className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm"
               onClick={handleNextImage}
-              aria-label="Next image">
+              aria-label="Next image"
+            >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </>
@@ -101,7 +101,8 @@ export function ProductImageGallery({
                 currentImageIndex === index && "ring-2 ring-primary"
               )}
               onClick={() => handleThumbnailClick(index)}
-              aria-label={`View image ${index + 1}`}>
+              aria-label={`View image ${index + 1}`}
+            >
               <Image
                 src={image}
                 alt={`${alt} - Thumbnail ${index + 1}`}

@@ -18,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 
-
 interface BookDeleteButtonProps {
   bookId: string;
   bookName: string;
@@ -65,15 +64,14 @@ export function BookDeleteButton({ bookId, bookName }: BookDeleteButtonProps) {
   };
 
   return (
-    <AlertDialog
-      open={isOpen}
-      onOpenChange={setIsOpen}>
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
         <Button
           variant="destructive"
           size="sm"
           className="w-full"
-          disabled={isDeleting}>
+          disabled={isDeleting}
+        >
           <Trash2 className="h-4 w-4 mr-2" />
           Șterge Carte
         </Button>
@@ -95,7 +93,8 @@ export function BookDeleteButton({ bookId, bookName }: BookDeleteButtonProps) {
           <AlertDialogAction
             onClick={handleDelete}
             disabled={isDeleting}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
             {isDeleting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

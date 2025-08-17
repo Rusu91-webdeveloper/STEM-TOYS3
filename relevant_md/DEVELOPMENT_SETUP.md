@@ -162,7 +162,6 @@ STEM-TOYS2/
    ```
 
 2. **Make changes following our conventions**:
-
    - Use TypeScript for all new code
    - Follow the established file structure
    - Add tests for new functionality

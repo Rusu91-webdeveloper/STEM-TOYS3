@@ -56,9 +56,7 @@ export default function AdminLayout({
       {/* Admin Header */}
       <header className="bg-white border-b border-gray-200 fixed top-0 w-full z-10">
         <div className="px-4 py-3 flex items-center justify-between">
-          <Link
-            href="/admin"
-            className="flex items-center">
+          <Link href="/admin" className="flex items-center">
             <div className="relative h-10 w-20 mr-2">
               <Image
                 className="object-contain"
@@ -73,7 +71,8 @@ export default function AdminLayout({
             <span className="text-sm text-gray-600">{userName}</span>
             <button
               onClick={handleSignOut}
-              className="text-sm text-gray-600 hover:text-primary flex items-center gap-1 cursor-pointer">
+              className="text-sm text-gray-600 hover:text-primary flex items-center gap-1 cursor-pointer"
+            >
               <LogOut className="h-4 w-4" />
               <span>Sign Out</span>
             </button>

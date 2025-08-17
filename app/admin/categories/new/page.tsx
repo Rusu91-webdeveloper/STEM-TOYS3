@@ -20,8 +20,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-
-
 export default function NewCategoryPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,7 +36,7 @@ export default function NewCategoryPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setCategoryData((prev) => ({
+    setCategoryData(prev => ({
       ...prev,
       [name]: value,
     }));
@@ -49,7 +47,7 @@ export default function NewCategoryPage() {
         .toLowerCase()
         .replace(/[^\w\s]/gi, "")
         .replace(/\s+/g, "-");
-      setCategoryData((prev) => ({
+      setCategoryData(prev => ({
         ...prev,
         slug,
       }));
@@ -58,7 +56,7 @@ export default function NewCategoryPage() {
 
   // Handle checkbox change
   const handleCheckboxChange = (checked: boolean) => {
-    setCategoryData((prev) => ({
+    setCategoryData(prev => ({
       ...prev,
       isActive: checked,
     }));
@@ -116,10 +114,7 @@ export default function NewCategoryPage() {
   return (
     <div className="container py-8">
       <div className="flex items-center mb-8">
-        <Button
-          variant="ghost"
-          className="mr-4"
-          asChild>
+        <Button variant="ghost" className="mr-4" asChild>
           <Link href="/admin/categories">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
@@ -225,13 +220,12 @@ export default function NewCategoryPage() {
                 <Button
                   variant="outline"
                   type="button"
-                  onClick={() => router.push("/admin/categories")}>
+                  onClick={() => router.push("/admin/categories")}
+                >
                   <X className="h-4 w-4 mr-2" />
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting}>
                   <Save className="h-4 w-4 mr-2" />
                   {isSubmitting ? "Saving..." : "Save Category"}
                 </Button>

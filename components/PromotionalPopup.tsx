@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n";
 
-
 interface PromotionalCoupon {
   id: string;
   code: string;
@@ -150,7 +149,8 @@ export default function PromotionalPopup() {
         <button
           onClick={handleClose}
           className="absolute top-6 right-6 z-30 p-3 rounded-full bg-white/20 backdrop-blur-md hover:bg-white/30 transition-all duration-300 group border border-white/30 shadow-lg"
-          aria-label={t("closePopup")}>
+          aria-label={t("closePopup")}
+        >
           <X className="h-6 w-6 text-white group-hover:scale-110 group-hover:rotate-90 transition-all duration-300" />
         </button>
 
@@ -266,7 +266,8 @@ export default function PromotionalPopup() {
                       ? "bg-green-500/80 hover:bg-green-500/90"
                       : "bg-white/25 hover:bg-white/35"
                   } backdrop-blur-sm text-white border-white/40 rounded-xl px-4 py-3 transition-all duration-300 hover:scale-105 shadow-lg`}
-                  variant="outline">
+                  variant="outline"
+                >
                   <Copy
                     className={`h-5 w-5 ${copiedCode ? "text-white" : ""}`}
                   />
@@ -278,7 +279,8 @@ export default function PromotionalPopup() {
             <Button
               onClick={handleClose}
               size="lg"
-              className="w-full bg-gradient-to-r from-white to-gray-100 text-gray-900 hover:from-gray-100 hover:to-white font-bold px-8 py-4 rounded-xl shadow-xl transform hover:scale-105 transition-all duration-300 border-2 border-white/20">
+              className="w-full bg-gradient-to-r from-white to-gray-100 text-gray-900 hover:from-gray-100 hover:to-white font-bold px-8 py-4 rounded-xl shadow-xl transform hover:scale-105 transition-all duration-300 border-2 border-white/20"
+            >
               <div className="flex items-center justify-center gap-4">
                 <div className="text-center">
                   <div className="text-base font-bold">

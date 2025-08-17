@@ -86,7 +86,7 @@ async function sendBlogNotification(blogId: string): Promise<void> {
     );
 
     // Send notification emails to all subscribers
-    const emailPromises = subscribers.map((subscriber) =>
+    const emailPromises = subscribers.map(subscriber =>
       emailTemplates.blogNotification({
         to: subscriber.email,
         name: subscriber.firstName || subscriber.email.split("@")[0],

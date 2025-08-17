@@ -687,7 +687,6 @@ products = client.products.list(
 Use these credentials in the development environment:
 
 - **Customer Account**:
-
   - Email: `test@example.com`
   - Password: `password123`
 

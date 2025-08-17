@@ -16,7 +16,13 @@ type ToasterToast = {
   variant?: "default" | "destructive" | "success" | "warning" | "info";
   duration?: number;
   dismissible?: boolean;
-  position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
+  position?:
+    | "top-left"
+    | "top-center"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-center"
+    | "bottom-right";
   className?: string;
   style?: React.CSSProperties;
   icon?: React.ReactNode;
@@ -97,7 +103,7 @@ export const reducer = (state: State, action: Action): State => {
     case "UPDATE_TOAST":
       return {
         ...state,
-        toasts: state.toasts.map((t) =>
+        toasts: state.toasts.map(t =>
           t.id === action.toast.id ? { ...t, ...action.toast } : t
         ),
       };
@@ -109,14 +115,14 @@ export const reducer = (state: State, action: Action): State => {
       if (toastId) {
         addToRemoveQueue(toastId);
       } else {
-        state.toasts.forEach((toast) => {
+        state.toasts.forEach(toast => {
           addToRemoveQueue(toast.id);
         });
       }
 
       return {
         ...state,
-        toasts: state.toasts.map((t) =>
+        toasts: state.toasts.map(t =>
           t.id === toastId || toastId === undefined
             ? {
                 ...t,
@@ -135,10 +141,10 @@ export const reducer = (state: State, action: Action): State => {
       }
       return {
         ...state,
-        toasts: state.toasts.filter((t) => t.id !== action.toastId),
+        toasts: state.toasts.filter(t => t.id !== action.toastId),
       };
     case "CLEAR_TOASTS":
-      toastTimeouts.forEach((timeout) => clearTimeout(timeout));
+      toastTimeouts.forEach(timeout => clearTimeout(timeout));
       toastTimeouts.clear();
       return {
         ...state,
@@ -153,7 +159,7 @@ let memoryState: State = { toasts: [] };
 
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action);
-  listeners.forEach((listener) => {
+  listeners.forEach(listener => {
     listener(memoryState);
   });
 }
@@ -168,14 +174,14 @@ function toast(props: Toast) {
       type: "UPDATE_TOAST",
       toast: { ...props, id },
     });
-  
+
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id });
 
   const toastData: ToasterToast = {
     ...props,
     id,
     open: true,
-    onOpenChange: (open) => {
+    onOpenChange: open => {
       if (!open) dismiss();
     },
     dismissible: props.dismissible !== false,
@@ -276,7 +282,7 @@ function toastPromise<T>(
   const toastId = toastLoading(loading);
 
   promise
-    .then((data) => {
+    .then(data => {
       toastId.update({
         title: typeof success === "function" ? success(data) : success,
         variant: "success",
@@ -284,7 +290,7 @@ function toastPromise<T>(
         dismissible: true,
       });
     })
-    .catch((error) => {
+    .catch(error => {
       toastId.update({
         title: typeof error === "function" ? error(error) : error,
         variant: "destructive",
@@ -336,5 +342,16 @@ function useToast() {
   };
 }
 
-export { useToast, toast, toastSuccess, toastError, toastWarning, toastInfo, toastLoading, toastPromise, dismiss, clearToasts };
+export {
+  useToast,
+  toast,
+  toastSuccess,
+  toastError,
+  toastWarning,
+  toastInfo,
+  toastLoading,
+  toastPromise,
+  dismiss,
+  clearToasts,
+};
 export type { ToasterToast, Toast };

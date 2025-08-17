@@ -8,18 +8,18 @@ on:
     branches: [main]
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: "20"
 
 jobs:
   deploy:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    
+
     environment:
       name: production
       url: ${{ steps.deploy.outputs.url }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -48,17 +48,17 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+          vercel-args: "--prod"
 
       - name: Run post-deployment health check
         if: steps.deploy.outputs.url
         run: |
           echo "Waiting for deployment to be ready..."
           sleep 30
-          
+
           # Basic health check
           response=$(curl -s -o /dev/null -w "%{http_code}" ${{ steps.deploy.outputs.url }}/api/health || echo "000")
-          
+
           if [ "$response" = "200" ]; then
             echo "✅ Health check passed"
           else
@@ -83,11 +83,11 @@ jobs:
     name: Deploy to Staging
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/develop' }}
-    
+
     environment:
       name: staging
       url: ${{ steps.deploy-staging.outputs.url }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -96,7 +96,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -123,12 +123,12 @@ jobs:
         run: |
           echo "Waiting for staging deployment to be ready..."
           sleep 30
-          
+
           response=$(curl -s -o /dev/null -w "%{http_code}" ${{ steps.deploy-staging.outputs.url }}/api/health || echo "000")
-          
+
           if [ "$response" = "200" ]; then
             echo "✅ Staging health check passed"
           else
             echo "❌ Staging health check failed with status: $response"
             exit 1
-          fi 
+          fi

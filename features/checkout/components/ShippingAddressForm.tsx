@@ -157,22 +157,22 @@ export function ShippingAddressForm({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
 
     // Validate field on change
     const fieldError = addressValidator.validateField(name, value);
-    setErrors((prev) => ({
+    setErrors(prev => ({
       ...prev,
       [name]: fieldError,
     }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
 
     // Validate field on change
     const fieldError = addressValidator.validateField(name, value);
-    setErrors((prev) => ({
+    setErrors(prev => ({
       ...prev,
       [name]: fieldError,
     }));
@@ -210,7 +210,7 @@ export function ShippingAddressForm({
     } else {
       // Find the selected address and populate the form
       const selectedAddress = savedAddresses.find(
-        (addr) => addr.id === addressId
+        addr => addr.id === addressId
       );
       if (selectedAddress) {
         const shippingAddress: ShippingAddress = {
@@ -229,9 +229,7 @@ export function ShippingAddressForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-white rounded-lg border p-6">
         <h2 className="text-xl font-semibold mb-4">{t("shippingAddress")}</h2>
 
@@ -251,11 +249,13 @@ export function ShippingAddressForm({
             <RadioGroup
               value={selectedAddressId}
               onValueChange={handleAddressSelect}
-              className="space-y-3">
-              {savedAddresses.map((address) => (
+              className="space-y-3"
+            >
+              {savedAddresses.map(address => (
                 <div
                   key={address.id}
-                  className="flex items-start space-x-2 p-3 border rounded-md hover:bg-gray-50">
+                  className="flex items-start space-x-2 p-3 border rounded-md hover:bg-gray-50"
+                >
                   <RadioGroupItem
                     value={address.id}
                     id={`address-${address.id}`}
@@ -264,7 +264,8 @@ export function ShippingAddressForm({
                   <div className="flex-1">
                     <Label
                       htmlFor={`address-${address.id}`}
-                      className="font-medium cursor-pointer">
+                      className="font-medium cursor-pointer"
+                    >
                       {address.name}{" "}
                       {address.isDefault && (
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded ml-2">
@@ -287,14 +288,11 @@ export function ShippingAddressForm({
                 </div>
               ))}
               <div className="flex items-start space-x-2 p-3 border rounded-md hover:bg-gray-50">
-                <RadioGroupItem
-                  value="new"
-                  id="address-new"
-                  className="mt-1"
-                />
+                <RadioGroupItem value="new" id="address-new" className="mt-1" />
                 <Label
                   htmlFor="address-new"
-                  className="font-medium cursor-pointer">
+                  className="font-medium cursor-pointer"
+                >
                   Use a new address
                 </Label>
               </div>
@@ -363,9 +361,11 @@ export function ShippingAddressForm({
                 <Label htmlFor="state">{t("state")}</Label>
                 <Select
                   value={formData.state}
-                  onValueChange={(value) => handleSelectChange("state", value)}>
+                  onValueChange={value => handleSelectChange("state", value)}
+                >
                   <SelectTrigger
-                    className={errors.state ? "border-red-500" : ""}>
+                    className={errors.state ? "border-red-500" : ""}
+                  >
                     <SelectValue
                       placeholder={
                         locale === "ro"
@@ -375,10 +375,8 @@ export function ShippingAddressForm({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    {romanianCounties.map((county) => (
-                      <SelectItem
-                        key={county.code}
-                        value={county.code}>
+                    {romanianCounties.map(county => (
+                      <SelectItem key={county.code} value={county.code}>
                         {county.name}
                       </SelectItem>
                     ))}
@@ -411,12 +409,12 @@ export function ShippingAddressForm({
                 <Label htmlFor="country">{t("country")}</Label>
                 <Select
                   value={formData.country}
-                  onValueChange={(value) =>
-                    handleSelectChange("country", value)
-                  }
-                  disabled={true}>
+                  onValueChange={value => handleSelectChange("country", value)}
+                  disabled={true}
+                >
                   <SelectTrigger
-                    className={`${errors.country ? "border-red-500" : ""} bg-gray-100`}>
+                    className={`${errors.country ? "border-red-500" : ""} bg-gray-100`}
+                  >
                     <SelectValue
                       placeholder={
                         locale === "ro"
@@ -426,10 +424,8 @@ export function ShippingAddressForm({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem
-                        key={country.code}
-                        value={country.code}>
+                    {countries.map(country => (
+                      <SelectItem key={country.code} value={country.code}>
                         {country.name}
                       </SelectItem>
                     ))}
@@ -459,9 +455,7 @@ export function ShippingAddressForm({
       </div>
 
       <div className="flex justify-end">
-        <Button
-          type="submit"
-          className="px-8">
+        <Button type="submit" className="px-8">
           {t("continueToShipping")}
         </Button>
       </div>

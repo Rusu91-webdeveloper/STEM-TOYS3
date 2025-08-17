@@ -64,7 +64,7 @@ export function DigitalFilesManager({ book, availableLanguages }: Props) {
   const uploadFiles = async (files: File[]) => {
     const formData = new FormData();
 
-    files.forEach((file) => {
+    files.forEach(file => {
       formData.append("files", file);
     });
 
@@ -103,7 +103,7 @@ export function DigitalFilesManager({ book, availableLanguages }: Props) {
     const files = Array.from(e.target.files || []);
 
     // Validate file types
-    const validFiles = files.filter((file) => {
+    const validFiles = files.filter(file => {
       const extension = file.name.toLowerCase().split(".").pop();
       return extension === "epub" || extension === "pdf";
     });
@@ -162,7 +162,7 @@ export function DigitalFilesManager({ book, availableLanguages }: Props) {
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
   return (
@@ -183,9 +183,7 @@ export function DigitalFilesManager({ book, availableLanguages }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="format">Format</Label>
-              <Select
-                value={selectedFormat}
-                onValueChange={setSelectedFormat}>
+              <Select value={selectedFormat} onValueChange={setSelectedFormat}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selectează formatul" />
                 </SelectTrigger>
@@ -200,15 +198,14 @@ export function DigitalFilesManager({ book, availableLanguages }: Props) {
               <Label htmlFor="language">Limba</Label>
               <Select
                 value={selectedLanguage}
-                onValueChange={setSelectedLanguage}>
+                onValueChange={setSelectedLanguage}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selectează limba" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableLanguages.map((lang) => (
-                    <SelectItem
-                      key={lang.id}
-                      value={lang.code}>
+                  {availableLanguages.map(lang => (
+                    <SelectItem key={lang.id} value={lang.code}>
                       {lang.nativeName || lang.name}
                     </SelectItem>
                   ))}
@@ -234,7 +231,8 @@ export function DigitalFilesManager({ book, availableLanguages }: Props) {
               {selectedFiles.map((file, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 text-sm text-muted-foreground">
+                  className="flex items-center gap-2 text-sm text-muted-foreground"
+                >
                   <FileText className="h-4 w-4" />
                   {file.name} ({formatFileSize(file.size)})
                 </div>
@@ -245,7 +243,8 @@ export function DigitalFilesManager({ book, availableLanguages }: Props) {
           <Button
             onClick={handleUpload}
             disabled={isUploading || selectedFiles.length === 0}
-            className="w-full">
+            className="w-full"
+          >
             {isUploading ? "Se încarcă..." : "Încarcă Fișiere"}
           </Button>
         </CardContent>
@@ -274,10 +273,11 @@ export function DigitalFilesManager({ book, availableLanguages }: Props) {
             </div>
           ) : (
             <div className="grid gap-4">
-              {book.digitalFiles.map((file) => (
+              {book.digitalFiles.map(file => (
                 <div
                   key={file.id}
-                  className="flex items-center justify-between p-4 border rounded-lg">
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center gap-4">
                     <FileText className="h-8 w-8 text-blue-500" />
                     <div>
@@ -304,7 +304,8 @@ export function DigitalFilesManager({ book, availableLanguages }: Props) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(file.fileUrl, "_blank")}>
+                      onClick={() => window.open(file.fileUrl, "_blank")}
+                    >
                       <Download className="h-4 w-4" />
                     </Button>
 
@@ -312,7 +313,8 @@ export function DigitalFilesManager({ book, availableLanguages }: Props) {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeleteFile(file.id)}
-                      className="text-red-600 hover:text-red-700">
+                      className="text-red-600 hover:text-red-700"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

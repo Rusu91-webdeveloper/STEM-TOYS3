@@ -11,7 +11,6 @@ import {
   createDefaultCategories,
 } from "@/lib/utils/categories-utils";
 
-
 export function CategoryCheck() {
   const [loading, setLoading] = useState(true);
   const [categoriesExist, setCategoriesExist] = useState(true);
@@ -83,13 +82,11 @@ export function CategoryCheck() {
             <Button
               size="sm"
               onClick={handleCreateDefaults}
-              disabled={creating}>
+              disabled={creating}
+            >
               {creating ? "Creating..." : "Create Default Categories"}
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              asChild>
+            <Button size="sm" variant="outline" asChild>
               <Link href="/admin/categories/new">Create Custom Category</Link>
             </Button>
           </div>

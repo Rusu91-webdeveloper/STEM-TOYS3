@@ -166,7 +166,7 @@ export function validateCardNumber(cardNumber: string): boolean {
 
     // Check prefix
     const validPrefix = rules.prefixes.some(
-      (prefix) => cleanNumber.substring(0, prefix.length) === prefix
+      prefix => cleanNumber.substring(0, prefix.length) === prefix
     );
 
     if (!validPrefix) {

@@ -29,9 +29,7 @@ export function TopSellingProductsTable({
       </thead>
       <tbody>
         {products.map((product: TopSellingProduct, index: number) => (
-          <tr
-            key={product.name}
-            className="border-b last:border-0">
+          <tr key={product.name} className="border-b last:border-0">
             <td className="py-3 text-sm font-medium">{product.name}</td>
             <td className="py-3 text-sm">{formatPrice(product.price)}</td>
             <td className="py-3 text-sm">{product.sold}</td>
@@ -41,7 +39,8 @@ export function TopSellingProductsTable({
                 <div className="h-2 w-full rounded-full bg-muted">
                   <div
                     className="h-2 rounded-full bg-primary"
-                    style={{ width: `${100 - index * 15}%` }}></div>
+                    style={{ width: `${100 - index * 15}%` }}
+                  ></div>
                 </div>
               </div>
             </td>

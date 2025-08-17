@@ -84,17 +84,12 @@ export function Share({ url, title, text = "", className }: ShareProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={className}>
+        <Button variant="ghost" size="sm" className={className}>
           <Share2 className="h-4 w-4 mr-1" />
           Share
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-48">
+      <DropdownMenuContent align="end" className="w-48">
         {typeof navigator !== "undefined" && "share" in navigator && (
           <DropdownMenuItem onClick={handleNativeShare}>
             <Share2 className="h-4 w-4 mr-2" />

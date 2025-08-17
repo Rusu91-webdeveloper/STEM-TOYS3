@@ -52,7 +52,7 @@ export const ProductVariantProvider = ({
 
   const selectVariant = useCallback(
     (productId: string, variantId: string | undefined) => {
-      setSelectedVariants((prev) => {
+      setSelectedVariants(prev => {
         if (!variantId) {
           // If no variant is selected, remove the entry
           const { [productId]: removed, ...rest } = prev;
@@ -68,7 +68,7 @@ export const ProductVariantProvider = ({
   );
 
   const clearVariantSelection = useCallback((productId: string) => {
-    setSelectedVariants((prev) => {
+    setSelectedVariants(prev => {
       const { [productId]: removed, ...rest } = prev;
       return rest;
     });
@@ -79,7 +79,7 @@ export const ProductVariantProvider = ({
       const selectedVariantId = selectedVariants[productId];
       if (!selectedVariantId) return undefined;
 
-      return variants.find((v) => v.id === selectedVariantId);
+      return variants.find(v => v.id === selectedVariantId);
     },
     [selectedVariants]
   );
@@ -100,7 +100,8 @@ export const ProductVariantProvider = ({
         getSelectedVariant,
         getVariantPrice,
         clearVariantSelection,
-      }}>
+      }}
+    >
       {children}
     </ProductVariantContext.Provider>
   );

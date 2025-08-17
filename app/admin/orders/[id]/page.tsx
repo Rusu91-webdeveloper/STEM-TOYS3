@@ -118,7 +118,8 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const formatStatus = (status: string): string => status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+const formatStatus = (status: string): string =>
+  status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 
 export default function OrderDetailsPage() {
   const params = useParams();

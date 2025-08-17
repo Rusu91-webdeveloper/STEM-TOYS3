@@ -38,7 +38,6 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 
-
 interface Coupon {
   id: string;
   code: string;

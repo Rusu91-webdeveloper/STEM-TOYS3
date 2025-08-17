@@ -59,8 +59,8 @@ export async function deleteUploadThingFiles(
 
     // Extract file keys from URLs
     const fileKeys = urls
-      .map((url) => extractFileKeyFromUrl(url))
-      .filter((key) => key !== null) as string[];
+      .map(url => extractFileKeyFromUrl(url))
+      .filter(key => key !== null) as string[];
 
     console.log(`Found ${fileKeys.length} valid file keys:`, fileKeys);
 
@@ -105,7 +105,7 @@ export const ourFileRouter = {
 
       return { userId: session.user.id };
     })
-    .onUploadComplete((res) => {
+    .onUploadComplete(res => {
       console.log("Upload complete:", res);
       return { fileUrl: res.file.ufsUrl }; // Use ufsUrl instead of url
     }),
@@ -125,7 +125,7 @@ export const ourFileRouter = {
 
       return { userId: session.user.id };
     })
-    .onUploadComplete((res) => {
+    .onUploadComplete(res => {
       console.log("Blog image upload complete:", res);
       return { fileUrl: res.file.ufsUrl }; // Use ufsUrl instead of url
     }),
@@ -150,7 +150,7 @@ export const ourFileRouter = {
 
       return { userId: session.user.id };
     })
-    .onUploadComplete((res) => {
+    .onUploadComplete(res => {
       console.log("Book cover upload complete:", res);
       return { fileUrl: res.file.ufsUrl }; // Use ufsUrl instead of url
     }),
@@ -175,7 +175,7 @@ export const ourFileRouter = {
 
       return { userId: session.user.id };
     })
-    .onUploadComplete((res) => {
+    .onUploadComplete(res => {
       console.log("Category image upload complete:", res);
       return { fileUrl: res.file.ufsUrl }; // Use ufsUrl instead of url
     }),
@@ -195,7 +195,7 @@ export const ourFileRouter = {
 
       return { userId: session.user.id };
     })
-    .onUploadComplete((res) => {
+    .onUploadComplete(res => {
       console.log("Document upload complete:", res);
       return { fileUrl: res.file.ufsUrl }; // Use ufsUrl instead of url
     }),
@@ -225,13 +225,13 @@ export const ourFileRouter = {
 
       return { userId: session.user.id };
     })
-    .onUploadComplete((res) => {
+    .onUploadComplete(res => {
       console.log("Digital book upload complete:", res);
 
       // Validate file extension
       const allowedExtensions = [".epub", ".pdf"];
       const fileName = res.file.name.toLowerCase();
-      const hasValidExtension = allowedExtensions.some((ext) =>
+      const hasValidExtension = allowedExtensions.some(ext =>
         fileName.endsWith(ext)
       );
 

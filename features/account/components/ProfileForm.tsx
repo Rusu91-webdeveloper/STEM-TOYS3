@@ -147,18 +147,14 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-8">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div className="space-y-4 bg-white/50 p-6 rounded-xl shadow-sm border border-gray-100 backdrop-blur-sm">
         <h3 className="text-lg font-medium mb-4 text-gray-800">
           {t("profile", "Informații personale")}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label
-              htmlFor="name"
-              className="text-gray-700">
+            <Label htmlFor="name" className="text-gray-700">
               {t("name", "Nume")}
             </Label>
             <Input
@@ -175,9 +171,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
             )}
           </div>
           <div className="space-y-2">
-            <Label
-              htmlFor="email"
-              className="text-gray-700">
+            <Label htmlFor="email" className="text-gray-700">
               {t("email", "Email")}
             </Label>
             <Input
@@ -207,9 +201,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label
-              htmlFor="newPassword"
-              className="text-gray-700">
+            <Label htmlFor="newPassword" className="text-gray-700">
               {t("newPassword", "Parolă nouă")}
             </Label>
             <Input
@@ -230,16 +222,14 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
             )}
           </div>
           <div className="space-y-2">
-            <Label
-              htmlFor="confirmPassword"
-              className="text-gray-700">
+            <Label htmlFor="confirmPassword" className="text-gray-700">
               {t("confirmNewPassword", "Confirmă parola")}
             </Label>
             <Input
               id="confirmPassword"
               type="password"
               {...register("confirmPassword", {
-                validate: (value) =>
+                validate: value =>
                   !watchNewPassword ||
                   value === watchNewPassword ||
                   t("passwordsDontMatch", "Parolele nu se potrivesc"),
@@ -259,7 +249,8 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           <Button
             type="submit"
             disabled={isLoading}
-            className="bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary transition-all duration-300 shadow-md hover:shadow-lg">
+            className="bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary transition-all duration-300 shadow-md hover:shadow-lg"
+          >
             {isLoading ? (
               <>
                 <span className="animate-spin mr-2">⏳</span>

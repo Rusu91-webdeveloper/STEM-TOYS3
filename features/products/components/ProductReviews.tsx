@@ -54,7 +54,7 @@ export function ProductReviews({
   const ratingDistribution = reviews.length
     ? Array.from({ length: 5 }, (_, i) => {
         const starsCount = 5 - i;
-        const count = reviews.filter((r) => r.rating === starsCount).length;
+        const count = reviews.filter(r => r.rating === starsCount).length;
         return {
           stars: starsCount,
           count,
@@ -98,7 +98,7 @@ export function ProductReviews({
   // Render stars for rating display
   const renderStars = (rating: number, interactive = false) => (
     <div className="flex">
-      {[1, 2, 3, 4, 5].map((star) => (
+      {[1, 2, 3, 4, 5].map(star => (
         <StarIcon
           key={star}
           className={cn(
@@ -136,9 +136,7 @@ export function ProductReviews({
           {/* Rating distribution */}
           <div className="flex-1 space-y-1">
             {ratingDistribution.map(({ stars, count, percentage }) => (
-              <div
-                key={stars}
-                className="flex items-center gap-2">
+              <div key={stars} className="flex items-center gap-2">
                 <div className="w-12 text-sm">{stars} stars</div>
                 <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                   <div
@@ -162,7 +160,8 @@ export function ProductReviews({
         <Button
           onClick={() => setShowReviewForm(true)}
           disabled={!userLoggedIn}
-          className="mt-4">
+          className="mt-4"
+        >
           Write a Review
         </Button>
       )}
@@ -177,7 +176,8 @@ export function ProductReviews({
       {showReviewForm && userLoggedIn && (
         <form
           onSubmit={handleSubmitReview}
-          className="space-y-4 p-4 border rounded-lg">
+          className="space-y-4 p-4 border rounded-lg"
+        >
           <h3 className="text-lg font-medium">Write Your Review</h3>
 
           <div className="space-y-1">
@@ -198,7 +198,7 @@ export function ProductReviews({
               id="title"
               type="text"
               value={reviewTitle}
-              onChange={(e) => setReviewTitle(e.target.value)}
+              onChange={e => setReviewTitle(e.target.value)}
               className="w-full px-3 py-2 border rounded-md"
               placeholder="Summarize your experience"
               required
@@ -210,7 +210,7 @@ export function ProductReviews({
             <Textarea
               id="content"
               value={reviewContent}
-              onChange={(e) => setReviewContent(e.target.value)}
+              onChange={e => setReviewContent(e.target.value)}
               placeholder="Share your experience with this product"
               rows={4}
               required
@@ -218,16 +218,15 @@ export function ProductReviews({
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button
-              type="submit"
-              disabled={!rating || submitting}>
+            <Button type="submit" disabled={!rating || submitting}>
               {submitting ? "Submitting..." : "Submit Review"}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={resetForm}
-              disabled={submitting}>
+              disabled={submitting}
+            >
               Cancel
             </Button>
           </div>
@@ -238,10 +237,8 @@ export function ProductReviews({
       <div className="space-y-6 pt-4">
         <Separator />
         {reviews.length > 0
-          ? reviews.map((review) => (
-              <div
-                key={review.id}
-                className="space-y-2">
+          ? reviews.map(review => (
+              <div key={review.id} className="space-y-2">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar>

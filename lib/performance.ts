@@ -340,7 +340,8 @@ export const BundleAnalyzer = {
   lazyLoad: <T>(
     importFn: () => Promise<{ default: T }>,
     componentName: string
-  ) => new Promise<{ default: T }>((resolve, reject) => {
+  ) =>
+    new Promise<{ default: T }>((resolve, reject) => {
       const startTime = Date.now();
 
       importFn()
@@ -390,13 +391,13 @@ export const MemoryOptimizer = {
 
     if (usage.heapUsed > criticalThreshold) {
       logger.error("Critical memory usage detected", {
-        heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)  }MB`,
-        heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)  }MB`,
+        heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)}MB`,
+        heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)}MB`,
       });
     } else if (usage.heapUsed > warningThreshold) {
       logger.warn("High memory usage detected", {
-        heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)  }MB`,
-        heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)  }MB`,
+        heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)}MB`,
+        heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)}MB`,
       });
     }
 

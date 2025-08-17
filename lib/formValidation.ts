@@ -17,7 +17,7 @@ export function validateFormData<T>(
     if (error instanceof z.ZodError) {
       // Transform Zod errors into a more user-friendly format
       const errors: Record<string, string> = {};
-      error.errors.forEach((err) => {
+      error.errors.forEach(err => {
         if (err.path.length > 0) {
           const path = err.path.join(".");
           errors[path] = err.message;

@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     // Basic application health checks
     const healthChecks = {
@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
       checks: {
         database: "unknown",
         memory: "unknown",
-        storage: "unknown"
-      }
+        storage: "unknown",
+      },
     };
 
     // Database connectivity check
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     // Memory usage check
     const memoryUsage = process.memoryUsage();
     const memoryUsageMB = Math.round(memoryUsage.heapUsed / 1024 / 1024);
-    
+
     if (memoryUsageMB < 500) {
       healthChecks.checks.memory = "healthy";
     } else if (memoryUsageMB < 800) {
@@ -60,8 +60,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Return appropriate HTTP status code
-    const httpStatus = healthChecks.status === "healthy" ? 200 : 
-                      healthChecks.status === "degraded" ? 200 : 503;
+    const httpStatus =
+      healthChecks.status === "healthy"
+        ? 200
+        : healthChecks.status === "degraded"
+          ? 200
+          : 503;
 
     return NextResponse.json(
       {
@@ -70,21 +74,20 @@ export async function GET(request: NextRequest) {
         memory: {
           heapUsed: `${memoryUsageMB}MB`,
           heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`,
-          rss: `${Math.round(memoryUsage.rss / 1024 / 1024)}MB`
-        }
+          rss: `${Math.round(memoryUsage.rss / 1024 / 1024)}MB`,
+        },
       },
       { status: httpStatus }
     );
-
   } catch (error) {
     console.error("Health check failed:", error);
-    
+
     return NextResponse.json(
       {
         status: "unhealthy",
         timestamp: new Date().toISOString(),
         error: "Health check failed",
-        responseTime: `${Date.now() - startTime}ms`
+        responseTime: `${Date.now() - startTime}ms`,
       },
       { status: 503 }
     );

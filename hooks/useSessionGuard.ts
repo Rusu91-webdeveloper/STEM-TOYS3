@@ -104,10 +104,9 @@ export function useSessionGuard(redirectPath = "/auth/login") {
               console.warn("Session validation timeout - assuming valid");
               setValidationError("Validation timeout");
               return true; // Assume valid on timeout to avoid disrupting UX
-            } 
-              console.error("Error validating session:", error.message);
-              setValidationError(error.message);
-            
+            }
+            console.error("Error validating session:", error.message);
+            setValidationError(error.message);
           }
           // **PERFORMANCE**: Return true on error to avoid redirect loops
           return true;

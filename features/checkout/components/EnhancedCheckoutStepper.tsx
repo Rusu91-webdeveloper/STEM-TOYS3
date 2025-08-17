@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  CreditCard,
-  Eye,
-  MapPin,
-  Truck,
-} from "lucide-react";
+import { CreditCard, Eye, MapPin, Truck } from "lucide-react";
 import React from "react";
 
 import { useTranslation } from "@/lib/i18n";
@@ -118,10 +113,7 @@ interface ProgressBarProps {
   totalSteps: number;
 }
 
-function ProgressBar({
-  completedSteps,
-  totalSteps,
-}: ProgressBarProps) {
+function ProgressBar({ completedSteps, totalSteps }: ProgressBarProps) {
   const progressPercentage = (completedSteps / totalSteps) * 100;
 
   return (

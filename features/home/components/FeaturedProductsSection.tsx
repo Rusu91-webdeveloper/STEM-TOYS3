@@ -50,9 +50,13 @@ const FeaturedProductsSectionComponent = ({
           {t("featuredProductsDesc")}
         </p>
       </div>
+
+      {products.length === 0 ? (
+
       {isLoading ? (
         <FeaturedProductsSkeleton count={4} />
       ) : products.length === 0 ? (
+ main
         <div className="text-center py-12">
           <p className="text-muted-foreground">
             {t("noFeaturedProducts", "No featured products found.")}
@@ -61,7 +65,11 @@ const FeaturedProductsSectionComponent = ({
       ) : (
         <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8">
           {products.map(product => (
+
+            <a
+
             <Link
+
               href={`/products/${product.slug}`}
               key={product.id}
               aria-label={`View details for ${product.name}`}
@@ -99,7 +107,11 @@ const FeaturedProductsSectionComponent = ({
                   </div>
                 </div>
               </div>
+
+            </a>
+
             </Link>
+
           ))}
         </div>
       )}

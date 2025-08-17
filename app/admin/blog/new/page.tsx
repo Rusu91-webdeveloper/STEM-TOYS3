@@ -83,7 +83,7 @@ export default function NewBlogPage() {
     >
   ) => {
     const { name, value } = e.target;
-    setBlogData((prev) => ({
+    setBlogData(prev => ({
       ...prev,
       [name]: value,
     }));
@@ -94,7 +94,7 @@ export default function NewBlogPage() {
         .toLowerCase()
         .replace(/[^\w\s]/gi, "")
         .replace(/\s+/g, "-");
-      setBlogData((prev) => ({
+      setBlogData(prev => ({
         ...prev,
         slug,
       }));
@@ -103,7 +103,7 @@ export default function NewBlogPage() {
 
   // Handle checkbox change
   const handleCheckboxChange = (checked: boolean) => {
-    setBlogData((prev) => ({
+    setBlogData(prev => ({
       ...prev,
       isPublished: checked,
     }));
@@ -111,7 +111,7 @@ export default function NewBlogPage() {
 
   // Handle select change
   const handleSelectChange = (name: string, value: string) => {
-    setBlogData((prev) => ({
+    setBlogData(prev => ({
       ...prev,
       [name]: value,
     }));
@@ -176,10 +176,7 @@ export default function NewBlogPage() {
   return (
     <div className="container py-8">
       <div className="flex items-center mb-8">
-        <Button
-          variant="ghost"
-          className="mr-4"
-          asChild>
+        <Button variant="ghost" className="mr-4" asChild>
           <Link href="/admin/blog">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
@@ -282,9 +279,10 @@ export default function NewBlogPage() {
                   <Label htmlFor="stemCategory">STEM Category</Label>
                   <Select
                     value={blogData.stemCategory}
-                    onValueChange={(value) =>
+                    onValueChange={value =>
                       handleSelectChange("stemCategory", value)
-                    }>
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select STEM category" />
                     </SelectTrigger>
@@ -306,9 +304,10 @@ export default function NewBlogPage() {
                   <Label htmlFor="language">Language</Label>
                   <Select
                     value={blogData.language}
-                    onValueChange={(value) =>
+                    onValueChange={value =>
                       handleSelectChange("language", value)
-                    }>
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
@@ -323,10 +322,11 @@ export default function NewBlogPage() {
                   <Label htmlFor="categoryId">Content Category</Label>
                   <Select
                     value={blogData.categoryId}
-                    onValueChange={(value) =>
+                    onValueChange={value =>
                       handleSelectChange("categoryId", value)
                     }
-                    disabled={isLoading}>
+                    disabled={isLoading}
+                  >
                     <SelectTrigger>
                       <SelectValue
                         placeholder={
@@ -338,23 +338,17 @@ export default function NewBlogPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {isLoading ? (
-                        <SelectItem
-                          value="loading"
-                          disabled>
+                        <SelectItem value="loading" disabled>
                           Loading categories...
                         </SelectItem>
                       ) : categories.length > 0 ? (
-                        categories.map((category) => (
-                          <SelectItem
-                            key={category.id}
-                            value={category.id}>
+                        categories.map(category => (
+                          <SelectItem key={category.id} value={category.id}>
                             {category.name}
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem
-                          value="no-categories"
-                          disabled>
+                        <SelectItem value="no-categories" disabled>
                           No categories available
                         </SelectItem>
                       )}
@@ -371,7 +365,8 @@ export default function NewBlogPage() {
                       </p>
                       <Link
                         href="/admin/categories/new"
-                        className="text-primary hover:underline mt-1 inline-block">
+                        className="text-primary hover:underline mt-1 inline-block"
+                      >
                         Create a category
                       </Link>
                     </div>
@@ -418,13 +413,12 @@ export default function NewBlogPage() {
                 <Button
                   variant="outline"
                   type="button"
-                  onClick={() => router.push("/admin/blog")}>
+                  onClick={() => router.push("/admin/blog")}
+                >
                   <X className="h-4 w-4 mr-2" />
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting}>
                   <Save className="h-4 w-4 mr-2" />
                   {isSubmitting ? "Saving..." : "Save Blog Post"}
                 </Button>

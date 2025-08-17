@@ -97,7 +97,8 @@ export default function WarrantyPage() {
                       📧 Email:{" "}
                       <a
                         href="mailto:webira.rem.srl@gmail.com"
-                        className="text-white underline">
+                        className="text-white underline"
+                      >
                         webira.rem.srl@gmail.com
                       </a>
                     </p>
@@ -105,7 +106,8 @@ export default function WarrantyPage() {
                       📱 Telefon:{" "}
                       <a
                         href="tel:+40771248029"
-                        className="text-white underline">
+                        className="text-white underline"
+                      >
                         0771 248 029
                       </a>
                     </p>
@@ -129,7 +131,8 @@ export default function WarrantyPage() {
                   folosi și sistemul online prin{" "}
                   <a
                     href="/account/orders"
-                    className="text-white underline font-semibold">
+                    className="text-white underline font-semibold"
+                  >
                     Comenzile Mele
                   </a>{" "}
                   - selectează "Problemă cu Produsul" în locul returnării.

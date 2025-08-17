@@ -120,7 +120,7 @@ export async function generateReturnLabel(
 
     // Create a buffer to store the PDF
     const chunks: Buffer[] = [];
-    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("data", chunk => chunks.push(chunk));
 
     // Header with TechTots branding
     doc.rect(0, 0, 595.28, 60).fill("#2563eb");

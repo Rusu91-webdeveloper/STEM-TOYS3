@@ -146,7 +146,8 @@ export default function BlogPostPage() {
             <Button
               variant="outline"
               size="sm"
-              className="bg-white/80 backdrop-blur-sm hover:bg-white h-8 sm:h-9 text-xs sm:text-sm">
+              className="bg-white/80 backdrop-blur-sm hover:bg-white h-8 sm:h-9 text-xs sm:text-sm"
+            >
               <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
               {t("backToBlog")}
             </Button>
@@ -167,7 +168,8 @@ export default function BlogPostPage() {
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-white/80 mb-1.5 sm:mb-3 text-xs sm:text-sm">
               <Link
                 href={`/blog/category/${blogPost.category.slug}`}
-                className="hover:text-white transition-colors">
+                className="hover:text-white transition-colors"
+              >
                 {blogPost.category.name}
               </Link>
               <span className="hidden xs:inline">•</span>
@@ -208,9 +210,7 @@ export default function BlogPostPage() {
       {/* Back button - mobile */}
       <div className="container mx-auto md:hidden py-3 sm:py-4 px-3 sm:px-4">
         <Link href="/blog">
-          <Button
-            size="sm"
-            className="h-8 text-xs">
+          <Button size="sm" className="h-8 text-xs">
             <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
             {t("backToBlog")}
           </Button>
@@ -238,11 +238,12 @@ export default function BlogPostPage() {
                 {t("tags")}
               </h3>
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                {blogPost.tags.map((tag) => (
+                {blogPost.tags.map(tag => (
                   <Badge
                     key={tag}
                     variant="outline"
-                    className="bg-gray-100 text-xs sm:text-sm">
+                    className="bg-gray-100 text-xs sm:text-sm"
+                  >
                     {tag}
                   </Badge>
                 ))}
