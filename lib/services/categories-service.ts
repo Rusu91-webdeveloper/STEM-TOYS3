@@ -11,6 +11,21 @@ function normalizeCategory(category: string): string {
     return "mathematics";
   }
 
+  // Handle "science" variations
+  if (lower === "science") {
+    return "science";
+  }
+
+  // Handle "technology" variations
+  if (lower === "technology") {
+    return "technology";
+  }
+
+  // Handle "engineering" variations
+  if (lower === "engineering") {
+    return "engineering";
+  }
+
   // Handle "educational books" -> "educational-books"
   if (lower === "educational books" || lower === "educational-books") {
     return "educational-books";
@@ -243,7 +258,7 @@ export async function getAllCategoriesForSidebar(
           } else {
             // Count products the same way the frontend filters them
             // This matches the logic in ClientProductsPage.tsx lines 330-338
-            productCount = allProducts.filter(product => {
+            const matchingProducts = allProducts.filter(product => {
               const productCategory =
                 product.category?.name ?? product.stemCategory ?? "";
               const normalizedProductCategory =
@@ -253,11 +268,15 @@ export async function getAllCategoriesForSidebar(
               );
 
               return normalizedProductCategory === normalizedStaticCategory;
-            }).length;
+            });
+            productCount = matchingProducts.length;
           }
 
-          // Debug logging for development
-          if (process.env.NODE_ENV === "development") {
+          // Optional debug logging for development
+          if (
+            process.env.NODE_ENV === "development" &&
+            process.env.DEBUG_CATEGORIES
+          ) {
             console.log(`[SIDEBAR CATEGORIES] ${staticCat.slug}:`, {
               dbCategoryFound: !!dbCategory,
               dbCategorySlug: dbCategory?.slug,
