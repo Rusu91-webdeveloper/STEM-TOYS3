@@ -208,7 +208,7 @@ export async function getAllCategoriesForSidebar(
           }
 
           return {
-            id: slugToQueryCategory[staticCat.slug] || staticCat.slug,
+            id: staticCat.slug, // Use original slug for consistency
             label: getCategoryName(staticCat.slug, language),
             count: productCount,
           };
@@ -222,7 +222,7 @@ export async function getAllCategoriesForSidebar(
     console.error("Error fetching sidebar categories:", error);
     // Return fallback categories
     return staticCategoryData.map(cat => ({
-      id: slugToQueryCategory[cat.slug] || cat.slug,
+      id: cat.slug, // Use original slug for consistency
       label: getCategoryName(cat.slug, language),
       count: 0,
     }));

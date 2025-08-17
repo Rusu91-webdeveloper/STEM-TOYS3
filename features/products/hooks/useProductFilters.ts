@@ -145,10 +145,17 @@ export function useProductFilters() {
   const initFromSearchParams = useCallback(() => {
     const urlState: Partial<FilterState> = {};
 
-    // Parse categories
+    // Parse categories with normalization for consistency
     const categoryParam = searchParams.get("category");
     if (categoryParam) {
-      urlState.selectedCategories = categoryParam.split(",");
+      // Normalize category names to match sidebar IDs
+      const normalizedCategories = categoryParam.split(",").map(cat => {
+        const lower = cat.toLowerCase();
+        // Convert "mathematics" back to "math" for consistency with sidebar
+        if (lower === "mathematics") return "math";
+        return cat;
+      });
+      urlState.selectedCategories = normalizedCategories;
     }
 
     // Parse price range
@@ -184,7 +191,13 @@ export function useProductFilters() {
     const params = new URLSearchParams();
 
     if (state.selectedCategories.length > 0) {
-      params.set("category", state.selectedCategories.join(","));
+      // Convert sidebar IDs back to URL format for consistency
+      const urlCategories = state.selectedCategories.map(cat => {
+        // Convert "math" back to "mathematics" for URL consistency
+        if (cat === "math") return "mathematics";
+        return cat;
+      });
+      params.set("category", urlCategories.join(","));
     }
 
     if (state.priceRangeFilter[0] !== 0 || state.priceRangeFilter[1] !== 500) {
