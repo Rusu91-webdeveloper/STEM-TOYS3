@@ -20,7 +20,6 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { addressSchema } from "@/lib/validations";
 
-
 // Romanian counties (județe)
 const romanianCounties = [
   { code: "AB", name: "Alba" },

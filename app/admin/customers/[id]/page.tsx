@@ -214,7 +214,8 @@ export default function CustomerDetailsPage() {
   };
 
   // Format date
-  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -243,7 +244,8 @@ export default function CustomerDetailsPage() {
         </p>
         <Button
           variant="outline"
-          onClick={() => router.push("/admin/customers")}>
+          onClick={() => router.push("/admin/customers")}
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Customers
         </Button>
@@ -259,7 +261,8 @@ export default function CustomerDetailsPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => router.push("/admin/customers")}>
+            onClick={() => router.push("/admin/customers")}
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <h1 className="text-2xl font-bold tracking-tight">
@@ -270,7 +273,8 @@ export default function CustomerDetailsPage() {
           <Button
             variant="outline"
             onClick={() => (window.location.href = `mailto:${customer.email}`)}
-            className="flex items-center gap-2">
+            className="flex items-center gap-2"
+          >
             <Mail className="h-4 w-4" />
             <span>Send Email</span>
           </Button>
@@ -278,7 +282,8 @@ export default function CustomerDetailsPage() {
             <Button
               variant="destructive"
               onClick={toggleUserStatus}
-              className="flex items-center gap-2">
+              className="flex items-center gap-2"
+            >
               <UserX className="h-4 w-4" />
               <span>Deactivate</span>
             </Button>
@@ -286,7 +291,8 @@ export default function CustomerDetailsPage() {
             <Button
               variant="outline"
               onClick={toggleUserStatus}
-              className="flex items-center gap-2">
+              className="flex items-center gap-2"
+            >
               <UserCheck className="h-4 w-4" />
               <span>Activate</span>
             </Button>
@@ -295,11 +301,13 @@ export default function CustomerDetailsPage() {
           {customer.totalOrders === 0 && (
             <AlertDialog
               open={deleteDialogOpen}
-              onOpenChange={setDeleteDialogOpen}>
+              onOpenChange={setDeleteDialogOpen}
+            >
               <AlertDialogTrigger asChild>
                 <Button
                   variant="destructive"
-                  className="flex items-center gap-2">
+                  className="flex items-center gap-2"
+                >
                   <Trash2 className="h-4 w-4" />
                   <span>Delete</span>
                 </Button>
@@ -318,7 +326,8 @@ export default function CustomerDetailsPage() {
                   </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={deleteCustomerAccount}
-                    className="bg-destructive text-destructive-foreground">
+                    className="bg-destructive text-destructive-foreground"
+                  >
                     Delete Account
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -345,7 +354,8 @@ export default function CustomerDetailsPage() {
                 customer.status === "Active"
                   ? "bg-green-100 text-green-800 hover:bg-green-100"
                   : ""
-              }>
+              }
+            >
               {customer.status}
             </Badge>
           </div>
@@ -410,7 +420,7 @@ export default function CustomerDetailsPage() {
                 <p className="text-muted-foreground">No addresses saved.</p>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
-                  {customer.addresses.map((address) => (
+                  {customer.addresses.map(address => (
                     <Card key={address.id}>
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
@@ -460,7 +470,7 @@ export default function CustomerDetailsPage() {
                 </p>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
-                  {customer.paymentCards.map((card) => (
+                  {customer.paymentCards.map(card => (
                     <Card key={card.id}>
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
@@ -541,7 +551,8 @@ export default function CustomerDetailsPage() {
                                 router.push(
                                   `/admin/orders/${customer.lastOrder?.id}`
                                 )
-                              }>
+                              }
+                            >
                               View
                             </Button>
                           </TableCell>
@@ -555,7 +566,8 @@ export default function CustomerDetailsPage() {
                     <div className="mt-4 text-center">
                       <Link
                         href={`/admin/orders?customerId=${customer.id}`}
-                        className="text-primary hover:underline text-sm">
+                        className="text-primary hover:underline text-sm"
+                      >
                         View all {customer.totalOrders} orders
                       </Link>
                     </div>

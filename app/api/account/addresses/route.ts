@@ -120,7 +120,7 @@ export async function POST(req: Request) {
     }
 
     // Use transaction to ensure operations are atomic
-    const newAddress = await db.$transaction(async (tx) => {
+    const newAddress = await db.$transaction(async tx => {
       // If this is the default address, unset any existing default addresses
       if (isDefault) {
         await tx.address.updateMany({

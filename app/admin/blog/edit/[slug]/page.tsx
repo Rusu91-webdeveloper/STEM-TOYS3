@@ -27,8 +27,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-
-
 interface BlogEditPageProps {
   params: Promise<{
     slug: string;
@@ -130,7 +128,7 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
     >
   ) => {
     const { name, value } = e.target;
-    setBlogData((prev) => ({
+    setBlogData(prev => ({
       ...prev,
       [name]: value,
     }));
@@ -138,7 +136,7 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
 
   // Handle checkbox change
   const handleCheckboxChange = (checked: boolean) => {
-    setBlogData((prev) => ({
+    setBlogData(prev => ({
       ...prev,
       isPublished: checked,
     }));
@@ -146,7 +144,7 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
 
   // Handle select change
   const handleSelectChange = (name: string, value: string) => {
-    setBlogData((prev) => ({
+    setBlogData(prev => ({
       ...prev,
       [name]: value,
     }));
@@ -211,9 +209,7 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
       <div className="container py-8 flex items-center justify-center min-h-screen">
         <div className="text-center">
           <p className="text-red-500 text-lg">{error}</p>
-          <Button
-            className="mt-4"
-            onClick={() => router.push("/admin/blog")}>
+          <Button className="mt-4" onClick={() => router.push("/admin/blog")}>
             Return to Blog Management
           </Button>
         </div>
@@ -224,10 +220,7 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
   return (
     <div className="container py-8">
       <div className="flex items-center mb-8">
-        <Button
-          variant="ghost"
-          className="mr-4"
-          asChild>
+        <Button variant="ghost" className="mr-4" asChild>
           <Link href="/admin/blog">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
@@ -329,9 +322,10 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
                   <Label htmlFor="stemCategory">STEM Category</Label>
                   <Select
                     value={blogData.stemCategory}
-                    onValueChange={(value) =>
+                    onValueChange={value =>
                       handleSelectChange("stemCategory", value)
-                    }>
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select STEM category" />
                     </SelectTrigger>
@@ -353,25 +347,22 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
                   <Label htmlFor="categoryId">Content Category</Label>
                   <Select
                     value={blogData.categoryId}
-                    onValueChange={(value) =>
+                    onValueChange={value =>
                       handleSelectChange("categoryId", value)
-                    }>
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select content category" />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.length > 0 ? (
-                        categories.map((category) => (
-                          <SelectItem
-                            key={category.id}
-                            value={category.id}>
+                        categories.map(category => (
+                          <SelectItem key={category.id} value={category.id}>
                             {category.name}
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem
-                          value="no-categories"
-                          disabled>
+                        <SelectItem value="no-categories" disabled>
                           No categories available
                         </SelectItem>
                       )}
@@ -419,13 +410,12 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
                 <Button
                   variant="outline"
                   type="button"
-                  onClick={() => router.push("/admin/blog")}>
+                  onClick={() => router.push("/admin/blog")}
+                >
                   <X className="h-4 w-4 mr-2" />
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting}>
                   <Save className="h-4 w-4 mr-2" />
                   {isSubmitting ? "Saving..." : "Update Blog Post"}
                 </Button>

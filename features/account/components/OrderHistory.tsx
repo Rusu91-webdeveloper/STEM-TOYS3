@@ -95,7 +95,8 @@ const isWithinReturnWindow = (order: Order) => {
 };
 
 // Helper function to check if order has returnable items (non-digital items)
-const hasReturnableItems = (order: Order) => order.items.some(item => !item.isDigital);
+const hasReturnableItems = (order: Order) =>
+  order.items.some(item => !item.isDigital);
 
 export function OrderHistory({ initialOrders }: OrderHistoryProps) {
   const { t } = useTranslation();

@@ -64,14 +64,14 @@ async function getSalesByDay(startDate: Date, endDate: Date) {
   });
 
   // Group orders by day
-  const salesByDay = days.map((day) => {
+  const salesByDay = days.map(day => {
     const dayStart = new Date(day);
     dayStart.setHours(0, 0, 0, 0);
 
     const dayEnd = new Date(day);
     dayEnd.setHours(23, 59, 59, 999);
 
-    const dayOrders = orders.filter((order) => {
+    const dayOrders = orders.filter(order => {
       const orderDate = new Date(order.createdAt);
       return orderDate >= dayStart && orderDate <= dayEnd;
     });

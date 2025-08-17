@@ -52,21 +52,22 @@ interface Props {
 }
 
 export function BooksList({ books }: Props) {
-  const formatPrice = (price: number) => new Intl.NumberFormat("ro-RO", {
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("ro-RO", {
       style: "currency",
       currency: "RON",
     }).format(price);
 
   const getFileFormats = (digitalFiles: DigitalFile[]) => {
     const formats = [
-      ...new Set(digitalFiles.map((file) => file.format.toUpperCase())),
+      ...new Set(digitalFiles.map(file => file.format.toUpperCase())),
     ];
     return formats;
   };
 
   const getLanguages = (digitalFiles: DigitalFile[]) => {
-    const languages = [...new Set(digitalFiles.map((file) => file.language))];
-    return languages.map((lang) => (lang === "en" ? "English" : "Română"));
+    const languages = [...new Set(digitalFiles.map(file => file.language))];
+    return languages.map(lang => (lang === "en" ? "English" : "Română"));
   };
 
   if (books.length === 0) {
@@ -109,10 +110,8 @@ export function BooksList({ books }: Props) {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {books.map((book) => (
-          <Card
-            key={book.id}
-            className="overflow-hidden">
+        {books.map(book => (
+          <Card key={book.id} className="overflow-hidden">
             <CardHeader className="pb-3">
               <div className="flex items-start gap-3">
                 {book.coverImage ? (
@@ -135,9 +134,7 @@ export function BooksList({ books }: Props) {
                     de {book.author}
                   </CardDescription>
                   <div className="flex items-center gap-2 mt-2">
-                    <Badge
-                      variant="default"
-                      className="bg-blue-600">
+                    <Badge variant="default" className="bg-blue-600">
                       Digital
                     </Badge>
                     <Badge variant={book.isActive ? "default" : "secondary"}>
@@ -167,21 +164,23 @@ export function BooksList({ books }: Props) {
                   {book.digitalFiles.length > 0 ? (
                     <div className="space-y-1">
                       <div className="flex gap-1 flex-wrap">
-                        {getFileFormats(book.digitalFiles).map((format) => (
+                        {getFileFormats(book.digitalFiles).map(format => (
                           <Badge
                             key={format}
                             variant="secondary"
-                            className="text-xs">
+                            className="text-xs"
+                          >
                             {format}
                           </Badge>
                         ))}
                       </div>
                       <div className="flex gap-1 flex-wrap">
-                        {getLanguages(book.digitalFiles).map((language) => (
+                        {getLanguages(book.digitalFiles).map(language => (
                           <Badge
                             key={language}
                             variant="outline"
-                            className="text-xs">
+                            className="text-xs"
+                          >
                             {language}
                           </Badge>
                         ))}
@@ -212,17 +211,15 @@ export function BooksList({ books }: Props) {
                     asChild
                     variant="default"
                     size="sm"
-                    className="flex-1">
+                    className="flex-1"
+                  >
                     <Link href={`/admin/books/${book.id}/digital-files`}>
                       <Upload className="h-4 w-4 mr-2" />
                       Gestionează Fișiere
                     </Link>
                   </Button>
 
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm">
+                  <Button asChild variant="outline" size="sm">
                     <Link href={`/admin/books/${book.id}`}>
                       <Eye className="h-4 w-4" />
                     </Link>
@@ -231,10 +228,7 @@ export function BooksList({ books }: Props) {
 
                 {/* Delete Button */}
                 <div className="pt-2">
-                  <BookDeleteButton
-                    bookId={book.id}
-                    bookName={book.name}
-                  />
+                  <BookDeleteButton bookId={book.id} bookName={book.name} />
                 </div>
 
                 <p className="text-xs text-muted-foreground">

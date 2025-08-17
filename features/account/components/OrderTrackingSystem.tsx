@@ -277,10 +277,9 @@ export function OrderTrackingSystem({
     setNotificationsEnabled(!notificationsEnabled);
   };
 
-  const getStatusInfo = (statusKey: string) => (
-      ORDER_STATUSES[statusKey as keyof typeof ORDER_STATUSES] ||
-      ORDER_STATUSES.PENDING
-    );
+  const getStatusInfo = (statusKey: string) =>
+    ORDER_STATUSES[statusKey as keyof typeof ORDER_STATUSES] ||
+    ORDER_STATUSES.PENDING;
 
   const getEventIcon = (eventStatus: string) => {
     switch (eventStatus) {

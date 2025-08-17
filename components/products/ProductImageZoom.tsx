@@ -99,7 +99,7 @@ export default function ProductImageZoom({
   const handleDownload = useCallback(() => {
     const link = document.createElement("a");
     link.href = src;
-    link.download = `${alt.replace(/\s+/g, "-").toLowerCase()  }.jpg`;
+    link.download = `${alt.replace(/\s+/g, "-").toLowerCase()}.jpg`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

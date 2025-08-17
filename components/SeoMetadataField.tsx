@@ -76,8 +76,8 @@ export default function SeoMetadataField({
     const keywordsText = e.target.value;
     const keywordsArray = keywordsText
       .split(",")
-      .map((k) => k.trim())
-      .filter((k) => k);
+      .map(k => k.trim())
+      .filter(k => k);
     updateMetadata({ keywords: keywordsArray });
   };
 
@@ -88,18 +88,12 @@ export default function SeoMetadataField({
     <div className="space-y-4 rounded-md border p-4">
       <div className="flex items-center justify-between">
         <Label className="text-base font-semibold">{label}</Label>
-        <Button
-          variant="ghost"
-          size="icon"
-          title={description}>
+        <Button variant="ghost" size="icon" title={description}>
           <Info className="h-4 w-4" />
         </Button>
       </div>
 
-      <Accordion
-        type="single"
-        collapsible
-        className="w-full">
+      <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="seo-metadata">
           <AccordionTrigger>SEO Settings</AccordionTrigger>
           <AccordionContent>
@@ -114,9 +108,7 @@ export default function SeoMetadataField({
                 <Input
                   id={`${name}-title`}
                   value={metadata.metaTitle || ""}
-                  onChange={(e) =>
-                    updateMetadata({ metaTitle: e.target.value })
-                  }
+                  onChange={e => updateMetadata({ metaTitle: e.target.value })}
                   placeholder="Enter SEO-friendly title"
                   maxLength={60}
                 />
@@ -135,7 +127,7 @@ export default function SeoMetadataField({
                 <Textarea
                   id={`${name}-description`}
                   value={metadata.metaDescription || ""}
-                  onChange={(e) =>
+                  onChange={e =>
                     updateMetadata({ metaDescription: e.target.value })
                   }
                   placeholder="Enter SEO-friendly description"
@@ -173,9 +165,7 @@ export default function SeoMetadataField({
                 <Input
                   id={`${name}-canonical`}
                   value={metadata.canonical || ""}
-                  onChange={(e) =>
-                    updateMetadata({ canonical: e.target.value })
-                  }
+                  onChange={e => updateMetadata({ canonical: e.target.value })}
                   placeholder="https://techtots.com/your-canonical-path"
                 />
               </div>

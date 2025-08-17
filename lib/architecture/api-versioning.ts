@@ -395,7 +395,8 @@ export function createVersionedHandler(
   }
 
   // Return unified handler
-  return async (request: NextRequest, context?: any) => apiVersionManager.handle(endpoint, request, context);
+  return async (request: NextRequest, context?: any) =>
+    apiVersionManager.handle(endpoint, request, context);
 }
 
 /**

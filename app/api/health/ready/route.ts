@@ -11,13 +11,13 @@ const prisma = new PrismaClient();
  */
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     // Check database connectivity
     const dbStartTime = Date.now();
     await prisma.$queryRaw`SELECT 1`;
     const dbResponseTime = Date.now() - dbStartTime;
-    
+
     // Consider ready if database responds within 2 seconds
     if (dbResponseTime > 2000) {
       return NextResponse.json(
@@ -27,20 +27,22 @@ export async function GET(request: NextRequest) {
           checks: {
             database: {
               status: "slow",
-              responseTime: dbResponseTime
-            }
+              responseTime: dbResponseTime,
+            },
           },
           timestamp: new Date().toISOString(),
-          responseTime: Date.now() - startTime
+          responseTime: Date.now() - startTime,
         },
         { status: 503 }
       );
     }
 
     // Check environment variables are set
-    const requiredEnvVars = ['DATABASE_URL', 'NEXTAUTH_SECRET'];
-    const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
-    
+    const requiredEnvVars = ["DATABASE_URL", "NEXTAUTH_SECRET"];
+    const missingEnvVars = requiredEnvVars.filter(
+      envVar => !process.env[envVar]
+    );
+
     if (missingEnvVars.length > 0) {
       return NextResponse.json(
         {
@@ -48,7 +50,7 @@ export async function GET(request: NextRequest) {
           reason: "Missing required environment variables",
           missing: missingEnvVars,
           timestamp: new Date().toISOString(),
-          responseTime: Date.now() - startTime
+          responseTime: Date.now() - startTime,
         },
         { status: 503 }
       );
@@ -61,18 +63,17 @@ export async function GET(request: NextRequest) {
         checks: {
           database: {
             status: "healthy",
-            responseTime: dbResponseTime
+            responseTime: dbResponseTime,
           },
           environment: {
-            status: "configured"
-          }
+            status: "configured",
+          },
         },
         timestamp: new Date().toISOString(),
-        responseTime: Date.now() - startTime
+        responseTime: Date.now() - startTime,
       },
       { status: 200 }
     );
-
   } catch (error) {
     return NextResponse.json(
       {
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
         reason: "Database connection failed",
         error: (error as Error).message,
         timestamp: new Date().toISOString(),
-        responseTime: Date.now() - startTime
+        responseTime: Date.now() - startTime,
       },
       { status: 503 }
     );
@@ -98,4 +99,4 @@ export async function HEAD(request: NextRequest) {
   } catch (error) {
     return new NextResponse(null, { status: 503 });
   }
-} 
+}

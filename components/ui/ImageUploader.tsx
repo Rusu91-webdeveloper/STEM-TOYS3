@@ -9,7 +9,6 @@ import { OurFileRouter } from "@/lib/uploadthing";
 
 import { Button } from "./button";
 
-
 interface ImageUploaderProps {
   /**
    * Maximum number of images that can be uploaded
@@ -41,7 +40,7 @@ export function ImageUploader({
   const [images, setImages] = useState<string[]>(initialImages);
 
   const handleUploadComplete = (res: { url: string }[]) => {
-    const newImageUrls = res.map((file) => file.url);
+    const newImageUrls = res.map(file => file.url);
     const updatedImages = [...images, ...newImageUrls].slice(0, maxImages);
 
     setImages(updatedImages);
@@ -74,7 +73,8 @@ export function ImageUploader({
         {images.map((image, index) => (
           <div
             key={`${image}-${index}`}
-            className="relative group aspect-square border rounded-md overflow-hidden">
+            className="relative group aspect-square border rounded-md overflow-hidden"
+          >
             <Image
               src={image}
               alt={`Uploaded image ${index + 1}`}
@@ -86,7 +86,8 @@ export function ImageUploader({
               variant="destructive"
               size="icon"
               className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => handleRemoveImage(index)}>
+              onClick={() => handleRemoveImage(index)}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>

@@ -53,7 +53,7 @@ const createCouponSchema = z
     showAsPopup: z.boolean().default(false),
     popupPriority: z.coerce.number().int().min(0).default(0),
   })
-  .transform((data) => ({
+  .transform(data => ({
     ...data,
     description: data.description === "" ? undefined : data.description,
     minimumOrderValue:

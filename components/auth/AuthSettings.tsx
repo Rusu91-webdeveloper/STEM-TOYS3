@@ -31,8 +31,6 @@ import {
 } from "@/lib/auth/smartSessionManager";
 import { useTranslation } from "@/lib/i18n";
 
-
-
 interface AuthSettingsProps {
   isOpen: boolean;
   onClose: () => void;

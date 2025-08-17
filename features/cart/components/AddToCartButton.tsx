@@ -11,7 +11,6 @@ import {
 import type { CartItem } from "../context/CartContext";
 import { useShoppingCart } from "../hooks/useShoppingCart";
 
-
 interface AddToCartButtonProps {
   product: {
     id: string;
@@ -45,7 +44,7 @@ export function AddToCartButton({
   const handleAddToCart = () => {
     // Find the selected variant if any
     const selectedVariant = selectedVariantId
-      ? product.variants?.find((v) => v.id === selectedVariantId)
+      ? product.variants?.find(v => v.id === selectedVariantId)
       : undefined;
 
     const item: Omit<CartItem, "id"> = {
@@ -76,7 +75,8 @@ export function AddToCartButton({
     <div
       className={`flex ${
         showQuantity || showVariantSelector ? "flex-col space-y-4" : ""
-      } ${className}`}>
+      } ${className}`}
+    >
       {/* Variant Selector */}
       {showVariantSelector &&
         product.variants &&
@@ -93,22 +93,25 @@ export function AddToCartButton({
           showQuantity
             ? "flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2"
             : ""
-        }`}>
+        }`}
+      >
         {/* Quantity Selector */}
         {showQuantity && (
           <div className="flex items-center border rounded-md">
             <button
-              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+              onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
               className="p-2 hover:bg-muted"
               aria-label="Decrease quantity"
-              disabled={quantity <= 1}>
+              disabled={quantity <= 1}
+            >
               -
             </button>
             <span className="px-4 py-2">{quantity}</span>
             <button
-              onClick={() => setQuantity((prev) => prev + 1)}
+              onClick={() => setQuantity(prev => prev + 1)}
               className="p-2 hover:bg-muted"
-              aria-label="Increase quantity">
+              aria-label="Increase quantity"
+            >
               +
             </button>
           </div>
@@ -122,9 +125,10 @@ export function AddToCartButton({
             isAdded
               ? "bg-green-600 text-white hover:bg-green-700"
               : isAddDisabled
-              ? "bg-muted text-muted-foreground cursor-not-allowed"
-              : "bg-primary text-primary-foreground hover:bg-primary/90"
-          } ${showQuantity ? "flex-1" : "w-full"}`}>
+                ? "bg-muted text-muted-foreground cursor-not-allowed"
+                : "bg-primary text-primary-foreground hover:bg-primary/90"
+          } ${showQuantity ? "flex-1" : "w-full"}`}
+        >
           {isAdded ? (
             <>
               <Check className="h-5 w-5" />

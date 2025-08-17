@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 
-
 // Luhn algorithm for credit card validation
 const validateLuhn = (cardNumber: string): boolean => {
   const cleanNumber = cardNumber.replace(/\D/g, "");

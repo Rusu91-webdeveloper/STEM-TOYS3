@@ -21,7 +21,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-
 // Define the Category type
 type Category = {
   id: string;
@@ -101,7 +100,7 @@ export default function AdminCategoriesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {categories.map((category) => (
+                {categories.map(category => (
                   <TableRow key={category.id}>
                     <TableCell className="font-medium">
                       {category.name}
@@ -123,10 +122,7 @@ export default function AdminCategoriesPage() {
                     <TableCell>{category.productCount || 0}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          asChild>
+                        <Button variant="ghost" size="icon" asChild>
                           <Link href={`/admin/categories/edit/${category.id}`}>
                             <Edit className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
@@ -135,7 +131,8 @@ export default function AdminCategoriesPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-red-500">
+                          className="text-red-500"
+                        >
                           <Trash2 className="h-4 w-4" />
                           <span className="sr-only">Delete</span>
                         </Button>

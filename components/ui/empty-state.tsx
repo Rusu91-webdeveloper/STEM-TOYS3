@@ -1,11 +1,11 @@
-import { cva, type VariantProps } from "class-variance-authority"
-import { 
-  ShoppingCart, 
-  Heart, 
-  Search, 
-  Package, 
-  FileText, 
-  Users, 
+import { cva, type VariantProps } from "class-variance-authority";
+import {
+  ShoppingCart,
+  Heart,
+  Search,
+  Package,
+  FileText,
+  Users,
   Star,
   BookOpen,
   Download,
@@ -13,13 +13,12 @@ import {
   MapPin,
   MessageCircle,
   Plus,
-  ArrowRight
-} from "lucide-react"
-import * as React from "react"
+  ArrowRight,
+} from "lucide-react";
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const emptyStateVariants = cva(
   "flex flex-col items-center justify-center text-center space-y-6 p-8",
@@ -42,26 +41,26 @@ const emptyStateVariants = cva(
       size: "default",
     },
   }
-)
+);
 
 interface EmptyStateProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof emptyStateVariants> {
-  title: string
-  description?: string
-  icon?: React.ComponentType<any>
-  illustration?: React.ReactNode
+  title: string;
+  description?: string;
+  icon?: React.ComponentType<any>;
+  illustration?: React.ReactNode;
   primaryAction?: {
-    label: string
-    onClick: () => void
-    variant?: "default" | "outline" | "secondary"
-  }
+    label: string;
+    onClick: () => void;
+    variant?: "default" | "outline" | "secondary";
+  };
   secondaryAction?: {
-    label: string
-    onClick: () => void
-    variant?: "default" | "outline" | "secondary"
-  }
-  showDivider?: boolean
+    label: string;
+    onClick: () => void;
+    variant?: "default" | "outline" | "secondary";
+  };
+  showDivider?: boolean;
 }
 
 function EmptyState({
@@ -91,7 +90,10 @@ function EmptyState({
           </div>
         ) : Icon ? (
           <div className="w-16 h-16 rounded-full bg-muted/20 flex items-center justify-center">
-            <Icon className="w-8 h-8 text-muted-foreground/60" aria-hidden="true" />
+            <Icon
+              className="w-8 h-8 text-muted-foreground/60"
+              aria-hidden="true"
+            />
           </div>
         ) : null}
 
@@ -106,9 +108,7 @@ function EmptyState({
 
         {(primaryAction || secondaryAction) && (
           <>
-            {showDivider && (
-              <div className="w-24 h-px bg-border" />
-            )}
+            {showDivider && <div className="w-24 h-px bg-border" />}
             <div className="flex flex-col sm:flex-row gap-3">
               {primaryAction && (
                 <Button
@@ -135,18 +135,22 @@ function EmptyState({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 // Specialized empty state components for common e-commerce scenarios
 
 interface EmptyCartProps {
-  onContinueShopping: () => void
-  onViewWishlist?: () => void
-  className?: string
+  onContinueShopping: () => void;
+  onViewWishlist?: () => void;
+  className?: string;
 }
 
-function EmptyCart({ onContinueShopping, onViewWishlist, className }: EmptyCartProps) {
+function EmptyCart({
+  onContinueShopping,
+  onViewWishlist,
+  className,
+}: EmptyCartProps) {
   return (
     <EmptyState
       className={className}
@@ -157,19 +161,23 @@ function EmptyCart({ onContinueShopping, onViewWishlist, className }: EmptyCartP
         label: "Start Shopping",
         onClick: onContinueShopping,
       }}
-      secondaryAction={onViewWishlist ? {
-        label: "View Wishlist",
-        onClick: onViewWishlist,
-        variant: "outline"
-      } : undefined}
+      secondaryAction={
+        onViewWishlist
+          ? {
+              label: "View Wishlist",
+              onClick: onViewWishlist,
+              variant: "outline",
+            }
+          : undefined
+      }
       showDivider
     />
-  )
+  );
 }
 
 interface EmptyWishlistProps {
-  onBrowseProducts: () => void
-  className?: string
+  onBrowseProducts: () => void;
+  className?: string;
 }
 
 function EmptyWishlist({ onBrowseProducts, className }: EmptyWishlistProps) {
@@ -184,17 +192,22 @@ function EmptyWishlist({ onBrowseProducts, className }: EmptyWishlistProps) {
         onClick: onBrowseProducts,
       }}
     />
-  )
+  );
 }
 
 interface EmptySearchProps {
-  query?: string
-  onClearFilters?: () => void
-  onBrowseCategories: () => void
-  className?: string
+  query?: string;
+  onClearFilters?: () => void;
+  onBrowseCategories: () => void;
+  className?: string;
 }
 
-function EmptySearch({ query, onClearFilters, onBrowseCategories, className }: EmptySearchProps) {
+function EmptySearch({
+  query,
+  onClearFilters,
+  onBrowseCategories,
+  className,
+}: EmptySearchProps) {
   return (
     <EmptyState
       className={className}
@@ -205,18 +218,22 @@ function EmptySearch({ query, onClearFilters, onBrowseCategories, className }: E
         label: "Browse Categories",
         onClick: onBrowseCategories,
       }}
-      secondaryAction={onClearFilters ? {
-        label: "Clear Filters",
-        onClick: onClearFilters,
-        variant: "outline"
-      } : undefined}
+      secondaryAction={
+        onClearFilters
+          ? {
+              label: "Clear Filters",
+              onClick: onClearFilters,
+              variant: "outline",
+            }
+          : undefined
+      }
     />
-  )
+  );
 }
 
 interface EmptyOrdersProps {
-  onStartShopping: () => void
-  className?: string
+  onStartShopping: () => void;
+  className?: string;
 }
 
 function EmptyOrders({ onStartShopping, className }: EmptyOrdersProps) {
@@ -231,16 +248,20 @@ function EmptyOrders({ onStartShopping, className }: EmptyOrdersProps) {
         onClick: onStartShopping,
       }}
     />
-  )
+  );
 }
 
 interface EmptyDigitalLibraryProps {
-  onBrowseBooks: () => void
-  onLearnMore?: () => void
-  className?: string
+  onBrowseBooks: () => void;
+  onLearnMore?: () => void;
+  className?: string;
 }
 
-function EmptyDigitalLibrary({ onBrowseBooks, onLearnMore, className }: EmptyDigitalLibraryProps) {
+function EmptyDigitalLibrary({
+  onBrowseBooks,
+  onLearnMore,
+  className,
+}: EmptyDigitalLibraryProps) {
   return (
     <EmptyState
       className={className}
@@ -251,18 +272,22 @@ function EmptyDigitalLibrary({ onBrowseBooks, onLearnMore, className }: EmptyDig
         label: "Browse Digital Books",
         onClick: onBrowseBooks,
       }}
-      secondaryAction={onLearnMore ? {
-        label: "Learn More",
-        onClick: onLearnMore,
-        variant: "outline"
-      } : undefined}
+      secondaryAction={
+        onLearnMore
+          ? {
+              label: "Learn More",
+              onClick: onLearnMore,
+              variant: "outline",
+            }
+          : undefined
+      }
     />
-  )
+  );
 }
 
 interface EmptyReviewsProps {
-  onWriteReview: () => void
-  className?: string
+  onWriteReview: () => void;
+  className?: string;
 }
 
 function EmptyReviews({ onWriteReview, className }: EmptyReviewsProps) {
@@ -279,12 +304,12 @@ function EmptyReviews({ onWriteReview, className }: EmptyReviewsProps) {
       variant="secondary"
       size="sm"
     />
-  )
+  );
 }
 
 interface EmptyAddressesProps {
-  onAddAddress: () => void
-  className?: string
+  onAddAddress: () => void;
+  className?: string;
 }
 
 function EmptyAddresses({ onAddAddress, className }: EmptyAddressesProps) {
@@ -300,15 +325,18 @@ function EmptyAddresses({ onAddAddress, className }: EmptyAddressesProps) {
       }}
       size="sm"
     />
-  )
+  );
 }
 
 interface EmptyPaymentMethodsProps {
-  onAddPaymentMethod: () => void
-  className?: string
+  onAddPaymentMethod: () => void;
+  className?: string;
 }
 
-function EmptyPaymentMethods({ onAddPaymentMethod, className }: EmptyPaymentMethodsProps) {
+function EmptyPaymentMethods({
+  onAddPaymentMethod,
+  className,
+}: EmptyPaymentMethodsProps) {
   return (
     <EmptyState
       className={className}
@@ -321,12 +349,12 @@ function EmptyPaymentMethods({ onAddPaymentMethod, className }: EmptyPaymentMeth
       }}
       size="sm"
     />
-  )
+  );
 }
 
 interface EmptyCommentsProps {
-  onAddComment: () => void
-  className?: string
+  onAddComment: () => void;
+  className?: string;
 }
 
 function EmptyComments({ onAddComment, className }: EmptyCommentsProps) {
@@ -342,12 +370,12 @@ function EmptyComments({ onAddComment, className }: EmptyCommentsProps) {
       }}
       size="sm"
     />
-  )
+  );
 }
 
 interface EmptyDownloadsProps {
-  onBrowseDigital: () => void
-  className?: string
+  onBrowseDigital: () => void;
+  className?: string;
 }
 
 function EmptyDownloads({ onBrowseDigital, className }: EmptyDownloadsProps) {
@@ -362,58 +390,77 @@ function EmptyDownloads({ onBrowseDigital, className }: EmptyDownloadsProps) {
         onClick: onBrowseDigital,
       }}
     />
-  )
+  );
 }
 
 interface EmptyBlogProps {
-  onCreatePost?: () => void
-  onSuggestTopic?: () => void
-  className?: string
-  isAdmin?: boolean
+  onCreatePost?: () => void;
+  onSuggestTopic?: () => void;
+  className?: string;
+  isAdmin?: boolean;
 }
 
-function EmptyBlog({ onCreatePost, onSuggestTopic, className, isAdmin = false }: EmptyBlogProps) {
+function EmptyBlog({
+  onCreatePost,
+  onSuggestTopic,
+  className,
+  isAdmin = false,
+}: EmptyBlogProps) {
   return (
     <EmptyState
       className={className}
       title="No blog posts yet"
-      description={isAdmin 
-        ? "Get started by creating your first blog post to share insights and engage with your audience."
-        : "We're working on exciting content for you! Check back soon for the latest updates and insights."
+      description={
+        isAdmin
+          ? "Get started by creating your first blog post to share insights and engage with your audience."
+          : "We're working on exciting content for you! Check back soon for the latest updates and insights."
       }
       icon={FileText}
-      primaryAction={isAdmin && onCreatePost ? {
-        label: "Create First Post",
-        onClick: onCreatePost,
-      } : onSuggestTopic ? {
-        label: "Suggest a Topic",
-        onClick: onSuggestTopic,
-        variant: "outline"
-      } : undefined}
+      primaryAction={
+        isAdmin && onCreatePost
+          ? {
+              label: "Create First Post",
+              onClick: onCreatePost,
+            }
+          : onSuggestTopic
+            ? {
+                label: "Suggest a Topic",
+                onClick: onSuggestTopic,
+                variant: "outline",
+              }
+            : undefined
+      }
     />
-  )
+  );
 }
 
 interface EmptyNotificationsProps {
-  onSettings?: () => void
-  className?: string
+  onSettings?: () => void;
+  className?: string;
 }
 
-function EmptyNotifications({ onSettings, className }: EmptyNotificationsProps) {
+function EmptyNotifications({
+  onSettings,
+  className,
+}: EmptyNotificationsProps) {
   return (
     <EmptyState
       className={className}
       title="No notifications"
       description="You're all caught up! We'll notify you of important updates and activity."
       icon={FileText}
-      secondaryAction={onSettings ? {
-        label: "Notification Settings",
-        onClick: onSettings,
-        variant: "outline"
-      } : undefined}
+      secondaryAction={
+        onSettings
+          ? {
+              label: "Notification Settings",
+              onClick: onSettings,
+              variant: "outline",
+            }
+          : undefined
+      }
       size="sm"
     />
-  )
+  );
 }
 
 export {
@@ -444,4 +491,4 @@ export {
   type EmptyDownloadsProps,
   type EmptyBlogProps,
   type EmptyNotificationsProps,
-} 
+};

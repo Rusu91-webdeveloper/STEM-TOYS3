@@ -32,7 +32,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-
 const guestOrderSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   orderNumber: z.string().min(1, "Please enter your order number"),
@@ -145,7 +144,8 @@ export function GuestOrderTracking() {
     }
   };
 
-  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -153,7 +153,8 @@ export function GuestOrderTracking() {
       minute: "2-digit",
     });
 
-  const formatPrice = (price: number) => new Intl.NumberFormat("en-US", {
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
     }).format(price);

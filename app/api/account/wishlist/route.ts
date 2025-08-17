@@ -49,7 +49,7 @@ export async function GET() {
       });
 
       // Format data for frontend consumption
-      const formattedItems = wishlistItems.map((item) => ({
+      const formattedItems = wishlistItems.map(item => ({
         id: item.id,
         productId: item.productId,
         name: item.product.name,

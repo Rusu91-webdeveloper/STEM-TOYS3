@@ -68,7 +68,8 @@ export default async function AdminBookDetailsPage({ params }: Props) {
     where: { bookId: id },
   });
 
-  const formatPrice = (price: number) => new Intl.NumberFormat("ro-RO", {
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("ro-RO", {
       style: "currency",
       currency: "RON",
     }).format(price);
@@ -82,10 +83,7 @@ export default async function AdminBookDetailsPage({ params }: Props) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="sm"
-          asChild>
+        <Button variant="outline" size="sm" asChild>
           <Link href="/admin/books">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Înapoi la Cărți
@@ -170,9 +168,7 @@ export default async function AdminBookDetailsPage({ params }: Props) {
               <h4 className="text-sm font-medium mb-2">Limbi Disponibile</h4>
               <div className="flex gap-2">
                 {book.languages.map((language: any) => (
-                  <Badge
-                    key={language.id}
-                    variant="outline">
+                  <Badge key={language.id} variant="outline">
                     {language.name}
                   </Badge>
                 ))}
@@ -254,9 +250,7 @@ export default async function AdminBookDetailsPage({ params }: Props) {
                   <p className="text-sm text-muted-foreground mb-3">
                     Nu există fișiere digitale încărcate
                   </p>
-                  <Button
-                    asChild
-                    size="sm">
+                  <Button asChild size="sm">
                     <Link href={`/admin/books/${book.id}/digital-files`}>
                       <Upload className="h-4 w-4 mr-2" />
                       Încarcă Primul Fișier
@@ -265,21 +259,18 @@ export default async function AdminBookDetailsPage({ params }: Props) {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {book.digitalFiles.slice(0, 5).map((file) => (
+                  {book.digitalFiles.slice(0, 5).map(file => (
                     <div
                       key={file.id}
-                      className="flex items-center justify-between p-3 border rounded-lg">
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
                       <div>
                         <p className="text-sm font-medium">{file.fileName}</p>
                         <div className="flex gap-2 mt-1">
-                          <Badge
-                            variant="secondary"
-                            className="text-xs">
+                          <Badge variant="secondary" className="text-xs">
                             {file.format.toUpperCase()}
                           </Badge>
-                          <Badge
-                            variant="outline"
-                            className="text-xs">
+                          <Badge variant="outline" className="text-xs">
                             {file.language === "en" ? "English" : "Română"}
                           </Badge>
                         </div>
@@ -297,10 +288,7 @@ export default async function AdminBookDetailsPage({ params }: Props) {
                   )}
 
                   <div className="pt-3">
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="w-full">
+                    <Button asChild variant="outline" className="w-full">
                       <Link href={`/admin/books/${book.id}/digital-files`}>
                         Vezi Toate Fișierele
                       </Link>
@@ -328,10 +316,11 @@ export default async function AdminBookDetailsPage({ params }: Props) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {book.orderItems.map((item) => (
+              {book.orderItems.map(item => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-3 border rounded-lg">
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div>
                     <p className="text-sm font-medium">
                       Comanda #{item.order.orderNumber}
@@ -352,7 +341,8 @@ export default async function AdminBookDetailsPage({ params }: Props) {
                           ? "default"
                           : "secondary"
                       }
-                      className="text-xs">
+                      className="text-xs"
+                    >
                       {item.order.paymentStatus}
                     </Badge>
                   </div>

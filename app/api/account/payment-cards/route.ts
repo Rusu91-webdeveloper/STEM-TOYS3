@@ -150,7 +150,7 @@ export async function POST(req: Request) {
     const encryptedCvv = encryptData(cvv);
 
     // Use transaction to ensure operations are atomic
-    const newCard = await db.$transaction(async (tx) => {
+    const newCard = await db.$transaction(async tx => {
       // If this is the default card, unset any existing default cards
       if (isDefault) {
         await tx.paymentCard.updateMany({

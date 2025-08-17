@@ -19,7 +19,8 @@ export default function UnsubscribeErrorPage() {
             className="h-16 w-16 mx-auto"
             fill="none"
             viewBox="0 0 24 24"
-            stroke="currentColor">
+            stroke="currentColor"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -40,7 +41,8 @@ export default function UnsubscribeErrorPage() {
           email
           <a
             href="mailto:support@techtots.ro"
-            className="text-primary hover:underline mx-1">
+            className="text-primary hover:underline mx-1"
+          >
             support@techtots.ro
           </a>
           pentru asistență.

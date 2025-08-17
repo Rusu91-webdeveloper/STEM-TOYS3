@@ -124,7 +124,7 @@ export async function PUT(
     const { isDefault, ...addressData } = result.data;
 
     // Use transaction to ensure all operations are atomic
-    const updatedAddress = await db.$transaction(async (tx) => {
+    const updatedAddress = await db.$transaction(async tx => {
       // If this is being set as the default address, unset any existing default addresses
       if (isDefault && !existingAddress.isDefault) {
         await tx.address.updateMany({
@@ -206,7 +206,7 @@ export async function DELETE(
     }
 
     // Use transaction to ensure all operations are atomic
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async tx => {
       // Delete the address
       await tx.address.delete({
         where: {

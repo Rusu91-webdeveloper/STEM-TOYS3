@@ -35,14 +35,7 @@ export function Toaster() {
 
   return (
     <ToastProvider>
-      {toasts.map(({
-        id,
-        title,
-        description,
-        action,
-        variant,
-        ...props
-      }) => {
+      {toasts.map(({ id, title, description, action, variant, ...props }) => {
         // Ensure variant is a string or undefined to satisfy type constraints
         const safeVariant = variant ? String(variant) : undefined;
 
@@ -59,7 +52,8 @@ export function Toaster() {
                 | "warning"
                 | undefined
             }
-            {...props}>
+            {...props}
+          >
             <div className="flex items-start gap-3">
               <div className="mt-1">{getToastIcon(safeVariant)}</div>
               <div className="grid gap-1 flex-1">

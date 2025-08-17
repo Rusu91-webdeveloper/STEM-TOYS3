@@ -8,7 +8,8 @@ import {
   Edit2,
   Trash2,
   EyeIcon,
- MoreHorizontal } from "lucide-react";
+  MoreHorizontal,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
@@ -85,7 +86,7 @@ export default function BlogManagementPage() {
 
   // Filter blogs based on search term
   const filteredBlogs = blogs.filter(
-    (blog) =>
+    blog =>
       blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       blog.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
       blog.stemCategory.toLowerCase().includes(searchTerm.toLowerCase())
@@ -109,7 +110,7 @@ export default function BlogManagementPage() {
   const handleDeleteBlog = async (blogId: string, blogTitle: string) => {
     if (window.confirm(`Are you sure you want to delete "${blogTitle}"?`)) {
       try {
-        const blogToDelete = blogs.find((blog) => blog.id === blogId);
+        const blogToDelete = blogs.find(blog => blog.id === blogId);
         if (!blogToDelete) return;
 
         const response = await fetch(`/api/blog/${blogToDelete.slug}`, {
@@ -173,7 +174,8 @@ export default function BlogManagementPage() {
             <Button
               variant="outline"
               onClick={handleSeedBlogs}
-              disabled={isSeeding}>
+              disabled={isSeeding}
+            >
               {isSeeding ? "Creating..." : "Create Sample Blogs"}
             </Button>
           )}
@@ -193,7 +195,7 @@ export default function BlogManagementPage() {
             placeholder="Search blog posts..."
             className="pl-10"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
@@ -217,13 +219,14 @@ export default function BlogManagementPage() {
             </TableHeader>
             <TableBody>
               {filteredBlogs.length > 0 ? (
-                filteredBlogs.map((blog) => (
+                filteredBlogs.map(blog => (
                   <TableRow key={blog.id}>
                     <TableCell className="font-medium">{blog.title}</TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
-                        className={`${getStemCategoryColor(blog.stemCategory)}`}>
+                        className={`${getStemCategoryColor(blog.stemCategory)}`}
+                      >
                         {blog.stemCategory}
                       </Badge>
                     </TableCell>
@@ -234,7 +237,8 @@ export default function BlogManagementPage() {
                           blog.isPublished
                             ? "bg-green-100 text-green-800"
                             : "bg-gray-100 text-gray-800"
-                        }>
+                        }
+                      >
                         {blog.isPublished ? "Published" : "Draft"}
                       </Badge>
                     </TableCell>
@@ -252,9 +256,7 @@ export default function BlogManagementPage() {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className="h-8 w-8 p-0">
+                          <Button variant="ghost" className="h-8 w-8 p-0">
                             <span className="sr-only">Open menu</span>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -263,14 +265,16 @@ export default function BlogManagementPage() {
                           <DropdownMenuItem
                             onClick={() =>
                               router.push(`/admin/blog/edit/${blog.slug}`)
-                            }>
+                            }
+                          >
                             <Edit2 className="h-4 w-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
                               router.push(`/blog/post/${blog.slug}`)
-                            }>
+                            }
+                          >
                             <EyeIcon className="h-4 w-4 mr-2" />
                             View
                           </DropdownMenuItem>
@@ -278,7 +282,8 @@ export default function BlogManagementPage() {
                             className="text-red-600"
                             onClick={() =>
                               handleDeleteBlog(blog.id, blog.title)
-                            }>
+                            }
+                          >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete
                           </DropdownMenuItem>
@@ -289,9 +294,7 @@ export default function BlogManagementPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     No blog posts found.
                     {!isLoading && (
                       <span className="block mt-2 text-sm text-muted-foreground">

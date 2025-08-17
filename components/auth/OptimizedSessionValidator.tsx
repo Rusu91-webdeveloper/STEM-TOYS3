@@ -27,7 +27,7 @@ export function OptimizedSessionValidator() {
   const criticalRoutes = ["/account", "/admin", "/checkout"];
   const shouldValidate =
     status === "authenticated" &&
-    criticalRoutes.some((route) => pathname.startsWith(route)) &&
+    criticalRoutes.some(route => pathname.startsWith(route)) &&
     !pathname.startsWith("/auth") &&
     !pathname.includes("/api/auth");
 

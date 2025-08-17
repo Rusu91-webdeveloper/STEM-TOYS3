@@ -27,11 +27,11 @@ jest.mock("@/lib/auth", () => ({
 }));
 
 jest.mock("@/lib/rate-limit", () => ({
-  withRateLimit: jest.fn((handler) => handler),
+  withRateLimit: jest.fn(handler => handler),
 }));
 
 jest.mock("@/lib/api-error-handler", () => ({
-  withErrorHandler: jest.fn((handler) => handler),
+  withErrorHandler: jest.fn(handler => handler),
 }));
 
 describe("/api/cart", () => {
@@ -40,14 +40,14 @@ describe("/api/cart", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Get mocked dependencies
     mockDb = require("@/lib/db").db;
     mockAuth = require("@/lib/auth").auth;
-    
+
     // Mock authenticated user by default
     mockAuth.mockResolvedValue({
-      user: { id: "user-123", email: "test@example.com" }
+      user: { id: "user-123", email: "test@example.com" },
     });
   });
 
@@ -68,9 +68,9 @@ describe("/api/cart", () => {
             name: "Test Product",
             price: 29.99,
             images: ["image1.jpg"],
-            slug: "test-product"
-          }
-        }
+            slug: "test-product",
+          },
+        },
       ];
 
       mockDb.cartItem.findMany.mockResolvedValue(mockCartItems);
@@ -94,9 +94,9 @@ describe("/api/cart", () => {
               images: true,
               slug: true,
               stock: true,
-            }
-          }
-        }
+            },
+          },
+        },
       });
     });
 
@@ -146,7 +146,7 @@ describe("/api/cart", () => {
   describe("POST /api/cart", () => {
     const validCartRequest = {
       productId: "product-1",
-      quantity: 2
+      quantity: 2,
     };
 
     beforeEach(() => {
@@ -155,7 +155,7 @@ describe("/api/cart", () => {
         id: "product-1",
         name: "Test Product",
         price: 29.99,
-        stock: 10
+        stock: 10,
       });
     });
 
@@ -165,13 +165,13 @@ describe("/api/cart", () => {
         id: "cart-item-1",
         productId: "product-1",
         quantity: 2,
-        userId: "user-123"
+        userId: "user-123",
       });
 
       const request = new NextRequest("http://localhost:3000/api/cart", {
         method: "POST",
         body: JSON.stringify(validCartRequest),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
 
       // Act
@@ -185,17 +185,17 @@ describe("/api/cart", () => {
         where: {
           userId_productId: {
             userId: "user-123",
-            productId: "product-1"
-          }
+            productId: "product-1",
+          },
         },
         update: {
-          quantity: { increment: 2 }
+          quantity: { increment: 2 },
         },
         create: {
           userId: "user-123",
           productId: "product-1",
-          quantity: 2
-        }
+          quantity: 2,
+        },
       });
     });
 
@@ -205,7 +205,7 @@ describe("/api/cart", () => {
       const request = new NextRequest("http://localhost:3000/api/cart", {
         method: "POST",
         body: JSON.stringify(validCartRequest),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
 
       // Act
@@ -223,7 +223,7 @@ describe("/api/cart", () => {
       const request = new NextRequest("http://localhost:3000/api/cart", {
         method: "POST",
         body: JSON.stringify(invalidRequest),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
 
       // Act
@@ -241,7 +241,7 @@ describe("/api/cart", () => {
       const request = new NextRequest("http://localhost:3000/api/cart", {
         method: "POST",
         body: JSON.stringify(validCartRequest),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
 
       // Act
@@ -259,18 +259,18 @@ describe("/api/cart", () => {
         id: "product-1",
         name: "Test Product",
         price: 29.99,
-        stock: 1 // Only 1 in stock
+        stock: 1, // Only 1 in stock
       });
 
       const requestWithTooMuchQuantity = {
         productId: "product-1",
-        quantity: 5 // Requesting more than available
+        quantity: 5, // Requesting more than available
       };
 
       const request = new NextRequest("http://localhost:3000/api/cart", {
         method: "POST",
         body: JSON.stringify(requestWithTooMuchQuantity),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
 
       // Act
@@ -287,7 +287,7 @@ describe("/api/cart", () => {
       const request = new NextRequest("http://localhost:3000/api/cart", {
         method: "POST",
         body: "invalid-json",
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
 
       // Act
@@ -308,7 +308,7 @@ describe("/api/cart", () => {
       const request = new NextRequest("http://localhost:3000/api/cart", {
         method: "POST",
         body: JSON.stringify(validCartRequest),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
 
       // Act
@@ -327,13 +327,13 @@ describe("/api/cart", () => {
       for (const quantity of invalidQuantities) {
         const invalidRequest = {
           productId: "product-1",
-          quantity
+          quantity,
         };
 
         const request = new NextRequest("http://localhost:3000/api/cart", {
           method: "POST",
           body: JSON.stringify(invalidRequest),
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         });
 
         // Act
@@ -353,13 +353,13 @@ describe("/api/cart", () => {
       for (const productId of invalidProductIds) {
         const invalidRequest = {
           productId,
-          quantity: 1
+          quantity: 1,
         };
 
         const request = new NextRequest("http://localhost:3000/api/cart", {
           method: "POST",
           body: JSON.stringify(invalidRequest),
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         });
 
         // Act
@@ -372,4 +372,4 @@ describe("/api/cart", () => {
       }
     });
   });
-}); 
+});
