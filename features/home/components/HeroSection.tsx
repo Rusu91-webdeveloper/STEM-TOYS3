@@ -58,18 +58,11 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
       <div className="flex flex-col xs:flex-row gap-4 w-full max-w-xs xs:max-w-none mx-auto items-center justify-center">
         {/* Shop All Products CTA */}
 
-        <a
-          href="/products"
-          aria-label={t("shopAllProducts")}
-          tabIndex={0}
-          className="w-full xs:w-auto min-h-[44px] px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-base sm:text-lg font-semibold border-0 relative overflow-hidden group focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-purple-700 text-center"
-
         <Link
           href="/products"
           aria-label={t("shopAllProducts")}
           tabIndex={0}
           className="w-full xs:w-auto min-h-[44px] px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-base sm:text-lg font-semibold border-0 relative overflow-hidden group focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-purple-700 text-center flex items-center justify-center"
-
         >
           {t("shopAllProducts")}
           <span className="ml-2 transform transition-transform group-hover:translate-x-1 inline-block align-middle">
@@ -89,18 +82,6 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
               />
             </svg>
           </span>
-
-        </a>
-        {/* Explore Categories CTA */}
-        <a
-          href="/categories"
-          aria-label={t("exploreCategories")}
-          tabIndex={0}
-          className="w-full xs:w-auto min-h-[44px] px-6 py-3 bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 text-base sm:text-lg font-semibold mt-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-orange-600 text-center"
-        >
-          {t("exploreCategories")}
-        </a>
-
         </Link>
         {/* Explore Categories CTA */}
         <Link
