@@ -50,7 +50,7 @@ describe("FeaturedProductsSection", () => {
       images: ["/test-image-1.jpg"],
     },
     {
-      id: "2", 
+      id: "2",
       name: "Test Product 2",
       slug: "test-product-2",
       description: "Another test product",
@@ -201,7 +201,7 @@ describe("FeaturedProductsSection", () => {
     const gridContainer = document.querySelector(".grid");
     expect(gridContainer).toHaveClass(
       "grid-cols-1",
-      "xs:grid-cols-2", 
+      "xs:grid-cols-2",
       "lg:grid-cols-4"
     );
   });
@@ -216,7 +216,13 @@ describe("FeaturedProductsSection", () => {
     );
 
     const productLinks = screen.getAllByRole("link");
-    expect(productLinks[0]).toHaveAttribute("aria-label", "View details for Test Product 1");
-    expect(productLinks[1]).toHaveAttribute("aria-label", "View details for Test Product 2");
+    expect(productLinks[0]).toHaveAttribute(
+      "aria-label",
+      "View details for Test Product 1"
+    );
+    expect(productLinks[1]).toHaveAttribute(
+      "aria-label",
+      "View details for Test Product 2"
+    );
   });
 });

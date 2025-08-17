@@ -8,11 +8,11 @@ import { FeaturedProductsSkeleton } from "@/features/home/components/FeaturedPro
 // Mock the skeleton component from ui
 jest.mock("@/components/ui/skeleton", () => ({
   Skeleton: ({ className, variant, ...props }: any) => (
-    <div 
-      data-testid="skeleton" 
+    <div
+      data-testid="skeleton"
       data-variant={variant}
-      className={className} 
-      {...props} 
+      className={className}
+      {...props}
     />
   ),
 }));
@@ -41,7 +41,7 @@ describe("FeaturedProductsSkeleton", () => {
     const gridContainer = document.querySelector(".grid");
     expect(gridContainer).toHaveClass(
       "grid-cols-1",
-      "xs:grid-cols-2", 
+      "xs:grid-cols-2",
       "lg:grid-cols-4"
     );
   });
@@ -59,15 +59,23 @@ describe("FeaturedProductsSkeleton", () => {
     render(<FeaturedProductsSkeleton count={1} />);
 
     // Check for image skeleton with correct height classes
-    const imageSkeletons = screen.getAllByTestId("skeleton").filter(skeleton =>
-      skeleton.className.includes("h-full") && skeleton.className.includes("rounded-t-xl")
-    );
+    const imageSkeletons = screen
+      .getAllByTestId("skeleton")
+      .filter(
+        skeleton =>
+          skeleton.className.includes("h-full") &&
+          skeleton.className.includes("rounded-t-xl")
+      );
     expect(imageSkeletons.length).toBe(1);
 
     // Check for title skeleton
-    const titleSkeletons = screen.getAllByTestId("skeleton").filter(skeleton =>
-      skeleton.className.includes("h-4") && skeleton.className.includes("xs:h-5")
-    );
+    const titleSkeletons = screen
+      .getAllByTestId("skeleton")
+      .filter(
+        skeleton =>
+          skeleton.className.includes("h-4") &&
+          skeleton.className.includes("xs:h-5")
+      );
     expect(titleSkeletons.length).toBeGreaterThan(0);
   });
 
@@ -87,15 +95,19 @@ describe("FeaturedProductsSkeleton", () => {
     render(<FeaturedProductsSkeleton count={1} />);
 
     // Check for price skeleton (w-20)
-    const priceSkeletons = screen.getAllByTestId("skeleton").filter(skeleton =>
-      skeleton.className.includes("w-20")
-    );
+    const priceSkeletons = screen
+      .getAllByTestId("skeleton")
+      .filter(skeleton => skeleton.className.includes("w-20"));
     expect(priceSkeletons.length).toBeGreaterThanOrEqual(1);
 
     // Check for button skeleton (rounded)
-    const buttonSkeletons = screen.getAllByTestId("skeleton").filter(skeleton =>
-      skeleton.className.includes("rounded") && skeleton.className.includes("ml-2")
-    );
+    const buttonSkeletons = screen
+      .getAllByTestId("skeleton")
+      .filter(
+        skeleton =>
+          skeleton.className.includes("rounded") &&
+          skeleton.className.includes("ml-2")
+      );
     expect(buttonSkeletons.length).toBe(1);
   });
 
@@ -103,9 +115,13 @@ describe("FeaturedProductsSkeleton", () => {
     render(<FeaturedProductsSkeleton count={1} />);
 
     // Should have 2 description lines with different widths
-    const descriptionSkeletons = screen.getAllByTestId("skeleton").filter(skeleton =>
-      skeleton.className.includes("h-3") && skeleton.className.includes("xs:h-4")
-    );
+    const descriptionSkeletons = screen
+      .getAllByTestId("skeleton")
+      .filter(
+        skeleton =>
+          skeleton.className.includes("h-3") &&
+          skeleton.className.includes("xs:h-4")
+      );
     expect(descriptionSkeletons.length).toBe(2);
 
     // Check that one is full width and one is 2/3 width

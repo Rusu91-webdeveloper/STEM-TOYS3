@@ -45,7 +45,10 @@ describe("HeroSection", () => {
 
     const heroImage = screen.getByAltText("discoverCollection");
     expect(heroImage).toBeInTheDocument();
-    expect(heroImage).toHaveAttribute("src", "/images/homepage_hero_banner_01.png");
+    expect(heroImage).toHaveAttribute(
+      "src",
+      "/images/homepage_hero_banner_01.png"
+    );
   });
 
   it("renders main heading and description", () => {
@@ -66,7 +69,9 @@ describe("HeroSection", () => {
     expect(shopAllLink).toBeInTheDocument();
     expect(shopAllLink).toHaveAttribute("href", "/products");
 
-    const exploreCategoriesLink = screen.getByRole("link", { name: "exploreCategories" });
+    const exploreCategoriesLink = screen.getByRole("link", {
+      name: "exploreCategories",
+    });
     expect(exploreCategoriesLink).toBeInTheDocument();
     expect(exploreCategoriesLink).toHaveAttribute("href", "/categories");
   });
@@ -77,7 +82,9 @@ describe("HeroSection", () => {
     const shopAllLink = screen.getByRole("link", { name: "shopAllProducts" });
     expect(shopAllLink).toHaveAttribute("tabIndex", "0");
 
-    const exploreCategoriesLink = screen.getByRole("link", { name: "exploreCategories" });
+    const exploreCategoriesLink = screen.getByRole("link", {
+      name: "exploreCategories",
+    });
     expect(exploreCategoriesLink).toHaveAttribute("tabIndex", "0");
   });
 
@@ -85,23 +92,33 @@ describe("HeroSection", () => {
     render(<HeroSection t={mockT} />);
 
     const section = screen.getByRole("region");
-    expect(section).toHaveClass("min-h-[60vh]", "sm:min-h-[70vh]", "md:min-h-[80vh]");
+    expect(section).toHaveClass(
+      "min-h-[60vh]",
+      "sm:min-h-[70vh]",
+      "md:min-h-[80vh]"
+    );
   });
 
   it("includes gradient overlay for text readability", () => {
     render(<HeroSection t={mockT} />);
 
-    const gradientOverlay = screen.getByRole("region").querySelector(
-      '[aria-hidden="true"]'
-    );
+    const gradientOverlay = screen
+      .getByRole("region")
+      .querySelector('[aria-hidden="true"]');
     expect(gradientOverlay).toBeInTheDocument();
-    expect(gradientOverlay).toHaveClass("bg-gradient-to-r", "from-black/70", "to-black/30");
+    expect(gradientOverlay).toHaveClass(
+      "bg-gradient-to-r",
+      "from-black/70",
+      "to-black/30"
+    );
   });
 
   it("renders arrow icon in shop all products button", () => {
     render(<HeroSection t={mockT} />);
 
-    const svgIcon = screen.getByRole("region").querySelector('svg[aria-hidden="true"]');
+    const svgIcon = screen
+      .getByRole("region")
+      .querySelector('svg[aria-hidden="true"]');
     expect(svgIcon).toBeInTheDocument();
     expect(svgIcon).toHaveClass("w-5", "h-5");
   });
