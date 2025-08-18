@@ -533,6 +533,7 @@ export const en = {
   engineeringCategory: "Engineering",
   mathematicsCategory: "Mathematics",
   educationalBooksCategory: "Educational Books",
+  educationalBooksCategoryDesc: "Educational books to inspire young minds.",
   engineeringLearningCategory: "Engineering & Learning",
 
   // Product page specific translations

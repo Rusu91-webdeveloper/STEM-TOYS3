@@ -893,6 +893,8 @@ export const ro = {
   Engineering: "Inginerie",
   "educational-booksCategoryDesc":
     "Cărți educaționale pentru a inspira minți tinere.",
+  educationalBooksCategoryDesc:
+    "Cărți educaționale pentru a inspira minți tinere.",
   "educational-booksCategory": "Cărți educaționale",
 
   // Age Group translations
