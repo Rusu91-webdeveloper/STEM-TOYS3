@@ -20,6 +20,7 @@ import type { Product } from "@/types/product";
 import { useProductFilters } from "../hooks/useProductFilters";
 
 import type { FilterGroup } from "./EnhancedProductFilters";
+import { MobileFiltersModal } from "./MobileFiltersModal";
 import { ProductsCategoryNavigation } from "./ProductsCategoryNavigation";
 import {
   ProductsErrorBoundary,
@@ -118,9 +119,8 @@ interface CategoryData {
 }
 
 // Actual product type as returned by the API
-interface ProductData extends Omit<Product, "category"> {
+interface ProductData extends Omit<Product, "category" | "stemDiscipline"> {
   category?: CategoryData;
-  stemCategory?: string;
   // Enhanced categorization fields
   ageGroup?:
     | "TODDLERS_1_3"
@@ -299,7 +299,7 @@ function ClientProductsPageContent({
     // Fallback to dynamic generation if server categories are not available
     const categories = Array.from(
       new Set(
-        products.map(p => p.category?.name ?? p.stemCategory).filter(Boolean)
+        products.map(p => p.category?.name ?? p.stemDiscipline).filter(Boolean)
       )
     );
 
@@ -314,7 +314,7 @@ function ClientProductsPageContent({
             p =>
               normalizeCategory(p.category?.name ?? "") ===
                 normalizeCategory(cat!) ||
-              normalizeCategory(p.stemCategory ?? "") ===
+              normalizeCategory(p.stemDiscipline ?? "") ===
                 normalizeCategory(cat!)
           ).length,
         })),
@@ -329,7 +329,7 @@ function ClientProductsPageContent({
         // Category filter
         if (state.selectedCategories.length > 0) {
           const productCategory =
-            product.category?.name ?? product.stemCategory ?? "";
+            product.category?.name ?? product.stemDiscipline ?? "";
           const normalizedProductCategory = normalizeCategory(productCategory);
           const matchesCategory = state.selectedCategories.some(
             cat => normalizeCategory(cat) === normalizedProductCategory
@@ -343,6 +343,7 @@ function ClientProductsPageContent({
             typeof product.price === "string"
               ? parseFloat(product.price)
               : product.price;
+
           if (
             price < state.priceRangeFilter[0] ||
             price > state.priceRangeFilter[1]
@@ -358,7 +359,7 @@ function ClientProductsPageContent({
             product.name,
             product.description,
             product.category?.name,
-            product.stemCategory,
+            product.stemDiscipline,
           ]
             .filter(Boolean)
             .join(" ")
@@ -369,22 +370,74 @@ function ClientProductsPageContent({
           }
         }
 
-        // Age group filter
+        // Age group filter (dynamic filter)
         if (
-          state.selectedAgeGroup &&
-          state.selectedAgeGroup !== "" &&
+          state.selectedFilters["ageGroup"] &&
+          state.selectedFilters["ageGroup"].length > 0 &&
           product.ageGroup
         ) {
-          if (state.selectedAgeGroup !== product.ageGroup) return false;
+          if (!state.selectedFilters["ageGroup"].includes(product.ageGroup))
+            return false;
         }
 
-        // Product type filter
+        // Product type filter (dynamic filter)
         if (
-          state.selectedProductType &&
-          state.selectedProductType !== "" &&
+          state.selectedFilters["productType"] &&
+          state.selectedFilters["productType"].length > 0 &&
           product.productType
         ) {
-          if (state.selectedProductType !== product.productType) return false;
+          if (
+            !state.selectedFilters["productType"].includes(product.productType)
+          )
+            return false;
+        }
+
+        // Learning outcomes filter
+        if (
+          state.selectedLearningOutcomes.length > 0 &&
+          product.learningOutcomes
+        ) {
+          const productLearningOutcomes = Array.isArray(
+            product.learningOutcomes
+          )
+            ? product.learningOutcomes
+            : [];
+          const hasMatchingOutcome = state.selectedLearningOutcomes.some(
+            selectedOutcome =>
+              productLearningOutcomes.includes(selectedOutcome as any)
+          );
+          if (!hasMatchingOutcome) return false;
+        }
+
+        // Special categories filter
+        if (state.selectedSpecialCategories.length > 0) {
+          const productSpecialCategories = Array.isArray(
+            product.specialCategories
+          )
+            ? product.specialCategories
+            : [];
+
+          // Check if any selected special category matches
+          const hasMatchingSpecialCategory =
+            state.selectedSpecialCategories.some(selectedSpecialCategory => {
+              // For SALE_ITEMS, also check if product is actually on sale (compareAtPrice > price)
+              if (selectedSpecialCategory === "SALE_ITEMS") {
+                const isOnSale =
+                  product.compareAtPrice &&
+                  product.compareAtPrice > product.price;
+                return (
+                  productSpecialCategories.includes(
+                    selectedSpecialCategory as any
+                  ) || isOnSale
+                );
+              }
+              // For other special categories, only check the specialCategories array
+              return productSpecialCategories.includes(
+                selectedSpecialCategory as any
+              );
+            });
+
+          if (!hasMatchingSpecialCategory) return false;
         }
 
         return true;
@@ -415,9 +468,19 @@ function ClientProductsPageContent({
   // Helper functions for hero section
   const getCategoryImagePath = () => {
     if (!activeCategory) {
-      return "/images/stem-hero.jpg";
+      return "/images/homepage_hero_banner_01.png";
     }
-    return `/images/${activeCategory.id}-hero.jpg`;
+
+    // Map category IDs to actual image file names
+    const imageMap: Record<string, string> = {
+      mathematics: "/images/category_banner_math_01.png",
+      science: "/images/category_banner_science_01.png",
+      technology: "/images/category_banner_technology_01.png",
+      engineering: "/images/category_banner_engineering_01.png",
+      "educational-books": "/images/category_banner_books_01.jpg",
+    };
+
+    return imageMap[activeCategory.id] || "/images/homepage_hero_banner_01.png";
   };
 
   const getCategoryTitle = () => {
@@ -518,11 +581,10 @@ function ClientProductsPageContent({
                 categoryFilter={categoryFilter}
                 dynamicFilters={dynamicFilters}
                 priceRangeFilter={state.priceRangeFilter}
+                products={products}
                 selectedCategories={state.selectedCategories}
                 selectedFilters={state.selectedFilters}
                 noPriceFilter={state.noPriceFilter}
-                selectedAgeGroup={state.selectedAgeGroup}
-                selectedStemDiscipline={state.selectedStemDiscipline}
                 selectedLearningOutcomes={state.selectedLearningOutcomes}
                 selectedProductType={state.selectedProductType}
                 selectedSpecialCategories={state.selectedSpecialCategories}
@@ -530,8 +592,6 @@ function ClientProductsPageContent({
                 handleFilterChange={handleFilterChange}
                 handlePriceChange={handlePriceChange}
                 handleNoPriceFilterChange={handleNoPriceFilterChange}
-                setSelectedAgeGroup={actions.setAgeGroup}
-                setSelectedStemDiscipline={actions.setStemDiscipline}
                 setSelectedLearningOutcomes={actions.setLearningOutcomes}
                 setSelectedProductType={actions.setProductType}
                 setSelectedSpecialCategories={actions.setSpecialCategories}
@@ -562,6 +622,56 @@ function ClientProductsPageContent({
             </ProductGridErrorBoundary>
           </div>
         </div>
+
+        {/* Mobile Filters Modal */}
+        <MobileFiltersModal
+          isOpen={state.mobileFiltersOpen}
+          onClose={() => actions.setMobileFiltersOpen(false)}
+          categories={categoryFilter[0]}
+          filters={dynamicFilters}
+          priceRange={(() => {
+            // Calculate actual price range from products (same logic as ProductsSidebar)
+            if (!products || products.length === 0) {
+              return { min: 0, max: 1000, current: state.priceRangeFilter };
+            }
+
+            const prices = products
+              .map(p => {
+                const price =
+                  typeof p.price === "string" ? parseFloat(p.price) : p.price;
+                return isNaN(price) ? 0 : price;
+              })
+              .filter(price => price > 0);
+
+            if (prices.length === 0) {
+              return { min: 0, max: 1000, current: state.priceRangeFilter };
+            }
+
+            const min = Math.floor(Math.min(...prices));
+            const max = Math.ceil(Math.max(...prices));
+
+            return {
+              min,
+              max,
+              current: state.priceRangeFilter,
+            };
+          })()}
+          selectedCategories={state.selectedCategories}
+          selectedFilters={state.selectedFilters}
+          noPriceFilter={state.noPriceFilter}
+          selectedLearningOutcomes={state.selectedLearningOutcomes}
+          selectedProductType={state.selectedProductType}
+          selectedSpecialCategories={state.selectedSpecialCategories}
+          onCategoryChange={handleCategoryChange}
+          onFilterChange={handleFilterChange}
+          onPriceChange={handlePriceChange}
+          onNoPriceFilterChange={handleNoPriceFilterChange}
+          onLearningOutcomesChange={actions.setLearningOutcomes}
+          onProductTypeChange={actions.setProductType}
+          onSpecialCategoriesChange={actions.setSpecialCategories}
+          onClearFilters={handleClearFilters}
+          t={t}
+        />
       </ProductVariantProvider>
     </ProductsErrorBoundary>
   );

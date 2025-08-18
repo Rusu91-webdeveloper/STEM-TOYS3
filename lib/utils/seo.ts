@@ -61,7 +61,7 @@ export function generateProductMetadata(product: any): Metadata {
 
   // Get category name safely
   const categoryName =
-    product.stemCategory ||
+    product.stemDiscipline ||
     (typeof product.category === "object" && product.category
       ? product.category.name || "STEM Toy"
       : typeof product.category === "string"

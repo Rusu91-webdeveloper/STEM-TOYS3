@@ -1,10 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import React from "react";
-
-import { FeaturedProductsSkeleton } from "./FeaturedProductsSkeleton";
 
 interface Product {
   id: string;
@@ -35,7 +32,6 @@ const FeaturedProductsSectionComponent = ({
   products,
   formatPrice,
   t,
-  isLoading = false,
 }: FeaturedProductsSectionProps) => (
   <section className="py-10">
     <div className="container mx-auto px-4 max-w-7xl">
@@ -58,7 +54,7 @@ const FeaturedProductsSectionComponent = ({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8">
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8 justify-items-center">
           {products.map(product => (
             <a
               href={`/products/${product.slug}`}
@@ -98,9 +94,7 @@ const FeaturedProductsSectionComponent = ({
                   </div>
                 </div>
               </div>
-
             </a>
-
           ))}
         </div>
       )}

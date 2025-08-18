@@ -34,11 +34,10 @@ interface ProductsSidebarProps {
   categoryFilter: FilterGroup[];
   dynamicFilters: FilterGroup[];
   priceRangeFilter: [number, number];
+  products: Array<{ price: number }>; // Add products prop for price calculation
   selectedCategories: string[];
   selectedFilters: Record<string, string[]>;
   noPriceFilter: boolean;
-  selectedAgeGroup: string;
-  selectedStemDiscipline: string;
   selectedLearningOutcomes: string[];
   selectedProductType: string;
   selectedSpecialCategories: string[];
@@ -46,8 +45,6 @@ interface ProductsSidebarProps {
   handleFilterChange: (filterId: string, optionId: string) => void;
   handlePriceChange: (range: [number, number]) => void;
   handleNoPriceFilterChange: (enabled: boolean) => void;
-  setSelectedAgeGroup: (value: string) => void;
-  setSelectedStemDiscipline: (value: string) => void;
   setSelectedLearningOutcomes: (value: string[]) => void;
   setSelectedProductType: (value: string) => void;
   setSelectedSpecialCategories: (value: string[]) => void;
@@ -60,11 +57,10 @@ export function ProductsSidebar({
   categoryFilter,
   dynamicFilters,
   priceRangeFilter,
+  products,
   selectedCategories,
   selectedFilters,
   noPriceFilter,
-  selectedAgeGroup,
-  selectedStemDiscipline,
   selectedLearningOutcomes,
   selectedProductType,
   selectedSpecialCategories,
@@ -72,8 +68,6 @@ export function ProductsSidebar({
   handleFilterChange,
   handlePriceChange,
   handleNoPriceFilterChange,
-  setSelectedAgeGroup,
-  setSelectedStemDiscipline,
   setSelectedLearningOutcomes,
   setSelectedProductType,
   setSelectedSpecialCategories,
@@ -81,9 +75,33 @@ export function ProductsSidebar({
   setMobileFiltersOpen,
   t,
 }: ProductsSidebarProps) {
+  // Calculate actual price range from products
+  const actualPriceRange = React.useMemo(() => {
+    if (!products || products.length === 0) {
+      return { min: 0, max: 1000 }; // Fallback values
+    }
+
+    const prices = products
+      .map(p => {
+        const price =
+          typeof p.price === "string" ? parseFloat(p.price) : p.price;
+        return isNaN(price) ? 0 : price;
+      })
+      .filter(price => price > 0);
+
+    if (prices.length === 0) {
+      return { min: 0, max: 1000 }; // Fallback if no valid prices
+    }
+
+    const min = Math.floor(Math.min(...prices));
+    const max = Math.ceil(Math.max(...prices));
+
+    return { min, max };
+  }, [products]);
+
   const priceRange: PriceRange = {
-    min: 0,
-    max: 500,
+    min: actualPriceRange.min,
+    max: actualPriceRange.max,
     current: priceRangeFilter,
   };
 
@@ -116,8 +134,6 @@ export function ProductsSidebar({
           selectedCategories={selectedCategories}
           selectedFilters={selectedFilters}
           noPriceFilter={noPriceFilter}
-          selectedAgeGroup={selectedAgeGroup}
-          selectedStemDiscipline={selectedStemDiscipline}
           selectedLearningOutcomes={selectedLearningOutcomes}
           selectedProductType={selectedProductType}
           selectedSpecialCategories={selectedSpecialCategories}
@@ -125,8 +141,6 @@ export function ProductsSidebar({
           onFilterChange={handleFilterChange}
           onPriceChange={handlePriceChange}
           onNoPriceFilterChange={handleNoPriceFilterChange}
-          onAgeGroupChange={setSelectedAgeGroup}
-          onStemDisciplineChange={setSelectedStemDiscipline}
           onLearningOutcomesChange={setSelectedLearningOutcomes}
           onProductTypeChange={setSelectedProductType}
           onSpecialCategoriesChange={setSelectedSpecialCategories}

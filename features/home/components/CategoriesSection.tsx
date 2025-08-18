@@ -37,8 +37,8 @@ const CategoriesSectionComponent = ({
       <p className="text-center text-muted-foreground mb-8 max-w-3xl mx-auto px-2 text-base xs:text-lg sm:text-xl">
         {t("stemCategoriesDesc")}
       </p>
-      {/* Responsive grid: 1-col mobile, 2-col sm, 3-col md, 5-col lg+ */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8">
+      {/* Responsive grid: 1-col mobile, 2-col sm, 4-col md+ for perfect centering */}
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8 justify-items-center">
         {categories.map(category => (
           <a
             href={`/products?category=${category.slug}`}

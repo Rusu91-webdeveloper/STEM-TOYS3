@@ -2,6 +2,7 @@
 
 import { StarIcon } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +25,7 @@ interface ProductCardProps {
 export function ProductCard({
   product,
   className,
-  imageHeight = 280,
+  // imageHeight = 280,
   layout = "grid",
   priority = false, // Default to false, set to true for above-the-fold images
 }: ProductCardProps) {
@@ -32,24 +33,24 @@ export function ProductCard({
   const isOnSale =
     product.compareAtPrice && product.compareAtPrice > product.price;
   // For proper SSR hydration when getting window dimensions
-  const [screenWidth, setScreenWidth] = useState(0);
+  // const [screenWidth, setScreenWidth] = useState(0);
 
-  useEffect(() => {
-    // Set dimensions after mount to prevent hydration mismatch
-    setScreenWidth(window.innerWidth);
+  // useEffect(() => {
+  //   // Set dimensions after mount to prevent hydration mismatch
+  //   setScreenWidth(window.innerWidth);
 
-    const handleResize = () => {
-      setScreenWidth(window.innerWidth);
-    };
+  //   const handleResize = () => {
+  //     setScreenWidth(window.innerWidth);
+  //   };
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  //   window.addEventListener("resize", handleResize);
+  //   return () => window.removeEventListener("resize", handleResize);
+  // }, []);
 
   // Calculate appropriate image height based on screen size
-  const calculatedHeight = screenWidth
-    ? Math.min(imageHeight, screenWidth < 640 ? 200 : imageHeight)
-    : imageHeight;
+  // const calculatedHeight = screenWidth
+  //   ? Math.min(imageHeight, screenWidth < 640 ? 200 : imageHeight)
+  //   : imageHeight;
 
   // Render star rating
   const renderRating = () => {
@@ -137,12 +138,12 @@ export function ProductCard({
                 Sale
               </Badge>
             )}
-            {product.stemCategory && (
+            {product.stemDiscipline && (
               <Badge
                 className="absolute top-3 right-3 capitalize text-xs px-2 py-1"
                 variant="outline"
               >
-                {product.stemCategory}
+                {product.stemDiscipline}
               </Badge>
             )}
           </Link>
@@ -214,12 +215,12 @@ export function ProductCard({
               Sale
             </Badge>
           )}
-          {product.stemCategory && (
+          {product.stemDiscipline && (
             <Badge
               className="absolute top-3 right-3 capitalize text-xs px-2 py-1 bg-white/90 text-gray-700 border-0"
               variant="outline"
             >
-              {product.stemCategory}
+              {product.stemDiscipline}
             </Badge>
           )}
         </Link>

@@ -49,7 +49,7 @@ export default async function RootLayout({
           rel="preload"
           href="/images/homepage_hero_banner_01.png"
           as="image"
-          fetchpriority="high"
+          fetchPriority="high"
         />
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
