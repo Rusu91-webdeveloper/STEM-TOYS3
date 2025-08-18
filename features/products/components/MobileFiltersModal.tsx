@@ -64,7 +64,7 @@ export function MobileFiltersModal({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent
         side="bottom"
-        className="h-[90vh] w-full rounded-t-2xl p-0 overflow-hidden"
+        className="h-[85vh] w-full rounded-t-2xl p-0 overflow-hidden"
       >
         <SheetHeader className="px-4 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -83,7 +83,7 @@ export function MobileFiltersModal({
           </div>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex-1 overflow-y-auto px-4 py-4 pb-20">
           <EnhancedProductFilters
             categories={categories}
             filters={filters}
@@ -102,13 +102,13 @@ export function MobileFiltersModal({
             onProductTypeChange={onProductTypeChange}
             onSpecialCategoriesChange={onSpecialCategoriesChange}
             onClearFilters={onClearFilters}
-            onCloseMobile={onClose}
+            onCloseMobile={undefined}
             className="block"
             isInsideModal={true}
           />
         </div>
 
-        <div className="border-t border-gray-200 p-4 bg-white">
+        <div className="border-t border-gray-200 p-4 bg-white sticky bottom-0">
           <div className="flex gap-3">
             <Button
               variant="outline"
