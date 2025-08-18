@@ -33,38 +33,38 @@ const FeaturedProductsSectionComponent = ({
   formatPrice,
   t,
 }: FeaturedProductsSectionProps) => (
-  <section className="py-10">
-    <div className="container mx-auto px-4 max-w-7xl">
-      <div className="mb-8 text-center">
-        <span className="inline-block px-3 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full mb-2">
+  <section className="py-3 sm:py-10">
+    <div className="container mx-auto px-2 sm:px-4 max-w-7xl">
+      <div className="mb-4 sm:mb-8 text-center">
+        <span className="inline-block px-2 py-0.5 sm:px-3 sm:py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full mb-1 sm:mb-2">
           {t("recommendedForYou", "Recommended For You")}
         </span>
-        <h2 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-center">
+        <h2 className="text-lg xs:text-xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 md:mb-6 text-center mt-2 sm:mt-0">
           {t("featuredProducts")}
         </h2>
-        <p className="text-center text-muted-foreground mb-0 max-w-3xl mx-auto px-2 text-base xs:text-lg sm:text-xl">
+        <p className="text-center text-muted-foreground mb-0 max-w-3xl mx-auto px-2 text-xs xs:text-base sm:text-lg md:text-xl">
           {t("featuredProductsDesc")}
         </p>
       </div>
 
       {products.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
+        <div className="text-center py-6 sm:py-12">
+          <p className="text-muted-foreground text-xs sm:text-base">
             {t("noFeaturedProducts", "No featured products found.")}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-none">
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8 max-w-none">
           {products.map(product => (
             <a
               href={`/products/${product.slug}`}
               key={product.id}
               aria-label={`View details for ${product.name}`}
               tabIndex={0}
-              className="block min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 w-full group"
+              className="block min-h-[32px] sm:min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 w-full group"
             >
-              <div className="bg-background rounded-xl overflow-hidden shadow-md border border-gray-200 transition-all duration-300 hover:shadow-xl h-full flex flex-col w-full group-hover:scale-[1.02]">
-                <div className="relative h-40 xs:h-52 w-full overflow-hidden">
+              <div className="bg-background rounded-md sm:rounded-xl overflow-hidden shadow-md border border-gray-200 transition-all duration-300 hover:shadow-xl h-full flex flex-col w-full group-hover:scale-[1.02]">
+                <div className="relative h-24 xs:h-32 sm:h-40 md:h-52 w-full overflow-hidden">
                   <Image
                     src={
                       product.images && product.images.length > 0
@@ -74,15 +74,15 @@ const FeaturedProductsSectionComponent = ({
                     alt={product.name}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover w-full h-full rounded-t-xl transition-transform duration-300 group-hover:scale-105"
+                    className="object-cover w-full h-full rounded-t-md sm:rounded-t-xl transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
-                <div className="p-4 xs:p-5 flex flex-col flex-grow">
-                  <h3 className="text-sm xs:text-base md:text-lg font-semibold mb-2 truncate">
+                <div className="p-2 xs:p-3 sm:p-4 md:p-5 flex flex-col flex-grow">
+                  <h3 className="text-xs xs:text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 truncate">
                     {product.name}
                   </h3>
                   <p
-                    className="text-xs xs:text-sm text-muted-foreground mb-4 flex-grow overflow-hidden"
+                    className="text-xs xs:text-sm text-muted-foreground mb-2 sm:mb-4 flex-grow overflow-hidden leading-tight"
                     style={{
                       display: "-webkit-box",
                       WebkitLineClamp: 2,
@@ -92,10 +92,10 @@ const FeaturedProductsSectionComponent = ({
                     {product.description}
                   </p>
                   <div className="flex items-center justify-between mt-auto">
-                    <span className="text-sm xs:text-base md:text-lg font-bold text-primary">
+                    <span className="text-xs xs:text-sm sm:text-base md:text-lg font-bold text-primary">
                       {formatPrice(product.price)}
                     </span>
-                    <span className="inline-block bg-indigo-600 text-white text-xs xs:text-sm px-3 py-2 rounded ml-2 min-h-[44px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 transition-colors group-hover:bg-indigo-700">
+                    <span className="inline-block bg-indigo-600 text-white text-xs xs:text-sm px-2 py-1 sm:px-3 sm:py-2 rounded ml-1 sm:ml-2 min-h-[32px] sm:min-h-[44px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 transition-colors group-hover:bg-indigo-700">
                       {t("viewDetails")}
                     </span>
                   </div>

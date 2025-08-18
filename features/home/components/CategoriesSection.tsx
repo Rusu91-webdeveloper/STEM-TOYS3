@@ -29,26 +29,26 @@ const CategoriesSectionComponent = ({
   categories,
   t,
 }: CategoriesSectionProps) => (
-  <section className="py-10 bg-muted">
+  <section className="py-3 sm:py-10 bg-muted">
     <div className="container mx-auto px-4 max-w-7xl">
-      <h2 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-center">
+      <h2 className="text-sm xs:text-lg sm:text-4xl md:text-5xl font-bold mb-1 sm:mb-4 md:mb-6 text-center">
         {t("stemCategories")}
       </h2>
-      <p className="text-center text-muted-foreground mb-8 max-w-3xl mx-auto px-2 text-base xs:text-lg sm:text-xl">
+      <p className="text-center text-muted-foreground mb-3 sm:mb-8 max-w-3xl mx-auto px-2 text-xs xs:text-sm sm:text-lg md:text-xl">
         {t("stemCategoriesDesc")}
       </p>
       {/* Responsive grid: 1-col mobile, 2-col sm, 4-col md+ for perfect centering */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8 justify-items-center">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-y-2 sm:gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8 justify-items-center">
         {categories.map(category => (
           <a
             href={`/products?category=${category.slug}`}
             key={category.slug}
             aria-label={`Explore ${category.name} category`}
             tabIndex={0}
-            className="bg-background rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-h-[44px] flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="bg-background rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-h-[24px] sm:min-h-[44px] flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             {/* Category image, always object-cover and responsive */}
-            <div className="relative h-32 xs:h-40 md:h-48 w-full">
+            <div className="relative h-12 xs:h-16 sm:h-40 md:h-48 w-full">
               <Image
                 src={category.image}
                 alt={category.name}
@@ -57,12 +57,12 @@ const CategoriesSectionComponent = ({
                 className="object-cover w-full h-full rounded-t-xl"
               />
             </div>
-            <div className="p-4 xs:p-5 md:p-6 flex flex-col flex-grow">
-              <h3 className="text-base xs:text-lg md:text-xl font-bold mb-1 xs:mb-2 truncate">
+            <div className="p-1.5 xs:p-2 sm:p-5 md:p-6 flex flex-col flex-grow">
+              <h3 className="text-xs xs:text-xs sm:text-lg md:text-xl font-bold mb-0.5 xs:mb-2 truncate">
                 {category.name}
               </h3>
               <p
-                className="text-muted-foreground text-xs xs:text-sm md:text-base mb-3 xs:mb-4 overflow-hidden"
+                className="text-muted-foreground text-xs xs:text-xs md:text-base mb-1.5 sm:mb-3 md:mb-4 overflow-hidden"
                 style={{
                   display: "-webkit-box",
                   WebkitLineClamp: 2,
@@ -72,7 +72,7 @@ const CategoriesSectionComponent = ({
                 {category.description}
               </p>
               <div className="mt-auto">
-                <span className="text-primary text-xs xs:text-sm font-medium inline-flex items-center">
+                <span className="text-primary text-xs xs:text-xs font-medium inline-flex items-center">
                   {t("exploreCategories").split(" ")[0]} {category.name}
                 </span>
               </div>

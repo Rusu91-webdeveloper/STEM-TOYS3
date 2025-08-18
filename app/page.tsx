@@ -6,7 +6,7 @@ import HomePageClient from "./HomePageClient";
 // Critical CSS for hero section to prevent layout shift
 const heroSectionCriticalCSS = `
   .hero-section {
-    min-height: 60vh;
+    min-height: 36vh;
     position: relative;
     display: flex;
     align-items: center;
