@@ -18,27 +18,28 @@ interface ValuePropositionSectionProps {
 
 function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
   return (
-    <section className="py-1 sm:py-10 md:py-16 bg-primary text-primary-foreground">
-      <div className="container mx-auto px-2 sm:px-4 md:px-6 lg:px-8 max-w-7xl">
-        <h2 className="text-lg xs:text-xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-8 md:mb-12 text-center mt-2 sm:mt-0">
+    <section className="py-3 sm:py-10 md:py-16 bg-primary text-primary-foreground">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <h2 className="text-sm xs:text-lg sm:text-4xl md:text-5xl font-bold mb-1 sm:mb-4 md:mb-6 text-center">
           {t("whyChooseTechTots")}
         </h2>
         {/* Responsive grid: 1-col mobile, 2-col sm, 3-col md+ */}
-        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-y-1 sm:gap-y-6 gap-x-2 sm:gap-x-6 md:gap-x-8 lg:gap-x-12">
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-y-2 sm:gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8 lg:gap-x-12 justify-items-center">
           {/* Cognitive Development */}
           <div
-            className="text-center bg-primary-foreground/10 rounded-md p-0.5 xs:p-6 md:p-8 transition-transform hover:scale-105 focus-within:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group"
+            className="bg-primary-foreground/10 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-h-[24px] sm:min-h-[44px] flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group"
             tabIndex={0}
             aria-label={t("cognitiveDevelopment")}
           >
-            <div className="flex justify-center mb-0.5 xs:mb-5 md:mb-6">
+            {/* Icon section - similar to image in categories */}
+            <div className="relative h-12 xs:h-16 sm:h-40 md:h-48 w-full flex items-center justify-center bg-primary-foreground/5">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
                 stroke="currentColor"
-                className="w-2 h-2 xs:w-12 xs:h-12 md:w-14 md:h-14 text-primary"
+                className="w-6 h-6 xs:w-8 xs:h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 text-primary"
                 aria-hidden="true"
               >
                 <path
@@ -48,28 +49,38 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
                 />
               </svg>
             </div>
-            <h3 className="text-xs xs:text-xl md:text-2xl font-bold mb-0.5 xs:mb-2 md:mb-3">
-              {t("cognitiveDevelopment")}
-            </h3>
-            <p className="text-primary-foreground/90 text-xs xs:text-sm md:text-base leading-tight">
-              {t("cognitiveDevelopmentDesc")}
-            </p>
+            <div className="p-1.5 xs:p-2 sm:p-5 md:p-6 flex flex-col flex-grow">
+              <h3 className="text-xs xs:text-xs sm:text-lg md:text-xl font-bold mb-0.5 xs:mb-2 truncate">
+                {t("cognitiveDevelopment")}
+              </h3>
+              <p
+                className="text-primary-foreground/90 text-xs xs:text-xs md:text-base mb-1.5 sm:mb-3 md:mb-4 overflow-hidden"
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                }}
+              >
+                {t("cognitiveDevelopmentDesc")}
+              </p>
+            </div>
           </div>
 
           {/* Quality & Safety */}
           <div
-            className="text-center bg-primary-foreground/10 rounded-md p-0.5 xs:p-6 md:p-8 transition-transform hover:scale-105 focus-within:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group"
+            className="bg-primary-foreground/10 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-h-[24px] sm:min-h-[44px] flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group"
             tabIndex={0}
             aria-label={t("qualitySafety", "Quality & Safety")}
           >
-            <div className="flex justify-center mb-0.5 xs:mb-5 md:mb-6">
+            {/* Icon section - similar to image in categories */}
+            <div className="relative h-12 xs:h-16 sm:h-40 md:h-48 w-full flex items-center justify-center bg-primary-foreground/5">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
                 stroke="currentColor"
-                className="w-2 h-2 xs:w-12 xs:h-12 md:w-14 md:h-14 text-primary"
+                className="w-6 h-6 xs:w-8 xs:h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 text-primary"
                 aria-hidden="true"
               >
                 <path
@@ -79,31 +90,41 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
                 />
               </svg>
             </div>
-            <h3 className="text-xs xs:text-xl md:text-2xl font-bold mb-0.5 xs:mb-2 md:mb-3">
-              {t("qualitySafety", "Quality & Safety")}
-            </h3>
-            <p className="text-primary-foreground/90 text-xs xs:text-sm md:text-base leading-tight">
-              {t(
-                "qualitySafetyDesc",
-                "All our products meet or exceed safety standards and are built to last."
-              )}
-            </p>
+            <div className="p-1.5 xs:p-2 sm:p-5 md:p-6 flex flex-col flex-grow">
+              <h3 className="text-xs xs:text-xs sm:text-lg md:text-xl font-bold mb-0.5 xs:mb-2 truncate">
+                {t("qualitySafety", "Quality & Safety")}
+              </h3>
+              <p
+                className="text-primary-foreground/90 text-xs xs:text-xs md:text-base mb-1.5 sm:mb-3 md:mb-4 overflow-hidden"
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                }}
+              >
+                {t(
+                  "qualitySafetyDesc",
+                  "All our products meet or exceed safety standards and are built to last."
+                )}
+              </p>
+            </div>
           </div>
 
           {/* Future Ready */}
           <div
-            className="text-center bg-primary-foreground/10 rounded-md p-0.5 xs:p-6 md:p-8 transition-transform hover:scale-105 focus-within:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group"
+            className="bg-primary-foreground/10 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-h-[24px] sm:min-h-[44px] flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group"
             tabIndex={0}
             aria-label={t("futureReady")}
           >
-            <div className="flex justify-center mb-0.5 xs:mb-5 md:mb-6">
+            {/* Icon section - similar to image in categories */}
+            <div className="relative h-12 xs:h-16 sm:h-40 md:h-48 w-full flex items-center justify-center bg-primary-foreground/5">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
                 stroke="currentColor"
-                className="w-2 h-2 xs:w-12 xs:h-12 md:w-14 md:h-14 text-primary"
+                className="w-6 h-6 xs:w-8 xs:h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 text-primary"
                 aria-hidden="true"
               >
                 <path
@@ -113,12 +134,21 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
                 />
               </svg>
             </div>
-            <h3 className="text-xs xs:text-xl md:text-2xl font-bold mb-0.5 xs:mb-2 md:mb-3">
-              {t("futureReady")}
-            </h3>
-            <p className="text-primary-foreground/90 text-xs xs:text-sm md:text-base leading-tight">
-              {t("futureReadyDesc")}
-            </p>
+            <div className="p-1.5 xs:p-2 sm:p-5 md:p-6 flex flex-col flex-grow">
+              <h3 className="text-xs xs:text-xs sm:text-lg md:text-xl font-bold mb-0.5 xs:mb-2 truncate">
+                {t("futureReady")}
+              </h3>
+              <p
+                className="text-primary-foreground/90 text-xs xs:text-xs md:text-base mb-1.5 sm:mb-3 md:mb-4 overflow-hidden"
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                }}
+              >
+                {t("futureReadyDesc")}
+              </p>
+            </div>
           </div>
         </div>
       </div>
