@@ -61,7 +61,14 @@ const CategoriesSectionComponent = ({
               <h3 className="text-base xs:text-lg md:text-xl font-bold mb-1 xs:mb-2 truncate">
                 {category.name}
               </h3>
-              <p className="text-muted-foreground text-xs xs:text-sm md:text-base mb-3 xs:mb-4 line-clamp-2">
+              <p
+                className="text-muted-foreground text-xs xs:text-sm md:text-base mb-3 xs:mb-4 overflow-hidden"
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                }}
+              >
                 {category.description}
               </p>
               <div className="mt-auto">

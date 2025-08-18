@@ -7,16 +7,16 @@ interface FeaturedProductsSkeletonProps {
 }
 
 export const FeaturedProductsSkeleton = ({
-  count = 4,
+  count = 3,
 }: FeaturedProductsSkeletonProps) => (
-  <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8">
+  <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-none">
     {Array.from({ length: count }).map((_, index) => (
       <div
         key={`skeleton-${index}`}
-        className="bg-background rounded-xl overflow-hidden shadow-md border border-gray-200 h-full flex flex-col"
+        className="bg-background rounded-xl overflow-hidden shadow-md border border-gray-200 h-full flex flex-col w-full"
       >
         {/* Image skeleton with exact dimensions */}
-        <div className="relative h-40 xs:h-52 w-full">
+        <div className="relative h-40 xs:h-52 w-full overflow-hidden">
           <Skeleton variant="wave" className="w-full h-full rounded-t-xl" />
         </div>
 

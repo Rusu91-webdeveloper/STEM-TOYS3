@@ -54,20 +54,20 @@ export function ProductsHeroSection({
 
         {/* Hero Content Overlay */}
         <div className="absolute inset-0 flex items-center">
-          <div className="container mx-auto px-4 sm:px-6 text-white">
+          <div className="container mx-auto px-3 sm:px-6 text-white">
             <div className="max-w-3xl">
-              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+              <div className="flex items-center gap-1.5 sm:gap-3 mb-1 sm:mb-2">
                 <div
-                  className={`${activeCategoryInfo.bgColor} p-1.5 sm:p-2 rounded-full`}
+                  className={`${activeCategoryInfo.bgColor} p-1 sm:p-2 rounded-full`}
                 >
-                  <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  <IconComponent className="h-3 w-3 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <span className="text-xs sm:text-sm md:text-lg font-bold bg-primary/80 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-md">
+                <span className="text-xs sm:text-sm md:text-lg font-bold bg-primary/80 text-white px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-md">
                   {activeCategory ? activeCategory.label : t("allCategories")}
                 </span>
               </div>
 
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2 drop-shadow-lg">
+              <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2 drop-shadow-lg">
                 {getCategoryTitle()}
               </h1>
               <p className="text-xs sm:text-sm max-w-2xl text-white/90 drop-shadow-md hidden sm:block">

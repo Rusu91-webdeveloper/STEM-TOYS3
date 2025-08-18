@@ -569,8 +569,8 @@ function ClientProductsPageContent({
           t={t}
         />
 
-        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 relative z-10">
-          <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
+        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-6 relative z-10">
+          <div className="flex flex-col md:flex-row gap-2 sm:gap-6">
             <ProductFiltersErrorBoundary
               onError={() => {
                 // Fallback: clear filters and reload
@@ -681,16 +681,19 @@ function ClientProductsPageContent({
 
 function ClientProductsPageFallback() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
       <div className="animate-pulse">
-        <div className="h-[20vh] bg-gray-200 rounded-xl mb-8"></div>
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="w-full md:w-64 h-96 bg-gray-200 rounded-xl"></div>
-          <div className="flex-1 space-y-4">
-            <div className="h-8 bg-gray-200 rounded"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="h-[15vh] sm:h-[20vh] bg-gray-200 rounded-xl mb-4 sm:mb-8"></div>
+        <div className="flex flex-col md:flex-row gap-3 sm:gap-6">
+          <div className="w-full md:w-64 h-80 sm:h-96 bg-gray-200 rounded-xl"></div>
+          <div className="flex-1 space-y-3 sm:space-y-4">
+            <div className="h-6 sm:h-8 bg-gray-200 rounded"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-64 bg-gray-200 rounded-xl"></div>
+                <div
+                  key={i}
+                  className="h-48 sm:h-64 bg-gray-200 rounded-xl"
+                ></div>
               ))}
             </div>
           </div>

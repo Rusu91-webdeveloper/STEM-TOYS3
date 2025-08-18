@@ -107,20 +107,20 @@ export function ProductsSidebar({
 
   return (
     <div className="w-full md:w-64 shrink-0 hidden md:block">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 sticky top-20 sm:top-24">
-        <h3 className="text-sm sm:text-base font-bold mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2">
-          <div className="p-1 sm:p-1.5 rounded-full bg-primary/10">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2.5 sm:p-4 sticky top-20 sm:top-24">
+        <h3 className="text-xs sm:text-base font-bold mb-1.5 sm:mb-3 flex items-center gap-1 sm:gap-2">
+          <div className="p-0.5 sm:p-1.5 rounded-full bg-primary/10">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
+              width="10"
+              height="10"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-primary"
+              className="text-primary sm:w-3 sm:h-3"
             >
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
             </svg>

@@ -63,15 +63,15 @@ export function MobileFiltersModal({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent
         side="bottom"
-        className="h-[85vh] w-full rounded-t-2xl p-0 overflow-hidden flex flex-col"
+        className="h-[75vh] w-full rounded-t-xl p-0 overflow-hidden flex flex-col"
       >
-        <SheetHeader className="px-4 py-4 border-b border-gray-200 flex-shrink-0">
-          <SheetTitle className="text-lg font-semibold">
+        <SheetHeader className="px-3 py-3 border-b border-gray-200 flex-shrink-0">
+          <SheetTitle className="text-base font-semibold">
             {t("filterOptions", "Filtrează")}
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex-1 overflow-y-auto px-3 py-3">
           <EnhancedProductFilters
             categories={categories}
             filters={filters}
@@ -96,16 +96,16 @@ export function MobileFiltersModal({
           />
         </div>
 
-        <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0">
-          <div className="flex gap-3">
+        <div className="border-t border-gray-200 p-3 bg-white flex-shrink-0">
+          <div className="flex gap-2">
             <Button
               variant="outline"
               onClick={onClearFilters}
-              className="flex-1"
+              className="flex-1 text-sm h-10"
             >
               {t("clearAll", "Șterge tot")}
             </Button>
-            <Button onClick={onClose} className="flex-1">
+            <Button onClick={onClose} className="flex-1 text-sm h-10">
               {t("applyFilters", "Aplică")}
             </Button>
           </div>

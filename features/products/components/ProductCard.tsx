@@ -226,16 +226,16 @@ export function ProductCard({
         </Link>
       </div>
 
-      <div className="flex flex-col flex-1 p-4 space-y-3">
-        <div className="space-y-2">
+      <div className="flex flex-col flex-1 p-3 sm:p-4 space-y-2 sm:space-y-3">
+        <div className="space-y-1.5 sm:space-y-2">
           <Link href={`/products/${product.slug}`} className="block">
-            <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-colors">
+            <h3 className="font-semibold text-sm sm:text-base line-clamp-2 group-hover:text-primary transition-colors">
               {product.name}
             </h3>
           </Link>
 
           {product.ageRange && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Ages: {product.ageRange}
             </p>
           )}
@@ -243,13 +243,13 @@ export function ProductCard({
           {renderRating()}
         </div>
 
-        <div className="flex flex-col space-y-1 mt-auto pt-2">
-          <div className="flex items-center space-x-2">
-            <div className="text-xl font-bold text-primary">
+        <div className="flex flex-col space-y-1 mt-auto pt-1.5 sm:pt-2">
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
+            <div className="text-lg sm:text-xl font-bold text-primary">
               {formatPrice(product.price)}
             </div>
             {isOnSale && product.compareAtPrice && (
-              <div className="text-sm text-muted-foreground line-through">
+              <div className="text-xs sm:text-sm text-muted-foreground line-through">
                 {formatPrice(product.compareAtPrice)}
               </div>
             )}
