@@ -146,6 +146,7 @@ export function ProductsSidebar({
           onSpecialCategoriesChange={setSelectedSpecialCategories}
           onClearFilters={handleClearFilters}
           onCloseMobile={() => setMobileFiltersOpen(false)}
+          isInsideModal={false}
         />
       </div>
     </div>

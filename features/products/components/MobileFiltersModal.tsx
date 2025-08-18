@@ -104,6 +104,7 @@ export function MobileFiltersModal({
             onClearFilters={onClearFilters}
             onCloseMobile={onClose}
             className="block"
+            isInsideModal={true}
           />
         </div>
 

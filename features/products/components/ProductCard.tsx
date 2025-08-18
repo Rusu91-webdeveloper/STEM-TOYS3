@@ -3,7 +3,7 @@
 import { StarIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { useCurrency } from "@/lib/currency";
