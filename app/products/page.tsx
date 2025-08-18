@@ -18,9 +18,14 @@ interface CategoryData {
 }
 
 // Product data interface to match what the client component expects
-interface ProductData extends Omit<Product, "category"> {
+interface ProductData extends Omit<Product, "category" | "stemDiscipline"> {
   category?: CategoryData;
-  stemCategory?: string;
+  stemDiscipline?:
+    | "SCIENCE"
+    | "TECHNOLOGY"
+    | "ENGINEERING"
+    | "MATHEMATICS"
+    | "GENERAL";
 }
 
 // 🚀 PERFORMANCE: Use ISR instead of force-dynamic for better caching
@@ -45,7 +50,7 @@ export default async function ProductsPage({
 
     // Get locale from cookies for sidebar categories
     const { cookies } = await import("next/headers");
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const locale = cookieStore.get("locale")?.value ?? "en";
 
     // Fetch all categories for sidebar (always show all categories)
@@ -127,7 +132,7 @@ export default async function ProductsPage({
       reservedQuantity: 0, // Digital books don't have reserved quantity
       featured: true,
       isBook: true, // Mark as book for proper cart handling
-      stemCategory: "educational-books",
+      stemDiscipline: "GENERAL", // Educational books fall under general STEM
     })) as ProductData[];
 
     // Transform STEM products to match the expected type
@@ -147,24 +152,15 @@ export default async function ProductsPage({
         }
       }
 
-      // Extract stemCategory from attributes if it exists
-      let stemCategory = product.stemCategory;
-      if (
-        !stemCategory &&
-        product.attributes &&
-        typeof product.attributes === "object"
-      ) {
-        const attrs = product.attributes as Record<string, any>;
-        stemCategory = attrs.stemCategory || null;
-      }
+      // Use the stemDiscipline field from the database
+      const stemDiscipline = (product as any).stemDiscipline || "GENERAL";
 
       return {
         ...product,
         category: categoryData,
-        stemCategory,
+        stemDiscipline,
         // Include new categorization fields
         ageGroup: (product as any).ageGroup,
-        stemDiscipline: (product as any).stemDiscipline,
         learningOutcomes: (product as any).learningOutcomes,
         productType: (product as any).productType,
         specialCategories: (product as any).specialCategories,

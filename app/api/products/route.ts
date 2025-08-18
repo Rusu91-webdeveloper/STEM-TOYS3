@@ -11,13 +11,13 @@ import { getPaginationParams } from "@/lib/utils/pagination";
 // Validation imports removed as they're currently unused
 
 // Type definitions to help with type safety
-type StemCategoryMap = {
-  science: string[];
-  technology: string[];
-  engineering: string[];
-  mathematics: string[];
-  "educational-books": string[];
-};
+// type StemCategoryMap = {
+//   science: string[];
+//   technology: string[];
+//   engineering: string[];
+//   mathematics: string[];
+//   "educational-books": string[];
+// };
 
 // **PERFORMANCE**: Cache duration for product queries
 const CACHE_DURATION = TIME.CACHE_DURATION.SHORT; // 2 minutes cache
@@ -204,46 +204,78 @@ async function fetchProductsFromDatabase(params: {
     specialCategories,
   } = params;
 
+  // Check if educational-books category is requested
+  const includeBooks = category
+    ?.split(",")
+    .some(cat => cat.trim().toLowerCase() === "educational-books");
+
   // **PERFORMANCE**: Build optimized where clause
   const where: Prisma.ProductWhereInput = {
     isActive: true,
   };
 
-  // **PERFORMANCE**: Optimized category filtering
+  // **PERFORMANCE**: Optimized category filtering (supports multiple categories)
   if (category) {
-    const normalizedCategory = category.toLowerCase();
+    const categories = category.split(",").map(cat => cat.trim().toLowerCase());
 
     // STEM categories mapping with better performance
-    const stemCategoryMap: StemCategoryMap = {
-      science: ["fizica", "chimie", "biologie", "astronomie"],
-      technology: ["programare", "robotica", "electronica"],
-      engineering: ["constructii", "mecanica", "inginerie"],
-      mathematics: ["matematica", "geometrie", "algebra"],
-      "educational-books": ["carti-educationale", "manuale"],
-    };
+    // const stemCategoryMap: StemCategoryMap = {
+    //   science: ["fizica", "chimie", "biologie", "astronomie"],
+    //   technology: ["programare", "robotica", "electronica"],
+    //   engineering: ["constructii", "mecanica", "inginerie"],
+    //   mathematics: ["matematica", "geometrie", "algebra"],
+    //   "educational-books": ["carti-educationale", "manuale"],
+    // };
 
-    if (stemCategoryMap[normalizedCategory as keyof StemCategoryMap]) {
-      // For STEM categories, check both attributes.stemCategory AND category.slug
-      where.OR = [
-        {
-          attributes: {
-            path: ["stemCategory"],
-            equals: normalizedCategory,
-          },
-        },
-        {
+    // Build OR conditions for multiple categories
+    const categoryConditions = categories.map(normalizedCategory => {
+      // Check if this is a valid STEM discipline (excluding educational-books)
+      const validStemDisciplines = [
+        "science",
+        "technology",
+        "engineering",
+        "mathematics",
+      ];
+      const isValidStemDiscipline =
+        validStemDisciplines.includes(normalizedCategory);
+
+      if (isValidStemDiscipline) {
+        // For valid STEM categories, check both stemDiscipline AND category.slug
+        return {
+          OR: [
+            {
+              stemDiscipline: normalizedCategory.toUpperCase() as any, // Convert to enum value
+            },
+            {
+              category: {
+                slug: normalizedCategory,
+                isActive: true,
+              },
+            },
+          ],
+        };
+      } else {
+        // For non-STEM categories (like educational-books), only check category.slug
+        return {
           category: {
             slug: normalizedCategory,
             isActive: true,
           },
-        },
-      ];
-    } else {
-      // Single query for custom categories
-      where.category = {
-        slug: normalizedCategory,
-        isActive: true,
-      };
+        };
+      }
+    });
+
+    // If multiple categories, use OR to match any of them
+    if (categoryConditions.length > 1) {
+      where.OR = categoryConditions;
+    } else if (categoryConditions.length === 1) {
+      // For single category, use the condition directly
+      const condition = categoryConditions[0];
+      if (condition.OR) {
+        where.OR = condition.OR;
+      } else {
+        Object.assign(where, condition);
+      }
     }
   }
 
@@ -262,11 +294,24 @@ async function fetchProductsFromDatabase(params: {
   // **PERFORMANCE**: Optimized search with proper indexing
   if (search) {
     const searchTerm = search.toLowerCase();
-    where.OR = [
+    const searchConditions = [
       { name: { contains: searchTerm, mode: "insensitive" } },
       { description: { contains: searchTerm, mode: "insensitive" } },
       { tags: { hasSome: [searchTerm] } },
     ];
+
+    // If we already have OR conditions from category filtering, combine them
+    if (where.OR) {
+      // Combine category OR with search OR using AND logic
+      where.AND = [
+        { OR: where.OR }, // Category conditions
+        { OR: searchConditions }, // Search conditions
+      ];
+      delete where.OR;
+    } else {
+      // No category OR conditions, just use search OR
+      where.OR = searchConditions;
+    }
   }
 
   // New categorization filters
@@ -290,7 +335,7 @@ async function fetchProductsFromDatabase(params: {
 
   if (specialCategories && specialCategories.length > 0) {
     (where as any).specialCategories = {
-      hasEvery: specialCategories,
+      hasSome: specialCategories,
     };
   }
 
@@ -384,6 +429,72 @@ async function fetchProductsFromDatabase(params: {
           take: limit,
         };
 
+        if (includeBooks) {
+          // When educational-books is included, also fetch books
+          return db.$transaction([
+            db.product.findMany(queryOptions),
+            db.product.count({ where }),
+            db.book.findMany({
+              where: {
+                isActive: true,
+                ...(minPrice !== undefined || maxPrice !== undefined
+                  ? {
+                      price: {
+                        ...(minPrice !== undefined ? { gte: minPrice } : {}),
+                        ...(maxPrice !== undefined ? { lte: maxPrice } : {}),
+                      },
+                    }
+                  : {}),
+                ...(search
+                  ? {
+                      OR: [
+                        { name: { contains: search, mode: "insensitive" } },
+                        {
+                          description: {
+                            contains: search,
+                            mode: "insensitive",
+                          },
+                        },
+                        { author: { contains: search, mode: "insensitive" } },
+                      ],
+                    }
+                  : {}),
+              },
+              include: {
+                languages: true,
+              },
+              orderBy: { createdAt: "desc" },
+            }),
+            db.book.count({
+              where: {
+                isActive: true,
+                ...(minPrice !== undefined || maxPrice !== undefined
+                  ? {
+                      price: {
+                        ...(minPrice !== undefined ? { gte: minPrice } : {}),
+                        ...(maxPrice !== undefined ? { lte: maxPrice } : {}),
+                      },
+                    }
+                  : {}),
+                ...(search
+                  ? {
+                      OR: [
+                        { name: { contains: search, mode: "insensitive" } },
+                        {
+                          description: {
+                            contains: search,
+                            mode: "insensitive",
+                          },
+                        },
+                        { author: { contains: search, mode: "insensitive" } },
+                      ],
+                    }
+                  : {}),
+              },
+            }),
+          ]);
+        }
+
         return db.$transaction([
           db.product.findMany(queryOptions),
           db.product.count({ where }),
@@ -391,14 +502,69 @@ async function fetchProductsFromDatabase(params: {
       }
     );
 
-    const [products, totalCount] = await fetchProducts();
+    const fetchResult = await fetchProducts();
+    let products,
+      totalCount,
+      books = [],
+      bookCount = 0;
+
+    if (includeBooks && fetchResult.length === 4) {
+      [products, totalCount, books, bookCount] = fetchResult;
+    } else {
+      [products, totalCount] = fetchResult;
+    }
+
+
+
+    // Transform books to product-like structure if included
+    const transformedBooks = books.map((book: any) => ({
+      id: book.id,
+      name: book.name,
+      slug: book.slug,
+      description: book.description,
+      price: book.price,
+      compareAtPrice: null,
+      images: book.coverImage ? [book.coverImage] : [],
+      category: {
+        id: "educational-books",
+        name: "Educational Books",
+        slug: "educational-books",
+      },
+      tags: ["book", "educational"],
+      attributes: {
+        author: book.author,
+        languages: book.languages?.map((lang: any) => lang.name) || [],
+      },
+      isActive: book.isActive,
+      createdAt: book.createdAt,
+      updatedAt: book.updatedAt,
+      stockQuantity: 10,
+      featured: true,
+      isBook: true, // Flag to identify this as a book
+      sku: `BOOK-${book.id}`,
+      weight: 0.5, // Default book weight
+      dimensions: null,
+      averageRating: 0,
+      reviewCount: 0,
+      totalSold: 0,
+    }));
 
     if (process.env.NODE_ENV === "development") {
-      console.warn(`Found ${products.length} products matching criteria`);
+      console.warn(
+        `Found ${products.length} products and ${transformedBooks.length} books matching criteria`
+      );
     }
 
     // **PERFORMANCE**: Optimized data transformation
-    const transformedProducts = products.map((product: any) => {
+    const allProducts = [...products, ...transformedBooks];
+    const combinedTotalCount = totalCount + bookCount;
+
+    const transformedProducts = allProducts.map((product: any) => {
+      // If this is already a transformed book, return it as-is
+      if (product.isBook) {
+        return product;
+      }
+
       const productData = {
         id: product.id,
         name: product.name,
@@ -431,11 +597,7 @@ async function fetchProductsFromDatabase(params: {
       // **PERFORMANCE**: Faster attribute extraction
       if (product.attributes && typeof product.attributes === "object") {
         const attrs = product.attributes as Record<string, unknown>;
-        if (attrs.stemCategory && typeof attrs.stemCategory === "string") {
-          (
-            productData as typeof productData & { stemCategory: string }
-          ).stemCategory = attrs.stemCategory;
-        }
+        // Note: stemDiscipline is now a proper database field, no need to extract from attributes
         if (attrs.ageRange && typeof attrs.ageRange === "string") {
           (productData as typeof productData & { ageRange: string }).ageRange =
             attrs.ageRange;
@@ -463,9 +625,9 @@ async function fetchProductsFromDatabase(params: {
       pagination: {
         page,
         limit,
-        total: totalCount,
-        totalPages: Math.ceil(totalCount / limit),
-        hasNext: page * limit < totalCount,
+        total: combinedTotalCount,
+        totalPages: Math.ceil(combinedTotalCount / limit),
+        hasNext: page * limit < combinedTotalCount,
         hasPrevious: page > 1,
       },
       meta: {

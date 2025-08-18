@@ -36,7 +36,7 @@ export interface Product {
   reservedQuantity: number;
   featured: boolean;
   isBook?: boolean;
-  stemCategory?: string;
+  // stemCategory?: string; // DEPRECATED: Use stemDiscipline instead
   ageRange?: string;
   // Enhanced categorization fields
   ageGroup?:

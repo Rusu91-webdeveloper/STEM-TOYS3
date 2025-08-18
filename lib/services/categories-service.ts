@@ -234,7 +234,7 @@ export async function getAllCategoriesForSidebar(
             },
             select: {
               id: true,
-              stemCategory: true,
+              stemDiscipline: true,
               category: {
                 select: {
                   name: true,
@@ -260,7 +260,7 @@ export async function getAllCategoriesForSidebar(
             // This matches the logic in ClientProductsPage.tsx lines 330-338
             const matchingProducts = allProducts.filter(product => {
               const productCategory =
-                product.category?.name ?? product.stemCategory ?? "";
+                product.category?.name ?? product.stemDiscipline ?? "";
               const normalizedProductCategory =
                 normalizeCategory(productCategory);
               const normalizedStaticCategory = normalizeCategory(

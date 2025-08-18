@@ -312,7 +312,24 @@ export default function AdvancedFilters({
                   >
                     <Checkbox
                       id={`category-${category.id}`}
-                      checked={selectedCategories.includes(category.id)}
+                      checked={selectedCategories.some(selectedCat => {
+                        // Normalize both the selected category and the checkbox category for comparison
+                        const normalizeCategory = (name: string): string => {
+                          const lower = name.toLowerCase().trim();
+                          if (lower === "mathematics" || lower === "math")
+                            return "mathematics";
+                          if (
+                            lower === "educational books" ||
+                            lower === "educational-books"
+                          )
+                            return "educational-books";
+                          return lower;
+                        };
+                        return (
+                          normalizeCategory(selectedCat) ===
+                          normalizeCategory(category.id)
+                        );
+                      })}
                       onCheckedChange={() => onCategoryChange?.(category.id)}
                       className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                     />

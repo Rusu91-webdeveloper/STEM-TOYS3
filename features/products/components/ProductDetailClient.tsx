@@ -188,8 +188,8 @@ export default function ProductDetailClient({
 
   // Get safe category name for display and links
   const getCategoryName = (): string => {
-    if (product.stemCategory) {
-      return product.stemCategory;
+    if (product.stemDiscipline) {
+      return product.stemDiscipline;
     }
 
     if (typeof product.category === "object" && product.category) {

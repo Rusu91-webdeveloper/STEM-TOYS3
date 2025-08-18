@@ -33,8 +33,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="md:col-span-2">
-            <div className="flex items-center mb-4">
-              <div className="relative h-12 w-32">
+            <div className="flex items-center mb-6">
+              <div className="relative h-14 w-36">
                 <Image
                   src="/TechTots_LOGO.png"
                   alt="TechTots Logo"
@@ -44,16 +44,20 @@ export default function Footer() {
               </div>
             </div>
 
-            <div className="flex space-x-4">
+            <p className="text-gray-300 mb-6 text-sm leading-relaxed max-w-md">
+              {t("companyDescription")}
+            </p>
+
+            <div className="flex space-x-6">
               <Link
                 href="https://www.facebook.com/share/1CBSNUzMGA/?mibextid=wwXIfr"
                 aria-label="Facebook"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="group bg-gray-800 hover:bg-blue-600 p-3 rounded-full transition-all duration-300 transform hover:scale-110"
               >
                 <svg
-                  className="w-6 h-6"
+                  className="w-8 h-8 text-gray-300 group-hover:text-white transition-colors"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -65,46 +69,55 @@ export default function Footer() {
                 aria-label="Instagram"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="group bg-gray-800 hover:bg-gradient-to-br hover:from-purple-600 hover:to-pink-500 p-3 rounded-full transition-all duration-300 transform hover:scale-110"
               >
-                <Instagram className="w-6 h-6" aria-hidden="true" />
+                <Instagram
+                  className="w-8 h-8 text-gray-300 group-hover:text-white transition-colors"
+                  aria-hidden="true"
+                />
               </Link>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">{t("explore")}</h3>
-            <ul className="space-y-2">
+            <h3 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">
+              {t("explore")}
+            </h3>
+            <ul className="space-y-3">
               <li>
                 <Link
                   href="/products"
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
                 >
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
                   {t("products")}
                 </Link>
               </li>
               <li>
                 <Link
                   href="/categories"
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
                 >
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
                   {t("categories")}
                 </Link>
               </li>
               <li>
                 <Link
                   href="/blog"
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
                 >
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
                   {t("blog")}
                 </Link>
               </li>
               <li>
                 <Link
                   href="/about"
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
                 >
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
                   {t("about")}
                 </Link>
               </li>
@@ -113,29 +126,34 @@ export default function Footer() {
 
           {/* Support */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">{t("support")}</h3>
-            <ul className="space-y-2">
+            <h3 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">
+              {t("support")}
+            </h3>
+            <ul className="space-y-3">
               <li>
                 <Link
                   href="/contact"
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
                 >
+                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
                   {t("contact")}
                 </Link>
               </li>
               <li>
                 <Link
                   href="/returns"
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
                 >
+                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
                   {t("returns")}
                 </Link>
               </li>
               <li>
                 <Link
                   href="/warranty"
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
                 >
+                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
                   {t("warrantyLink")}
                 </Link>
               </li>
@@ -144,26 +162,26 @@ export default function Footer() {
         </div>
 
         {/* Bottom section */}
-        <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm">
+        <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-gray-400 text-sm font-medium">
             © 2025 TechTots {t("allRightsReserved")}
           </p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
+          <div className="flex flex-wrap justify-center md:justify-end gap-6 mt-4 md:mt-0">
             <Link
               href="/privacy"
-              className="text-gray-400 hover:text-white text-sm transition-colors"
+              className="text-gray-400 hover:text-white text-sm transition-all duration-200 hover:underline underline-offset-4 font-medium"
             >
               {t("privacyPolicy")}
             </Link>
             <Link
               href="/terms"
-              className="text-gray-400 hover:text-white text-sm transition-colors"
+              className="text-gray-400 hover:text-white text-sm transition-all duration-200 hover:underline underline-offset-4 font-medium"
             >
               {t("termsOfService")}
             </Link>
             <Link
               href="/gdpr"
-              className="text-gray-400 hover:text-white text-sm transition-colors"
+              className="text-gray-400 hover:text-white text-sm transition-all duration-200 hover:underline underline-offset-4 font-medium"
             >
               GDPR
             </Link>

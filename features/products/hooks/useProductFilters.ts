@@ -3,6 +3,52 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useReducer, useCallback, useMemo } from "react";
 
+// Helper function to normalize category names for consistent comparison
+const normalizeCategory = (name: string): string => {
+  const lower = name.toLowerCase();
+
+  // Handle various forms of "educational books" category
+  if (
+    lower === "educational-books" ||
+    lower === "educational books" ||
+    lower === "books" ||
+    lower === "carti" ||
+    lower === "carti educationale" ||
+    lower.includes("book") ||
+    lower.includes("carte")
+  ) {
+    return "educational-books";
+  }
+
+  // Handle various forms of engineering category
+  if (lower === "inginerie" || lower.includes("engineer")) {
+    return "engineering";
+  }
+
+  // Handle various forms of mathematics category
+  if (
+    lower === "mathematics" ||
+    lower === "matematica" ||
+    lower === "matematică" ||
+    lower.includes("math") ||
+    lower.includes("mate")
+  ) {
+    return "mathematics";
+  }
+
+  // Handle engineeringLearning category
+  if (
+    lower === "engineeringlearning" ||
+    lower === "engineering learning" ||
+    lower === "inginerie si invatare" ||
+    lower === "inginerie și învățare"
+  ) {
+    return "engineering";
+  }
+
+  return lower;
+};
+
 // Types
 interface FilterState {
   selectedCategories: string[];
@@ -10,7 +56,6 @@ interface FilterState {
   priceRangeFilter: [number, number];
   noPriceFilter: boolean;
   selectedAgeGroup: string;
-  selectedStemDiscipline: string;
   selectedLearningOutcomes: string[];
   selectedProductType: string;
   selectedSpecialCategories: string[];
@@ -42,10 +87,9 @@ type FilterAction =
 const initialState: FilterState = {
   selectedCategories: [],
   selectedFilters: {},
-  priceRangeFilter: [0, 500],
-  noPriceFilter: false,
+  priceRangeFilter: [0, 1000],
+  noPriceFilter: true, // Price filter disabled by default
   selectedAgeGroup: "",
-  selectedStemDiscipline: "",
   selectedLearningOutcomes: [],
   selectedProductType: "",
   selectedSpecialCategories: [],
@@ -63,10 +107,21 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
 
     case "TOGGLE_CATEGORY": {
       const category = action.payload;
-      const isSelected = state.selectedCategories.includes(category);
+      // Normalize the category name for consistent comparison
+      const normalizedCategory = normalizeCategory(category);
+      const isSelected = state.selectedCategories.some(
+        c => normalizeCategory(c) === normalizedCategory
+      );
       const newCategories = isSelected
-        ? state.selectedCategories.filter(c => c !== category)
-        : [...state.selectedCategories, category];
+        ? state.selectedCategories.filter(
+            c => normalizeCategory(c) !== normalizedCategory
+          )
+        : [
+            ...state.selectedCategories.filter(
+              c => normalizeCategory(c) !== normalizedCategory
+            ),
+            normalizedCategory,
+          ];
       return { ...state, selectedCategories: newCategories };
     }
 
@@ -95,9 +150,6 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
 
     case "SET_AGE_GROUP":
       return { ...state, selectedAgeGroup: action.payload };
-
-    case "SET_STEM_DISCIPLINE":
-      return { ...state, selectedStemDiscipline: action.payload };
 
     case "SET_LEARNING_OUTCOMES":
       return { ...state, selectedLearningOutcomes: action.payload };
@@ -148,21 +200,29 @@ export function useProductFilters() {
     // Parse categories with normalization for consistency
     const categoryParam = searchParams.get("category");
     if (categoryParam) {
-      // Normalize category names to match sidebar IDs
-      const normalizedCategories = categoryParam.split(",").map(cat => {
-        const lower = cat.toLowerCase();
-        // Convert "mathematics" back to "math" for consistency with sidebar
-        if (lower === "mathematics") return "math";
-        return cat;
-      });
+      // Normalize category names and remove duplicates
+      const categories = categoryParam.split(",");
+      const normalizedCategories = Array.from(
+        new Set(categories.map(cat => normalizeCategory(cat.trim())))
+      ).filter(Boolean);
       urlState.selectedCategories = normalizedCategories;
     }
 
-    // Parse price range
+    // Parse price range with safe integer parsing
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
     if (minPrice && maxPrice) {
-      urlState.priceRangeFilter = [parseInt(minPrice), parseInt(maxPrice)];
+      const parsedMin = parseInt(minPrice, 10);
+      const parsedMax = parseInt(maxPrice, 10);
+      // Only set if both values are valid numbers
+      if (
+        !isNaN(parsedMin) &&
+        !isNaN(parsedMax) &&
+        parsedMin >= 0 &&
+        parsedMax > parsedMin
+      ) {
+        urlState.priceRangeFilter = [parsedMin, parsedMax];
+      }
     }
 
     // Parse search query
@@ -183,6 +243,28 @@ export function useProductFilters() {
       urlState.viewMode = view;
     }
 
+    // Parse learning outcomes
+    const learningOutcomesParam = searchParams.get("learningOutcomes");
+    if (learningOutcomesParam) {
+      urlState.selectedLearningOutcomes = learningOutcomesParam
+        .split(",")
+        .filter(Boolean);
+    }
+
+    // Parse special categories
+    const specialCategoriesParam = searchParams.get("specialCategories");
+    if (specialCategoriesParam) {
+      urlState.selectedSpecialCategories = specialCategoriesParam
+        .split(",")
+        .filter(Boolean);
+    }
+
+    // Parse noPriceFilter
+    const noPriceFilterParam = searchParams.get("noPriceFilter");
+    if (noPriceFilterParam) {
+      urlState.noPriceFilter = noPriceFilterParam === "true";
+    }
+
     dispatch({ type: "INIT_FROM_URL", payload: urlState });
   }, [searchParams]);
 
@@ -191,18 +273,26 @@ export function useProductFilters() {
     const params = new URLSearchParams();
 
     if (state.selectedCategories.length > 0) {
-      // Convert sidebar IDs back to URL format for consistency
-      const urlCategories = state.selectedCategories.map(cat => {
-        // Convert "math" back to "mathematics" for URL consistency
-        if (cat === "math") return "mathematics";
-        return cat;
-      });
-      params.set("category", urlCategories.join(","));
+      // Remove duplicates and ensure clean category list
+      const uniqueCategories = Array.from(
+        new Set(state.selectedCategories)
+      ).filter(Boolean);
+      if (uniqueCategories.length > 0) {
+        params.set("category", uniqueCategories.join(","));
+      }
     }
 
-    if (state.priceRangeFilter[0] !== 0 || state.priceRangeFilter[1] !== 500) {
-      params.set("minPrice", state.priceRangeFilter[0].toString());
-      params.set("maxPrice", state.priceRangeFilter[1].toString());
+    // Include price parameters if price filter is enabled
+    if (!state.noPriceFilter) {
+      const minPrice = state.priceRangeFilter[0];
+      const maxPrice = state.priceRangeFilter[1];
+
+      if (minPrice !== undefined && minPrice !== null) {
+        params.set("minPrice", minPrice.toString());
+      }
+      if (maxPrice !== undefined && maxPrice !== null) {
+        params.set("maxPrice", maxPrice.toString());
+      }
     }
 
     if (state.searchQuery) {
@@ -215,6 +305,22 @@ export function useProductFilters() {
 
     if (state.viewMode !== "grid") {
       params.set("view", state.viewMode);
+    }
+
+    if (state.selectedLearningOutcomes.length > 0) {
+      params.set("learningOutcomes", state.selectedLearningOutcomes.join(","));
+    }
+
+    if (state.selectedSpecialCategories.length > 0) {
+      params.set(
+        "specialCategories",
+        state.selectedSpecialCategories.join(",")
+      );
+    }
+
+    // Add noPriceFilter to URL
+    if (state.noPriceFilter) {
+      params.set("noPriceFilter", "true");
     }
 
     const newURL = params.toString() ? `?${params.toString()}` : "";
@@ -241,9 +347,6 @@ export function useProductFilters() {
 
       setAgeGroup: (ageGroup: string) =>
         dispatch({ type: "SET_AGE_GROUP", payload: ageGroup }),
-
-      setStemDiscipline: (discipline: string) =>
-        dispatch({ type: "SET_STEM_DISCIPLINE", payload: discipline }),
 
       setLearningOutcomes: (outcomes: string[]) =>
         dispatch({ type: "SET_LEARNING_OUTCOMES", payload: outcomes }),

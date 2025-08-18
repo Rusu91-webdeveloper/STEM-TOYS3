@@ -58,7 +58,7 @@ const FeaturedProductsLoader = () => (
           Discover our carefully curated selection of educational toys
         </p>
       </div>
-      <FeaturedProductsSkeleton count={4} />
+      <FeaturedProductsSkeleton count={3} />
     </div>
   </section>
 );

@@ -1,7 +1,7 @@
 "use client";
 
 import { X, SlidersHorizontal } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   Accordion,
@@ -24,8 +24,6 @@ import { Slider } from "@/components/ui/slider";
 import { useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import {
-  AGE_GROUP_DISPLAY_NAMES,
-  STEM_DISCIPLINE_DISPLAY_NAMES,
   LEARNING_OUTCOME_DISPLAY_NAMES,
   PRODUCT_TYPE_DISPLAY_NAMES,
   SPECIAL_CATEGORY_DISPLAY_NAMES,
@@ -60,8 +58,6 @@ export interface EnhancedProductFiltersProps {
   selectedFilters?: Record<string, string[]>;
   noPriceFilter?: boolean;
   // New categorization filter states
-  selectedAgeGroup?: string;
-  selectedStemDiscipline?: string;
   selectedLearningOutcomes?: string[];
   selectedProductType?: string;
   selectedSpecialCategories?: string[];
@@ -72,8 +68,6 @@ export interface EnhancedProductFiltersProps {
   onClearFilters?: () => void;
   onCloseMobile?: () => void;
   // New categorization filter handlers
-  onAgeGroupChange?: (ageGroup: string) => void;
-  onStemDisciplineChange?: (stemDiscipline: string) => void;
   onLearningOutcomesChange?: (learningOutcomes: string[]) => void;
   onProductTypeChange?: (productType: string) => void;
   onSpecialCategoriesChange?: (specialCategories: string[]) => void;
@@ -86,9 +80,7 @@ export function EnhancedProductFilters({
   priceRange,
   selectedCategories = [],
   selectedFilters = {},
-  noPriceFilter = true,
-  selectedAgeGroup,
-  selectedStemDiscipline,
+  noPriceFilter = false,
   selectedLearningOutcomes = [],
   selectedProductType,
   selectedSpecialCategories = [],
@@ -98,25 +90,52 @@ export function EnhancedProductFilters({
   onNoPriceFilterChange,
   onClearFilters,
   onCloseMobile,
-  onAgeGroupChange,
-  onStemDisciplineChange,
   onLearningOutcomesChange,
   onProductTypeChange,
   onSpecialCategoriesChange,
   className,
 }: EnhancedProductFiltersProps) {
-  const [localPriceRange, setLocalPriceRange] = useState<PriceRange>(
-    priceRange?.current ?? {
-      min: priceRange?.min ?? 0,
-      max: priceRange?.max ?? 100,
+  const [localPriceRange, setLocalPriceRange] = useState<PriceRange>(() => {
+    // Safe initialization with NaN checks
+    const currentMin = priceRange?.current?.[0];
+    const currentMax = priceRange?.current?.[1];
+    const fallbackMin = priceRange?.min ?? 0;
+    const fallbackMax = priceRange?.max ?? 1000;
+
+    return {
+      min: isNaN(currentMin)
+        ? isNaN(fallbackMin)
+          ? 0
+          : fallbackMin
+        : currentMin,
+      max: isNaN(currentMax)
+        ? isNaN(fallbackMax)
+          ? 1000
+          : fallbackMax
+        : currentMax,
+    };
+  });
+
+  // Sync localPriceRange with priceRange.current when it changes
+  useEffect(() => {
+    if (priceRange?.current) {
+      const currentMin = priceRange.current[0];
+      const currentMax = priceRange.current[1];
+
+      if (!isNaN(currentMin) && !isNaN(currentMax)) {
+        setLocalPriceRange({
+          min: currentMin,
+          max: currentMax,
+        });
+      }
     }
-  );
+  }, [priceRange?.current]);
 
   // Count total active filters
   const activeFilterCount =
     selectedCategories.length +
     Object.values(selectedFilters).reduce(
-      (count, options) => count + options.length,
+      (count, options) => count + (Array.isArray(options) ? options.length : 0),
       0
     ) +
     (!noPriceFilter &&
@@ -124,8 +143,6 @@ export function EnhancedProductFilters({
       priceRange?.current.max !== priceRange?.max)
       ? 1
       : 0) +
-    (selectedAgeGroup ? 1 : 0) +
-    (selectedStemDiscipline ? 1 : 0) +
     selectedLearningOutcomes.length +
     (selectedProductType ? 1 : 0) +
     selectedSpecialCategories.length;
@@ -174,7 +191,24 @@ export function EnhancedProductFilters({
               <div key={category.id} className="flex items-center space-x-2">
                 <Checkbox
                   id={`category-${category.id}`}
-                  checked={selectedCategories.includes(category.id)}
+                  checked={selectedCategories.some(selectedCat => {
+                    // Normalize both the selected category and the checkbox category for comparison
+                    const normalizeCategory = (name: string): string => {
+                      const lower = name.toLowerCase().trim();
+                      if (lower === "mathematics" || lower === "math")
+                        return "mathematics";
+                      if (
+                        lower === "educational books" ||
+                        lower === "educational-books"
+                      )
+                        return "educational-books";
+                      return lower;
+                    };
+                    return (
+                      normalizeCategory(selectedCat) ===
+                      normalizeCategory(category.id)
+                    );
+                  })}
                   onCheckedChange={() => onCategoryChange?.(category.id)}
                   className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                 />
@@ -194,50 +228,6 @@ export function EnhancedProductFilters({
           </div>
         </div>
       )}
-
-      {/* Age Group Filter */}
-      <div className="space-y-3 sm:space-y-4">
-        <h3 className="text-xs sm:text-sm font-medium">Age Group</h3>
-        <Select
-          value={selectedAgeGroup ?? "all"}
-          onValueChange={onAgeGroupChange}
-        >
-          <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm">
-            <SelectValue placeholder="Select age group" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Ages</SelectItem>
-            {Object.entries(AGE_GROUP_DISPLAY_NAMES).map(([key, label]) => (
-              <SelectItem key={key} value={key}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* STEM Discipline Filter */}
-      <div className="space-y-3 sm:space-y-4">
-        <h3 className="text-xs sm:text-sm font-medium">STEM Discipline</h3>
-        <Select
-          value={selectedStemDiscipline ?? "all"}
-          onValueChange={onStemDisciplineChange}
-        >
-          <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm">
-            <SelectValue placeholder="Select STEM discipline" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Disciplines</SelectItem>
-            {Object.entries(STEM_DISCIPLINE_DISPLAY_NAMES).map(
-              ([key, label]) => (
-                <SelectItem key={key} value={key}>
-                  {label}
-                </SelectItem>
-              )
-            )}
-          </SelectContent>
-        </Select>
-      </div>
 
       {/* Learning Outcomes Filter */}
       <div className="space-y-3 sm:space-y-4">
@@ -341,19 +331,19 @@ export function EnhancedProductFilters({
         <div className="space-y-3 sm:space-y-4">
           <h3 className="text-xs sm:text-sm font-medium">Price Range</h3>
 
-          {/* No price filter checkbox */}
+          {/* Price filter toggle checkbox */}
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="no-price-filter"
-              checked={noPriceFilter}
-              onCheckedChange={onNoPriceFilterChange}
+              id="price-filter-enabled"
+              checked={!noPriceFilter}
+              onCheckedChange={checked => onNoPriceFilterChange(!checked)}
               className="h-3.5 w-3.5 sm:h-4 sm:w-4"
             />
             <Label
-              htmlFor="no-price-filter"
+              htmlFor="price-filter-enabled"
               className="text-xs sm:text-sm font-medium"
             >
-              No price filter
+              Enable price filter
             </Label>
           </div>
 
@@ -369,14 +359,21 @@ export function EnhancedProductFilters({
                   <input
                     type="number"
                     value={localPriceRange.min}
-                    min={priceRange.min}
-                    max={localPriceRange.max - 1}
+                    min={priceRange?.min || 0}
+                    max={
+                      isNaN(localPriceRange.max)
+                        ? undefined
+                        : localPriceRange.max - 1
+                    }
                     onChange={e => {
                       const value = Number(e.target.value);
                       if (
                         !isNaN(value) &&
-                        value >= priceRange.min &&
-                        value < localPriceRange.max
+                        value >= (priceRange?.min || 0) &&
+                        value <
+                          (isNaN(localPriceRange.max)
+                            ? 1000
+                            : localPriceRange.max)
                       ) {
                         handlePriceChange([value, localPriceRange.max]);
                         handlePriceChangeComplete();
@@ -394,14 +391,17 @@ export function EnhancedProductFilters({
                   <input
                     type="number"
                     value={localPriceRange.max}
-                    min={localPriceRange.min + 1}
-                    max={priceRange.max}
+                    min={
+                      isNaN(localPriceRange.min) ? 0 : localPriceRange.min + 1
+                    }
+                    max={priceRange?.max || 1000}
                     onChange={e => {
                       const value = Number(e.target.value);
                       if (
                         !isNaN(value) &&
-                        value <= priceRange.max &&
-                        value > localPriceRange.min
+                        value <= (priceRange?.max || 1000) &&
+                        value >
+                          (isNaN(localPriceRange.min) ? 0 : localPriceRange.min)
                       ) {
                         handlePriceChange([localPriceRange.min, value]);
                         handlePriceChangeComplete();
@@ -512,36 +512,6 @@ export function EnhancedProductFilters({
           );
         })}
 
-        {selectedAgeGroup && selectedAgeGroup !== "all" && (
-          <Badge
-            variant="outline"
-            className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6"
-          >
-            {AGE_GROUP_DISPLAY_NAMES[
-              selectedAgeGroup as keyof typeof AGE_GROUP_DISPLAY_NAMES
-            ] || selectedAgeGroup}
-            <X
-              className="h-2.5 w-2.5 sm:h-3 sm:w-3 cursor-pointer"
-              onClick={() => onAgeGroupChange?.("all")}
-            />
-          </Badge>
-        )}
-
-        {selectedStemDiscipline && selectedStemDiscipline !== "all" && (
-          <Badge
-            variant="outline"
-            className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6"
-          >
-            {STEM_DISCIPLINE_DISPLAY_NAMES[
-              selectedStemDiscipline as keyof typeof STEM_DISCIPLINE_DISPLAY_NAMES
-            ] || selectedStemDiscipline}
-            <X
-              className="h-2.5 w-2.5 sm:h-3 sm:w-3 cursor-pointer"
-              onClick={() => onStemDisciplineChange?.("all")}
-            />
-          </Badge>
-        )}
-
         {selectedLearningOutcomes.map((outcome, index) => (
           <Badge
             key={`learning-outcome-${outcome}-${index}`}
@@ -598,25 +568,29 @@ export function EnhancedProductFilters({
         ))}
 
         {Object.entries(selectedFilters).map(([filterId, optionIds]) =>
-          optionIds.map((optionId, index) => {
-            const filterGroup = filters.find(f => f.id === filterId);
-            const option = filterGroup?.options.find(o => o.id === optionId);
-            if (!filterGroup || !option) return null;
+          Array.isArray(optionIds)
+            ? optionIds.map((optionId, index) => {
+                const filterGroup = filters.find(f => f.id === filterId);
+                const option = filterGroup?.options.find(
+                  o => o.id === optionId
+                );
+                if (!filterGroup || !option) return null;
 
-            return (
-              <Badge
-                key={`${filterId}-${optionId}-${index}`}
-                variant="outline"
-                className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6"
-              >
-                {option.label}
-                <X
-                  className="h-2.5 w-2.5 sm:h-3 sm:w-3 cursor-pointer"
-                  onClick={() => onFilterChange?.(filterId, optionId)}
-                />
-              </Badge>
-            );
-          })
+                return (
+                  <Badge
+                    key={`${filterId}-${optionId}-${index}`}
+                    variant="outline"
+                    className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6"
+                  >
+                    {option.label}
+                    <X
+                      className="h-2.5 w-2.5 sm:h-3 sm:w-3 cursor-pointer"
+                      onClick={() => onFilterChange?.(filterId, optionId)}
+                    />
+                  </Badge>
+                );
+              })
+            : null
         )}
 
         {!noPriceFilter &&

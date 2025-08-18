@@ -2,6 +2,8 @@
 export const ro = {
   // General UI translations
   home: "Acasă",
+  stemToysForEveryAge: "Jucării STEM pentru fiecare vârstă",
+  discoverStemCollection: "Descoperă colecția noastră STEM",
   products: "Produse",
   categories: "Categorii",
   blog: "Blog",
@@ -892,4 +894,19 @@ export const ro = {
   "educational-booksCategoryDesc":
     "Cărți educaționale pentru a inspira minți tinere.",
   "educational-booksCategory": "Cărți educaționale",
+
+  // Age Group translations
+  ageGroup: "Grupa de Vârstă",
+  "ageGroup.TODDLERS_1_3": "Copii Mici (1-3 ani)",
+  "ageGroup.PRESCHOOL_3_5": "Preșcolari (3-5 ani)",
+  "ageGroup.ELEMENTARY_6_8": "Școala Primară (6-8 ani)",
+  "ageGroup.MIDDLE_SCHOOL_9_12": "Gimnaziu (9-12 ani)",
+  "ageGroup.TEENS_13_PLUS": "Adolescenți (13+ ani)",
+
+  // Product Type translations
+  "productType.ROBOTICS": "Robotică",
+  "productType.PUZZLES": "Puzzle-uri",
+  "productType.CONSTRUCTION_SETS": "Seturi de Construcție",
+  "productType.EXPERIMENT_KITS": "Kituri de Experimente",
+  "productType.BOARD_GAMES": "Jocuri de Masă",
 };
