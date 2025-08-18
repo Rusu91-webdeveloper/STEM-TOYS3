@@ -166,18 +166,31 @@ export function EnhancedProductFilters({
   const { formatPrice } = useCurrency();
 
   const filterContent = (
-    <div className="space-y-4 sm:space-y-6">
+    <div
+      className={cn(
+        "space-y-4 sm:space-y-6",
+        isInsideModal && "space-y-2 sm:space-y-3"
+      )}
+    >
       {/* Clear filters button (if there are active filters) */}
       {activeFilterCount > 0 && (
         <div className="flex items-center justify-between">
-          <h3 className="text-xs sm:text-sm font-medium">
+          <h3
+            className={cn(
+              "text-xs sm:text-sm font-medium",
+              isInsideModal && "text-xs"
+            )}
+          >
             Active Filters: {activeFilterCount}
           </h3>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClearFilters}
-            className="h-6 sm:h-8 text-xs py-0"
+            className={cn(
+              "h-6 sm:h-8 text-xs py-0",
+              isInsideModal && "h-5 sm:h-6 text-xs"
+            )}
           >
             Clear All
           </Button>
@@ -186,9 +199,26 @@ export function EnhancedProductFilters({
 
       {/* Categories filter */}
       {categories?.options && categories.options.length > 0 && (
-        <div className="space-y-3 sm:space-y-4 hidden md:block">
-          <h3 className="text-xs sm:text-sm font-medium">{categories.name}</h3>
-          <div className="space-y-1.5 sm:space-y-2">
+        <div
+          className={cn(
+            "space-y-3 sm:space-y-4 hidden md:block",
+            isInsideModal && "space-y-2 sm:space-y-3"
+          )}
+        >
+          <h3
+            className={cn(
+              "text-xs sm:text-sm font-medium",
+              isInsideModal && "text-xs"
+            )}
+          >
+            {categories.name}
+          </h3>
+          <div
+            className={cn(
+              "space-y-1.5 sm:space-y-2",
+              isInsideModal && "space-y-1 sm:space-y-1.5"
+            )}
+          >
             {categories.options.map(category => (
               <div key={category.id} className="flex items-center space-x-2">
                 <Checkbox
@@ -212,16 +242,27 @@ export function EnhancedProductFilters({
                     );
                   })}
                   onCheckedChange={() => onCategoryChange?.(category.id)}
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                  className={cn(
+                    "h-3.5 w-3.5 sm:h-4 sm:w-4",
+                    isInsideModal && "h-3 w-3 sm:h-3.5 sm:w-3.5"
+                  )}
                 />
                 <Label
                   htmlFor={`category-${category.id}`}
-                  className="flex-grow text-xs sm:text-sm"
+                  className={cn(
+                    "flex-grow text-xs sm:text-sm",
+                    isInsideModal && "text-xs"
+                  )}
                 >
                   {category.label}
                 </Label>
                 {category.count !== undefined && (
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">
+                  <span
+                    className={cn(
+                      "text-[10px] sm:text-xs text-muted-foreground",
+                      isInsideModal && "text-[9px] sm:text-xs"
+                    )}
+                  >
                     ({category.count})
                   </span>
                 )}
@@ -232,9 +273,26 @@ export function EnhancedProductFilters({
       )}
 
       {/* Learning Outcomes Filter */}
-      <div className="space-y-3 sm:space-y-4">
-        <h3 className="text-xs sm:text-sm font-medium">Learning Outcomes</h3>
-        <div className="space-y-1.5 sm:space-y-2">
+      <div
+        className={cn(
+          "space-y-3 sm:space-y-4",
+          isInsideModal && "space-y-2 sm:space-y-3"
+        )}
+      >
+        <h3
+          className={cn(
+            "text-xs sm:text-sm font-medium",
+            isInsideModal && "text-xs"
+          )}
+        >
+          Learning Outcomes
+        </h3>
+        <div
+          className={cn(
+            "space-y-1.5 sm:space-y-2",
+            isInsideModal && "space-y-1 sm:space-y-1.5"
+          )}
+        >
           {Object.entries(LEARNING_OUTCOME_DISPLAY_NAMES).map(
             ([key, label]) => (
               <div key={key} className="flex items-center space-x-2">
@@ -255,11 +313,17 @@ export function EnhancedProductFilters({
                       }
                     }
                   }}
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                  className={cn(
+                    "h-3.5 w-3.5 sm:h-4 sm:w-4",
+                    isInsideModal && "h-3 w-3 sm:h-3.5 sm:w-3.5"
+                  )}
                 />
                 <Label
                   htmlFor={`learning-outcome-${key}`}
-                  className="flex-grow text-xs sm:text-sm"
+                  className={cn(
+                    "flex-grow text-xs sm:text-sm",
+                    isInsideModal && "text-xs"
+                  )}
                 >
                   {label}
                 </Label>
@@ -270,13 +334,30 @@ export function EnhancedProductFilters({
       </div>
 
       {/* Product Type Filter */}
-      <div className="space-y-3 sm:space-y-4">
-        <h3 className="text-xs sm:text-sm font-medium">Product Type</h3>
+      <div
+        className={cn(
+          "space-y-3 sm:space-y-4",
+          isInsideModal && "space-y-2 sm:space-y-3"
+        )}
+      >
+        <h3
+          className={cn(
+            "text-xs sm:text-sm font-medium",
+            isInsideModal && "text-xs"
+          )}
+        >
+          Product Type
+        </h3>
         <Select
           value={selectedProductType ?? "all"}
           onValueChange={onProductTypeChange}
         >
-          <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm">
+          <SelectTrigger
+            className={cn(
+              "h-8 sm:h-10 text-xs sm:text-sm",
+              isInsideModal && "h-7 sm:h-9 text-xs"
+            )}
+          >
             <SelectValue placeholder="Select product type" />
           </SelectTrigger>
           <SelectContent>
@@ -291,9 +372,26 @@ export function EnhancedProductFilters({
       </div>
 
       {/* Special Categories Filter */}
-      <div className="space-y-3 sm:space-y-4">
-        <h3 className="text-xs sm:text-sm font-medium">Special Categories</h3>
-        <div className="space-y-1.5 sm:space-y-2">
+      <div
+        className={cn(
+          "space-y-3 sm:space-y-4",
+          isInsideModal && "space-y-2 sm:space-y-3"
+        )}
+      >
+        <h3
+          className={cn(
+            "text-xs sm:text-sm font-medium",
+            isInsideModal && "text-xs"
+          )}
+        >
+          Special Categories
+        </h3>
+        <div
+          className={cn(
+            "space-y-1.5 sm:space-y-2",
+            isInsideModal && "space-y-1 sm:space-y-1.5"
+          )}
+        >
           {Object.entries(SPECIAL_CATEGORY_DISPLAY_NAMES).map(
             ([key, label]) => (
               <div key={key} className="flex items-center space-x-2">
@@ -314,11 +412,17 @@ export function EnhancedProductFilters({
                       }
                     }
                   }}
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                  className={cn(
+                    "h-3.5 w-3.5 sm:h-4 sm:w-4",
+                    isInsideModal && "h-3 w-3 sm:h-3.5 sm:w-3.5"
+                  )}
                 />
                 <Label
                   htmlFor={`special-category-${key}`}
-                  className="flex-grow text-xs sm:text-sm"
+                  className={cn(
+                    "flex-grow text-xs sm:text-sm",
+                    isInsideModal && "text-xs"
+                  )}
                 >
                   {label}
                 </Label>
@@ -330,8 +434,20 @@ export function EnhancedProductFilters({
 
       {/* Price range filter */}
       {priceRange && (
-        <div className="space-y-3 sm:space-y-4">
-          <h3 className="text-xs sm:text-sm font-medium">Price Range</h3>
+        <div
+          className={cn(
+            "space-y-3 sm:space-y-4",
+            isInsideModal && "space-y-2 sm:space-y-3"
+          )}
+        >
+          <h3
+            className={cn(
+              "text-xs sm:text-sm font-medium",
+              isInsideModal && "text-xs"
+            )}
+          >
+            Price Range
+          </h3>
 
           {/* Price filter toggle checkbox */}
           <div className="flex items-center space-x-2">
@@ -339,11 +455,17 @@ export function EnhancedProductFilters({
               id="price-filter-enabled"
               checked={!noPriceFilter}
               onCheckedChange={checked => onNoPriceFilterChange(!checked)}
-              className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+              className={cn(
+                "h-3.5 w-3.5 sm:h-4 sm:w-4",
+                isInsideModal && "h-3 w-3 sm:h-3.5 sm:w-3.5"
+              )}
             />
             <Label
               htmlFor="price-filter-enabled"
-              className="text-xs sm:text-sm font-medium"
+              className={cn(
+                "text-xs sm:text-sm font-medium",
+                isInsideModal && "text-xs"
+              )}
             >
               Enable price filter
             </Label>
@@ -632,7 +754,9 @@ export function EnhancedProductFilters({
             <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30">
               <div className="w-full max-w-2xl bg-white rounded-t-2xl shadow-lg pt-6 pb-24 px-3 sm:px-6 lg:px-8 max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <h2 className="text-base sm:text-lg font-semibold">Filters</h2>
+                  <h2 className="text-base sm:text-lg font-semibold">
+                    Filters
+                  </h2>
                   <Button
                     variant="ghost"
                     size="sm"

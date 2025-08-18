@@ -26,26 +26,28 @@ export function StemBenefitsSection({
   }
 
   return (
-    <div className="bg-white py-6 sm:py-8">
-      <div className="container mx-auto px-4">
-        <h2 className="text-lg sm:text-xl font-bold text-center mb-4 sm:mb-6">
+    <div className="bg-white py-2 sm:py-4">
+      <div className="container mx-auto px-2 sm:px-4">
+        <h2 className="text-sm sm:text-base font-bold text-center mb-2 sm:mb-3">
           {t("whyStemEssential")}
         </h2>
-        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2">
           {stemBenefits.map((benefit, index) => {
             const BenefitIcon = benefit.icon;
             return (
               <div
                 key={index}
-                className="bg-gray-50 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col items-center text-center"
+                className="bg-gray-50 rounded-lg p-1.5 sm:p-2 shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col items-center text-center"
               >
-                <div className="p-1.5 sm:p-2 rounded-full bg-primary/10 text-primary mb-1.5 sm:mb-2">
-                  <BenefitIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                <div className="p-0.5 sm:p-1 rounded-full bg-primary/10 text-primary mb-0.5 sm:mb-1">
+                  <BenefitIcon className="h-2.5 w-2.5 sm:h-4 sm:w-4" />
                 </div>
-                <h3 className="font-bold text-xs sm:text-sm mb-1">
+                <h3 className="font-bold text-xs mb-0.5">
                   {t(benefit.titleKey)}
                 </h3>
-                <p className="text-gray-600 text-xs">{t(benefit.descKey)}</p>
+                <p className="text-gray-600 text-xs leading-tight">
+                  {t(benefit.descKey)}
+                </p>
               </div>
             );
           })}

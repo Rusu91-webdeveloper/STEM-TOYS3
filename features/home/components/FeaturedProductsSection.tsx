@@ -54,17 +54,17 @@ const FeaturedProductsSectionComponent = ({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8 justify-items-center">
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-none">
           {products.map(product => (
             <a
               href={`/products/${product.slug}`}
               key={product.id}
               aria-label={`View details for ${product.name}`}
               tabIndex={0}
-              className="block min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+              className="block min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 w-full group"
             >
-              <div className="bg-background rounded-xl overflow-hidden shadow-md border border-gray-200 transition-all duration-300 hover:shadow-xl h-full flex flex-col">
-                <div className="relative h-40 xs:h-52 w-full">
+              <div className="bg-background rounded-xl overflow-hidden shadow-md border border-gray-200 transition-all duration-300 hover:shadow-xl h-full flex flex-col w-full group-hover:scale-[1.02]">
+                <div className="relative h-40 xs:h-52 w-full overflow-hidden">
                   <Image
                     src={
                       product.images && product.images.length > 0
@@ -73,22 +73,29 @@ const FeaturedProductsSectionComponent = ({
                     }
                     alt={product.name}
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                    className="object-cover w-full h-full rounded-t-xl"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover w-full h-full rounded-t-xl transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
                 <div className="p-4 xs:p-5 flex flex-col flex-grow">
                   <h3 className="text-sm xs:text-base md:text-lg font-semibold mb-2 truncate">
                     {product.name}
                   </h3>
-                  <p className="text-xs xs:text-sm text-muted-foreground mb-4 flex-grow line-clamp-2">
+                  <p
+                    className="text-xs xs:text-sm text-muted-foreground mb-4 flex-grow overflow-hidden"
+                    style={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                    }}
+                  >
                     {product.description}
                   </p>
                   <div className="flex items-center justify-between mt-auto">
-                    <span className="text-sm xs:text-base md:text-lg font-bold">
+                    <span className="text-sm xs:text-base md:text-lg font-bold text-primary">
                       {formatPrice(product.price)}
                     </span>
-                    <span className="inline-block bg-indigo-600 text-white text-xs xs:text-sm px-3 py-2 rounded ml-2 min-h-[44px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2">
+                    <span className="inline-block bg-indigo-600 text-white text-xs xs:text-sm px-3 py-2 rounded ml-2 min-h-[44px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 transition-colors group-hover:bg-indigo-700">
                       {t("viewDetails")}
                     </span>
                   </div>
