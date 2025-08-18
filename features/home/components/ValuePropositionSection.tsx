@@ -27,7 +27,7 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
         <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-y-1 sm:gap-y-6 gap-x-2 sm:gap-x-6 md:gap-x-8 lg:gap-x-12">
           {/* Cognitive Development */}
           <div
-            className="text-center bg-primary-foreground/10 rounded-md p-1 xs:p-6 md:p-8 transition-transform hover:scale-105 focus-within:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group"
+            className="text-center bg-primary-foreground/10 rounded-md p-0.5 xs:p-6 md:p-8 transition-transform hover:scale-105 focus-within:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group"
             tabIndex={0}
             aria-label={t("cognitiveDevelopment")}
           >
@@ -58,7 +58,7 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
 
           {/* Quality & Safety */}
           <div
-            className="text-center bg-primary-foreground/10 rounded-md p-1 xs:p-6 md:p-8 transition-transform hover:scale-105 focus-within:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group"
+            className="text-center bg-primary-foreground/10 rounded-md p-0.5 xs:p-6 md:p-8 transition-transform hover:scale-105 focus-within:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group"
             tabIndex={0}
             aria-label={t("qualitySafety", "Quality & Safety")}
           >
@@ -92,7 +92,7 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
 
           {/* Future Ready */}
           <div
-            className="text-center bg-primary-foreground/10 rounded-md p-1 xs:p-6 md:p-8 transition-transform hover:scale-105 focus-within:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group"
+            className="text-center bg-primary-foreground/10 rounded-md p-0.5 xs:p-6 md:p-8 transition-transform hover:scale-105 focus-within:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group"
             tabIndex={0}
             aria-label={t("futureReady")}
           >
