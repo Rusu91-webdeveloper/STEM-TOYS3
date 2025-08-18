@@ -72,6 +72,7 @@ export interface EnhancedProductFiltersProps {
   onProductTypeChange?: (productType: string) => void;
   onSpecialCategoriesChange?: (specialCategories: string[]) => void;
   className?: string;
+  isInsideModal?: boolean; // New prop to indicate if component is inside a modal
 }
 
 export function EnhancedProductFilters({
@@ -94,6 +95,7 @@ export function EnhancedProductFilters({
   onProductTypeChange,
   onSpecialCategoriesChange,
   className,
+  isInsideModal = false,
 }: EnhancedProductFiltersProps) {
   const [localPriceRange, setLocalPriceRange] = useState<PriceRange>(() => {
     // Safe initialization with NaN checks
@@ -622,95 +624,97 @@ export function EnhancedProductFilters({
       {/* Desktop filters */}
       <div className={cn("hidden md:block", className)}>{filterContent}</div>
 
-      {/* Mobile filters */}
-      <div className="md:hidden">
-        {/* Mobile filter overlay */}
-        {onCloseMobile && (
-          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30">
-            <div className="w-full max-w-2xl bg-white rounded-t-2xl shadow-lg pt-6 pb-24 px-3 sm:px-6 lg:px-8 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-4 sm:mb-6">
-                <h2 className="text-base sm:text-lg font-semibold">Filters</h2>
+      {/* Mobile filters - only render when not inside a modal */}
+      {!isInsideModal && (
+        <div className="md:hidden">
+          {/* Mobile filter overlay */}
+          {onCloseMobile && (
+            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30">
+              <div className="w-full max-w-2xl bg-white rounded-t-2xl shadow-lg pt-6 pb-24 px-3 sm:px-6 lg:px-8 max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h2 className="text-base sm:text-lg font-semibold">Filters</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-12 w-12 p-0 flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
+                    onClick={() => {
+                      if (onCloseMobile) onCloseMobile();
+                    }}
+                    aria-label="Close filters"
+                    tabIndex={0}
+                  >
+                    <X className="h-6 w-6 sm:h-7 sm:w-7" />
+                  </Button>
+                </div>
+
+                {/* Filter content for mobile */}
+                {filterContent}
+
+                {/* Sticky footer for Apply/Cancel on mobile/tablet */}
+                <div className="md:hidden fixed left-0 right-0 bottom-0 z-50 bg-white border-t border-gray-200 flex gap-3 p-4 shadow-lg">
+                  <Button
+                    variant="outline"
+                    className="flex-1 text-base h-12"
+                    onClick={() => {
+                      if (onCloseMobile) onCloseMobile();
+                    }}
+                    aria-label="Cancel filters"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1 text-base h-12"
+                    onClick={() => {
+                      if (onCloseMobile) onCloseMobile();
+                    }}
+                    aria-label="Apply filters"
+                  >
+                    Apply Filters
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Selected filter badges for mobile view */}
+          <div className="md:hidden">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1.5 sm:gap-2 h-12 sm:h-14 text-base sm:text-lg py-0"
+                onClick={() => onCloseMobile?.()}
+                aria-label="Open filters"
+              >
+                <SlidersHorizontal className="h-4 w-4 sm:h-5 sm:w-5" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 h-5 sm:h-6 w-5 sm:w-6 p-0 flex items-center justify-center text-[10px] sm:text-xs"
+                  >
+                    {activeFilterCount}
+                  </Badge>
+                )}
+              </Button>
+
+              {activeFilterCount > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-12 w-12 p-0 flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
-                  onClick={() => {
-                    if (onCloseMobile) onCloseMobile();
-                  }}
-                  aria-label="Close filters"
-                  tabIndex={0}
+                  onClick={onClearFilters}
+                  className="text-base sm:text-lg h-12 sm:h-14 py-0"
+                  aria-label="Clear all filters"
                 >
-                  <X className="h-6 w-6 sm:h-7 sm:w-7" />
+                  Clear All
                 </Button>
-              </div>
-
-              {/* Filter content for mobile */}
-              {filterContent}
-
-              {/* Sticky footer for Apply/Cancel on mobile/tablet */}
-              <div className="md:hidden fixed left-0 right-0 bottom-0 z-50 bg-white border-t border-gray-200 flex gap-3 p-4 shadow-lg">
-                <Button
-                  variant="outline"
-                  className="flex-1 text-base h-12"
-                  onClick={() => {
-                    if (onCloseMobile) onCloseMobile();
-                  }}
-                  aria-label="Cancel filters"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="flex-1 text-base h-12"
-                  onClick={() => {
-                    if (onCloseMobile) onCloseMobile();
-                  }}
-                  aria-label="Apply filters"
-                >
-                  Apply Filters
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Selected filter badges for mobile view */}
-        <div className="md:hidden">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1.5 sm:gap-2 h-12 sm:h-14 text-base sm:text-lg py-0"
-              onClick={() => onCloseMobile?.()}
-              aria-label="Open filters"
-            >
-              <SlidersHorizontal className="h-4 w-4 sm:h-5 sm:w-5" />
-              Filters
-              {activeFilterCount > 0 && (
-                <Badge
-                  variant="secondary"
-                  className="ml-1 h-5 sm:h-6 w-5 sm:w-6 p-0 flex items-center justify-center text-[10px] sm:text-xs"
-                >
-                  {activeFilterCount}
-                </Badge>
               )}
-            </Button>
+            </div>
 
-            {activeFilterCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClearFilters}
-                className="text-base sm:text-lg h-12 sm:h-14 py-0"
-                aria-label="Clear all filters"
-              >
-                Clear All
-              </Button>
-            )}
+            {renderSelectedFilters()}
           </div>
-
-          {renderSelectedFilters()}
         </div>
-      </div>
+      )}
     </>
   );
 }
