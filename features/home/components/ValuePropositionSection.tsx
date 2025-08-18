@@ -27,18 +27,18 @@ const CardModal = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
-      {/* Blur background */}
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
+      {/* Enhanced blur background with gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-black/20 to-black/40 backdrop-blur-md" />
 
-      {/* Modal content */}
+      {/* Professional modal content */}
       <div
-        className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all duration-300 scale-100"
+        className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-lg w-full mx-4 transform transition-all duration-300 scale-100 border border-gray-100 dark:border-gray-700"
         onClick={e => e.stopPropagation()}
       >
-        {/* Close button */}
+        {/* Enhanced close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-all duration-200 hover:scale-110 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
           aria-label="Close modal"
         >
           <svg
@@ -50,28 +50,39 @@ const CardModal = ({
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
+              strokeWidth={2.5}
               d="M6 18L18 6M6 6l12 12"
             />
           </svg>
         </button>
 
-        {/* Icon */}
-        <div className="flex justify-center mb-4">
-          <div className="p-3 rounded-full bg-primary/10">
-            <Icon className="w-8 h-8 text-primary" />
+        {/* Enhanced header with gradient background */}
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 dark:from-primary/20 dark:via-primary/10 dark:to-primary/20 rounded-t-3xl p-8 pb-6">
+          {/* Professional icon presentation */}
+          <div className="flex justify-center mb-6">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 shadow-lg border border-primary/20">
+              <Icon className="w-12 h-12 text-primary dark:text-primary-foreground" />
+            </div>
           </div>
+
+          {/* Enhanced title styling */}
+          <h3 className="text-2xl font-bold text-center mb-2 text-gray-900 dark:text-white leading-tight">
+            {title}
+          </h3>
         </div>
 
-        {/* Title */}
-        <h3 className="text-xl font-bold text-center mb-4 text-gray-900 dark:text-white">
-          {title}
-        </h3>
+        {/* Enhanced content section */}
+        <div className="p-8 pt-6">
+          {/* Professional description with better typography */}
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-center text-lg font-medium">
+            {description}
+          </p>
 
-        {/* Full description */}
-        <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-center">
-          {description}
-        </p>
+          {/* Decorative element */}
+          <div className="flex justify-center mt-6">
+            <div className="w-16 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full"></div>
+          </div>
+        </div>
       </div>
     </div>
   );
