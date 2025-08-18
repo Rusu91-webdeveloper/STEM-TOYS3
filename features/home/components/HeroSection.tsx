@@ -20,7 +20,7 @@ interface HeroSectionProps {
 
 const HeroSectionComponent = ({ t }: HeroSectionProps) => (
   <section
-    className="relative flex items-center justify-center min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] max-h-[900px] overflow-hidden"
+    className="relative flex items-center justify-center min-h-[36vh] sm:min-h-[70vh] md:min-h-[80vh] max-h-[900px] overflow-hidden"
     aria-label={t("heroSection", "Homepage Hero Section")}
   >
     {/* Background Image with object-center for perfect cropping/focal point */}
@@ -30,16 +30,11 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
         alt={t("discoverCollection")}
         fill
         priority
-
         className="object-cover object-center w-full h-full"
         sizes="100vw"
-
         fetchPriority="high"
-        className="object-cover object-center w-full h-full"
-        sizes="100vw"
         placeholder="blur"
         blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Kcp"
-
       />
       {/* Gradient overlay for text readability */}
       <div
@@ -49,30 +44,29 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
     </div>
     {/* Content is perfectly centered and responsive */}
     <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 max-w-3xl text-center">
-      <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-3 md:mb-5 drop-shadow-lg animate-fade-in text-white">
+      <h1 className="text-2xl xs:text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-2 sm:mb-3 md:mb-5 drop-shadow-lg animate-fade-in text-white">
         {t("inspireMinds")}
       </h1>
-      <p className="text-base xs:text-lg sm:text-xl md:text-2xl mb-6 md:mb-10 max-w-2xl mx-auto drop-shadow-md animate-fade-in text-white/90">
+      <p className="text-sm xs:text-base sm:text-xl md:text-2xl mb-4 sm:mb-6 md:mb-10 max-w-2xl mx-auto drop-shadow-md animate-fade-in text-white/90">
         {t("discoverCollection")}
       </p>
-      <div className="flex flex-col xs:flex-row gap-4 w-full max-w-xs xs:max-w-none mx-auto items-center justify-center">
+      <div className="flex flex-col xs:flex-row gap-3 sm:gap-4 w-full max-w-xs xs:max-w-none mx-auto items-center justify-center">
         {/* Shop All Products CTA */}
-
         <Link
           href="/products"
           aria-label={t("shopAllProducts")}
           tabIndex={0}
-          className="w-full xs:w-auto min-h-[44px] px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-base sm:text-lg font-semibold border-0 relative overflow-hidden group focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-purple-700 text-center flex items-center justify-center"
+          className="w-full xs:w-auto min-h-[36px] sm:min-h-[44px] px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs sm:text-base md:text-lg font-semibold border-0 relative overflow-hidden group focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-purple-700 text-center flex items-center justify-center"
         >
           {t("shopAllProducts")}
-          <span className="ml-2 transform transition-transform group-hover:translate-x-1 inline-block align-middle">
+          <span className="ml-1 sm:ml-2 transform transition-transform group-hover:translate-x-1 inline-block align-middle">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              className="w-5 h-5 inline-block align-middle"
+              className="w-3 h-3 sm:w-5 sm:h-5 inline-block align-middle"
               aria-hidden="true"
             >
               <path
@@ -88,11 +82,10 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
           href="/categories"
           aria-label={t("exploreCategories")}
           tabIndex={0}
-          className="w-full xs:w-auto min-h-[44px] px-6 py-3 bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 text-base sm:text-lg font-semibold mt-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-orange-600 text-center flex items-center justify-center"
+          className="w-full xs:w-auto min-h-[36px] sm:min-h-[44px] px-3 sm:px-6 py-2 sm:py-3 bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 text-xs sm:text-base md:text-lg font-semibold mt-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-orange-600 text-center flex items-center justify-center"
         >
           {t("exploreCategories")}
         </Link>
-
       </div>
     </div>
   </section>
