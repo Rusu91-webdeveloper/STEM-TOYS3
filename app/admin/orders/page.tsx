@@ -44,6 +44,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrency } from "@/lib/currency";
 
@@ -122,6 +123,7 @@ export default function OrdersPage() {
     isOpen: false,
     order: null as Order | null,
     newStatus: "",
+    cancellationReason: "",
     updating: false,
   });
 
@@ -174,6 +176,7 @@ export default function OrdersPage() {
       isOpen: false,
       order: null,
       newStatus: "",
+      cancellationReason: "",
       updating: false,
     });
   };
@@ -185,6 +188,19 @@ export default function OrdersPage() {
     setStatusUpdateModal(prev => ({ ...prev, updating: true }));
 
     try {
+      const requestBody: any = {
+        status: statusUpdateModal.newStatus,
+      };
+
+      // Add cancellation reason if cancelling the order
+      if (
+        statusUpdateModal.newStatus === "CANCELLED" &&
+        statusUpdateModal.cancellationReason.trim()
+      ) {
+        requestBody.cancellationReason =
+          statusUpdateModal.cancellationReason.trim();
+      }
+
       const response = await fetch(
         `/api/admin/orders/${statusUpdateModal.order.id}`,
         {
@@ -192,9 +208,7 @@ export default function OrdersPage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            status: statusUpdateModal.newStatus,
-          }),
+          body: JSON.stringify(requestBody),
         }
       );
 
@@ -500,6 +514,35 @@ export default function OrdersPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Cancellation Reason Field - Only show when status is CANCELLED */}
+            {statusUpdateModal.newStatus === "CANCELLED" && (
+              <div className="space-y-2">
+                <label
+                  htmlFor="cancellationReason"
+                  className="text-sm font-medium"
+                >
+                  Cancellation Reason{" "}
+                  <span className="text-muted-foreground">(Optional)</span>
+                </label>
+                <Textarea
+                  id="cancellationReason"
+                  placeholder="Enter the reason for cancelling this order (will be included in the email to customer)..."
+                  value={statusUpdateModal.cancellationReason}
+                  onChange={e =>
+                    setStatusUpdateModal(prev => ({
+                      ...prev,
+                      cancellationReason: e.target.value,
+                    }))
+                  }
+                  className="min-h-[80px]"
+                />
+                <p className="text-xs text-muted-foreground">
+                  This reason will be sent to the customer in the cancellation
+                  email.
+                </p>
+              </div>
+            )}
 
             {statusUpdateModal.order && (
               <div className="space-y-2">
