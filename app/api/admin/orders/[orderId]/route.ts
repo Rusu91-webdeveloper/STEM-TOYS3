@@ -14,6 +14,7 @@ const updateOrderSchema = z.object({
     "CANCELLED",
     "COMPLETED",
   ]),
+  cancellationReason: z.string().optional(),
 });
 
 // GET - Get order details for admin
@@ -147,7 +148,7 @@ export async function PATCH(
     const body = await request.json();
 
     // Validate the request body
-    const { status } = updateOrderSchema.parse(body);
+    const { status, cancellationReason } = updateOrderSchema.parse(body);
 
     // Find the existing order
     const existingOrder = await db.order.findFirst({
@@ -162,13 +163,22 @@ export async function PATCH(
     }
 
     // Prepare update data
-    const updateData: { status: OrderStatus; deliveredAt?: Date } = {
+    const updateData: {
+      status: OrderStatus;
+      deliveredAt?: Date;
+      notes?: string;
+    } = {
       status: status as OrderStatus,
     };
 
     // If changing status to DELIVERED, set deliveredAt to current time
     if (status === "DELIVERED" && existingOrder.status !== "DELIVERED") {
       updateData.deliveredAt = new Date();
+    }
+
+    // If cancelling order and cancellation reason is provided, save it in notes
+    if (status === "CANCELLED" && cancellationReason) {
+      updateData.notes = `Cancellation reason: ${cancellationReason}`;
     }
 
     // Update the order
@@ -198,7 +208,7 @@ export async function PATCH(
       },
     });
 
-    // Send email notification if status changed to SHIPPED or DELIVERED
+    // Send email notification if status changed to SHIPPED, DELIVERED, CANCELLED, or COMPLETED
     try {
       const userEmail = updatedOrder.user?.email;
       const customerName = updatedOrder.user?.name || "Client";
@@ -242,6 +252,44 @@ export async function PATCH(
             deliveredAt: new Date(
               updatedOrder.deliveredAt ?? new Date()
             ).toLocaleDateString("ro-RO"),
+          });
+        } else if (status === "CANCELLED") {
+          const { sendOrderCancellationEmail } = await import(
+            "@/lib/email/order-templates"
+          );
+          await sendOrderCancellationEmail({
+            to: userEmail,
+            customerName,
+            orderId: updatedOrder.orderNumber,
+            orderItems: updatedOrder.items.map(item => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              image: item.product?.images?.[0] || undefined,
+            })),
+            totalAmount: updatedOrder.total,
+            cancellationReason: cancellationReason || undefined,
+            cancelledAt: new Date().toLocaleDateString("ro-RO"),
+          });
+        } else if (status === "COMPLETED") {
+          const { sendOrderCompletedEmail } = await import(
+            "@/lib/email/order-templates"
+          );
+          await sendOrderCompletedEmail({
+            to: userEmail,
+            customerName,
+            orderId: updatedOrder.orderNumber,
+            orderItems: updatedOrder.items.map(item => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              image: item.product?.images?.[0] || undefined,
+            })),
+            totalAmount: updatedOrder.total,
+            shippingAddress: updatedOrder.shippingAddress
+              ? `${updatedOrder.shippingAddress.addressLine1}, ${updatedOrder.shippingAddress.city}, ${updatedOrder.shippingAddress.state}, ${updatedOrder.shippingAddress.postalCode}, ${updatedOrder.shippingAddress.country}`
+              : "",
+            completedAt: new Date().toLocaleDateString("ro-RO"),
           });
         }
       }

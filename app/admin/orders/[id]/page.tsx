@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrency } from "@/lib/currency";
 
@@ -130,6 +131,7 @@ export default function OrderDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [newStatus, setNewStatus] = useState<string>("");
+  const [cancellationReason, setCancellationReason] = useState<string>("");
 
   const orderId = params.id as string;
 
@@ -164,14 +166,24 @@ export default function OrderDetailsPage() {
 
     setUpdating(true);
     try {
+      const requestBody: any = {
+        status: newStatus.toUpperCase(),
+      };
+
+      // Add cancellation reason if cancelling the order
+      if (
+        newStatus.toUpperCase() === "CANCELLED" &&
+        cancellationReason.trim()
+      ) {
+        requestBody.cancellationReason = cancellationReason.trim();
+      }
+
       const response = await fetch(`/api/admin/orders/${orderId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          status: newStatus.toUpperCase(),
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -298,6 +310,30 @@ export default function OrderDetailsPage() {
             Update
           </Button>
         </div>
+
+        {/* Cancellation Reason Field - Only show when status is CANCELLED */}
+        {newStatus === "CANCELLED" && (
+          <div className="mt-4 p-4 border rounded-lg bg-red-50">
+            <label
+              htmlFor="cancellationReason"
+              className="block text-sm font-medium text-red-800 mb-2"
+            >
+              Cancellation Reason{" "}
+              <span className="text-red-600">(Optional)</span>
+            </label>
+            <Textarea
+              id="cancellationReason"
+              placeholder="Enter the reason for cancelling this order (will be included in the email to customer)..."
+              value={cancellationReason}
+              onChange={e => setCancellationReason(e.target.value)}
+              className="min-h-[80px] border-red-200 focus:border-red-400"
+            />
+            <p className="text-xs text-red-600 mt-1">
+              This reason will be sent to the customer in the cancellation
+              email.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

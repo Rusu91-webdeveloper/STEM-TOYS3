@@ -317,7 +317,7 @@ export async function sendShippingNotificationEmail({
 }
 
 /**
- * Order completed email
+ * Order completed email - Enhanced with better UX and engagement features
  */
 export async function sendOrderCompletedEmail({
   to,
@@ -347,11 +347,11 @@ export async function sendOrderCompletedEmail({
   const content = `
     ${generateEmailHeader(storeSettings)}
     
-    <h1 style="color: #1f2937; margin-bottom: 24px; text-align: center; font-size: 28px; font-weight: 700;">🎉 Comanda ta a fost finalizată!</h1>
+    <h1 style="color: #1f2937; margin-bottom: 24px; text-align: center; font-size: 28px; font-weight: 700;">🎉 Comanda ta a fost finalizată cu succes!</h1>
     
     <p style="font-size: 16px; margin-bottom: 16px;">Salut <strong>${customerName}</strong>,</p>
     
-    <p style="font-size: 16px; margin-bottom: 20px;">Comanda ta <strong>#${orderId}</strong> a fost finalizată cu succes pe data de <strong>${completedAt}</strong>. Sperăm că ai fost mulțumit(ă) de experiența cu noi!</p>
+    <p style="font-size: 16px; margin-bottom: 20px;">Comanda ta <strong>#${orderId}</strong> a fost finalizată cu succes pe data de <strong>${completedAt}</strong>. Mulțumim că ai ales ${storeSettings.storeName} pentru jucăriile STEM ale copilului tău!</p>
     
     <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 24px 0;">
       <h3 style="color: #047857; margin: 0 0 16px 0; text-align: center;">🛒 Detaliile comenzii tale</h3>
@@ -381,23 +381,103 @@ export async function sendOrderCompletedEmail({
     <div style="background-color: #eff6ff; border-radius: 8px; padding: 20px; margin: 24px 0;">
       <h3 style="color: #1e40af; margin: 0 0 12px 0;">📦 Informații de livrare:</h3>
       <p style="margin: 0 0 8px 0; color: #1f2937;"><strong>Adresa:</strong> ${shippingAddress}</p>
+      <p style="margin: 0; color: #1f2937;"><strong>Status:</strong> <span style="color: #047857; font-weight: 600;">✅ Finalizată cu succes</span></p>
     </div>
-    
+
+    <!-- Review Request Section -->
+    <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 24px 0;">
+      <h3 style="color: #92400e; margin: 0 0 12px 0; text-align: center;">⭐ Părerea ta contează pentru noi!</h3>
+      <p style="margin: 0 0 16px 0; color: #92400e; text-align: center;">Ajută-ne să îmbunătățim experiența pentru alți părinți și să recomandăm produsele tale favorite.</p>
+      <div style="text-align: center;">
+        <a href="${baseUrl}/account/orders/${orderId}/review" 
+           style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; display: inline-block; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+          ✍️ Lasă un Review
+        </a>
+      </div>
+    </div>
+
+    <!-- Call to Action Buttons -->
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${baseUrl}/account/orders/${orderId}" 
-         style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
-        👁️ Vezi Comanda
-      </a>
+      <div style="display: inline-block; margin: 0 8px;">
+        <a href="${baseUrl}/account/orders/${orderId}" 
+           style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+          👁️ Vezi Comanda
+        </a>
+      </div>
+      <div style="display: inline-block; margin: 0 8px;">
+        <a href="${baseUrl}/products" 
+           style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+          🛍️ Vezi Produse Noi
+        </a>
+      </div>
+    </div>
+
+    <!-- Related Products Section -->
+    <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 24px 0;">
+      <h3 style="color: #1f2937; margin: 0 0 16px 0; text-align: center;">🚀 Produse Recomandate pentru Tine</h3>
+      <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px; max-width: 250px; background: white; border-radius: 8px; padding: 16px; text-align: center; border: 1px solid #e5e7eb;">
+          <div style="font-size: 32px; margin-bottom: 8px;">🧩</div>
+          <h4 style="margin: 0 0 8px 0; color: #1f2937;">Puzzle-uri STEM</h4>
+          <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 14px;">Dezvoltă logica și creativitatea</p>
+          <a href="${baseUrl}/products?category=puzzles" 
+             style="background: #3b82f6; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
+            Vezi Colecția
+          </a>
+        </div>
+        <div style="flex: 1; min-width: 200px; max-width: 250px; background: white; border-radius: 8px; padding: 16px; text-align: center; border: 1px solid #e5e7eb;">
+          <div style="font-size: 32px; margin-bottom: 8px;">🤖</div>
+          <h4 style="margin: 0 0 8px 0; color: #1f2937;">Roboți Educaționali</h4>
+          <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 14px;">Introduce-te în lumea tehnologiei</p>
+          <a href="${baseUrl}/products?category=robotics" 
+             style="background: #3b82f6; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
+            Vezi Colecția
+          </a>
+        </div>
+        <div style="flex: 1; min-width: 200px; max-width: 250px; background: white; border-radius: 8px; padding: 16px; text-align: center; border: 1px solid #e5e7eb;">
+          <div style="font-size: 32px; margin-bottom: 8px;">🔬</div>
+          <h4 style="margin: 0 0 8px 0; color: #1f2937;">Seturi de Experimente</h4>
+          <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 14px;">Descoperă lumea științei</p>
+          <a href="${baseUrl}/products?category=experiments" 
+             style="background: #3b82f6; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
+            Vezi Colecția
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer Support Section -->
+    <div style="background-color: #f0f9ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px; text-align: center; margin: 24px 0;">
+      <h3 style="color: #1e40af; margin: 0 0 12px 0;">💬 Ai întrebări sau nevoie de ajutor?</h3>
+      <p style="margin: 0 0 16px 0; color: #1e40af;">
+        Echipa noastră de suport este aici pentru tine! 
+        <a href="${baseUrl}/contact" style="color: #3b82f6; text-decoration: none; font-weight: 600;">Contactează-ne</a> 
+        pentru orice întrebare despre produsele tale.
+      </p>
+      <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+        <a href="${baseUrl}/contact" 
+           style="background: #1e40af; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px;">
+          📞 Contact Suport
+        </a>
+        <a href="${baseUrl}/faq" 
+           style="background: #6b7280; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px;">
+          ❓ Întrebări Frecvente
+        </a>
+      </div>
     </div>
     
-    <p style="font-size: 16px; text-align: center; margin-top: 32px;">Îți mulțumim că ai ales ${storeSettings.storeName}!<br><strong>Echipa ${storeSettings.storeName}</strong></p>
+    <p style="font-size: 16px; text-align: center; margin-top: 32px;">
+      Îți mulțumim că ai ales ${storeSettings.storeName}!<br>
+      <strong>Echipa ${storeSettings.storeName}</strong><br>
+      <span style="color: #6b7280; font-size: 14px;">Împreună construim viitorul prin educație STEM</span>
+    </p>
   `;
 
   const html = generateEmailHTML(content, storeSettings, "Comanda finalizată");
 
   return sendMail({
     to,
-    subject: `🎉 Comanda #${orderId} a fost finalizată - ${storeSettings.storeName}`,
+    subject: `🎉 Comanda #${orderId} a fost finalizată cu succes! - ${storeSettings.storeName}`,
     html,
     params: { email: to },
   });
@@ -485,6 +565,114 @@ export async function sendOrderDeliveredEmail({
   return sendMail({
     to,
     subject: `📦 Comanda #${orderId} a fost livrată - ${storeSettings.storeName}`,
+    html,
+    params: { email: to },
+  });
+}
+
+/**
+ * Order cancellation email
+ */
+export async function sendOrderCancellationEmail({
+  to,
+  customerName,
+  orderId,
+  orderItems,
+  totalAmount,
+  cancellationReason,
+  cancelledAt,
+}: {
+  to: string;
+  customerName: string;
+  orderId: string;
+  orderItems: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+    image?: string;
+  }>;
+  totalAmount: number;
+  cancellationReason?: string;
+  cancelledAt: string;
+}) {
+  const storeSettings = await getStoreSettings();
+  const baseUrl = getBaseUrl();
+
+  const content = `
+    ${generateEmailHeader(storeSettings)}
+    
+    <h1 style="color: #1f2937; margin-bottom: 24px; text-align: center; font-size: 28px; font-weight: 700;">❌ Comanda anulată</h1>
+    
+    <p style="font-size: 16px; margin-bottom: 16px;">Salut <strong>${customerName}</strong>,</p>
+    
+    <p style="font-size: 16px; margin-bottom: 20px;">Comanda ta <strong>#${orderId}</strong> a fost anulată pe data de <strong>${cancelledAt}</strong>.</p>
+    
+    ${
+      cancellationReason
+        ? `
+    <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin: 24px 0;">
+      <h3 style="color: #dc2626; margin: 0 0 12px 0;">📝 Motivul anulării:</h3>
+      <p style="margin: 0; color: #1f2937; font-style: italic;">"${cancellationReason}"</p>
+    </div>
+    `
+        : ""
+    }
+    
+    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 24px 0;">
+      <h3 style="color: #047857; margin: 0 0 16px 0; text-align: center;">🛒 Detaliile comenzii anulate</h3>
+      
+      ${orderItems
+        .map(
+          item => `
+        <div style="border-bottom: 1px solid #d1fae5; padding: 12px 0; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center;">
+            ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 12px;">` : ""}
+            <div>
+              <p style="margin: 0; font-weight: 600; color: #1f2937;">${item.name}</p>
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">Cantitate: ${item.quantity}</p>
+            </div>
+          </div>
+          <p style="margin: 0; font-weight: 600; color: #047857;">${formatPrice(item.price * item.quantity)} <span style="font-size: 12px; color: #6b7280;">(inclusiv TVA)</span></p>
+        </div>
+      `
+        )
+        .join("")}
+      
+      <div style="text-align: right; margin-top: 16px; padding-top: 16px; border-top: 2px solid #047857;">
+        <p style="margin: 0; font-size: 18px; font-weight: 700; color: #047857;">Total (inclusiv TVA): ${formatPrice(totalAmount)}</p>
+      </div>
+    </div>
+    
+    <div style="background-color: #eff6ff; border-radius: 8px; padding: 20px; margin: 24px 0;">
+      <h3 style="color: #1e40af; margin: 0 0 12px 0;">💳 Informații despre rambursare:</h3>
+      <p style="margin: 0 0 8px 0; color: #1f2937;">Dacă ai plătit comanda, rambursarea va fi procesată în următoarele 3-5 zile lucrătoare.</p>
+      <p style="margin: 0; color: #1f2937;">Rambursarea va fi făcută pe metoda de plată folosită la comandă.</p>
+    </div>
+    
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${baseUrl}/products" 
+         style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+        🛍️ Vezi Produsele Noastre
+      </a>
+    </div>
+    
+    <div style="background-color: #f0f9ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px; text-align: center; margin: 32px 0;">
+      <p style="margin: 0 0 12px 0; color: #1e40af; font-weight: 600;">❓ Ai întrebări?</p>
+      <p style="margin: 0; color: #1e40af;">
+        Echipa noastră de suport este aici pentru tine! 
+        <a href="${baseUrl}/contact" style="color: #3b82f6; text-decoration: none; font-weight: 600;">Contactează-ne</a> 
+        dacă ai nevoie de ajutor.
+      </p>
+    </div>
+    
+    <p style="font-size: 16px; text-align: center; margin-top: 32px;">Îți mulțumim pentru înțelegere!<br><strong>Echipa ${storeSettings.storeName}</strong></p>
+  `;
+
+  const html = generateEmailHTML(content, storeSettings, "Comanda anulată");
+
+  return sendMail({
+    to,
+    subject: `❌ Comanda #${orderId} a fost anulată - ${storeSettings.storeName}`,
     html,
     params: { email: to },
   });
