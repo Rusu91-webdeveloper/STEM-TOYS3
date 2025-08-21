@@ -1,12 +1,19 @@
 "use client";
 
-import { Trash, Heart, ShoppingCart, Share2, AlertCircle } from "lucide-react";
+import {
+  Trash,
+  Heart,
+  ShoppingCart,
+  Share2,
+  AlertCircle,
+  Eye,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/use-toast";
 import { useShoppingCart } from "@/features/cart";
@@ -29,15 +36,40 @@ interface WishlistProps {
   initialItems: WishlistItem[];
 }
 
+// Loading skeleton component
+function WishlistSkeleton() {
+  return (
+    <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      {Array.from({ length: 12 }).map((_, index) => (
+        <Card
+          key={index}
+          className="overflow-hidden border-0 shadow-sm bg-white"
+        >
+          <div className="relative aspect-square bg-gray-100">
+            <Skeleton className="absolute inset-0" />
+          </div>
+          <CardContent className="p-3 space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-3 w-2/3" />
+            <Skeleton className="h-6 w-1/2" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 export function Wishlist({ initialItems }: WishlistProps) {
   const { t } = useTranslation();
   const [wishlistItems, setWishlistItems] =
     useState<WishlistItem[]>(initialItems);
+  const [isLoading, setIsLoading] = useState(false);
   const { addToCart } = useShoppingCart();
   const { formatPrice } = useCurrency();
 
   const handleRemoveFromWishlist = async (id: string) => {
     try {
+      setIsLoading(true);
       const response = await fetch(`/api/account/wishlist?id=${id}`, {
         method: "DELETE",
       });
@@ -68,6 +100,8 @@ export function Wishlist({ initialItems }: WishlistProps) {
         ),
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -135,10 +169,15 @@ export function Wishlist({ initialItems }: WishlistProps) {
     }
   };
 
+  // Show loading skeleton
+  if (isLoading) {
+    return <WishlistSkeleton />;
+  }
+
   // Empty state
   if (wishlistItems.length === 0) {
     return (
-      <div className="text-center py-12 border rounded-lg">
+      <div className="text-center py-12 border rounded-lg bg-white">
         <Heart className="h-12 w-12 mx-auto text-gray-400 mb-4" />
         <h3 className="text-lg font-medium mb-2">
           {t("emptyWishlist", "Lista ta de dorințe este goală")}
@@ -159,68 +198,109 @@ export function Wishlist({ initialItems }: WishlistProps) {
   }
 
   return (
-    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {wishlistItems.map(item => (
-        <Card key={item.id} className="overflow-hidden group">
-          <div className="relative pt-[100%] bg-gray-100">
-            <Link href={`/products/${item.slug}`}>
+        <Card
+          key={item.id}
+          className="group relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-all duration-300 bg-white wishlist-card-hover"
+        >
+          {/* Product Image */}
+          <div className="relative aspect-square bg-gray-50 overflow-hidden">
+            <Link href={`/products/${item.slug}`} className="block">
               <Image
                 src={item.image}
                 alt={item.name}
                 fill
-                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                className="object-cover transition-all duration-300 group-hover:scale-105"
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
+                className="object-cover product-image-hover"
               />
             </Link>
+
+            {/* Remove from wishlist button */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-2 right-2 h-8 w-8 bg-white/70 hover:bg-white/90 text-red-500"
+              className="absolute top-2 right-2 h-7 w-7 bg-white/90 hover:bg-white text-red-500 shadow-sm opacity-0 group-hover:opacity-100 opacity-transition"
               onClick={() => handleRemoveFromWishlist(item.id)}
               title={t("removeFromWishlist", "Elimină din Lista de Dorințe")}
             >
-              <Trash className="h-4 w-4" />
+              <Trash className="h-3 w-3" />
             </Button>
-          </div>
-          <CardContent className="p-4">
-            <Link
-              href={`/products/${item.slug}`}
-              className="text-sm font-medium line-clamp-2 hover:underline mb-2"
-            >
-              {item.name}
-            </Link>
-            <p className="text-lg font-bold">{formatPrice(item.price)}</p>
+
+            {/* Out of stock overlay */}
             {!item.inStock && (
-              <div className="flex items-center gap-1 text-amber-600 text-sm mt-2">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-xs font-medium text-red-500">
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                <div className="bg-red-500 text-white text-xs px-2 py-1 rounded font-medium">
                   {t("outOfStock", "Stoc epuizat")}
-                </span>
+                </div>
               </div>
             )}
+
+            {/* Quick actions overlay */}
+            <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 opacity-transition">
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  className="flex-1 h-8 text-xs bg-white/90 hover:bg-white text-gray-700 shadow-sm"
+                  onClick={() => handleAddToCart(item)}
+                  disabled={!item.inStock}
+                >
+                  <ShoppingCart className="h-3 w-3 mr-1" />
+                  {t("addToCart", "Add to Cart")}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-700 shadow-sm"
+                  onClick={() => handleShare(item)}
+                  title={t("share", "Partajează")}
+                >
+                  <Share2 className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Product Info */}
+          <CardContent className="p-3">
+            <Link
+              href={`/products/${item.slug}`}
+              className="block group-hover:text-blue-600 transition-colors"
+            >
+              <h3 className="text-sm font-medium line-clamp-2 mb-1 text-gray-900 group-hover:text-blue-600">
+                {item.name}
+              </h3>
+            </Link>
+
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-bold text-gray-900">
+                {formatPrice(item.price)}
+              </p>
+
+              {/* Stock status */}
+              {!item.inStock && (
+                <div className="flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3 text-red-500" />
+                  <span className="text-xs text-red-500 font-medium">
+                    {t("outOfStock", "Stoc epuizat")}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* View details button - always visible */}
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="w-full mt-2 h-7 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+            >
+              <Link href={`/products/${item.slug}`}>
+                <Eye className="h-3 w-3 mr-1" />
+                {t("viewDetails", "View Details")}
+              </Link>
+            </Button>
           </CardContent>
-          <CardFooter className="flex justify-between p-4 pt-0">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-600"
-              onClick={() => handleShare(item)}
-              title={t("share", "Partajează")}
-            >
-              <Share2 className="h-4 w-4 mr-1" />
-              {t("share", "Partajează")}
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => handleAddToCart(item)}
-              disabled={!item.inStock}
-            >
-              <ShoppingCart className="h-4 w-4 mr-1" />
-              {item.inStock
-                ? t("addToCart", "Add to Cart")
-                : t("unavailable", "Unavailable")}
-            </Button>
-          </CardFooter>
         </Card>
       ))}
     </div>

@@ -1,6 +1,17 @@
 "use client";
 
-import { Truck, ShieldCheck, RotateCcw, Heart } from "lucide-react";
+import {
+  Truck,
+  ShieldCheck,
+  RotateCcw,
+  Heart,
+  Star,
+  Eye,
+  Share2,
+  Package,
+  Award,
+  Zap,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -241,231 +252,342 @@ export default function ProductDetailClient({
 
   return (
     <ProductVariantProvider>
-      <div className="container mx-auto px-4 py-8">
-        {/* Breadcrumb */}
-        <div className="mb-6">
-          <Breadcrumb
-            items={[
-              { label: t("products"), href: "/products" },
-              {
-                label: getCategoryName() || "Category",
-                href: `/products?category=${getCategoryName() || ""}`,
-              },
-              { label: product.name, current: true },
-            ]}
-            className="mb-4"
-          />
-        </div>
-
-        {/* Product Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Product Gallery */}
-          <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-lg border group">
-              {selectedImage && (
-                <ProductImageZoom
-                  src={selectedImage}
-                  alt={product.name}
-                  width={600}
-                  height={600}
-                  priority
-                  className="w-full h-full"
-                  enableHoverZoom={true}
-                  enableClickZoom={true}
-                  showZoomControls={true}
-                />
-              )}
-            </div>
-            {product.images && product.images.length > 1 && (
-              <div className="grid grid-cols-5 gap-2">
-                {product.images.map((image, index) => (
-                  <button
-                    key={index}
-                    className={`relative aspect-square overflow-hidden rounded border transition-all duration-200 ${
-                      selectedImage === image
-                        ? "ring-2 ring-primary"
-                        : "hover:ring-1 hover:ring-primary/50"
-                    }`}
-                    onClick={() => setSelectedImage(image)}
-                  >
-                    <Image
-                      src={image}
-                      alt={`${product.name} - view ${index + 1}`}
-                      fill
-                      sizes="20vw"
-                      className="object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+      <div className="bg-premium min-h-screen">
+        <div className="container-premium py-8 lg:py-12">
+          {/* Premium Breadcrumb */}
+          <div className="mb-8 animate-fade-in-up">
+            <Breadcrumb
+              items={[
+                { label: t("products"), href: "/products" },
+                {
+                  label: getCategoryName() || "Category",
+                  href: `/products?category=${getCategoryName() || ""}`,
+                },
+                { label: product.name, current: true },
+              ]}
+              className="mb-6"
+            />
           </div>
 
-          {/* Product Info */}
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold">{product.name}</h1>
-              <div className="flex items-center mt-2">
-                <div className="flex items-center">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <span
-                      key={i}
-                      className={`inline-block ${
-                        i < Math.round(averageRating)
-                          ? "text-yellow-400"
-                          : "text-gray-300"
+          {/* Premium Product Details Grid */}
+          <div className="grid-premium lg:grid-cols-2">
+            {/* Premium Product Gallery */}
+            <div className="space-y-6 animate-fade-in-left">
+              <div className="relative aspect-square overflow-hidden rounded-2xl border-premium shadow-premium group bg-white">
+                {selectedImage && (
+                  <ProductImageZoom
+                    src={selectedImage}
+                    alt={product.name}
+                    width={800}
+                    height={800}
+                    priority
+                    className="w-full h-full product-image-zoom"
+                    enableHoverZoom={true}
+                    enableClickZoom={true}
+                    showZoomControls={true}
+                  />
+                )}
+
+                {/* Premium Sale Badge */}
+                {isOnSale && (
+                  <div className="absolute top-4 left-4 bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
+                    {discountPercentage}% OFF
+                  </div>
+                )}
+
+                {/* Premium Wishlist Button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 h-10 w-10 bg-white/90 hover:bg-white text-red-500 shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300"
+                  onClick={handleToggleWishlist}
+                  disabled={isAddingToWishlist}
+                >
+                  <Heart
+                    className={`h-5 w-5 ${isInWishlist ? "fill-current" : ""}`}
+                  />
+                </Button>
+              </div>
+
+              {/* Premium Thumbnail Gallery */}
+              {product.images && product.images.length > 1 && (
+                <div className="product-gallery-grid">
+                  {product.images.map((image, index) => (
+                    <button
+                      key={index}
+                      className={`relative aspect-square overflow-hidden rounded-xl border-premium transition-all duration-300 hover:shadow-premium ${
+                        selectedImage === image
+                          ? "ring-2 ring-blue-500 shadow-premium"
+                          : "hover:ring-1 hover:ring-blue-300"
                       }`}
+                      onClick={() => setSelectedImage(image)}
                     >
-                      ★
-                    </span>
+                      <Image
+                        src={image}
+                        alt={`${product.name} - view ${index + 1}`}
+                        fill
+                        sizes="(max-width: 768px) 20vw, 15vw"
+                        className="object-cover"
+                      />
+                    </button>
                   ))}
                 </div>
-                <span className="ml-2 text-sm text-muted-foreground">
-                  ({reviewCount} {t("reviews")})
-                </span>
-              </div>
+              )}
             </div>
 
-            <div className="flex items-center space-x-4 mt-4">
-              <div className="flex items-center space-x-2">
-                <ShieldCheck className="w-5 h-5 text-green-500" />
-                <span className="text-sm text-gray-600">Secure Payments</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Truck className="w-5 h-5 text-blue-500" />
-                <span className="text-sm text-gray-600">Fast Shipping</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RotateCcw className="w-5 h-5 text-orange-500" />
-                <span className="text-sm text-gray-600">Quality Guarantee</span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <div className="flex items-center space-x-2">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {formatPrice(product.price)}
-                </h2>
-                {isOnSale && (
-                  <span className="text-sm text-red-500">
-                    {discountPercentage}% off
+            {/* Premium Product Info */}
+            <div className="space-premium animate-fade-in-up">
+              {/* Premium Product Header */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-premium-sm font-medium">
+                    {getCategoryName()}
                   </span>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">inclusiv TVA</p>
-            </div>
-
-            <p className="text-muted-foreground">
-              {t(
-                product.translationKey || "defaultProductDescription",
-                product.description
-              )}
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <span className="font-medium">
-                  {t("ageRange", "Age Range")}:
-                </span>{" "}
-                {product.ageRange ||
-                  (product.attributes?.age
-                    ? product.attributes.age
-                    : "8-12")}{" "}
-                years
-              </div>
-              <div>
-                <span className="font-medium">
-                  {t("category", "Category")}:
-                </span>{" "}
-                <Link
-                  href={`/products?category=${getCategoryName()}`}
-                  className="capitalize hover:underline text-primary"
-                >
-                  {getCategoryName()}
-                </Link>
-              </div>
-              {product.attributes?.difficulty && (
-                <div>
-                  <span className="font-medium">Difficulty:</span>{" "}
-                  <span>{product.attributes.difficulty}</span>
+                  {isOnSale && (
+                    <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-premium-sm font-medium">
+                      Sale
+                    </span>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Action Buttons */}
-            <div className="pt-4 flex flex-col gap-3">
-              <ProductAddToCartButton product={product} isBook={isBook} />
-              <Button
-                variant="outline"
-                className={`flex items-center gap-2 ${isInWishlist ? "text-red-500" : ""}`}
-                onClick={handleToggleWishlist}
-                disabled={isAddingToWishlist}
-              >
-                <Heart
-                  className={`h-4 w-4 ${isInWishlist ? "fill-current" : ""}`}
-                />
-                {isInWishlist
-                  ? t("removeFromWishlist", "Remove from Wishlist")
-                  : t("addToWishlist", "Add to Wishlist")}
-              </Button>
-            </div>
+                <h1 className="font-display text-premium-4xl lg:text-premium-4xl text-premium-secondary leading-tight">
+                  {product.name}
+                </h1>
 
-            {/* Shipping & Returns Info */}
-            <div className="space-y-4 pt-6">
-              <Separator />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
-                <div className="flex flex-col items-center text-center p-4">
-                  <RotateCcw className="h-5 w-5 mb-2" />
-                  <div className="text-sm font-medium">
-                    {t("freeReturns", "Free Returns")}
+                {/* Premium Rating */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-5 w-5 ${
+                          i < Math.round(averageRating)
+                            ? "text-yellow-400 fill-current"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    ))}
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {t("onOrdersOver", "On orders over")} {formatPrice(250)}
+                  <span className="text-premium-muted text-premium-sm">
+                    {averageRating.toFixed(1)} ({reviewCount} {t("reviews")})
+                  </span>
+                </div>
+              </div>
+
+              {/* Premium Pricing */}
+              <div className="space-y-2">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-display text-premium-3xl font-bold text-premium-secondary">
+                    {formatPrice(product.price)}
+                  </span>
+                  {isOnSale && (
+                    <span className="text-premium-lg text-premium-muted line-through">
+                      {formatPrice(product.compareAtPrice!)}
+                    </span>
+                  )}
+                </div>
+                <p className="text-premium-muted text-premium-sm">
+                  inclusiv TVA
+                </p>
+              </div>
+
+              {/* Premium Product Description */}
+              <div className="space-y-4">
+                <p className="text-premium-base text-premium-muted leading-relaxed">
+                  {t(
+                    product.translationKey || "defaultProductDescription",
+                    product.description
+                  )}
+                </p>
+
+                {/* Premium Product Specs */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6 bg-white rounded-xl border-premium shadow-sm">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-blue-500" />
+                      <span className="text-premium-sm font-medium">
+                        Age Range:
+                      </span>
+                      <span className="text-premium-sm text-premium-muted">
+                        {product.ageRange ||
+                          (product.attributes?.age
+                            ? product.attributes.age
+                            : "8-12")}{" "}
+                        years
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Award className="h-4 w-4 text-green-500" />
+                      <span className="text-premium-sm font-medium">
+                        Category:
+                      </span>
+                      <Link
+                        href={`/products?category=${getCategoryName()}`}
+                        className="text-premium-sm text-premium-primary hover:underline capitalize"
+                      >
+                        {getCategoryName()}
+                      </Link>
+                    </div>
+                  </div>
+                  {product.attributes?.difficulty && (
+                    <div className="flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-orange-500" />
+                      <span className="text-premium-sm font-medium">
+                        Difficulty:
+                      </span>
+                      <span className="text-premium-sm text-premium-muted">
+                        {product.attributes.difficulty}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Premium Action Buttons */}
+              <div className="space-y-4">
+                <ProductAddToCartButton product={product} isBook={isBook} />
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className={`flex-1 btn-premium ${
+                      isInWishlist ? "text-red-500 border-red-200" : ""
+                    }`}
+                    onClick={handleToggleWishlist}
+                    disabled={isAddingToWishlist}
+                  >
+                    <Heart
+                      className={`h-4 w-4 mr-2 ${isInWishlist ? "fill-current" : ""}`}
+                    />
+                    {isInWishlist
+                      ? t("removeFromWishlist", "Remove from Wishlist")
+                      : t("addToWishlist", "Add to Wishlist")}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="btn-premium"
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: product.name,
+                          url: window.location.href,
+                        });
+                      } else {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast({
+                          title: "Link copied",
+                          description: "Product link copied to clipboard",
+                        });
+                      }
+                    }}
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Premium Trust Indicators */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-6 bg-white rounded-xl border-premium shadow-sm">
+                <div className="flex flex-col items-center text-center space-y-2">
+                  <div className="p-2 bg-green-100 rounded-full">
+                    <ShieldCheck className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div className="text-premium-sm font-medium">
+                    Secure Payment
+                  </div>
+                  <div className="text-premium-xs text-premium-muted">
+                    SSL Protected
                   </div>
                 </div>
-                <div className="flex flex-col items-center text-center p-4">
-                  <Truck className="h-5 w-5 mb-2" />
-                  <div className="text-sm font-medium">{t("freeShipping")}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {t("onOrdersOver")} {formatPrice(250)}
+                <div className="flex flex-col items-center text-center space-y-2">
+                  <div className="p-2 bg-blue-100 rounded-full">
+                    <Truck className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="text-premium-sm font-medium">
+                    Free Shipping
+                  </div>
+                  <div className="text-premium-xs text-premium-muted">
+                    Over {formatPrice(250)}
                   </div>
                 </div>
-                <div className="flex flex-col items-center text-center p-4">
-                  <ShieldCheck className="h-5 w-5 mb-2" />
-                  <div className="text-sm font-medium">
-                    {t("secureCheckout")}
+                <div className="flex flex-col items-center text-center space-y-2">
+                  <div className="p-2 bg-orange-100 rounded-full">
+                    <RotateCcw className="h-5 w-5 text-orange-600" />
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {t("protectedBySSL")}
+                  <div className="text-premium-sm font-medium">
+                    Easy Returns
+                  </div>
+                  <div className="text-premium-xs text-premium-muted">
+                    30 Day Policy
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Description Section */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold mb-4">{t("productDescription")}</h2>
-          <Separator className="mb-6" />
-          <div className="prose max-w-none">
-            <p>{product.description}</p>
-            <p>
-              {t("stemToyDesigned")} {getCategoryName()}. {t("providesHandsOn")}
-            </p>
-            <h3 className="text-xl font-semibold mt-6">
-              {t("featuresBenefits")}
-            </h3>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>{t("developsCriticalThinking")}</li>
-              <li>{t("encouragesCreativity")}</li>
-              <li>{t("buildsConfidence")}</li>
-              <li>
-                {t("teachesFundamentalConcepts")} {getCategoryName()}{" "}
-                {t("inEngagingWay")}
-              </li>
-              <li>{t("safeMaterials")}</li>
-            </ul>
+          {/* Premium Description Section */}
+          <div className="mt-16 lg:mt-20 animate-fade-in-up">
+            <div className="bg-white rounded-2xl border-premium shadow-premium p-8 lg:p-12">
+              <h2 className="font-display text-premium-3xl font-bold text-premium-secondary mb-6">
+                {t("productDescription")}
+              </h2>
+              <Separator className="mb-8" />
+
+              <div className="prose prose-lg max-w-none">
+                <p className="text-premium-base text-premium-muted leading-relaxed mb-6">
+                  {product.description}
+                </p>
+                <p className="text-premium-base text-premium-muted leading-relaxed mb-8">
+                  {t("stemToyDesigned")} {getCategoryName()}.{" "}
+                  {t("providesHandsOn")}
+                </p>
+
+                <h3 className="font-display text-premium-2xl font-semibold text-premium-secondary mb-6">
+                  {t("featuresBenefits")}
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span className="text-premium-base text-premium-muted">
+                        {t("developsCriticalThinking")}
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span className="text-premium-base text-premium-muted">
+                        {t("encouragesCreativity")}
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span className="text-premium-base text-premium-muted">
+                        {t("buildsConfidence")}
+                      </span>
+                    </li>
+                  </ul>
+
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span className="text-premium-base text-premium-muted">
+                        {t("teachesFundamentalConcepts")} {getCategoryName()}{" "}
+                        {t("inEngagingWay")}
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span className="text-premium-base text-premium-muted">
+                        {t("safeMaterials")}
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

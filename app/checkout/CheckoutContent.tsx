@@ -1,23 +1,31 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
 import { CheckoutFlow } from "@/features/checkout/components/CheckoutFlow";
 import { useTranslation } from "@/lib/i18n";
+import { MobileLoadingState } from "@/features/checkout/components/MobileLoadingState";
+import { usePerformanceMonitor } from "@/features/checkout/hooks/usePerformanceMonitor";
 
 export function CheckoutContent() {
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
 
-  // Simulate a small delay to show the loading state
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
+  // Performance monitoring
+  const { recordStep, getMetrics } = usePerformanceMonitor({
+    step: "checkout-init",
+    onMetricsUpdate: metrics => {
+      if (process.env.NODE_ENV === "development") {
+        console.log("[Performance] Checkout metrics:", metrics);
+      }
+    },
+  });
 
-    return () => clearTimeout(timer);
-  }, []);
+  // Remove artificial delay - show content immediately
+  useEffect(() => {
+    setIsLoading(false);
+    recordStep();
+  }, [recordStep]);
 
   return (
     <div className="container py-6 sm:py-10 px-3 sm:px-4">
@@ -26,12 +34,11 @@ export function CheckoutContent() {
       </h1>
 
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="h-12 w-12 animate-spin text-indigo-600 mb-4" />
-          <p className="text-indigo-600 text-lg font-medium">
-            {t("loading", "Se încarcă finalizarea comenzii...")}
-          </p>
-        </div>
+        <MobileLoadingState
+          message={t("loading", "Se încarcă finalizarea comenzii...")}
+          showDeviceIcon={true}
+          size="lg"
+        />
       ) : (
         <CheckoutFlow />
       )}

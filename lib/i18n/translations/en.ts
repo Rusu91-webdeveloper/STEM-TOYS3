@@ -783,4 +783,34 @@ export const en = {
   getDiscount: "Get Discount",
   dontMissOut: "Don't Miss Out!",
   exclusiveDiscount: "Exclusive Discount",
+
+  // Error messages
+  error: {
+    title: {
+      NETWORK_ERROR: "Network Error",
+      TIMEOUT_ERROR: "Timeout Error",
+      AUTH_ERROR: "Authentication Error",
+      PAYMENT_ERROR: "Payment Error",
+      SETTINGS_ERROR: "Settings Error",
+      UNKNOWN_ERROR: "Unknown Error",
+    },
+    networkError:
+      "Connection error. Please check your internet connection and try again.",
+    timeoutError: "Request timed out. Please try again.",
+    authError: "Please log in again to continue.",
+    paymentError:
+      "Payment processing error. Please check your payment details and try again.",
+    settingsError: "Failed to load settings. Please try again.",
+    unknownError: "An unexpected error occurred. Please try again.",
+    action: {
+      retry: "Try Again",
+      login: "Login",
+    },
+  },
+
+  // Checkout translations
+  redirectingToConfirmation: "Redirecting to order confirmation...",
+  pleaseReviewOrder: "Please review your order before completing",
+  backToPayment: "Back to Payment",
+  cartEmpty: "Your cart is empty",
 };

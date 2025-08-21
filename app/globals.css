@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap");
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -51,11 +53,237 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
+    font-family:
+      "Inter",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Premium typography for product pages */
+  .font-display {
+    font-family: "Playfair Display", serif;
+  }
+
+  .font-body {
+    font-family: "Inter", sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Custom line clamp utility for better cross-browser support */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Mobile-first responsive text utilities */
+  .text-responsive-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .text-responsive-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  /* Better word breaking for long product names */
+  .break-words-safe {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Wishlist card hover effects */
+  .wishlist-card-hover {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .wishlist-card-hover:hover {
+    @apply transform -translate-y-1 shadow-lg;
+  }
+
+  /* Product image hover effects */
+  .product-image-hover {
+    @apply transition-transform duration-300 ease-out;
+  }
+
+  .product-image-hover:hover {
+    @apply transform scale-105;
+  }
+
+  /* Smooth opacity transitions */
+  .opacity-transition {
+    @apply transition-opacity duration-200 ease-in-out;
+  }
+
+  /* Premium product page utilities */
+  .product-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .product-image-zoom {
+    @apply transition-transform duration-500 ease-out;
+  }
+
+  .product-image-zoom:hover {
+    @apply transform scale-110;
+  }
+
+  /* Premium button styles */
+  .btn-premium {
+    @apply font-medium tracking-wide transition-all duration-300 ease-in-out;
+  }
+
+  .btn-premium:hover {
+    @apply transform translate-y-[-1px] shadow-lg;
+  }
+
+  /* Premium card styles */
+  .card-premium {
+    @apply bg-white border-0 shadow-sm hover:shadow-xl transition-all duration-500 ease-in-out;
+  }
+
+  .card-premium:hover {
+    @apply transform translate-y-[-2px];
+  }
+
+  /* Premium text gradients */
+  .text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Premium borders */
+  .border-premium {
+    @apply border border-gray-200/50;
+  }
+
+  /* Premium shadows */
+  .shadow-premium {
+    box-shadow:
+      0 10px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .shadow-premium-lg {
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Premium animations */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-left {
+    animation: fadeInLeft 0.6s ease-out forwards;
+  }
+
+  @keyframes fadeInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Premium spacing */
+  .space-premium {
+    @apply space-y-8;
+  }
+
+  /* Premium responsive utilities */
+  .container-premium {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Premium grid layouts */
+  .grid-premium {
+    @apply grid gap-8 lg:gap-12;
+  }
+
+  /* Premium typography scales */
+  .text-premium-xs {
+    @apply text-xs font-medium tracking-wide;
+  }
+
+  .text-premium-sm {
+    @apply text-sm font-medium tracking-wide;
+  }
+
+  .text-premium-base {
+    @apply text-base font-medium tracking-wide;
+  }
+
+  .text-premium-lg {
+    @apply text-lg font-semibold tracking-wide;
+  }
+
+  .text-premium-xl {
+    @apply text-xl font-semibold tracking-wide;
+  }
+
+  .text-premium-2xl {
+    @apply text-2xl font-bold tracking-tight;
+  }
+
+  .text-premium-3xl {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  .text-premium-4xl {
+    @apply text-4xl font-bold tracking-tight;
+  }
+
+  /* Premium color utilities */
+  .bg-premium {
+    @apply bg-gradient-to-br from-gray-50 to-white;
+  }
+
+  .text-premium-muted {
+    @apply text-gray-600;
+  }
+
+  .text-premium-primary {
+    @apply text-blue-600;
+  }
+
+  .text-premium-secondary {
+    @apply text-gray-900;
   }
 }
 

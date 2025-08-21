@@ -163,3 +163,6 @@ if (process.env.NODE_ENV !== "production") {
 // Export additional utilities
 export { PrismaClient } from "@prisma/client";
 export type { Prisma } from "@prisma/client";
+
+// Re-export db as prisma for compatibility with existing imports
+export const prisma = db;
