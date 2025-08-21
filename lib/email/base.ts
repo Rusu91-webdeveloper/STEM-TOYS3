@@ -1,11 +1,24 @@
 /**
- * Base email utilities for Brevo integration
- * Shared functions for email templates including headers, footers, and formatters
+ * Professional Base Email Infrastructure for TechTots
+ * Enterprise-grade email utilities with multi-million dollar company appearance
  */
 
 import { StoreSettings } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import {
+  colors,
+  gradients,
+  typography,
+  spacing,
+  borderRadius,
+  shadows,
+  email,
+} from "./design-system";
+import {
+  createProfessionalHeader,
+  createProfessionalFooter,
+} from "./components";
 
 // Base URL for links
 export const getBaseUrl = () =>
@@ -37,61 +50,38 @@ export function formatPrice(price: number): string {
 }
 
 /**
- * Generate professional email header with logo
+ * Generate professional email header with logo (Legacy - use createProfessionalHeader instead)
  */
 export function generateEmailHeader(storeSettings: StoreSettings): string {
   const baseUrl = getBaseUrl();
-
-  return `
-    <div style="text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 3px solid #3b82f6;">
-      <img src="${baseUrl}/TechTots_LOGO.png" alt="${storeSettings.storeName}" style="max-width: 200px; height: auto;">
-      <p style="margin: 8px 0 0 0; color: #6b7280; font-size: 14px; font-style: italic;">Jucării STEM pentru Minți Curioase</p>
-    </div>
-  `;
+  return createProfessionalHeader(storeSettings, baseUrl);
 }
 
 /**
- * Generate GDPR-compliant professional footer with Romanian company details
+ * Generate GDPR-compliant professional footer with Romanian company details (Legacy - use createProfessionalFooter instead)
  */
 export function generateEmailFooter(storeSettings: StoreSettings): string {
   const baseUrl = getBaseUrl();
-  const year = new Date().getFullYear();
-
-  return `
-    <div style="margin-top: 48px; padding-top: 24px; border-top: 2px solid #e5e7eb; background-color: #f8fafc; padding: 24px; border-radius: 8px;">
-      <div style="text-align: center; margin-bottom: 20px;">
-        <img src="${baseUrl}/TechTots_LOGO.png" alt="${storeSettings.storeName}" style="max-width: 120px; height: auto; opacity: 0.8;">
-      </div>
-      
-      <div style="text-align: center; color: #4b5563; font-size: 14px; line-height: 1.6;">
-        <p style="margin: 0 0 16px 0; font-weight: 600; color: #1f2937;">${storeSettings.storeName} - Jucării STEM pentru Minți Curioase</p>
-        
-        <div style="margin-bottom: 20px;">
-          <p style="margin: 0 0 8px 0;"><strong>Adresa:</strong> Mehedinti 54-56, Bl D5, sc 2, apt 70</p>
-          <p style="margin: 0 0 8px 0;">Mehedinti 54-56,Bl D5,APT 70, Cluj-Napoca,Cluj</p>
-          <p style="margin: 0 0 8px 0;"><strong>Email:</strong> webira.rem.srl@gmail.com</p>
-          <p style="margin: 0 0 16px 0;"><strong>Telefon:</strong> +40 771 248 029</p>
-        </div>
-        
-        <div style="margin-bottom: 20px;">
-          <a href="${baseUrl}/privacy" style="color: #3b82f6; text-decoration: none; margin: 0 12px;">Politica de Confidențialitate</a>
-          <a href="${baseUrl}/terms" style="color: #3b82f6; text-decoration: none; margin: 0 12px;">Termeni și Condiții</a>
-          <a href="${baseUrl}/unsubscribe?email={{params.email}}" style="color: #6b7280; text-decoration: none; margin: 0 12px;">Dezabonare</a>
-        </div>
-        
-        <p style="margin: 0; font-size: 12px; color: #6b7280;">© ${year} ${storeSettings.storeName}. Toate drepturile rezervate.</p>
-      </div>
-    </div>
-  `;
+  return createProfessionalFooter(storeSettings, baseUrl);
 }
 
 /**
- * Generate professional email container
+ * Generate professional email container with advanced styling
  */
 export function generateEmailContainer(content: string): string {
   return `
-    <div style="background-color: #ffffff; max-width: 600px; margin: 0 auto; font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1f2937;">
-      <div style="padding: 40px 30px;">
+    <div style="
+      background-color: white; 
+      max-width: 600px; 
+      margin: 0 auto; 
+      font-family: ${typography.fontFamily.primary}; 
+      line-height: ${typography.lineHeight.normal}; 
+      color: ${colors.neutral[800]};
+      border-radius: ${borderRadius.xl};
+      box-shadow: ${shadows["2xl"]};
+      overflow: hidden;
+    ">
+      <div style="padding: ${spacing["2xl"]} ${spacing.xl};">
         ${content}
       </div>
     </div>
@@ -99,26 +89,151 @@ export function generateEmailContainer(content: string): string {
 }
 
 /**
- * Generate complete email HTML structure
+ * Generate complete professional email HTML structure with advanced features
  */
 export function generateEmailHTML(
   content: string,
   storeSettings: StoreSettings,
-  title: string
+  title: string,
+  previewText?: string
 ): string {
+  const baseUrl = getBaseUrl();
+
   return `
     <!DOCTYPE html>
     <html lang="ro">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="color-scheme" content="light dark">
+      <meta name="supported-color-schemes" content="light dark">
       <title>${title} - ${storeSettings.storeName}</title>
+      ${previewText ? `<meta name="description" content="${previewText}">` : ""}
+      
+      <!-- Professional Email Styles -->
+      <style>
+        /* Reset styles for email clients */
+        body, table, td, p, a, li, blockquote { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        
+        /* Professional typography */
+        body { font-family: ${typography.fontFamily.primary}; line-height: ${typography.lineHeight.normal}; color: ${colors.neutral[800]}; }
+        
+        /* Responsive design */
+        @media only screen and (max-width: 600px) {
+          .mobile-full { width: 100% !important; }
+          .mobile-center { text-align: center !important; }
+          .mobile-padding { padding: 20px !important; }
+          .mobile-stack { display: block !important; }
+          .mobile-text { font-size: 16px !important; }
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+          .dark-mode { background-color: ${colors.neutral[900]} !important; color: ${colors.neutral[100]} !important; }
+          .dark-mode-text { color: ${colors.neutral[100]} !important; }
+          .dark-mode-border { border-color: ${colors.neutral[700]} !important; }
+        }
+        
+        /* Professional animations */
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        
+        /* Email client specific fixes */
+        .outlook-fix { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        .gmail-fix { display: inline-block !important; }
+        .apple-mail-fix { -webkit-text-size-adjust: 100%; }
+      </style>
     </head>
-    <body style="margin: 0; padding: 20px; background-color: #f3f4f6;">
-      ${generateEmailContainer(content)}
-      ${generateEmailFooter(storeSettings)}
+    <body style="margin: 0; padding: 20px; background: linear-gradient(135deg, ${colors.neutral[50]} 0%, ${colors.neutral[100]} 100%);">
+      <div class="fade-in">
+        ${generateEmailContainer(content)}
+      </div>
     </body>
     </html>
+  `;
+}
+
+/**
+ * Generate professional email with header and footer
+ */
+export function generateProfessionalEmail(
+  content: string,
+  storeSettings: StoreSettings,
+  title: string,
+  previewText?: string
+): string {
+  const baseUrl = getBaseUrl();
+
+  const fullContent = `
+    ${createProfessionalHeader(storeSettings, baseUrl)}
+    <div style="padding: ${spacing.xl};">
+      ${content}
+    </div>
+    ${createProfessionalFooter(storeSettings, baseUrl)}
+  `;
+
+  return generateEmailHTML(fullContent, storeSettings, title, previewText);
+}
+
+/**
+ * Generate email preview text for better inbox display
+ */
+export function generatePreviewText(
+  text: string,
+  maxLength: number = 150
+): string {
+  const cleanText = text
+    .replace(/<[^>]*>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleanText.length > maxLength
+    ? cleanText.substring(0, maxLength) + "..."
+    : cleanText;
+}
+
+/**
+ * Generate professional tracking pixel (for analytics)
+ */
+export function generateTrackingPixel(emailId: string): string {
+  const baseUrl = getBaseUrl();
+  return `<img src="${baseUrl}/api/email/track/${emailId}" width="1" height="1" style="display:none;" alt="">`;
+}
+
+/**
+ * Generate professional unsubscribe link
+ */
+export function generateUnsubscribeLink(
+  email: string,
+  listId?: string
+): string {
+  const baseUrl = getBaseUrl();
+  const params = new URLSearchParams({ email });
+  if (listId) params.append("list", listId);
+  return `${baseUrl}/unsubscribe?${params.toString()}`;
+}
+
+/**
+ * Generate professional social media links
+ */
+export function generateSocialLinks(): string {
+  return `
+    <div style="text-align: center; margin: ${spacing.lg} 0;">
+      <a href="https://facebook.com/techtots" style="display: inline-block; margin: 0 8px; text-decoration: none;">
+        <img src="${getBaseUrl()}/icons/facebook.png" alt="Facebook" style="width: 24px; height: 24px;">
+      </a>
+      <a href="https://instagram.com/techtots" style="display: inline-block; margin: 0 8px; text-decoration: none;">
+        <img src="${getBaseUrl()}/icons/instagram.png" alt="Instagram" style="width: 24px; height: 24px;">
+      </a>
+      <a href="https://youtube.com/techtots" style="display: inline-block; margin: 0 8px; text-decoration: none;">
+        <img src="${getBaseUrl()}/icons/youtube.png" alt="YouTube" style="width: 24px; height: 24px;">
+      </a>
+    </div>
   `;
 }
 

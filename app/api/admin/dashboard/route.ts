@@ -25,7 +25,7 @@ export const GET = withRateLimit(
       startDate.setDate(startDate.getDate() - period);
 
       // --- Caching logic start ---
-      const cacheKey = CacheKeys.user(`admin-dashboard:${period}`);
+      const cacheKey = CacheKeys.dashboard(`admin:${period}`);
       const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
       const dashboardData = await getCached(
         cacheKey,
@@ -164,7 +164,7 @@ export const GET = withRateLimit(
       const formattedRecentOrders = dashboardData.recentOrders.map(order => ({
         id: order.orderNumber,
         customer: order.user?.name || "Guest User",
-        date: order.createdAt.toISOString().split("T")[0],
+        date: new Date(order.createdAt).toISOString().split("T")[0],
         amount: order.total, // Return as number for client-side formatting with RON
         status:
           order.status.charAt(0).toUpperCase() +

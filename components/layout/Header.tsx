@@ -48,6 +48,27 @@ export default function Header() {
   // FIXED: Only show authenticated UI if truly authenticated
   const shouldShowAuthenticatedUI = isAuthenticated && !isLoading;
 
+  // Debug logging for admin navigation
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("Header Debug:", {
+        status,
+        isAuthenticated,
+        isAdmin,
+        userRole: session?.user?.role,
+        userId: session?.user?.id,
+        shouldShowAuthenticatedUI,
+      });
+    }
+  }, [
+    status,
+    isAuthenticated,
+    isAdmin,
+    session?.user?.role,
+    session?.user?.id,
+    shouldShowAuthenticatedUI,
+  ]);
+
   // Fetch wishlist count for authenticated users
   useEffect(() => {
     if (isAuthenticated) {
@@ -247,10 +268,11 @@ export default function Header() {
                     <span>{t("account")}</span>
                   </Link>
 
+                  {/* Admin Navigation - Enhanced with better visibility */}
                   {isAdmin && (
                     <Link
                       href="/admin"
-                      className="flex items-center gap-2 px-3 2xl:px-4 py-2 rounded-md text-sm 2xl:text-base font-medium bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors cursor-pointer shadow-sm hover:shadow border border-indigo-200"
+                      className="flex items-center gap-2 px-3 2xl:px-4 py-2 rounded-md text-sm 2xl:text-base font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg border border-transparent transform hover:scale-105"
                     >
                       <Settings className="h-4 w-4 2xl:h-5 2xl:w-5" />
                       <span>{t("admin")}</span>
@@ -329,6 +351,22 @@ export default function Header() {
                     ))}
                 </div>
 
+                {/* Admin Navigation in Mobile Menu */}
+                {isAdmin && (
+                  <div className="space-y-1 border-t border-gray-200 pt-4">
+                    <Link
+                      href="/admin"
+                      className="block rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 cursor-pointer shadow-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Settings className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6" />
+                        <span>{t("admin")}</span>
+                      </div>
+                    </Link>
+                  </div>
+                )}
+
                 {/* Utilities Section */}
                 <div className="py-4 border-t border-gray-200">
                   <div className="flex flex-wrap gap-3 mb-2 mt-2">
@@ -338,15 +376,24 @@ export default function Header() {
                   </div>
                 </div>
 
-                {/* Keep only Disconnect (Logout) in burger menu when authenticated */}
+                {/* User Actions in Mobile Menu */}
                 {shouldShowAuthenticatedUI && (
-                  <div className="border-t border-gray-200 py-3">
+                  <div className="border-t border-gray-200 py-3 space-y-2">
+                    <Link
+                      href="/account"
+                      className="flex items-center gap-3 rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <User className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6" />
+                      <span>{t("account")}</span>
+                    </Link>
+
                     <button
                       onClick={() => {
                         handleSignOut();
                         setMobileMenuOpen(false);
                       }}
-                      className="w-full flex items-center justify-center gap-2 rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium text-red-600 hover:bg-red-50 transition-colors"
+                      className="w-full flex items-center gap-3 rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium text-red-600 hover:bg-red-50 transition-colors"
                     >
                       <LogOut className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6" />
                       <span>{t("logout")}</span>

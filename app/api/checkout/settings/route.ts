@@ -3,34 +3,28 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
 import { prisma } from "@/lib/db";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    // Check authentication
     const session = await getServerSession();
-    if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch store settings
     const storeSettings = await prisma.storeSettings.findFirst({
       orderBy: { createdAt: "desc" },
     });
 
-    // Extract tax and shipping settings from JSON fields
-    const taxSettings = storeSettings?.taxSettings || {
-      active: false,
+    const taxSettings = storeSettings?.taxSettings ?? {
       rate: "21",
+      active: true,
       includeInPrice: true,
     };
 
-    const shippingSettings = storeSettings?.shippingSettings || {
-      standard: { price: "15.99", active: true },
-      express: { price: "25.99", active: true },
-      priority: { price: "39.99", active: true },
-      freeThreshold: { active: false, price: "200" },
+    const shippingSettings = storeSettings?.shippingSettings ?? {
+      standard: { price: "5.99", active: true },
+      express: { price: "12.99", active: true },
+      freeThreshold: { price: "250.00", active: true },
     };
 
     // Set cache headers for static data (5 minutes)

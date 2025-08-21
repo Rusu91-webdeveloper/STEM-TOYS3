@@ -36,10 +36,15 @@ async function handleVerify(request: Request) {
       },
     });
 
-    // Redirect to login page with success message
-    return NextResponse.redirect(
-      new URL("/auth/login?verified=true", request.url)
+    // Redirect to login page with success message and user's name
+    const redirectUrl = new URL("/auth/login", request.url);
+    redirectUrl.searchParams.set("verified", "true");
+    redirectUrl.searchParams.set(
+      "name",
+      user.name || user.email?.split("@")[0] || "User"
     );
+
+    return NextResponse.redirect(redirectUrl);
   } catch (error) {
     console.error("Verification error:", error);
     return NextResponse.redirect(

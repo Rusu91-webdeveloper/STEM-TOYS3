@@ -57,7 +57,7 @@ export async function GET() {
         image: item.product.images?.[0] || "/images/product-placeholder.jpg",
         slug: item.product.slug,
         inStock: item.product.stockQuantity > 0,
-        dateAdded: item.createdAt.toISOString(),
+        dateAdded: new Date(item.createdAt).toISOString(),
       }));
 
       return NextResponse.json(formattedItems);

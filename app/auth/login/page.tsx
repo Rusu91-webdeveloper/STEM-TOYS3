@@ -66,7 +66,13 @@ function LoginForm() {
   // Check for verification success parameter or registration redirect
   useEffect(() => {
     if (searchParams.get("verified") === "true") {
-      setSuccess(t("email_verification_greeting"));
+      const userName = searchParams.get("name");
+      const greeting = t("email_verification_greeting");
+      // Replace {name} placeholder with actual user name
+      const personalizedGreeting = userName
+        ? greeting.replace("{name}", userName)
+        : greeting.replace("{name}", "User");
+      setSuccess(personalizedGreeting);
     } else if (searchParams.get("from") === "register") {
       setSuccess(t("registrationSuccess"));
     }

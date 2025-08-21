@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { resolveAdminUserId } from "@/lib/admin-utils";
 
 // Validation schema for creating coupons
 const createCouponSchema = z
@@ -200,6 +201,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Resolve the actual admin user ID (handles admin_env case)
+    const createdByUserId = await resolveAdminUserId(
+      session.user.id,
+      session.user.email
+    );
+
     const coupon = await db.coupon.create({
       data: {
         ...validatedData,
@@ -209,7 +216,7 @@ export async function POST(request: NextRequest) {
         expiresAt: validatedData.expiresAt
           ? new Date(validatedData.expiresAt)
           : null,
-        createdBy: session.user.id,
+        createdBy: createdByUserId,
       },
       include: {
         admin: {

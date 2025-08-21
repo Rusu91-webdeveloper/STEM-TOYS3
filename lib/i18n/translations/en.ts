@@ -256,7 +256,7 @@ export const en = {
     "Your account has been deleted or no longer exists. Please create a new account or contact support.",
   loginSuccessful: "Login successful! Redirecting...",
   email_verification_greeting:
-    "Your email has been successfully verified! You can now log in.",
+    "Hello, {name}! Your email has been successfully verified! You can now log in.",
   emailExists: "An account with this email already exists.",
   checkInfoAndTryAgain: "Please check your information and try again.",
   registrationError: "An error occurred during registration. Please try again.",

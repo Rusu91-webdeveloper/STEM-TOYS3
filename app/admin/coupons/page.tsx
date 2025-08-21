@@ -4,18 +4,15 @@ import { format } from "date-fns";
 import {
   Plus,
   Search,
-  Filter,
   Send,
-  Edit,
   Trash2,
   Copy,
-  Eye,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -130,7 +127,7 @@ export default function CouponsPage() {
   });
 
   // Fetch coupons
-  const fetchCoupons = async () => {
+  const fetchCoupons = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -141,13 +138,16 @@ export default function CouponsPage() {
         ...(typeFilter !== "all" && { isInfluencer: typeFilter }),
       });
 
+      console.warn("Fetching coupons with params:", params.toString());
       const response = await fetch(`/api/admin/coupons?${params}`);
       if (!response.ok) throw new Error("Failed to fetch coupons");
 
       const data = await response.json();
+      console.warn("Fetched coupons data:", data);
       setCoupons(data.coupons);
       setTotalPages(data.pagination.pages);
     } catch (error) {
+      console.error("Error fetching coupons:", error);
       toast({
         title: "Error",
         description: "Failed to fetch coupons",
@@ -156,11 +156,21 @@ export default function CouponsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchTerm, statusFilter, typeFilter, toast]);
 
   useEffect(() => {
+    console.warn(
+      "useEffect triggered - currentPage:",
+      currentPage,
+      "searchTerm:",
+      searchTerm,
+      "statusFilter:",
+      statusFilter,
+      "typeFilter:",
+      typeFilter
+    );
     fetchCoupons();
-  }, [currentPage, searchTerm, statusFilter, typeFilter]);
+  }, [fetchCoupons]);
 
   // Fetch custom CSRF token
   const getCustomCsrfToken = async () => {
@@ -255,7 +265,7 @@ export default function CouponsPage() {
           : 0,
       };
 
-      console.log("Sending coupon data:", payload);
+      console.warn("Sending coupon data:", payload);
 
       const response = await fetch("/api/admin/coupons", {
         method: "POST",
@@ -267,6 +277,7 @@ export default function CouponsPage() {
       });
 
       const responseData = await response.json();
+      console.warn("Coupon creation response:", responseData);
 
       if (!response.ok) {
         if (responseData.details) {
@@ -310,7 +321,10 @@ export default function CouponsPage() {
         showAsPopup: true,
         popupPriority: 0,
       });
-      fetchCoupons();
+
+      // Reset to first page and refresh the list
+      setCurrentPage(1);
+      console.warn("Resetting to page 1 and will fetch coupons");
     } catch (error) {
       console.error("Error creating coupon:", error); // For debugging
       toast({

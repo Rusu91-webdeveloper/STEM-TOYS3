@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { emailTemplates } from "@/lib/brevoTemplates";
 import { prisma } from "@/lib/prisma";
+import {
+  sendNewsletterWelcomeEmail,
+  sendNewsletterResubscribeEmail,
+} from "@/lib/email/newsletter-templates";
 
 // Schema for newsletter subscription validation
 const subscribeSchema = z.object({
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest) {
 
         // Send welcome back email
         try {
-          await emailTemplates.newsletterResubscribe({
+          await sendNewsletterResubscribeEmail({
             to: email,
             name:
               firstName || existingSubscriber.firstName || email.split("@")[0],
@@ -100,7 +103,7 @@ export async function POST(request: NextRequest) {
 
     // Send welcome email
     try {
-      await emailTemplates.newsletterWelcome({
+      await sendNewsletterWelcomeEmail({
         to: email,
         name: firstName || email.split("@")[0],
       });

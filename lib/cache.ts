@@ -1,497 +1,675 @@
 /**
- * Advanced caching system with Redis support and in-memory fallback
+ * Redis Cache Integration
+ * Provides caching functionality for email marketing platform
  */
 
-import { TIME, CACHE_LIMITS } from "./constants";
-import { logger } from "./logger";
+import { Redis } from "@upstash/redis";
 
-// Cache configuration
-interface CacheConfig {
-  defaultTTL: number;
-  maxInMemoryItems: number;
-  keyPrefix: string;
+// Redis client instance
+let redis: Redis | null = null;
+
+/**
+ * Initialize Redis connection
+ */
+export function initializeRedis(): Redis {
+  if (!redis) {
+    redis = new Redis({
+      url: process.env.REDIS_URL || "",
+      token: process.env.REDIS_TOKEN || "",
+      automaticDeserialization: true,
+    });
+
+    console.log("✅ Redis initialized successfully");
+  }
+
+  return redis;
 }
 
-const config: CacheConfig = {
-  defaultTTL: TIME.CACHE_DURATION.MEDIUM,
-  maxInMemoryItems: CACHE_LIMITS.MAX_IN_MEMORY_ITEMS,
-  keyPrefix: "stemtoys:cache:",
-};
-
-// In-memory cache fallback
-class InMemoryCache {
-  private cache = new Map<
-    string,
-    { data: any; expiry: number; hits: number }
-  >();
-  private stats = {
-    hits: 0,
-    misses: 0,
-    sets: 0,
-    deletes: 0,
-  };
-
-  set(key: string, data: any, ttl?: number): void {
-    const expiry = Date.now() + (ttl || config.defaultTTL);
-
-    // Prevent memory overflow
-    if (this.cache.size >= config.maxInMemoryItems) {
-      this.evictLeastUsed();
-    }
-
-    this.cache.set(key, { data, expiry, hits: 0 });
-    this.stats.sets++;
-
-    logger.debug("Cache SET (memory)", { key, ttl: ttl || config.defaultTTL });
+/**
+ * Get Redis client instance
+ */
+export function getRedisClient(): Redis {
+  if (!redis) {
+    return initializeRedis();
   }
-
-  get(key: string): any | null {
-    const item = this.cache.get(key);
-
-    if (!item) {
-      this.stats.misses++;
-      return null;
-    }
-
-    if (Date.now() > item.expiry) {
-      this.cache.delete(key);
-      this.stats.misses++;
-      return null;
-    }
-
-    item.hits++;
-    this.stats.hits++;
-    logger.debug("Cache HIT (memory)", { key, hits: item.hits });
-    return item.data;
-  }
-
-  delete(key: string): void {
-    const deleted = this.cache.delete(key);
-    if (deleted) {
-      this.stats.deletes++;
-      logger.debug("Cache DELETE (memory)", { key });
-    }
-  }
-
-  clear(): void {
-    const size = this.cache.size;
-    this.cache.clear();
-    this.stats = { hits: 0, misses: 0, sets: 0, deletes: 0 };
-    logger.info("Cache CLEAR (memory)", { itemsCleared: size });
-  }
-
-  private evictLeastUsed(): void {
-    let leastUsedKey = "";
-    let leastHits = Infinity;
-    let oldestExpiry = Infinity;
-
-    for (const [key, item] of this.cache.entries()) {
-      // Prioritize expired items
-      if (Date.now() > item.expiry) {
-        this.cache.delete(key);
-        return;
-      }
-
-      // Then least used items
-      if (
-        item.hits < leastHits ||
-        (item.hits === leastHits && item.expiry < oldestExpiry)
-      ) {
-        leastUsedKey = key;
-        leastHits = item.hits;
-        oldestExpiry = item.expiry;
-      }
-    }
-
-    if (leastUsedKey) {
-      this.cache.delete(leastUsedKey);
-      logger.debug("Cache EVICT (memory)", {
-        key: leastUsedKey,
-        hits: leastHits,
-      });
-    }
-  }
-
-  getStats() {
-    const hitRate =
-      this.stats.hits + this.stats.misses > 0
-        ? (this.stats.hits / (this.stats.hits + this.stats.misses)) * 100
-        : 0;
-
-    return {
-      ...this.stats,
-      size: this.cache.size,
-      hitRate: Math.round(hitRate * 100) / 100,
-      type: "memory",
-    };
-  }
-
-  cleanup(): void {
-    const now = Date.now();
-    let cleaned = 0;
-
-    for (const [key, item] of this.cache.entries()) {
-      if (now > item.expiry) {
-        this.cache.delete(key);
-        cleaned++;
-      }
-    }
-
-    if (cleaned > 0) {
-      logger.debug("Cache CLEANUP (memory)", { itemsRemoved: cleaned });
-    }
-  }
+  return redis;
 }
 
-// Redis cache implementation (when available)
-class RedisCache {
-  private redis: any = null;
-  private isConnected = false;
-  private stats = {
-    hits: 0,
-    misses: 0,
-    sets: 0,
-    deletes: 0,
-    errors: 0,
-  };
+/**
+ * Cache interface for type safety
+ */
+export interface Cache {
+  get<T>(key: string): Promise<T | null>;
+  set<T>(key: string, value: T, ttl?: number): Promise<void>;
+  del(key: string): Promise<void>;
+  exists(key: string): Promise<boolean>;
+  expire(key: string, ttl: number): Promise<void>;
+  ttl(key: string): Promise<number>;
+  keys(pattern: string): Promise<string[]>;
+  flush(): Promise<void>;
+}
+
+/**
+ * Redis cache implementation
+ */
+export class RedisCache implements Cache {
+  private client: Redis;
 
   constructor() {
-    this.initializeRedis();
+    this.client = getRedisClient();
   }
 
-  private async initializeRedis() {
+  /**
+   * Get value from cache
+   */
+  async get<T>(key: string): Promise<T | null> {
     try {
-      // Check if Redis is explicitly disabled
-      if (process.env.DISABLE_REDIS === "true") {
-        logger.info("Redis disabled via DISABLE_REDIS environment variable");
-        return;
-      }
-
-      // Only initialize Redis if connection string is available
-      if (!process.env.REDIS_URL && !process.env.UPSTASH_REDIS_REST_URL) {
-        logger.info("No Redis configuration found, using in-memory cache only");
-        return;
-      }
-
-      // Dynamic import of Redis (install when needed)
-      let Redis;
-      try {
-        if (process.env.UPSTASH_REDIS_REST_URL) {
-          const { Redis: UpstashRedis } = await import("@upstash/redis");
-          this.redis = new UpstashRedis({
-            url: process.env.UPSTASH_REDIS_REST_URL!,
-            token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-          });
-        } else {
-          const ioredis = await import("ioredis");
-          Redis = ioredis.default;
-          this.redis = new Redis(process.env.REDIS_URL!, {
-            enableReadyCheck: false,
-            maxRetriesPerRequest: 1,
-            lazyConnect: true,
-            connectTimeout: 5000,
-            commandTimeout: 5000,
-          });
-        }
-
-        // Test connection with timeout
-        const connectionTimeout = setTimeout(() => {
-          throw new Error("Redis connection timeout");
-        }, 5000);
-
-        await this.redis.ping();
-        clearTimeout(connectionTimeout);
-
-        this.isConnected = true;
-        logger.info("Redis cache initialized successfully");
-      } catch (importError) {
-        logger.warn(
-          "Redis package not available, falling back to in-memory cache",
-          {
-            error:
-              importError instanceof Error
-                ? importError.message
-                : "Unknown error",
-          }
-        );
-      }
+      const value = await this.client.get(key);
+      return value as T | null;
     } catch (error) {
-      logger.warn("Failed to connect to Redis, using in-memory cache only", {
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-      this.isConnected = false;
+      console.error("Redis get error:", error);
+      return null;
     }
   }
 
-  async set(key: string, data: any, ttl?: number): Promise<void> {
-    if (!this.isConnected || !this.redis) return;
-
+  /**
+   * Set value in cache
+   */
+  async set<T>(key: string, value: T, ttl?: number): Promise<void> {
     try {
-      let serializedData: string;
-      if (typeof data === "string") {
-        // Check if it's already valid JSON
-        try {
-          JSON.parse(data);
-          serializedData = data; // Already valid JSON string
-        } catch {
-          // Not valid JSON, wrap as JSON string
-          serializedData = JSON.stringify({ value: data });
-          logger.warn(
-            "RedisCache.set: String data was not valid JSON, wrapping in object",
-            { key, data }
-          );
-        }
+      if (ttl) {
+        await this.client.set(key, value, { ex: ttl });
       } else {
-        try {
-          serializedData = JSON.stringify(data);
-        } catch (err) {
-          logger.error("RedisCache.set: Failed to serialize data", {
-            key,
-            data,
-            error: err,
-          });
-          return;
-        }
+        await this.client.set(key, value);
       }
-      const ttlSeconds = Math.floor((ttl || config.defaultTTL) / 1000);
-
-      await this.redis.setex(
-        config.keyPrefix + key,
-        ttlSeconds,
-        serializedData
-      );
-      this.stats.sets++;
-
-      logger.debug("Cache SET (redis)", { key, ttl: ttlSeconds });
     } catch (error) {
-      this.stats.errors++;
-      logger.error("Redis SET error", { key, error });
+      console.error("Redis set error:", error);
     }
   }
 
-  async get(key: string): Promise<any | null> {
-    if (!this.isConnected || !this.redis) return null;
-
+  /**
+   * Delete key from cache
+   */
+  async del(key: string): Promise<void> {
     try {
-      const data = await this.redis.get(config.keyPrefix + key);
-
-      if (data === null) {
-        this.stats.misses++;
-        return null;
-      }
-
-      this.stats.hits++;
-      logger.debug("Cache HIT (redis)", { key });
-      // If data is wrapped as { value: ... }, unwrap it
-      let parsed;
-      try {
-        parsed = JSON.parse(data);
-      } catch (err) {
-        logger.error("RedisCache.get: Failed to parse cached data", {
-          key,
-          data,
-          error: err,
-        });
-        // Auto-delete the bad cache entry to self-heal
-        try {
-          await this.redis.del(config.keyPrefix + key);
-          logger.warn(
-            "RedisCache.get: Deleted bad cache entry after parse error",
-            { key }
-          );
-        } catch (delErr) {
-          logger.error("RedisCache.get: Failed to delete bad cache entry", {
-            key,
-            error: delErr,
-          });
-        }
-        return null;
-      }
-      if (
-        parsed &&
-        typeof parsed === "object" &&
-        Object.keys(parsed).length === 1 &&
-        parsed.value !== undefined
-      ) {
-        return parsed.value;
-      }
-      return parsed;
+      await this.client.del(key);
     } catch (error) {
-      this.stats.errors++;
-      logger.error("Redis GET error", { key, error });
+      console.error("Redis del error:", error);
+    }
+  }
+
+  /**
+   * Check if key exists
+   */
+  async exists(key: string): Promise<boolean> {
+    try {
+      const result = await this.client.exists(key);
+      return result === 1;
+    } catch (error) {
+      console.error("Redis exists error:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Set expiration for key
+   */
+  async expire(key: string, ttl: number): Promise<void> {
+    try {
+      await this.client.expire(key, ttl);
+    } catch (error) {
+      console.error("Redis expire error:", error);
+    }
+  }
+
+  /**
+   * Get time to live for key
+   */
+  async ttl(key: string): Promise<number> {
+    try {
+      return await this.client.ttl(key);
+    } catch (error) {
+      console.error("Redis ttl error:", error);
+      return -1;
+    }
+  }
+
+  /**
+   * Get keys matching pattern
+   */
+  async keys(pattern: string): Promise<string[]> {
+    try {
+      return await this.client.keys(pattern);
+    } catch (error) {
+      console.error("Redis keys error:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Flush all keys
+   */
+  async flush(): Promise<void> {
+    try {
+      await this.client.flushall();
+    } catch (error) {
+      console.error("Redis flush error:", error);
+    }
+  }
+
+  /**
+   * Get multiple values
+   */
+  async mget<T>(keys: string[]): Promise<(T | null)[]> {
+    try {
+      const values = await this.client.mget(...keys);
+      return values.map(value => value as T | null);
+    } catch (error) {
+      console.error("Redis mget error:", error);
+      return keys.map(() => null);
+    }
+  }
+
+  /**
+   * Set multiple values
+   */
+  async mset<T>(
+    entries: Array<{ key: string; value: T; ttl?: number }>
+  ): Promise<void> {
+    try {
+      for (const { key, value, ttl } of entries) {
+        if (ttl) {
+          await this.client.set(key, value, { ex: ttl });
+        } else {
+          await this.client.set(key, value);
+        }
+      }
+    } catch (error) {
+      console.error("Redis mset error:", error);
+    }
+  }
+
+  /**
+   * Increment counter
+   */
+  async incr(key: string, ttl?: number): Promise<number> {
+    try {
+      const result = await this.client.incr(key);
+
+      if (ttl) {
+        await this.client.expire(key, ttl);
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Redis incr error:", error);
+      return 0;
+    }
+  }
+
+  /**
+   * Add to set
+   */
+  async sadd(key: string, ...members: string[]): Promise<number> {
+    try {
+      return await this.client.sadd(key, ...members);
+    } catch (error) {
+      console.error("Redis sadd error:", error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get set members
+   */
+  async smembers(key: string): Promise<string[]> {
+    try {
+      return await this.client.smembers(key);
+    } catch (error) {
+      console.error("Redis smembers error:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Remove from set
+   */
+  async srem(key: string, ...members: string[]): Promise<number> {
+    try {
+      return await this.client.srem(key, ...members);
+    } catch (error) {
+      console.error("Redis srem error:", error);
+      return 0;
+    }
+  }
+
+  /**
+   * Add to sorted set
+   */
+  async zadd(key: string, score: number, member: string): Promise<number> {
+    try {
+      return await this.client.zadd(key, score, member);
+    } catch (error) {
+      console.error("Redis zadd error:", error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get sorted set range
+   */
+  async zrange(
+    key: string,
+    start: number,
+    stop: number,
+    withScores = false
+  ): Promise<string[]> {
+    try {
+      const options = withScores ? "WITHSCORES" : undefined;
+      return await this.client.zrange(key, start, stop, options);
+    } catch (error) {
+      console.error("Redis zrange error:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Get sorted set score
+   */
+  async zscore(key: string, member: string): Promise<number | null> {
+    try {
+      const score = await this.client.zscore(key, member);
+      return score ? parseFloat(score) : null;
+    } catch (error) {
+      console.error("Redis zscore error:", error);
       return null;
     }
   }
 
-  async delete(key: string): Promise<void> {
-    if (!this.isConnected || !this.redis) return;
-
+  /**
+   * Hash operations
+   */
+  async hset(key: string, field: string, value: string): Promise<number> {
     try {
-      const deleted = await this.redis.del(config.keyPrefix + key);
-      if (deleted) {
-        this.stats.deletes++;
-        logger.debug("Cache DELETE (redis)", { key });
-      }
+      return await this.client.hset(key, field, value);
     } catch (error) {
-      this.stats.errors++;
-      logger.error("Redis DELETE error", { key, error });
+      console.error("Redis hset error:", error);
+      return 0;
     }
   }
 
-  async clear(pattern?: string): Promise<void> {
-    if (!this.isConnected || !this.redis) return;
-
+  async hget(key: string, field: string): Promise<string | null> {
     try {
-      const searchPattern = config.keyPrefix + (pattern || "*");
-      const keys = await this.redis.keys(searchPattern);
-
-      if (keys.length > 0) {
-        await this.redis.del(...keys);
-        logger.info("Cache CLEAR (redis)", {
-          itemsCleared: keys.length,
-          pattern: searchPattern,
-        });
-      }
+      return await this.client.hget(key, field);
     } catch (error) {
-      this.stats.errors++;
-      logger.error("Redis CLEAR error", { error });
+      console.error("Redis hget error:", error);
+      return null;
     }
   }
 
-  getStats() {
-    const hitRate =
-      this.stats.hits + this.stats.misses > 0
-        ? (this.stats.hits / (this.stats.hits + this.stats.misses)) * 100
-        : 0;
+  async hgetall(key: string): Promise<Record<string, string>> {
+    try {
+      return await this.client.hgetall(key);
+    } catch (error) {
+      console.error("Redis hgetall error:", error);
+      return {};
+    }
+  }
 
-    return {
-      ...this.stats,
-      hitRate: Math.round(hitRate * 100) / 100,
-      isConnected: this.isConnected,
-      type: "redis",
-    };
+  async hdel(key: string, ...fields: string[]): Promise<number> {
+    try {
+      return await this.client.hdel(key, ...fields);
+    } catch (error) {
+      console.error("Redis hdel error:", error);
+      return 0;
+    }
+  }
+
+  /**
+   * List operations
+   */
+  async lpush(key: string, ...values: string[]): Promise<number> {
+    try {
+      return await this.client.lpush(key, ...values);
+    } catch (error) {
+      console.error("Redis lpush error:", error);
+      return 0;
+    }
+  }
+
+  async rpush(key: string, ...values: string[]): Promise<number> {
+    try {
+      return await this.client.rpush(key, ...values);
+    } catch (error) {
+      console.error("Redis rpush error:", error);
+      return 0;
+    }
+  }
+
+  async lpop(key: string): Promise<string | null> {
+    try {
+      return await this.client.lpop(key);
+    } catch (error) {
+      console.error("Redis lpop error:", error);
+      return null;
+    }
+  }
+
+  async rpop(key: string): Promise<string | null> {
+    try {
+      return await this.client.rpop(key);
+    } catch (error) {
+      console.error("Redis rpop error:", error);
+      return null;
+    }
+  }
+
+  async lrange(key: string, start: number, stop: number): Promise<string[]> {
+    try {
+      return await this.client.lrange(key, start, stop);
+    } catch (error) {
+      console.error("Redis lrange error:", error);
+      return [];
+    }
+  }
+
+  async llen(key: string): Promise<number> {
+    try {
+      return await this.client.llen(key);
+    } catch (error) {
+      console.error("Redis llen error:", error);
+      return 0;
+    }
+  }
+
+  /**
+   * Health check
+   */
+  async ping(): Promise<string> {
+    try {
+      return await this.client.ping();
+    } catch (error) {
+      console.error("Redis ping error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get Redis info
+   */
+  async info(): Promise<string> {
+    try {
+      return await this.client.info();
+    } catch (error) {
+      console.error("Redis info error:", error);
+      return "";
+    }
+  }
+
+  /**
+   * Close Redis connection
+   */
+  async close(): Promise<void> {
+    try {
+      await this.client.quit();
+      redis = null;
+    } catch (error) {
+      console.error("Redis close error:", error);
+    }
   }
 }
 
-// Unified cache interface
-class CacheManager {
-  private redisCache: RedisCache;
-  private memoryCache: InMemoryCache;
+// Export singleton cache instance
+export const cache = new RedisCache();
 
-  constructor() {
-    this.redisCache = new RedisCache();
-    this.memoryCache = new InMemoryCache();
-
-    // Cleanup memory cache every 10 minutes
-    setInterval(
-      () => {
-        this.memoryCache.cleanup();
-      },
-      10 * 60 * 1000
-    );
-  }
-
-  async set(key: string, data: any, ttl?: number): Promise<void> {
-    // Always set in memory cache for immediate access
-    this.memoryCache.set(key, data, ttl);
-
-    // Also set in Redis if available
-    await this.redisCache.set(key, data, ttl);
-  }
-
-  async get(key: string): Promise<any | null> {
-    // Try memory cache first (fastest)
-    let data = this.memoryCache.get(key);
-    if (data !== null) {
-      return data;
-    }
-
-    // Fall back to Redis
-    data = await this.redisCache.get(key);
-    if (data !== null) {
-      // Cache in memory for next time
-      this.memoryCache.set(key, data);
-      return data;
-    }
-
-    return null;
-  }
-
-  async delete(key: string): Promise<void> {
-    this.memoryCache.delete(key);
-    await this.redisCache.delete(key);
-  }
-
-  async clear(pattern?: string): Promise<void> {
-    this.memoryCache.clear();
-    await this.redisCache.clear(pattern);
-  }
-
-  getStats() {
-    return {
-      memory: this.memoryCache.getStats(),
-      redis: this.redisCache.getStats(),
-    };
-  }
-
-  async invalidateByPattern(pattern: string): Promise<void> {
-    // For memory cache, we need to iterate and check keys
-    // For Redis, we can use the clear method with pattern
-    await this.redisCache.clear(pattern);
-
-    // Memory cache pattern invalidation would need custom implementation
-    logger.info("Cache invalidation by pattern", { pattern });
-  }
-}
-
-// Create singleton instance
-export const cache = new CacheManager();
-
-// Utility functions
+/**
+ * Generic caching function that wraps async operations with Redis caching
+ * @param key - Cache key
+ * @param fetchFn - Async function that fetches the data
+ * @param ttl - Time to live in milliseconds
+ * @returns Cached data or fresh data from fetchFn
+ */
 export async function getCached<T>(
   key: string,
-  fetcher: () => Promise<T>,
-  ttl?: number
+  fetchFn: () => Promise<T>,
+  ttl: number = 300000 // Default 5 minutes
 ): Promise<T> {
-  // Try to get from cache first
-  const cached = await cache.get(key);
-  if (cached !== null) {
-    return cached;
+  try {
+    // Check if Redis is configured
+    const isRedisConfigured = !!(
+      process.env.REDIS_URL && process.env.REDIS_TOKEN
+    );
+
+    if (!isRedisConfigured) {
+      // Redis not configured, just fetch fresh data
+      console.warn(`Redis not configured, skipping cache for key: ${key}`);
+      return await fetchFn();
+    }
+
+    // Try to get from cache first
+    const cached = await cache.get<T>(key);
+    if (cached !== null) {
+      return cached;
+    }
+
+    // If not in cache, fetch fresh data
+    const freshData = await fetchFn();
+
+    // Store in cache
+    await cache.set(key, freshData, Math.floor(ttl / 1000)); // Convert ms to seconds
+
+    return freshData;
+  } catch (error) {
+    console.error(`Cache error for key ${key}:`, error);
+
+    // If cache fails, still try to fetch fresh data
+    try {
+      return await fetchFn();
+    } catch (fetchError) {
+      console.error(`Fetch error for key ${key}:`, fetchError);
+      throw fetchError;
+    }
   }
-
-  // Fetch fresh data
-  const data = await fetcher();
-
-  // Cache the result
-  await cache.set(key, data, ttl);
-
-  return data;
 }
 
-export async function invalidateCache(key: string): Promise<void> {
-  await cache.delete(key);
-}
-
-export async function invalidateCachePattern(pattern: string): Promise<void> {
-  await cache.invalidateByPattern(pattern);
-}
-
-export function getCacheStats() {
-  return cache.getStats();
-}
-
-// Cache key builders for common patterns
+/**
+ * Cache key functions for consistent naming
+ */
 export const CacheKeys = {
-  product: (id: string) => `product:${id}`,
-  productList: (filters: Record<string, any>) =>
-    `products:${JSON.stringify(filters)}`,
-  category: (id: string) => `category:${id}`,
-  user: (id: string) => `user:${id}`,
-  cart: (userId: string) => `cart:${userId}`,
-  order: (id: string) => `order:${id}`,
-  book: (id: string) => `book:${id}`,
-  health: () => "health:status",
-};
+  // Basic key generators
+  product: (id?: string) => id ? `product:${id}` : "product",
+  category: (id?: string) => id ? `category:${id}` : "category",
+  user: (id?: string) => id ? `user:${id}` : "user",
+  order: (id?: string) => id ? `order:${id}` : "order",
+  cart: (id?: string) => id ? `cart:${id}` : "cart",
+  book: (id?: string) => id ? `book:${id}` : "book",
+  
+  // List keys
+  products: (params?: Record<string, any>) => {
+    if (!params || Object.keys(params).length === 0) return "products";
+    const sortedKeys = Object.keys(params).sort();
+    const paramString = sortedKeys
+      .map(key => `${key}=${encodeURIComponent(JSON.stringify(params[key]))}`)
+      .join("&");
+    return `products:${paramString}`;
+  },
+  productList: (params?: Record<string, any>) => {
+    if (!params || Object.keys(params).length === 0) return "products";
+    const sortedKeys = Object.keys(params).sort();
+    const paramString = sortedKeys
+      .map(key => `${key}=${encodeURIComponent(JSON.stringify(params[key]))}`)
+      .join("&");
+    return `products:${paramString}`;
+  },
+  categories: (params?: Record<string, any>) => {
+    if (!params || Object.keys(params).length === 0) return "categories";
+    const sortedKeys = Object.keys(params).sort();
+    const paramString = sortedKeys
+      .map(key => `${key}=${encodeURIComponent(JSON.stringify(params[key]))}`)
+      .join("&");
+    return `categories:${paramString}`;
+  },
+  orders: (params?: Record<string, any>) => {
+    if (!params || Object.keys(params).length === 0) return "orders";
+    const sortedKeys = Object.keys(params).sort();
+    const paramString = sortedKeys
+      .map(key => `${key}=${encodeURIComponent(JSON.stringify(params[key]))}`)
+      .join("&");
+    return `orders:${paramString}`;
+  },
+  users: (params?: Record<string, any>) => {
+    if (!params || Object.keys(params).length === 0) return "users";
+    const sortedKeys = Object.keys(params).sort();
+    const paramString = sortedKeys
+      .map(key => `${key}=${encodeURIComponent(JSON.stringify(params[key]))}`)
+      .join("&");
+    return `users:${paramString}`;
+  },
+  books: (params?: Record<string, any>) => {
+    if (!params || Object.keys(params).length === 0) return "books";
+    const sortedKeys = Object.keys(params).sort();
+    const paramString = sortedKeys
+      .map(key => `${key}=${encodeURIComponent(JSON.stringify(params[key]))}`)
+      .join("&");
+    return `books:${paramString}`;
+  },
+  
+  // Special keys
+  health: () => "health",
+  analytics: (type?: string) => type ? `analytics:${type}` : "analytics",
+  dashboard: (type?: string) => type ? `dashboard:${type}` : "dashboard",
+  customers: (params?: Record<string, any>) => {
+    if (!params || Object.keys(params).length === 0) return "customers";
+    const sortedKeys = Object.keys(params).sort();
+    const paramString = sortedKeys
+      .map(key => `${key}=${encodeURIComponent(JSON.stringify(params[key]))}`)
+      .join("&");
+    return `customers:${paramString}`;
+  },
+  blog: (id?: string) => id ? `blog:${id}` : "blog",
+  comments: (id?: string) => id ? `comments:${id}` : "comments",
+  reviews: (id?: string) => id ? `reviews:${id}` : "reviews",
+  coupons: (id?: string) => id ? `coupons:${id}` : "coupons",
+  settings: (type?: string) => type ? `settings:${type}` : "settings",
+  tax: (type?: string) => type ? `tax:${type}` : "tax",
+  shipping: (type?: string) => type ? `shipping:${type}` : "shipping",
+  
+  // Legacy constants for backward compatibility
+  PRODUCTS: "products",
+  PRODUCT: "product",
+  CATEGORIES: "categories",
+  CATEGORY: "category",
+  USERS: "users",
+  USER: "user",
+  ORDERS: "orders",
+  ORDER: "order",
+  CART: "cart",
+  BOOKS: "books",
+  BOOK: "book",
+  HEALTH: "health",
+  ANALYTICS: "analytics",
+  DASHBOARD: "dashboard",
+  CUSTOMERS: "customers",
+  BLOG: "blog",
+  COMMENTS: "comments",
+  REVIEWS: "reviews",
+  COUPONS: "coupons",
+  SETTINGS: "settings",
+  TAX: "tax",
+  SHIPPING: "shipping",
+} as const;
 
-// Export types
-export type { CacheConfig };
+/**
+ * Invalidate cache by pattern
+ * @param pattern - Redis pattern to match keys for deletion
+ */
+export async function invalidateCachePattern(pattern: string): Promise<void> {
+  try {
+    const keys = await cache.keys(pattern);
+    if (keys.length > 0) {
+      await Promise.all(keys.map(key => cache.del(key)));
+      console.log(
+        `Invalidated ${keys.length} cache keys matching pattern: ${pattern}`
+      );
+    }
+  } catch (error) {
+    console.error(`Error invalidating cache pattern ${pattern}:`, error);
+  }
+}
+
+/**
+ * Invalidate specific cache key
+ * @param key - Cache key to invalidate
+ */
+export async function invalidateCache(key: string): Promise<void> {
+  try {
+    await cache.del(key);
+    console.log(`Invalidated cache key: ${key}`);
+  } catch (error) {
+    console.error(`Error invalidating cache key ${key}:`, error);
+  }
+}
+
+// Export cache utilities
+export const cacheUtils = {
+  /**
+   * Generate cache key with prefix
+   */
+  key: (prefix: string, ...parts: (string | number)[]): string => {
+    return `${prefix}:${parts.join(":")}`;
+  },
+
+  /**
+   * Generate cache key for user data
+   */
+  userKey: (userId: string, type: string): string => {
+    return cacheUtils.key("user", userId, type);
+  },
+
+  /**
+   * Generate cache key for email data
+   */
+  emailKey: (emailId: string, type: string): string => {
+    return cacheUtils.key("email", emailId, type);
+  },
+
+  /**
+   * Generate cache key for campaign data
+   */
+  campaignKey: (campaignId: string, type: string): string => {
+    return cacheUtils.key("campaign", campaignId, type);
+  },
+
+  /**
+   * Generate cache key for sequence data
+   */
+  sequenceKey: (sequenceId: string, type: string): string => {
+    return cacheUtils.key("sequence", sequenceId, type);
+  },
+
+  /**
+   * Generate cache key for template data
+   */
+  templateKey: (templateId: string, type: string): string => {
+    return cacheUtils.key("template", templateId, type);
+  },
+
+  /**
+   * Generate cache key for analytics data
+   */
+  analyticsKey: (type: string, ...parts: (string | number)[]): string => {
+    return cacheUtils.key("analytics", type, ...parts);
+  },
+
+  /**
+   * Default TTL values
+   */
+  TTL: {
+    SHORT: 300, // 5 minutes
+    MEDIUM: 1800, // 30 minutes
+    LONG: 3600, // 1 hour
+    DAY: 86400, // 24 hours
+    WEEK: 604800, // 7 days
+    MONTH: 2592000, // 30 days
+  },
+};
