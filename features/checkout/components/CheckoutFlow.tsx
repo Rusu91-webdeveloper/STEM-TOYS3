@@ -30,10 +30,12 @@ export function CheckoutFlow() {
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("loading");
   const [checkoutData, setCheckoutData] = useState<CheckoutData>({
     billingAddressSameAsShipping: true,
-    isGuestCheckout: false, // Authentication is required, so never guest checkout
   });
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+  const [redirectToConfirmation, setRedirectToConfirmation] = useState<
+    string | null
+  >(null);
 
   // **COUPON STATE MANAGEMENT**
   const [appliedCoupon, setAppliedCoupon] = useState<{
@@ -78,7 +80,19 @@ export function CheckoutFlow() {
     }
 
     if (cartItems.length === 0) {
-      // Redirect to products if cart is empty
+      // Check if we're coming from a successful order completion
+      const orderCompleted = sessionStorage.getItem("orderCompleted");
+      const orderId = sessionStorage.getItem("orderId");
+
+      if (orderCompleted === "true" && orderId) {
+        // User just completed an order, redirect to confirmation
+        sessionStorage.removeItem("orderCompleted");
+        sessionStorage.removeItem("orderId");
+        setRedirectToConfirmation(orderId);
+        return;
+      }
+
+      // No recent order completion, redirect to products if cart is empty
       router.push("/products");
       return;
     }
@@ -86,6 +100,14 @@ export function CheckoutFlow() {
     // Start with shipping-address step
     setCurrentStep("shipping-address");
   }, [status, session, cartItems.length, router]);
+
+  // Handle redirect to confirmation page
+  useEffect(() => {
+    if (redirectToConfirmation) {
+      router.push(`/checkout/confirmation?orderId=${redirectToConfirmation}`);
+      setRedirectToConfirmation(null);
+    }
+  }, [redirectToConfirmation, router]);
 
   const handlePlaceOrder = async () => {
     if (cartItems.length === 0) {
@@ -140,12 +162,16 @@ export function CheckoutFlow() {
 
       const order = await createOrder(orderData);
 
-      if (order) {
+      if (order && order.success) {
         // Clear cart after successful order
         await clearCart();
 
-        // Redirect to confirmation page
-        router.push(`/checkout/confirmation?orderId=${order.id}`);
+        // Set a flag in session storage to indicate order completion
+        sessionStorage.setItem("orderCompleted", "true");
+        sessionStorage.setItem("orderId", order.orderId);
+
+        // Set redirect state to trigger navigation
+        setRedirectToConfirmation(order.orderId);
       }
     } catch (error) {
       console.error("Order creation failed:", error);
@@ -184,6 +210,28 @@ export function CheckoutFlow() {
 
   // Show error if cart is empty
   if (cartItems.length === 0) {
+    // Check if we're coming from a successful order completion
+    const orderCompleted = sessionStorage.getItem("orderCompleted");
+    const orderId = sessionStorage.getItem("orderId");
+
+    if (orderCompleted === "true" && orderId) {
+      // User just completed an order, redirect to confirmation
+      sessionStorage.removeItem("orderCompleted");
+      sessionStorage.removeItem("orderId");
+      setRedirectToConfirmation(orderId);
+      return (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="h-12 w-12 animate-spin text-indigo-600 mb-4" />
+          <p className="text-indigo-600 text-lg font-medium">
+            {t(
+              "redirectingToConfirmation",
+              "Redirecting to order confirmation..."
+            )}
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <p className="text-red-600 text-lg font-medium">

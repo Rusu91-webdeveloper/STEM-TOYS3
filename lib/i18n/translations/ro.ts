@@ -911,4 +911,39 @@ export const ro = {
   "productType.CONSTRUCTION_SETS": "Seturi de Construcție",
   "productType.EXPERIMENT_KITS": "Kituri de Experimente",
   "productType.BOARD_GAMES": "Jocuri de Masă",
+
+  // Error messages
+  error: {
+    title: {
+      NETWORK_ERROR: "Eroare de Rețea",
+      TIMEOUT_ERROR: "Eroare de Timeout",
+      AUTH_ERROR: "Eroare de Autentificare",
+      PAYMENT_ERROR: "Eroare de Plată",
+      SETTINGS_ERROR: "Eroare de Setări",
+      UNKNOWN_ERROR: "Eroare Necunoscută",
+    },
+    networkError:
+      "Eroare de conexiune. Te rugăm să verifici conexiunea la internet și să încerci din nou.",
+    timeoutError: "Cererea a expirat. Te rugăm să încerci din nou.",
+    authError: "Te rugăm să te conectezi din nou pentru a continua.",
+    paymentError:
+      "Eroare la procesarea plății. Te rugăm să verifici detaliile de plată și să încerci din nou.",
+    settingsError: "Eșec la încărcarea setărilor. Te rugăm să încerci din nou.",
+    unknownError: "A apărut o eroare neașteptată. Te rugăm să încerci din nou.",
+    action: {
+      retry: "Încearcă Din Nou",
+      login: "Conectare",
+    },
+  },
+
+  // Missing checkout translations
+  orderReview: "Verificarea Comenzii",
+  edit: "Editează",
+  paymentProcessing: "Procesarea plății se va face în siguranță prin Stripe.",
+  calculatingTotal: "Se calculează totalul...",
+  noShippingAddress: "Nu a fost furnizată o adresă de livrare",
+  redirectingToConfirmation: "Se redirecționează către confirmarea comenzii...",
+  pleaseReviewOrder: "Vă rugăm să verificați comanda înainte de finalizare",
+  backToPayment: "Înapoi la plată",
+  cartEmpty: "Coșul dvs. este gol",
 };

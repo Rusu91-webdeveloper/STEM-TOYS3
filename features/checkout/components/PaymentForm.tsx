@@ -1,22 +1,19 @@
 "use client";
 
-import { Loader2, CreditCard } from "lucide-react";
 import React, { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-// import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/features/cart";
 import { useTranslation } from "@/lib/i18n";
 
-import { fetchShippingSettings, fetchTaxSettings } from "../lib/checkoutApi";
 import { PaymentDetails, ShippingAddress, ShippingMethod } from "../types";
 
-import { ShippingAddressForm } from "./ShippingAddressForm";
+import { BillingAddressForm } from "./BillingAddressForm";
+import { PaymentMethodSelector } from "./PaymentMethodSelector";
+import { PaymentSummary } from "./PaymentSummary";
 import { StripePaymentForm } from "./StripePaymentForm";
 import { StripeProvider } from "./StripeProvider";
+import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
 
 interface PaymentCard {
   id: string;
@@ -72,32 +69,31 @@ export function PaymentForm({
   const [useNewCard, setUseNewCard] = useState(true);
   const [totalAmount, setTotalAmount] = useState(0);
   const [isCalculatingTotal, setIsCalculatingTotal] = useState(true);
+  const { settings } = useCheckoutSettings();
 
   // Calculate the total amount including tax and shipping
   useEffect(() => {
-    async function calculateTotal() {
+    function calculateTotal() {
       setIsCalculatingTotal(true);
       try {
         const subtotal = getCartTotal();
         let shippingCost = shippingMethod?.price || 0;
 
-        // Get tax settings
-        const taxSettings = await fetchTaxSettings();
-        const taxRate = taxSettings.active
-          ? parseFloat(taxSettings.rate) / 100
+        // Get tax settings from unified settings
+        const taxRate = settings?.taxSettings?.active
+          ? parseFloat(settings.taxSettings.rate) / 100
           : 0;
-        const includeInPrice = taxSettings.includeInPrice !== false;
+        const includeInPrice = settings?.taxSettings?.includeInPrice !== false;
 
         // Get shipping settings for free shipping threshold (only for standard shipping)
-        const shippingSettings = await fetchShippingSettings();
         const cartTotalIncludingVAT = subtotal; // Cart total already includes VAT
 
         if (
-          shippingSettings.freeThreshold?.active &&
+          settings?.shippingSettings?.freeThreshold?.active &&
           shippingMethod?.id === "standard"
         ) {
           const freeShippingThreshold = parseFloat(
-            shippingSettings.freeThreshold.price
+            settings.shippingSettings.freeThreshold.price
           );
           if (cartTotalIncludingVAT >= freeShippingThreshold) {
             shippingCost = 0;
@@ -124,8 +120,10 @@ export function PaymentForm({
       }
     }
 
-    calculateTotal();
-  }, [getCartTotal, shippingMethod, discountAmount]);
+    if (settings) {
+      calculateTotal();
+    }
+  }, [getCartTotal, shippingMethod, discountAmount, settings]);
 
   // Fetch saved payment cards
   useEffect(() => {
@@ -223,32 +221,6 @@ export function PaymentForm({
     setUseNewCard(value === "new");
   };
 
-  // Get card logo or icon based on card type
-  const getCardIcon = (cardType: string) => {
-    switch (cardType.toLowerCase()) {
-      case "visa":
-        return (
-          <div className="bg-blue-500 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            VISA
-          </div>
-        );
-      case "mastercard":
-        return (
-          <div className="bg-red-500 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            MC
-          </div>
-        );
-      case "amex":
-        return (
-          <div className="bg-blue-700 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            AMEX
-          </div>
-        );
-      default:
-        return <CreditCard className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="bg-white rounded-lg border p-4 sm:p-6">
@@ -256,104 +228,22 @@ export function PaymentForm({
           {t("paymentMethod", "Metodă de plată")}
         </h2>
 
-        {isLoadingCards ? (
-          <div className="flex justify-center items-center py-6">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-          </div>
-        ) : savedCards.length > 0 ? (
-          <div className="mb-6">
-            <Label className="text-base font-medium mb-3 block">
-              {t("selectPaymentMethod", "Selectează metoda de plată")}
-            </Label>
-            <RadioGroup
-              value={selectedPaymentMethod}
-              onValueChange={handlePaymentMethodChange}
-              className="space-y-3"
-            >
-              {savedCards.map(card => (
-                <div
-                  key={card.id}
-                  className="flex items-start space-x-2 p-3 border rounded-md hover:bg-gray-50"
-                >
-                  <RadioGroupItem
-                    value={card.id}
-                    id={`card-${card.id}`}
-                    className="mt-1"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <Label
-                        htmlFor={`card-${card.id}`}
-                        className="font-medium cursor-pointer flex items-center gap-2"
-                      >
-                        {getCardIcon(card.cardType)}
-                        •••• {card.lastFourDigits}
-                        <span className="text-sm text-gray-500 ml-2">
-                          {t("expires", "Expires")} {card.expiryMonth}/
-                          {card.expiryYear}
-                        </span>
-                        {card.isDefault && (
-                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded ml-2">
-                            {t("default", "Default")}
-                          </span>
-                        )}
-                      </Label>
-                    </div>
-                    <div className="text-sm text-gray-600 mt-1">
-                      {card.cardholderName}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <div className="flex items-start space-x-2 p-3 border rounded-md hover:bg-gray-50">
-                <RadioGroupItem value="new" id="payment-new" className="mt-1" />
-                <Label
-                  htmlFor="payment-new"
-                  className="font-medium cursor-pointer"
-                >
-                  {t("useNewCard", "Folosește un card nou")}
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
-        ) : null}
+        <PaymentMethodSelector
+          selectedPaymentMethod={selectedPaymentMethod}
+          onPaymentMethodChange={handlePaymentMethodChange}
+          savedCards={savedCards}
+          isLoadingCards={isLoadingCards}
+        />
 
-        {/* Billing Address Checkbox */}
-        <div className="flex items-center space-x-2 mt-6 mb-4">
-          <Checkbox
-            id="billing-same"
-            checked={useSameAddress}
-            onCheckedChange={handleCheckboxChange}
-          />
-          <Label
-            htmlFor="billing-same"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            {t("sameAsShipping", "Aceeași ca adresa de livrare")}
-          </Label>
-        </div>
-
-        {/* Discount Information Display */}
-        {appliedCoupon && discountAmount > 0 && (
-          <div className="my-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-green-600 font-medium">
-                  🎉 Discount Applied:
-                </span>
-                <span className="font-mono text-sm bg-green-100 px-2 py-1 rounded text-green-800">
-                  {appliedCoupon.code}
-                </span>
-              </div>
-              <span className="text-green-600 font-bold">
-                -{discountAmount.toFixed(2)} LEI
-              </span>
-            </div>
-            <p className="text-sm text-green-700 mt-2">
-              You&apos;re saving {discountAmount.toFixed(2)} LEI on this order!
-            </p>
-          </div>
-        )}
+        <PaymentSummary
+          appliedCoupon={appliedCoupon}
+          discountAmount={discountAmount}
+          useNewCard={useNewCard}
+          selectedPaymentMethod={selectedPaymentMethod}
+          isCalculatingTotal={isCalculatingTotal}
+          totalAmount={totalAmount}
+          getCartTotal={getCartTotal}
+        />
 
         {/* Show the saved card or Stripe form */}
         {!useNewCard && selectedPaymentMethod !== "new" ? (
@@ -378,22 +268,16 @@ export function PaymentForm({
           </StripeProvider>
         )}
 
-        {/* Billing Address Form */}
-        {showBillingForm && (
-          <div className="mt-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-medium">
-                {t("billingAddress", "Adresa de facturare")}
-              </h3>
-            </div>
-            <ShippingAddressForm
-              initialData={currentBillingAddress}
-              onSubmit={address => {
-                setCurrentBillingAddress(address);
-              }}
-            />
-          </div>
-        )}
+        <BillingAddressForm
+          useSameAddress={useSameAddress}
+          onUseSameAddressChange={handleCheckboxChange}
+          showBillingForm={showBillingForm}
+          currentBillingAddress={currentBillingAddress}
+          shippingAddress={shippingAddress}
+          onBillingAddressChange={address => {
+            setCurrentBillingAddress(address);
+          }}
+        />
 
         {/* Payment Error */}
         {paymentError && (

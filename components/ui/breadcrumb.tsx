@@ -24,7 +24,7 @@ interface BreadcrumbProps {
 export function Breadcrumb({
   items,
   className,
-  separator = <ChevronRight className="h-4 w-4 text-muted-foreground" />,
+  separator = <ChevronRight className="h-4 w-4 text-premium-muted" />,
   showHome = true,
   homeLabel = "Home",
   maxItems = 5,
@@ -69,7 +69,7 @@ export function Breadcrumb({
       {/* Visual Breadcrumb */}
       <nav
         aria-label="Breadcrumb"
-        className={cn("flex items-center space-x-1 text-sm", className)}
+        className={cn("flex items-center space-x-1 text-premium-sm", className)}
       >
         <ol className="flex items-center space-x-1">
           {displayItems.map((item, index) => {
@@ -85,14 +85,14 @@ export function Breadcrumb({
                 )}
 
                 {isEllipsis ? (
-                  <span className="text-muted-foreground">...</span>
+                  <span className="text-premium-muted">...</span>
                 ) : isLast || item.current || !item.href ? (
                   <span
                     className={cn(
-                      "font-medium",
+                      "font-semibold",
                       isLast || item.current
-                        ? "text-foreground"
-                        : "text-muted-foreground"
+                        ? "text-premium-secondary"
+                        : "text-premium-muted"
                     )}
                     aria-current={isLast || item.current ? "page" : undefined}
                   >
@@ -109,8 +109,8 @@ export function Breadcrumb({
                   <Link
                     href={item.href}
                     className={cn(
-                      "text-muted-foreground hover:text-foreground transition-colors",
-                      "underline-offset-4 hover:underline"
+                      "text-premium-muted hover:text-premium-primary transition-colors duration-200",
+                      "underline-offset-4 hover:underline font-medium"
                     )}
                   >
                     {index === 0 && showHome ? (
@@ -177,14 +177,14 @@ export const BreadcrumbVariants = {
   arrow: (props: Omit<BreadcrumbProps, "separator">) => (
     <Breadcrumb
       {...props}
-      separator={<span className="text-muted-foreground">→</span>}
+      separator={<span className="text-premium-muted">→</span>}
     />
   ),
 
   slash: (props: Omit<BreadcrumbProps, "separator">) => (
     <Breadcrumb
       {...props}
-      separator={<span className="text-muted-foreground">/</span>}
+      separator={<span className="text-premium-muted">/</span>}
     />
   ),
 
@@ -192,7 +192,7 @@ export const BreadcrumbVariants = {
     <Breadcrumb
       {...props}
       showHome={false}
-      separator={<span className="text-muted-foreground px-1">·</span>}
+      separator={<span className="text-premium-muted px-1">·</span>}
     />
   ),
 };

@@ -141,16 +141,35 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-6 gap-2">
-          <TabsTrigger value="all">{t("all", "Toate")}</TabsTrigger>
-          <TabsTrigger value="processing">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-6 gap-1 sm:gap-2 p-1">
+          <TabsTrigger
+            value="all"
+            className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+          >
+            {t("all", "Toate")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="processing"
+            className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+          >
             {t("processing", "În procesare")}
           </TabsTrigger>
-          <TabsTrigger value="shipped">{t("shipped", "Expediat")}</TabsTrigger>
-          <TabsTrigger value="delivered">
+          <TabsTrigger
+            value="shipped"
+            className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+          >
+            {t("shipped", "Expediat")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="delivered"
+            className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+          >
             {t("delivered", "Livrat")}
           </TabsTrigger>
-          <TabsTrigger value="cancelled">
+          <TabsTrigger
+            value="cancelled"
+            className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+          >
             {t("cancelled", "Anulat")}
           </TabsTrigger>
         </TabsList>
@@ -167,15 +186,18 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
             </div>
           ) : (
             filteredOrders.map(order => (
-              <Card key={order.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                    <div>
-                      <CardTitle className="text-base">
+              <Card
+                key={order.id}
+                className="overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+              >
+                <CardHeader className="pb-3 px-4 sm:px-6 pt-4 sm:pt-6">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-base sm:text-lg break-words line-clamp-1">
                         {t("orderNumber", "Order #")}
                         {order.orderNumber}
                       </CardTitle>
-                      <CardDescription>
+                      <CardDescription className="text-sm break-words mt-1">
                         {t("placedOn", "Placed on ")}{" "}
                         {formatDate(new Date(order.date))}
                       </CardDescription>
@@ -183,18 +205,18 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
                     <Badge
                       className={`${getStatusBadgeVariant(
                         order.status
-                      )} capitalize w-fit`}
+                      )} capitalize w-fit text-xs sm:text-sm shrink-0 px-2 py-1`}
                     >
                       {t(order.status, order.status)}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="pb-3">
-                  <div className="space-y-3">
+                <CardContent className="pb-3 px-4 sm:px-6">
+                  <div className="space-y-4">
                     {order.items.map(item => (
                       <div
                         key={item.id}
-                        className="flex flex-col sm:flex-row gap-3"
+                        className="flex flex-col gap-3 sm:flex-row sm:items-start p-3 sm:p-0 sm:bg-transparent bg-muted/30 rounded-lg sm:rounded-none"
                       >
                         <div className="h-16 w-16 rounded bg-muted overflow-hidden relative shrink-0 mx-auto sm:mx-0">
                           <img
@@ -203,19 +225,19 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
                             className="object-cover h-full w-full"
                           />
                         </div>
-                        <div className="flex flex-col text-center sm:text-left">
+                        <div className="flex flex-col text-center sm:text-left min-w-0 flex-1">
                           <Link
                             href={`/products/${item.productSlug}`}
-                            className="font-medium hover:underline"
+                            className="font-medium hover:underline text-sm sm:text-base line-clamp-2 break-words-safe"
                           >
                             {item.productName}
                           </Link>
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm text-muted-foreground">
-                            <span>
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3 text-xs sm:text-sm text-muted-foreground mt-1">
+                            <span className="whitespace-nowrap">
                               {formatPrice(item.price)} x {item.quantity}
                             </span>
                             <span className="hidden sm:inline">•</span>
-                            <span>
+                            <span className="font-medium">
                               {formatPrice(item.price * item.quantity)}
                             </span>
                           </div>
@@ -223,26 +245,33 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
                       </div>
                     ))}
                   </div>
-                  <div className="mt-4 pt-4 border-t flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                    <div className="font-medium">
+                  <div className="mt-4 pt-4 border-t flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
+                    <div className="font-medium text-sm sm:text-base">
                       {t("total", "Total")}: {formatPrice(order.total)}
                     </div>
-                    <div className="text-sm">
+                    <div className="text-xs sm:text-sm text-muted-foreground break-words">
                       {t("shippingTo", "Shipping to")}:{" "}
-                      {order.shippingAddress.name}, {order.shippingAddress.city}
-                      , {order.shippingAddress.state}
+                      <span className="font-medium">
+                        {order.shippingAddress.name}
+                      </span>
+                      <br className="sm:hidden" />
+                      <span className="sm:inline">, </span>
+                      <span className="break-words-safe">
+                        {order.shippingAddress.city},{" "}
+                        {order.shippingAddress.state}
+                      </span>
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="flex flex-col sm:flex-row justify-between gap-2">
+                <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between px-4 sm:px-6 pb-4 sm:pb-6">
                   <Button
                     variant="outline"
                     size="sm"
                     asChild
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10"
                   >
                     <Link href={`/account/orders/${order.id}`}>
-                      <Eye className="h-4 w-4 mr-2" />
+                      <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                       {t("viewDetails", "View Details")}
                     </Link>
                   </Button>
@@ -253,10 +282,10 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
                         variant="outline"
                         size="sm"
                         asChild
-                        className="w-full sm:w-auto"
+                        className="w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10"
                       >
                         <Link href={`/account/orders/${order.id}/return`}>
-                          <ArrowRight className="h-4 w-4 mr-2" />
+                          <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                           {t("returnItem", "Return Items")}
                         </Link>
                       </Button>

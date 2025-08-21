@@ -211,30 +211,30 @@ export function ProductAddToCartButton({
         {showQuantity && (
           <div
             className={cn(
-              "flex items-center border rounded-md bg-white",
+              "flex items-center border border-gray-200 rounded-xl bg-white shadow-sm",
               config.quantityControls
             )}
           >
             <button
               onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-              className="p-2 hover:bg-gray-50 transition-colors rounded-l-md"
+              className="p-2 hover:bg-gray-50 transition-colors rounded-l-xl text-gray-600 hover:text-gray-900"
               aria-label="Decrease quantity"
               disabled={quantity <= 1}
             >
-              <span className="text-gray-600 font-medium">−</span>
+              <span className="font-semibold">−</span>
             </button>
-            <span className="px-4 py-2 font-medium min-w-[3rem] text-center">
+            <span className="px-4 py-2 font-semibold min-w-[3rem] text-center text-gray-900">
               {quantity}
             </span>
             <button
               onClick={() =>
                 setQuantity(prev => Math.min(maxAddable, prev + 1))
               }
-              className="p-2 hover:bg-gray-50 transition-colors rounded-r-md"
+              className="p-2 hover:bg-gray-50 transition-colors rounded-r-xl text-gray-600 hover:text-gray-900"
               aria-label="Increase quantity"
               disabled={quantity >= maxAddable}
             >
-              <span className="text-gray-600 font-medium">+</span>
+              <span className="font-semibold">+</span>
             </button>
           </div>
         )}
@@ -244,13 +244,13 @@ export function ProductAddToCartButton({
           onClick={handleAddToCart}
           disabled={isDisabled}
           className={cn(
-            "flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200 disabled:cursor-not-allowed",
+            "flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-300 ease-in-out disabled:cursor-not-allowed btn-premium",
             config.button,
             isAdded
-              ? "bg-green-600 text-white hover:bg-green-700 shadow-lg"
+              ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 shadow-premium-lg transform scale-105"
               : isDisabled
-                ? "bg-gray-100 text-gray-400 border border-gray-200"
-                : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg active:scale-95",
+                ? "bg-gray-100 text-gray-400 border border-gray-200 shadow-none"
+                : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-premium hover:shadow-premium-lg active:scale-95",
             showQuantity ? "flex-1" : "w-full"
           )}
         >
@@ -293,19 +293,19 @@ export function ProductAddToCartButton({
       </div>
 
       {stockQuantity > 0 && stockQuantity <= 10 && (
-        <div className="text-sm text-red-600 font-medium text-center">
-          Only {stockQuantity} left in stock!
+        <div className="text-premium-sm text-red-600 font-semibold text-center bg-red-50 px-4 py-2 rounded-lg border border-red-200">
+          ⚠️ Only {stockQuantity} left in stock!
         </div>
       )}
       {stockQuantity === 0 && (
-        <div className="text-sm text-red-600 font-medium text-center">
-          Out of Stock
+        <div className="text-premium-sm text-red-600 font-semibold text-center bg-red-50 px-4 py-2 rounded-lg border border-red-200">
+          ❌ Out of Stock
         </div>
       )}
 
       {/* Helper text for disabled states */}
       {isDisabled && !isAdded && !isLoading && !isOutOfStock && (
-        <div className="text-xs text-muted-foreground text-center">
+        <div className="text-premium-xs text-premium-muted text-center bg-gray-50 px-4 py-2 rounded-lg">
           {languagesLoading
             ? "Loading book information..."
             : hasVariants && !selectedVariantId
