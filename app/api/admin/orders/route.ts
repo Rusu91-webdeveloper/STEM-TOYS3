@@ -128,7 +128,7 @@ export const GET = withRateLimit(
         id: order.orderNumber ?? order.id,
         customer: order.user?.name ?? "Guest User",
         email: order.user?.email ?? "N/A",
-        date: order.createdAt.toISOString().split("T")[0], // Format as YYYY-MM-DD
+        date: new Date(order.createdAt).toISOString().split("T")[0], // Format as YYYY-MM-DD
         total: order.total,
         status: formatStatus(order.status),
         payment: order.paymentMethod ?? "N/A",

@@ -12,11 +12,11 @@ export function CheckoutContent() {
   const { t } = useTranslation();
 
   // Performance monitoring
-  const { recordStep, getMetrics } = usePerformanceMonitor({
+  const { recordStep } = usePerformanceMonitor({
     step: "checkout-init",
     onMetricsUpdate: metrics => {
       if (process.env.NODE_ENV === "development") {
-        console.log("[Performance] Checkout metrics:", metrics);
+        // Performance metrics logged in development
       }
     },
   });

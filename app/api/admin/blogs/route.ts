@@ -5,6 +5,7 @@ import { z } from "zod";
 import { withAdminAuth } from "@/lib/authorization";
 import { db } from "@/lib/db";
 import { blogService } from "@/lib/services/blog-service";
+import { resolveAdminUserId } from "@/lib/admin-utils";
 
 // Schema for creating a blog post
 const createBlogSchema = z.object({
@@ -105,10 +106,16 @@ export async function POST(request: NextRequest) {
 
       const data = validationResult.data;
 
+      // Resolve the actual admin user ID (handles admin_env case)
+      const authorId = await resolveAdminUserId(
+        session.user.id,
+        session.user.email
+      );
+
       // Create blog post using blog service (includes automatic notifications)
       const blog = await blogService.createBlog({
         ...data,
-        authorId: session.user.id,
+        authorId,
       });
 
       console.log(

@@ -31,6 +31,10 @@ model User {
   reviews             Review[]
   Session             Session[]
   wishlistItems       Wishlist[]
+  emailEvents         EmailEvent[]
+  emailSequenceUsers  EmailSequenceUser[]
+  emailSegmentUsers   EmailSegmentUser[]
+  emailABTestResults  EmailABTestResult[]
 
   @@index([email])
 }
@@ -379,6 +383,193 @@ model Newsletter {
   @@index([isActive])
 }
 
+// Email Marketing Models
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  subject     String
+  content     String
+  variables   String[]
+  category    String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  metadata    Json?
+
+  @@index([slug])
+  @@index([category])
+  @@index([isActive])
+}
+
+model EmailCampaign {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  templateId  String
+  subject     String
+  content     String
+  status      EmailCampaignStatus @default(DRAFT)
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  metadata    Json?
+  template    EmailTemplate @relation(fields: [templateId], references: [id])
+
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([createdBy])
+}
+
+model EmailSequence {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  trigger     String
+  isActive    Boolean  @default(true)
+  maxEmails   Int      @default(5)
+  cooldownHours Int    @default(24)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  steps       EmailSequenceStep[]
+  users       EmailSequenceUser[]
+
+  @@index([trigger])
+  @@index([isActive])
+  @@index([createdBy])
+}
+
+model EmailSequenceStep {
+  id          String   @id @default(cuid())
+  sequenceId  String
+  order       Int
+  delayHours  Int      @default(0)
+  templateId  String
+  subject     String
+  content     String
+  conditions  Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sequence    EmailSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  template    EmailTemplate @relation(fields: [templateId], references: [id])
+
+  @@index([sequenceId])
+  @@index([order])
+}
+
+model EmailSequenceUser {
+  id          String   @id @default(cuid())
+  sequenceId  String
+  userId      String
+  status      EmailSequenceUserStatus @default(ACTIVE)
+  currentStep Int      @default(0)
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  lastEmailAt DateTime?
+  metadata    Json?
+  sequence    EmailSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sequenceId, userId])
+  @@index([sequenceId])
+  @@index([userId])
+  @@index([status])
+}
+
+model EmailEvent {
+  id        String   @id @default(cuid())
+  emailId   String   @unique
+  userId    String?
+  email     String
+  eventType EmailEventType
+  campaignId String?
+  sequenceId String?
+  templateId String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([emailId])
+  @@index([userId])
+  @@index([eventType])
+  @@index([campaignId])
+  @@index([sequenceId])
+  @@index([templateId])
+  @@index([createdAt])
+}
+
+model EmailSegment {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  conditions  Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  users       EmailSegmentUser[]
+
+  @@index([name])
+  @@index([isActive])
+  @@index([createdBy])
+}
+
+model EmailSegmentUser {
+  id        String   @id @default(cuid())
+  segmentId String
+  userId    String
+  addedAt   DateTime @default(now())
+  segment   EmailSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([segmentId, userId])
+  @@index([segmentId])
+  @@index([userId])
+}
+
+model EmailABTest {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  templateId  String
+  variantA    Json
+  variantB    Json
+  status      EmailABTestStatus @default(DRAFT)
+  startDate   DateTime?
+  endDate     DateTime?
+  winner      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  results     EmailABTestResult[]
+  template    EmailTemplate @relation(fields: [templateId], references: [id])
+
+  @@index([status])
+  @@index([startDate])
+  @@index([createdBy])
+}
+
+model EmailABTestResult {
+  id        String   @id @default(cuid())
+  testId    String
+  variant   String
+  emailId   String
+  userId    String?
+  eventType EmailEventType
+  createdAt DateTime @default(now())
+  test      EmailABTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([testId])
+  @@index([variant])
+  @@index([emailId])
+  @@index([eventType])
+}
+
 model DigitalDownload {
   id            String      @id @default(cuid())
   orderItemId   String
@@ -571,4 +762,40 @@ enum SpecialCategory {
   BEST_SELLERS
   GIFT_IDEAS
   SALE_ITEMS
+}
+
+// Email Marketing Enums
+enum EmailCampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  PAUSED
+  CANCELLED
+}
+
+enum EmailEventType {
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  UNSUBSCRIBED
+  SPAM_REPORTED
+  FAILED
+}
+
+enum EmailSequenceUserStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  UNSUBSCRIBED
+  FAILED
+}
+
+enum EmailABTestStatus {
+  DRAFT
+  RUNNING
+  COMPLETED
+  PAUSED
 }

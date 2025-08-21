@@ -57,8 +57,10 @@ export async function POST(request: NextRequest) {
       id: order.id,
       orderNumber: order.orderNumber,
       status: order.status,
-      orderDate: order.createdAt.toISOString(),
-      deliveredAt: order.deliveredAt?.toISOString(),
+      orderDate: new Date(order.createdAt).toISOString(),
+      deliveredAt: order.deliveredAt
+        ? new Date(order.deliveredAt).toISOString()
+        : undefined,
       total: order.total,
       shippingAddress: order.shippingAddress,
       items: order.items.map(item => ({

@@ -114,8 +114,10 @@ export async function GET() {
     const formattedOrders = orders.map((order: any) => ({
       id: order.id,
       orderNumber: order.orderNumber,
-      date: order.createdAt.toISOString(),
-      deliveredAt: order.deliveredAt?.toISOString(),
+      date: new Date(order.createdAt).toISOString(),
+      deliveredAt: order.deliveredAt
+        ? new Date(order.deliveredAt).toISOString()
+        : undefined,
       status: order.status.toLowerCase(),
       total: order.total,
       items: order.items.map((item: any) => {
@@ -143,7 +145,9 @@ export async function GET() {
             author: item.book!.author,
             downloadCount: item.downloadCount,
             maxDownloads: item.maxDownloads,
-            downloadExpiresAt: item.downloadExpiresAt?.toISOString(),
+            downloadExpiresAt: item.downloadExpiresAt
+              ? new Date(item.downloadExpiresAt).toISOString()
+              : undefined,
           }),
         };
       }),

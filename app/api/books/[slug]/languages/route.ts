@@ -106,7 +106,7 @@ export async function GET(
     response.headers.set("Vary", "Accept-Encoding");
     response.headers.set(
       "ETag",
-      `"book-lang-${book.id}-${book.updatedAt.getTime()}"`
+      `"book-lang-${book.id}-${new Date(book.updatedAt).getTime()}"`
     );
 
     return response;

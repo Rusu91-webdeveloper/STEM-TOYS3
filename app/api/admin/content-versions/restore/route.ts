@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { contentVersioningService } from "@/lib/services/content-versioning";
+import { resolveAdminUserId } from "@/lib/admin-utils";
 
 // POST /api/admin/content-versions/restore - Restore to specific version
 export async function POST(request: NextRequest) {
@@ -22,11 +23,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Resolve the actual admin user ID (handles admin_env case)
+    const createdByUserId = await resolveAdminUserId(
+      session.user.id,
+      session.user.email
+    );
+
     const restoredVersion = await contentVersioningService.restoreToVersion(
       contentId,
       contentType,
       version,
-      session.user.id,
+      createdByUserId,
       changeDescription
     );
 

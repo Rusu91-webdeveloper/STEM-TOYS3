@@ -89,7 +89,7 @@ export const GET = withErrorHandler(async (_request: NextRequest) => {
         type: "order",
         title,
         description,
-        date: order.updatedAt.toISOString(),
+        date: new Date(order.updatedAt).toISOString(),
         status,
         metadata: {
           orderId: order.id,
@@ -118,7 +118,7 @@ export const GET = withErrorHandler(async (_request: NextRequest) => {
         type: "wishlist",
         title: "Item Added to Wishlist",
         description: `${item.product.name} was added to your wishlist`,
-        date: item.createdAt.toISOString(),
+        date: new Date(item.createdAt).toISOString(),
         status: "info",
         metadata: {
           productId: item.productId,
@@ -146,7 +146,7 @@ export const GET = withErrorHandler(async (_request: NextRequest) => {
           type: "review",
           title: "Review Submitted",
           description: `You reviewed ${review.product.name}`,
-          date: review.createdAt.toISOString(),
+          date: new Date(review.createdAt).toISOString(),
           status: "info",
           metadata: {
             productId: review.productId,
@@ -169,32 +169,34 @@ export const GET = withErrorHandler(async (_request: NextRequest) => {
     if (user) {
       // Check if account was recently updated
       const daysSinceUpdate = Math.floor(
-        (Date.now() - user.updatedAt.getTime()) / (1000 * 60 * 60 * 24)
+        (Date.now() - new Date(user.updatedAt).getTime()) /
+          (1000 * 60 * 60 * 24)
       );
 
       if (daysSinceUpdate <= 30) {
         activities.push({
-          id: `account-update-${user.updatedAt.getTime()}`,
+          id: `account-update-${new Date(user.updatedAt).getTime()}`,
           type: "account",
           title: "Profile Updated",
           description: "Your account information was updated",
-          date: user.updatedAt.toISOString(),
+          date: new Date(user.updatedAt).toISOString(),
           status: "info",
         });
       }
 
       // Add account creation activity if recent
       const daysSinceCreation = Math.floor(
-        (Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+        (Date.now() - new Date(user.createdAt).getTime()) /
+          (1000 * 60 * 60 * 24)
       );
 
       if (daysSinceCreation <= 90) {
         activities.push({
-          id: `account-created-${user.createdAt.getTime()}`,
+          id: `account-created-${new Date(user.createdAt).getTime()}`,
           type: "account",
           title: "Welcome to STEM Toys!",
           description: "Your account was created successfully",
-          date: user.createdAt.toISOString(),
+          date: new Date(user.createdAt).toISOString(),
           status: "success",
         });
       }

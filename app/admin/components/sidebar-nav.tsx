@@ -11,6 +11,7 @@ import {
   FileText,
   BookOpen,
   Tag,
+  Mail,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -101,6 +102,11 @@ export const adminNavItems = [
     title: "Analytics",
     href: "/admin/analytics",
     icon: BarChart,
+  },
+  {
+    title: "Email Automation",
+    href: "/admin/email-automation",
+    icon: Mail,
   },
   {
     title: "Settings",

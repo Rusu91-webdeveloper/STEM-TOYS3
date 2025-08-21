@@ -79,19 +79,19 @@ export function CheckoutFlow() {
       return;
     }
 
+    // Check if we're coming from a successful order completion FIRST
+    const orderCompleted = sessionStorage.getItem("orderCompleted");
+    const orderId = sessionStorage.getItem("orderId");
+
+    if (orderCompleted === "true" && orderId) {
+      // User just completed an order, redirect to confirmation
+      sessionStorage.removeItem("orderCompleted");
+      sessionStorage.removeItem("orderId");
+      setRedirectToConfirmation(orderId);
+      return;
+    }
+
     if (cartItems.length === 0) {
-      // Check if we're coming from a successful order completion
-      const orderCompleted = sessionStorage.getItem("orderCompleted");
-      const orderId = sessionStorage.getItem("orderId");
-
-      if (orderCompleted === "true" && orderId) {
-        // User just completed an order, redirect to confirmation
-        sessionStorage.removeItem("orderCompleted");
-        sessionStorage.removeItem("orderId");
-        setRedirectToConfirmation(orderId);
-        return;
-      }
-
       // No recent order completion, redirect to products if cart is empty
       router.push("/products");
       return;
@@ -128,7 +128,8 @@ export function CheckoutFlow() {
           const taxData = await response.json();
           if (taxData.taxSettings?.active) {
             taxRate = parseFloat(taxData.taxSettings.rate) / 100;
-            includeInPrice = taxData.taxSettings.includeInPrice !== false;
+            const _includeInPrice =
+              taxData.taxSettings.includeInPrice !== false;
           }
         }
       } catch (error) {
@@ -163,15 +164,15 @@ export function CheckoutFlow() {
       const order = await createOrder(orderData);
 
       if (order && order.success) {
-        // Clear cart after successful order
-        await clearCart();
-
-        // Set a flag in session storage to indicate order completion
+        // Set a flag in session storage to indicate order completion FIRST
         sessionStorage.setItem("orderCompleted", "true");
         sessionStorage.setItem("orderId", order.orderId);
 
         // Set redirect state to trigger navigation
         setRedirectToConfirmation(order.orderId);
+
+        // Clear cart after setting the flags to prevent race condition
+        await clearCart();
       }
     } catch (error) {
       console.error("Order creation failed:", error);

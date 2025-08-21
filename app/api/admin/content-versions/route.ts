@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { contentVersioningService } from "@/lib/services/content-versioning";
+import { resolveAdminUserId } from "@/lib/admin-utils";
 
 // GET /api/admin/content-versions - Get version history
 export async function GET(request: NextRequest) {
@@ -61,12 +61,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Resolve the actual admin user ID (handles admin_env case)
+    const createdByUserId = await resolveAdminUserId(
+      session.user.id,
+      session.user.email
+    );
+
     const version = await contentVersioningService.createVersion({
       contentId,
       contentType,
       content,
       changeDescription,
-      createdBy: session.user.id,
+      createdBy: createdByUserId,
       isPublished: content.isPublished || false,
     });
 

@@ -78,8 +78,10 @@ export async function GET(
       orderNumber: order.orderNumber,
       customer: order.user?.name ?? "Guest User",
       email: order.user?.email ?? "N/A",
-      date: order.createdAt.toISOString(),
-      deliveredAt: order.deliveredAt?.toISOString(),
+      date: new Date(order.createdAt).toISOString(),
+      deliveredAt: order.deliveredAt
+        ? new Date(order.deliveredAt).toISOString()
+        : undefined,
       status: order.status,
       paymentStatus: order.paymentStatus,
       paymentMethod: order.paymentMethod,
@@ -307,8 +309,10 @@ export async function PATCH(
       id: updatedOrder.orderNumber,
       customer: updatedOrder.user?.name ?? "Guest User",
       email: updatedOrder.user?.email ?? "N/A",
-      date: updatedOrder.createdAt.toISOString().split("T")[0],
-      deliveredAt: updatedOrder.deliveredAt?.toISOString(),
+      date: new Date(updatedOrder.createdAt).toISOString().split("T")[0],
+      deliveredAt: updatedOrder.deliveredAt
+        ? new Date(updatedOrder.deliveredAt).toISOString()
+        : undefined,
       total: updatedOrder.total,
       status: formatStatus(updatedOrder.status),
       payment: updatedOrder.paymentMethod,

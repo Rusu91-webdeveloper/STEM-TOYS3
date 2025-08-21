@@ -137,8 +137,8 @@ export const GET = withRateLimit(
             customer.orders.length > 0
               ? new Date(
                   Math.min(
-                    ...customer.orders.map((o: { createdAt: Date }) =>
-                      o.createdAt.getTime()
+                    ...customer.orders.map((o: { createdAt: string | Date }) =>
+                      new Date(o.createdAt).getTime()
                     )
                   )
                 )
@@ -148,7 +148,7 @@ export const GET = withRateLimit(
             id: customer.id,
             name: customer.name || "Anonymous",
             email: customer.email,
-            joined: joinDate.toISOString().split("T")[0],
+            joined: new Date(joinDate).toISOString().split("T")[0],
             orders: customer._count.orders,
             spent: totalSpent,
             status,

@@ -486,20 +486,28 @@ export const authOptions: NextAuthConfig = {
         token.accountLinked = (user as ExtendedUser).accountLinked ?? false;
       } else if (token.id) {
         // On subsequent requests, token.id is available, refresh data from DB
-        try {
-          const dbUser = await db.user.findUnique({
-            where: { id: token.id },
-            select: { role: true, isActive: true },
-          });
-          if (dbUser) {
-            token.role = dbUser.role;
-            token.isActive = dbUser.isActive;
+        // Special handling for environment-based admin user
+        if (token.id === "admin_env") {
+          // For environment admin, keep the role as ADMIN and isActive as true
+          token.role = "ADMIN";
+          token.isActive = true;
+        } else {
+          // For regular database users, refresh data from DB
+          try {
+            const dbUser = await db.user.findUnique({
+              where: { id: token.id },
+              select: { role: true, isActive: true },
+            });
+            if (dbUser) {
+              token.role = dbUser.role;
+              token.isActive = dbUser.isActive;
+            }
+          } catch (error) {
+            logger.error("Error refreshing user data in JWT callback", {
+              error: error instanceof Error ? error.message : String(error),
+              userId: token.id,
+            });
           }
-        } catch (error) {
-          logger.error("Error refreshing user data in JWT callback", {
-            error: error instanceof Error ? error.message : String(error),
-            userId: token.id,
-          });
         }
       }
 

@@ -1,7 +1,7 @@
 import { StemCategory } from "@prisma/client";
 
-import { emailTemplates } from "@/lib/brevoTemplates";
 import { db } from "@/lib/db";
+import { sendNewsletterNotificationEmail } from "@/lib/email/newsletter-templates";
 
 export interface CreateBlogInput {
   title: string;
@@ -87,13 +87,20 @@ async function sendBlogNotification(blogId: string): Promise<void> {
 
     // Send notification emails to all subscribers
     const emailPromises = subscribers.map(subscriber =>
-      emailTemplates.blogNotification({
+      sendNewsletterNotificationEmail({
         to: subscriber.email,
         name: subscriber.firstName || subscriber.email.split("@")[0],
-        blog: {
-          ...blog,
+        blogPost: {
+          title: blog.title,
+          slug: blog.slug,
+          excerpt: blog.excerpt,
+          coverImage: blog.coverImage || undefined,
           author: {
             name: blog.author.name || "TechTots Team",
+          },
+          category: {
+            name: blog.category.name,
+            slug: blog.category.slug,
           },
         },
       })

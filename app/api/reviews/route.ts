@@ -133,7 +133,7 @@ export const GET = withErrorHandling(async (req: NextRequest) => {
     rating: review.rating,
     title: review.title,
     content: review.content,
-    date: review.createdAt.toISOString(),
+    date: new Date(review.createdAt).toISOString(),
     verified: true, // Since we verify that the user purchased the item
   }));
 
