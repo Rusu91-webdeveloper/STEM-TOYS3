@@ -397,6 +397,10 @@ model EmailTemplate {
   updatedAt   DateTime @updatedAt
   createdBy   String
   metadata    Json?
+  // Back-relations
+  campaigns     EmailCampaign[]
+  sequenceSteps EmailSequenceStep[]
+  abTests       EmailABTest[]
 
   @@index([slug])
   @@index([category])
