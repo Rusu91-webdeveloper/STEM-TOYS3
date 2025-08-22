@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/server/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -25,7 +24,7 @@ const EmailTemplateSchema = z.object({
 // GET /api/admin/email-templates - List all email templates
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,12 +33,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const isActive = searchParams.get("isActive");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = parseInt(searchParams.get("page") ?? "1");
+    const limit = parseInt(searchParams.get("limit") ?? "20");
     const search = searchParams.get("search");
 
     // Build where clause
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     if (category) {
       where.category = category;
@@ -102,7 +101,7 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/email-templates - Create new email template
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
