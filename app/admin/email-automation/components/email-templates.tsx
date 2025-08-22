@@ -20,7 +20,6 @@ import {
   Eye,
   Settings,
   Mail,
-  Calendar,
   Tag,
 } from "lucide-react";
 import {
@@ -86,17 +85,17 @@ export function EmailTemplates() {
       if (response.ok) {
         const data = await response.json();
         // Transform the API data to match our interface
-        const transformedTemplates: EmailTemplate[] = data.templates.map((template: any) => ({
-          id: template.id,
-          name: template.name,
-          slug: template.slug,
-          description: template.description || '',
-          category: template.category || 'General',
-          subject: template.subject,
-          content: template.content,
-          variables: template.variables || [],
-          createdAt: template.createdAt,
-          updatedAt: template.updatedAt,
+        const transformedTemplates: EmailTemplate[] = data.templates.map((template: Record<string, unknown>) => ({
+          id: template.id as string,
+          name: template.name as string,
+          slug: template.slug as string,
+          description: (template.description as string) ?? '',
+          category: (template.category as string) ?? 'General',
+          subject: template.subject as string,
+          content: template.content as string,
+          variables: (template.variables as string[]) ?? [],
+          createdAt: template.createdAt as string,
+          updatedAt: template.updatedAt as string,
           usageCount: 0, // This would come from usage tracking
         }));
         setTemplates(transformedTemplates);
@@ -146,7 +145,7 @@ export function EmailTemplates() {
       if (!newTemplate.subject) missingFields.push("Subject");
       if (!newTemplate.content) missingFields.push("Content");
 
-      alert(`Please fill in all required fields: ${missingFields.join(", ")}`);
+      console.error(`Please fill in all required fields: ${missingFields.join(", ")}`);
       return;
     }
 
@@ -175,11 +174,11 @@ export function EmailTemplates() {
           id: newTemplateData.id,
           name: newTemplateData.name,
           slug: newTemplateData.slug,
-          description: newTemplateData.description || '',
-          category: newTemplateData.category || 'General',
+          description: newTemplateData.description ?? '',
+          category: newTemplateData.category ?? 'General',
           subject: newTemplateData.subject,
           content: newTemplateData.content,
-          variables: newTemplateData.variables || [],
+          variables: newTemplateData.variables ?? [],
           createdAt: newTemplateData.createdAt,
           updatedAt: newTemplateData.updatedAt,
           usageCount: 0,
@@ -196,11 +195,11 @@ export function EmailTemplates() {
         setTimeout(() => setShowSuccessMessage(false), 3000);
       } else {
         const errorData = await response.json();
-        alert(`Error creating template: ${errorData.error || 'Unknown error'}`);
+        console.error(`Error creating template: ${errorData.error ?? 'Unknown error'}`);
       }
     } catch (error) {
       console.error("Error creating template:", error);
-      alert("Error creating template. Please try again.");
+              console.error("Error creating template. Please try again.");
     } finally {
       setIsCreating(false);
     }
@@ -259,15 +258,16 @@ export function EmailTemplates() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium">Template Name *</label>
+                  <label htmlFor="template-name" className="text-sm font-medium">Template Name *</label>
                   <Input
+                    id="template-name"
                     placeholder="Enter template name"
                     value={newTemplate.name}
                     onChange={e => handleInputChange("name", e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Category</label>
+                  <label htmlFor="template-category" className="text-sm font-medium">Category</label>
                   <Select
                     value={newTemplate.category}
                     onValueChange={value => handleInputChange("category", value)}
@@ -287,31 +287,34 @@ export function EmailTemplates() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium">Description</label>
+                <label htmlFor="template-description" className="text-sm font-medium">Description</label>
                 <Input
+                  id="template-description"
                   placeholder="Describe the template purpose"
                   value={newTemplate.description}
                   onChange={e => handleInputChange("description", e.target.value)}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Subject *</label>
+                <label htmlFor="template-subject" className="text-sm font-medium">Subject *</label>
                 <Input
+                  id="template-subject"
                   placeholder="Enter email subject"
                   value={newTemplate.subject}
                   onChange={e => handleInputChange("subject", e.target.value)}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Content *</label>
+                <label htmlFor="template-content" className="text-sm font-medium">Content *</label>
                 <Textarea
+                  id="template-content"
                   placeholder="Enter email content (HTML supported)"
                   value={newTemplate.content}
                   onChange={e => handleInputChange("content", e.target.value)}
                   rows={10}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Use variables like ${{user.name}}, ${{order.total}}, etc.
+                  Use variables like $&#123;&#123;user.name&#125;&#125;, $&#123;&#123;order.total&#125;&#125;, etc.
                 </p>
               </div>
               <div className="flex justify-end space-x-2">
