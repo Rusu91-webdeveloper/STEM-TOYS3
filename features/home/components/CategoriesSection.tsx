@@ -84,6 +84,12 @@ const CategoriesSectionComponent = ({
               key={category.slug}
               aria-label={`Explore ${translatedName} category`}
               tabIndex={0}
+              data-conversion="cta"
+              data-conversion-type="click"
+              data-conversion-category="navigation"
+              data-conversion-action="explore_category"
+              data-conversion-element={`category_${category.slug}`}
+              data-conversion-metadata={`{"category":"${category.slug}","categoryName":"${translatedName}"}`}
               className="bg-background rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-h-[24px] sm:min-h-[44px] flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               {/* Category image, always object-cover and responsive */}

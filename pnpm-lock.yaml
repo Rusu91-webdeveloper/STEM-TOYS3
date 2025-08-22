@@ -237,6 +237,9 @@ importers:
         specifier: ^5.0.4
         version: 5.0.6(@types/react@19.1.8)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0))
     devDependencies:
+      '@axe-core/playwright':
+        specifier: ^4.10.2
+        version: 4.10.2(playwright-core@1.54.1)
       '@eslint/eslintrc':
         specifier: ^3
         version: 3.3.1
@@ -297,6 +300,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^3.2.4
         version: 3.2.4(@vitest/browser@3.2.4)(vitest@3.2.4)
+      axe-core:
+        specifier: ^4.10.3
+        version: 4.10.3
       eslint:
         specifier: ^9.30.1
         version: 9.31.0(jiti@2.4.2)
@@ -381,6 +387,11 @@ packages:
         optional: true
       nodemailer:
         optional: true
+
+  '@axe-core/playwright@4.10.2':
+    resolution: {integrity: sha512-6/b5BJjG6hDaRNtgzLIfKr5DfwyiLHO4+ByTLB0cJgWSM8Ll7KqtdblIS6bEkwSF642/Ex91vNqIl3GLXGlceg==}
+    peerDependencies:
+      playwright-core: '>= 1.0.0'
 
   '@babel/code-frame@7.27.1':
     resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
@@ -8102,6 +8113,11 @@ snapshots:
       preact-render-to-string: 6.5.11(preact@10.24.3)
     optionalDependencies:
       nodemailer: 6.10.1
+
+  '@axe-core/playwright@4.10.2(playwright-core@1.54.1)':
+    dependencies:
+      axe-core: 4.10.3
+      playwright-core: 1.54.1
 
   '@babel/code-frame@7.27.1':
     dependencies:

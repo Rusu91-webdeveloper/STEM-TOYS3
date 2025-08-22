@@ -24,6 +24,8 @@ model User {
   couponsCreated      Coupon[]             @relation("CouponCreatedBy")
   couponUsages        CouponUsage[]
   digitalDownloads    DigitalDownload[]
+  emailEvents         EmailEvent[]
+  emailSequenceUsers  EmailSequenceUser[]
   orders              Order[]
   passwordResetTokens PasswordResetToken[]
   paymentCards        PaymentCard[]
@@ -31,10 +33,6 @@ model User {
   reviews             Review[]
   Session             Session[]
   wishlistItems       Wishlist[]
-  emailEvents         EmailEvent[]
-  emailSequenceUsers  EmailSequenceUser[]
-  emailSegmentUsers   EmailSegmentUser[]
-  emailABTestResults  EmailABTestResult[]
 
   @@index([email])
 }
@@ -307,25 +305,69 @@ model OrderItem {
 }
 
 model StoreSettings {
-  id               String   @id @default(cuid())
-  storeName        String   @default("TechTots")
-  storeUrl         String   @default("https://techtots.com")
-  storeDescription String   @default("TechTots is a premier online destination for STEM toys that inspire learning through play.")
-  contactEmail     String   @default("info@techtots.com")
-  contactPhone     String   @default("+1 (555) 123-4567")
-  currency         String   @default("usd")
-  timezone         String   @default("america-new_york")
-  dateFormat       String   @default("mm-dd-yyyy")
-  weightUnit       String   @default("lb")
-  metaTitle        String   @default("TechTots | STEM Toys for Curious Minds")
-  metaDescription  String   @default("Discover the best STEM toys for curious minds at TechTots. Educational toys that make learning fun for children of all ages.")
-  metaKeywords     String   @default("STEM toys, educational toys, science toys, technology toys, engineering toys, math toys")
-  shippingSettings Json?
-  paymentSettings  Json?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  metadata         Json?
-  taxSettings      Json?
+  id                  String   @id @default(cuid())
+  storeName           String   @default("TechTots")
+  storeUrl            String   @default("https://techtots.com")
+  storeDescription    String   @default("TechTots is a premier online destination for STEM toys that inspire learning through play.")
+  contactEmail        String   @default("info@techtots.com")
+  contactPhone        String   @default("+1 (555) 123-4567")
+  currency            String   @default("usd")
+  timezone            String   @default("america-new_york")
+  dateFormat          String   @default("mm-dd-yyyy")
+  weightUnit          String   @default("lb")
+  metaTitle           String   @default("TechTots | STEM Toys for Curious Minds")
+  metaDescription     String   @default("Discover the best STEM toys for curious minds at TechTots. Educational toys that make learning fun for children of all ages.")
+  metaKeywords        String   @default("STEM toys, educational toys, science toys, technology toys, engineering toys, math toys")
+  shippingSettings    Json?
+  paymentSettings     Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  metadata            Json?
+  taxSettings         Json?
+  businessHours       Json?
+  customerService     Json?
+  orderProcessing     Json?
+  inventoryManagement Json?
+  marketingSettings   Json?
+}
+
+model PerformanceMetric {
+  id        String   @id @default(cuid())
+  cls       Float    @default(0)
+  fid       Float    @default(0)
+  fcp       Float    @default(0)
+  lcp       Float    @default(0)
+  ttfb      Float    @default(0)
+  timestamp DateTime @default(now())
+  url       String
+  userAgent String   @default("")
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([timestamp])
+  @@index([url])
+}
+
+model ConversionLog {
+  id           String   @id @default(cuid())
+  conversionId String   @unique
+  type         String
+  category     String
+  action       String
+  elementData  Json
+  pageData     Json
+  userData     Json
+  contextData  Json
+  metadata     Json?
+  timestamp    DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([timestamp])
+  @@index([type])
+  @@index([category])
+  @@index([action])
 }
 
 model Return {
@@ -383,24 +425,21 @@ model Newsletter {
   @@index([isActive])
 }
 
-// Email Marketing Models
 model EmailTemplate {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  subject     String
-  content     String
-  variables   String[]
-  category    String
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   String
-  metadata    Json?
-  // Back-relations
+  id            String              @id @default(cuid())
+  name          String
+  slug          String              @unique
+  subject       String
+  content       String
+  variables     String[]
+  category      String
+  isActive      Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  createdBy     String
+  metadata      Json?
   campaigns     EmailCampaign[]
   sequenceSteps EmailSequenceStep[]
-  abTests       EmailABTest[]
 
   @@index([slug])
   @@index([category])
@@ -408,7 +447,7 @@ model EmailTemplate {
 }
 
 model EmailCampaign {
-  id          String   @id @default(cuid())
+  id          String              @id @default(cuid())
   name        String
   description String?
   templateId  String
@@ -417,11 +456,11 @@ model EmailCampaign {
   status      EmailCampaignStatus @default(DRAFT)
   scheduledAt DateTime?
   sentAt      DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
   createdBy   String
   metadata    Json?
-  template    EmailTemplate @relation(fields: [templateId], references: [id])
+  template    EmailTemplate       @relation(fields: [templateId], references: [id])
 
   @@index([status])
   @@index([scheduledAt])
@@ -429,18 +468,18 @@ model EmailCampaign {
 }
 
 model EmailSequence {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  trigger     String
-  isActive    Boolean  @default(true)
-  maxEmails   Int      @default(5)
-  cooldownHours Int    @default(24)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   String
-  steps       EmailSequenceStep[]
-  users       EmailSequenceUser[]
+  id            String              @id @default(cuid())
+  name          String
+  description   String?
+  trigger       String
+  isActive      Boolean             @default(true)
+  maxEmails     Int                 @default(5)
+  cooldownHours Int                 @default(24)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  createdBy     String
+  steps         EmailSequenceStep[]
+  users         EmailSequenceUser[]
 
   @@index([trigger])
   @@index([isActive])
@@ -448,35 +487,35 @@ model EmailSequence {
 }
 
 model EmailSequenceStep {
-  id          String   @id @default(cuid())
-  sequenceId  String
-  order       Int
-  delayHours  Int      @default(0)
-  templateId  String
-  subject     String
-  content     String
-  conditions  Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  sequence    EmailSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
-  template    EmailTemplate @relation(fields: [templateId], references: [id])
+  id         String        @id @default(cuid())
+  sequenceId String
+  order      Int
+  delayHours Int           @default(0)
+  templateId String
+  subject    String
+  content    String
+  conditions Json?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  sequence   EmailSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  template   EmailTemplate @relation(fields: [templateId], references: [id])
 
   @@index([sequenceId])
   @@index([order])
 }
 
 model EmailSequenceUser {
-  id          String   @id @default(cuid())
+  id          String                  @id @default(cuid())
   sequenceId  String
   userId      String
   status      EmailSequenceUserStatus @default(ACTIVE)
-  currentStep Int      @default(0)
-  startedAt   DateTime @default(now())
+  currentStep Int                     @default(0)
+  startedAt   DateTime                @default(now())
   completedAt DateTime?
   lastEmailAt DateTime?
   metadata    Json?
-  sequence    EmailSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sequence    EmailSequence           @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([sequenceId, userId])
   @@index([sequenceId])
@@ -485,17 +524,17 @@ model EmailSequenceUser {
 }
 
 model EmailEvent {
-  id        String   @id @default(cuid())
-  emailId   String   @unique
-  userId    String?
-  email     String
-  eventType EmailEventType
+  id         String         @id @default(cuid())
+  emailId    String         @unique
+  userId     String?
+  email      String
+  eventType  EmailEventType
   campaignId String?
   sequenceId String?
   templateId String?
-  metadata  Json?
-  createdAt DateTime @default(now())
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  metadata   Json?
+  createdAt  DateTime       @default(now())
+  user       User?          @relation(fields: [userId], references: [id])
 
   @@index([emailId])
   @@index([userId])
@@ -504,74 +543,6 @@ model EmailEvent {
   @@index([sequenceId])
   @@index([templateId])
   @@index([createdAt])
-}
-
-model EmailSegment {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  conditions  Json
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   String
-  users       EmailSegmentUser[]
-
-  @@index([name])
-  @@index([isActive])
-  @@index([createdBy])
-}
-
-model EmailSegmentUser {
-  id        String   @id @default(cuid())
-  segmentId String
-  userId    String
-  addedAt   DateTime @default(now())
-  segment   EmailSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([segmentId, userId])
-  @@index([segmentId])
-  @@index([userId])
-}
-
-model EmailABTest {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  templateId  String
-  variantA    Json
-  variantB    Json
-  status      EmailABTestStatus @default(DRAFT)
-  startDate   DateTime?
-  endDate     DateTime?
-  winner      String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   String
-  results     EmailABTestResult[]
-  template    EmailTemplate @relation(fields: [templateId], references: [id])
-
-  @@index([status])
-  @@index([startDate])
-  @@index([createdBy])
-}
-
-model EmailABTestResult {
-  id        String   @id @default(cuid())
-  testId    String
-  variant   String
-  emailId   String
-  userId    String?
-  eventType EmailEventType
-  createdAt DateTime @default(now())
-  test      EmailABTest @relation(fields: [testId], references: [id], onDelete: Cascade)
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([testId])
-  @@index([variant])
-  @@index([emailId])
-  @@index([eventType])
 }
 
 model DigitalDownload {
@@ -672,6 +643,8 @@ model Session {
   User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+
+
 enum OrderItemReturnStatus {
   NONE
   REQUESTED
@@ -768,7 +741,6 @@ enum SpecialCategory {
   SALE_ITEMS
 }
 
-// Email Marketing Enums
 enum EmailCampaignStatus {
   DRAFT
   SCHEDULED
@@ -797,9 +769,4 @@ enum EmailSequenceUserStatus {
   FAILED
 }
 
-enum EmailABTestStatus {
-  DRAFT
-  RUNNING
-  COMPLETED
-  PAUSED
-}
+

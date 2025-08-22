@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getCached, CacheKeys } from "@/lib/cache";
-import { prisma } from "@/lib/prisma";
+import { getShippingSettings } from "@/lib/utils/shipping-settings";
 
 // **PERFORMANCE**: Cache shipping settings for 5 minutes since they rarely change
 const SHIPPING_SETTINGS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -15,20 +15,8 @@ export async function GET(_req: NextRequest) {
     const shippingSettings = await getCached(
       CacheKeys.product("shipping-settings"), // Reusing cache key pattern
       async () => {
-        // Get the store settings from the database
-        const storeSettings = await prisma.storeSettings.findFirst();
-
-        // If no settings exist, return default values with free shipping enabled at €50/250 lei
-        if (!storeSettings?.shippingSettings) {
-          return {
-            standard: { price: "5.99", active: true },
-            express: { price: "12.99", active: true },
-            freeThreshold: { price: "250.00", active: true }, // Free standard shipping over 250 lei (€50)
-          };
-        }
-
-        // Return the shipping settings
-        return storeSettings.shippingSettings;
+        // Use the utility function to get shipping settings
+        return await getShippingSettings();
       },
       SHIPPING_SETTINGS_CACHE_TTL
     );

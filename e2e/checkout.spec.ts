@@ -249,6 +249,69 @@ test.describe("Checkout Process", () => {
     await expect(total).toBeVisible();
   });
 
+  test("should redirect to confirmation page after successful order", async ({
+    page,
+  }) => {
+    await loginTestUser(page);
+    await addProductToCart(page);
+    await page.goto("/checkout");
+
+    // Mock successful order creation
+    await page.route("**/api/checkout/order", async route => {
+      await route.fulfill({
+        status: 200,
+        json: {
+          success: true,
+          orderId: "test-order-123",
+          orderNumber: "ORD-123456",
+          message: "Order created successfully",
+        },
+      });
+    });
+
+    // Mock empty cart after order (simulating cart clear)
+    await page.route("**/api/cart**", async route => {
+      if (route.request().method() === "GET") {
+        await route.fulfill({
+          json: { items: [] },
+        });
+      }
+    });
+
+    // Fill out checkout forms (simplified for test)
+    // This would normally go through all checkout steps
+    // For this test, we'll mock the order creation directly
+
+    // Navigate to checkout and trigger order completion
+    await page.goto("/checkout");
+
+    // Wait for checkout to load
+    await page.waitForTimeout(2000);
+
+    // Simulate order completion by setting sessionStorage
+    await page.evaluate(() => {
+      sessionStorage.setItem("orderCompleted", "true");
+      sessionStorage.setItem("orderId", "test-order-123");
+    });
+
+    // Refresh page to trigger the redirect logic
+    await page.reload();
+
+    // Should redirect to confirmation page
+    await page.waitForURL(/\/checkout\/confirmation/);
+    await expect(page).toHaveURL(/\/checkout\/confirmation/);
+
+    // Should show confirmation content
+    const confirmationTitle = page.locator("text=Vă mulțumim pentru comandă!");
+    await expect(confirmationTitle).toBeVisible();
+
+    // Should show order ID
+    const orderId = page.locator("text=test-order-123");
+    await expect(orderId).toBeVisible();
+
+    console.log("✅ Order completion redirect working correctly");
+  });
+
   test("should handle payment form validation", async ({ page }) => {
     await loginTestUser(page);
     await addProductToCart(page);

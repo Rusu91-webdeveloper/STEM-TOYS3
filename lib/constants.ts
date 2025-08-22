@@ -208,7 +208,7 @@ export const CART = {
   IDLE_TIME_THRESHOLD: 5 * 60 * 1000, // 5 minutes
 
   // Discount thresholds
-  FREE_SHIPPING_THRESHOLD: 75, // Cart value for free shipping offer
+  // FREE_SHIPPING_THRESHOLD: 75, // Cart value for free shipping offer - REMOVED: Now fetched from database
 
   // Offer expiry times (in seconds)
   DISCOUNT_OFFER_EXPIRY: 15 * 60, // 15 minutes

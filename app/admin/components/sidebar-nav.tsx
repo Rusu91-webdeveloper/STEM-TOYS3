@@ -104,6 +104,16 @@ export const adminNavItems = [
     icon: BarChart,
   },
   {
+    title: "Email Templates",
+    href: "/admin/email-templates",
+    icon: Mail,
+  },
+  {
+    title: "Email Sequences",
+    href: "/admin/email-sequences",
+    icon: Mail,
+  },
+  {
     title: "Email Automation",
     href: "/admin/email-automation",
     icon: Mail,

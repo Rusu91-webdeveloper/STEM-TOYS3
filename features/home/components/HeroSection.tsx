@@ -56,6 +56,11 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
           href="/products"
           aria-label={t("shopAllProducts")}
           tabIndex={0}
+          data-conversion="cta"
+          data-conversion-type="click"
+          data-conversion-category="cta"
+          data-conversion-action="shop_all_products"
+          data-conversion-element="hero_shop_button"
           className="w-full xs:w-auto min-h-[36px] sm:min-h-[44px] px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs sm:text-base md:text-lg font-semibold border-0 relative overflow-hidden group focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-purple-700 text-center flex items-center justify-center"
         >
           {t("shopAllProducts")}
@@ -82,6 +87,11 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
           href="/categories"
           aria-label={t("exploreCategories")}
           tabIndex={0}
+          data-conversion="cta"
+          data-conversion-type="click"
+          data-conversion-category="cta"
+          data-conversion-action="explore_categories"
+          data-conversion-element="hero_categories_button"
           className="w-full xs:w-auto min-h-[36px] sm:min-h-[44px] px-3 sm:px-6 py-2 sm:py-3 bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 text-xs sm:text-base md:text-lg font-semibold mt-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-orange-600 text-center flex items-center justify-center"
         >
           {t("exploreCategories")}

@@ -685,9 +685,9 @@ export const en = {
     "Empowering the next generation through hands-on STEM learning. Discover our curated collection of educational toys and resources designed by educators, for educators.",
 
   // Trust signals
-  freeShippingOver50: "FREE shipping on orders over €50",
+  freeShippingOver50: "FREE shipping on orders over {threshold}",
   thirtyDayReturns: "30-day hassle-free returns",
-  freeReturnsOver50: "Free returns on orders over €50 / 250 lei",
+  freeReturnsOver50: "Free returns on orders over {threshold}",
   bankLevelSecurity: "Bank-level security & encryption",
   trustedEducators: "Trusted by 50,000+ educators worldwide",
 

@@ -789,9 +789,9 @@ export const ro = {
     "Împuterniciți următoarea generație prin învățarea STEM practică. Descoperă colecția noastră curată de jucării educaționale și resurse concepute de educatori, pentru educatori.",
 
   // Trust signals
-  freeShippingOver50: "Transport GRATUIT la comenzi peste 50 € sau 250 lei",
+  freeShippingOver50: "Transport GRATUIT la comenzi peste {threshold}",
   thirtyDayReturns: "Returnări fără probleme în 14 zile",
-  freeReturnsOver50: "Returnări gratuite la comenzi peste 50 € sau 250 lei",
+  freeReturnsOver50: "Returnări gratuite la comenzi peste {threshold}",
   bankLevelSecurity: "Securitate și criptare la nivel bancar",
   trustedEducators: "De încredere pentru 50.000+ educatori din întreaga lume",
 
@@ -892,8 +892,6 @@ export const ro = {
   Technology: "Tehnologie",
   Engineering: "Inginerie",
   "educational-booksCategoryDesc":
-    "Cărți educaționale pentru a inspira minți tinere.",
-  educationalBooksCategoryDesc:
     "Cărți educaționale pentru a inspira minți tinere.",
   "educational-booksCategory": "Cărți educaționale",
 

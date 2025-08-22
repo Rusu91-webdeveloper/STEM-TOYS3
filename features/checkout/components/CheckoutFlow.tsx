@@ -7,6 +7,7 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "@/features/cart/context/CartContext";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation } from "@/lib/i18n";
+import { toast } from "@/components/ui/use-toast";
 
 import { createOrder } from "../lib/checkoutApi";
 import { CheckoutSummary } from "./CheckoutSummary";
@@ -91,8 +92,8 @@ export function CheckoutFlow() {
       return;
     }
 
+    // Only redirect to products if cart is empty AND we're not coming from order completion
     if (cartItems.length === 0) {
-      // No recent order completion, redirect to products if cart is empty
       router.push("/products");
       return;
     }
@@ -168,6 +169,16 @@ export function CheckoutFlow() {
         sessionStorage.setItem("orderCompleted", "true");
         sessionStorage.setItem("orderId", order.orderId);
 
+        // Show success notification
+        toast({
+          title: t("orderSuccess", "Order Placed Successfully!"),
+          description: t(
+            "orderSuccessMessage",
+            "Your order has been placed successfully. You will receive a confirmation email shortly."
+          ),
+          variant: "default",
+        });
+
         // Set redirect state to trigger navigation
         setRedirectToConfirmation(order.orderId);
 
@@ -233,6 +244,7 @@ export function CheckoutFlow() {
       );
     }
 
+    // Only show cart empty error if we're not coming from order completion
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <p className="text-red-600 text-lg font-medium">

@@ -12,6 +12,12 @@
 
 # testing
 /coverage
+/playwright-report/
+/test-results/
+tests/**/*.png
+tests/**/*.webm
+tests/**/*.md
+prisma/migrations/
 
 # next.js
 /.next/

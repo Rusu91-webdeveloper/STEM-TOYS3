@@ -6,6 +6,8 @@ import { SessionProvider } from "next-auth/react";
 
 import ClientLayout from "@/components/layout/ClientLayout";
 import { Toaster } from "@/components/ui/toaster";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import ConversionTrackingProvider from "@/components/conversion-tracking/ConversionTrackingProvider";
 import CartProviderWrapper from "@/features/cart/components/CartProviderWrapper.client";
 import { CentralizedSessionProvider } from "@/lib/auth/SessionContext";
 import { CurrencyProvider } from "@/lib/currency";
@@ -72,6 +74,8 @@ export default async function RootLayout({
                     <SpeedInsights />
                   </ClientLayout>
                   <Toaster />
+                  <ServiceWorkerRegistration />
+        <ConversionTrackingProvider />
                 </CartProviderWrapper>
               </CurrencyProvider>
             </I18nProvider>

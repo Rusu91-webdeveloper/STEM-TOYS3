@@ -5,6 +5,7 @@ import { DatabaseConfigNotice } from "@/components/auth/DatabaseConfigNotice";
 // import { SessionValidator } from "@/components/auth/SessionValidator";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
+import PromotionalPopup from "@/components/PromotionalPopup";
 
 export default function ClientLayout({
   children,
@@ -19,6 +20,7 @@ export default function ClientLayout({
       <Header />
       <main className="flex-grow">{children}</main>
       <Footer />
+      <PromotionalPopup />
     </>
   );
 }

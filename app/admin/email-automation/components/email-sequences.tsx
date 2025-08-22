@@ -58,7 +58,7 @@ interface EmailSequence {
   name: string;
   description: string;
   trigger: string;
-  status: "active" | "paused" | "draft" | "completed";
+  status: "ACTIVE" | "PAUSED" | "DRAFT" | "COMPLETED";
   stepCount: number;
   activeUsers: number;
   totalSent: number;
@@ -96,101 +96,42 @@ export function EmailSequences() {
 
   const fetchSequences = async () => {
     try {
-      // Mock data - replace with actual API calls
-      const mockSequences: EmailSequence[] = [
-        {
-          id: "1",
-          name: "Welcome Series",
-          description: "3-email welcome sequence for new subscribers",
-          trigger: "user_registered",
-          status: "active",
-          stepCount: 3,
-          activeUsers: 284,
-          totalSent: 852,
-          openRate: 79.8,
-          clickRate: 25.4,
-          createdAt: "2024-01-15",
-          lastModified: "2024-01-20",
-          metrics: {
-            totalSent: 852,
-            totalOpened: 680,
-            totalClicked: 173,
-            totalBounced: 12,
-            totalUnsubscribed: 5,
-            conversionRate: 20.3,
-          },
-        },
-        {
-          id: "2",
-          name: "Abandoned Cart Recovery",
-          description: "Recover abandoned carts with targeted emails",
-          trigger: "cart_abandoned",
-          status: "active",
-          stepCount: 4,
-          activeUsers: 156,
-          totalSent: 468,
-          openRate: 72.1,
-          clickRate: 18.7,
-          createdAt: "2024-01-10",
-          lastModified: "2024-01-18",
-          metrics: {
-            totalSent: 468,
-            totalOpened: 337,
-            totalClicked: 63,
-            totalBounced: 8,
-            totalUnsubscribed: 3,
-            conversionRate: 18.7,
-          },
-        },
-        {
-          id: "3",
-          name: "Post-Purchase Follow-up",
-          description: "Follow-up sequence after successful purchase",
-          trigger: "order_completed",
-          status: "paused",
-          stepCount: 2,
-          activeUsers: 89,
-          totalSent: 178,
-          openRate: 85.2,
-          clickRate: 32.1,
-          createdAt: "2024-01-05",
-          lastModified: "2024-01-15",
-          metrics: {
-            totalSent: 178,
-            totalOpened: 152,
-            totalClicked: 49,
-            totalBounced: 2,
-            totalUnsubscribed: 1,
-            conversionRate: 32.1,
-          },
-        },
-        {
-          id: "4",
-          name: "Re-engagement Campaign",
-          description: "Re-engage inactive users",
-          trigger: "user_inactive",
-          status: "draft",
-          stepCount: 3,
-          activeUsers: 0,
-          totalSent: 0,
-          openRate: 0,
-          clickRate: 0,
-          createdAt: "2024-01-25",
-          lastModified: "2024-01-25",
-          metrics: {
-            totalSent: 0,
-            totalOpened: 0,
-            totalClicked: 0,
-            totalBounced: 0,
-            totalUnsubscribed: 0,
-            conversionRate: 0,
-          },
-        },
-      ];
-
-      setSequences(mockSequences);
+      const response = await fetch("/api/admin/email-sequences");
+      if (response.ok) {
+        const data = await response.json();
+        // Transform the API data to match our interface
+        const transformedSequences: EmailSequence[] = data.campaigns.map(
+          (seq: any) => ({
+            id: seq.id,
+            name: seq.name,
+            description: seq.description || "",
+            trigger: seq.trigger,
+            status: seq.status,
+            stepCount: seq._count?.steps || 0,
+            activeUsers: seq._count?.users || 0,
+            totalSent: 0, // This would come from EmailEvent table
+            openRate: 0, // This would come from EmailEvent table
+            clickRate: 0, // This would come from EmailEvent table
+            createdAt: seq.createdAt,
+            lastModified: seq.updatedAt,
+            metrics: {
+              totalSent: 0,
+              totalOpened: 0,
+              totalClicked: 0,
+              totalBounced: 0,
+              totalUnsubscribed: 0,
+              conversionRate: 0,
+            },
+          })
+        );
+        setSequences(transformedSequences);
+      } else {
+        console.error("Failed to fetch sequences");
+        setSequences([]);
+      }
     } catch (error) {
       console.error("Error fetching sequences:", error);
+      setSequences([]);
     } finally {
       setLoading(false);
     }
@@ -198,13 +139,13 @@ export function EmailSequences() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "active":
+      case "ACTIVE":
         return "bg-green-100 text-green-800";
-      case "paused":
+      case "PAUSED":
         return "bg-yellow-100 text-yellow-800";
-      case "draft":
+      case "DRAFT":
         return "bg-gray-100 text-gray-800";
-      case "completed":
+      case "COMPLETED":
         return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -213,13 +154,13 @@ export function EmailSequences() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "active":
+      case "ACTIVE":
         return <Play className="h-4 w-4" />;
-      case "paused":
+      case "PAUSED":
         return <Pause className="h-4 w-4" />;
-      case "draft":
+      case "DRAFT":
         return <Edit className="h-4 w-4" />;
-      case "completed":
+      case "COMPLETED":
         return <CheckCircle className="h-4 w-4" />;
       default:
         return <Clock className="h-4 w-4" />;
@@ -237,15 +178,24 @@ export function EmailSequences() {
 
   const handleStatusChange = async (sequenceId: string, newStatus: string) => {
     try {
-      // This would call your API to update sequence status
-      console.log(`Updating sequence ${sequenceId} status to ${newStatus}`);
+      const response = await fetch(`/api/admin/email-sequences/${sequenceId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
 
-      // Update local state
-      setSequences(prev =>
-        prev.map(seq =>
-          seq.id === sequenceId ? { ...seq, status: newStatus as any } : seq
-        )
-      );
+      if (response.ok) {
+        // Update local state
+        setSequences(prev =>
+          prev.map(seq =>
+            seq.id === sequenceId ? { ...seq, status: newStatus as any } : seq
+          )
+        );
+      } else {
+        console.error("Failed to update sequence status");
+      }
     } catch (error) {
       console.error("Error updating sequence status:", error);
     }
@@ -265,43 +215,59 @@ export function EmailSequences() {
 
     setIsCreating(true);
     try {
-      // This would call your API to create a new sequence
-      console.log("Creating new sequence:", newSequence);
-
-      // Create mock sequence for demo
-      const mockNewSequence: EmailSequence = {
-        id: Date.now().toString(),
-        name: newSequence.name,
-        description: newSequence.description,
-        trigger: newSequence.trigger,
-        status: "draft",
-        stepCount: 0,
-        activeUsers: 0,
-        totalSent: 0,
-        openRate: 0,
-        clickRate: 0,
-        createdAt: new Date().toISOString(),
-        lastModified: new Date().toISOString(),
-        metrics: {
-          totalSent: 0,
-          totalOpened: 0,
-          totalClicked: 0,
-          totalBounced: 0,
-          totalUnsubscribed: 0,
-          conversionRate: 0,
+      const response = await fetch("/api/admin/email-sequences", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      };
+        body: JSON.stringify({
+          name: newSequence.name,
+          description: newSequence.description,
+          trigger: newSequence.trigger,
+          status: "DRAFT",
+        }),
+      });
 
-      // Add to local state
-      setSequences(prev => [mockNewSequence, ...prev]);
+      if (response.ok) {
+        const newSeq = await response.json();
 
-      // Reset form and close dialog
-      setNewSequence({ name: "", description: "", trigger: "" });
-      setIsCreateDialogOpen(false);
+        // Add to local state
+        const transformedSequence: EmailSequence = {
+          id: newSeq.id,
+          name: newSeq.name,
+          description: newSeq.description || "",
+          trigger: newSeq.trigger,
+          status: newSeq.status,
+          stepCount: 0,
+          activeUsers: 0,
+          totalSent: 0,
+          openRate: 0,
+          clickRate: 0,
+          createdAt: newSeq.createdAt,
+          lastModified: newSeq.updatedAt,
+          metrics: {
+            totalSent: 0,
+            totalOpened: 0,
+            totalClicked: 0,
+            totalBounced: 0,
+            totalUnsubscribed: 0,
+            conversionRate: 0,
+          },
+        };
 
-      // Show success message
-      setShowSuccessMessage(true);
-      setTimeout(() => setShowSuccessMessage(false), 3000);
+        setSequences(prev => [transformedSequence, ...prev]);
+
+        // Reset form and close dialog
+        setNewSequence({ name: "", description: "", trigger: "" });
+        setIsCreateDialogOpen(false);
+
+        // Show success message
+        setShowSuccessMessage(true);
+        setTimeout(() => setShowSuccessMessage(false), 3000);
+      } else {
+        const errorData = await response.json();
+        alert(`Error creating sequence: ${errorData.error || "Unknown error"}`);
+      }
     } catch (error) {
       console.error("Error creating sequence:", error);
       alert("Error creating sequence. Please try again.");
@@ -389,19 +355,23 @@ export function EmailSequences() {
                     <SelectValue placeholder="Select trigger" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user_registered">
+                    <SelectItem value="USER_REGISTERED">
                       User Registered
                     </SelectItem>
-                    <SelectItem value="cart_abandoned">
+                    <SelectItem value="FIRST_PURCHASE">
+                      First Purchase
+                    </SelectItem>
+                    <SelectItem value="ABANDONED_CART">
                       Cart Abandoned
                     </SelectItem>
-                    <SelectItem value="order_completed">
-                      Order Completed
+                    <SelectItem value="ORDER_PLACED">Order Placed</SelectItem>
+                    <SelectItem value="ORDER_SHIPPED">Order Shipped</SelectItem>
+                    <SelectItem value="ORDER_DELIVERED">
+                      Order Delivered
                     </SelectItem>
-                    <SelectItem value="user_inactive">User Inactive</SelectItem>
-                    <SelectItem value="product_viewed">
-                      Product Viewed
-                    </SelectItem>
+                    <SelectItem value="INACTIVE_USER">User Inactive</SelectItem>
+                    <SelectItem value="BIRTHDAY">Birthday</SelectItem>
+                    <SelectItem value="CUSTOM">Custom</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -449,10 +419,10 @@ export function EmailSequences() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="paused">Paused</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="PAUSED">Paused</SelectItem>
+            <SelectItem value="DRAFT">Draft</SelectItem>
+            <SelectItem value="COMPLETED">Completed</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -502,7 +472,9 @@ export function EmailSequences() {
               <div className="flex items-center space-x-2 mt-2">
                 <Badge className={getStatusColor(sequence.status)}>
                   {getStatusIcon(sequence.status)}
-                  <span className="ml-1 capitalize">{sequence.status}</span>
+                  <span className="ml-1 capitalize">
+                    {sequence.status.toLowerCase()}
+                  </span>
                 </Badge>
                 <Badge variant="outline">
                   <Clock className="h-3 w-3 mr-1" />
@@ -516,7 +488,7 @@ export function EmailSequences() {
                 <div className="flex items-center space-x-2">
                   <Target className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
-                    Trigger: {sequence.trigger.replace("_", " ")}
+                    Trigger: {sequence.trigger.replace("_", " ").toLowerCase()}
                   </span>
                 </div>
 
@@ -554,21 +526,21 @@ export function EmailSequences() {
 
                 {/* Actions */}
                 <div className="flex space-x-2">
-                  {sequence.status === "active" ? (
+                  {sequence.status === "ACTIVE" ? (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleStatusChange(sequence.id, "paused")}
+                      onClick={() => handleStatusChange(sequence.id, "PAUSED")}
                       className="flex-1"
                     >
                       <Pause className="h-4 w-4 mr-1" />
                       Pause
                     </Button>
-                  ) : sequence.status === "paused" ? (
+                  ) : sequence.status === "PAUSED" ? (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleStatusChange(sequence.id, "active")}
+                      onClick={() => handleStatusChange(sequence.id, "ACTIVE")}
                       className="flex-1"
                     >
                       <Play className="h-4 w-4 mr-1" />
@@ -578,7 +550,7 @@ export function EmailSequences() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleStatusChange(sequence.id, "active")}
+                      onClick={() => handleStatusChange(sequence.id, "ACTIVE")}
                       className="flex-1"
                     >
                       <Play className="h-4 w-4 mr-1" />
