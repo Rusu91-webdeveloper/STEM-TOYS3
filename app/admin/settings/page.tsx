@@ -25,6 +25,13 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import BusinessHoursSettings from "@/components/admin/BusinessHoursSettings";
+import CustomerServiceSettings from "@/components/admin/CustomerServiceSettings";
+import OrderProcessingSettings from "@/components/admin/OrderProcessingSettings";
+import InventoryManagementSettings from "@/components/admin/InventoryManagementSettings";
+import MarketingSettings from "@/components/admin/MarketingSettings";
+import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
+import ConversionDashboard from "@/components/conversion-tracking/ConversionDashboard";
 
 interface StoreSettings {
   id?: string;
@@ -59,7 +66,292 @@ interface StoreSettings {
     active: boolean;
     includeInPrice: boolean;
   } | null;
+  businessHours: {
+    monday: { open: string; close: string; closed: boolean };
+    tuesday: { open: string; close: string; closed: boolean };
+    wednesday: { open: string; close: string; closed: boolean };
+    thursday: { open: string; close: string; closed: boolean };
+    friday: { open: string; close: string; closed: boolean };
+    saturday: { open: string; close: string; closed: boolean };
+    sunday: { open: string; close: string; closed: boolean };
+  } | null;
+  customerService: {
+    supportEmail: string;
+    supportPhone: string;
+    liveChatEnabled: boolean;
+    liveChatHours: string;
+  } | null;
+  orderProcessing: {
+    autoFulfillment: {
+      enabled: boolean;
+      threshold: number;
+      excludeCategories: string[];
+      requireInventoryCheck: boolean;
+    };
+    processingTimes: {
+      standard: number;
+      express: number;
+      rush: number;
+      weekendProcessing: boolean;
+      holidayProcessing: boolean;
+    };
+    statusWorkflow: {
+      autoConfirm: boolean;
+      requirePaymentConfirmation: boolean;
+      holdForReview: {
+        enabled: boolean;
+        threshold: number;
+        keywords: string[];
+      };
+    };
+    fulfillment: {
+      warehouseLocation: string;
+      packagingNotes: string;
+      qualityCheckRequired: boolean;
+      signatureRequired: {
+        enabled: boolean;
+        threshold: number;
+      };
+    };
+    notifications: {
+      orderConfirmation: boolean;
+      processingUpdate: boolean;
+      shippingNotification: boolean;
+      deliveryConfirmation: boolean;
+      adminAlerts: {
+        highValueOrders: boolean;
+        outOfStockItems: boolean;
+        failedPayments: boolean;
+      };
+    };
+  } | null;
+  inventoryManagement: {
+    stockAlerts: {
+      enabled: boolean;
+      lowStockThreshold: number;
+      outOfStockAlert: boolean;
+      reorderPointAlert: boolean;
+      emailNotifications: boolean;
+      adminNotifications: boolean;
+      supplierNotifications: boolean;
+    };
+    reorderManagement: {
+      enabled: boolean;
+      reorderPoint: number;
+      reorderQuantity: number;
+      autoReorder: boolean;
+      requireApproval: boolean;
+      supplierEmail: string;
+      reorderFrequency: "daily" | "weekly" | "monthly";
+    };
+    inventoryTracking: {
+      enabled: boolean;
+      trackExpiryDates: boolean;
+      trackBatchNumbers: boolean;
+      trackSerialNumbers: boolean;
+      barcodeScanning: boolean;
+      qrCodeSupport: boolean;
+      locationTracking: boolean;
+      warehouseZones: string[];
+    };
+    stockAdjustments: {
+      allowNegativeStock: boolean;
+      backorderEnabled: boolean;
+      reserveStockForOrders: boolean;
+      reserveThreshold: number;
+      autoAdjustStock: boolean;
+      adjustmentReasonRequired: boolean;
+    };
+    inventoryReports: {
+      dailyStockReport: boolean;
+      weeklyInventoryReport: boolean;
+      monthlyValueReport: boolean;
+      lowStockReport: boolean;
+      slowMovingItemsReport: boolean;
+      expiryDateReport: boolean;
+      reportRecipients: string[];
+    };
+    supplierManagement: {
+      enabled: boolean;
+      supplierDirectory: boolean;
+      supplierPerformance: boolean;
+      leadTimeTracking: boolean;
+      costTracking: boolean;
+      supplierNotifications: boolean;
+    };
+    automatedInventory: {
+      enabled: boolean;
+      autoUpdateStock: boolean;
+      syncWithPOS: boolean;
+      syncWithEcommerce: boolean;
+      realTimeUpdates: boolean;
+      inventoryAPI: boolean;
+    };
+  } | null;
+  marketingSettings: {
+    emailMarketing: {
+      enabled: boolean;
+      provider: "sendgrid" | "mailchimp" | "brevo" | "custom";
+      apiKey: string;
+      fromEmail: string;
+      fromName: string;
+      replyToEmail: string;
+      doubleOptIn: boolean;
+      unsubscribeRequired: boolean;
+      emailTemplates: {
+        welcome: string;
+        abandonedCart: string;
+        orderConfirmation: string;
+        shippingUpdate: string;
+        reviewRequest: string;
+        birthday: string;
+        reEngagement: string;
+      };
+    };
+    socialMedia: {
+      enabled: boolean;
+      platforms: {
+        facebook: { enabled: boolean; pageId: string; accessToken: string };
+        instagram: { enabled: boolean; accountId: string; accessToken: string };
+        twitter: { enabled: boolean; handle: string; apiKey: string };
+        linkedin: { enabled: boolean; companyId: string; accessToken: string };
+        youtube: { enabled: boolean; channelId: string; apiKey: string };
+        tiktok: { enabled: boolean; username: string; accessToken: string };
+      };
+      autoSharing: {
+        newProducts: boolean;
+        blogPosts: boolean;
+        promotions: boolean;
+        customerReviews: boolean;
+      };
+      socialProof: {
+        showReviews: boolean;
+        showFollowers: boolean;
+        showRecentActivity: boolean;
+      };
+    };
+    promotionalCampaigns: {
+      enabled: boolean;
+      campaignTypes: {
+        flashSales: { enabled: boolean; duration: number; maxDiscount: number };
+        seasonalSales: { enabled: boolean; autoSchedule: boolean };
+        loyaltyProgram: {
+          enabled: boolean;
+          pointsPerDollar: number;
+          redemptionRate: number;
+        };
+        referralProgram: {
+          enabled: boolean;
+          rewardAmount: number;
+          expiryDays: number;
+        };
+        birthdayOffers: {
+          enabled: boolean;
+          discountPercent: number;
+          validDays: number;
+        };
+        firstTimeBuyer: {
+          enabled: boolean;
+          discountPercent: number;
+          minimumOrder: number;
+        };
+      };
+      discountRules: {
+        maxDiscountPercent: number;
+        minimumOrderAmount: number;
+        excludeCategories: string[];
+        stackableDiscounts: boolean;
+        oneTimeUse: boolean;
+      };
+    };
+    customerSegmentation: {
+      enabled: boolean;
+      segments: {
+        newCustomers: { enabled: boolean; daysSinceFirstOrder: number };
+        returningCustomers: { enabled: boolean; minimumOrders: number };
+        highValueCustomers: { enabled: boolean; minimumSpend: number };
+        inactiveCustomers: { enabled: boolean; daysSinceLastOrder: number };
+        cartAbandoners: { enabled: boolean; abandonedThreshold: number };
+        productCategoryLovers: { enabled: boolean; categories: string[] };
+      };
+      targetingRules: {
+        locationBased: boolean;
+        purchaseHistory: boolean;
+        browsingBehavior: boolean;
+        emailEngagement: boolean;
+        socialMediaActivity: boolean;
+      };
+    };
+    marketingAutomation: {
+      enabled: boolean;
+      workflows: {
+        welcomeSeries: { enabled: boolean; emails: number; interval: number };
+        abandonedCart: { enabled: boolean; emails: number; interval: number };
+        postPurchase: { enabled: boolean; emails: number; interval: number };
+        reEngagement: { enabled: boolean; emails: number; interval: number };
+        birthdayCampaign: {
+          enabled: boolean;
+          emails: number;
+          interval: number;
+        };
+        seasonalPromotions: {
+          enabled: boolean;
+          emails: number;
+          interval: number;
+        };
+      };
+      triggers: {
+        newCustomer: boolean;
+        cartAbandonment: boolean;
+        orderCompletion: boolean;
+        productView: boolean;
+        categoryView: boolean;
+        searchQuery: boolean;
+      };
+    };
+    analytics: {
+      enabled: boolean;
+      tracking: {
+        googleAnalytics: { enabled: boolean; trackingId: string };
+        facebookPixel: { enabled: boolean; pixelId: string };
+        googleAds: { enabled: boolean; conversionId: string };
+        tiktokPixel: { enabled: boolean; pixelId: string };
+        customTracking: { enabled: boolean; script: string };
+      };
+      goals: {
+        revenueTarget: number;
+        conversionRate: number;
+        emailOpenRate: number;
+        clickThroughRate: number;
+        socialEngagement: number;
+      };
+    };
+    contentMarketing: {
+      enabled: boolean;
+      blog: {
+        enabled: boolean;
+        autoPublish: boolean;
+        seoOptimization: boolean;
+        socialSharing: boolean;
+        emailNewsletter: boolean;
+      };
+      seo: {
+        enabled: boolean;
+        metaTags: boolean;
+        structuredData: boolean;
+        sitemapGeneration: boolean;
+        robotsTxt: boolean;
+      };
+      influencerMarketing: {
+        enabled: boolean;
+        collaborationPlatform: string;
+        commissionRate: number;
+        minimumFollowers: number;
+      };
+    };
+  } | null;
   paymentSettings?: any;
+  metadata?: any;
 }
 
 const defaultSettings: StoreSettings = {
@@ -97,6 +389,310 @@ const defaultSettings: StoreSettings = {
     active: true,
     includeInPrice: false,
   },
+  businessHours: {
+    monday: { open: "09:00", close: "17:00", closed: false },
+    tuesday: { open: "09:00", close: "17:00", closed: false },
+    wednesday: { open: "09:00", close: "17:00", closed: false },
+    thursday: { open: "09:00", close: "17:00", closed: false },
+    friday: { open: "09:00", close: "17:00", closed: false },
+    saturday: { open: "10:00", close: "16:00", closed: false },
+    sunday: { open: "10:00", close: "16:00", closed: false },
+  },
+  customerService: {
+    supportEmail: "support@techtots.com",
+    supportPhone: "+1 (555) 234-5678",
+    liveChatEnabled: true,
+    liveChatHours: "24/7",
+  },
+  orderProcessing: {
+    autoFulfillment: {
+      enabled: true,
+      threshold: 100,
+      excludeCategories: [],
+      requireInventoryCheck: true,
+    },
+    processingTimes: {
+      standard: 3,
+      express: 1,
+      rush: 0,
+      weekendProcessing: true,
+      holidayProcessing: false,
+    },
+    statusWorkflow: {
+      autoConfirm: true,
+      requirePaymentConfirmation: true,
+      holdForReview: {
+        enabled: true,
+        threshold: 500,
+        keywords: ["fraud", "risky"],
+      },
+    },
+    fulfillment: {
+      warehouseLocation: "Main Warehouse",
+      packagingNotes: "Pack carefully",
+      qualityCheckRequired: true,
+      signatureRequired: {
+        enabled: true,
+        threshold: 100,
+      },
+    },
+    notifications: {
+      orderConfirmation: true,
+      processingUpdate: true,
+      shippingNotification: true,
+      deliveryConfirmation: true,
+      adminAlerts: {
+        highValueOrders: true,
+        outOfStockItems: true,
+        failedPayments: true,
+      },
+    },
+  },
+  inventoryManagement: {
+    stockAlerts: {
+      enabled: true,
+      lowStockThreshold: 10,
+      outOfStockAlert: true,
+      reorderPointAlert: true,
+      emailNotifications: true,
+      adminNotifications: true,
+      supplierNotifications: true,
+    },
+    reorderManagement: {
+      enabled: true,
+      reorderPoint: 50,
+      reorderQuantity: 100,
+      autoReorder: true,
+      requireApproval: false,
+      supplierEmail: "suppliers@techtots.com",
+      reorderFrequency: "daily",
+    },
+    inventoryTracking: {
+      enabled: true,
+      trackExpiryDates: true,
+      trackBatchNumbers: true,
+      trackSerialNumbers: true,
+      barcodeScanning: true,
+      qrCodeSupport: true,
+      locationTracking: true,
+      warehouseZones: ["Zone A", "Zone B", "Zone C"],
+    },
+    stockAdjustments: {
+      allowNegativeStock: false,
+      backorderEnabled: true,
+      reserveStockForOrders: true,
+      reserveThreshold: 50,
+      autoAdjustStock: true,
+      adjustmentReasonRequired: true,
+    },
+    inventoryReports: {
+      dailyStockReport: true,
+      weeklyInventoryReport: true,
+      monthlyValueReport: true,
+      lowStockReport: true,
+      slowMovingItemsReport: true,
+      expiryDateReport: true,
+      reportRecipients: ["admin@techtots.com", "finance@techtots.com"],
+    },
+    supplierManagement: {
+      enabled: true,
+      supplierDirectory: true,
+      supplierPerformance: true,
+      leadTimeTracking: true,
+      costTracking: true,
+      supplierNotifications: true,
+    },
+    automatedInventory: {
+      enabled: true,
+      autoUpdateStock: true,
+      syncWithPOS: true,
+      syncWithEcommerce: true,
+      realTimeUpdates: true,
+      inventoryAPI: true,
+    },
+  },
+  marketingSettings: {
+    emailMarketing: {
+      enabled: true,
+      provider: "sendgrid",
+      apiKey: "YOUR_SENDGRID_API_KEY",
+      fromEmail: "info@techtots.com",
+      fromName: "TechTots",
+      replyToEmail: "support@techtots.com",
+      doubleOptIn: true,
+      unsubscribeRequired: true,
+      emailTemplates: {
+        welcome: "Welcome to TechTots!",
+        abandonedCart: "Your cart is waiting for you at TechTots!",
+        orderConfirmation: "Thank you for your order from TechTots!",
+        shippingUpdate: "Your order is on its way!",
+        reviewRequest: "We'd love your feedback on your TechTots experience!",
+        birthday: "Happy birthday from TechTots!",
+        reEngagement: "We miss you at TechTots!",
+      },
+    },
+    socialMedia: {
+      enabled: true,
+      platforms: {
+        facebook: {
+          enabled: true,
+          pageId: "YOUR_FACEBOOK_PAGE_ID",
+          accessToken: "YOUR_FACEBOOK_ACCESS_TOKEN",
+        },
+        instagram: {
+          enabled: true,
+          accountId: "YOUR_INSTAGRAM_ACCOUNT_ID",
+          accessToken: "YOUR_INSTAGRAM_ACCESS_TOKEN",
+        },
+        twitter: {
+          enabled: true,
+          handle: "@techtots",
+          apiKey: "YOUR_TWITTER_API_KEY",
+        },
+        linkedin: {
+          enabled: true,
+          companyId: "YOUR_LINKEDIN_COMPANY_ID",
+          accessToken: "YOUR_LINKEDIN_ACCESS_TOKEN",
+        },
+        youtube: {
+          enabled: true,
+          channelId: "YOUR_YOUTUBE_CHANNEL_ID",
+          apiKey: "YOUR_YOUTUBE_API_KEY",
+        },
+        tiktok: {
+          enabled: true,
+          username: "@techtots",
+          accessToken: "YOUR_TIKTOK_ACCESS_TOKEN",
+        },
+      },
+      autoSharing: {
+        newProducts: true,
+        blogPosts: true,
+        promotions: true,
+        customerReviews: true,
+      },
+      socialProof: {
+        showReviews: true,
+        showFollowers: true,
+        showRecentActivity: true,
+      },
+    },
+    promotionalCampaigns: {
+      enabled: true,
+      campaignTypes: {
+        flashSales: { enabled: true, duration: 7, maxDiscount: 50 },
+        seasonalSales: { enabled: true, autoSchedule: true },
+        loyaltyProgram: {
+          enabled: true,
+          pointsPerDollar: 1,
+          redemptionRate: 10,
+        },
+        referralProgram: { enabled: true, rewardAmount: 20, expiryDays: 30 },
+        birthdayOffers: { enabled: true, discountPercent: 10, validDays: 30 },
+        firstTimeBuyer: {
+          enabled: true,
+          discountPercent: 15,
+          minimumOrder: 100,
+        },
+      },
+      discountRules: {
+        maxDiscountPercent: 50,
+        minimumOrderAmount: 50,
+        excludeCategories: [],
+        stackableDiscounts: true,
+        oneTimeUse: false,
+      },
+    },
+    customerSegmentation: {
+      enabled: true,
+      segments: {
+        newCustomers: { enabled: true, daysSinceFirstOrder: 7 },
+        returningCustomers: { enabled: true, minimumOrders: 5 },
+        highValueCustomers: { enabled: true, minimumSpend: 500 },
+        inactiveCustomers: { enabled: true, daysSinceLastOrder: 30 },
+        cartAbandoners: { enabled: true, abandonedThreshold: 10 },
+        productCategoryLovers: {
+          enabled: true,
+          categories: ["STEM Toys", "Educational Toys"],
+        },
+      },
+      targetingRules: {
+        locationBased: true,
+        purchaseHistory: true,
+        browsingBehavior: true,
+        emailEngagement: true,
+        socialMediaActivity: true,
+      },
+    },
+    marketingAutomation: {
+      enabled: true,
+      workflows: {
+        welcomeSeries: { enabled: true, emails: 3, interval: 7 },
+        abandonedCart: { enabled: true, emails: 2, interval: 24 },
+        postPurchase: { enabled: true, emails: 1, interval: 7 },
+        reEngagement: { enabled: true, emails: 1, interval: 30 },
+        birthdayCampaign: { enabled: true, emails: 1, interval: 365 },
+        seasonalPromotions: { enabled: true, emails: 2, interval: 90 },
+      },
+      triggers: {
+        newCustomer: true,
+        cartAbandonment: true,
+        orderCompletion: true,
+        productView: true,
+        categoryView: true,
+        searchQuery: true,
+      },
+    },
+    analytics: {
+      enabled: true,
+      tracking: {
+        googleAnalytics: {
+          enabled: true,
+          trackingId: "YOUR_GA_TRACKING_ID",
+        },
+        facebookPixel: { enabled: true, pixelId: "YOUR_FB_PIXEL_ID" },
+        googleAds: {
+          enabled: true,
+          conversionId: "YOUR_GA_CONVERSION_ID",
+        },
+        tiktokPixel: { enabled: true, pixelId: "YOUR_TIKTOK_PIXEL_ID" },
+        customTracking: {
+          enabled: true,
+          script: "YOUR_CUSTOM_TRACKING_SCRIPT",
+        },
+      },
+      goals: {
+        revenueTarget: 100000,
+        conversionRate: 5,
+        emailOpenRate: 20,
+        clickThroughRate: 10,
+        socialEngagement: 1000,
+      },
+    },
+    contentMarketing: {
+      enabled: true,
+      blog: {
+        enabled: true,
+        autoPublish: true,
+        seoOptimization: true,
+        socialSharing: true,
+        emailNewsletter: true,
+      },
+      seo: {
+        enabled: true,
+        metaTags: true,
+        structuredData: true,
+        sitemapGeneration: true,
+        robotsTxt: true,
+      },
+      influencerMarketing: {
+        enabled: true,
+        collaborationPlatform: "InfluencerHub",
+        commissionRate: 10,
+        minimumFollowers: 1000,
+      },
+    },
+  },
 };
 
 export default function SettingsPage() {
@@ -107,6 +703,12 @@ export default function SettingsPage() {
     shipping: false,
     payments: false,
     tax: false,
+    businessHours: false,
+    customerService: false,
+    orderProcessing: false,
+    inventoryManagement: false,
+    marketing: false,
+    analytics: false,
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -125,25 +727,32 @@ export default function SettingsPage() {
 
         const data = await response.json();
 
-        // Ensure shippingSettings exists
-        if (!data.shippingSettings) {
-          data.shippingSettings = {
-            standard: { price: "5.99", active: true },
-            express: { price: "12.99", active: true },
-            freeThreshold: { price: "75.00", active: true },
-          };
-        }
+        // Only set defaults for missing fields, don't override existing data
+        const mergedData = {
+          ...defaultSettings,
+          ...data,
+          // Only set shippingSettings defaults if it's completely missing
+          shippingSettings:
+            data.shippingSettings || defaultSettings.shippingSettings,
+          // Only set taxSettings defaults if it's completely missing
+          taxSettings: data.taxSettings || defaultSettings.taxSettings,
+          // Only set businessHours defaults if it's completely missing
+          businessHours: data.businessHours || defaultSettings.businessHours,
+          // Only set customerService defaults if it's completely missing
+          customerService:
+            data.customerService || defaultSettings.customerService,
+          // Only set orderProcessing defaults if it's completely missing
+          orderProcessing:
+            data.orderProcessing || defaultSettings.orderProcessing,
+          // Only set inventoryManagement defaults if it's completely missing
+          inventoryManagement:
+            data.inventoryManagement || defaultSettings.inventoryManagement,
+          // Only set marketingSettings defaults if it's completely missing
+          marketingSettings:
+            data.marketingSettings || defaultSettings.marketingSettings,
+        };
 
-        // Ensure taxSettings exists
-        if (!data.taxSettings) {
-          data.taxSettings = {
-            rate: "21",
-            active: true,
-            includeInPrice: false,
-          };
-        }
-
-        setSettings(data);
+        setSettings(mergedData);
       } catch (err) {
         console.error("Failed to fetch settings:", err);
         setError("Failed to load settings. Please refresh the page.");
@@ -201,6 +810,31 @@ export default function SettingsPage() {
         case "tax":
           sectionData = {
             taxSettings: settings.taxSettings,
+          };
+          break;
+        case "businessHours":
+          sectionData = {
+            businessHours: settings.businessHours,
+          };
+          break;
+        case "customerService":
+          sectionData = {
+            customerService: settings.customerService,
+          };
+          break;
+        case "orderProcessing":
+          sectionData = {
+            orderProcessing: settings.orderProcessing,
+          };
+          break;
+        case "inventoryManagement":
+          sectionData = {
+            inventoryManagement: settings.inventoryManagement,
+          };
+          break;
+        case "marketing":
+          sectionData = {
+            marketingSettings: settings.marketingSettings,
           };
           break;
         // Add other sections as needed
@@ -409,6 +1043,14 @@ export default function SettingsPage() {
           <TabsTrigger value="shipping">Shipping</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="tax">Tax</TabsTrigger>
+          <TabsTrigger value="businessHours">Business Hours</TabsTrigger>
+          <TabsTrigger value="customerService">Customer Service</TabsTrigger>
+          <TabsTrigger value="orderProcessing">Order Processing</TabsTrigger>
+          <TabsTrigger value="inventoryManagement">
+            Inventory Management
+          </TabsTrigger>
+          <TabsTrigger value="marketing">Marketing</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
@@ -644,7 +1286,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>Shipping Methods</CardTitle>
               <CardDescription>
-                Configure available shipping methods
+                Configure available shipping methods and free shipping threshold
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -723,7 +1365,9 @@ export default function SettingsPage() {
                       Free Shipping Threshold
                     </Label>
                     <span className="text-sm text-muted-foreground">
-                      Orders above this amount qualify for free shipping
+                      Orders above this amount qualify for free shipping. This
+                      setting affects all components that display free shipping
+                      information.
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
@@ -894,6 +1538,496 @@ export default function SettingsPage() {
                 {isSaving.tax ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
+          </Card>
+        </TabsContent>
+
+        {/* Business Hours Settings */}
+        <TabsContent value="businessHours" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Business Hours</CardTitle>
+              <CardDescription>
+                Configure the operating hours of your store
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <BusinessHoursSettings
+                businessHours={
+                  settings.businessHours || {
+                    monday: { open: "09:00", close: "17:00", closed: false },
+                    tuesday: { open: "09:00", close: "17:00", closed: false },
+                    wednesday: { open: "09:00", close: "17:00", closed: false },
+                    thursday: { open: "09:00", close: "17:00", closed: false },
+                    friday: { open: "09:00", close: "17:00", closed: false },
+                    saturday: { open: "10:00", close: "16:00", closed: false },
+                    sunday: { open: "10:00", close: "16:00", closed: false },
+                  }
+                }
+                onSave={businessHours => {
+                  setSettings(prev => ({ ...prev, businessHours }));
+                  handleSave("businessHours");
+                }}
+                isSaving={isSaving.businessHours}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Customer Service Settings */}
+        <TabsContent value="customerService" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Service</CardTitle>
+              <CardDescription>
+                Configure customer support and live chat settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <CustomerServiceSettings
+                customerService={
+                  settings.customerService || {
+                    supportEmail: "support@techtots.com",
+                    supportPhone: "+1 (555) 234-5678",
+                    liveChatEnabled: true,
+                    liveChatHours: "24/7",
+                  }
+                }
+                onSave={customerService => {
+                  setSettings(prev => ({ ...prev, customerService }));
+                  handleSave("customerService");
+                }}
+                isSaving={isSaving.customerService}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Order Processing Settings */}
+        <TabsContent value="orderProcessing" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Order Processing</CardTitle>
+              <CardDescription>
+                Configure how orders are processed and fulfilled
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <OrderProcessingSettings
+                orderProcessing={
+                  settings.orderProcessing || {
+                    autoFulfillment: {
+                      enabled: true,
+                      threshold: 100,
+                      excludeCategories: [],
+                      requireInventoryCheck: true,
+                    },
+                    processingTimes: {
+                      standard: 3,
+                      express: 1,
+                      rush: 0,
+                      weekendProcessing: true,
+                      holidayProcessing: false,
+                    },
+                    statusWorkflow: {
+                      autoConfirm: true,
+                      requirePaymentConfirmation: true,
+                      holdForReview: {
+                        enabled: true,
+                        threshold: 500,
+                        keywords: ["fraud", "risky"],
+                      },
+                    },
+                    fulfillment: {
+                      warehouseLocation: "Main Warehouse",
+                      packagingNotes: "Pack carefully",
+                      qualityCheckRequired: true,
+                      signatureRequired: {
+                        enabled: true,
+                        threshold: 100,
+                      },
+                    },
+                    notifications: {
+                      orderConfirmation: true,
+                      processingUpdate: true,
+                      shippingNotification: true,
+                      deliveryConfirmation: true,
+                      adminAlerts: {
+                        highValueOrders: true,
+                        outOfStockItems: true,
+                        failedPayments: true,
+                      },
+                    },
+                  }
+                }
+                onSave={orderProcessing => {
+                  setSettings(prev => ({ ...prev, orderProcessing }));
+                  handleSave("orderProcessing");
+                }}
+                isSaving={isSaving.orderProcessing}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Inventory Management Settings */}
+        <TabsContent value="inventoryManagement" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Inventory Management</CardTitle>
+              <CardDescription>
+                Configure inventory management settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <InventoryManagementSettings
+                inventoryManagement={
+                  settings.inventoryManagement || {
+                    stockAlerts: {
+                      enabled: true,
+                      lowStockThreshold: 10,
+                      outOfStockAlert: true,
+                      reorderPointAlert: true,
+                      emailNotifications: true,
+                      adminNotifications: true,
+                      supplierNotifications: true,
+                    },
+                    reorderManagement: {
+                      enabled: true,
+                      reorderPoint: 50,
+                      reorderQuantity: 100,
+                      autoReorder: true,
+                      requireApproval: false,
+                      supplierEmail: "suppliers@techtots.com",
+                      reorderFrequency: "daily",
+                    },
+                    inventoryTracking: {
+                      enabled: true,
+                      trackExpiryDates: true,
+                      trackBatchNumbers: true,
+                      trackSerialNumbers: true,
+                      barcodeScanning: true,
+                      qrCodeSupport: true,
+                      locationTracking: true,
+                      warehouseZones: ["Zone A", "Zone B", "Zone C"],
+                    },
+                    stockAdjustments: {
+                      allowNegativeStock: false,
+                      backorderEnabled: true,
+                      reserveStockForOrders: true,
+                      reserveThreshold: 50,
+                      autoAdjustStock: true,
+                      adjustmentReasonRequired: true,
+                    },
+                    inventoryReports: {
+                      dailyStockReport: true,
+                      weeklyInventoryReport: true,
+                      monthlyValueReport: true,
+                      lowStockReport: true,
+                      slowMovingItemsReport: true,
+                      expiryDateReport: true,
+                      reportRecipients: [
+                        "admin@techtots.com",
+                        "finance@techtots.com",
+                      ],
+                    },
+                    supplierManagement: {
+                      enabled: true,
+                      supplierDirectory: true,
+                      supplierPerformance: true,
+                      leadTimeTracking: true,
+                      costTracking: true,
+                      supplierNotifications: true,
+                    },
+                    automatedInventory: {
+                      enabled: true,
+                      autoUpdateStock: true,
+                      syncWithPOS: true,
+                      syncWithEcommerce: true,
+                      realTimeUpdates: true,
+                      inventoryAPI: true,
+                    },
+                  }
+                }
+                onSave={inventoryManagement => {
+                  setSettings(prev => ({ ...prev, inventoryManagement }));
+                  handleSave("inventoryManagement");
+                }}
+                isSaving={isSaving.inventoryManagement}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Marketing Settings */}
+        <TabsContent value="marketing" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Marketing Settings</CardTitle>
+              <CardDescription>
+                Configure email marketing, social media, and promotional
+                campaigns
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <MarketingSettings
+                marketingSettings={
+                  settings.marketingSettings || {
+                    emailMarketing: {
+                      enabled: true,
+                      provider: "sendgrid",
+                      apiKey: "YOUR_SENDGRID_API_KEY",
+                      fromEmail: "info@techtots.com",
+                      fromName: "TechTots",
+                      replyToEmail: "support@techtots.com",
+                      doubleOptIn: true,
+                      unsubscribeRequired: true,
+                      emailTemplates: {
+                        welcome: "Welcome to TechTots!",
+                        abandonedCart:
+                          "Your cart is waiting for you at TechTots!",
+                        orderConfirmation:
+                          "Thank you for your order from TechTots!",
+                        shippingUpdate: "Your order is on its way!",
+                        reviewRequest:
+                          "We'd love your feedback on your TechTots experience!",
+                        birthday: "Happy birthday from TechTots!",
+                        reEngagement: "We miss you at TechTots!",
+                      },
+                    },
+                    socialMedia: {
+                      enabled: true,
+                      platforms: {
+                        facebook: {
+                          enabled: true,
+                          pageId: "YOUR_FACEBOOK_PAGE_ID",
+                          accessToken: "YOUR_FACEBOOK_ACCESS_TOKEN",
+                        },
+                        instagram: {
+                          enabled: true,
+                          accountId: "YOUR_INSTAGRAM_ACCOUNT_ID",
+                          accessToken: "YOUR_INSTAGRAM_ACCESS_TOKEN",
+                        },
+                        twitter: {
+                          enabled: true,
+                          handle: "@techtots",
+                          apiKey: "YOUR_TWITTER_API_KEY",
+                        },
+                        linkedin: {
+                          enabled: true,
+                          companyId: "YOUR_LINKEDIN_COMPANY_ID",
+                          accessToken: "YOUR_LINKEDIN_ACCESS_TOKEN",
+                        },
+                        youtube: {
+                          enabled: true,
+                          channelId: "YOUR_YOUTUBE_CHANNEL_ID",
+                          apiKey: "YOUR_YOUTUBE_API_KEY",
+                        },
+                        tiktok: {
+                          enabled: true,
+                          username: "@techtots",
+                          accessToken: "YOUR_TIKTOK_ACCESS_TOKEN",
+                        },
+                      },
+                      autoSharing: {
+                        newProducts: true,
+                        blogPosts: true,
+                        promotions: true,
+                        customerReviews: true,
+                      },
+                      socialProof: {
+                        showReviews: true,
+                        showFollowers: true,
+                        showRecentActivity: true,
+                      },
+                    },
+                    promotionalCampaigns: {
+                      enabled: true,
+                      campaignTypes: {
+                        flashSales: {
+                          enabled: true,
+                          duration: 7,
+                          maxDiscount: 50,
+                        },
+                        seasonalSales: { enabled: true, autoSchedule: true },
+                        loyaltyProgram: {
+                          enabled: true,
+                          pointsPerDollar: 1,
+                          redemptionRate: 10,
+                        },
+                        referralProgram: {
+                          enabled: true,
+                          rewardAmount: 20,
+                          expiryDays: 30,
+                        },
+                        birthdayOffers: {
+                          enabled: true,
+                          discountPercent: 10,
+                          validDays: 30,
+                        },
+                        firstTimeBuyer: {
+                          enabled: true,
+                          discountPercent: 15,
+                          minimumOrder: 100,
+                        },
+                      },
+                      discountRules: {
+                        maxDiscountPercent: 50,
+                        minimumOrderAmount: 50,
+                        excludeCategories: [],
+                        stackableDiscounts: true,
+                        oneTimeUse: false,
+                      },
+                    },
+                    customerSegmentation: {
+                      enabled: true,
+                      segments: {
+                        newCustomers: { enabled: true, daysSinceFirstOrder: 7 },
+                        returningCustomers: { enabled: true, minimumOrders: 5 },
+                        highValueCustomers: {
+                          enabled: true,
+                          minimumSpend: 500,
+                        },
+                        inactiveCustomers: {
+                          enabled: true,
+                          daysSinceLastOrder: 30,
+                        },
+                        cartAbandoners: {
+                          enabled: true,
+                          abandonedThreshold: 10,
+                        },
+                        productCategoryLovers: {
+                          enabled: true,
+                          categories: ["STEM Toys", "Educational Toys"],
+                        },
+                      },
+                      targetingRules: {
+                        locationBased: true,
+                        purchaseHistory: true,
+                        browsingBehavior: true,
+                        emailEngagement: true,
+                        socialMediaActivity: true,
+                      },
+                    },
+                    marketingAutomation: {
+                      enabled: true,
+                      workflows: {
+                        welcomeSeries: {
+                          enabled: true,
+                          emails: 3,
+                          interval: 7,
+                        },
+                        abandonedCart: {
+                          enabled: true,
+                          emails: 2,
+                          interval: 24,
+                        },
+                        postPurchase: { enabled: true, emails: 1, interval: 7 },
+                        reEngagement: {
+                          enabled: true,
+                          emails: 1,
+                          interval: 30,
+                        },
+                        birthdayCampaign: {
+                          enabled: true,
+                          emails: 1,
+                          interval: 365,
+                        },
+                        seasonalPromotions: {
+                          enabled: true,
+                          emails: 2,
+                          interval: 90,
+                        },
+                      },
+                      triggers: {
+                        newCustomer: true,
+                        cartAbandonment: true,
+                        orderCompletion: true,
+                        productView: true,
+                        categoryView: true,
+                        searchQuery: true,
+                      },
+                    },
+                    analytics: {
+                      enabled: true,
+                      tracking: {
+                        googleAnalytics: {
+                          enabled: true,
+                          trackingId: "YOUR_GA_TRACKING_ID",
+                        },
+                        facebookPixel: {
+                          enabled: true,
+                          pixelId: "YOUR_FB_PIXEL_ID",
+                        },
+                        googleAds: {
+                          enabled: true,
+                          conversionId: "YOUR_GA_CONVERSION_ID",
+                        },
+                        tiktokPixel: {
+                          enabled: true,
+                          pixelId: "YOUR_TIKTOK_PIXEL_ID",
+                        },
+                        customTracking: {
+                          enabled: true,
+                          script: "YOUR_CUSTOM_TRACKING_SCRIPT",
+                        },
+                      },
+                      goals: {
+                        revenueTarget: 100000,
+                        conversionRate: 5,
+                        emailOpenRate: 20,
+                        clickThroughRate: 10,
+                        socialEngagement: 1000,
+                      },
+                    },
+                    contentMarketing: {
+                      enabled: true,
+                      blog: {
+                        enabled: true,
+                        autoPublish: true,
+                        seoOptimization: true,
+                        socialSharing: true,
+                        emailNewsletter: true,
+                      },
+                      seo: {
+                        enabled: true,
+                        metaTags: true,
+                        structuredData: true,
+                        sitemapGeneration: true,
+                        robotsTxt: true,
+                      },
+                      influencerMarketing: {
+                        enabled: true,
+                        collaborationPlatform: "InfluencerHub",
+                        commissionRate: 10,
+                        minimumFollowers: 1000,
+                      },
+                    },
+                  }
+                }
+                onSave={marketingSettings => {
+                  setSettings(prev => ({ ...prev, marketingSettings }));
+                  handleSave("marketing");
+                }}
+                isSaving={isSaving.marketing}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Analytics Dashboard */}
+        <TabsContent value="analytics" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Analytics Dashboard</CardTitle>
+              <CardDescription>
+                Comprehensive insights into your e-commerce performance
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <AnalyticsDashboard />
+              <Separator />
+              <ConversionDashboard />
+            </CardContent>
           </Card>
         </TabsContent>
 

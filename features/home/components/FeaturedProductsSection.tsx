@@ -61,6 +61,12 @@ const FeaturedProductsSectionComponent = ({
               key={product.id}
               aria-label={`View details for ${product.name}`}
               tabIndex={0}
+              data-conversion="cta"
+              data-conversion-type="click"
+              data-conversion-category="ecommerce"
+              data-conversion-action="view_product_details"
+              data-conversion-element={`featured_product_${product.slug}`}
+              data-conversion-metadata={`{"productId":"${product.id}","productName":"${product.name}","productSlug":"${product.slug}","price":${product.price}}`}
               className="block min-h-[32px] sm:min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 w-full group"
             >
               <div className="bg-background rounded-md sm:rounded-xl overflow-hidden shadow-md border border-gray-200 transition-all duration-300 hover:shadow-xl h-full flex flex-col w-full group-hover:scale-[1.02]">

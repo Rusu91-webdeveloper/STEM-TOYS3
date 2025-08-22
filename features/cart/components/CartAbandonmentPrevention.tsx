@@ -97,6 +97,30 @@ export function CartAbandonmentPrevention({
   const [email, setEmail] = useState("");
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [freeShippingThreshold, setFreeShippingThreshold] =
+    useState<number>(75); // Default fallback
+
+  // Fetch free shipping threshold on component mount
+  useEffect(() => {
+    async function fetchFreeShippingThreshold() {
+      try {
+        const response = await fetch("/api/checkout/shipping-settings");
+        if (response.ok) {
+          const shippingSettings = await response.json();
+          if (shippingSettings.freeThreshold?.active) {
+            setFreeShippingThreshold(
+              parseFloat(shippingSettings.freeThreshold.price)
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching free shipping threshold:", error);
+      }
+    }
+
+    fetchFreeShippingThreshold();
+  }, []);
+
   const [hasShownExitIntent, setHasShownExitIntent] = useState(false);
   const [hasShownIdleWarning, setHasShownIdleWarning] = useState(false);
 
@@ -252,7 +276,7 @@ export function CartAbandonmentPrevention({
       // Select appropriate offer based on cart value and trigger
       let offer = ABANDONMENT_OFFERS[0]; // Default to discount
 
-      if (totalPrice > 75) {
+      if (totalPrice > freeShippingThreshold) {
         offer = ABANDONMENT_OFFERS[1]; // Free shipping for higher value carts
       } else if (trigger === "idle_time") {
         offer = ABANDONMENT_OFFERS[2]; // Urgency for idle users
@@ -273,7 +297,7 @@ export function CartAbandonmentPrevention({
       // Track abandonment event
       trackAbandonmentEvent(trigger, offer.id);
     },
-    [totalPrice]
+    [totalPrice, freeShippingThreshold]
   );
 
   const handleAcceptOffer = useCallback(async () => {

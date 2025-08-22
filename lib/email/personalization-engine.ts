@@ -66,7 +66,15 @@ export interface DynamicContent {
 
 export interface PersonalizationRule {
   field: string;
-  operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "in" | "not_in";
+  operator:
+    | "equals"
+    | "not_equals"
+    | "contains"
+    | "not_contains"
+    | "greater_than"
+    | "less_than"
+    | "in"
+    | "not_in";
   value: any;
   weight: number;
 }
@@ -92,7 +100,7 @@ export class PersonalizationEngine {
    */
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     const cacheKey = `user-profile:${userId}`;
-    
+
     // Check cache first
     const cached = await cache.get<UserProfile>(cacheKey);
     if (cached) return cached;
@@ -128,11 +136,15 @@ export class PersonalizationEngine {
 
       // Calculate behavior metrics
       const totalOrders = user.orders.length;
-      const totalSpent = user.orders.reduce((sum, order) => sum + order.total, 0);
+      const totalSpent = user.orders.reduce(
+        (sum, order) => sum + order.total,
+        0
+      );
       const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
-      const lastOrderDate = user.orders.length > 0 
-        ? user.orders[user.orders.length - 1].createdAt 
-        : undefined;
+      const lastOrderDate =
+        user.orders.length > 0
+          ? user.orders[user.orders.length - 1].createdAt
+          : undefined;
 
       // Analyze favorite categories
       const categoryCounts = new Map<string, number>();
@@ -140,7 +152,10 @@ export class PersonalizationEngine {
         order.items.forEach(item => {
           if (item.product?.category) {
             const categoryId = item.product.category.id;
-            categoryCounts.set(categoryId, (categoryCounts.get(categoryId) || 0) + 1);
+            categoryCounts.set(
+              categoryId,
+              (categoryCounts.get(categoryId) || 0) + 1
+            );
           }
         });
       });
@@ -164,7 +179,7 @@ export class PersonalizationEngine {
         totalOrders,
         totalSpent,
         favoriteCategories,
-        user.newsletter?.isActive || false,
+        newsletterActive: user.newsletter?.isActive || false,
       });
 
       const profile: UserProfile = {
@@ -255,7 +270,11 @@ export class PersonalizationEngine {
     let personalizedContent = template;
 
     // Personalize greeting
-    personalizedContent = this.personalizeGreeting(personalizedContent, userProfile, context);
+    personalizedContent = this.personalizeGreeting(
+      personalizedContent,
+      userProfile,
+      context
+    );
 
     // Personalize product recommendations
     personalizedContent = await this.personalizeProductRecommendations(
@@ -264,16 +283,31 @@ export class PersonalizationEngine {
     );
 
     // Personalize offers
-    personalizedContent = this.personalizeOffers(personalizedContent, userProfile, context);
+    personalizedContent = this.personalizeOffers(
+      personalizedContent,
+      userProfile,
+      context
+    );
 
     // Personalize CTAs
-    personalizedContent = this.personalizeCTAs(personalizedContent, userProfile, context);
+    personalizedContent = this.personalizeCTAs(
+      personalizedContent,
+      userProfile,
+      context
+    );
 
     // Personalize testimonials
-    personalizedContent = this.personalizeTestimonials(personalizedContent, userProfile);
+    personalizedContent = this.personalizeTestimonials(
+      personalizedContent,
+      userProfile
+    );
 
     // Personalize urgency elements
-    personalizedContent = this.personalizeUrgency(personalizedContent, userProfile, context);
+    personalizedContent = this.personalizeUrgency(
+      personalizedContent,
+      userProfile,
+      context
+    );
 
     return personalizedContent;
   }
@@ -287,7 +321,7 @@ export class PersonalizationEngine {
     context: PersonalizationContext
   ): Promise<EmailVariant | null> {
     const cacheKey = `ab-test:${testId}:${userProfile.id}`;
-    
+
     // Check cache for existing assignment
     const cached = await cache.get<EmailVariant>(cacheKey);
     if (cached) return cached;
@@ -304,7 +338,7 @@ export class PersonalizationEngine {
 
       // Assign variant based on user characteristics
       const variant = this.assignVariant(test.variants, userProfile);
-      
+
       if (variant) {
         // Cache the assignment
         await cache.set(cacheKey, variant, 86400); // 24 hours
@@ -337,7 +371,8 @@ export class PersonalizationEngine {
       subject = subject.replace(/\{urgency\}/g, "Exclusiv pentru tine");
     } else if (userProfile.behavior.lastOrderDate) {
       const daysSinceLastOrder = Math.floor(
-        (Date.now() - userProfile.behavior.lastOrderDate.getTime()) / (1000 * 60 * 60 * 24)
+        (Date.now() - userProfile.behavior.lastOrderDate.getTime()) /
+          (1000 * 60 * 60 * 24)
       );
       if (daysSinceLastOrder > 30) {
         subject = subject.replace(/\{urgency\}/g, "Îți lipsești ceva?");
@@ -363,7 +398,7 @@ export class PersonalizationEngine {
     const now = new Date();
     const optimalHour = 9; // 9 AM
     const optimalMinute = 0;
-    
+
     return new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -424,11 +459,11 @@ export class PersonalizationEngine {
     totalOrders: number;
     totalSpent: number;
     favoriteCategories: string[];
-    isNewsletterSubscriber: boolean;
+    newsletterActive: boolean;
   }): string[] {
     const tags: string[] = [];
 
-    if (behavior.isNewsletterSubscriber) {
+    if (behavior.newsletterActive) {
       tags.push("newsletter-subscriber");
     }
 
@@ -459,7 +494,9 @@ export class PersonalizationEngine {
     };
   }
 
-  private determineAgeGroup(favoriteCategories: string[]): "toddler" | "preschool" | "elementary" | "middle" | "high" | undefined {
+  private determineAgeGroup(
+    favoriteCategories: string[]
+  ): "toddler" | "preschool" | "elementary" | "middle" | "high" | undefined {
     // This would be determined based on product categories
     // For now, return undefined
     return undefined;
@@ -484,12 +521,12 @@ export class PersonalizationEngine {
     // Simplified holiday check
     const month = date.getMonth();
     const day = date.getDate();
-    
+
     // Christmas
     if (month === 11 && day >= 20) return true;
     // Easter (simplified)
     if (month === 3 && day >= 15 && day <= 25) return true;
-    
+
     return false;
   }
 
@@ -522,16 +559,18 @@ export class PersonalizationEngine {
   ): Promise<string> {
     // Get personalized product recommendations
     const recommendations = await this.getPersonalizedProducts(userProfile);
-    
+
     if (recommendations.length > 0) {
       const productHtml = recommendations
-        .map(product => `
+        .map(
+          product => `
           <div style="background: white; border-radius: 8px; padding: 16px; margin: 8px 0; border: 1px solid #e5e7eb;">
             <h4 style="margin: 0 0 8px 0; color: #1f2937;">${product.name}</h4>
             <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">${product.description}</p>
             <p style="margin: 0; font-weight: bold; color: #059669;">${product.price} LEI</p>
           </div>
-        `)
+        `
+        )
         .join("");
 
       return content.replace(/\{personalizedProducts\}/g, productHtml);
@@ -540,7 +579,9 @@ export class PersonalizationEngine {
     return content.replace(/\{personalizedProducts\}/g, "");
   }
 
-  private async getPersonalizedProducts(userProfile: UserProfile): Promise<any[]> {
+  private async getPersonalizedProducts(
+    userProfile: UserProfile
+  ): Promise<any[]> {
     try {
       const products = await prisma.product.findMany({
         where: {
@@ -618,11 +659,14 @@ export class PersonalizationEngine {
     let testimonial = "";
 
     if (userProfile.segments.includes("robotics-enthusiast")) {
-      testimonial = "Produsele de robotică sunt minunate! Copilul meu învață în fiecare zi.";
+      testimonial =
+        "Produsele de robotică sunt minunate! Copilul meu învață în fiecare zi.";
     } else if (userProfile.segments.includes("science-lover")) {
-      testimonial = "Experimentele de chimie sunt atât de educaționale și distractive!";
+      testimonial =
+        "Experimentele de chimie sunt atât de educaționale și distractive!";
     } else {
-      testimonial = "Produsele STEM de la TechTots sunt de calitate superioară!";
+      testimonial =
+        "Produsele STEM de la TechTots sunt de calitate superioară!";
     }
 
     return content.replace(/\{personalizedTestimonial\}/g, testimonial);
@@ -664,43 +708,61 @@ export class PersonalizationEngine {
     });
   }
 
-  private getFieldValue(field: string, userProfile: UserProfile, context: PersonalizationContext): any {
+  private getFieldValue(
+    field: string,
+    userProfile: UserProfile,
+    context: PersonalizationContext
+  ): any {
     const fieldMap: Record<string, any> = {
-      "segments": userProfile.segments,
-      "totalOrders": userProfile.behavior.totalOrders,
-      "totalSpent": userProfile.behavior.totalSpent,
-      "timeOfDay": context.timeOfDay,
-      "season": context.season,
-      "isHoliday": context.isHoliday,
+      segments: userProfile.segments,
+      totalOrders: userProfile.behavior.totalOrders,
+      totalSpent: userProfile.behavior.totalSpent,
+      timeOfDay: context.timeOfDay,
+      season: context.season,
+      isHoliday: context.isHoliday,
     };
 
     return fieldMap[field];
   }
 
-  private evaluateCondition(condition: PersonalizationRule, value: any): boolean {
+  private evaluateCondition(
+    condition: PersonalizationRule,
+    value: any
+  ): boolean {
     switch (condition.operator) {
       case "equals":
         return value === condition.value;
       case "not_equals":
         return value !== condition.value;
       case "contains":
-        return Array.isArray(value) ? value.includes(condition.value) : String(value).includes(condition.value);
+        return Array.isArray(value)
+          ? value.includes(condition.value)
+          : String(value).includes(condition.value);
       case "not_contains":
-        return Array.isArray(value) ? !value.includes(condition.value) : !String(value).includes(condition.value);
+        return Array.isArray(value)
+          ? !value.includes(condition.value)
+          : !String(value).includes(condition.value);
       case "greater_than":
         return Number(value) > Number(condition.value);
       case "less_than":
         return Number(value) < Number(condition.value);
       case "in":
-        return Array.isArray(condition.value) ? condition.value.includes(value) : false;
+        return Array.isArray(condition.value)
+          ? condition.value.includes(value)
+          : false;
       case "not_in":
-        return Array.isArray(condition.value) ? !condition.value.includes(value) : true;
+        return Array.isArray(condition.value)
+          ? !condition.value.includes(value)
+          : true;
       default:
         return false;
     }
   }
 
-  private assignVariant(variants: EmailVariant[], userProfile: UserProfile): EmailVariant | null {
+  private assignVariant(
+    variants: EmailVariant[],
+    userProfile: UserProfile
+  ): EmailVariant | null {
     if (!variants || variants.length === 0) return null;
 
     // Simple hash-based assignment for consistent user experience
@@ -736,7 +798,7 @@ export class PersonalizationEngine {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash);
