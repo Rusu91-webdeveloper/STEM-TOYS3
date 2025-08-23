@@ -6,6 +6,7 @@
 
 import { sendMail } from "@/lib/brevo";
 import { db } from "@/lib/db";
+import { getStoreSettings } from "@/lib/utils/store-settings";
 import { personalizationEngine } from "./personalization-engine";
 import { emailAnalyticsEngine } from "./analytics-engine";
 import { emailAutomationEngine } from "./automation-engine";
@@ -15,7 +16,6 @@ import { colors, gradients, typography, spacing } from "./design-system";
 import {
   createHeroSection,
   createAlert,
-  createButton,
   createFeatureGrid,
   createCTASection,
   createTestimonial,
@@ -93,9 +93,9 @@ export class EmailService {
       console.log(`📧 Sending email to: ${request.to}`);
 
       // Get store settings
-      const storeSettings = await db.storeSettings.findFirst();
-      const storeName = storeSettings?.storeName || "TechTots";
-      const baseUrl = storeSettings?.storeUrl || "https://techtots.com";
+      const storeSettings = await getStoreSettings();
+      const storeName = storeSettings.storeName;
+      // const baseUrl = storeSettings.storeUrl; // commented out as not used
 
       // Generate email content
       const { content, subject, previewText } = await this.generateEmailContent(

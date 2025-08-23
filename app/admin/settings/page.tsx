@@ -837,7 +837,9 @@ export default function SettingsPage() {
             marketingSettings: settings.marketingSettings,
           };
           break;
-        // Add other sections as needed
+        default:
+          sectionData = {};
+          break;
       }
 
       // Send the data to the API
@@ -907,7 +909,7 @@ export default function SettingsPage() {
       const currentSettings = prev.shippingSettings || {
         standard: { price: "5.99", active: true },
         express: { price: "12.99", active: true },
-        freeThreshold: { price: "75.00", active: true },
+        freeThreshold: { price: "250.00", active: true },
       };
 
       return {
@@ -933,7 +935,7 @@ export default function SettingsPage() {
       const currentSettings = prev.shippingSettings || {
         standard: { price: "5.99", active: true },
         express: { price: "12.99", active: true },
-        freeThreshold: { price: "75.00", active: true },
+        freeThreshold: { price: "250.00", active: true },
       };
 
       return {
@@ -947,7 +949,7 @@ export default function SettingsPage() {
                   ? "5.99"
                   : id === "express"
                     ? "12.99"
-                    : "75.00",
+                    : "250.00",
             }),
             active: checked,
           },

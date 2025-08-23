@@ -8,17 +8,12 @@ import { StoreSettings } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   colors,
-  gradients,
   typography,
   spacing,
   borderRadius,
   shadows,
-  email,
 } from "./design-system";
-import {
-  createProfessionalHeader,
-  createProfessionalFooter,
-} from "./components";
+import { createHeader, createProfessionalFooter } from "./components";
 
 // Base URL for links
 export const getBaseUrl = () =>
@@ -171,7 +166,7 @@ export function generateProfessionalEmail(
   const baseUrl = getBaseUrl();
 
   const fullContent = `
-    ${createProfessionalHeader(storeSettings, baseUrl)}
+    ${createHeader(storeSettings, baseUrl)}
     <div style="padding: ${spacing.xl};">
       ${content}
     </div>

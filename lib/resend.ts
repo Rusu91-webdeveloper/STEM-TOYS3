@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { getStoreSettings } from "@/lib/utils/store-settings";
 
 // Lazy initialization of Resend client
 let resendInstance: Resend | null = null;
@@ -99,6 +100,7 @@ export const emailTemplates = {
   }) {
     const { to, order } = data;
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const storeSettings = await getStoreSettings();
     const logoUrl = `${baseUrl}/TechTots_LOGO.png`;
     const faviconUrl = `${baseUrl}/favicon.ico`;
 
@@ -224,6 +226,7 @@ export const emailTemplates = {
   }) {
     const { to, order, trackingInfo } = data;
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const storeSettings = await getStoreSettings();
     const logoUrl = `${baseUrl}/TechTots_LOGO.png`;
     const faviconUrl = `${baseUrl}/favicon.ico`;
 
@@ -336,6 +339,7 @@ export const emailTemplates = {
   async passwordReset(data: { to: string; resetLink: string }) {
     const { to, resetLink } = data;
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const storeSettings = await getStoreSettings();
     const logoUrl = `${baseUrl}/TechTots_LOGO.png`;
     const faviconUrl = `${baseUrl}/favicon.ico`;
 

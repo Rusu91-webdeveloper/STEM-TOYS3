@@ -115,30 +115,71 @@ export function ShippingMethodSelector({
         }
       } catch (error) {
         console.error("Error loading shipping settings:", error);
-        // Fallback to default methods
-        setShippingMethods([
-          {
+        // Fallback to default methods from store settings
+        const defaultSettings = {
+          standard: { price: "5.99", active: true },
+          express: { price: "12.99", active: true },
+          freeThreshold: { price: "250.00", active: true },
+        };
+
+        const cartTotal = getCartTotal();
+        let isFreeShipping = false;
+        let threshold = null;
+
+        if (defaultSettings.freeThreshold?.active) {
+          threshold = parseFloat(defaultSettings.freeThreshold.price);
+          isFreeShipping = cartTotal >= threshold;
+          setFreeShippingThreshold(threshold);
+        }
+
+        setFreeShippingApplied(isFreeShipping);
+
+        const methods: ShippingMethod[] = [];
+
+        // Add standard shipping if active
+        if (defaultSettings.standard?.active) {
+          const standardPrice = isFreeShipping
+            ? 0
+            : parseFloat(defaultSettings.standard.price);
+          methods.push({
             id: "standard",
             name: t("standardShipping", "Standard Shipping"),
             description: t("deliveryIn35Days", "Delivery in 3-5 business days"),
-            price: 5.99,
+            price: standardPrice,
             estimatedDelivery: t("businessDays35", "3-5 business days"),
-          },
-          {
+          });
+        }
+
+        // Add express shipping if active
+        if (defaultSettings.express?.active) {
+          methods.push({
             id: "express",
             name: t("expressShipping", "Express Shipping"),
             description: t("deliveryIn12Days", "Delivery in 1-2 business days"),
-            price: 12.99,
+            price: parseFloat(defaultSettings.express.price),
             estimatedDelivery: t("businessDays12", "1-2 business days"),
-          },
-          {
-            id: "priority",
-            name: t("priorityShipping", "Priority Shipping"),
-            description: t("deliveryIn24Hours", "Delivery in 24 hours"),
-            price: 19.99,
-            estimatedDelivery: t("hours24", "24 hours"),
-          },
-        ]);
+          });
+        }
+
+        setShippingMethods(methods);
+
+        // Only auto-select if no method is currently selected or current selection is invalid
+        if (methods.length > 0) {
+          const currentMethodExists = methods.some(
+            m => m.id === selectedMethodId
+          );
+          if (!selectedMethodId || !currentMethodExists) {
+            // If free shipping applies, suggest standard method but don't force it
+            if (isFreeShipping) {
+              const standardMethod = methods.find(m => m.id === "standard");
+              if (standardMethod) {
+                setSelectedMethodId("standard");
+              }
+            } else {
+              setSelectedMethodId(methods[0].id);
+            }
+          }
+        }
       } finally {
         setIsLoading(false);
       }

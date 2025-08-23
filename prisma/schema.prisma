@@ -318,6 +318,14 @@ model StoreSettings {
   metaTitle           String   @default("TechTots | STEM Toys for Curious Minds")
   metaDescription     String   @default("Discover the best STEM toys for curious minds at TechTots. Educational toys that make learning fun for children of all ages.")
   metaKeywords        String   @default("STEM toys, educational toys, science toys, technology toys, engineering toys, math toys")
+  
+  // Business Address Fields
+  businessAddress     String   @default("Mehedinți 54-56, Bl D5, sc 2, apt 70")
+  businessCity        String   @default("Cluj-Napoca")
+  businessState       String   @default("Cluj")
+  businessCountry     String   @default("România")
+  businessPostalCode  String   @default("400000")
+  
   shippingSettings    Json?
   paymentSettings     Json?
   createdAt           DateTime @default(now())

@@ -122,15 +122,14 @@ export function CheckoutFlow() {
     try {
       // Get tax settings from database
       let taxRate = 0.21; // Default 21% VAT
-      let includeInPrice = true; // Default: prices include VAT (EU compliance)
+      // let includeInPrice = true; // Default: prices include VAT (EU compliance) - commented out as not used
       try {
         const response = await fetch("/api/checkout/tax-settings");
         if (response.ok) {
           const taxData = await response.json();
           if (taxData.taxSettings?.active) {
             taxRate = parseFloat(taxData.taxSettings.rate) / 100;
-            const _includeInPrice =
-              taxData.taxSettings.includeInPrice !== false;
+            includeInPrice = taxData.taxSettings.includeInPrice !== false;
           }
         }
       } catch (error) {

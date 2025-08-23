@@ -3,12 +3,47 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Instagram } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { useTranslation } from "@/lib/i18n";
 
+interface StoreSettings {
+  storeName: string;
+  storeDescription: string;
+  contactEmail: string;
+  contactPhone: string;
+  businessAddress: string;
+  businessCity: string;
+  businessState: string;
+  businessCountry: string;
+}
+
 export default function Footer() {
   const { t } = useTranslation();
+  const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(
+    null
+  );
+
+  useEffect(() => {
+    async function fetchStoreSettings() {
+      try {
+        const response = await fetch("/api/store-settings");
+        if (response.ok) {
+          const settings = await response.json();
+          setStoreSettings(settings);
+        }
+      } catch (error) {
+        console.error("Error fetching store settings:", error);
+      }
+    }
+
+    fetchStoreSettings();
+  }, []);
+
+  const storeName = storeSettings?.storeName || "TechTots";
+  const storeDescription =
+    storeSettings?.storeDescription || t("companyDescription");
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -37,7 +72,7 @@ export default function Footer() {
               <div className="relative h-14 w-36">
                 <Image
                   src="/TechTots_LOGO.png"
-                  alt="TechTots Logo"
+                  alt={`${storeName} Logo`}
                   fill
                   className="object-contain"
                 />
@@ -45,7 +80,7 @@ export default function Footer() {
             </div>
 
             <p className="text-gray-300 mb-6 text-sm leading-relaxed max-w-md">
-              {t("companyDescription")}
+              {storeDescription}
             </p>
 
             <div className="flex space-x-6">
@@ -164,7 +199,7 @@ export default function Footer() {
         {/* Bottom section */}
         <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm font-medium">
-            © 2025 TechTots {t("allRightsReserved")}
+            © 2025 {storeName} {t("allRightsReserved")}
           </p>
           <div className="flex flex-wrap justify-center md:justify-end gap-6 mt-4 md:mt-0">
             <Link
