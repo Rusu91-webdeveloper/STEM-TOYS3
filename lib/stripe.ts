@@ -1,4 +1,5 @@
 import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { getStripeSecure } from "./stripe-secure-client";
 import { getStripeWithFallback, testStripeConnectivity } from "./stripe-fallback";
 import { loadStripeWithoutAPIValidation } from "./stripe-cdn-fix";
 import { createCompatibleMockStripe } from "./stripe-mock";
@@ -49,13 +50,21 @@ export const getStripe = () => {
       console.warn("Using potentially invalid Stripe key");
     }
 
-    // Initialize Stripe with API bypass strategies
-    console.log("Attempting to load Stripe with API bypass strategies...");
+    // Initialize Stripe with secure client-side approach
+    console.log("Attempting to load Stripe with secure client-side approach...");
     
-    stripePromise = loadStripeWithoutAPIValidation(stripePublicKey).then(async (stripe) => {
+    stripePromise = getStripeSecure().then(async (stripe) => {
       if (stripe) {
-        console.log("Stripe loaded successfully with API bypass strategy");
+        console.log("Stripe loaded successfully with secure client-side approach");
         return stripe;
+      }
+      
+      // If secure approach failed, try API bypass strategies
+      console.log("Secure approach failed, trying API bypass strategies...");
+      const bypassStripe = await loadStripeWithoutAPIValidation(stripePublicKey);
+      if (bypassStripe) {
+        console.log("Stripe loaded with API bypass strategy");
+        return bypassStripe;
       }
       
       // If API bypass failed, try the original fallback
@@ -68,7 +77,7 @@ export const getStripe = () => {
       
       // If all strategies failed, provide a helpful error
       console.error("All Stripe loading strategies failed");
-      console.error("This indicates the server cannot access Stripe's API for key validation");
+      console.error("This indicates the server cannot access Stripe's CDN or API");
       
       if (process.env.NODE_ENV === "production") {
         // In production, we'll create a compatible mock Stripe for testing
@@ -78,7 +87,7 @@ export const getStripe = () => {
       
       return null;
     }).catch((error) => {
-      console.error("Failed to load Stripe with API bypass:", error);
+      console.error("Failed to load Stripe with secure approach:", error);
       console.error("Error details:", {
         message: error.message,
         stack: error.stack,
