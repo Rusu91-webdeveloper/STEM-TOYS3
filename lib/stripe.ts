@@ -1,4 +1,5 @@
 import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { getStripeWithFallback, testStripeConnectivity } from "./stripe-fallback";
 
 // Load the Stripe public key from environment variable
 const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -39,25 +40,41 @@ export const getStripe = () => {
       console.warn("Using potentially invalid Stripe key");
     }
 
-    // Initialize Stripe with the public key and better error handling
+    // Initialize Stripe with fallback strategies
     console.log("Attempting to load Stripe with key:", stripePublicKey.substring(0, 10) + "...");
     
-    stripePromise = loadStripe(stripePublicKey, {
-      // Add Stripe configuration options for better compatibility
-      apiVersion: "2023-10-16", // Use latest stable API version
-      betas: ["elements_enable_deferred_intent_beta_1"], // Enable latest features
-    }).then((stripe) => {
-      console.log("Stripe loaded successfully:", !!stripe);
-      return stripe;
+    stripePromise = getStripeWithFallback(stripePublicKey).then(async (stripe) => {
+      if (stripe) {
+        console.log("Stripe loaded successfully with fallback strategy");
+        return stripe;
+      }
+      
+      // If all strategies failed, test connectivity
+      console.log("Testing Stripe CDN connectivity...");
+      const isConnectable = await testStripeConnectivity();
+      
+      if (!isConnectable) {
+        console.error("Stripe CDN is not accessible - network connectivity issue");
+        if (process.env.NODE_ENV === "production") {
+          throw new Error("Network connectivity issue with payment system. Please check your internet connection and try again.");
+        }
+      } else {
+        console.error("Stripe CDN is accessible but loadStripe still returns null");
+        if (process.env.NODE_ENV === "production") {
+          throw new Error("Payment system configuration issue. Please contact support.");
+        }
+      }
+      
+      return null;
     }).catch((error) => {
-      console.error("Failed to load Stripe:", error);
+      console.error("Failed to load Stripe with fallback:", error);
       console.error("Error details:", {
         message: error.message,
         stack: error.stack,
         keyPrefix: stripePublicKey.substring(0, 10),
         keyLength: stripePublicKey.length
       });
-      // In production, we want to fail fast if Stripe can't load
+      
       if (process.env.NODE_ENV === "production") {
         throw new Error("Failed to initialize payment system. Please refresh the page.");
       }
