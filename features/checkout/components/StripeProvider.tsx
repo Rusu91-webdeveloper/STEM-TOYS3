@@ -16,11 +16,18 @@ export function StripeProvider({ children }: StripeProviderProps) {
   useEffect(() => {
     const loadStripe = async () => {
       try {
+        // First, check if the environment variable is available
+        if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+          setError("Stripe publishable key is not configured. Please contact support.");
+          return;
+        }
+
         const stripe = await getStripe();
         setStripePromise(Promise.resolve(stripe));
       } catch (err) {
         console.error("Failed to load Stripe:", err);
-        setError(err instanceof Error ? err.message : "Failed to load payment system");
+        const errorMessage = err instanceof Error ? err.message : "Failed to load payment system";
+        setError(errorMessage);
       }
     };
 

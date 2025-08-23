@@ -7,6 +7,7 @@ import { useTranslation } from "@/lib/i18n";
 import { MobileLoadingState } from "@/features/checkout/components/MobileLoadingState";
 import { usePerformanceMonitor } from "@/features/checkout/hooks/usePerformanceMonitor";
 import { StripeDebug } from "@/components/debug/StripeDebug";
+import { ProductionStripeDebug } from "@/components/debug/ProductionStripeDebug";
 
 export function CheckoutContent() {
   const [isLoading, setIsLoading] = useState(true);
@@ -44,8 +45,9 @@ export function CheckoutContent() {
         <CheckoutFlow />
       )}
       
-      {/* Debug component for development */}
+      {/* Debug components */}
       <StripeDebug />
+      <ProductionStripeDebug />
     </div>
   );
 }
