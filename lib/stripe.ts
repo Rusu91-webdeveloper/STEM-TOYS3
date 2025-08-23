@@ -1,6 +1,7 @@
 import { loadStripe, Stripe } from "@stripe/stripe-js";
 import { getStripeWithFallback, testStripeConnectivity } from "./stripe-fallback";
-import { loadStripeWithoutAPIValidation, createMockStripe } from "./stripe-cdn-fix";
+import { loadStripeWithoutAPIValidation } from "./stripe-cdn-fix";
+import { createCompatibleMockStripe } from "./stripe-mock";
 
 // Load the Stripe public key from environment variable
 const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -63,9 +64,9 @@ export const getStripe = () => {
       console.error("This indicates the server cannot access Stripe's API for key validation");
       
       if (process.env.NODE_ENV === "production") {
-        // In production, we'll create a mock Stripe for testing
-        console.warn("Creating mock Stripe for production testing");
-        return createMockStripe();
+        // In production, we'll create a compatible mock Stripe for testing
+        console.warn("Creating compatible mock Stripe for production testing");
+        return createCompatibleMockStripe();
       }
       
       return null;
@@ -79,9 +80,9 @@ export const getStripe = () => {
       });
       
       if (process.env.NODE_ENV === "production") {
-        // In production, create a mock for testing
-        console.warn("Creating mock Stripe due to error");
-        return createMockStripe();
+        // In production, create a compatible mock for testing
+        console.warn("Creating compatible mock Stripe due to error");
+        return createCompatibleMockStripe();
       }
       
       return null;
