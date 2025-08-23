@@ -1,10 +1,10 @@
 // Service Worker for TechTots E-commerce PWA
-// Version 1.0.0
+// Version 1.0.1
 
-const CACHE_NAME = 'stem-toys-v1.0.0';
-const STATIC_CACHE = 'static-v1.0.0';
-const DYNAMIC_CACHE = 'dynamic-v1.0.0';
-const API_CACHE = 'api-v1.0.0';
+const CACHE_NAME = 'stem-toys-v1.0.1';
+const STATIC_CACHE = 'static-v1.0.1';
+const DYNAMIC_CACHE = 'dynamic-v1.0.1';
+const API_CACHE = 'api-v1.0.1';
 
 // Files to cache immediately
 const STATIC_FILES = [

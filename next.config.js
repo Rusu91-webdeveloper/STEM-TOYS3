@@ -4,13 +4,28 @@
 const nextConfig = {
   experimental: {
     // typedRoutes: true,
+    // Enable server actions
+    serverActions: {
+      allowedOrigins: ["localhost:3000", "your-domain.com"],
+    },
+    // Enable optimized package imports
+    optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
+    // Enable memory-based compilation
+    memoryBasedWorkers: true,
   },
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
   productionBrowserSourceMaps: false,
+  // Enhanced compiler options
   compiler: {
-    removeConsole: false,
+    removeConsole: process.env.NODE_ENV === "production",
+  },
+  // Enhanced performance settings
+  // Enable experimental features for better performance
+  experimental: {
+    // Enable optimized images (disabled due to critters dependency)
+    // optimizeCss: true,
   },
   // Don't block production builds even with ESLint errors
   eslint: {
@@ -110,6 +125,25 @@ const nextConfig = {
           {
             key: "Referrer-Policy",
             value: "origin-when-cross-origin",
+          },
+          // Enhanced security headers
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
+          },
+          {
+            key: "Permissions-Policy",
+            value:
+              "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+          },
+          {
+            key: "X-Permitted-Cross-Domain-Policies",
+            value: "none",
+          },
+          // Performance headers
+          {
+            key: "X-Response-Time",
+            value: "0",
           },
         ],
       },
