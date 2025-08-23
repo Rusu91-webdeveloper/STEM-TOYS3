@@ -8,6 +8,7 @@ import { MobileLoadingState } from "@/features/checkout/components/MobileLoading
 import { usePerformanceMonitor } from "@/features/checkout/hooks/usePerformanceMonitor";
 import { StripeDebug } from "@/components/debug/StripeDebug";
 import { ProductionStripeDebug } from "@/components/debug/ProductionStripeDebug";
+import { StripeBypassProvider } from "@/components/checkout/StripeBypassProvider";
 
 export function CheckoutContent() {
   const [isLoading, setIsLoading] = useState(true);
@@ -42,7 +43,9 @@ export function CheckoutContent() {
           size="lg"
         />
       ) : (
-        <CheckoutFlow />
+        <StripeBypassProvider>
+          <CheckoutFlow />
+        </StripeBypassProvider>
       )}
       
       {/* Debug components */}
