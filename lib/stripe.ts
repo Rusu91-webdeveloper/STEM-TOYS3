@@ -1,4 +1,5 @@
 import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { getStripeBypassSW } from "./stripe-bypass-sw";
 import { getStripeSecure } from "./stripe-secure-client";
 import { getStripeWithFallback, testStripeConnectivity } from "./stripe-fallback";
 import { loadStripeWithoutAPIValidation } from "./stripe-cdn-fix";
@@ -50,13 +51,21 @@ export const getStripe = () => {
       console.warn("Using potentially invalid Stripe key");
     }
 
-    // Initialize Stripe with secure client-side approach
-    console.log("Attempting to load Stripe with secure client-side approach...");
+    // Initialize Stripe with service worker bypass approach
+    console.log("Attempting to load Stripe with service worker bypass...");
     
-    stripePromise = getStripeSecure().then(async (stripe) => {
+    stripePromise = getStripeBypassSW().then(async (stripe) => {
       if (stripe) {
-        console.log("Stripe loaded successfully with secure client-side approach");
+        console.log("Stripe loaded successfully with service worker bypass");
         return stripe;
+      }
+      
+      // If service worker bypass failed, try secure client-side approach
+      console.log("Service worker bypass failed, trying secure client-side approach...");
+      const secureStripe = await getStripeSecure();
+      if (secureStripe) {
+        console.log("Stripe loaded with secure client-side approach");
+        return secureStripe;
       }
       
       // If secure approach failed, try API bypass strategies
@@ -77,7 +86,7 @@ export const getStripe = () => {
       
       // If all strategies failed, provide a helpful error
       console.error("All Stripe loading strategies failed");
-      console.error("This indicates the server cannot access Stripe's CDN or API");
+      console.error("This indicates the service worker is blocking all CDN requests");
       
       if (process.env.NODE_ENV === "production") {
         // In production, we'll create a compatible mock Stripe for testing
@@ -87,7 +96,7 @@ export const getStripe = () => {
       
       return null;
     }).catch((error) => {
-      console.error("Failed to load Stripe with secure approach:", error);
+      console.error("Failed to load Stripe with service worker bypass:", error);
       console.error("Error details:", {
         message: error.message,
         stack: error.stack,
