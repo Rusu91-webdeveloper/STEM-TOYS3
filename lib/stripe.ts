@@ -40,12 +40,23 @@ export const getStripe = () => {
     }
 
     // Initialize Stripe with the public key and better error handling
+    console.log("Attempting to load Stripe with key:", stripePublicKey.substring(0, 10) + "...");
+    
     stripePromise = loadStripe(stripePublicKey, {
       // Add Stripe configuration options for better compatibility
       apiVersion: "2023-10-16", // Use latest stable API version
       betas: ["elements_enable_deferred_intent_beta_1"], // Enable latest features
+    }).then((stripe) => {
+      console.log("Stripe loaded successfully:", !!stripe);
+      return stripe;
     }).catch((error) => {
       console.error("Failed to load Stripe:", error);
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        keyPrefix: stripePublicKey.substring(0, 10),
+        keyLength: stripePublicKey.length
+      });
       // In production, we want to fail fast if Stripe can't load
       if (process.env.NODE_ENV === "production") {
         throw new Error("Failed to initialize payment system. Please refresh the page.");
