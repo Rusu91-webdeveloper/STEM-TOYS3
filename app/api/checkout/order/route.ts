@@ -6,6 +6,10 @@ import { auth } from "@/lib/auth";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import {
+  getShippingSettings,
+  getTaxSettings,
+} from "@/lib/utils/store-settings";
 
 // Order validation schema - more lenient version
 const shippingAddressSchema = z
@@ -256,31 +260,25 @@ export async function POST(request: Request) {
     let isFreeShippingActive = false;
 
     try {
-      const storeSettings = await db.storeSettings.findFirst();
-
       // Get tax settings
-      if (storeSettings?.taxSettings) {
-        const taxSettings = storeSettings.taxSettings as any;
-        if (taxSettings.rate) {
-          // Convert percentage to decimal (e.g., 10% -> 0.10)
-          taxRatePercentage = taxSettings.rate; // Keep the percentage for display
-          taxRate = parseFloat(taxSettings.rate) / 100;
-        }
-        // Only apply tax if it's active
-        applyTax = taxSettings.active !== false;
-        // Check if prices include VAT (EU compliance)
-        const includeInPrice = taxSettings.includeInPrice !== false;
+      const taxSettings = (await getTaxSettings()) as any;
+      if (taxSettings.rate) {
+        // Convert percentage to decimal (e.g., 10% -> 0.10)
+        taxRatePercentage = taxSettings.rate; // Keep the percentage for display
+        taxRate = parseFloat(taxSettings.rate) / 100;
       }
+      // Only apply tax if it's active
+      applyTax = taxSettings.active !== false;
+      // Check if prices include VAT (EU compliance) - commented out as not used
+      // const includeInPrice = taxSettings.includeInPrice !== false;
 
       // Get shipping settings for free shipping threshold
-      if (storeSettings?.shippingSettings) {
-        const shippingSettings = storeSettings.shippingSettings as any;
-        if (shippingSettings.freeThreshold?.active) {
-          freeShippingThreshold = parseFloat(
-            shippingSettings.freeThreshold.price
-          );
-          isFreeShippingActive = true;
-        }
+      const shippingSettings = (await getShippingSettings()) as any;
+      if (shippingSettings.freeThreshold?.active) {
+        freeShippingThreshold = parseFloat(
+          shippingSettings.freeThreshold.price
+        );
+        isFreeShippingActive = true;
       }
     } catch (error) {
       console.error("Error fetching store settings:", error);

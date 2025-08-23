@@ -11,14 +11,10 @@ import {
   borderRadius,
   shadows,
   components,
-  text,
 } from "./design-system";
 
-// Professional Email Header Component
-export function createProfessionalHeader(
-  storeSettings: any,
-  baseUrl: string
-): string {
+// Professional Header Component
+export function createHeader(storeSettings: any, baseUrl: string): string {
   return `
     <div style="background: ${gradients.primary}; padding: ${spacing.xl}; text-align: center; border-radius: ${borderRadius.xl} ${borderRadius.xl} 0 0;">
       <div style="max-width: 600px; margin: 0 auto;">
@@ -28,7 +24,7 @@ export function createProfessionalHeader(
             ${storeSettings.storeName}
           </h1>
           <p style="margin: ${spacing.xs} 0 0 0; font-size: ${typography.fontSize.sm}; opacity: 0.9; font-family: ${typography.fontFamily.primary};">
-            Jucării STEM pentru Minți Curioase
+            ${storeSettings.storeDescription || "Jucării STEM pentru Minți Curioase"}
           </p>
         </div>
       </div>
@@ -363,7 +359,7 @@ export function createProfessionalFooter(
             ${storeSettings.storeName}
           </h3>
           <p style="margin: 0; font-size: ${typography.fontSize.sm}; color: ${colors.neutral[400]};">
-            Jucării STEM pentru Minți Curioase
+            ${storeSettings.storeDescription || "Jucării STEM pentru Minți Curioase"}
           </p>
         </div>
         
@@ -373,8 +369,8 @@ export function createProfessionalFooter(
               📍 Adresa
             </h4>
             <p style="margin: 0; font-size: ${typography.fontSize.sm}; color: ${colors.neutral[400]}; line-height: ${typography.lineHeight.normal};">
-              Mehedinti 54-56, Bl D5, sc 2, apt 70<br>
-              Cluj-Napoca, Cluj
+              ${storeSettings.businessAddress}<br>
+              ${storeSettings.businessCity}, ${storeSettings.businessState}
             </p>
           </div>
           
@@ -383,8 +379,8 @@ export function createProfessionalFooter(
               📞 Contact
             </h4>
             <p style="margin: 0; font-size: ${typography.fontSize.sm}; color: ${colors.neutral[400]}; line-height: ${typography.lineHeight.normal};">
-              Email: webira.rem.srl@gmail.com<br>
-              Telefon: +40 771 248 029
+              Email: ${storeSettings.contactEmail}<br>
+              Telefon: ${storeSettings.contactPhone}
             </p>
           </div>
         </div>
@@ -475,7 +471,7 @@ export function createCTASection(
 
 // Export all components
 export default {
-  createProfessionalHeader,
+  createHeader,
   createHeroSection,
   createButton,
   createCard,

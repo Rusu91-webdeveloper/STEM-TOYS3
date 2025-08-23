@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 
 import PDFDocument from "pdfkit";
+import { getStoreSettings } from "@/lib/utils/store-settings";
 
 interface ReturnLabelProps {
   orderId: string;
@@ -41,9 +42,9 @@ const translations = {
     reference: "Reference",
     signature: "Signature",
     date: "Date",
-    companyAddress: "Mehedinți 54-56, Bl D5, sc 2, apt 70",
-    companyCity: "Cluj-Napoca, Cluj",
-    companyCountry: "România",
+    companyAddress: "", // Will be populated from database
+    companyCity: "", // Will be populated from database
+    companyCountry: "", // Will be populated from database
     fromSender: "SENDER INFORMATION",
   },
   ro: {
@@ -68,9 +69,9 @@ const translations = {
     reference: "Referință",
     signature: "Semnătură",
     date: "Data",
-    companyAddress: "Mehedinți 54-56, Bl D5, sc 2, apt 70",
-    companyCity: "Cluj-Napoca, Cluj",
-    companyCountry: "România",
+    companyAddress: "", // Will be populated from database
+    companyCity: "", // Will be populated from database
+    companyCountry: "", // Will be populated from database
     fromSender: "INFORMAȚII EXPEDITOR",
   },
 };
@@ -81,6 +82,14 @@ export async function generateReturnLabel(
   try {
     const language = props.language || "en";
     const t = translations[language as keyof typeof translations];
+
+    // Get store settings for business address
+    const storeSettings = await getStoreSettings();
+
+    // Populate business address from database
+    t.companyAddress = storeSettings.businessAddress;
+    t.companyCity = `${storeSettings.businessCity}, ${storeSettings.businessState}`;
+    t.companyCountry = storeSettings.businessCountry;
 
     // Define font paths
     const regularFontPath = path.join(
