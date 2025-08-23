@@ -138,22 +138,17 @@ const createAuthOptions = (): NextAuthConfig => {
   // Validate Google OAuth configuration
   if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
     console.log("✅ Google OAuth configured successfully");
-    console.log(
-      "🔧 Google Client ID:",
-      env.GOOGLE_CLIENT_ID.substring(0, 20) + "..."
-    );
-    console.log(
-      "🔧 Google Client Secret:",
-      env.GOOGLE_CLIENT_SECRET.substring(0, 10) + "..."
-    );
+    console.log("🔧 Google Client ID:", env.GOOGLE_CLIENT_ID.substring(0, 20) + "...");
+    console.log("🔧 Google Client Secret:", env.GOOGLE_CLIENT_SECRET.substring(0, 10) + "...");
   } else {
-    console.log("⚠️ Google OAuth not configured - missing credentials");
+    console.log("⚠️ Google OAuth not configured - authentication will work with credentials only");
     console.log("🔍 Available env vars:", {
       AUTH_GOOGLE_ID: !!process.env.AUTH_GOOGLE_ID,
       AUTH_GOOGLE_SECRET: !!process.env.AUTH_GOOGLE_SECRET,
       GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
       GOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET,
     });
+    console.log("💡 To enable Google OAuth, add AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET to your environment variables");
   }
 
   return {
@@ -194,11 +189,15 @@ const createAuthOptions = (): NextAuthConfig => {
       },
     },
     providers: [
-      // Google OAuth provider - use environment variables directly
-      GoogleProvider({
-        clientId: env.GOOGLE_CLIENT_ID || "",
-        clientSecret: env.GOOGLE_CLIENT_SECRET || "",
-      }),
+      // Google OAuth provider - only add if credentials are available
+      ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+        ? [
+            GoogleProvider({
+              clientId: env.GOOGLE_CLIENT_ID,
+              clientSecret: env.GOOGLE_CLIENT_SECRET,
+            }),
+          ]
+        : []),
       CredentialsProvider({
         name: "Credentials",
         credentials: {
