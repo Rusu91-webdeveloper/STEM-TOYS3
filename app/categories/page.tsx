@@ -49,12 +49,12 @@ async function CategoriesContent({ locale }: { locale: string }) {
   );
 }
 
-export default function CategoriesPage({
+export default async function CategoriesPage({
   params,
   _searchParams,
 }: CategoriesPageProps) {
   // Get locale from cookies or default to 'en'
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const locale = cookieStore.get("locale")?.value ?? params?.locale ?? "en";
 
   return (
