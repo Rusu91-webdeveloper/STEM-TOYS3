@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/lib/currency";
 import { CustomPaymentForm } from "@/components/checkout/CustomPaymentForm";
 import { ServiceWorkerBypass } from "@/components/checkout/ServiceWorkerBypass";
+import { StripeCriticalWarning } from "@/components/checkout/StripeCriticalWarning";
 import { useStripeBypass } from "@/components/checkout/StripeBypassProvider";
 
 import { PaymentDetails } from "../types";
@@ -173,7 +174,37 @@ export function StripePaymentForm({
     }
   };
 
-  // Show service worker bypass and custom payment form if Stripe is not loaded or failed
+  // Show critical warning in production if Stripe is not loaded
+  if (process.env.NODE_ENV === "production" && (!stripeLoaded || useCustomForm || stripeFailed)) {
+    return (
+      <div className="space-y-6">
+        <StripeCriticalWarning
+          onRetry={() => {
+            console.log("Retrying Stripe loading...");
+            window.location.reload();
+          }}
+        />
+        
+        <div className="border-t pt-4">
+          <h4 className="text-sm font-medium mb-2 text-gray-600">
+            ⚠️ Test Mode Only - Custom Payment Form
+          </h4>
+          <div className="text-xs text-gray-500 mb-4">
+            This form only works with Stripe test cards. Real payments will be blocked.
+          </div>
+          <CustomPaymentForm
+            onSuccess={onSuccess}
+            onError={onError}
+            amount={amount}
+            isCalculatingTotal={isCalculatingTotal}
+            billingDetails={billingDetails}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Show service worker bypass and custom payment form if Stripe is not loaded or failed (development)
   if (!stripeLoaded || useCustomForm || stripeFailed) {
     return (
       <div className="space-y-6">
@@ -208,7 +239,7 @@ export function StripePaymentForm({
         />
         
         <div className="border-t pt-4">
-          <h4 className="text-sm font-medium mb-2">Fallback Payment Form</h4>
+          <h4 className="text-sm font-medium mb-2">Fallback Payment Form (Development Only)</h4>
           <CustomPaymentForm
             onSuccess={onSuccess}
             onError={onError}

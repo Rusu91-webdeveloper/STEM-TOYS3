@@ -1,4 +1,5 @@
 import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { getStripeProduction } from "./stripe-secure-production";
 import { getStripeBypassSW } from "./stripe-bypass-sw";
 import { getStripeSecure } from "./stripe-secure-client";
 import { getStripeWithFallback, testStripeConnectivity } from "./stripe-fallback";
@@ -51,13 +52,21 @@ export const getStripe = () => {
       console.warn("Using potentially invalid Stripe key");
     }
 
-    // Initialize Stripe with service worker bypass approach
-    console.log("Attempting to load Stripe with service worker bypass...");
+    // Initialize Stripe with production-first approach
+    console.log("Attempting to load Stripe for production with real payments...");
     
-    stripePromise = getStripeBypassSW().then(async (stripe) => {
+    stripePromise = getStripeProduction().then(async (stripe) => {
       if (stripe) {
-        console.log("Stripe loaded successfully with service worker bypass");
+        console.log("✅ Stripe loaded successfully for production - REAL PAYMENTS SECURE");
         return stripe;
+      }
+      
+      // If production loading failed, try service worker bypass
+      console.log("Production loading failed, trying service worker bypass...");
+      const bypassStripe = await getStripeBypassSW();
+      if (bypassStripe) {
+        console.log("Stripe loaded with service worker bypass");
+        return bypassStripe;
       }
       
       // If service worker bypass failed, try secure client-side approach
@@ -70,10 +79,10 @@ export const getStripe = () => {
       
       // If secure approach failed, try API bypass strategies
       console.log("Secure approach failed, trying API bypass strategies...");
-      const bypassStripe = await loadStripeWithoutAPIValidation(stripePublicKey);
-      if (bypassStripe) {
+      const apiBypassStripe = await loadStripeWithoutAPIValidation(stripePublicKey);
+      if (apiBypassStripe) {
         console.log("Stripe loaded with API bypass strategy");
-        return bypassStripe;
+        return apiBypassStripe;
       }
       
       // If API bypass failed, try the original fallback
@@ -84,19 +93,23 @@ export const getStripe = () => {
         return fallbackStripe;
       }
       
-      // If all strategies failed, provide a helpful error
-      console.error("All Stripe loading strategies failed");
+      // If all strategies failed, provide a critical error for production
+      console.error("❌ CRITICAL: All Stripe loading strategies failed");
+      console.error("⚠️ WARNING: Real payments will NOT be secure!");
       console.error("This indicates the service worker is blocking all CDN requests");
       
       if (process.env.NODE_ENV === "production") {
-        // In production, we'll create a compatible mock Stripe for testing
-        console.warn("Creating compatible mock Stripe for production testing");
-        return createCompatibleMockStripe();
+        // In production, DO NOT create mock - this is critical
+        console.error("🚨 CRITICAL: Cannot load Stripe for production");
+        console.error("🚨 Real payments will be blocked by Stripe");
+        return null; // Return null instead of mock for production
       }
       
-      return null;
+      // Only in development, create mock for testing
+      console.warn("Creating compatible mock Stripe for development testing only");
+      return createCompatibleMockStripe();
     }).catch((error) => {
-      console.error("Failed to load Stripe with service worker bypass:", error);
+      console.error("Failed to load Stripe for production:", error);
       console.error("Error details:", {
         message: error.message,
         stack: error.stack,
@@ -105,12 +118,15 @@ export const getStripe = () => {
       });
       
       if (process.env.NODE_ENV === "production") {
-        // In production, create a compatible mock for testing
-        console.warn("Creating compatible mock Stripe due to error");
-        return createCompatibleMockStripe();
+        // In production, DO NOT create mock - this is critical
+        console.error("🚨 CRITICAL: Failed to load Stripe for production");
+        console.error("🚨 Real payments will be blocked by Stripe");
+        return null;
       }
       
-      return null;
+      // Only in development, create mock for testing
+      console.warn("Creating compatible mock Stripe for development testing only");
+      return createCompatibleMockStripe();
     });
   }
   return stripePromise;
