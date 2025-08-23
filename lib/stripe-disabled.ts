@@ -8,10 +8,6 @@ export const getDisabledStripe = (): Promise<Stripe | null> => {
 
 // Check if Stripe should be disabled based on environment
 export const shouldDisableStripe = (): boolean => {
-  // Disable client-side Stripe in production due to CDN issues
-  // But enable server-side Stripe processing
-  if (process.env.NODE_ENV === "production") {
-    return true; // Disable client-side Stripe Elements
-  }
+  // Enable Stripe in all environments now that we have secure client-side loading
   return false;
 };
