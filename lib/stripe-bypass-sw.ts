@@ -120,6 +120,24 @@ export async function loadStripeBypassSW(publishableKey: string) {
     console.warn("Minimal config failed:", error);
   }
 
+  // Strategy 5: Try with specific version to match the loaded version
+  try {
+    console.log("Attempting to load Stripe with v3 compatibility...");
+    const stripe = await loadStripe(publishableKey, {
+      apiVersion: "2023-10-16",
+      betas: [],
+      stripeAccount: undefined,
+      // Force v3 compatibility
+      _stripeJs: (window as any).Stripe,
+    });
+    if (stripe) {
+      console.log("✅ Stripe loaded with v3 compatibility");
+      return stripe;
+    }
+  } catch (error) {
+    console.warn("v3 compatibility failed:", error);
+  }
+
   console.error("❌ All Stripe loading strategies failed");
   return null;
 }
