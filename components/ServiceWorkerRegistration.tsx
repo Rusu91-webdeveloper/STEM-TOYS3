@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { toast } from "@/components/ui/use-toast";
 
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
+    // Re-enabled: Service worker registration is now working with OAuth
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       registerServiceWorker();
     }
@@ -12,71 +12,51 @@ export default function ServiceWorkerRegistration() {
 
   const registerServiceWorker = async () => {
     try {
+      console.log("[SW] Registering service worker...");
+
       const registration = await navigator.serviceWorker.register("/sw.js", {
         scope: "/",
+        updateViaCache: "none",
       });
 
-      console.log("[SW] Service Worker registered successfully:", registration);
+      console.log("[SW] Service worker registered successfully:", registration);
 
       // Handle service worker updates
       registration.addEventListener("updatefound", () => {
+        console.log("[SW] Update found, installing new service worker...");
         const newWorker = registration.installing;
         if (newWorker) {
           newWorker.addEventListener("statechange", () => {
-            if (
-              newWorker.state === "installed" &&
-              navigator.serviceWorker.controller
-            ) {
-              // New service worker is available
-              showUpdateNotification();
+            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+              console.log("[SW] New service worker installed, ready to activate");
             }
           });
         }
       });
 
-      // Handle service worker activation
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        console.log("[SW] New service worker activated");
-        toast({
-          title: "App Updated",
-          description: "A new version of the app is now available.",
-          duration: 3000,
-        });
-      });
-
       // Handle service worker messages
       navigator.serviceWorker.addEventListener("message", event => {
-        if (event.data && event.data.type === "CACHE_UPDATED") {
-          console.log("[SW] Cache updated:", event.data.url);
+        console.log("[SW] Message from service worker:", event.data);
+
+        if (event.data.type === "CACHE_UPDATED") {
+          console.log("[SW] Cache updated, reloading page...");
+          window.location.reload();
         }
       });
+
+      // Check if service worker is controlling the page
+      if (navigator.serviceWorker.controller) {
+        console.log("[SW] Service worker is controlling the page");
+
+        // Send message to service worker to get cache stats
+        navigator.serviceWorker.controller.postMessage({
+          type: "GET_CACHE_STATS",
+        });
+      }
     } catch (error) {
-      console.error("[SW] Service Worker registration failed:", error);
+      console.error("[SW] Failed to register service worker:", error);
     }
   };
 
-  const showUpdateNotification = () => {
-    toast({
-      title: "Update Available",
-      description: "A new version is available. Refresh to update.",
-      action: (
-        <button
-          onClick={() => {
-            if (navigator.serviceWorker.controller) {
-              navigator.serviceWorker.controller.postMessage({
-                type: "SKIP_WAITING",
-              });
-            }
-            window.location.reload();
-          }}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1 rounded text-sm"
-        >
-          Update Now
-        </button>
-      ),
-      duration: 0, // Don't auto-dismiss
-    });
-  };
-
-  return null; // This component doesn't render anything
+  return null;
 }

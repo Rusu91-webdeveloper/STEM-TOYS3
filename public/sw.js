@@ -111,6 +111,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // FIXED: Skip authentication endpoints to prevent PKCE code verifier issues
+  if (isAuthRequest(url.pathname)) {
+    console.log('[SW] Skipping auth request:', url.pathname);
+    return;
+  }
+  
   // Handle different types of requests
   if (isStaticAsset(url.pathname)) {
     event.respondWith(handleStaticAsset(request));
@@ -325,6 +331,16 @@ function isApiRequest(pathname) {
 
 function isPageRequest(pathname) {
   return !isStaticAsset(pathname) && !isApiRequest(pathname) && !pathname.includes('.');
+}
+
+function isAuthRequest(pathname) {
+  // Skip all authentication-related endpoints to prevent PKCE code verifier issues
+  return pathname.startsWith('/api/auth') || 
+         pathname.startsWith('/auth/') || 
+         pathname.includes('/callback/') ||
+         pathname.includes('/signin') ||
+         pathname.includes('/signout') ||
+         pathname.includes('/session');
 }
 
 // IndexedDB operations for offline actions
