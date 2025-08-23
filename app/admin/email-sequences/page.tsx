@@ -3,25 +3,17 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -30,16 +22,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  Search,
-  Filter,
-  Settings,
-  Play,
-  Pause,
-} from "lucide-react";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 
 interface EmailSequence {
@@ -93,22 +84,23 @@ interface Pagination {
 
 export default function EmailSequencesPage() {
   const [sequences, setSequences] = useState<EmailSequence[]>([]);
-  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [_templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [triggerFilter, setTriggerFilter] = useState("");
-  const [isActiveFilter, setIsActiveFilter] = useState<string>("");
+  const [triggerFilter, setTriggerFilter] = useState("all");
+  const [isActiveFilter, setIsActiveFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isStepsDialogOpen, setIsStepsDialogOpen] = useState(false);
-  const [selectedSequence, setSelectedSequence] =
-    useState<EmailSequence | null>(null);
+  const [selectedSequence, setSelectedSequence] = useState<EmailSequence | null>(
+    null
+  );
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    trigger: "",
+    trigger: "none",
     isActive: true,
     maxEmails: 5,
     delayBetweenEmails: 24,
@@ -126,21 +118,34 @@ export default function EmailSequencesPage() {
     { value: "CUSTOM", label: "Custom" },
   ];
 
+  // Filter sequences
+  const filteredSequences = sequences.filter((sequence) => {
+    const matchesSearch = sequence.name
+      .toLowerCase()
+      .includes(search.toLowerCase());
+    const matchesTrigger =
+      triggerFilter === "all" || sequence.trigger === triggerFilter;
+    const matchesActive =
+      isActiveFilter === "all" ||
+      (isActiveFilter === "active" && sequence.isActive) ||
+      (isActiveFilter === "inactive" && !sequence.isActive);
+
+    return matchesSearch && matchesTrigger && matchesActive;
+  });
+
   // Fetch sequences
   const fetchSequences = async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
         page: currentPage.toString(),
-        limit: "20",
+        limit: "10",
+        search,
+        trigger: triggerFilter,
+        isActive: isActiveFilter,
       });
 
-      if (search) params.append("search", search);
-      if (triggerFilter) params.append("trigger", triggerFilter);
-      if (isActiveFilter !== "") params.append("isActive", isActiveFilter);
-
       const response = await fetch(`/api/admin/email-sequences?${params}`);
-
       if (!response.ok) {
         throw new Error("Failed to fetch sequences");
       }
@@ -150,7 +155,7 @@ export default function EmailSequencesPage() {
       setPagination(data.pagination);
     } catch (error) {
       console.error("Error fetching sequences:", error);
-      toast.error("Failed to fetch email sequences");
+      toast.error("Failed to fetch sequences");
     } finally {
       setLoading(false);
     }
@@ -172,15 +177,21 @@ export default function EmailSequencesPage() {
   // Create sequence
   const createSequence = async () => {
     try {
+      // Filter out "none" values before sending to API
+      const apiData = {
+        ...formData,
+        trigger: formData.trigger === "none" ? "" : formData.trigger,
+      };
+
       const response = await fetch("/api/admin/email-sequences", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(apiData),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to create sequence");
+        throw new Error(error.error ?? "Failed to create sequence");
       }
 
       toast.success("Email sequence created successfully");
@@ -189,9 +200,7 @@ export default function EmailSequencesPage() {
       fetchSequences();
     } catch (error) {
       console.error("Error creating sequence:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to create sequence"
-      );
+      toast.error("Failed to create sequence");
     }
   };
 
@@ -200,18 +209,24 @@ export default function EmailSequencesPage() {
     if (!selectedSequence) return;
 
     try {
+      // Filter out "none" values before sending to API
+      const apiData = {
+        ...formData,
+        trigger: formData.trigger === "none" ? "" : formData.trigger,
+      };
+
       const response = await fetch(
         `/api/admin/email-sequences/${selectedSequence.id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(apiData),
         }
       );
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to update sequence");
+        throw new Error(error.error ?? "Failed to update sequence");
       }
 
       toast.success("Email sequence updated successfully");
@@ -220,16 +235,12 @@ export default function EmailSequencesPage() {
       fetchSequences();
     } catch (error) {
       console.error("Error updating sequence:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update sequence"
-      );
+      toast.error("Failed to update sequence");
     }
   };
 
   // Delete sequence
   const deleteSequence = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this sequence?")) return;
-
     try {
       const response = await fetch(`/api/admin/email-sequences/${id}`, {
         method: "DELETE",
@@ -237,16 +248,14 @@ export default function EmailSequencesPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to delete sequence");
+        throw new Error(error.error ?? "Failed to delete sequence");
       }
 
       toast.success("Email sequence deleted successfully");
       fetchSequences();
     } catch (error) {
       console.error("Error deleting sequence:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to delete sequence"
-      );
+      toast.error("Failed to delete sequence");
     }
   };
 
@@ -284,7 +293,7 @@ export default function EmailSequencesPage() {
     setFormData({
       name: "",
       description: "",
-      trigger: "",
+      trigger: "none",
       isActive: true,
       maxEmails: 5,
       delayBetweenEmails: 24,
@@ -297,8 +306,8 @@ export default function EmailSequencesPage() {
     setSelectedSequence(sequence);
     setFormData({
       name: sequence.name,
-      description: sequence.description || "",
-      trigger: sequence.trigger,
+      description: sequence.description ?? "",
+      trigger: sequence.trigger ?? "none",
       isActive: sequence.isActive,
       maxEmails: sequence.maxEmails,
       delayBetweenEmails: sequence.delayBetweenEmails,
@@ -336,12 +345,6 @@ export default function EmailSequencesPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Email Sequences</h1>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => resetForm()}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Sequence
-            </Button>
-          </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Create Email Sequence</DialogTitle>
@@ -376,7 +379,7 @@ export default function EmailSequencesPage() {
               <div>
                 <Label htmlFor="trigger">Trigger</Label>
                 <Select
-                  value={formData.trigger}
+                  value={formData.trigger === "none" ? "" : formData.trigger}
                   onValueChange={value =>
                     setFormData(prev => ({ ...prev, trigger: value }))
                   }
@@ -462,8 +465,8 @@ export default function EmailSequencesPage() {
             <div>
               <Label htmlFor="search">Search</Label>
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
+                <input
+                  type="text"
                   id="search"
                   placeholder="Search sequences..."
                   value={search}
@@ -479,7 +482,7 @@ export default function EmailSequencesPage() {
                   <SelectValue placeholder="All triggers" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All triggers</SelectItem>
+                  <SelectItem value="all">All triggers</SelectItem>
                   {triggers.map(trigger => (
                     <SelectItem key={trigger.value} value={trigger.value}>
                       {trigger.label}
@@ -495,7 +498,7 @@ export default function EmailSequencesPage() {
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="true">Active</SelectItem>
                   <SelectItem value="false">Inactive</SelectItem>
                 </SelectContent>
@@ -506,11 +509,10 @@ export default function EmailSequencesPage() {
                 variant="outline"
                 onClick={() => {
                   setSearch("");
-                  setTriggerFilter("");
-                  setIsActiveFilter("");
+                  setTriggerFilter("all");
+                  setIsActiveFilter("all");
                 }}
               >
-                <Filter className="w-4 h-4 mr-2" />
                 Clear Filters
               </Button>
             </div>
@@ -567,9 +569,9 @@ export default function EmailSequencesPage() {
                         title={sequence.isActive ? "Deactivate" : "Activate"}
                       >
                         {sequence.isActive ? (
-                          <Pause className="w-4 h-4" />
+                          <Switch checked={true} onCheckedChange={() => {}} />
                         ) : (
-                          <Play className="w-4 h-4" />
+                          <Switch checked={false} onCheckedChange={() => {}} />
                         )}
                       </Button>
                       <Button
@@ -578,21 +580,21 @@ export default function EmailSequencesPage() {
                         onClick={() => openStepsDialog(sequence)}
                         title="Manage Steps"
                       >
-                        <Settings className="w-4 h-4" />
+                        Settings
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => openEditDialog(sequence)}
                       >
-                        <Edit className="w-4 h-4" />
+                        Edit
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteSequence(sequence.id)}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        Delete
                       </Button>
                     </div>
                   </TableCell>
@@ -664,7 +666,7 @@ export default function EmailSequencesPage() {
             <div>
               <Label htmlFor="edit-trigger">Trigger</Label>
               <Select
-                value={formData.trigger}
+                value={formData.trigger === "none" ? "" : formData.trigger}
                 onValueChange={value =>
                   setFormData(prev => ({ ...prev, trigger: value }))
                 }
@@ -750,7 +752,6 @@ export default function EmailSequencesPage() {
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold">Sequence Steps</h3>
                 <Button size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
                   Add Step
                 </Button>
               </div>
@@ -787,10 +788,10 @@ export default function EmailSequencesPage() {
                           </div>
                           <div className="flex space-x-2">
                             <Button variant="ghost" size="sm">
-                              <Edit className="w-4 h-4" />
+                              Edit
                             </Button>
-                            <Button variant="ghost" size="sm">
-                              <Trash2 className="w-4 h-4" />
+                            <Button variant="destructive" size="sm">
+                              Delete
                             </Button>
                           </div>
                         </div>

@@ -58,8 +58,8 @@ export default function EmailTemplatesPage() {
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [isActiveFilter, setIsActiveFilter] = useState<string>("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [isActiveFilter, setIsActiveFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -71,7 +71,7 @@ export default function EmailTemplatesPage() {
     slug: "",
     subject: "",
     content: "",
-    category: "",
+    category: "none",
     isActive: true,
     variables: [] as string[],
   });
@@ -107,15 +107,13 @@ export default function EmailTemplatesPage() {
       setLoading(true);
       const params = new URLSearchParams({
         page: currentPage.toString(),
-        limit: "20",
+        limit: "10",
+        search,
+        category: categoryFilter,
+        isActive: isActiveFilter,
       });
 
-      if (search) params.append("search", search);
-      if (categoryFilter) params.append("category", categoryFilter);
-      if (isActiveFilter !== "") params.append("isActive", isActiveFilter);
-
       const response = await fetch(`/api/admin/email-templates?${params}`);
-
       if (!response.ok) {
         throw new Error("Failed to fetch templates");
       }
@@ -125,7 +123,7 @@ export default function EmailTemplatesPage() {
       setPagination(data.pagination);
     } catch (error) {
       console.error("Error fetching templates:", error);
-      toast.error("Failed to fetch email templates");
+      toast.error("Failed to fetch templates");
     } finally {
       setLoading(false);
     }
@@ -134,15 +132,21 @@ export default function EmailTemplatesPage() {
   // Create template
   const createTemplate = async () => {
     try {
+      // Filter out "none" values before sending to API
+      const apiData = {
+        ...formData,
+        category: formData.category === "none" ? "" : formData.category,
+      };
+
       const response = await fetch("/api/admin/email-templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(apiData),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to create template");
+        throw new Error(error.error ?? "Failed to create template");
       }
 
       toast.success("Email template created successfully");
@@ -151,9 +155,7 @@ export default function EmailTemplatesPage() {
       fetchTemplates();
     } catch (error) {
       console.error("Error creating template:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to create template"
-      );
+      toast.error("Failed to create template");
     }
   };
 
@@ -162,18 +164,24 @@ export default function EmailTemplatesPage() {
     if (!selectedTemplate) return;
 
     try {
+      // Filter out "none" values before sending to API
+      const apiData = {
+        ...formData,
+        category: formData.category === "none" ? "" : formData.category,
+      };
+
       const response = await fetch(
         `/api/admin/email-templates/${selectedTemplate.id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(apiData),
         }
       );
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to update template");
+        throw new Error(error.error ?? "Failed to update template");
       }
 
       toast.success("Email template updated successfully");
@@ -182,16 +190,12 @@ export default function EmailTemplatesPage() {
       fetchTemplates();
     } catch (error) {
       console.error("Error updating template:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update template"
-      );
+      toast.error("Failed to update template");
     }
   };
 
   // Delete template
   const deleteTemplate = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this template?")) return;
-
     try {
       const response = await fetch(`/api/admin/email-templates/${id}`, {
         method: "DELETE",
@@ -199,16 +203,14 @@ export default function EmailTemplatesPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to delete template");
+        throw new Error(error.error ?? "Failed to delete template");
       }
 
       toast.success("Email template deleted successfully");
       fetchTemplates();
     } catch (error) {
       console.error("Error deleting template:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to delete template"
-      );
+      toast.error("Failed to delete template");
     }
   };
 
@@ -219,7 +221,7 @@ export default function EmailTemplatesPage() {
       slug: "",
       subject: "",
       content: "",
-      category: "",
+      category: "none",
       isActive: true,
       variables: [],
     });
@@ -234,7 +236,7 @@ export default function EmailTemplatesPage() {
       slug: template.slug,
       subject: template.subject,
       content: template.content,
-      category: template.category,
+      category: template.category ?? "none",
       isActive: template.isActive,
       variables: template.variables,
     });
@@ -330,7 +332,9 @@ export default function EmailTemplatesPage() {
                 <div>
                   <Label htmlFor="category">Category</Label>
                   <Select
-                    value={formData.category}
+                    value={
+                      formData.category === "none" ? "" : formData.category
+                    }
                     onValueChange={value =>
                       setFormData(prev => ({ ...prev, category: value }))
                     }
@@ -448,7 +452,7 @@ export default function EmailTemplatesPage() {
                   <SelectValue placeholder="All categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All categories</SelectItem>
+                  <SelectItem value="all">All categories</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category} value={category}>
                       {category
@@ -466,7 +470,7 @@ export default function EmailTemplatesPage() {
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="true">Active</SelectItem>
                   <SelectItem value="false">Inactive</SelectItem>
                 </SelectContent>
@@ -477,8 +481,8 @@ export default function EmailTemplatesPage() {
                 variant="outline"
                 onClick={() => {
                   setSearch("");
-                  setCategoryFilter("");
-                  setIsActiveFilter("");
+                  setCategoryFilter("all");
+                  setIsActiveFilter("all");
                 }}
               >
                 <Filter className="w-4 h-4 mr-2" />
@@ -618,7 +622,7 @@ export default function EmailTemplatesPage() {
               <div>
                 <Label htmlFor="edit-category">Category</Label>
                 <Select
-                  value={formData.category}
+                  value={formData.category === "none" ? "" : formData.category}
                   onValueChange={value =>
                     setFormData(prev => ({ ...prev, category: value }))
                   }
