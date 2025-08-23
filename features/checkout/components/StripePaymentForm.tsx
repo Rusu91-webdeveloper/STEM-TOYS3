@@ -7,6 +7,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/lib/currency";
 import { CustomPaymentForm } from "@/components/checkout/CustomPaymentForm";
+import { useStripeBypass } from "@/components/checkout/StripeBypassProvider";
 
 import { PaymentDetails } from "../types";
 
@@ -42,10 +43,20 @@ export function StripePaymentForm({
   const [cardError, setCardError] = useState<string | undefined>();
   const [stripeLoaded, setStripeLoaded] = useState(false);
   const { formatPrice } = useCurrency();
+  const { useCustomForm, stripeFailed } = useStripeBypass();
 
   // Check if Stripe is properly loaded
   React.useEffect(() => {
+    // Add a timeout to detect when Stripe fails to load
+    const timeoutId = setTimeout(() => {
+      if (!stripe || !elements) {
+        console.warn("Stripe failed to load within timeout - using custom form");
+        setStripeLoaded(false);
+      }
+    }, 3000); // 3 second timeout
+
     if (stripe && elements) {
+      clearTimeout(timeoutId);
       setStripeLoaded(true);
       console.log("Stripe Elements loaded successfully");
     } else {
@@ -56,6 +67,8 @@ export function StripePaymentForm({
       console.log("Environment:", process.env.NODE_ENV);
       console.log("Stripe key available:", !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
     }
+
+    return () => clearTimeout(timeoutId);
   }, [stripe, elements]);
 
   // Convert amount from cents to dollars for display
@@ -159,8 +172,8 @@ export function StripePaymentForm({
     }
   };
 
-  // Show custom payment form if Stripe is not loaded
-  if (!stripeLoaded) {
+  // Show custom payment form if Stripe is not loaded or failed
+  if (!stripeLoaded || useCustomForm || stripeFailed) {
     return (
       <div className="space-y-6">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">

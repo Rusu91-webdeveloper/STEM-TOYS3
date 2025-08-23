@@ -2,6 +2,7 @@ import { loadStripe, Stripe } from "@stripe/stripe-js";
 import { getStripeWithFallback, testStripeConnectivity } from "./stripe-fallback";
 import { loadStripeWithoutAPIValidation } from "./stripe-cdn-fix";
 import { createCompatibleMockStripe } from "./stripe-mock";
+import { getDisabledStripe, shouldDisableStripe } from "./stripe-disabled";
 
 // Load the Stripe public key from environment variable
 const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -12,6 +13,12 @@ let stripePromise: Promise<Stripe | null>;
 // Function to get the Stripe promise
 export const getStripe = () => {
   if (!stripePromise) {
+    // Check if Stripe should be disabled
+    if (shouldDisableStripe()) {
+      console.warn("Stripe is disabled in this environment");
+      return getDisabledStripe();
+    }
+
     // Check if the key is available
     if (!stripePublicKey) {
       console.error(
