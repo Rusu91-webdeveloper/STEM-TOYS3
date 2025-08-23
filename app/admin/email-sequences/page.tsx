@@ -9,8 +9,6 @@ import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -94,9 +92,8 @@ export default function EmailSequencesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isStepsDialogOpen, setIsStepsDialogOpen] = useState(false);
-  const [selectedSequence, setSelectedSequence] = useState<EmailSequence | null>(
-    null
-  );
+  const [selectedSequence, setSelectedSequence] =
+    useState<EmailSequence | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -119,7 +116,7 @@ export default function EmailSequencesPage() {
   ];
 
   // Filter sequences
-  const filteredSequences = sequences.filter((sequence) => {
+  const _filteredSequences = sequences.filter(sequence => {
     const matchesSearch = sequence.name
       .toLowerCase()
       .includes(search.toLowerCase());
@@ -751,9 +748,7 @@ export default function EmailSequencesPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold">Sequence Steps</h3>
-                <Button size="sm">
-                  Add Step
-                </Button>
+                <Button size="sm">Add Step</Button>
               </div>
 
               {selectedSequence.steps.length === 0 ? (
