@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { performanceMonitor } from "../../../../lib/monitoring/performance-monitor";
 import {
@@ -15,43 +16,37 @@ import {
 import { withSecurityHeaders } from "../../../../lib/security/security-middleware";
 
 // Validation schemas
-const inventoryUpdateSchema = RequestValidator.schemas.userInput.extend({
-  productId: RequestValidator.schemas.userInput.shape.id,
-  quantity: RequestValidator.schemas.userInput.shape.id.transform(val =>
-    parseInt(val)
-  ),
-  operation: RequestValidator.schemas.userInput.shape.id.refine(
-    val => ["add", "subtract", "reserve", "release", "set"].includes(val),
-    { message: "Invalid operation" }
-  ),
-  reason: RequestValidator.schemas.userInput.shape.id,
-  orderId: RequestValidator.schemas.userInput.shape.id.optional(),
+const inventoryUpdateSchema = z.object({
+  productId: z.string().min(1),
+  quantity: z.number().min(1),
+  operation: z.enum(["add", "subtract", "reserve", "release", "set"]),
+  reason: z.string().min(1),
+  orderId: z.string().optional(),
 });
 
-const orderProcessingSchema = RequestValidator.schemas.userInput.extend({
-  productId: RequestValidator.schemas.userInput.shape.id,
-  quantity: RequestValidator.schemas.userInput.shape.id.transform(val =>
-    parseInt(val)
-  ),
-  orderId: RequestValidator.schemas.userInput.shape.id,
+const orderProcessingSchema = z.object({
+  productId: z.string().min(1),
+  quantity: z.number().min(1),
+  orderId: z.string().min(1),
 });
 
-const inventoryReservationSchema = RequestValidator.schemas.userInput.extend({
-  productId: RequestValidator.schemas.userInput.shape.id,
-  quantity: RequestValidator.schemas.userInput.shape.id.transform(val =>
-    parseInt(val)
-  ),
-  orderId: RequestValidator.schemas.userInput.shape.id.optional(),
+const inventoryReservationSchema = z.object({
+  productId: z.string().min(1),
+  quantity: z.number().min(1),
+  orderId: z.string().optional(),
+});
+
+const inventoryQuerySchema = z.object({
+  productId: z.string().min(1),
 });
 
 // GET - Get inventory item
 export const GET = withSecurityHeaders(
   withRateLimiting(
     withValidation(
-      async (req: NextRequest, _validatedData: Record<string, unknown>) => {
+      async (req: NextRequest, validatedData: { query?: { productId: string } }) => {
         try {
-          const { searchParams } = new URL(req.url);
-          const productId = searchParams.get("productId");
+          const { productId } = validatedData.query || {};
 
           if (!productId) {
             return NextResponse.json(
@@ -70,9 +65,15 @@ export const GET = withSecurityHeaders(
           }
 
           // Record metric
-          performanceMonitor.recordMetric("inventory", "get_item", Date.now(), {
-            productId,
-            found: true,
+          performanceMonitor.recordMetric({
+            operation: "inventory_get_item",
+            duration: 0,
+            timestamp: Date.now(),
+            success: true,
+            metadata: {
+              productId,
+              found: true,
+            },
           });
 
           return NextResponse.json({ success: true, item });
@@ -85,7 +86,7 @@ export const GET = withSecurityHeaders(
         }
       },
       {
-        query: inventoryUpdateSchema,
+        query: inventoryQuerySchema,
         maxQueryLength: 100,
         sanitizeInput: true,
         allowedMethods: ["GET"],
@@ -103,11 +104,18 @@ export const GET = withSecurityHeaders(
 export const POST = withSecurityHeaders(
   withRateLimiting(
     withValidation(
-      async (req: NextRequest, validatedData: Record<string, unknown>) => {
+      async (req: NextRequest, validatedData: { body?: { productId: string; quantity: number; operation: "add" | "subtract" | "reserve" | "release" | "set"; reason: string; orderId?: string } }) => {
         try {
           const { productId, quantity, operation, reason, orderId } =
-            validatedData.body;
+            validatedData.body || {};
           const userId = req.headers.get("x-user-id") ?? "system";
+
+          if (!productId || !quantity || !operation || !reason) {
+            return NextResponse.json(
+              { error: "Missing required fields" },
+              { status: 400 }
+            );
+          }
 
           const update = {
             productId,
@@ -129,11 +137,16 @@ export const POST = withSecurityHeaders(
           }
 
           // Record metric
-          performanceMonitor.recordMetric("inventory", "update", Date.now(), {
-            productId,
-            operation,
-            quantity,
+          performanceMonitor.recordMetric({
+            operation: "inventory_update",
+            duration: 0,
+            timestamp: Date.now(),
             success: true,
+            metadata: {
+              productId,
+              operation,
+              quantity,
+            },
           });
 
           return NextResponse.json({
@@ -168,10 +181,17 @@ export const POST = withSecurityHeaders(
 export const PUT = withSecurityHeaders(
   withRateLimiting(
     withValidation(
-      async (req: NextRequest, validatedData: Record<string, unknown>) => {
+      async (req: NextRequest, validatedData: { body?: { productId: string; quantity: number; orderId: string } }) => {
         try {
-          const { productId, quantity, orderId } = validatedData.body;
+          const { productId, quantity, orderId } = validatedData.body || {};
           const userId = req.headers.get("x-user-id") ?? "system";
+
+          if (!productId || !quantity || !orderId) {
+            return NextResponse.json(
+              { error: "Missing required fields" },
+              { status: 400 }
+            );
+          }
 
           // First reserve the inventory
           const reserved = await reserveInventory(
@@ -207,17 +227,17 @@ export const PUT = withSecurityHeaders(
           const item = await getInventoryItem(productId);
 
           // Record metric
-          performanceMonitor.recordMetric(
-            "inventory",
-            "process_order",
-            Date.now(),
-            {
+          performanceMonitor.recordMetric({
+            operation: "inventory_process_order",
+            duration: 0,
+            timestamp: Date.now(),
+            success: true,
+            metadata: {
               productId,
               quantity,
               orderId,
-              success: true,
-            }
-          );
+            },
+          });
 
           return NextResponse.json({
             success: true,
@@ -251,10 +271,17 @@ export const PUT = withSecurityHeaders(
 export const PATCH = withSecurityHeaders(
   withRateLimiting(
     withValidation(
-      async (req: NextRequest, validatedData: Record<string, unknown>) => {
+      async (req: NextRequest, validatedData: { body?: { productId: string; quantity: number; orderId?: string } }) => {
         try {
-          const { productId, quantity, orderId } = validatedData.body;
+          const { productId, quantity, orderId } = validatedData.body || {};
           const userId = req.headers.get("x-user-id") ?? "system";
+
+          if (!productId || !quantity) {
+            return NextResponse.json(
+              { error: "Missing required fields" },
+              { status: 400 }
+            );
+          }
 
           const reserved = await reserveInventory(
             productId,
@@ -274,11 +301,16 @@ export const PATCH = withSecurityHeaders(
           const item = await getInventoryItem(productId);
 
           // Record metric
-          performanceMonitor.recordMetric("inventory", "reserve", Date.now(), {
-            productId,
-            quantity,
-            orderId,
+          performanceMonitor.recordMetric({
+            operation: "inventory_reserve",
+            duration: 0,
+            timestamp: Date.now(),
             success: true,
+            metadata: {
+              productId,
+              quantity,
+              orderId,
+            },
           });
 
           return NextResponse.json({
