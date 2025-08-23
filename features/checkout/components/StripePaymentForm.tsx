@@ -39,7 +39,23 @@ export function StripePaymentForm({
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [cardError, setCardError] = useState<string | undefined>();
+  const [stripeLoaded, setStripeLoaded] = useState(false);
   const { formatPrice } = useCurrency();
+
+  // Check if Stripe is properly loaded
+  React.useEffect(() => {
+    if (stripe && elements) {
+      setStripeLoaded(true);
+      console.log("Stripe Elements loaded successfully");
+    } else {
+      console.warn("Stripe Elements not loaded yet");
+      // Add more detailed logging for debugging
+      console.log("Stripe object:", stripe);
+      console.log("Elements object:", elements);
+      console.log("Environment:", process.env.NODE_ENV);
+      console.log("Stripe key available:", !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+    }
+  }, [stripe, elements]);
 
   // Convert amount from cents to dollars for display
   const displayAmount = amount / 100;
@@ -141,6 +157,27 @@ export function StripePaymentForm({
       setIsProcessing(false);
     }
   };
+
+  // Show loading state if Stripe is not loaded
+  if (!stripeLoaded) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg border p-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mx-auto mb-4" />
+                <p className="text-gray-600">Se încarcă sistemul de plată...</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Dacă această pagină nu se încarcă, încearcă să dai refresh.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

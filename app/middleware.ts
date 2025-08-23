@@ -528,6 +528,7 @@ function getContentSecurityPolicy(nonce: string) {
       "blob:",
       "utfs.io",
       "stripe.com",
+      "https://stripe.com",
       "placehold.co",
     ],
 
@@ -582,7 +583,7 @@ function getContentSecurityPolicy(nonce: string) {
   return Object.entries({
     ...baseDirectives,
 
-    // In production, use nonces and strict-dynamic
+    // In production, use nonces and strict-dynamic with Stripe support
     "script-src": [
       `'nonce-${nonce}'`,
       "'strict-dynamic'",
@@ -590,13 +591,28 @@ function getContentSecurityPolicy(nonce: string) {
       "'unsafe-inline'", // Fallback for browsers that don't support strict-dynamic
       "js.stripe.com",
       "uploadthing.com",
+      "https://js.stripe.com",
+      "https://m.stripe.com",
     ],
 
-    // Specific connection permissions for production
-    "connect-src": ["'self'", "api.stripe.com", "uploadthing.com", "utfs.io"],
+    // Specific connection permissions for production with Stripe
+    "connect-src": [
+      "'self'", 
+      "api.stripe.com", 
+      "uploadthing.com", 
+      "utfs.io",
+      "https://api.stripe.com",
+      "https://m.stripe.com",
+      "https://checkout.stripe.com",
+    ],
 
-    // Frame sources
-    "frame-src": ["js.stripe.com"],
+    // Frame sources with Stripe support
+    "frame-src": [
+      "js.stripe.com",
+      "https://js.stripe.com",
+      "https://hooks.stripe.com",
+      "https://checkout.stripe.com",
+    ],
 
     // Force HTTPS
     "upgrade-insecure-requests": [],
