@@ -38,15 +38,24 @@ export function ServiceWorkerBypass({ onStripeReady, onStripeFailed }: ServiceWo
           // Try to unregister service worker temporarily
           for (const registration of registrations) {
             if (registration.active) {
-              // Send message to service worker to allow Stripe requests
-              registration.active.postMessage({
-                type: 'ALLOW_STRIPE',
-                urls: [
-                  'https://js.stripe.com',
-                  'https://cdn.jsdelivr.net',
-                  'https://unpkg.com'
-                ]
-              });
+              // Try to unregister the service worker temporarily
+              try {
+                await registration.unregister();
+                setBypassStatus("Service worker unregistered. Loading Stripe...");
+                console.log("Service worker unregistered successfully");
+              } catch (error) {
+                console.warn("Could not unregister service worker:", error);
+                // Fallback: send message to allow Stripe
+                registration.active.postMessage({
+                  type: 'ALLOW_STRIPE',
+                  urls: [
+                    'https://js.stripe.com',
+                    'https://cdn.jsdelivr.net',
+                    'https://unpkg.com'
+                  ]
+                });
+                setBypassStatus("Service worker bypassed. Loading Stripe...");
+              }
               
               setBypassStatus("Service worker bypassed. Loading Stripe...");
               
