@@ -123,6 +123,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // FIXED: Skip external domains to prevent image loading and other issues
+  if (isExternalDomain(url.hostname)) {
+    console.log('[SW] Skipping external domain:', url.hostname);
+    return;
+  }
+  
   // Handle different types of requests
   if (isStaticAsset(url.pathname)) {
     event.respondWith(handleStaticAsset(request));

@@ -53,6 +53,16 @@ export default function ProductDetailClient({
     fetchFreeShippingSettings();
   }, []);
 
+  // Debug product images
+  useEffect(() => {
+    console.log('Product detail images:', {
+      images: product.images,
+      length: product.images?.length,
+      firstImage: product.images?.[0],
+      productName: product.name
+    });
+  }, [product.images, product.name]);
+
   const getCategoryName = () => {
     return product.category?.name || t("generalCategory");
   };
@@ -101,9 +111,9 @@ export default function ProductDetailClient({
                   src={product.images[0]}
                   alt={product.name}
                   className="w-full h-full object-cover rounded-lg"
-                  onError={(e) => {
-                    console.error('Image failed to load:', product.images[0]);
-                    e.currentTarget.src = '/images/placeholder.jpg';
+                  onError={e => {
+                    console.error("Image failed to load:", product.images[0]);
+                    e.currentTarget.src = "/images/placeholder.jpg";
                   }}
                 />
               ) : (
@@ -183,10 +193,10 @@ export default function ProductDetailClient({
               {/* Stock Status */}
               <div className="text-sm text-gray-600">
                 {(() => {
-                  console.log('Product stock data:', {
+                  console.log("Product stock data:", {
                     stockQuantity: product.stockQuantity,
                     type: typeof product.stockQuantity,
-                    product: product.name
+                    product: product.name,
                   });
                   return product.stockQuantity > 0 ? (
                     <span className="text-green-600">
