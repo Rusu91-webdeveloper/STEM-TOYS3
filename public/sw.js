@@ -111,6 +111,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // FIXED: Skip external domains (like utfs.io, vercel.live, etc.) to prevent image loading issues
+  if (isExternalDomain(url.hostname)) {
+    console.log('[SW] Skipping external domain:', url.hostname);
+    return;
+  }
+  
   // FIXED: Skip authentication endpoints to prevent PKCE code verifier issues
   if (isAuthRequest(url.pathname)) {
     console.log('[SW] Skipping auth request:', url.pathname);
@@ -331,6 +337,27 @@ function isApiRequest(pathname) {
 
 function isPageRequest(pathname) {
   return !isStaticAsset(pathname) && !isApiRequest(pathname) && !pathname.includes('.');
+}
+
+function isExternalDomain(hostname) {
+  // Skip external domains to prevent image loading and other issues
+  const externalDomains = [
+    'utfs.io',
+    'vercel.live',
+    'vercel.app',
+    'cloudinary.com',
+    'images.unsplash.com',
+    'cdn.jsdelivr.net',
+    'unpkg.com',
+    'fonts.googleapis.com',
+    'fonts.gstatic.com',
+    'api.stripe.com',
+    'js.stripe.com',
+    'm.stripe.com',
+    'checkout.stripe.com'
+  ];
+  
+  return externalDomains.some(domain => hostname.includes(domain));
 }
 
 function isAuthRequest(pathname) {
