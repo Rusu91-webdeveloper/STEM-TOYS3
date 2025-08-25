@@ -32,7 +32,11 @@ export function CartDrawer() {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[400px] sm:w-[540px] p-0">
+      <SheetContent 
+        side="right" 
+        className="w-full max-w-lg p-0 border-l shadow-2xl"
+        style={{ maxHeight: '100vh' }}
+      >
         <MiniCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
       </SheetContent>
     </Sheet>
