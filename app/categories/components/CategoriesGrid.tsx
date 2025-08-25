@@ -1,9 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
 import { useTranslation, TranslationKey } from "@/lib/i18n";
 
 export interface CategoryData {
@@ -17,31 +15,12 @@ export interface CategoryData {
   isActive: boolean;
 }
 
-// Add a mapping from slug to the correct query value for the products page
-export const slugToQueryCategory: Record<string, string> = {
-  science: "science",
-  technology: "technology",
-  engineering: "engineering",
-  math: "mathematics", // Fix: math → mathematics
-  "educational-books": "educational-books",
-};
-
 interface CategoriesGridProps {
   categories: CategoryData[];
 }
 
 export function CategoriesGrid({ categories }: CategoriesGridProps) {
   const { t } = useTranslation();
-
-  const handleCategoryClick = (categorySlug: string) => {
-    // Analytics tracking can be added here
-    if (typeof window !== "undefined" && window.gtag) {
-      window.gtag("event", "category_clicked", {
-        category: categorySlug,
-        page: "categories",
-      });
-    }
-  };
 
   return (
     <div className="space-y-12 sm:space-y-16 md:space-y-24">
@@ -86,19 +65,56 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
             <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed">
               {t(category.description as TranslationKey)}
             </p>
-            <div className="pt-2 sm:pt-4">
-              <Button
-                asChild
-                size="lg"
-                className="rounded-full font-medium h-9 sm:h-10 md:h-11 text-xs sm:text-sm md:text-base px-4 sm:px-6 bg-gradient-to-r from-primary to-secondary text-white hover:from-secondary hover:to-primary"
-                onClick={() => handleCategoryClick(category.slug)}
-              >
-                <Link
-                  href={`/products?category=${slugToQueryCategory[category.slug] || category.slug}`}
-                >
-                  {t("explorerCategoryToys").replace("{0}", category.name)}
-                </Link>
-              </Button>
+
+            {/* Educational benefits section */}
+            <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border border-primary/10">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground/80 mb-2 sm:mb-3">
+                Beneficii Educaționale:
+              </h3>
+              <ul className="text-xs sm:text-sm text-muted-foreground space-y-1 sm:space-y-2">
+                {category.slug === "science" && (
+                  <>
+                    <li>• Dezvoltă curiozitatea și spiritul de cercetare</li>
+                    <li>
+                      • Învață principiile științei prin experimente practice
+                    </li>
+                    <li>• Stimulează gândirea critică și analitică</li>
+                    <li>• Introduce concepte de fizică, chimie și biologie</li>
+                  </>
+                )}
+                {category.slug === "technology" && (
+                  <>
+                    <li>• Dezvoltă gândirea computațională și algoritmică</li>
+                    <li>• Introduce programarea și robotică</li>
+                    <li>• Pregătește pentru carierele viitorului</li>
+                    <li>• Învață despre inteligența artificială și inovație</li>
+                  </>
+                )}
+                {category.slug === "engineering" && (
+                  <>
+                    <li>• Învață principiile mecanicii și structurilor</li>
+                    <li>• Dezvoltă abilități de rezolvare a problemelor</li>
+                    <li>• Stimulează creativitatea inginerească</li>
+                    <li>• Învață procesul de proiectare și testare</li>
+                  </>
+                )}
+                {category.slug === "math" && (
+                  <>
+                    <li>• Face matematica distractivă și accesibilă</li>
+                    <li>• Dezvoltă gândirea logică și raționamentul</li>
+                    <li>• Învață concepte matematice prin joc</li>
+                    <li>• Construiește încrederea în rezolvarea problemelor</li>
+                  </>
+                )}
+                {category.slug === "educational-books" && (
+                  <>
+                    <li>• Inspiră dragostea pentru învățare</li>
+                    <li>• Dezvoltă vocabularul și abilitățile de citire</li>
+                    <li>• Introduce concepte STEM prin povești</li>
+                    <li>• Stimulează imaginația și creativitatea</li>
+                  </>
+                )}
+              </ul>
             </div>
           </div>
         </div>

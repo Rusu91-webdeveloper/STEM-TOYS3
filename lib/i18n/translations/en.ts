@@ -401,13 +401,13 @@ export const en = {
   categoryProducts: "{0} Products",
   explorerCategoryToys: "Explore {0} Toys",
   scienceCategoryDesc:
-    "Discover the wonders of the natural world through hands-on experiments and exploration. Our science toys promote curiosity, observational skills, and a deeper understanding of how things work.",
+    "Discover the wonders of the natural world through hands-on experiments and captivating exploration! Our science toys introduce children to the fascinating world of physics, chemistry, biology, and astronomy. These educational tools promote natural curiosity, observational skills, and a deep understanding of the laws of science. Through interactive experiments, children learn to formulate hypotheses, make predictions, and understand cause and effect. Perfect for developing critical thinking and the spirit of scientific inquiry!",
   technologyCategoryDesc:
-    "Explore coding, robotics and digital innovation with our technology toys. These products help children develop computational thinking and prepare for a digital future.",
+    "Prepare future innovators for the digital age! Our technology toys introduce children to the world of programming, robotics, artificial intelligence, and digital innovation. These products develop computational thinking, algorithmic problem-solving skills, and digital creativity. Children learn to code, build robots, and understand how technology works around them. Ideal for preparing for future careers and developing essential digital competencies!",
   engineeringCategoryDesc:
-    "Build, design, and problem-solve with our engineering toys and kits. These products encourage critical thinking, spatial reasoning, and the engineering design process.",
+    "Build the future, one piece at a time! Our engineering toys and kits transform children into young engineers and inventors. Through hands-on construction projects, children learn the principles of mechanics, structures, and design. These tools develop critical thinking, spatial reasoning, problem-solving skills, and engineering creativity. Children learn to design, build, test, and improve their creations - just like real engineers!",
   mathCategoryDesc:
-    "Make math fun and engaging with our mathematical toys and games. These products develop fundamental math skills through play and help children develop logical thinking.",
+    "Transform mathematics into a captivating adventure! Our mathematical toys and games make algebra, geometry, arithmetic, and logic fun and accessible. Through interactive puzzles, strategic games, and visual tools, children learn complex mathematical concepts in an intuitive and memorable way. These products develop logical thinking, mental calculation skills, spatial reasoning, and confidence in solving mathematical problems. Perfect for building a solid mathematical foundation and cultivating a love for numbers!",
 
   // Footer specific translations
   shop: "Shop",
@@ -533,7 +533,8 @@ export const en = {
   engineeringCategory: "Engineering",
   mathematicsCategory: "Mathematics",
   educationalBooksCategory: "Educational Books",
-  educationalBooksCategoryDesc: "Educational books to inspire young minds.",
+  educationalBooksCategoryDesc:
+    "Discover the fascinating world of learning through captivating educational books! Our STEM books introduce children to scientific, technological, engineering, and mathematical concepts through interactive stories and colorful illustrations. These books not only educate but also inspire curiosity, stimulate imagination, and cultivate a love for learning. Perfect for bedtime reading, educational activities, and STEM vocabulary development. Ideal for parents who want to introduce their children to the world of science and technology in an accessible and fun way!",
   engineeringLearningCategory: "Engineering & Learning",
 
   // Product page specific translations

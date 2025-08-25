@@ -74,7 +74,7 @@ const staticCategoryData = [
   },
   {
     nameKey: "Educational Books",
-    description: "educationalBook",
+    description: "educationalBooksCategoryDesc",
     slug: "educational-books",
     image: "/images/category_banner_books_01.jpg",
   },

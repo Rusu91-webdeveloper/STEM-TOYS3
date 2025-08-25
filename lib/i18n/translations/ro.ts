@@ -417,13 +417,13 @@ export const ro = {
   categoryProducts: "{0} Produse",
   explorerCategoryToys: "Explorează jucăriile {0}",
   scienceCategoryDesc:
-    "Descoperă minunile lumii naturale prin experimente practice și explorare. Jucăriile noastre științifice promovează curiozitatea, abilitățile de observare și o înțelegere mai profundă a modului în care funcționează lucrurile.",
+    "Descoperă minunile lumii naturale prin experimente practice și explorare captivantă! Jucăriile noastre științifice introduc copiii în lumea fascinantă a fizicii, chimiei, biologiei și astronomiei. Aceste instrumente educaționale promovează curiozitatea naturală, abilitățile de observare și o înțelegere profundă a legilor științei. Prin experimente interactive, copiii învață să formuleze ipoteze, să facă predicții și să înțeleagă cauza și efectul. Perfecte pentru dezvoltarea gândirii critice și a spiritului de cercetare!",
   technologyCategoryDesc:
-    "Explorează programarea, robotica și inovația digitală cu jucăriile noastre tehnologice. Aceste produse ajută copiii să dezvolde gândirea computațională și să se pregătească pentru un viitor digital.",
+    "Pregătește viitorii inovatori pentru era digitală! Jucăriile noastre tehnologice introduc copiii în lumea programării, roboticii, inteligenței artificiale și inovației digitale. Aceste produse dezvoltă gândirea computațională, abilitățile de rezolvare algoritmică a problemelor și creativitatea digitală. Copiii învață să codeze, să construiască roboți și să înțeleagă cum funcționează tehnologia din jurul lor. Ideal pentru pregătirea pentru carierele viitorului și dezvoltarea competențelor digitale esențiale!",
   engineeringCategoryDesc:
-    "Construiește, proiectează și rezolvă probleme cu jucăriile și kiturile noastre de inginerie. Aceste produse încurajează gândirea critică, raționamentul spațial și procesul de proiectare inginerească.",
+    "Construiește viitorul, o piesă la un moment dat! Jucăriile și kiturile noastre de inginerie transformă copiii în tineri ingineri și inventatori. Prin proiecte practice de construcție, copiii învață principiile mecanicii, structurilor și designului. Aceste instrumente dezvoltă gândirea critică, raționamentul spațial, abilitățile de rezolvare a problemelor și creativitatea inginerească. Copiii învață să proiecteze, să construiască, să testeze și să îmbunătățească creațiile lor - exact ca inginerii adevărați!",
   mathCategoryDesc:
-    "Fă matematica distractivă și atractivă cu jucăriile și jocurile noastre matematice. Aceste produse dezvoltă abilități matematice fundamentale prin joc și ajută copiii să dezvolde gândirea logică.",
+    "Transformă matematica într-o aventură captivantă! Jucăriile și jocurile noastre matematice fac algebra, geometria, aritmetica și logica distractivă și accesibilă. Prin puzzle-uri interactive, jocuri strategice și instrumente vizuale, copiii învață concepte matematice complexe într-un mod intuitiv și memorabil. Aceste produse dezvoltă gândirea logică, abilitățile de calcul mental, raționamentul spațial și încrederea în rezolvarea problemelor matematice. Perfecte pentru construirea unei baze matematice solide și pentru cultivarea dragostei pentru numere!",
 
   // Footer specific translations
   shop: "Magazin",
@@ -891,8 +891,8 @@ export const ro = {
   Science: "Știință",
   Technology: "Tehnologie",
   Engineering: "Inginerie",
-  "educational-booksCategoryDesc":
-    "Cărți educaționale pentru a inspira minți tinere.",
+  educationalBooksCategoryDesc:
+    "Descoperă lumea fascinantă a învățării prin cărți educaționale captivante! Cărțile noastre STEM introduc copiii în concepte științifice, tehnologice, inginerești și matematice prin povești interactive și ilustrații colorate. Aceste cărți nu doar că educă, ci și inspiră curiozitatea, stimulează imaginația și cultivă dragostea pentru învățare. Perfecte pentru citirea de seară, activități educaționale și dezvoltarea vocabularului STEM. Ideal pentru părinți care doresc să-și introducă copiii în lumea științei și tehnologiei într-un mod accesibil și distractiv!",
   "educational-booksCategory": "Cărți educaționale",
 
   // Age Group translations

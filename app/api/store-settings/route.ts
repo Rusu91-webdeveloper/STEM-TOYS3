@@ -7,6 +7,10 @@ export async function GET(_req: NextRequest) {
   try {
     const storeSettings = await getStoreSettings();
 
+    // Get return threshold from shipping settings
+    const shippingSettings = storeSettings.shippingSettings as any;
+    const returnThreshold = shippingSettings?.freeThreshold?.price || "250.00";
+
     // Return only the fields needed for frontend display
     const frontendSettings = {
       storeName: storeSettings.storeName,
@@ -18,6 +22,7 @@ export async function GET(_req: NextRequest) {
       businessState: storeSettings.businessState,
       businessCountry: storeSettings.businessCountry,
       businessPostalCode: storeSettings.businessPostalCode,
+      returnThreshold: returnThreshold,
     };
 
     // Set cache headers for static data (5 minutes)

@@ -15,7 +15,7 @@ export const revalidate = 300;
 
 // Generate static params for supported locales
 export function generateStaticParams() {
-  return [{ locale: "en" }, { locale: "ro" }];
+  return [{ locale: "ro" }, { locale: "en" }];
 }
 
 interface CategoriesPageProps {
@@ -53,9 +53,9 @@ export default async function CategoriesPage({
   params,
   _searchParams,
 }: CategoriesPageProps) {
-  // Get locale from cookies or default to 'en'
+  // Get locale from cookies or default to 'ro' (Romanian)
   const cookieStore = await cookies();
-  const locale = cookieStore.get("locale")?.value ?? params?.locale ?? "en";
+  const locale = cookieStore.get("locale")?.value ?? params?.locale ?? "ro";
 
   return (
     <Suspense fallback={<CategoriesSkeleton />}>
