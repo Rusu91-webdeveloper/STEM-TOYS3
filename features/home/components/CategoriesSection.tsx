@@ -80,7 +80,7 @@ const CategoriesSectionComponent = ({
 
           return (
             <a
-              href={`/products?category=${category.slug}`}
+              href="/categories"
               key={category.slug}
               aria-label={`Explore ${translatedName} category`}
               tabIndex={0}
