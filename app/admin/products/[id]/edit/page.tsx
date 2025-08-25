@@ -40,10 +40,12 @@ async function getProduct(id: string) {
         metaTitle: "Mock Product | STEM Toys",
         metaDescription: "A mock product for development purposes.",
         metaKeywords: ["mock", "development", "stem"],
-        ageRange: "6-8",
-        stemCategory: "science",
+        ageGroup: "ELEMENTARY_6_8",
+        stemDiscipline: "SCIENCE",
         difficultyLevel: "beginner",
-        learningObjectives: ["Learn about mock data", "Understand development"],
+        learningOutcomes: ["PROBLEM_SOLVING", "CRITICAL_THINKING"],
+        productType: "EXPERIMENT_KITS",
+        specialCategories: ["NEW_ARRIVALS"],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -85,11 +87,17 @@ async function getProduct(id: string) {
         product.description?.substring(0, 160) ||
         "",
       metaKeywords: metadata.keywords || [],
-      // STEM fields from attributes
-      ageRange: attributes.ageRange || "",
-      stemCategory: attributes.stemCategory || "",
+      // STEM fields - map from database fields to form fields
+      ageGroup: product.ageGroup || undefined,
+      stemDiscipline: product.stemDiscipline || "GENERAL",
+      learningOutcomes: Array.isArray(product.learningOutcomes)
+        ? product.learningOutcomes
+        : [],
+      productType: product.productType || undefined,
+      specialCategories: Array.isArray(product.specialCategories)
+        ? product.specialCategories
+        : [],
       difficultyLevel: attributes.difficultyLevel || "",
-      learningObjectives: attributes.learningObjectives || [],
     };
   } catch (error) {
     console.error("Error fetching product:", error);
