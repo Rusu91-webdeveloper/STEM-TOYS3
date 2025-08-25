@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/email/base";
+import { OptimizedProductImage } from "./OptimizedProductImage";
 
 interface ProductDetailClientProps {
   product: any;
@@ -55,11 +56,11 @@ export default function ProductDetailClient({
 
   // Debug product images
   useEffect(() => {
-    console.log('Product detail images:', {
+    console.log("Product detail images:", {
       images: product.images,
       length: product.images?.length,
       firstImage: product.images?.[0],
-      productName: product.name
+      productName: product.name,
     });
   }, [product.images, product.name]);
 
@@ -105,16 +106,15 @@ export default function ProductDetailClient({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="aspect-square bg-gray-200 rounded-lg">
+            <div className="relative aspect-square bg-gray-200 rounded-lg overflow-hidden">
               {product.images && product.images.length > 0 ? (
-                <img
+                <OptimizedProductImage
                   src={product.images[0]}
                   alt={product.name}
-                  className="w-full h-full object-cover rounded-lg"
-                  onError={e => {
-                    console.error("Image failed to load:", product.images[0]);
-                    e.currentTarget.src = "/images/placeholder.jpg";
-                  }}
+                  fill
+                  className="object-cover rounded-lg"
+                  quality={85}
+                  priority
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-500">

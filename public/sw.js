@@ -166,8 +166,12 @@ async function handleStaticAsset(request) {
   if (request.url.match(/\.(png|jpg|jpeg|gif|svg|webp|avif)$/)) {
     return caches.match('/images/placeholder.jpg');
   }
-  
-  throw new Error('Static asset not found in cache');
+  // As a last resort, try network again to avoid throwing non-Response
+  try {
+    return await fetch(request);
+  } catch (_e) {
+    return new Response('Not found in cache', { status: 504, statusText: 'Gateway Timeout' });
+  }
 }
 
 // Handle API requests
@@ -254,8 +258,12 @@ async function handleDefaultRequest(request) {
   if (cachedResponse) {
     return cachedResponse;
   }
-  
-  throw new Error('Request not found in cache');
+  // As a last resort, try network again to avoid throwing non-Response
+  try {
+    return await fetch(request);
+  } catch (_e) {
+    return new Response('Request not in cache', { status: 504, statusText: 'Gateway Timeout' });
+  }
 }
 
 // Background sync for offline actions
@@ -448,7 +456,13 @@ self.addEventListener('message', (event) => {
       break;
     case 'GET_CACHE_STATS':
       getCacheStats().then(stats => {
-        event.ports[0].postMessage(stats);
+        // Only post back if a MessagePort was provided
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage(stats);
+        } else {
+          // No reply port; just log to avoid runtime errors
+          console.log('[SW] Cache stats (no reply port):', stats);
+        }
       });
       break;
     default:
