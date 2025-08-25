@@ -114,18 +114,14 @@ self.addEventListener('fetch', (event) => {
   // FIXED: Skip external domains (like utfs.io, vercel.live, etc.) to prevent image loading issues
   if (isExternalDomain(url.hostname)) {
     console.log('[SW] Skipping external domain:', url.hostname);
+    // For external domains, let the browser handle the request normally
+    event.respondWith(fetch(request));
     return;
   }
   
   // FIXED: Skip authentication endpoints to prevent PKCE code verifier issues
   if (isAuthRequest(url.pathname)) {
     console.log('[SW] Skipping auth request:', url.pathname);
-    return;
-  }
-  
-  // FIXED: Skip external domains to prevent image loading and other issues
-  if (isExternalDomain(url.hostname)) {
-    console.log('[SW] Skipping external domain:', url.hostname);
     return;
   }
   
@@ -360,7 +356,9 @@ function isExternalDomain(hostname) {
     'api.stripe.com',
     'js.stripe.com',
     'm.stripe.com',
-    'checkout.stripe.com'
+    'checkout.stripe.com',
+    'upstash.io',
+    'redis.upstash.io'
   ];
   
   return externalDomains.some(domain => hostname.includes(domain));
