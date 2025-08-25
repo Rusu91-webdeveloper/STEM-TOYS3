@@ -36,8 +36,13 @@
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
-    "*.{json,md,yaml,yml}": ["prettier --write"]
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yaml,yml}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -91,6 +96,7 @@
     "ioredis": "^5.6.1",
     "isomorphic-dompurify": "^2.25.0",
     "lucide-react": "^0.510.0",
+    "marked": "^16.2.0",
     "next": "^15.3.5",
     "next-auth": "^5.0.0-beta.28",
     "node-fetch": "^2.7.0",
@@ -103,7 +109,9 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.4",
+    "react-markdown": "^10.1.0",
     "recharts": "^2.15.3",
+    "remark-gfm": "^4.0.1",
     "reselect": "^5.1.1",
     "resend": "^4.5.1",
     "server-only": "^0.0.1",

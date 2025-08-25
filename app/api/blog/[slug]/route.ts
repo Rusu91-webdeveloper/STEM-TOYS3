@@ -175,14 +175,15 @@ export async function PUT(
       );
     }
 
-    const sanitizedContent = DOMPurify.sanitize(data.content);
+    // For markdown content, we don't need to sanitize as it will be processed by ReactMarkdown
+    const content = data.content;
 
     // Update blog post using blog service (includes automatic notifications)
     const updatedBlog = await blogService.updateBlog({
       id: existingBlog.id,
       title: data.title,
       excerpt: data.excerpt,
-      content: sanitizedContent,
+      content: content,
       coverImage: data.coverImage,
       categoryId: data.categoryId,
       stemCategory: data.stemCategory,

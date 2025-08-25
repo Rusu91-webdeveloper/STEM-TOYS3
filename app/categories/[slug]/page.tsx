@@ -2,6 +2,57 @@ import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
+import {
+  Cpu,
+  Code,
+  Bot,
+  Zap,
+  Brain,
+  Lightbulb,
+  Rocket,
+  Globe,
+  Smartphone,
+  Laptop,
+  Wifi,
+  Database,
+  Cloud,
+  CircuitBoard,
+  Microchip,
+  Gamepad2,
+  BookOpen,
+  Star,
+  Clock,
+  User,
+  Quote,
+  ArrowRight,
+  Play,
+  Target,
+  TrendingUp,
+  Shield,
+  Sparkles,
+  CheckCircle,
+  ArrowUpRight,
+  Users,
+  Award,
+  BookMarked,
+  Eye,
+  Heart,
+  MessageCircle,
+  Calendar,
+  MapPin,
+  Building2,
+  GraduationCap,
+  Puzzle,
+  Beaker,
+  Calculator,
+  Atom,
+  Microscope,
+  Dna,
+  Wrench,
+  Cog,
+  Hammer,
+  Ruler,
+} from "lucide-react";
 
 import { getTranslation } from "@/lib/i18n/server";
 import { blogService } from "@/lib/services/blog-service";
@@ -56,6 +107,34 @@ export async function generateMetadata({
   };
 }
 
+// Technology-specific icons mapping
+const getTechnologyIcons = () => ({
+  hero: [Cpu, Code, Bot, Zap, Brain, Lightbulb],
+  benefits: [Microchip, CircuitBoard, Database, Cloud, Wifi, Smartphone],
+  skills: [Target, TrendingUp, Shield, Sparkles, CheckCircle, Rocket],
+  testimonials: [User, Quote, Star, Award, Heart, MessageCircle],
+  blogs: [BookOpen, Clock, Eye, ArrowUpRight, Calendar, BookMarked],
+});
+
+// Category-specific icons mapping
+const getCategoryIcons = (slug: string) => {
+  const icons = {
+    science: [Beaker, Atom, Microscope, Dna, Rocket, Globe],
+    technology: [Cpu, Code, Bot, Zap, Brain, Lightbulb],
+    engineering: [Building2, CircuitBoard, Wrench, Cog, Hammer, Ruler],
+    math: [Calculator, Puzzle, Target, TrendingUp, Brain, Zap],
+    "educational-books": [
+      BookOpen,
+      BookMarked,
+      GraduationCap,
+      Users,
+      Eye,
+      Heart,
+    ],
+  };
+  return icons[slug as keyof typeof icons] || icons.technology;
+};
+
 async function RelatedBlogs({ slug }: { slug: string }) {
   const stemCategory = slugToStemCategory(slug);
 
@@ -77,20 +156,28 @@ async function RelatedBlogs({ slug }: { slug: string }) {
     blogs = result.blogs;
   }
 
+  const categoryIcons = getCategoryIcons(slug);
+  const blogIcons = [BookOpen, Clock, Eye, ArrowUpRight, Calendar, BookMarked];
+
   if (!blogs || blogs.length === 0) {
     return (
       <section className="container mx-auto px-4 py-8 sm:py-12">
-        <h3 className="text-xl sm:text-2xl font-bold mb-6">
-          Articole recomandate
-        </h3>
-        <div className="text-center py-12">
+        <div className="flex items-center gap-3 mb-6">
+          <BookOpen className="w-6 h-6 text-primary" />
+          <h3 className="text-xl sm:text-2xl font-bold">
+            Articole recomandate
+          </h3>
+        </div>
+        <div className="text-center py-12 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/10">
+          <BookOpen className="w-16 h-16 text-primary/40 mx-auto mb-4" />
           <p className="text-muted-foreground mb-4">
             Nu există încă articole pentru această categorie.
           </p>
           <Link
             href="/blog"
-            className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
           >
+            <ArrowRight className="w-4 h-4" />
             Vezi toate articolele
           </Link>
         </div>
@@ -100,52 +187,71 @@ async function RelatedBlogs({ slug }: { slug: string }) {
 
   return (
     <section className="container mx-auto px-4 py-8 sm:py-12">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl sm:text-2xl font-bold">
-          Articole recomandate pentru {getCategoryName(slug, "ro")}
-        </h3>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <BookOpen className="w-6 h-6 text-primary" />
+          <h3 className="text-xl sm:text-2xl font-bold">
+            Articole recomandate pentru {getCategoryName(slug, "ro")}
+          </h3>
+        </div>
         <Link
           href="/blog"
-          className="text-sm text-primary hover:underline transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors group"
         >
-          Vezi toate articolele →
+          Vezi toate articolele
+          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {blogs.map(blog => (
-          <Link
-            key={blog.id}
-            href={`/blog/${blog.slug}`}
-            className="group rounded-lg border p-4 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-background"
-          >
-            {blog.coverImage ? (
-              <div className="relative w-full h-40 mb-3 overflow-hidden rounded-md">
-                <Image
-                  src={blog.coverImage}
-                  alt={blog.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+        {blogs.map((blog, index) => {
+          const IconComponent = blogIcons[index % blogIcons.length];
+          return (
+            <Link
+              key={blog.id}
+              href={`/blog/${blog.slug}`}
+              className="group rounded-xl border border-border/50 p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-background hover:border-primary/20 hover:bg-gradient-to-br hover:from-primary/5 hover:to-secondary/5"
+            >
+              {blog.coverImage ? (
+                <div className="relative w-full h-48 mb-4 overflow-hidden rounded-lg">
+                  <Image
+                    src={blog.coverImage}
+                    alt={blog.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              ) : (
+                <div className="w-full h-48 mb-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center group-hover:from-primary/20 group-hover:to-secondary/20 transition-all duration-300">
+                  <IconComponent className="w-12 h-12 text-primary/60" />
+                </div>
+              )}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Calendar className="w-3 h-3" />
+                  <span>{blog.author?.name ?? "TechTots Team"}</span>
+                  {blog.readingTime && (
+                    <>
+                      <span>•</span>
+                      <Clock className="w-3 h-3" />
+                      <span>{blog.readingTime} min citire</span>
+                    </>
+                  )}
+                </div>
+                <h4 className="font-semibold text-base sm:text-lg line-clamp-2 group-hover:text-primary transition-colors">
+                  {blog.title}
+                </h4>
+                <p className="text-sm text-muted-foreground line-clamp-3">
+                  {blog.excerpt}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-primary font-medium">
+                  <span>Citește mai mult</span>
+                  <ArrowUpRight className="w-3 h-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                </div>
               </div>
-            ) : (
-              <div className="w-full h-40 mb-3 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-md flex items-center justify-center">
-                <span className="text-primary/60 text-2xl">📝</span>
-              </div>
-            )}
-            <div className="space-y-2">
-              <h4 className="font-semibold text-base sm:text-lg line-clamp-2 group-hover:text-primary transition-colors">
-                {blog.title}
-              </h4>
-              <p className="text-sm text-muted-foreground line-clamp-3">
-                {blog.excerpt}
-              </p>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{blog.author?.name ?? "TechTots Team"}</span>
-                {blog.readingTime && <span>{blog.readingTime} min citire</span>}
-              </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
@@ -154,7 +260,13 @@ async function RelatedBlogs({ slug }: { slug: string }) {
 function Testimonials({ slug }: { slug: KnownSlug | string }) {
   const testimonialsBySlug: Record<
     string,
-    Array<{ quote: string; author: string; role: string; language?: string }>
+    Array<{
+      quote: string;
+      author: string;
+      role: string;
+      language?: string;
+      rating?: number;
+    }>
   > = {
     science: [
       {
@@ -163,6 +275,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Irina M.",
         role: "Părinte",
         language: "ro",
+        rating: 5,
       },
       {
         quote:
@@ -170,6 +283,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Prof. Andrei V.",
         role: "Profesor de științe",
         language: "ro",
+        rating: 5,
       },
       {
         quote:
@@ -177,6 +291,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Sarah Johnson",
         role: "Parent",
         language: "en",
+        rating: 5,
       },
       {
         quote:
@@ -184,6 +299,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Michael Chen",
         role: "Homeschool Parent",
         language: "en",
+        rating: 5,
       },
       {
         quote:
@@ -191,6 +307,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Dr. Emily Rodriguez",
         role: "Science Educator",
         language: "en",
+        rating: 5,
       },
     ],
     technology: [
@@ -200,6 +317,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Dana T.",
         role: "Mamă",
         language: "ro",
+        rating: 5,
       },
       {
         quote:
@@ -207,6 +325,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Mihai C.",
         role: "Coordonator club",
         language: "ro",
+        rating: 5,
       },
       {
         quote:
@@ -214,6 +333,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Jennifer Park",
         role: "Tech Parent",
         language: "en",
+        rating: 5,
       },
       {
         quote:
@@ -221,6 +341,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "David Thompson",
         role: "STEM Coordinator",
         language: "en",
+        rating: 5,
       },
       {
         quote:
@@ -228,6 +349,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Lisa Wang",
         role: "Software Engineer & Parent",
         language: "en",
+        rating: 5,
       },
     ],
     engineering: [
@@ -237,6 +359,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Ruxandra P.",
         role: "Părinte",
         language: "ro",
+        rating: 5,
       },
       {
         quote:
@@ -244,6 +367,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Alex D.",
         role: "Educator STEM",
         language: "ro",
+        rating: 5,
       },
       {
         quote:
@@ -251,6 +375,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Robert Martinez",
         role: "Parent",
         language: "en",
+        rating: 5,
       },
       {
         quote:
@@ -258,6 +383,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Amanda Foster",
         role: "Elementary Teacher",
         language: "en",
+        rating: 5,
       },
       {
         quote:
@@ -265,6 +391,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "James Wilson",
         role: "Civil Engineer & Parent",
         language: "en",
+        rating: 5,
       },
     ],
     math: [
@@ -274,6 +401,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Oana S.",
         role: "Părinte",
         language: "ro",
+        rating: 5,
       },
       {
         quote:
@@ -281,6 +409,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Ilie N.",
         role: "Profesor de matematică",
         language: "ro",
+        rating: 5,
       },
       {
         quote:
@@ -288,6 +417,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Maria Garcia",
         role: "Parent",
         language: "en",
+        rating: 5,
       },
       {
         quote:
@@ -295,6 +425,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Dr. Kevin O'Brien",
         role: "Math Teacher",
         language: "en",
+        rating: 5,
       },
       {
         quote:
@@ -302,6 +433,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Prof. Rachel Green",
         role: "Mathematics Professor",
         language: "en",
+        rating: 5,
       },
     ],
     "educational-books": [
@@ -311,6 +443,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Simona R.",
         role: "Părinte",
         language: "ro",
+        rating: 5,
       },
       {
         quote:
@@ -318,6 +451,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Elena B.",
         role: "Învățătoare",
         language: "ro",
+        rating: 5,
       },
       {
         quote:
@@ -325,6 +459,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Thomas Anderson",
         role: "Parent",
         language: "en",
+        rating: 5,
       },
       {
         quote:
@@ -332,6 +467,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Patricia Lewis",
         role: "Librarian",
         language: "en",
+        rating: 5,
       },
       {
         quote:
@@ -339,26 +475,63 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
         author: "Dr. Susan Mitchell",
         role: "Children's Science Author",
         language: "en",
+        rating: 5,
       },
     ],
   };
 
   const items = testimonialsBySlug[slug] ?? testimonialsBySlug["science"];
+  const categoryIcons = getCategoryIcons(slug);
+  const testimonialIcons = [User, Quote, Star, Award, Heart, MessageCircle];
 
   return (
     <section className="container mx-auto px-4 py-8 sm:py-12">
-      <h3 className="text-xl sm:text-2xl font-bold mb-6">
-        Ce spun părinții și educatorii
-      </h3>
+      <div className="flex items-center gap-3 mb-8">
+        <Quote className="w-6 h-6 text-primary" />
+        <h3 className="text-xl sm:text-2xl font-bold">
+          Ce spun părinții și educatorii
+        </h3>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.map((t, idx) => (
-          <blockquote key={idx} className="rounded-lg border p-6 bg-primary/5">
-            <p className="italic mb-3">“{t.quote}”</p>
-            <div className="text-sm text-muted-foreground">
-              {t.author} • {t.role}
-            </div>
-          </blockquote>
-        ))}
+        {items.map((t, idx) => {
+          const IconComponent = testimonialIcons[idx % testimonialIcons.length];
+          return (
+            <blockquote
+              key={idx}
+              className="relative rounded-xl border border-border/50 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group"
+            >
+              <div className="absolute top-4 right-4 opacity-20 group-hover:opacity-40 transition-opacity">
+                <IconComponent className="w-8 h-8 text-primary" />
+              </div>
+              <div className="flex items-center gap-1 mb-3">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-4 h-4 ${
+                      i < (t.rating || 5)
+                        ? "text-yellow-400 fill-current"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="italic mb-4 text-foreground/80 leading-relaxed">
+                "{t.quote}"
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-primary" />
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold text-foreground">
+                    {t.author}
+                  </div>
+                  <div className="text-muted-foreground">{t.role}</div>
+                </div>
+              </div>
+            </blockquote>
+          );
+        })}
       </div>
     </section>
   );
@@ -379,86 +552,202 @@ function Overview({ slug, locale }: { slug: string; locale: string }) {
       "Cărțile educaționale aduc conceptele STEM la viață, oferind contexte, povești și activități care extind învățarea.",
   };
 
-  const benefitsBySlug: Record<string, string[]> = {
+  const benefitsBySlug: Record<
+    string,
+    Array<{ text: string; icon: any; progress: number }>
+  > = {
     science: [
-      "Dezvoltă curiozitatea și spiritul de cercetare",
-      "Învață principiile științei prin experimente practice",
-      "Stimulează gândirea critică și analitică",
-      "Introduce concepte de fizică, chimie și biologie",
+      {
+        text: "Dezvoltă curiozitatea și spiritul de cercetare",
+        icon: Beaker,
+        progress: 95,
+      },
+      {
+        text: "Învață principiile științei prin experimente practice",
+        icon: Atom,
+        progress: 90,
+      },
+      {
+        text: "Stimulează gândirea critică și analitică",
+        icon: Brain,
+        progress: 85,
+      },
+      {
+        text: "Introduce concepte de fizică, chimie și biologie",
+        icon: Microscope,
+        progress: 88,
+      },
     ],
     technology: [
-      "Dezvoltă gândirea computațională și algoritmică",
-      "Introduce programarea și robotică",
-      "Pregătește pentru carierele viitorului",
-      "Învață despre inteligența artificială și inovație",
+      {
+        text: "Dezvoltă gândirea computațională și algoritmică",
+        icon: Cpu,
+        progress: 95,
+      },
+      { text: "Introduce programarea și robotică", icon: Code, progress: 92 },
+      {
+        text: "Pregătește pentru carierele viitorului",
+        icon: Rocket,
+        progress: 88,
+      },
+      {
+        text: "Învață despre inteligența artificială și inovație",
+        icon: Brain,
+        progress: 90,
+      },
     ],
     engineering: [
-      "Învață principiile mecanicii și structurilor",
-      "Dezvoltă abilități de rezolvare a problemelor",
-      "Stimulează creativitatea inginerească",
-      "Învață procesul de proiectare și testare",
+      {
+        text: "Învață principiile mecanicii și structurilor",
+        icon: Building2,
+        progress: 92,
+      },
+      {
+        text: "Dezvoltă abilități de rezolvare a problemelor",
+        icon: Target,
+        progress: 88,
+      },
+      {
+        text: "Stimulează creativitatea inginerească",
+        icon: Sparkles,
+        progress: 85,
+      },
+      {
+        text: "Învață procesul de proiectare și testare",
+        icon: CheckCircle,
+        progress: 90,
+      },
     ],
     math: [
-      "Face matematica distractivă și accesibilă",
-      "Dezvoltă gândirea logică și raționamentul",
-      "Învață concepte matematice prin joc",
-      "Construiește încrederea în rezolvarea problemelor",
+      {
+        text: "Face matematica distractivă și accesibilă",
+        icon: Calculator,
+        progress: 90,
+      },
+      {
+        text: "Dezvoltă gândirea logică și raționamentul",
+        icon: Brain,
+        progress: 88,
+      },
+      {
+        text: "Învață concepte matematice prin joc",
+        icon: Puzzle,
+        progress: 85,
+      },
+      {
+        text: "Construiește încrederea în rezolvarea problemelor",
+        icon: Target,
+        progress: 92,
+      },
     ],
     "educational-books": [
-      "Inspiră dragostea pentru învățare",
-      "Dezvoltă vocabularul și abilitățile de citire",
-      "Introduce concepte STEM prin povești",
-      "Stimulează imaginația și creativitatea",
+      {
+        text: "Inspiră dragostea pentru învățare",
+        icon: BookOpen,
+        progress: 95,
+      },
+      {
+        text: "Dezvoltă vocabularul și abilitățile de citire",
+        icon: GraduationCap,
+        progress: 90,
+      },
+      {
+        text: "Introduce concepte STEM prin povești",
+        icon: Users,
+        progress: 88,
+      },
+      {
+        text: "Stimulează imaginația și creativitatea",
+        icon: Sparkles,
+        progress: 85,
+      },
     ],
   };
 
+  const benefits = benefitsBySlug[slug] || benefitsBySlug["science"];
+
   return (
     <section className="container mx-auto px-4 py-8 sm:py-12">
-      <h2 className="text-2xl sm:text-3xl font-bold mb-4">{title}</h2>
-      <p className="text-muted-foreground max-w-3xl mb-8">
+      <div className="flex items-center gap-3 mb-6">
+        <Target className="w-6 h-6 text-primary" />
+        <h2 className="text-2xl sm:text-3xl font-bold">{title}</h2>
+      </div>
+      <p className="text-muted-foreground max-w-3xl mb-8 text-lg leading-relaxed">
         {copy[slug] ??
           "Descoperiți resurse care stârnesc pasiunea pentru învățare în rândul copiilor."}
       </p>
 
-      {/* Educational Benefits Section */}
-      <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border border-primary/10 p-6 mb-8">
-        <h3 className="text-lg font-semibold text-foreground/80 mb-4">
-          Beneficii Educaționale:
-        </h3>
-        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {(benefitsBySlug[slug] || benefitsBySlug["science"]).map(
-            (benefit, index) => (
-              <li key={index} className="flex items-start space-x-2">
-                <span className="text-primary mt-1">•</span>
-                <span className="text-sm text-muted-foreground">{benefit}</span>
-              </li>
-            )
-          )}
-        </ul>
+      {/* Enhanced Educational Benefits Section */}
+      <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl border border-primary/10 p-6 mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <Sparkles className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold text-foreground/80">
+            Beneficii Educaționale:
+          </h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {benefits.map((benefit, index) => {
+            const IconComponent = benefit.icon;
+            return (
+              <div key={index} className="flex items-start gap-4 group">
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                  <IconComponent className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-muted-foreground mb-2 leading-relaxed">
+                    {benefit.text}
+                  </p>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-primary to-primary/70 h-2 rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${benefit.progress}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {benefit.progress}% eficiență
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-        <div className="rounded-md border p-4 bg-background">
-          <h4 className="font-semibold mb-2">Beneficii</h4>
-          <p className="text-muted-foreground">
+      {/* Enhanced Info Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="rounded-xl border border-border/50 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group">
+          <div className="flex items-center gap-3 mb-3">
+            <Target className="w-5 h-5 text-primary" />
+            <h4 className="font-semibold">Beneficii</h4>
+          </div>
+          <p className="text-sm text-muted-foreground">
             Curiozitate, gândire critică, creativitate
           </p>
         </div>
-        <div className="rounded-md border p-4 bg-background">
-          <h4 className="font-semibold mb-2">Activități</h4>
-          <p className="text-muted-foreground">
+        <div className="rounded-xl border border-border/50 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group">
+          <div className="flex items-center gap-3 mb-3">
+            <Play className="w-5 h-5 text-primary" />
+            <h4 className="font-semibold">Activități</h4>
+          </div>
+          <p className="text-sm text-muted-foreground">
             Proiecte practice, jocuri logice, explorare ghidată
           </p>
         </div>
-        <div className="rounded-md border p-4 bg-background">
-          <h4 className="font-semibold mb-2">Recomandat pentru</h4>
-          <p className="text-muted-foreground">
+        <div className="rounded-xl border border-border/50 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group">
+          <div className="flex items-center gap-3 mb-3">
+            <Users className="w-5 h-5 text-primary" />
+            <h4 className="font-semibold">Recomandat pentru</h4>
+          </div>
+          <p className="text-sm text-muted-foreground">
             Părinți, educatori, cluburi STEM
           </p>
         </div>
-        <div className="rounded-md border p-4 bg-background">
-          <h4 className="font-semibold mb-2">Resurse</h4>
-          <p className="text-muted-foreground">
+        <div className="rounded-xl border border-border/50 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group">
+          <div className="flex items-center gap-3 mb-3">
+            <BookOpen className="w-5 h-5 text-primary" />
+            <h4 className="font-semibold">Resurse</h4>
+          </div>
+          <p className="text-sm text-muted-foreground">
             Ghiduri, seturi tematice, cărți complementare
           </p>
         </div>
@@ -468,36 +757,122 @@ function Overview({ slug, locale }: { slug: string; locale: string }) {
 }
 
 function CategoryEducationalBenefits({ slug }: { slug: string }) {
-  const benefitsBySlug: Record<string, string[]> = {
+  const benefitsBySlug: Record<
+    string,
+    Array<{ text: string; icon: any; description: string }>
+  > = {
     science: [
-      "Dezvoltă curiozitatea și spiritul de cercetare",
-      "Învață principiile științei prin experimente practice",
-      "Stimulează gândirea critică și analitică",
-      "Introduce concepte de fizică, chimie și biologie",
+      {
+        text: "Dezvoltă curiozitatea și spiritul de cercetare",
+        icon: Beaker,
+        description:
+          "Copiii învață să pună întrebări și să exploreze lumea din jurul lor",
+      },
+      {
+        text: "Învață principiile științei prin experimente practice",
+        icon: Atom,
+        description: "Experimentele hands-on fac conceptele abstracte concrete",
+      },
+      {
+        text: "Stimulează gândirea critică și analitică",
+        icon: Brain,
+        description:
+          "Dezvoltă abilități de analiză și evaluare a informațiilor",
+      },
+      {
+        text: "Introduce concepte de fizică, chimie și biologie",
+        icon: Microscope,
+        description:
+          "Oferă o introducere la disciplinele științifice fundamentale",
+      },
     ],
     technology: [
-      "Dezvoltă gândirea computațională și algoritmică",
-      "Introduce programarea și robotică",
-      "Pregătește pentru carierele viitorului",
-      "Învață despre inteligența artificială și inovație",
+      {
+        text: "Dezvoltă gândirea computațională și algoritmică",
+        icon: Cpu,
+        description: "Învață să rezolve probleme pas cu pas, ca un programator",
+      },
+      {
+        text: "Introduce programarea și robotică",
+        icon: Code,
+        description: "Dezvoltă abilități de programare prin jocuri interactive",
+      },
+      {
+        text: "Pregătește pentru carierele viitorului",
+        icon: Rocket,
+        description: "Oferă competențe esențiale pentru economia digitală",
+      },
+      {
+        text: "Învață despre inteligența artificială și inovație",
+        icon: Brain,
+        description: "Introduce concepte moderne de tehnologie și inovație",
+      },
     ],
     engineering: [
-      "Învață principiile mecanicii și structurilor",
-      "Dezvoltă abilități de rezolvare a problemelor",
-      "Stimulează creativitatea inginerească",
-      "Învață procesul de proiectare și testare",
+      {
+        text: "Învață principiile mecanicii și structurilor",
+        icon: Building2,
+        description: "Dezvoltă înțelegerea principiilor fizice de bază",
+      },
+      {
+        text: "Dezvoltă abilități de rezolvare a problemelor",
+        icon: Target,
+        description: "Învață să identifice și să rezolve probleme complexe",
+      },
+      {
+        text: "Stimulează creativitatea inginerească",
+        icon: Sparkles,
+        description: "Dezvoltă imaginația și inovația în proiectare",
+      },
+      {
+        text: "Învață procesul de proiectare și testare",
+        icon: CheckCircle,
+        description: "Înțelege ciclul de dezvoltare și îmbunătățire",
+      },
     ],
     math: [
-      "Face matematica distractivă și accesibilă",
-      "Dezvoltă gândirea logică și raționamentul",
-      "Învață concepte matematice prin joc",
-      "Construiește încrederea în rezolvarea problemelor",
+      {
+        text: "Face matematica distractivă și accesibilă",
+        icon: Calculator,
+        description: "Transformă conceptele matematice în jocuri captivante",
+      },
+      {
+        text: "Dezvoltă gândirea logică și raționamentul",
+        icon: Brain,
+        description: "Învață să gândească logic și să facă conexiuni",
+      },
+      {
+        text: "Învață concepte matematice prin joc",
+        icon: Puzzle,
+        description: "Dezvoltă înțelegerea matematică prin activități practice",
+      },
+      {
+        text: "Construiește încrederea în rezolvarea problemelor",
+        icon: Target,
+        description: "Dezvoltă încrederea în abilitățile matematice",
+      },
     ],
     "educational-books": [
-      "Inspiră dragostea pentru învățare",
-      "Dezvoltă vocabularul și abilitățile de citire",
-      "Introduce concepte STEM prin povești",
-      "Stimulează imaginația și creativitatea",
+      {
+        text: "Inspiră dragostea pentru învățare",
+        icon: BookOpen,
+        description: "Dezvoltă pasiunea pentru descoperire și învățare",
+      },
+      {
+        text: "Dezvoltă vocabularul și abilitățile de citire",
+        icon: GraduationCap,
+        description: "Îmbunătățește competențele lingvistice și de comunicare",
+      },
+      {
+        text: "Introduce concepte STEM prin povești",
+        icon: Users,
+        description: "Face conceptele științifice accesibile prin narativă",
+      },
+      {
+        text: "Stimulează imaginația și creativitatea",
+        icon: Sparkles,
+        description: "Dezvoltă creativitatea și gândirea laterală",
+      },
     ],
   };
 
@@ -505,25 +880,44 @@ function CategoryEducationalBenefits({ slug }: { slug: string }) {
 
   return (
     <section className="container mx-auto px-4 py-8 sm:py-12 bg-gradient-to-r from-primary/5 to-secondary/5">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
-          Beneficii Educaționale pentru {getCategoryName(slug, "ro")}
-        </h2>
-        <div className="bg-background rounded-lg border border-primary/10 p-6 sm:p-8 shadow-sm">
-          <h3 className="text-lg sm:text-xl font-semibold text-foreground/80 mb-4 sm:mb-6">
-            Ce învață copiii prin jucăriile{" "}
-            {getCategoryName(slug, "ro").toLowerCase()}:
-          </h3>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            {benefits.map((benefit, index) => (
-              <li key={index} className="flex items-start space-x-3">
-                <span className="text-primary mt-1 text-lg">•</span>
-                <span className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                  {benefit}
-                </span>
-              </li>
-            ))}
-          </ul>
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center gap-3 mb-8 text-center justify-center">
+          <GraduationCap className="w-6 h-6 text-primary" />
+          <h2 className="text-2xl sm:text-3xl font-bold">
+            Beneficii Educaționale pentru {getCategoryName(slug, "ro")}
+          </h2>
+        </div>
+        <div className="bg-background rounded-xl border border-primary/10 p-6 sm:p-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <Lightbulb className="w-5 h-5 text-primary" />
+            <h3 className="text-lg sm:text-xl font-semibold text-foreground/80">
+              Ce învață copiii prin jucăriile{" "}
+              {getCategoryName(slug, "ro").toLowerCase()}:
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {benefits.map((benefit, index) => {
+              const IconComponent = benefit.icon;
+              return (
+                <div
+                  key={index}
+                  className="flex items-start gap-4 group hover:bg-primary/5 p-4 rounded-lg transition-all duration-300"
+                >
+                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                    <IconComponent className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-foreground mb-2 leading-relaxed">
+                      {benefit.text}
+                    </h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {benefit.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
@@ -551,11 +945,12 @@ export default async function CategoryDetailPage({
 
   const heroTitle = getCategoryName(slug, locale);
   const heroImg = headerImageBySlug[slug] ?? "/images/hero.jpg";
+  const categoryIcons = getCategoryIcons(slug);
 
   return (
     <div className="flex flex-col">
-      {/* Hero */}
-      <section className="relative h-[220px] sm:h-[320px] w-full">
+      {/* Enhanced Hero Section */}
+      <section className="relative h-[220px] sm:h-[320px] w-full overflow-hidden">
         <Image
           src={heroImg}
           alt={heroTitle}
@@ -563,11 +958,57 @@ export default async function CategoryDetailPage({
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+
+        {/* Floating Icons Overlay */}
+        <div className="absolute inset-0 pointer-events-none">
+          {categoryIcons.map((IconComponent, index) => (
+            <div
+              key={index}
+              className="absolute animate-float opacity-20"
+              style={{
+                left: `${20 + index * 15}%`,
+                top: `${30 + index * 10}%`,
+                animationDelay: `${index * 0.5}s`,
+                animationDuration: `${3 + index}s`,
+              }}
+            >
+              <IconComponent className="w-8 h-8 sm:w-12 sm:h-12 text-white" />
+            </div>
+          ))}
+        </div>
+
         <div className="absolute inset-0 container mx-auto px-4 flex items-end pb-6">
-          <h1 className="text-2xl sm:text-4xl font-bold text-white drop-shadow">
-            {heroTitle}
-          </h1>
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
+              {(() => {
+                const IconComponent = categoryIcons[0];
+                return (
+                  <IconComponent className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                );
+              })()}
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-4xl font-bold text-white drop-shadow-lg mb-2">
+                {heroTitle}
+              </h1>
+              <p className="text-white/90 text-sm sm:text-base max-w-md drop-shadow">
+                Descoperă lumea fascinantă a {heroTitle.toLowerCase()} prin
+                jucării interactive și educaționale
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Call to Action Buttons */}
+        <div className="absolute bottom-4 right-4 flex gap-3">
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl text-sm"
+          >
+            <ArrowRight className="w-4 h-4" />
+            Vezi produsele
+          </Link>
         </div>
       </section>
 

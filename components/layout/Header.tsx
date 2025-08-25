@@ -48,26 +48,7 @@ export default function Header() {
   // FIXED: Only show authenticated UI if truly authenticated
   const shouldShowAuthenticatedUI = isAuthenticated && !isLoading;
 
-  // Debug logging for admin navigation
-  useEffect(() => {
-    if (isAuthenticated) {
-      console.log("Header Debug:", {
-        status,
-        isAuthenticated,
-        isAdmin,
-        userRole: session?.user?.role,
-        userId: session?.user?.id,
-        shouldShowAuthenticatedUI,
-      });
-    }
-  }, [
-    status,
-    isAuthenticated,
-    isAdmin,
-    session?.user?.role,
-    session?.user?.id,
-    shouldShowAuthenticatedUI,
-  ]);
+  // Debug logging for admin navigation - removed for production
 
   // Fetch wishlist count for authenticated users
   useEffect(() => {
