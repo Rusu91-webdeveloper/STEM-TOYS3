@@ -61,8 +61,8 @@ export async function GET(request: NextRequest) {
     });
 
     // Filter blogs by language using the metadata field
-    // If metadata.language exists, use it for filtering
-    // Otherwise assume it's available in the user's language
+    // Show blogs that match the requested language OR have no language specified
+    // Also show English blogs as fallback for Romanian users
     const filteredBlogs = blogs.filter(blog => {
       // If requesting all blogs (admin dashboard), don't filter by language
       if (publishedParam === "all") return true;
@@ -73,7 +73,16 @@ export async function GET(request: NextRequest) {
       // If no language specified in metadata, show the blog
       if (!metadata.language) return true;
 
-      return metadata.language === language;
+      // Show blogs that match the requested language
+      if (metadata.language === language) return true;
+
+      // For Romanian users, also show English blogs as fallback
+      if (language === "ro" && metadata.language === "en") return true;
+
+      // For English users, also show Romanian blogs as fallback
+      if (language === "en" && metadata.language === "ro") return true;
+
+      return false;
     });
 
     return NextResponse.json(filteredBlogs);
@@ -164,14 +173,15 @@ export async function POST(request: NextRequest) {
       language: data.language || "en",
     });
 
-    const sanitizedContent = DOMPurify.sanitize(data.content);
+    // For markdown content, we don't need to sanitize as it will be processed by ReactMarkdown
+    const content = data.content;
 
     // Create blog post using blog service (includes automatic notifications)
     const blog = await blogService.createBlog({
       title: data.title,
       slug: data.slug,
       excerpt: data.excerpt,
-      content: sanitizedContent,
+      content: content,
       coverImage: data.coverImage || undefined,
       categoryId: data.categoryId,
       authorId,

@@ -52,6 +52,8 @@ export default function BlogManagementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [isCreatingSample, setIsCreatingSample] = useState(false);
+  const [isCreatingTest, setIsCreatingTest] = useState(false);
 
   // Function to fetch blogs
   const fetchBlogs = async () => {
@@ -165,6 +167,82 @@ export default function BlogManagementPage() {
     }
   };
 
+  // Add a function to create sample professional blog
+  const handleCreateSampleBlog = async () => {
+    if (
+      confirm(
+        "Do you want to create a sample professional blog post demonstrating the new template?"
+      )
+    ) {
+      try {
+        setIsCreatingSample(true);
+
+        const response = await fetch("/api/seed-sample-blog", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to create sample blog post");
+        }
+
+        const result = await response.json();
+        console.log("Sample blog result:", result);
+
+        // Fetch blogs again
+        await fetchBlogs();
+        setIsCreatingSample(false);
+        alert(
+          "Sample professional blog post created successfully! You can now view it at /blog/post/quantum-biology-plants-photosynthesis-2025"
+        );
+      } catch (err) {
+        console.error("Error creating sample blog:", err);
+        alert("Failed to create sample blog post. Please try again.");
+        setIsCreatingSample(false);
+      }
+    }
+  };
+
+  // Add a function to create test blog post
+  const handleCreateTestBlog = async () => {
+    if (
+      confirm(
+        "Do you want to create a simple test blog post to check markdown rendering?"
+      )
+    ) {
+      try {
+        setIsCreatingTest(true);
+
+        const response = await fetch("/api/test-blog-content", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to create test blog post");
+        }
+
+        const result = await response.json();
+        console.log("Test blog result:", result);
+
+        // Fetch blogs again
+        await fetchBlogs();
+        setIsCreatingTest(false);
+        alert(
+          "Test blog post created successfully! You can now view it at /blog/post/test-blog-simple-markdown"
+        );
+      } catch (err) {
+        console.error("Error creating test blog:", err);
+        alert("Failed to create test blog post. Please try again.");
+        setIsCreatingTest(false);
+      }
+    }
+  };
+
   return (
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
@@ -179,6 +257,22 @@ export default function BlogManagementPage() {
               {isSeeding ? "Creating..." : "Create Sample Blogs"}
             </Button>
           )}
+          <Button
+            variant="outline"
+            onClick={handleCreateSampleBlog}
+            disabled={isCreatingSample}
+            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
+          >
+            {isCreatingSample ? "Creating..." : "Create Professional Sample"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleCreateTestBlog}
+            disabled={isCreatingTest}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700"
+          >
+            {isCreatingTest ? "Creating..." : "Create Test Blog"}
+          </Button>
           <Button asChild>
             <Link href="/admin/blog/new">
               <PlusCircle className="h-4 w-4 mr-2" />

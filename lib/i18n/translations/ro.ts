@@ -542,6 +542,9 @@ export const ro = {
   tryAdjustingFilters:
     "Încearcă să ajustezi filtrele sau criteriile de căutare",
   clearAllFilters: "Șterge Toate Filtrele",
+  Filters: "Filtre",
+  "Reset Filters": "Resetează Filtrele",
+  "Filter by Category": "Filtrează după Categorie",
   stemCategory: "Categorie STEM",
   productType: "Tip Produs",
   stemToy: "Jucărie STEM",

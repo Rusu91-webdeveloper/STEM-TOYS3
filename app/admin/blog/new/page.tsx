@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import RichBlogEditor from "@/components/admin/RichBlogEditor";
+import BlogContentTemplates from "@/components/admin/BlogContentTemplates";
 
 // Define the Category type
 type Category = {
@@ -239,15 +241,25 @@ export default function NewBlogPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="content">Content</Label>
-                  <Textarea
-                    id="content"
-                    name="content"
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="content">Content</Label>
+                    <BlogContentTemplates
+                      onTemplateSelect={(content, tags) => {
+                        setBlogData(prev => ({
+                          ...prev,
+                          content: content,
+                          tags: tags.join(", "),
+                        }));
+                      }}
+                      stemCategory={blogData.stemCategory}
+                    />
+                  </div>
+                  <RichBlogEditor
                     value={blogData.content}
-                    onChange={handleChange}
-                    placeholder="Write your blog post content here..."
-                    rows={15}
-                    required
+                    onChange={value =>
+                      setBlogData(prev => ({ ...prev, content: value }))
+                    }
+                    placeholder="Write your professional blog content here..."
                   />
                 </div>
               </CardContent>
