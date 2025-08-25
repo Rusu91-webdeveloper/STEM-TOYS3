@@ -96,12 +96,20 @@ export default function ProductDetailClient({
           {/* Product Images */}
           <div className="space-y-4">
             <div className="aspect-square bg-gray-200 rounded-lg">
-              {product.images && product.images.length > 0 && (
+              {product.images && product.images.length > 0 ? (
                 <img
                   src={product.images[0]}
                   alt={product.name}
                   className="w-full h-full object-cover rounded-lg"
+                  onError={(e) => {
+                    console.error('Image failed to load:', product.images[0]);
+                    e.currentTarget.src = '/images/placeholder.jpg';
+                  }}
                 />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-500">
+                  <span>No image available</span>
+                </div>
               )}
             </div>
           </div>
@@ -174,13 +182,20 @@ export default function ProductDetailClient({
 
               {/* Stock Status */}
               <div className="text-sm text-gray-600">
-                {product.stockQuantity > 0 ? (
-                  <span className="text-green-600">
-                    In Stock ({product.stockQuantity} available)
-                  </span>
-                ) : (
-                  <span className="text-red-600">Out of Stock</span>
-                )}
+                {(() => {
+                  console.log('Product stock data:', {
+                    stockQuantity: product.stockQuantity,
+                    type: typeof product.stockQuantity,
+                    product: product.name
+                  });
+                  return product.stockQuantity > 0 ? (
+                    <span className="text-green-600">
+                      In Stock ({product.stockQuantity} available)
+                    </span>
+                  ) : (
+                    <span className="text-red-600">Out of Stock</span>
+                  );
+                })()}
               </div>
             </div>
 
