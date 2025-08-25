@@ -17,6 +17,7 @@ interface StoreSettings {
   businessCity: string;
   businessState: string;
   businessCountry: string;
+  returnThreshold: string;
 }
 
 export default function Footer() {
@@ -45,6 +46,31 @@ export default function Footer() {
   const storeDescription =
     storeSettings?.storeDescription || t("companyDescription");
 
+  // Format the return threshold for display
+  const formatReturnThreshold = (threshold: string) => {
+    const amount = parseFloat(threshold);
+    if (isNaN(amount)) return "€50 / 250 lei";
+
+    // The database value is in lei, convert to euros for display (assuming 1 EUR = 5 RON)
+    const leiAmount = amount; // This is already in lei from the database
+    const eurAmount = Math.round(leiAmount / 5); // Convert lei to euros
+
+    return `€${eurAmount} / ${leiAmount} lei`;
+  };
+
+  const returnThreshold = storeSettings?.returnThreshold
+    ? formatReturnThreshold(storeSettings.returnThreshold)
+    : "€50 / 250 lei";
+
+  // Helper function to interpolate threshold into translation
+  const getReturnPolicyText = () => {
+    const baseText = t(
+      "freeReturnsOver50",
+      "Free returns on orders over {threshold}"
+    );
+    return baseText.replace("{threshold}", returnThreshold);
+  };
+
   return (
     <footer className="bg-gray-900 text-white">
       {/* Newsletter always visible at top */}
@@ -55,11 +81,7 @@ export default function Footer() {
         {/* Sitewide policy note */}
         <div className="mb-6 rounded-md bg-gray-800 text-gray-200 text-sm px-4 py-2 flex items-center justify-center text-center">
           <span>
-            {t(
-              "freeReturnsOver50",
-              "Free returns on orders over €50 / 250 lei"
-            )}{" "}
-            ·{" "}
+            {getReturnPolicyText()} ·{" "}
             <Link href="/returns" className="underline">
               {t("seeReturnPolicy", "See return policy")}
             </Link>

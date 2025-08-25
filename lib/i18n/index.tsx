@@ -40,7 +40,7 @@ interface I18nProviderProps {
 // Provider component to wrap the app with
 export function I18nProvider({
   children,
-  initialLanguage = "ro",
+  initialLanguage = "ro", // Default to Romanian
 }: I18nProviderProps) {
   const [language, setLanguageState] = useState(initialLanguage);
 
