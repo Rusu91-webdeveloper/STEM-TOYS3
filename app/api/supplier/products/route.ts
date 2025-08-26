@@ -1,0 +1,199 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+
+// Product creation schema
+const createProductSchema = z.object({
+  name: z.string().min(1, "Product name is required").max(100),
+  description: z.string().min(10).max(1000),
+  price: z.number().min(0.01, "Price must be greater than 0"),
+  compareAtPrice: z.number().optional(),
+  sku: z.string().optional(),
+  stockQuantity: z.number().min(0),
+  reorderPoint: z.number().min(0).optional(),
+  weight: z.number().min(0).optional(),
+  categoryId: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+  isActive: z.boolean().default(true),
+  featured: z.boolean().default(false),
+  ageGroup: z.enum(["TODDLER", "PRESCHOOL", "SCHOOL_AGE", "TEEN", "ALL_AGES"]).optional(),
+  stemDiscipline: z.enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATH", "GENERAL"]).default("GENERAL"),
+  productType: z.enum(["ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"]).optional(),
+  learningOutcomes: z.array(z.string()).default([]),
+  specialCategories: z.array(z.string()).default([]),
+  attributes: z.record(z.any()).optional(),
+  images: z.array(z.string()).default([]),
+});
+
+// GET - List supplier products
+export async function GET(request: NextRequest) {
+  try {
+    // Check authentication
+    const session = await auth();
+    if (!session?.user || session.user.role !== "SUPPLIER") {
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+    }
+
+    // Get supplier ID from session
+    const supplier = await db.supplier.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!supplier) {
+      return NextResponse.json(
+        { error: "Supplier not found" },
+        { status: 404 }
+      );
+    }
+
+    // Get query parameters
+    const searchParams = request.nextUrl.searchParams;
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const search = searchParams.get("search") || "";
+    const status = searchParams.get("status") || "";
+    const category = searchParams.get("category") || "";
+    const sortBy = searchParams.get("sortBy") || "createdAt-desc";
+
+    // Build where clause
+    const where: any = { supplierId: supplier.id };
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { sku: { contains: search, mode: "insensitive" } },
+      ];
+    }
+    
+    if (status === "active") {
+      where.isActive = true;
+    } else if (status === "inactive") {
+      where.isActive = false;
+    }
+    
+    if (category) {
+      where.categoryId = category;
+    }
+
+    // Build order by clause
+    let orderBy: any = { createdAt: "desc" };
+    if (sortBy) {
+      const [field, direction] = sortBy.split("-");
+      orderBy = { [field]: direction };
+    }
+
+    // Fetch products with pagination
+    const [products, total] = await Promise.all([
+      db.product.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy,
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      }),
+      db.product.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      products,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching supplier products:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - Create new product
+export async function POST(request: NextRequest) {
+  try {
+    // Check authentication
+    const session = await auth();
+    if (!session?.user || session.user.role !== "SUPPLIER") {
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+    }
+
+    // Get supplier ID from session
+    const supplier = await db.supplier.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!supplier) {
+      return NextResponse.json(
+        { error: "Supplier not found" },
+        { status: 404 }
+      );
+    }
+
+    // Parse and validate request body
+    const body = await request.json();
+    const validatedData = createProductSchema.parse(body);
+
+    // Generate slug from name
+    const slug = validatedData.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+    // Check if slug already exists
+    const existingProduct = await db.product.findUnique({
+      where: { slug },
+    });
+
+    if (existingProduct) {
+      return NextResponse.json(
+        { error: "A product with this name already exists" },
+        { status: 400 }
+      );
+    }
+
+    // Create product
+    const product = await db.product.create({
+      data: {
+        ...validatedData,
+        slug,
+        supplierId: supplier.id,
+      },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(product, { status: 201 });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation error", details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    console.error("Error creating supplier product:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
