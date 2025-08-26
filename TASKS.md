@@ -67,13 +67,13 @@ platform.
 
 #### 2.3 Supplier Dashboard Foundation
 
-- [ ] **2.3.1** Create supplier dashboard layout (`/supplier/dashboard`)
-- [ ] **2.3.2** Build dashboard navigation sidebar
-- [ ] **2.3.3** Create overview stats cards
-- [ ] **2.3.4** Implement recent activity feed
-- [ ] **2.3.5** Add quick action buttons
-- [ ] **2.3.6** ✅ BUILD CHECK: Run `pnpm build` and test dashboard
-- [ ] **2.3.7** ✅ PUSH TO GITHUB: Commit and push dashboard foundation
+- [x] **2.3.1** Create supplier dashboard layout (`/supplier/dashboard`)
+- [x] **2.3.2** Build dashboard navigation sidebar
+- [x] **2.3.3** Create overview stats cards
+- [x] **2.3.4** Implement recent activity feed
+- [x] **2.3.5** Add quick action buttons
+- [x] **2.3.6** ✅ BUILD CHECK: Run `pnpm build` and test dashboard
+- [x] **2.3.7** ✅ PUSH TO GITHUB: Commit and push dashboard foundation
 
 ### Phase 3: Product Management (Week 5-6)
 
