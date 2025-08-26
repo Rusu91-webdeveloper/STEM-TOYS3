@@ -15,7 +15,8 @@ import {
   TrendingUp,
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -207,12 +208,20 @@ export function SupplierProductList() {
             Manage your product catalog and track performance
           </p>
         </div>
-        <Button asChild>
-          <Link href="/supplier/products/new">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Product
-          </Link>
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button asChild variant="outline">
+            <Link href="/supplier/products/bulk-upload">
+              <Upload className="w-4 h-4 mr-2" />
+              Bulk Upload
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/supplier/products/new">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Product
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
