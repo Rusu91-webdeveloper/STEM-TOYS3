@@ -143,3 +143,41 @@ export interface SupplierInvoice {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface SupplierProduct {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  price: number;
+  compareAtPrice?: number;
+  sku?: string;
+  images: string[];
+  categoryId?: string;
+  category?: {
+    id: string;
+    name: string;
+  };
+  tags: string[];
+  attributes?: Record<string, any>;
+  metadata?: Record<string, any>;
+  isActive: boolean;
+  featured: boolean;
+  stockQuantity: number;
+  reservedQuantity: number;
+  reorderPoint?: number;
+  weight?: number;
+  dimensions?: Record<string, any>;
+  averageRating?: number;
+  reviewCount: number;
+  totalSold: number;
+  createdAt: string;
+  updatedAt: string;
+  barcode?: string;
+  ageGroup?: string;
+  learningOutcomes: string[];
+  productType?: string;
+  specialCategories: string[];
+  stemDiscipline: string;
+  supplierId: string;
+}
