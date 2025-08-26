@@ -57,13 +57,13 @@ platform.
 
 #### 2.2 Admin Supplier Management
 
-- [ ] **2.2.1** Create admin supplier list page (`/admin/suppliers`)
-- [ ] **2.2.2** Build supplier approval/rejection interface
-- [ ] **2.2.3** Create supplier detail view for admins
-- [ ] **2.2.4** Implement supplier status management
-- [ ] **2.2.5** Add admin notifications for new supplier applications
-- [ ] **2.2.6** ✅ BUILD CHECK: Run `pnpm build` and test admin interface
-- [ ] **2.2.7** ✅ PUSH TO GITHUB: Commit and push admin management
+- [x] **2.2.1** Create admin supplier list page (`/admin/suppliers`)
+- [x] **2.2.2** Build supplier approval/rejection interface
+- [x] **2.2.3** Create supplier detail view for admins
+- [x] **2.2.4** Implement supplier status management
+- [x] **2.2.5** Add admin notifications for new supplier applications
+- [x] **2.2.6** ✅ BUILD CHECK: Run `pnpm build` and test admin interface
+- [x] **2.2.7** ✅ PUSH TO GITHUB: Commit and push admin management
 
 #### 2.3 Supplier Dashboard Foundation
 
