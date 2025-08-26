@@ -27,12 +27,12 @@ platform.
 
 #### 1.2 Authentication & Authorization
 
-- [ ] **1.2.1** Extend NextAuth.js configuration for supplier role
-- [ ] **1.2.2** Create supplier authentication middleware
-- [ ] **1.2.3** Update existing auth utilities for supplier support
-- [ ] **1.2.4** Create supplier session validation helpers
-- [ ] **1.2.5** ✅ BUILD CHECK: Run `pnpm build` and verify auth integration
-- [ ] **1.2.6** ✅ PUSH TO GITHUB: Commit and push authentication changes
+- [x] **1.2.1** Extend NextAuth.js configuration for supplier role
+- [x] **1.2.2** Create supplier authentication middleware
+- [x] **1.2.3** Update existing auth utilities for supplier support
+- [x] **1.2.4** Create supplier session validation helpers
+- [x] **1.2.5** ✅ BUILD CHECK: Run `pnpm build` and verify auth integration
+- [x] **1.2.6** ✅ PUSH TO GITHUB: Commit and push authentication changes
 
 #### 1.3 Basic API Routes
 

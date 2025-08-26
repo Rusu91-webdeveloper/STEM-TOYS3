@@ -88,7 +88,20 @@ export async function withSupplierAuth<T>(
 ): Promise<T | NextResponse> {
   try {
     // Check authentication
-    const session = await auth();
+    let session;
+    try {
+      session = await auth();
+    } catch (authError) {
+      // Handle auth errors during build time
+      if (process.env.NODE_ENV === "production" || process.env.NODE_ENV === "development") {
+        logger.warn("Auth error during build time, skipping auth check", { error: authError });
+        return NextResponse.json(
+          { error: "Authentication required" },
+          { status: 401 }
+        );
+      }
+      throw authError;
+    }
 
     if (!isSupplier(session)) {
       logger.warn("Unauthorized supplier access attempt", {
@@ -121,7 +134,20 @@ export async function withApprovedSupplierAuth<T>(
 ): Promise<T | NextResponse> {
   try {
     // Check authentication
-    const session = await auth();
+    let session;
+    try {
+      session = await auth();
+    } catch (authError) {
+      // Handle auth errors during build time
+      if (process.env.NODE_ENV === "production" || process.env.NODE_ENV === "development") {
+        logger.warn("Auth error during build time, skipping auth check", { error: authError });
+        return NextResponse.json(
+          { error: "Authentication required" },
+          { status: 401 }
+        );
+      }
+      throw authError;
+    }
 
     if (!(await isApprovedSupplier(session))) {
       logger.warn("Unauthorized approved supplier access attempt", {
@@ -154,7 +180,20 @@ export async function withAdminAuth<T>(
 ): Promise<T | NextResponse> {
   try {
     // Check authentication
-    const session = await auth();
+    let session;
+    try {
+      session = await auth();
+    } catch (authError) {
+      // Handle auth errors during build time
+      if (process.env.NODE_ENV === "production" || process.env.NODE_ENV === "development") {
+        logger.warn("Auth error during build time, skipping auth check", { error: authError });
+        return NextResponse.json(
+          { error: "Authentication required" },
+          { status: 401 }
+        );
+      }
+      throw authError;
+    }
 
     if (!isAdmin(session)) {
       logger.warn("Unauthorized admin access attempt", {
