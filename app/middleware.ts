@@ -153,7 +153,8 @@ export async function middleware(request: NextRequest) {
   const requiresValidation =
     pathname.startsWith("/account") ||
     pathname.startsWith("/admin") ||
-    pathname.startsWith("/checkout");
+    pathname.startsWith("/checkout") ||
+    pathname.startsWith("/supplier");
 
   // **PERFORMANCE**: Early exit for routes that don't need validation
   if (
@@ -316,6 +317,66 @@ export async function middleware(request: NextRequest) {
     });
 
     return response;
+  }
+
+  // Handle supplier route protection
+  if (pathname.startsWith("/supplier")) {
+    try {
+      // Import supplier middleware functions
+      const { 
+        protectSupplierRoute, 
+        checkSupplierRegistration, 
+        handleSupplierStatusRedirect 
+      } = await import("@/lib/supplier-middleware");
+
+      // Handle supplier registration page
+      if (pathname === "/supplier/register") {
+        const registrationCheck = await checkSupplierRegistration(request);
+        if (registrationCheck) return registrationCheck;
+      }
+
+      // Handle supplier status pages
+      if (pathname.startsWith("/supplier/pending") || 
+          pathname.startsWith("/supplier/rejected") || 
+          pathname.startsWith("/supplier/suspended")) {
+        const statusRedirect = await handleSupplierStatusRedirect(request);
+        if (statusRedirect) return statusRedirect;
+      }
+
+      // Protect supplier dashboard and other supplier routes
+      if (pathname.startsWith("/supplier/dashboard") || 
+          pathname.startsWith("/supplier/products") || 
+          pathname.startsWith("/supplier/orders") || 
+          pathname.startsWith("/supplier/invoices") || 
+          pathname.startsWith("/supplier/analytics")) {
+        const protection = await protectSupplierRoute(request, true);
+        if (protection) return protection;
+      }
+
+      // Protect supplier profile and settings (allow pending suppliers)
+      if (pathname.startsWith("/supplier/profile") || 
+          pathname.startsWith("/supplier/settings")) {
+        const protection = await protectSupplierRoute(request, false);
+        if (protection) return protection;
+      }
+
+    } catch (error) {
+      console.error("Error in supplier route protection:", error);
+      // On error, redirect to login
+      return NextResponse.redirect(new URL("/auth/login", request.url));
+    }
+  }
+
+  // Handle admin supplier management route protection
+  if (pathname.startsWith("/admin/suppliers")) {
+    try {
+      const { protectAdminSupplierRoute } = await import("@/lib/supplier-middleware");
+      const protection = await protectAdminSupplierRoute(request);
+      if (protection) return protection;
+    } catch (error) {
+      console.error("Error in admin supplier route protection:", error);
+      return NextResponse.redirect(new URL("/auth/login", request.url));
+    }
   }
 
   // For now, we'll disable automatic locale redirection until we have the proper i18n setup

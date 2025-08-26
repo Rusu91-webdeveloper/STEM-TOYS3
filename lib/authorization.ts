@@ -44,6 +44,105 @@ export function isAdmin(session: Session | null): boolean {
 }
 
 /**
+ * Checks if the user is a supplier
+ * @param session The current user session
+ * @returns True if the user is a supplier, false otherwise
+ */
+export function isSupplier(session: Session | null): boolean {
+  return isAuthorized(session, "SUPPLIER");
+}
+
+/**
+ * Checks if the user is an approved supplier
+ * @param session The current user session
+ * @returns True if the user is an approved supplier, false otherwise
+ */
+export async function isApprovedSupplier(session: Session | null): Promise<boolean> {
+  if (!isSupplier(session)) {
+    return false;
+  }
+
+  try {
+    const { db } = await import("@/lib/db");
+    const supplier = await db.supplier.findUnique({
+      where: { userId: session!.user.id },
+      select: { status: true }
+    });
+
+    return supplier?.status === "APPROVED";
+  } catch (error) {
+    console.error("Error checking supplier approval status:", error);
+    return false;
+  }
+}
+
+/**
+ * Middleware to verify supplier role for API routes
+ * @param request The incoming request
+ * @param handler The handler function to execute if authorized
+ * @returns Response from the handler or 403 error
+ */
+export async function withSupplierAuth<T>(
+  request: NextRequest,
+  handler: (request: NextRequest, session: Session) => Promise<T>
+): Promise<T | NextResponse> {
+  try {
+    // Check authentication
+    const session = await auth();
+
+    if (!isSupplier(session)) {
+      logger.warn("Unauthorized supplier access attempt", {
+        path: request.nextUrl.pathname,
+        userId: session?.user?.id,
+      });
+      return unauthorizedResponse("Supplier access required");
+    }
+
+    // Execute the handler with the authenticated session
+    return await handler(request, session as Session);
+  } catch (error) {
+    logger.error("Error in supplier auth middleware", { error });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Middleware to verify approved supplier role for API routes
+ * @param request The incoming request
+ * @param handler The handler function to execute if authorized
+ * @returns Response from the handler or 403 error
+ */
+export async function withApprovedSupplierAuth<T>(
+  request: NextRequest,
+  handler: (request: NextRequest, session: Session) => Promise<T>
+): Promise<T | NextResponse> {
+  try {
+    // Check authentication
+    const session = await auth();
+
+    if (!(await isApprovedSupplier(session))) {
+      logger.warn("Unauthorized approved supplier access attempt", {
+        path: request.nextUrl.pathname,
+        userId: session?.user?.id,
+      });
+      return unauthorizedResponse("Approved supplier access required");
+    }
+
+    // Execute the handler with the authenticated session
+    return await handler(request, session as Session);
+  } catch (error) {
+    logger.error("Error in approved supplier auth middleware", { error });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * Middleware to verify admin role for API routes
  * @param request The incoming request
  * @param handler The handler function to execute if authorized
