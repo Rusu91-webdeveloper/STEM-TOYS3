@@ -36,24 +36,24 @@ platform.
 
 #### 1.3 Basic API Routes
 
-- [ ] **1.3.1** Create `/api/supplier/auth/me` endpoint
-- [ ] **1.3.2** Create `/api/supplier/register` endpoint
-- [ ] **1.3.3** Create `/api/supplier/landing` endpoint for public data
-- [ ] **1.3.4** Create `/api/admin/suppliers` endpoint for admin management
-- [ ] **1.3.5** ✅ BUILD CHECK: Run `pnpm build` and verify API routes
-- [ ] **1.3.6** ✅ PUSH TO GITHUB: Commit and push API foundation
+- [x] **1.3.1** Create `/api/supplier/auth/me` endpoint
+- [x] **1.3.2** Create `/api/supplier/register` endpoint
+- [x] **1.3.3** Create `/api/supplier/landing` endpoint for public data
+- [x] **1.3.4** Create `/api/admin/suppliers` endpoint for admin management
+- [x] **1.3.5** ✅ BUILD CHECK: Run `pnpm build` and verify API routes
+- [x] **1.3.6** ✅ PUSH TO GITHUB: Commit and push API foundation
 
 ### Phase 2: Core Features (Week 3-4) - UI & Management
 
 #### 2.1 Supplier Registration System
 
-- [ ] **2.1.1** Create supplier landing page (`/supplier`)
-- [ ] **2.1.2** Build supplier registration form component
-- [ ] **2.1.3** Implement multi-step registration process
-- [ ] **2.1.4** Add form validation with Zod schemas
-- [ ] **2.1.5** Create file upload for company documents
-- [ ] **2.1.6** ✅ BUILD CHECK: Run `pnpm build` and test registration flow
-- [ ] **2.1.7** ✅ PUSH TO GITHUB: Commit and push registration system
+- [x] **2.1.1** Create supplier landing page (`/supplier`)
+- [x] **2.1.2** Build supplier registration form component
+- [x] **2.1.3** Implement multi-step registration process
+- [x] **2.1.4** Add form validation with Zod schemas
+- [x] **2.1.5** Create file upload for company documents
+- [x] **2.1.6** ✅ BUILD CHECK: Run `pnpm build` and test registration flow
+- [x] **2.1.7** ✅ PUSH TO GITHUB: Commit and push registration system
 
 #### 2.2 Admin Supplier Management
 
