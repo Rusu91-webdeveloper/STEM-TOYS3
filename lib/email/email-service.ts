@@ -674,6 +674,66 @@ export class EmailService {
         category: "re-engagement",
         isActive: true,
       },
+      "supplier-registration": {
+        id: "supplier-registration",
+        name: "Supplier Registration Confirmation",
+        subject: "Aplicația ta de furnizor a fost primită! 📋",
+        content: `
+          ${createHeroSection(
+            "Aplicația ta de furnizor a fost primită! 📋",
+            "Vă mulțumim pentru înregistrarea ta la TechTots. Vom analiza aplicația ta și vom fi în contact cu tine în cel mai scurt timp.",
+            gradients.primary
+          )}
+
+          ${createAlert(
+            "Vă mulțumim că ne-ați ales pe TechTots! Vom analiza aplicația ta și vom fi în contact cu tine în cel mai scurt timp pentru a vă oferi mai multe detalii despre oportunitățile noastre.",
+            "info",
+            "ℹ️"
+          )}
+
+          ${createCTASection(
+            "Urmărește Progresul",
+            "Vă rugăm să urmăriți progresul aplicației tale și să fiți pregătiți să începem colaborarea.",
+            {
+              text: "Vezi Aplicația Mea",
+              url: "{{baseUrl}}/suppliers/application/{{supplier.companySlug}}",
+            }
+          )}
+        `,
+        variables: ["baseUrl", "supplier"],
+        category: "supplier",
+        isActive: true,
+      },
+      "admin-supplier-notification": {
+        id: "admin-supplier-notification",
+        name: "Admin Supplier Notification",
+        subject: "Nouă aplicație de furnizor! 🆕",
+        content: `
+          ${createHeroSection(
+            "Nouă aplicație de furnizor! 🆕",
+            "Ați primit o nouă aplicație de furnizor la TechTots. Vă rugăm să o revizuiți și să luați o decizie rapidă.",
+            gradients.warning
+          )}
+
+          ${createAlert(
+            "Ați primit o nouă aplicație de furnizor la TechTots. Vă rugăm să o revizuiți și să luați o decizie rapidă pentru a vă asigura că aceasta este o oportunitate de valoare pentru TechTots.",
+            "warning",
+            "⚠️"
+          )}
+
+          ${createCTASection(
+            "Revizuiți Aplicația",
+            "Vă rugăm să revizuiți aplicația furnizorului și să luați o decizie rapidă. Puteți accesa aplicația în următoarea adresă: {{reviewUrl}}",
+            {
+              text: "Vezi Aplicația",
+              url: "{{reviewUrl}}",
+            }
+          )}
+        `,
+        variables: ["reviewUrl"],
+        category: "admin",
+        isActive: true,
+      },
     };
 
     return templates[templateId] || null;

@@ -57,7 +57,9 @@ export function isSupplier(session: Session | null): boolean {
  * @param session The current user session
  * @returns True if the user is an approved supplier, false otherwise
  */
-export async function isApprovedSupplier(session: Session | null): Promise<boolean> {
+export async function isApprovedSupplier(
+  session: Session | null
+): Promise<boolean> {
   if (!isSupplier(session)) {
     return false;
   }
@@ -66,7 +68,7 @@ export async function isApprovedSupplier(session: Session | null): Promise<boole
     const { db } = await import("@/lib/db");
     const supplier = await db.supplier.findUnique({
       where: { userId: session!.user.id },
-      select: { status: true }
+      select: { status: true },
     });
 
     return supplier?.status === "APPROVED";
@@ -93,8 +95,13 @@ export async function withSupplierAuth<T>(
       session = await auth();
     } catch (authError) {
       // Handle auth errors during build time
-      if (process.env.NODE_ENV === "production" || process.env.NODE_ENV === "development") {
-        logger.warn("Auth error during build time, skipping auth check", { error: authError });
+      if (
+        process.env.NODE_ENV === "production" ||
+        process.env.NODE_ENV === "development"
+      ) {
+        logger.warn("Auth error during build time, skipping auth check", {
+          error: authError,
+        });
         return NextResponse.json(
           { error: "Authentication required" },
           { status: 401 }
@@ -103,16 +110,43 @@ export async function withSupplierAuth<T>(
       throw authError;
     }
 
-    if (!isSupplier(session)) {
-      logger.warn("Unauthorized supplier access attempt", {
-        path: request.nextUrl.pathname,
-        userId: session?.user?.id,
-      });
-      return unauthorizedResponse("Supplier access required");
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
     }
 
-    // Execute the handler with the authenticated session
-    return await handler(request, session as Session);
+    // Check if user has a supplier profile
+    try {
+      const { db } = await import("@/lib/db");
+      const supplier = await db.supplier.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true, status: true },
+      });
+
+      if (!supplier) {
+        logger.warn(
+          "Unauthorized supplier access attempt - no supplier profile",
+          {
+            path: request.nextUrl.pathname,
+            userId: session.user.id,
+          }
+        );
+        return unauthorizedResponse("Supplier profile required");
+      }
+
+      // Execute the handler with the authenticated session
+      return await handler(request, session as Session);
+    } catch (dbError) {
+      logger.error("Database error in supplier auth middleware", {
+        error: dbError,
+      });
+      return NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     logger.error("Error in supplier auth middleware", { error });
     return NextResponse.json(
@@ -139,8 +173,13 @@ export async function withApprovedSupplierAuth<T>(
       session = await auth();
     } catch (authError) {
       // Handle auth errors during build time
-      if (process.env.NODE_ENV === "production" || process.env.NODE_ENV === "development") {
-        logger.warn("Auth error during build time, skipping auth check", { error: authError });
+      if (
+        process.env.NODE_ENV === "production" ||
+        process.env.NODE_ENV === "development"
+      ) {
+        logger.warn("Auth error during build time, skipping auth check", {
+          error: authError,
+        });
         return NextResponse.json(
           { error: "Authentication required" },
           { status: 401 }
@@ -185,8 +224,13 @@ export async function withAdminAuth<T>(
       session = await auth();
     } catch (authError) {
       // Handle auth errors during build time
-      if (process.env.NODE_ENV === "production" || process.env.NODE_ENV === "development") {
-        logger.warn("Auth error during build time, skipping auth check", { error: authError });
+      if (
+        process.env.NODE_ENV === "production" ||
+        process.env.NODE_ENV === "development"
+      ) {
+        logger.warn("Auth error during build time, skipping auth check", {
+          error: authError,
+        });
         return NextResponse.json(
           { error: "Authentication required" },
           { status: 401 }

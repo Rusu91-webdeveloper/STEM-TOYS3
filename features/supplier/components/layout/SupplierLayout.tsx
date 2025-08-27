@@ -3,28 +3,28 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  Menu, 
-  X, 
-  Building2, 
-  Package, 
-  ShoppingCart, 
-  FileText, 
-  BarChart3, 
-  Settings, 
+import {
+  Menu,
+  X,
+  Building2,
+  Package,
+  ShoppingCart,
+  FileText,
+  BarChart3,
+  Settings,
   LogOut,
   Bell,
   User,
-  ChevronDown
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { type Supplier } from "@/features/supplier/types/supplier";
 
@@ -33,38 +33,45 @@ const navigation = [
     name: "Dashboard",
     href: "/supplier/dashboard",
     icon: BarChart3,
-    current: true
+    current: true,
   },
   {
     name: "Products",
     href: "/supplier/products",
     icon: Package,
-    current: false
+    current: false,
   },
   {
     name: "Orders",
     href: "/supplier/orders",
     icon: ShoppingCart,
-    current: false
+    current: false,
   },
   {
     name: "Invoices",
     href: "/supplier/invoices",
     icon: FileText,
-    current: false
+    current: false,
   },
   {
     name: "Analytics",
     href: "/supplier/analytics",
     icon: BarChart3,
-    current: false
+    current: false,
   },
   {
     name: "Settings",
     href: "/supplier/settings",
     icon: Settings,
-    current: false
-  }
+    current: false,
+  },
+];
+
+// Define public routes that don't require supplier authentication
+const publicRoutes = [
+  "/supplier",
+  "/supplier/register",
+  "/supplier/registration-success",
 ];
 
 export function SupplierLayout({ children }: { children: React.ReactNode }) {
@@ -73,9 +80,17 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
 
+  // Check if current route is public
+  const isPublicRoute = publicRoutes.includes(pathname);
+
   useEffect(() => {
-    fetchSupplierData();
-  }, []);
+    // Only fetch supplier data for protected routes
+    if (!isPublicRoute) {
+      fetchSupplierData();
+    } else {
+      setLoading(false);
+    }
+  }, [isPublicRoute]);
 
   const fetchSupplierData = async () => {
     try {
@@ -100,6 +115,11 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // For public routes, just render the children without authentication checks
+  if (isPublicRoute) {
+    return <>{children}</>;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -119,7 +139,9 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Access Denied
+            </h2>
             <p className="text-gray-600 mb-4">
               You need to be logged in as a supplier to access this portal.
             </p>
@@ -135,13 +157,20 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar */}
-      <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
+      <div
+        className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? "block" : "hidden"}`}
+      >
+        <div
+          className="fixed inset-0 bg-gray-600 bg-opacity-75"
+          onClick={() => setSidebarOpen(false)}
+        />
         <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
           <div className="flex h-16 items-center justify-between px-4">
             <div className="flex items-center">
               <Building2 className="w-8 h-8 text-blue-600" />
-              <span className="ml-2 text-lg font-semibold text-gray-900">Supplier Portal</span>
+              <span className="ml-2 text-lg font-semibold text-gray-900">
+                Supplier Portal
+              </span>
             </div>
             <Button
               variant="ghost"
@@ -152,7 +181,7 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
           <nav className="flex-1 space-y-1 px-2 py-4">
-            {navigation.map((item) => {
+            {navigation.map(item => {
               const isActive = pathname === item.href;
               return (
                 <Link
@@ -160,8 +189,8 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                   href={item.href}
                   className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                     isActive
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? "bg-blue-100 text-blue-900"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >
@@ -179,10 +208,12 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
           <div className="flex h-16 items-center px-4 border-b border-gray-200">
             <Building2 className="w-8 h-8 text-blue-600" />
-            <span className="ml-2 text-lg font-semibold text-gray-900">Supplier Portal</span>
+            <span className="ml-2 text-lg font-semibold text-gray-900">
+              Supplier Portal
+            </span>
           </div>
           <nav className="flex-1 space-y-1 px-2 py-4">
-            {navigation.map((item) => {
+            {navigation.map(item => {
               const isActive = pathname === item.href;
               return (
                 <Link
@@ -190,8 +221,8 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                   href={item.href}
                   className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                     isActive
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? "bg-blue-100 text-blue-900"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                 >
                   <item.icon className="mr-3 h-5 w-5" />
@@ -200,7 +231,7 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
-          
+
           {/* Supplier Info */}
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center">
@@ -213,8 +244,10 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {supplier.companyName}
                 </p>
-                <Badge 
-                  variant={supplier.status === 'APPROVED' ? 'default' : 'secondary'}
+                <Badge
+                  variant={
+                    supplier.status === "APPROVED" ? "default" : "secondary"
+                  }
                   className="text-xs"
                 >
                   {supplier.status}

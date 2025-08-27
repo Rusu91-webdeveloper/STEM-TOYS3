@@ -12,6 +12,9 @@ interface AdminSupplierDetailPageProps {
   };
 }
 
-export default function AdminSupplierDetailPage({ params }: AdminSupplierDetailPageProps) {
-  return <AdminSupplierDetail supplierId={params.id} />;
+export default async function AdminSupplierDetailPage({
+  params,
+}: AdminSupplierDetailPageProps) {
+  const { id } = await params;
+  return <AdminSupplierDetail supplierId={id} />;
 }

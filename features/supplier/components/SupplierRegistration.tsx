@@ -4,59 +4,74 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { 
-  ArrowLeft, 
-  ArrowRight, 
-  CheckCircle, 
-  Upload, 
-  Building2, 
-  MapPin, 
-  User, 
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle,
+  Upload,
+  Building2,
+  MapPin,
+  User,
   FileText,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supplierRegistrationSchema, type SupplierRegistrationFormData } from "@/features/supplier/lib/supplier-validation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  supplierRegistrationSchema,
+  type SupplierRegistrationFormData,
+} from "@/features/supplier/lib/supplier-validation";
 
 const steps = [
   {
     id: 1,
     title: "Company Information",
     description: "Basic company details and contact information",
-    icon: Building2
+    icon: Building2,
   },
   {
     id: 2,
     title: "Business Address",
     description: "Legal business address and location details",
-    icon: MapPin
+    icon: MapPin,
   },
   {
     id: 3,
     title: "Contact Person",
     description: "Primary contact person information",
-    icon: User
+    icon: User,
   },
   {
     id: 4,
     title: "Business Details",
     description: "Additional business information and categories",
-    icon: FileText
+    icon: FileText,
   },
   {
     id: 5,
     title: "Legal & Documents",
     description: "Terms acceptance and document upload",
-    icon: FileText
-  }
+    icon: FileText,
+  },
 ];
 
 const productCategories = [
@@ -79,7 +94,7 @@ const productCategories = [
   "Music & Sound",
   "Environmental Science",
   "Space & Aviation",
-  "Other"
+  "Other",
 ];
 
 const certifications = [
@@ -94,7 +109,7 @@ const certifications = [
   "Quality Management System",
   "Environmental Management",
   "Health & Safety Certification",
-  "Other"
+  "Other",
 ];
 
 export function SupplierRegistration() {
@@ -112,7 +127,7 @@ export function SupplierRegistration() {
     watch,
     setValue,
     formState: { errors, isValid },
-    trigger
+    trigger,
   } = useForm<SupplierRegistrationFormData>({
     resolver: zodResolver(supplierRegistrationSchema),
     mode: "onChange",
@@ -126,7 +141,7 @@ export function SupplierRegistration() {
       businessAddress: "",
       businessCity: "",
       businessState: "",
-      businessCountry: "România",
+      businessCountry: "",
       businessPostalCode: "",
       contactPersonName: "",
       contactPersonEmail: "",
@@ -137,8 +152,8 @@ export function SupplierRegistration() {
       certifications: [],
       productCategories: [],
       termsAccepted: false,
-      privacyAccepted: false
-    }
+      privacyAccepted: false,
+    },
   });
 
   const watchedValues = watch();
@@ -162,7 +177,7 @@ export function SupplierRegistration() {
   const nextStep = async () => {
     const fieldsToValidate = getFieldsForStep(currentStep);
     const isStepValid = await trigger(fieldsToValidate);
-    
+
     if (isStepValid) {
       setCurrentStep(prev => Math.min(prev + 1, steps.length));
     }
@@ -172,14 +187,26 @@ export function SupplierRegistration() {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const getFieldsForStep = (step: number): (keyof SupplierRegistrationFormData)[] => {
+  const getFieldsForStep = (
+    step: number
+  ): (keyof SupplierRegistrationFormData)[] => {
     switch (step) {
       case 1:
         return ["companyName", "phone", "vatNumber", "taxId"];
       case 2:
-        return ["businessAddress", "businessCity", "businessState", "businessCountry", "businessPostalCode"];
+        return [
+          "businessAddress",
+          "businessCity",
+          "businessState",
+          "businessCountry",
+          "businessPostalCode",
+        ];
       case 3:
-        return ["contactPersonName", "contactPersonEmail", "contactPersonPhone"];
+        return [
+          "contactPersonName",
+          "contactPersonEmail",
+          "contactPersonPhone",
+        ];
       case 4:
         return ["productCategories"];
       case 5:
@@ -190,48 +217,65 @@ export function SupplierRegistration() {
   };
 
   const onSubmit = async (data: SupplierRegistrationFormData) => {
+    // Prevent double submission
+    if (isSubmitting) {
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
     setSuccess(null);
 
     try {
-      const formData = new FormData();
-      
-      // Append all form data
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (Array.isArray(value)) {
-            formData.append(key, JSON.stringify(value));
-          } else {
-            formData.append(key, value.toString());
-          }
-        }
-      });
+      // Prepare JSON data for API
+      const jsonData = {
+        ...data,
+        // Ensure arrays are properly formatted
+        certifications: data.certifications || [],
+        productCategories: data.productCategories || [],
+        // Ensure boolean values are properly set
+        termsAccepted: data.termsAccepted || false,
+        privacyAccepted: data.privacyAccepted || false,
+      };
 
-      // Append logo file if selected
-      if (logoFile) {
-        formData.append("logo", logoFile);
-      }
-
-      const response = await fetch("/api/supplier/register", {
+      const response = await fetch("/api/supplier/register-public", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(jsonData),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || "Registration failed. Please try again.");
+        // Handle specific error cases
+        if (response.status === 409) {
+          if (result.error === "Company slug already exists") {
+            setError(
+              "A company with this name already exists. Please try a different company name."
+            );
+          } else if (result.error === "Contact email already registered") {
+            setError(
+              "This email address is already registered. Please use a different email or contact support."
+            );
+          } else {
+            setError(result.error || "Registration failed. Please try again.");
+          }
+        } else {
+          setError(result.error || "Registration failed. Please try again.");
+        }
         return;
       }
 
-      setSuccess("Registration submitted successfully! We'll review your application and contact you within 2-3 business days.");
-      
+      setSuccess(
+        "Registration submitted successfully! We'll review your application and contact you within 2-3 business days."
+      );
+
       // Redirect to success page or dashboard after a delay
       setTimeout(() => {
         router.push("/supplier/registration-success");
       }, 3000);
-
     } catch (error) {
       console.error("Registration error:", error);
       setError("An unexpected error occurred. Please try again.");
@@ -255,7 +299,9 @@ export function SupplierRegistration() {
                   className={errors.companyName ? "border-destructive" : ""}
                 />
                 {errors.companyName && (
-                  <p className="text-sm text-destructive mt-1">{errors.companyName.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.companyName.message}
+                  </p>
                 )}
               </div>
 
@@ -268,7 +314,9 @@ export function SupplierRegistration() {
                   rows={3}
                 />
                 {errors.description && (
-                  <p className="text-sm text-destructive mt-1">{errors.description.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.description.message}
+                  </p>
                 )}
               </div>
 
@@ -281,7 +329,9 @@ export function SupplierRegistration() {
                   {...register("website")}
                 />
                 {errors.website && (
-                  <p className="text-sm text-destructive mt-1">{errors.website.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.website.message}
+                  </p>
                 )}
               </div>
 
@@ -294,7 +344,9 @@ export function SupplierRegistration() {
                   className={errors.phone ? "border-destructive" : ""}
                 />
                 {errors.phone && (
-                  <p className="text-sm text-destructive mt-1">{errors.phone.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.phone.message}
+                  </p>
                 )}
               </div>
 
@@ -307,7 +359,9 @@ export function SupplierRegistration() {
                     {...register("vatNumber")}
                   />
                   {errors.vatNumber && (
-                    <p className="text-sm text-destructive mt-1">{errors.vatNumber.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.vatNumber.message}
+                    </p>
                   )}
                 </div>
 
@@ -319,7 +373,9 @@ export function SupplierRegistration() {
                     {...register("taxId")}
                   />
                   {errors.taxId && (
-                    <p className="text-sm text-destructive mt-1">{errors.taxId.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.taxId.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -340,7 +396,9 @@ export function SupplierRegistration() {
                   className={errors.businessAddress ? "border-destructive" : ""}
                 />
                 {errors.businessAddress && (
-                  <p className="text-sm text-destructive mt-1">{errors.businessAddress.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.businessAddress.message}
+                  </p>
                 )}
               </div>
 
@@ -354,7 +412,9 @@ export function SupplierRegistration() {
                     className={errors.businessCity ? "border-destructive" : ""}
                   />
                   {errors.businessCity && (
-                    <p className="text-sm text-destructive mt-1">{errors.businessCity.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.businessCity.message}
+                    </p>
                   )}
                 </div>
 
@@ -367,7 +427,9 @@ export function SupplierRegistration() {
                     className={errors.businessState ? "border-destructive" : ""}
                   />
                   {errors.businessState && (
-                    <p className="text-sm text-destructive mt-1">{errors.businessState.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.businessState.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -378,10 +440,14 @@ export function SupplierRegistration() {
                   <Input
                     id="businessCountry"
                     {...register("businessCountry")}
-                    className={errors.businessCountry ? "border-destructive" : ""}
+                    className={
+                      errors.businessCountry ? "border-destructive" : ""
+                    }
                   />
                   {errors.businessCountry && (
-                    <p className="text-sm text-destructive mt-1">{errors.businessCountry.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.businessCountry.message}
+                    </p>
                   )}
                 </div>
 
@@ -391,10 +457,14 @@ export function SupplierRegistration() {
                     id="businessPostalCode"
                     placeholder="123456"
                     {...register("businessPostalCode")}
-                    className={errors.businessPostalCode ? "border-destructive" : ""}
+                    className={
+                      errors.businessPostalCode ? "border-destructive" : ""
+                    }
                   />
                   {errors.businessPostalCode && (
-                    <p className="text-sm text-destructive mt-1">{errors.businessPostalCode.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.businessPostalCode.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -412,10 +482,14 @@ export function SupplierRegistration() {
                   id="contactPersonName"
                   placeholder="Full name of primary contact"
                   {...register("contactPersonName")}
-                  className={errors.contactPersonName ? "border-destructive" : ""}
+                  className={
+                    errors.contactPersonName ? "border-destructive" : ""
+                  }
                 />
                 {errors.contactPersonName && (
-                  <p className="text-sm text-destructive mt-1">{errors.contactPersonName.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.contactPersonName.message}
+                  </p>
                 )}
               </div>
 
@@ -426,10 +500,14 @@ export function SupplierRegistration() {
                   type="email"
                   placeholder="contact@yourcompany.com"
                   {...register("contactPersonEmail")}
-                  className={errors.contactPersonEmail ? "border-destructive" : ""}
+                  className={
+                    errors.contactPersonEmail ? "border-destructive" : ""
+                  }
                 />
                 {errors.contactPersonEmail && (
-                  <p className="text-sm text-destructive mt-1">{errors.contactPersonEmail.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.contactPersonEmail.message}
+                  </p>
                 )}
               </div>
 
@@ -439,10 +517,14 @@ export function SupplierRegistration() {
                   id="contactPersonPhone"
                   placeholder="07XXXXXXXX"
                   {...register("contactPersonPhone")}
-                  className={errors.contactPersonPhone ? "border-destructive" : ""}
+                  className={
+                    errors.contactPersonPhone ? "border-destructive" : ""
+                  }
                 />
                 {errors.contactPersonPhone && (
-                  <p className="text-sm text-destructive mt-1">{errors.contactPersonPhone.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.contactPersonPhone.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -463,7 +545,9 @@ export function SupplierRegistration() {
                     {...register("yearEstablished", { valueAsNumber: true })}
                   />
                   {errors.yearEstablished && (
-                    <p className="text-sm text-destructive mt-1">{errors.yearEstablished.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.yearEstablished.message}
+                    </p>
                   )}
                 </div>
 
@@ -476,7 +560,9 @@ export function SupplierRegistration() {
                     {...register("employeeCount", { valueAsNumber: true })}
                   />
                   {errors.employeeCount && (
-                    <p className="text-sm text-destructive mt-1">{errors.employeeCount.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.employeeCount.message}
+                    </p>
                   )}
                 </div>
 
@@ -488,7 +574,9 @@ export function SupplierRegistration() {
                     {...register("annualRevenue")}
                   />
                   {errors.annualRevenue && (
-                    <p className="text-sm text-destructive mt-1">{errors.annualRevenue.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.annualRevenue.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -496,7 +584,7 @@ export function SupplierRegistration() {
               <div>
                 <Label>Product Categories *</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                  {productCategories.map((category) => (
+                  {productCategories.map(category => (
                     <div key={category} className="flex items-center space-x-2">
                       <Controller
                         name="productCategories"
@@ -505,30 +593,36 @@ export function SupplierRegistration() {
                           <Checkbox
                             id={category}
                             checked={field.value?.includes(category)}
-                            onCheckedChange={(checked) => {
+                            onCheckedChange={checked => {
                               const current = field.value || [];
                               if (checked) {
                                 field.onChange([...current, category]);
                               } else {
-                                field.onChange(current.filter((c: string) => c !== category));
+                                field.onChange(
+                                  current.filter((c: string) => c !== category)
+                                );
                               }
                             }}
                           />
                         )}
                       />
-                      <Label htmlFor={category} className="text-sm">{category}</Label>
+                      <Label htmlFor={category} className="text-sm">
+                        {category}
+                      </Label>
                     </div>
                   ))}
                 </div>
                 {errors.productCategories && (
-                  <p className="text-sm text-destructive mt-1">{errors.productCategories.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.productCategories.message}
+                  </p>
                 )}
               </div>
 
               <div>
                 <Label>Certifications</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                  {certifications.map((cert) => (
+                  {certifications.map(cert => (
                     <div key={cert} className="flex items-center space-x-2">
                       <Controller
                         name="certifications"
@@ -537,23 +631,29 @@ export function SupplierRegistration() {
                           <Checkbox
                             id={cert}
                             checked={field.value?.includes(cert)}
-                            onCheckedChange={(checked) => {
+                            onCheckedChange={checked => {
                               const current = field.value || [];
                               if (checked) {
                                 field.onChange([...current, cert]);
                               } else {
-                                field.onChange(current.filter((c: string) => c !== cert));
+                                field.onChange(
+                                  current.filter((c: string) => c !== cert)
+                                );
                               }
                             }}
                           />
                         )}
                       />
-                      <Label htmlFor={cert} className="text-sm">{cert}</Label>
+                      <Label htmlFor={cert} className="text-sm">
+                        {cert}
+                      </Label>
                     </div>
                   ))}
                 </div>
                 {errors.certifications && (
-                  <p className="text-sm text-destructive mt-1">{errors.certifications.message}</p>
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.certifications.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -587,11 +687,15 @@ export function SupplierRegistration() {
                         </label>
                         <p className="pl-1">or drag and drop</p>
                       </div>
-                      <p className="text-xs text-gray-500">PNG, JPG, WebP up to 5MB</p>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG, WebP up to 5MB
+                      </p>
                     </div>
                   </div>
                   {logoFile && (
-                    <p className="text-sm text-green-600 mt-2">✓ {logoFile.name} selected</p>
+                    <p className="text-sm text-green-600 mt-2">
+                      ✓ {logoFile.name} selected
+                    </p>
                   )}
                 </div>
               </div>
@@ -610,16 +714,22 @@ export function SupplierRegistration() {
                     )}
                   />
                   <div className="grid gap-1.5 leading-none">
-                    <Label htmlFor="termsAccepted" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    <Label
+                      htmlFor="termsAccepted"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
                       I accept the Terms and Conditions *
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      I have read and agree to the TechTots Supplier Terms and Conditions
+                      I have read and agree to the TechTots Supplier Terms and
+                      Conditions
                     </p>
                   </div>
                 </div>
                 {errors.termsAccepted && (
-                  <p className="text-sm text-destructive">{errors.termsAccepted.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.termsAccepted.message}
+                  </p>
                 )}
 
                 <div className="flex items-start space-x-2">
@@ -635,7 +745,10 @@ export function SupplierRegistration() {
                     )}
                   />
                   <div className="grid gap-1.5 leading-none">
-                    <Label htmlFor="privacyAccepted" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    <Label
+                      htmlFor="privacyAccepted"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
                       I accept the Privacy Policy *
                     </Label>
                     <p className="text-sm text-muted-foreground">
@@ -644,7 +757,9 @@ export function SupplierRegistration() {
                   </div>
                 </div>
                 {errors.privacyAccepted && (
-                  <p className="text-sm text-destructive">{errors.privacyAccepted.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.privacyAccepted.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -661,8 +776,12 @@ export function SupplierRegistration() {
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Supplier Registration</h1>
-          <p className="text-gray-600">Complete your application to become a TechTots supplier</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Supplier Registration
+          </h1>
+          <p className="text-gray-600">
+            Complete your application to become a TechTots supplier
+          </p>
         </div>
 
         {/* Progress Steps */}
@@ -670,11 +789,13 @@ export function SupplierRegistration() {
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                  currentStep >= step.id 
-                    ? "bg-blue-600 border-blue-600 text-white" 
-                    : "bg-white border-gray-300 text-gray-500"
-                }`}>
+                <div
+                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                    currentStep >= step.id
+                      ? "bg-blue-600 border-blue-600 text-white"
+                      : "bg-white border-gray-300 text-gray-500"
+                  }`}
+                >
                   {currentStep > step.id ? (
                     <CheckCircle className="w-6 h-6" />
                   ) : (
@@ -682,19 +803,23 @@ export function SupplierRegistration() {
                   )}
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`w-full h-0.5 mx-4 ${
-                    currentStep > step.id ? "bg-blue-600" : "bg-gray-300"
-                  }`} />
+                  <div
+                    className={`w-full h-0.5 mx-4 ${
+                      currentStep > step.id ? "bg-blue-600" : "bg-gray-300"
+                    }`}
+                  />
                 )}
               </div>
             ))}
           </div>
           <div className="flex justify-between mt-4">
-            {steps.map((step) => (
+            {steps.map(step => (
               <div key={step.id} className="text-center flex-1">
-                <p className={`text-sm font-medium ${
-                  currentStep >= step.id ? "text-blue-600" : "text-gray-500"
-                }`}>
+                <p
+                  className={`text-sm font-medium ${
+                    currentStep >= step.id ? "text-blue-600" : "text-gray-500"
+                  }`}
+                >
                   {step.title}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">{step.description}</p>
@@ -718,7 +843,10 @@ export function SupplierRegistration() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={handleSubmit(onSubmit as any)}
+              className="space-y-6"
+            >
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -775,7 +903,8 @@ export function SupplierRegistration() {
         {/* Progress Info */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500">
-            Step {currentStep} of {steps.length} • {Math.round((currentStep / steps.length) * 100)}% Complete
+            Step {currentStep} of {steps.length} •{" "}
+            {Math.round((currentStep / steps.length) * 100)}% Complete
           </p>
         </div>
       </div>
