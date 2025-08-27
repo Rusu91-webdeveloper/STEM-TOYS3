@@ -15,7 +15,7 @@ export const GET = withAdminAuth(async (request: NextRequest, session) => {
 
     // Build where clause
     const where: any = {};
-    
+
     if (search) {
       where.OR = [
         { companyName: { contains: search, mode: "insensitive" } },
@@ -48,46 +48,49 @@ export const GET = withAdminAuth(async (request: NextRequest, session) => {
               email: true,
               isActive: true,
               createdAt: true,
-            }
+            },
           },
           _count: {
             select: {
               products: true,
               orders: true,
-            }
-          }
-        }
+            },
+          },
+        },
       }),
-      db.supplier.count({ where })
+      db.supplier.count({ where }),
     ]);
 
     // Get status counts for filters
     const statusCounts = await db.supplier.groupBy({
       by: ["status"],
       _count: {
-        status: true
-      }
+        status: true,
+      },
     });
 
-    const statusCountsMap = statusCounts.reduce((acc, item) => {
-      acc[item.status] = item._count.status;
-      return acc;
-    }, {} as Record<string, number>);
+    const statusCountsMap = statusCounts.reduce(
+      (acc, item) => {
+        acc[item.status] = item._count.status;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     // Calculate total revenue for each supplier
     const suppliersWithRevenue = await Promise.all(
-      suppliers.map(async (supplier) => {
+      suppliers.map(async supplier => {
         const revenue = await db.supplierOrder.aggregate({
           where: {
             supplierId: supplier.id,
-            status: { in: ["DELIVERED", "COMPLETED"] }
+            status: { in: ["DELIVERED"] },
           },
-          _sum: { supplierRevenue: true }
+          _sum: { supplierRevenue: true },
         });
 
         return {
           ...supplier,
-          totalRevenue: revenue._sum.supplierRevenue || 0
+          totalRevenue: revenue._sum.supplierRevenue || 0,
         };
       })
     );
@@ -103,7 +106,7 @@ export const GET = withAdminAuth(async (request: NextRequest, session) => {
       filters: {
         statusCounts: statusCountsMap,
         totalSuppliers: total,
-      }
+      },
     };
 
     logger.info("Admin suppliers list retrieved successfully", {
@@ -153,9 +156,9 @@ export const POST = withAdminAuth(async (request: NextRequest, session) => {
                 id: true,
                 name: true,
                 email: true,
-              }
-            }
-          }
+              },
+            },
+          },
         });
         logMessage = "Supplier approved";
         break;
@@ -173,9 +176,9 @@ export const POST = withAdminAuth(async (request: NextRequest, session) => {
                 id: true,
                 name: true,
                 email: true,
-              }
-            }
-          }
+              },
+            },
+          },
         });
         logMessage = "Supplier rejected";
         break;
@@ -193,18 +196,21 @@ export const POST = withAdminAuth(async (request: NextRequest, session) => {
                 id: true,
                 name: true,
                 email: true,
-              }
-            }
-          }
+              },
+            },
+          },
         });
         logMessage = "Supplier suspended";
         break;
 
       case "update":
         const updateData: any = {};
-        if (data.commissionRate !== undefined) updateData.commissionRate = data.commissionRate;
-        if (data.paymentTerms !== undefined) updateData.paymentTerms = data.paymentTerms;
-        if (data.minimumOrderValue !== undefined) updateData.minimumOrderValue = data.minimumOrderValue;
+        if (data.commissionRate !== undefined)
+          updateData.commissionRate = data.commissionRate;
+        if (data.paymentTerms !== undefined)
+          updateData.paymentTerms = data.paymentTerms;
+        if (data.minimumOrderValue !== undefined)
+          updateData.minimumOrderValue = data.minimumOrderValue;
         if (data.status !== undefined) updateData.status = data.status;
 
         supplier = await db.supplier.update({
@@ -216,18 +222,15 @@ export const POST = withAdminAuth(async (request: NextRequest, session) => {
                 id: true,
                 name: true,
                 email: true,
-              }
-            }
-          }
+              },
+            },
+          },
         });
         logMessage = "Supplier updated";
         break;
 
       default:
-        return NextResponse.json(
-          { error: "Invalid action" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
 
     logger.info(logMessage, {
@@ -240,7 +243,7 @@ export const POST = withAdminAuth(async (request: NextRequest, session) => {
     return NextResponse.json({
       success: true,
       message: logMessage,
-      supplier
+      supplier,
     });
   } catch (error) {
     logger.error("Error in admin supplier action:", error);

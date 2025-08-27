@@ -6,30 +6,63 @@ import { z } from "zod";
 
 // Validation schema for supplier registration
 const supplierRegistrationSchema = z.object({
-  companyName: z.string().min(2, "Company name must be at least 2 characters").max(100),
-  companySlug: z.string().min(2).max(50).regex(/^[a-z0-9-]+$/, "Company slug must contain only lowercase letters, numbers, and hyphens"),
+  companyName: z
+    .string()
+    .min(2, "Company name must be at least 2 characters")
+    .max(100),
+  companySlug: z
+    .string()
+    .min(2)
+    .max(50)
+    .regex(
+      /^[a-z0-9-]+$/,
+      "Company slug must contain only lowercase letters, numbers, and hyphens"
+    ),
   description: z.string().optional(),
   website: z.string().url().optional().or(z.literal("")),
   phone: z.string().min(10, "Phone number must be at least 10 characters"),
-  vatNumber: z.string().regex(/^RO\d{2,10}$/, "VAT number must be in Romanian format (RO + 2-10 digits)").optional(),
+  vatNumber: z
+    .string()
+    .regex(
+      /^RO\d{2,10}$/,
+      "VAT number must be in Romanian format (RO + 2-10 digits)"
+    )
+    .optional(),
   taxId: z.string().optional(),
-  businessAddress: z.string().min(5, "Business address must be at least 5 characters"),
+  businessAddress: z
+    .string()
+    .min(5, "Business address must be at least 5 characters"),
   businessCity: z.string().min(2, "City must be at least 2 characters"),
   businessState: z.string().min(2, "State must be at least 2 characters"),
   businessCountry: z.string().default("România"),
-  businessPostalCode: z.string().min(4, "Postal code must be at least 4 characters"),
-  contactPersonName: z.string().min(2, "Contact person name must be at least 2 characters"),
+  businessPostalCode: z
+    .string()
+    .min(4, "Postal code must be at least 4 characters"),
+  contactPersonName: z
+    .string()
+    .min(2, "Contact person name must be at least 2 characters"),
   contactPersonEmail: z.string().email("Invalid contact email"),
-  contactPersonPhone: z.string().min(10, "Contact phone must be at least 10 characters"),
-  yearEstablished: z.number().int().min(1900).max(new Date().getFullYear()).optional(),
+  contactPersonPhone: z
+    .string()
+    .min(10, "Contact phone must be at least 10 characters"),
+  yearEstablished: z
+    .number()
+    .int()
+    .min(1900)
+    .max(new Date().getFullYear())
+    .optional(),
   employeeCount: z.number().int().min(1).optional(),
   annualRevenue: z.string().optional(),
   certifications: z.array(z.string()).default([]),
   productCategories: z.array(z.string()).default([]),
   logo: z.string().url().optional().or(z.literal("")),
   catalogUrl: z.string().url().optional().or(z.literal("")),
-  termsAccepted: z.boolean().refine(val => val === true, "You must accept the terms and conditions"),
-  privacyAccepted: z.boolean().refine(val => val === true, "You must accept the privacy policy"),
+  termsAccepted: z
+    .boolean()
+    .refine(val => val === true, "You must accept the terms and conditions"),
+  privacyAccepted: z
+    .boolean()
+    .refine(val => val === true, "You must accept the privacy policy"),
 });
 
 export const POST = async (request: NextRequest) => {
@@ -40,7 +73,10 @@ export const POST = async (request: NextRequest) => {
       session = await auth();
     } catch (authError) {
       // Handle auth errors during build time
-      if (process.env.NODE_ENV === "production" || process.env.NODE_ENV === "development") {
+      if (
+        process.env.NODE_ENV === "production" ||
+        process.env.NODE_ENV === "development"
+      ) {
         return NextResponse.json(
           { error: "Authentication required" },
           { status: 401 }
@@ -48,7 +84,7 @@ export const POST = async (request: NextRequest) => {
       }
       throw authError;
     }
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Authentication required" },
@@ -82,9 +118,9 @@ export const POST = async (request: NextRequest) => {
 
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
-          error: "Validation failed", 
-          details: validationResult.error.errors 
+        {
+          error: "Validation failed",
+          details: validationResult.error.errors,
         },
         { status: 400 }
       );
@@ -106,7 +142,7 @@ export const POST = async (request: NextRequest) => {
 
     // Check if VAT number is unique (if provided)
     if (data.vatNumber) {
-      const existingVat = await db.supplier.findUnique({
+      const existingVat = await db.supplier.findFirst({
         where: { vatNumber: data.vatNumber },
       });
 
@@ -159,9 +195,9 @@ export const POST = async (request: NextRequest) => {
             email: true,
             role: true,
             isActive: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     logger.info("Supplier registration successful", {
@@ -183,7 +219,7 @@ export const POST = async (request: NextRequest) => {
     return NextResponse.json(supplierData, { status: 201 });
   } catch (error) {
     logger.error("Error in supplier registration:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation failed", details: error.errors },

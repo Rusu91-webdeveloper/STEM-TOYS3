@@ -25,23 +25,23 @@ export const GET = withAdminAuth(async (request: NextRequest, session) => {
             isActive: true,
             createdAt: true,
             updatedAt: true,
-          }
+          },
         },
         approvedByUser: {
           select: {
             id: true,
             name: true,
             email: true,
-          }
+          },
         },
         _count: {
           select: {
             products: true,
             orders: true,
             invoices: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     if (!supplier) {
@@ -52,58 +52,54 @@ export const GET = withAdminAuth(async (request: NextRequest, session) => {
     }
 
     // Get supplier statistics
-    const [
-      totalRevenue,
-      totalOrders,
-      recentOrders,
-      productStats
-    ] = await Promise.all([
-      // Total revenue
-      db.supplierOrder.aggregate({
-        where: {
-          supplierId,
-          status: { in: ["DELIVERED", "COMPLETED"] }
-        },
-        _sum: { supplierRevenue: true }
-      }),
-
-      // Total orders
-      db.supplierOrder.count({
-        where: { supplierId }
-      }),
-
-      // Recent orders
-      db.supplierOrder.findMany({
-        where: { supplierId },
-        include: {
-          order: {
-            select: {
-              orderNumber: true,
-              createdAt: true,
-              status: true,
-              total: true,
-            }
+    const [totalRevenue, totalOrders, recentOrders, productStats] =
+      await Promise.all([
+        // Total revenue
+        db.supplierOrder.aggregate({
+          where: {
+            supplierId,
+            status: { in: ["DELIVERED"] },
           },
-          product: {
-            select: {
-              name: true,
-              images: true,
-            }
-          }
-        },
-        orderBy: { createdAt: "desc" },
-        take: 10
-      }),
+          _sum: { supplierRevenue: true },
+        }),
 
-      // Product statistics
-      db.product.groupBy({
-        by: ["isActive"],
-        where: { supplierId },
-        _count: {
-          isActive: true
-        }
-      })
-    ]);
+        // Total orders
+        db.supplierOrder.count({
+          where: { supplierId },
+        }),
+
+        // Recent orders
+        db.supplierOrder.findMany({
+          where: { supplierId },
+          include: {
+            order: {
+              select: {
+                orderNumber: true,
+                createdAt: true,
+                status: true,
+                total: true,
+              },
+            },
+            product: {
+              select: {
+                name: true,
+                images: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        }),
+
+        // Product statistics
+        db.product.groupBy({
+          by: ["isActive"],
+          where: { supplierId },
+          _count: {
+            isActive: true,
+          },
+        }),
+      ]);
 
     // Get recent products
     const recentProducts = await db.product.findMany({
@@ -118,12 +114,12 @@ export const GET = withAdminAuth(async (request: NextRequest, session) => {
         images: true,
         _count: {
           select: {
-            reviews: true
-          }
-        }
+            reviews: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
-      take: 5
+      take: 5,
     });
 
     const supplierData = {
@@ -131,8 +127,10 @@ export const GET = withAdminAuth(async (request: NextRequest, session) => {
       statistics: {
         totalRevenue: totalRevenue._sum.supplierRevenue || 0,
         totalOrders,
-        activeProducts: productStats.find(p => p.isActive)?._count.isActive || 0,
-        inactiveProducts: productStats.find(p => !p.isActive)?._count.isActive || 0,
+        activeProducts:
+          productStats.find(p => p.isActive)?._count.isActive || 0,
+        inactiveProducts:
+          productStats.find(p => !p.isActive)?._count.isActive || 0,
       },
       recentOrders,
       recentProducts,
@@ -175,7 +173,10 @@ export const PUT = withAdminAuth(async (request: NextRequest, session) => {
     } = body;
 
     // Validate input
-    if (commissionRate !== undefined && (commissionRate < 0 || commissionRate > 100)) {
+    if (
+      commissionRate !== undefined &&
+      (commissionRate < 0 || commissionRate > 100)
+    ) {
       return NextResponse.json(
         { error: "Commission rate must be between 0 and 100" },
         { status: 400 }
@@ -198,20 +199,23 @@ export const PUT = withAdminAuth(async (request: NextRequest, session) => {
 
     // Build update data
     const updateData: any = {};
-    
+
     if (status !== undefined) {
       updateData.status = status;
       if (status === "APPROVED") {
         updateData.approvedAt = new Date();
         updateData.approvedBy = session.user.id;
       } else if (status === "REJECTED" || status === "SUSPENDED") {
-        updateData.rejectionReason = rejectionReason || `Status changed to ${status}`;
+        updateData.rejectionReason =
+          rejectionReason || `Status changed to ${status}`;
       }
     }
 
-    if (commissionRate !== undefined) updateData.commissionRate = commissionRate;
+    if (commissionRate !== undefined)
+      updateData.commissionRate = commissionRate;
     if (paymentTerms !== undefined) updateData.paymentTerms = paymentTerms;
-    if (minimumOrderValue !== undefined) updateData.minimumOrderValue = minimumOrderValue;
+    if (minimumOrderValue !== undefined)
+      updateData.minimumOrderValue = minimumOrderValue;
 
     const supplier = await db.supplier.update({
       where: { id: supplierId },
@@ -222,9 +226,9 @@ export const PUT = withAdminAuth(async (request: NextRequest, session) => {
             id: true,
             name: true,
             email: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     logger.info("Admin supplier updated successfully", {
@@ -236,7 +240,7 @@ export const PUT = withAdminAuth(async (request: NextRequest, session) => {
     return NextResponse.json({
       success: true,
       message: "Supplier updated successfully",
-      supplier
+      supplier,
     });
   } catch (error) {
     logger.error("Error updating admin supplier:", error);
@@ -263,25 +267,34 @@ export const DELETE = withAdminAuth(async (request: NextRequest, session) => {
       db.product.count({
         where: {
           supplierId,
-          isActive: true
-        }
+          isActive: true,
+        },
       }),
       db.supplierOrder.count({
         where: {
           supplierId,
-          status: { in: ["PENDING", "CONFIRMED", "IN_PRODUCTION", "READY_TO_SHIP", "SHIPPED"] }
-        }
-      })
+          status: {
+            in: [
+              "PENDING",
+              "CONFIRMED",
+              "IN_PRODUCTION",
+              "READY_TO_SHIP",
+              "SHIPPED",
+            ],
+          },
+        },
+      }),
     ]);
 
     if (activeProducts > 0 || activeOrders > 0) {
       return NextResponse.json(
-        { 
-          error: "Cannot delete supplier with active products or pending orders",
+        {
+          error:
+            "Cannot delete supplier with active products or pending orders",
           details: {
             activeProducts,
-            activeOrders
-          }
+            activeOrders,
+          },
         },
         { status: 400 }
       );
@@ -289,7 +302,7 @@ export const DELETE = withAdminAuth(async (request: NextRequest, session) => {
 
     // Delete supplier (this will cascade to related records)
     await db.supplier.delete({
-      where: { id: supplierId }
+      where: { id: supplierId },
     });
 
     logger.info("Admin supplier deleted successfully", {
@@ -299,7 +312,7 @@ export const DELETE = withAdminAuth(async (request: NextRequest, session) => {
 
     return NextResponse.json({
       success: true,
-      message: "Supplier deleted successfully"
+      message: "Supplier deleted successfully",
     });
   } catch (error) {
     logger.error("Error deleting admin supplier:", error);

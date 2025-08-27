@@ -12,8 +12,8 @@ import { logger } from "@/lib/logger";
  */
 export async function getCurrentSupplier(session?: Session | null) {
   try {
-    const currentSession = session || await auth();
-    
+    const currentSession = session || (await auth());
+
     if (!currentSession?.user?.id) {
       return null;
     }
@@ -28,9 +28,9 @@ export async function getCurrentSupplier(session?: Session | null) {
             email: true,
             role: true,
             isActive: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     return supplier;
@@ -45,7 +45,9 @@ export async function getCurrentSupplier(session?: Session | null) {
  * @param session The current user session
  * @returns True if user is an approved supplier
  */
-export async function isApprovedSupplier(session?: Session | null): Promise<boolean> {
+export async function isApprovedSupplier(
+  session?: Session | null
+): Promise<boolean> {
   try {
     const supplier = await getCurrentSupplier(session);
     return supplier?.status === "APPROVED";
@@ -96,23 +98,23 @@ export async function validateSupplierAccess(
   requireApproved: boolean = true
 ) {
   try {
-    const currentSession = session || await auth();
-    
+    const currentSession = session || (await auth());
+
     if (!currentSession?.user?.id) {
       return {
         isValid: false,
         supplier: null,
-        error: "Not authenticated"
+        error: "Not authenticated",
       };
     }
 
     const supplier = await getCurrentSupplier(currentSession);
-    
+
     if (!supplier) {
       return {
         isValid: false,
         supplier: null,
-        error: "Not a supplier"
+        error: "Not a supplier",
       };
     }
 
@@ -120,21 +122,21 @@ export async function validateSupplierAccess(
       return {
         isValid: false,
         supplier,
-        error: `Supplier not approved. Status: ${supplier.status}`
+        error: `Supplier not approved. Status: ${supplier.status}`,
       };
     }
 
     return {
       isValid: true,
       supplier,
-      error: null
+      error: null,
     };
   } catch (error) {
     logger.error("Error validating supplier access:", error);
     return {
       isValid: false,
       supplier: null,
-      error: "Internal error"
+      error: "Internal error",
     };
   }
 }
@@ -147,7 +149,7 @@ export async function validateSupplierAccess(
 export async function getSupplierDashboardData(session?: Session | null) {
   try {
     const validation = await validateSupplierAccess(session, true);
-    
+
     if (!validation.isValid) {
       return null;
     }
@@ -157,18 +159,18 @@ export async function getSupplierDashboardData(session?: Session | null) {
     // Get basic stats
     const [productCount, orderCount, totalRevenue] = await Promise.all([
       db.product.count({
-        where: { supplierId: supplier.id }
+        where: { supplierId: supplier.id },
       }),
       db.supplierOrder.count({
-        where: { supplierId: supplier.id }
+        where: { supplierId: supplier.id },
       }),
       db.supplierOrder.aggregate({
-        where: { 
+        where: {
           supplierId: supplier.id,
-          status: { in: ["DELIVERED", "COMPLETED"] }
+          status: { in: ["DELIVERED"] },
         },
-        _sum: { supplierRevenue: true }
-      })
+        _sum: { supplierRevenue: true },
+      }),
     ]);
 
     // Get recent orders
@@ -179,18 +181,18 @@ export async function getSupplierDashboardData(session?: Session | null) {
           select: {
             orderNumber: true,
             createdAt: true,
-            status: true
-          }
+            status: true,
+          },
         },
         product: {
           select: {
             name: true,
-            images: true
-          }
-        }
+            images: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
-      take: 5
+      take: 5,
     });
 
     return {
@@ -198,9 +200,9 @@ export async function getSupplierDashboardData(session?: Session | null) {
       stats: {
         productCount,
         orderCount,
-        totalRevenue: totalRevenue._sum.supplierRevenue || 0
+        totalRevenue: totalRevenue._sum.supplierRevenue || 0,
       },
-      recentOrders
+      recentOrders,
     };
   } catch (error) {
     logger.error("Error getting supplier dashboard data:", error);
