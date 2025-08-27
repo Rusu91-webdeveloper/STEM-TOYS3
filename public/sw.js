@@ -379,7 +379,9 @@ function isAuthRequest(pathname) {
          pathname.includes('/callback/') ||
          pathname.includes('/signin') ||
          pathname.includes('/signout') ||
-         pathname.includes('/session');
+         pathname.includes('/session') ||
+         pathname.startsWith('/api/supplier/') ||  // Skip supplier API routes
+         pathname.startsWith('/api/admin/');       // Skip admin API routes
 }
 
 // IndexedDB operations for offline actions

@@ -265,6 +265,79 @@ platform.
 - Maintain consistency with current authentication and API patterns
 - Follow the existing file organization structure
 
+## Recent Improvements (2025-08-27)
+
+### ✅ Supplier Registration Email Language
+
+- **Issue**: Supplier confirmation emails were being sent in Romanian
+- **Fix**: Updated email template in `/api/supplier/register-public/route.ts` to
+  send emails in English
+- **Changes Made**:
+  - Email subject: "Aplicația ta de furnizor a fost primită! 📋" → "Your
+    supplier application has been received! 📋"
+  - All email content translated to English
+  - HTML lang attribute changed from "ro" to "en"
+  - Professional English messaging with clear next steps
+- **Status**: ✅ Completed and tested successfully
+
+### 🔧 Form Submission Improvements
+
+- **Issue**: Potential double submission causing 409 errors
+- **Fix**: Added additional double submission prevention in form handler
+- **Changes Made**:
+  - Added early return if `isSubmitting` is true
+  - Improved error handling for 409 conflicts with specific error messages
+  - Better user feedback for duplicate submissions
+- **Status**: ✅ Implemented and ready for testing
+
+### 🔧 Admin Supplier Detail Page Fixes
+
+- **Issue**: Console error "Failed to fetch supplier details" when viewing
+  supplier details
+- **Root Cause**:
+  - Next.js 15 dynamic route issue: `params.id` needs to be awaited
+  - API route error: TypeError in `withAdminAuth` wrapper
+- **Fix**:
+  - Updated dynamic route to use `await params` in Next.js 15
+  - Refactored API route to use direct authentication instead of `withAdminAuth`
+    wrapper
+  - Fixed syntax errors and nested try blocks
+- **Changes Made**:
+  - `app/admin/suppliers/[id]/page.tsx`: Made function async and awaited params
+  - `app/api/admin/suppliers/[id]/route.ts`: Replaced `withAdminAuth` with
+    direct auth checks
+  - Fixed all GET, PUT, DELETE methods in the API route
+- **Status**: ✅ Fixed and ready for testing
+
+### ✅ Supplier Approval Email System
+
+- **Issue**: Suppliers needed comprehensive onboarding information after
+  approval
+- **Solution**: Implemented professional approval email with complete onboarding
+  guide
+- **Changes Made**:
+  - Added `sendSupplierApprovalEmail` function in
+    `/api/admin/suppliers/[id]/route.ts`
+  - Created professional HTML email template with TechTots branding
+  - Integrated email sending into supplier approval workflow
+  - Added error handling to prevent email failures from breaking approval
+    process
+- **Email Features**:
+  - 🎉 Congratulations message with company name
+  - 🚀 Clear next steps for onboarding (5 steps)
+  - 📊 Direct links to dashboard, products, and orders pages
+  - 💰 Commission and payment details (rate, terms, minimum order)
+  - 📦 Feature highlights of the supplier portal
+  - 📧 Support contact information
+  - 📋 Important business guidelines and standards
+- **Next Steps for Suppliers**:
+  1. Access Dashboard - Manage account and view analytics
+  2. Upload Products - Add STEM educational products to catalog
+  3. Set Up Payments - Configure payment details for commissions
+  4. Review Guidelines - Familiarize with product and shipping standards
+  5. Start Selling - Products visible to customers once approved
+- **Status**: ✅ Completed and ready for testing with next supplier approval
+
 ## Estimated Timeline
 
 - **Total Duration**: 15 weeks

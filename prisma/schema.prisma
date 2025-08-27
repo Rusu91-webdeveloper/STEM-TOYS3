@@ -180,7 +180,7 @@ model Wishlist {
 
 model Supplier {
   id                    String   @id @default(cuid())
-  userId                String   @unique
+  userId                String?  @unique  // Made optional for public registration
   companyName           String
   companySlug           String   @unique
   description           String?
@@ -226,7 +226,7 @@ model Supplier {
   updatedAt             DateTime @updatedAt
 
   // Relations
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                  User?    @relation(fields: [userId], references: [id], onDelete: Cascade)  // Made optional
   approvedByUser        User?    @relation("SupplierApprovedBy", fields: [approvedBy], references: [id])
   products              Product[]
   orders                SupplierOrder[]

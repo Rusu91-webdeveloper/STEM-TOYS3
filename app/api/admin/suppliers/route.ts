@@ -1,10 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAdminAuth } from "@/lib/authorization";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
-export const GET = withAdminAuth(async (request: NextRequest, session) => {
+export const GET = async (request: NextRequest) => {
   try {
+    // Check authentication
+    let session;
+    try {
+      session = await auth();
+    } catch (authError) {
+      logger.warn("Auth error in admin suppliers", { error: authError });
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    // Check if user is admin
+    if (session.user.role !== "ADMIN") {
+      logger.warn("Unauthorized admin access attempt", {
+        path: request.nextUrl.pathname,
+        userId: session.user.id,
+        userRole: session.user.role,
+      });
+      return NextResponse.json(
+        { error: "Admin access required" },
+        { status: 403 }
+      );
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -105,15 +137,14 @@ export const GET = withAdminAuth(async (request: NextRequest, session) => {
       },
       filters: {
         statusCounts: statusCountsMap,
-        totalSuppliers: total,
       },
     };
 
     logger.info("Admin suppliers list retrieved successfully", {
       adminId: session.user.id,
+      totalSuppliers: total,
       page,
       limit,
-      total,
     });
 
     return NextResponse.json(response);
@@ -124,22 +155,75 @@ export const GET = withAdminAuth(async (request: NextRequest, session) => {
       { status: 500 }
     );
   }
-});
+};
 
-export const POST = withAdminAuth(async (request: NextRequest, session) => {
+export const POST = async (request: NextRequest) => {
   try {
+    // Check authentication
+    let session;
+    try {
+      session = await auth();
+    } catch (authError) {
+      logger.warn("Auth error in admin suppliers POST", { error: authError });
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    // Check if user is admin
+    if (session.user.role !== "ADMIN") {
+      logger.warn("Unauthorized admin access attempt", {
+        path: request.nextUrl.pathname,
+        userId: session.user.id,
+        userRole: session.user.role,
+      });
+      return NextResponse.json(
+        { error: "Admin access required" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { action, supplierId, ...data } = body;
 
     if (!action || !supplierId) {
       return NextResponse.json(
-        { error: "Action and supplier ID are required" },
+        { error: "Action and supplierId are required" },
         { status: 400 }
       );
     }
 
+    // Verify supplier exists
+    const existingSupplier = await db.supplier.findUnique({
+      where: { id: supplierId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!existingSupplier) {
+      return NextResponse.json(
+        { error: "Supplier not found" },
+        { status: 404 }
+      );
+    }
+
     let supplier;
-    let logMessage = "";
+    let logMessage;
 
     switch (action) {
       case "approve":
@@ -149,6 +233,7 @@ export const POST = withAdminAuth(async (request: NextRequest, session) => {
             status: "APPROVED",
             approvedAt: new Date(),
             approvedBy: session.user.id,
+            rejectionReason: null,
           },
           include: {
             user: {
@@ -252,4 +337,4 @@ export const POST = withAdminAuth(async (request: NextRequest, session) => {
       { status: 500 }
     );
   }
-});
+};

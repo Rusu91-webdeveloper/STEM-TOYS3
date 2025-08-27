@@ -86,7 +86,8 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
       }
 
       const data = await response.json();
-      setSupplier(data.supplier);
+      console.log("Supplier data received:", data);
+      setSupplier(data);
     } catch (err) {
       console.error("Error fetching supplier:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
