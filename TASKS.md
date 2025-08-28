@@ -104,8 +104,8 @@ platform.
 - [x] **3.3.3** Implement inventory tracking
 - [x] **3.3.4** Add product search and filtering
 - [x] **3.3.5** Create product export functionality
-- [ ] **3.3.6** ✅ BUILD CHECK: Run `pnpm build` and test analytics
-- [ ] **3.3.7** ✅ PUSH TO GITHUB: Commit and push product analytics
+- [x] **3.3.6** ✅ BUILD CHECK: Run `pnpm build` and test analytics
+- [x] **3.3.7** ✅ PUSH TO GITHUB: Commit and push product analytics
 
 ### Phase 4: Order Management (Week 7-8)
 
@@ -134,16 +134,16 @@ platform.
 #### 5.1 Invoice System
 
 - [x] **5.1.1** Create invoice list page (`/supplier/invoices`)
-- [ ] **5.1.2** Build invoice generation system
+- [x] **5.1.2** Build invoice generation system
 - [x] **5.1.3** Implement PDF invoice generation
 - [x] **5.1.4** Add invoice status tracking
-- [ ] **5.1.5** Create payment tracking system
-- [ ] **5.1.6** ✅ BUILD CHECK: Run `pnpm build` and test invoice system
-- [ ] **5.1.7** ✅ PUSH TO GITHUB: Commit and push invoice features
+- [x] **5.1.5** Create payment tracking system
+- [x] **5.1.6** ✅ BUILD CHECK: Run `pnpm build` and test invoice system
+- [x] **5.1.7** ✅ PUSH TO GITHUB: Commit and push invoice features
 
 #### 5.2 Revenue Analytics
 
-- [ ] **5.2.1** Create revenue dashboard with charts
+- [x] **5.2.1** Create revenue dashboard with charts
 - [ ] **5.2.2** Build commission calculation system
 - [ ] **5.2.3** Implement financial reporting
 - [ ] **5.2.4** Add payment history tracking
