@@ -23,10 +23,19 @@ type StatsResponse = {
   revenueSeries?: Array<{ date: string; revenue: number }>;
 };
 
+type RevenueSeriesPoint = {
+  month: string;
+  revenue: number;
+  commission: number;
+};
+
 export function SupplierAnalytics() {
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [revenueSeries, setRevenueSeries] = useState<
+    RevenueSeriesPoint[] | null
+  >(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -39,6 +48,12 @@ export function SupplierAnalytics() {
         }
         const data = (await res.json()) as StatsResponse;
         setStats(data);
+        // Fetch 12-month revenue/commission series
+        const r = await fetch("/api/supplier/revenue", { cache: "no-store" });
+        if (r.ok) {
+          const rs = (await r.json()) as { series: RevenueSeriesPoint[] };
+          setRevenueSeries(rs.series);
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : "An error occurred");
       } finally {
@@ -163,6 +178,41 @@ export function SupplierAnalytics() {
             <div className="h-64">
               {/* Simple inline chart using SVG to avoid new deps; can swap to Recharts later */}
               <RevenueSparkline data={stats.revenueSeries} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {revenueSeries && revenueSeries.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue vs Commission (last 12 months)</CardTitle>
+            <CardDescription>Monthly totals</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left">
+                    <th className="py-2 pr-6">Month</th>
+                    <th className="py-2 pr-6">Revenue</th>
+                    <th className="py-2 pr-6">Commission</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {revenueSeries.map(p => (
+                    <tr key={p.month} className="border-t">
+                      <td className="py-2 pr-6">{p.month}</td>
+                      <td className="py-2 pr-6">
+                        €{p.revenue.toLocaleString()}
+                      </td>
+                      <td className="py-2 pr-6">
+                        €{p.commission.toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>
