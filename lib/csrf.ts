@@ -30,6 +30,7 @@ const csrfConfig = {
     "/api/account/",
     "/api/cart/",
     "/api/checkout/",
+    "/api/supplier/",
     "/api/contact",
     "/api/newsletter/",
     "/api/reviews",

@@ -40,6 +40,7 @@ import {
   supplierRegistrationSchema,
   type SupplierRegistrationFormData,
 } from "@/features/supplier/lib/supplier-validation";
+import { useCsrfForm } from "@/hooks/useCsrfToken";
 
 const steps = [
   {
@@ -119,6 +120,7 @@ export function SupplierRegistration() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const { submitForm, loading: csrfLoading, error: csrfError } = useCsrfForm();
 
   const {
     register,
@@ -238,13 +240,11 @@ export function SupplierRegistration() {
         privacyAccepted: data.privacyAccepted || false,
       };
 
-      const response = await fetch("/api/supplier/register-public", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(jsonData),
-      });
+      const response = await submitForm(
+        "/api/supplier/register-public",
+        jsonData,
+        { method: "POST" }
+      );
 
       const result = await response.json();
 

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
+import { validateCsrfForRequest } from "@/lib/csrf";
 
 // Validation schema for supplier registration
 const supplierRegistrationSchema = z.object({
@@ -112,8 +113,22 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
+    // CSRF protection (supplier APIs are protected in lib/csrf.ts)
+    let csrfBody: any = null;
+    try {
+      const clone = request.clone();
+      csrfBody = await clone.json();
+    } catch {}
+    const csrfResult = await validateCsrfForRequest(request, csrfBody);
+    if (!csrfResult.valid) {
+      return NextResponse.json(
+        { error: "CSRF validation failed", message: csrfResult.error },
+        { status: 403 }
+      );
+    }
+
     // Parse and validate request body
-    const body = await request.json();
+    const body = csrfBody ?? (await request.json());
     const validationResult = supplierRegistrationSchema.safeParse(body);
 
     if (!validationResult.success) {
