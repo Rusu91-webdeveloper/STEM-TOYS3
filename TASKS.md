@@ -133,10 +133,10 @@ platform.
 
 #### 5.1 Invoice System
 
-- [ ] **5.1.1** Create invoice list page (`/supplier/invoices`)
+- [x] **5.1.1** Create invoice list page (`/supplier/invoices`)
 - [ ] **5.1.2** Build invoice generation system
-- [ ] **5.1.3** Implement PDF invoice generation
-- [ ] **5.1.4** Add invoice status tracking
+- [x] **5.1.3** Implement PDF invoice generation
+- [x] **5.1.4** Add invoice status tracking
 - [ ] **5.1.5** Create payment tracking system
 - [ ] **5.1.6** ✅ BUILD CHECK: Run `pnpm build` and test invoice system
 - [ ] **5.1.7** ✅ PUSH TO GITHUB: Commit and push invoice features
