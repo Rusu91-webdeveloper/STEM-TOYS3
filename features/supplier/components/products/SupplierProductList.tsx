@@ -110,7 +110,8 @@ export function SupplierProductList() {
       queryParams.append("limit", pagination.limit.toString());
 
       if (filters.search) queryParams.append("search", filters.search);
-      if (filters.status) queryParams.append("status", filters.status);
+      if (filters.status && filters.status !== "all")
+        queryParams.append("status", filters.status);
       if (filters.category) queryParams.append("category", filters.category);
       if (filters.sortBy) queryParams.append("sortBy", filters.sortBy);
       if (filters.lowStock) queryParams.append("lowStock", "true");
@@ -261,7 +262,8 @@ export function SupplierProductList() {
               params.append("page", pagination.page.toString());
               params.append("limit", pagination.limit.toString());
               if (filters.search) params.append("search", filters.search);
-              if (filters.status) params.append("status", filters.status);
+              if (filters.status && filters.status !== "all")
+                params.append("status", filters.status);
               if (filters.category) params.append("category", filters.category);
               if (filters.sortBy) params.append("sortBy", filters.sortBy);
               if (filters.lowStock) params.append("lowStock", "true");
@@ -311,7 +313,7 @@ export function SupplierProductList() {
               />
             </div>
             <Select
-              value={filters.status || ""}
+              value={filters.status || "all"}
               onValueChange={value =>
                 setFilters(prev => ({ ...prev, status: value }))
               }
@@ -320,7 +322,7 @@ export function SupplierProductList() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
@@ -444,18 +446,22 @@ export function SupplierProductList() {
               <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No products found</h3>
               <p className="text-muted-foreground mb-4">
-                {filters.search || filters.status || filters.category
+                {filters.search ||
+                (filters.status && filters.status !== "all") ||
+                filters.category
                   ? "Try adjusting your filters"
                   : "Get started by adding your first product"}
               </p>
-              {!filters.search && !filters.status && !filters.category && (
-                <Button asChild>
-                  <Link href="/supplier/products/new">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Your First Product
-                  </Link>
-                </Button>
-              )}
+              {!filters.search &&
+                (!filters.status || filters.status === "all") &&
+                !filters.category && (
+                  <Button asChild>
+                    <Link href="/supplier/products/new">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Product
+                    </Link>
+                  </Button>
+                )}
             </div>
           ) : (
             <>

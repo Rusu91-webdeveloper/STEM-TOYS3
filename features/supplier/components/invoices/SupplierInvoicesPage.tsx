@@ -53,7 +53,7 @@ export function SupplierInvoicesPage() {
         params.append("page", String(page));
         params.append("limit", "10");
         if (search) params.append("search", search);
-        if (status) params.append("status", status);
+        if (status && status !== "all") params.append("status", status);
         const res = await fetch(`/api/supplier/invoices?${params}`, {
           cache: "no-store",
         });
@@ -110,12 +110,12 @@ export function SupplierInvoicesPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
-            <Select value={status} onValueChange={setStatus}>
+            <Select value={status || "all"} onValueChange={setStatus}>
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="DRAFT">Draft</SelectItem>
                 <SelectItem value="SENT">Sent</SelectItem>
                 <SelectItem value="PAID">Paid</SelectItem>

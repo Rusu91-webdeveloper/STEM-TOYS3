@@ -97,7 +97,7 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
       const response = await fetch("/api/supplier/auth/me");
       if (response.ok) {
         const data = await response.json();
-        setSupplier(data.supplier);
+        setSupplier(data);
       }
     } catch (error) {
       console.error("Error fetching supplier data:", error);
