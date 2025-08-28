@@ -2,10 +2,8 @@
  * Common security utilities for hashing, encryption, and token generation
  */
 
-import { webcrypto } from "node:crypto";
-
-// Use 'crypto' from 'node:crypto' to ensure Edge runtime compatibility
-const crypto = webcrypto as unknown as Crypto;
+// Use Web Crypto API from the global scope (works in browsers and Node 18+)
+const crypto = (globalThis as any).crypto as Crypto;
 
 import DOMPurify from "dompurify";
 
@@ -201,7 +199,18 @@ export async function validateCsrfToken(
  * @returns A random nonce value
  */
 export function generateNonce(): string {
-  return crypto.randomBytes(16).toString("base64");
+  try {
+    const buffer = new Uint8Array(16);
+    if (crypto && typeof crypto.getRandomValues === "function") {
+      crypto.getRandomValues(buffer);
+    } else {
+      for (let i = 0; i < buffer.length; i++)
+        buffer[i] = Math.floor(Math.random() * 256);
+    }
+    return btoa(String.fromCharCode(...Array.from(buffer)));
+  } catch {
+    return Math.random().toString(36).slice(2);
+  }
 }
 
 /**

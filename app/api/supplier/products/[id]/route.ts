@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { validateCsrfForRequest } from "@/lib/csrf";
 
 // Product update schema (all fields optional except id)
 const updateProductSchema = z.object({
@@ -17,9 +18,21 @@ const updateProductSchema = z.object({
   tags: z.array(z.string()).optional(),
   isActive: z.boolean().optional(),
   featured: z.boolean().optional(),
-  ageGroup: z.enum(["TODDLER", "PRESCHOOL", "SCHOOL_AGE", "TEEN", "ALL_AGES"]).optional(),
-  stemDiscipline: z.enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATH", "GENERAL"]).optional(),
-  productType: z.enum(["ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"]).optional(),
+  ageGroup: z
+    .enum(["TODDLER", "PRESCHOOL", "SCHOOL_AGE", "TEEN", "ALL_AGES"])
+    .optional(),
+  stemDiscipline: z
+    .enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATH", "GENERAL"])
+    .optional(),
+  productType: z
+    .enum([
+      "ROBOTICS",
+      "PUZZLES",
+      "CONSTRUCTION_SETS",
+      "EXPERIMENT_KITS",
+      "BOARD_GAMES",
+    ])
+    .optional(),
   learningOutcomes: z.array(z.string()).optional(),
   specialCategories: z.array(z.string()).optional(),
   attributes: z.record(z.any()).optional(),
@@ -69,10 +82,7 @@ export async function GET(
     });
 
     if (!product) {
-      return NextResponse.json(
-        { error: "Product not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
     return NextResponse.json(product);
@@ -120,14 +130,25 @@ export async function PUT(
     });
 
     if (!existingProduct) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    // CSRF validation
+    let csrfBody: any = null;
+    try {
+      const clone = request.clone();
+      csrfBody = await clone.json();
+    } catch {}
+    const csrfResult = await validateCsrfForRequest(request, csrfBody);
+    if (!csrfResult.valid) {
       return NextResponse.json(
-        { error: "Product not found" },
-        { status: 404 }
+        { error: "CSRF validation failed", message: csrfResult.error },
+        { status: 403 }
       );
     }
 
     // Parse and validate request body
-    const body = await request.json();
+    const body = csrfBody ?? (await request.json());
     const validatedData = updateProductSchema.parse(body);
 
     // If name is being updated, check for slug conflicts
@@ -221,14 +242,27 @@ export async function PATCH(
     });
 
     if (!existingProduct) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    // CSRF validation
+    let csrfBody: any = null;
+    try {
+      const clone = request.clone();
+      csrfBody = await clone.json();
+    } catch {}
+    const csrfResult = await validateCsrfForRequest(request, csrfBody);
+    if (!csrfResult.valid) {
       return NextResponse.json(
-        { error: "Product not found" },
-        { status: 404 }
+        { error: "CSRF validation failed", message: csrfResult.error },
+        { status: 403 }
       );
     }
 
-    // Parse request body
-    const body = await request.json();
+    // Parse request body and validate minimal shape
+    const body = csrfBody ?? (await request.json());
+    const partialSchema = updateProductSchema.partial();
+    const validatedPartial = partialSchema.parse(body);
 
     // Update product
     const updatedProduct = await db.product.update({
@@ -260,6 +294,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // CSRF validation (no body needed)
+    const csrfResult = await validateCsrfForRequest(request);
+    if (!csrfResult.valid) {
+      return NextResponse.json(
+        { error: "CSRF validation failed", message: csrfResult.error },
+        { status: 403 }
+      );
+    }
     const { id } = await params;
 
     // Check authentication
@@ -289,10 +331,7 @@ export async function DELETE(
     });
 
     if (!existingProduct) {
-      return NextResponse.json(
-        { error: "Product not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
     // Check if product has any orders

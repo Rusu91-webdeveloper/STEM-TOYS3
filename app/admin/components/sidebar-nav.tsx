@@ -12,6 +12,7 @@ import {
   BookOpen,
   Tag,
   Mail,
+  Building2,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -92,6 +93,11 @@ export const adminNavItems = [
     title: "Coupons",
     href: "/admin/coupons",
     icon: Tag,
+  },
+  {
+    title: "Suppliers",
+    href: "/admin/suppliers",
+    icon: Building2,
   },
   {
     title: "Customers",

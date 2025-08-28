@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { validateCsrfForRequest } from "@/lib/csrf";
 
 // Product creation schema
 const createProductSchema = z.object({
@@ -17,9 +18,21 @@ const createProductSchema = z.object({
   tags: z.array(z.string()).default([]),
   isActive: z.boolean().default(true),
   featured: z.boolean().default(false),
-  ageGroup: z.enum(["TODDLER", "PRESCHOOL", "SCHOOL_AGE", "TEEN", "ALL_AGES"]).optional(),
-  stemDiscipline: z.enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATH", "GENERAL"]).default("GENERAL"),
-  productType: z.enum(["ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"]).optional(),
+  ageGroup: z
+    .enum(["TODDLER", "PRESCHOOL", "SCHOOL_AGE", "TEEN", "ALL_AGES"])
+    .optional(),
+  stemDiscipline: z
+    .enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATH", "GENERAL"])
+    .default("GENERAL"),
+  productType: z
+    .enum([
+      "ROBOTICS",
+      "PUZZLES",
+      "CONSTRUCTION_SETS",
+      "EXPERIMENT_KITS",
+      "BOARD_GAMES",
+    ])
+    .optional(),
   learningOutcomes: z.array(z.string()).default([]),
   specialCategories: z.array(z.string()).default([]),
   attributes: z.record(z.any()).optional(),
@@ -53,12 +66,19 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
+    const lowStock = searchParams.get("lowStock") === "true";
+    const lowStockThreshold = parseInt(
+      searchParams.get("lowStockThreshold") || "5"
+    );
     const category = searchParams.get("category") || "";
     const sortBy = searchParams.get("sortBy") || "createdAt-desc";
+    const minPrice = parseFloat(searchParams.get("minPrice") || "");
+    const maxPrice = parseFloat(searchParams.get("maxPrice") || "");
+    const tagsParam = searchParams.get("tags") || ""; // comma-separated
 
     // Build where clause
     const where: any = { supplierId: supplier.id };
-    
+
     if (search) {
       where.OR = [
         { name: { contains: search, mode: "insensitive" } },
@@ -66,21 +86,45 @@ export async function GET(request: NextRequest) {
         { sku: { contains: search, mode: "insensitive" } },
       ];
     }
-    
+
     if (status === "active") {
       where.isActive = true;
     } else if (status === "inactive") {
       where.isActive = false;
     }
-    
+
     if (category) {
       where.categoryId = category;
+    }
+
+    // Low stock filter (based on numeric threshold)
+    if (lowStock) {
+      where.stockQuantity = { lte: lowStockThreshold };
+    }
+
+    // Price range filter
+    if (!Number.isNaN(minPrice) || !Number.isNaN(maxPrice)) {
+      where.price = {} as any;
+      if (!Number.isNaN(minPrice)) (where.price as any).gte = minPrice;
+      if (!Number.isNaN(maxPrice)) (where.price as any).lte = maxPrice;
+    }
+
+    // Tags filter (any match)
+    if (tagsParam) {
+      const tags = tagsParam
+        .split(",")
+        .map(t => t.trim())
+        .filter(Boolean);
+      if (tags.length > 0) {
+        where.tags = { hasSome: tags } as any;
+      }
     }
 
     // Build order by clause
     let orderBy: any = { createdAt: "desc" };
     if (sortBy) {
       const [field, direction] = sortBy.split("-");
+      // Allow sorting by computed/popular fields like totalSold
       orderBy = { [field]: direction };
     }
 
@@ -142,8 +186,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // CSRF validation
+    let csrfBody: any = null;
+    try {
+      const clone = request.clone();
+      csrfBody = await clone.json();
+    } catch {}
+    const csrfResult = await validateCsrfForRequest(request, csrfBody);
+    if (!csrfResult.valid) {
+      return NextResponse.json(
+        { error: "CSRF validation failed", message: csrfResult.error },
+        { status: 403 }
+      );
+    }
+
     // Parse and validate request body
-    const body = await request.json();
+    const body = csrfBody ?? (await request.json());
     const validatedData = createProductSchema.parse(body);
 
     // Generate slug from name
@@ -167,7 +225,8 @@ export async function POST(request: NextRequest) {
     // Create product
     const product = await db.product.create({
       data: {
-        ...validatedData,
+        ...(validatedData as any),
+        ageGroup: ((validatedData as any).ageGroup ?? null) as any,
         slug,
         supplierId: supplier.id,
       },

@@ -3,20 +3,20 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Edit,
+  Trash2,
   Eye,
   Package,
   TrendingUp,
   AlertCircle,
   CheckCircle,
   XCircle,
-  Upload
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,11 @@ interface ProductFilters {
   status?: string;
   category?: string;
   sortBy?: string;
+  lowStock?: boolean;
+  lowStockThreshold?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  tags?: string;
 }
 
 export function SupplierProductList() {
@@ -70,6 +75,11 @@ export function SupplierProductList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<ProductFilters>({});
+  const [stockDialog, setStockDialog] = useState<{
+    open: boolean;
+    productId: string | null;
+    current: number;
+  }>({ open: false, productId: null, current: 0 });
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -98,14 +108,25 @@ export function SupplierProductList() {
       const queryParams = new URLSearchParams();
       queryParams.append("page", pagination.page.toString());
       queryParams.append("limit", pagination.limit.toString());
-      
+
       if (filters.search) queryParams.append("search", filters.search);
       if (filters.status) queryParams.append("status", filters.status);
       if (filters.category) queryParams.append("category", filters.category);
       if (filters.sortBy) queryParams.append("sortBy", filters.sortBy);
+      if (filters.lowStock) queryParams.append("lowStock", "true");
+      if (filters.lowStockThreshold && filters.lowStock)
+        queryParams.append(
+          "lowStockThreshold",
+          String(filters.lowStockThreshold)
+        );
+      if (filters.minPrice !== undefined)
+        queryParams.append("minPrice", String(filters.minPrice));
+      if (filters.maxPrice !== undefined)
+        queryParams.append("maxPrice", String(filters.maxPrice));
+      if (filters.tags) queryParams.append("tags", String(filters.tags));
 
       const response = await fetch(`/api/supplier/products?${queryParams}`);
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch products");
       }
@@ -129,9 +150,12 @@ export function SupplierProductList() {
     if (!deleteDialog.productId) return;
 
     try {
-      const response = await fetch(`/api/supplier/products/${deleteDialog.productId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/supplier/products/${deleteDialog.productId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete product");
@@ -147,13 +171,17 @@ export function SupplierProductList() {
     } catch (err) {
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : "Failed to delete product",
+        description:
+          err instanceof Error ? err.message : "Failed to delete product",
         variant: "destructive",
       });
     }
   };
 
-  const handleStatusToggle = async (productId: string, currentStatus: boolean) => {
+  const handleStatusToggle = async (
+    productId: string,
+    currentStatus: boolean
+  ) => {
     try {
       const response = await fetch(`/api/supplier/products/${productId}`, {
         method: "PATCH",
@@ -176,7 +204,8 @@ export function SupplierProductList() {
     } catch (err) {
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : "Failed to update status",
+        description:
+          err instanceof Error ? err.message : "Failed to update status",
         variant: "destructive",
       });
     }
@@ -184,9 +213,19 @@ export function SupplierProductList() {
 
   const getStatusBadge = (isActive: boolean) => {
     if (isActive) {
-      return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Active</Badge>;
+      return (
+        <Badge variant="default" className="bg-green-100 text-green-800">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Active
+        </Badge>
+      );
     }
-    return <Badge variant="secondary" className="bg-gray-100 text-gray-600"><XCircle className="w-3 h-3 mr-1" />Inactive</Badge>;
+    return (
+      <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+        <XCircle className="w-3 h-3 mr-1" />
+        Inactive
+      </Badge>
+    );
   };
 
   if (error) {
@@ -215,6 +254,32 @@ export function SupplierProductList() {
               Bulk Upload
             </Link>
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const params = new URLSearchParams();
+              params.append("page", pagination.page.toString());
+              params.append("limit", pagination.limit.toString());
+              if (filters.search) params.append("search", filters.search);
+              if (filters.status) params.append("status", filters.status);
+              if (filters.category) params.append("category", filters.category);
+              if (filters.sortBy) params.append("sortBy", filters.sortBy);
+              if (filters.lowStock) params.append("lowStock", "true");
+              if (filters.lowStockThreshold && filters.lowStock)
+                params.append(
+                  "lowStockThreshold",
+                  String(filters.lowStockThreshold)
+                );
+              if (filters.minPrice !== undefined)
+                params.append("minPrice", String(filters.minPrice));
+              if (filters.maxPrice !== undefined)
+                params.append("maxPrice", String(filters.maxPrice));
+              if (filters.tags) params.append("tags", String(filters.tags));
+              window.location.href = `/api/supplier/products/export?${params.toString()}`;
+            }}
+          >
+            Export CSV
+          </Button>
           <Button asChild>
             <Link href="/supplier/products/new">
               <Plus className="w-4 h-4 mr-2" />
@@ -233,19 +298,23 @@ export function SupplierProductList() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search products..."
                 value={filters.search || ""}
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                onChange={e =>
+                  setFilters(prev => ({ ...prev, search: e.target.value }))
+                }
                 className="pl-10"
               />
             </div>
             <Select
               value={filters.status || ""}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
+              onValueChange={value =>
+                setFilters(prev => ({ ...prev, status: value }))
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
@@ -258,7 +327,9 @@ export function SupplierProductList() {
             </Select>
             <Select
               value={filters.sortBy || ""}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value }))}
+              onValueChange={value =>
+                setFilters(prev => ({ ...prev, sortBy: value }))
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sort by" />
@@ -272,6 +343,72 @@ export function SupplierProductList() {
                 <SelectItem value="price-desc">Price High-Low</SelectItem>
               </SelectContent>
             </Select>
+            <div className="flex items-center space-x-2">
+              <label className="text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  className="mr-2"
+                  checked={!!filters.lowStock}
+                  onChange={e =>
+                    setFilters(prev => ({
+                      ...prev,
+                      lowStock: e.target.checked,
+                    }))
+                  }
+                />
+                Low stock
+              </label>
+              <Input
+                type="number"
+                min={0}
+                value={filters.lowStockThreshold ?? 5}
+                onChange={e =>
+                  setFilters(prev => ({
+                    ...prev,
+                    lowStockThreshold: Number(e.target.value),
+                  }))
+                }
+                className="w-24"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Input
+                type="number"
+                placeholder="Min €"
+                value={filters.minPrice ?? ""}
+                onChange={e =>
+                  setFilters(prev => ({
+                    ...prev,
+                    minPrice: e.target.value
+                      ? Number(e.target.value)
+                      : undefined,
+                  }))
+                }
+                className="w-24"
+              />
+              <span className="text-muted-foreground">-</span>
+              <Input
+                type="number"
+                placeholder="Max €"
+                value={filters.maxPrice ?? ""}
+                onChange={e =>
+                  setFilters(prev => ({
+                    ...prev,
+                    maxPrice: e.target.value
+                      ? Number(e.target.value)
+                      : undefined,
+                  }))
+                }
+                className="w-24"
+              />
+            </div>
+            <Input
+              placeholder="Tags (comma separated)"
+              value={filters.tags || ""}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, tags: e.target.value }))
+              }
+            />
             <Button
               variant="outline"
               onClick={() => setFilters({})}
@@ -335,7 +472,7 @@ export function SupplierProductList() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {products.map((product) => (
+                  {products.map(product => (
                     <TableRow key={product.id}>
                       <TableCell>
                         <div className="flex items-center space-x-3">
@@ -375,21 +512,37 @@ export function SupplierProductList() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <span className="font-medium">{product.stockQuantity}</span>
-                          {product.stockQuantity <= (product.reorderPoint || 5) && (
+                          <span className="font-medium">
+                            {product.stockQuantity}
+                          </span>
+                          {product.stockQuantity <=
+                            (product.reorderPoint || 5) && (
                             <Badge variant="destructive" className="text-xs">
                               Low Stock
                             </Badge>
                           )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setStockDialog({
+                                open: true,
+                                productId: product.id,
+                                current: product.stockQuantity,
+                              })
+                            }
+                          >
+                            Adjust
+                          </Button>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        {getStatusBadge(product.isActive)}
-                      </TableCell>
+                      <TableCell>{getStatusBadge(product.isActive)}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-1">
                           <TrendingUp className="w-4 h-4 text-green-600" />
-                          <span className="font-medium">{product.totalSold}</span>
+                          <span className="font-medium">
+                            {product.totalSold}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
@@ -407,13 +560,17 @@ export function SupplierProductList() {
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link href={`/supplier/products/${product.id}/edit`}>
+                              <Link
+                                href={`/supplier/products/${product.id}/edit`}
+                              >
                                 <Edit className="w-4 h-4 mr-2" />
                                 Edit
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleStatusToggle(product.id, product.isActive)}
+                              onClick={() =>
+                                handleStatusToggle(product.id, product.isActive)
+                              }
                             >
                               {product.isActive ? (
                                 <>
@@ -428,11 +585,13 @@ export function SupplierProductList() {
                               )}
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => setDeleteDialog({
-                                open: true,
-                                productId: product.id,
-                                productName: product.name,
-                              })}
+                              onClick={() =>
+                                setDeleteDialog({
+                                  open: true,
+                                  productId: product.id,
+                                  productName: product.name,
+                                })
+                              }
                               className="text-red-600"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
@@ -450,15 +609,23 @@ export function SupplierProductList() {
               {pagination.pages > 1 && (
                 <div className="flex items-center justify-between space-x-2 py-4">
                   <div className="text-sm text-muted-foreground">
-                    Showing {((pagination.page - 1) * pagination.limit) + 1} to{" "}
-                    {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-                    {pagination.total} products
+                    Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+                    {Math.min(
+                      pagination.page * pagination.limit,
+                      pagination.total
+                    )}{" "}
+                    of {pagination.total} products
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                      onClick={() =>
+                        setPagination(prev => ({
+                          ...prev,
+                          page: prev.page - 1,
+                        }))
+                      }
                       disabled={pagination.page === 1}
                     >
                       Previous
@@ -469,7 +636,12 @@ export function SupplierProductList() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                      onClick={() =>
+                        setPagination(prev => ({
+                          ...prev,
+                          page: prev.page + 1,
+                        }))
+                      }
                       disabled={pagination.page === pagination.pages}
                     >
                       Next
@@ -483,26 +655,106 @@ export function SupplierProductList() {
       </Card>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}>
+      <Dialog
+        open={deleteDialog.open}
+        onOpenChange={open => setDeleteDialog(prev => ({ ...prev, open }))}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Product</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{deleteDialog.productName}"? This action cannot be undone.
+              Are you sure you want to delete "{deleteDialog.productName}"? This
+              action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setDeleteDialog({ open: false, productId: null, productName: "" })}
+              onClick={() =>
+                setDeleteDialog({
+                  open: false,
+                  productId: null,
+                  productName: "",
+                })
+              }
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete Product
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Stock Adjust Dialog */}
+      <Dialog
+        open={stockDialog.open}
+        onOpenChange={open => setStockDialog(prev => ({ ...prev, open }))}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adjust Stock</DialogTitle>
+            <DialogDescription>
+              Update the available stock quantity for this product.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <Input
+              type="number"
+              min={0}
+              value={stockDialog.current}
+              onChange={e =>
+                setStockDialog(prev => ({
+                  ...prev,
+                  current: Number(e.target.value),
+                }))
+              }
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setStockDialog({ open: false, productId: null, current: 0 })
+              }
             >
               Cancel
             </Button>
             <Button
-              variant="destructive"
-              onClick={handleDelete}
+              onClick={async () => {
+                if (!stockDialog.productId) return;
+                try {
+                  const res = await fetch(
+                    `/api/supplier/products/${stockDialog.productId}`,
+                    {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        stockQuantity: stockDialog.current,
+                      }),
+                    }
+                  );
+                  if (!res.ok) throw new Error("Failed to update stock");
+                  setStockDialog({ open: false, productId: null, current: 0 });
+                  fetchProducts();
+                  toast({
+                    title: "Stock updated",
+                    description: "Inventory updated successfully.",
+                  });
+                } catch (err) {
+                  toast({
+                    title: "Error",
+                    description:
+                      err instanceof Error
+                        ? err.message
+                        : "Failed to update stock",
+                    variant: "destructive",
+                  });
+                }
+              }}
             >
-              Delete Product
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>
