@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withSupplierAuth } from "@/lib/authorization";
-import { getCurrentSupplier } from "@/lib/supplier-auth";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
-export const GET = withSupplierAuth(async (request: NextRequest, session) => {
+export async function GET(request: NextRequest) {
   try {
-    const supplier = await getCurrentSupplier(session);
-    
+    const session = await auth();
+    if (!session?.user || session.user.role !== "SUPPLIER") {
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+    }
+
+    const supplier = await db.supplier.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+
     if (!supplier) {
       return NextResponse.json(
         { error: "Supplier profile not found" },
@@ -27,26 +34,26 @@ export const GET = withSupplierAuth(async (request: NextRequest, session) => {
 
     // Build where clause
     const where: any = { supplierId: supplier.id };
-    
+
     if (status && status !== "ALL") {
       where.status = status;
     }
-    
+
     if (search) {
       where.OR = [
         {
           order: {
-            orderNumber: { contains: search, mode: "insensitive" }
-          }
+            orderNumber: { contains: search, mode: "insensitive" },
+          },
         },
         {
           product: {
-            name: { contains: search, mode: "insensitive" }
-          }
-        }
+            name: { contains: search, mode: "insensitive" },
+          },
+        },
       ];
     }
-    
+
     if (period && period !== "ALL") {
       const days = parseInt(period);
       const date = new Date();
@@ -84,7 +91,7 @@ export const GET = withSupplierAuth(async (request: NextRequest, session) => {
               select: {
                 name: true,
                 email: true,
-              }
+              },
             },
             shippingAddress: {
               select: {
@@ -95,17 +102,17 @@ export const GET = withSupplierAuth(async (request: NextRequest, session) => {
                 postalCode: true,
                 country: true,
                 phone: true,
-              }
-            }
-          }
+              },
+            },
+          },
         },
         product: {
           select: {
             name: true,
             images: true,
             sku: true,
-          }
-        }
+          },
+        },
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -135,4 +142,4 @@ export const GET = withSupplierAuth(async (request: NextRequest, session) => {
       { status: 500 }
     );
   }
-});
+}
