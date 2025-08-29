@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { hash } from "bcryptjs";
-import { sendEmail } from "@/lib/email";
+import { sendMail } from "@/lib/brevo";
 
 // Validation schema for supplier application
 const supplierApplicationSchema = z.object({
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation email to applicant
     try {
-      await sendEmail({
+      await sendMail({
         to: validatedData.contactPersonEmail,
         subject: "TechTots Supplier Application Received",
         html: `
@@ -161,6 +161,7 @@ export async function POST(request: NextRequest) {
           <p>Best regards,<br>The TechTots Team</p>
         `
       });
+      console.log('✅ Confirmation email sent to applicant:', validatedData.contactPersonEmail);
     } catch (emailError) {
       console.error('Failed to send confirmation email:', emailError);
       // Don't fail the application if email fails
@@ -168,8 +169,9 @@ export async function POST(request: NextRequest) {
 
     // Send notification to admin
     try {
-      await sendEmail({
-        to: process.env.ADMIN_EMAIL || "admin@techtots.ro",
+      const adminEmail = process.env.ADMIN_EMAIL || "admin@techtots.ro";
+      await sendMail({
+        to: adminEmail,
         subject: "New Supplier Application Received",
         html: `
           <h2>New Supplier Application</h2>
@@ -184,6 +186,7 @@ export async function POST(request: NextRequest) {
           <p>Please review the application in the admin dashboard.</p>
         `
       });
+      console.log('✅ Admin notification email sent to:', adminEmail);
     } catch (emailError) {
       console.error('Failed to send admin notification:', emailError);
     }
