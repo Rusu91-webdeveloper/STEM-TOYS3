@@ -191,62 +191,92 @@ export function SupplierBulkUpload() {
   };
 
   const parseProducts = (data: any[]): ProductRow[] => {
-    return data.map((row, index) => ({
-      name: row.name || row.Name || row.NAME || "",
-      description: row.description || row.Description || row.DESCRIPTION || "",
-      price: parseFloat(row.price || row.Price || row.PRICE || "0"),
-      compareAtPrice:
-        row.compareAtPrice || row["Compare At Price"] || row["compare_at_price"]
-          ? parseFloat(
-              row.compareAtPrice ||
-                row["Compare At Price"] ||
-                row["compare_at_price"] ||
-                "0"
-            )
-          : undefined,
-      sku: row.sku || row.SKU || row.Sku || "",
-      stockQuantity: parseInt(
-        row.stockQuantity ||
-          row["Stock Quantity"] ||
-          row["stock_quantity"] ||
-          row.quantity ||
-          "0"
-      ),
-      reorderPoint:
-        row.reorderPoint || row["Reorder Point"] || row["reorder_point"]
-          ? parseInt(
-              row.reorderPoint ||
-                row["Reorder Point"] ||
-                row["reorder_point"] ||
-                "0"
-            )
-          : undefined,
-      weight:
-        row.weight || row.Weight || row.WEIGHT
-          ? parseFloat(row.weight || row.Weight || row.WEIGHT || "0")
-          : undefined,
-      category: row.category || row.Category || row.CATEGORY || "",
-      tags: row.tags || row.Tags || row.TAGS || "",
-      ageGroup: row.ageGroup || row["Age Group"] || row["age_group"] || "",
-      stemDiscipline:
-        row.stemDiscipline ||
-        row["STEM Discipline"] ||
-        row["stem_discipline"] ||
-        "",
-      productType:
-        row.productType || row["Product Type"] || row["product_type"] || "",
-      learningOutcomes:
-        row.learningOutcomes ||
-        row["Learning Outcomes"] ||
-        row["learning_outcomes"] ||
-        "",
-      specialCategories:
-        row.specialCategories ||
-        row["Special Categories"] ||
-        row["special_categories"] ||
-        "",
-      images: row.images || row.Images || row.IMAGES || "",
-    }));
+    return data.map((row, index) => {
+      // Helper function to safely parse numbers
+      const safeParseInt = (value: any, defaultValue: number = 0): number => {
+        if (value === null || value === undefined || value === "")
+          return defaultValue;
+        const parsed = parseInt(String(value).replace(/[^\d.-]/g, ""));
+        return isNaN(parsed) ? defaultValue : parsed;
+      };
+
+      const safeParseFloat = (value: any, defaultValue: number = 0): number => {
+        if (value === null || value === undefined || value === "")
+          return defaultValue;
+        const parsed = parseFloat(String(value).replace(/[^\d.-]/g, ""));
+        return isNaN(parsed) ? defaultValue : parsed;
+      };
+
+      return {
+        name: row.name || row.Name || row.NAME || "",
+        description:
+          row.description || row.Description || row.DESCRIPTION || "",
+        price: safeParseFloat(row.price || row.Price || row.PRICE || "0"),
+        compareAtPrice:
+          row.compareAtPrice ||
+          row["Compare At Price"] ||
+          row["compare_at_price"]
+            ? safeParseFloat(
+                row.compareAtPrice ||
+                  row["Compare At Price"] ||
+                  row["compare_at_price"] ||
+                  "0"
+              )
+            : undefined,
+        sku: row.sku || row.SKU || row.Sku || "",
+        stockQuantity: safeParseInt(
+          row.stockQuantity ||
+            row["Stock Quantity"] ||
+            row["stock_quantity"] ||
+            row.quantity ||
+            "0"
+        ),
+        reorderPoint:
+          row.reorderPoint || row["Reorder Point"] || row["reorder_point"]
+            ? safeParseInt(
+                row.reorderPoint ||
+                  row["Reorder Point"] ||
+                  row["reorder_point"] ||
+                  "0"
+              )
+            : undefined,
+        weight:
+          row.weight || row.Weight || row.WEIGHT
+            ? safeParseFloat(row.weight || row.Weight || row.WEIGHT || "0")
+            : undefined,
+        category: row.category || row.Category || row.CATEGORY || "",
+        tags: row.tags || row.Tags || row.TAGS || "",
+        ageGroup: (
+          row.ageGroup ||
+          row["Age Group"] ||
+          row["age_group"] ||
+          ""
+        ).toUpperCase(),
+        stemDiscipline: (
+          row.stemDiscipline ||
+          row["STEM Discipline"] ||
+          row["stem_discipline"] ||
+          ""
+        ).toUpperCase(),
+        productType: (
+          row.productType ||
+          row["Product Type"] ||
+          row["product_type"] ||
+          ""
+        ).toUpperCase(),
+        learningOutcomes:
+          row.learningOutcomes ||
+          row["Learning Outcomes"] ||
+          row["learning_outcomes"] ||
+          "",
+        specialCategories:
+          row.specialCategories ||
+          row["Special Categories"] ||
+          row["special_categories"] ||
+          "",
+        images: row.images || row.Images || row.IMAGES || "",
+      };
+    });
   };
 
   const validateProducts = (products: ProductRow[]): ValidationError[] => {
@@ -331,6 +361,7 @@ export function SupplierBulkUpload() {
       ];
       if (
         product.ageGroup &&
+        product.ageGroup.trim() !== "" &&
         !validAgeGroups.includes(product.ageGroup.toUpperCase())
       ) {
         errors.push({
@@ -349,6 +380,7 @@ export function SupplierBulkUpload() {
       ];
       if (
         product.stemDiscipline &&
+        product.stemDiscipline.trim() !== "" &&
         !validStemDisciplines.includes(product.stemDiscipline.toUpperCase())
       ) {
         errors.push({
@@ -367,6 +399,7 @@ export function SupplierBulkUpload() {
       ];
       if (
         product.productType &&
+        product.productType.trim() !== "" &&
         !validProductTypes.includes(product.productType.toUpperCase())
       ) {
         errors.push({
@@ -727,8 +760,14 @@ export function SupplierBulkUpload() {
                     return (
                       <tr key={index} className="border-b">
                         <td className="p-2 font-medium">{product.name}</td>
-                        <td className="p-2">€{product.price}</td>
-                        <td className="p-2">{product.stockQuantity}</td>
+                        <td className="p-2">
+                          €{isNaN(product.price) ? 0 : product.price}
+                        </td>
+                        <td className="p-2">
+                          {isNaN(product.stockQuantity)
+                            ? 0
+                            : product.stockQuantity}
+                        </td>
                         <td className="p-2">{product.category}</td>
                         <td className="p-2">
                           {hasErrors ? (
