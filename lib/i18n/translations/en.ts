@@ -9,6 +9,7 @@ export const en = {
   become_supplier: "Become a Supplier",
   account: "Account",
   admin: "Admin",
+  supplier: "Supplier",
   login: "Log in",
   register: "Register",
   logout: "Log out",

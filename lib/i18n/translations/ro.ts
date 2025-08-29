@@ -11,6 +11,7 @@ export const ro = {
   become_supplier: "Devino Furnizor",
   account: "Cont",
   admin: "Admin",
+  supplier: "Furnizor",
   login: "Autentificare",
   register: "Înregistrare",
   logout: "Deconectare",

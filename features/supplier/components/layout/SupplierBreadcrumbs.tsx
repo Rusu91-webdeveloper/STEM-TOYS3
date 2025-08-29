@@ -80,7 +80,7 @@ export function SupplierBreadcrumbs() {
         const isLast = index === breadcrumbs.length - 1;
 
         return (
-          <div key={breadcrumb.href} className="flex items-center">
+          <div key={`${breadcrumb.href}-${index}`} className="flex items-center">
             {index > 0 && (
               <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
             )}
