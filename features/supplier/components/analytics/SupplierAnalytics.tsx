@@ -140,7 +140,7 @@ export function SupplierAnalytics() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `supplier-analytics-${timeRange}-${new Date().toISOString().split('T')[0]}.pdf`;
+      a.download = `supplier-analytics-${timeRange}-${new Date().toISOString().split("T")[0]}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -197,7 +197,10 @@ export function SupplierAnalytics() {
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="flex items-center gap-4">
-          <Select value={timeRange} onValueChange={(value: TimeRange) => setTimeRange(value)}>
+          <Select
+            value={timeRange}
+            onValueChange={(value: TimeRange) => setTimeRange(value)}
+          >
             <SelectTrigger className="w-32 bg-white/80 backdrop-blur-sm border-gray-200">
               <Calendar className="w-4 h-4 mr-2" />
               <SelectValue />
@@ -210,8 +213,8 @@ export function SupplierAnalytics() {
             </SelectContent>
           </Select>
         </div>
-        
-        <Button 
+
+        <Button
           onClick={exportReport}
           className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
         >
@@ -221,28 +224,32 @@ export function SupplierAnalytics() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm border border-gray-200 p-1 rounded-xl">
-          <TabsTrigger 
-            value="overview" 
+          <TabsTrigger
+            value="overview"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-200"
           >
             Overview
           </TabsTrigger>
-          <TabsTrigger 
-            value="performance" 
+          <TabsTrigger
+            value="performance"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white rounded-lg transition-all duration-200"
           >
             Performance
           </TabsTrigger>
-          <TabsTrigger 
-            value="customers" 
+          <TabsTrigger
+            value="customers"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-600 data-[state=active]:text-white rounded-lg transition-all duration-200"
           >
             Customers
           </TabsTrigger>
-          <TabsTrigger 
-            value="products" 
+          <TabsTrigger
+            value="products"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-600 data-[state=active]:text-white rounded-lg transition-all duration-200"
           >
             Products
@@ -255,13 +262,17 @@ export function SupplierAnalytics() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-semibold text-gray-700">Total Revenue</CardTitle>
+                <CardTitle className="text-sm font-semibold text-gray-700">
+                  Total Revenue
+                </CardTitle>
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
                   <DollarSign className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-gray-900 mb-1">€{stats.totalRevenue.toLocaleString()}</div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">
+                  €{stats.totalRevenue.toLocaleString()}
+                </div>
                 <p className="text-sm text-green-600 font-medium flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
                   +15% vs last period
@@ -271,13 +282,17 @@ export function SupplierAnalytics() {
 
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-semibold text-gray-700">Total Orders</CardTitle>
+                <CardTitle className="text-sm font-semibold text-gray-700">
+                  Total Orders
+                </CardTitle>
                 <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
                   <ShoppingCart className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-gray-900 mb-1">{stats.totalOrders}</div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">
+                  {stats.totalOrders}
+                </div>
                 <p className="text-sm text-green-600 font-medium flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
                   +8% vs last period
@@ -287,13 +302,17 @@ export function SupplierAnalytics() {
 
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-purple-50 to-violet-50 hover:from-purple-100 hover:to-violet-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-semibold text-gray-700">Commission Earned</CardTitle>
+                <CardTitle className="text-sm font-semibold text-gray-700">
+                  Commission Earned
+                </CardTitle>
                 <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
                   <Target className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-gray-900 mb-1">€{stats.commissionEarned.toLocaleString()}</div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">
+                  €{stats.commissionEarned.toLocaleString()}
+                </div>
                 <p className="text-sm text-green-600 font-medium flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
                   +12% vs last period
@@ -303,13 +322,17 @@ export function SupplierAnalytics() {
 
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-semibold text-gray-700">Active Products</CardTitle>
+                <CardTitle className="text-sm font-semibold text-gray-700">
+                  Active Products
+                </CardTitle>
                 <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
                   <Package className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-gray-900 mb-1">{stats.activeProducts}</div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">
+                  {stats.activeProducts}
+                </div>
                 <p className="text-sm text-gray-600 font-medium">
                   of {stats.totalProducts} total
                 </p>
@@ -327,8 +350,12 @@ export function SupplierAnalytics() {
                       <Activity className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg font-bold text-gray-900">Conversion Rate</CardTitle>
-                      <CardDescription className="text-gray-600">Visitor to customer ratio</CardDescription>
+                      <CardTitle className="text-lg font-bold text-gray-900">
+                        Conversion Rate
+                      </CardTitle>
+                      <CardDescription className="text-gray-600">
+                        Visitor to customer ratio
+                      </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -337,9 +364,11 @@ export function SupplierAnalytics() {
                     {stats.performanceMetrics.conversionRate.toFixed(1)}%
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${stats.performanceMetrics.conversionRate}%` }}
+                      style={{
+                        width: `${stats.performanceMetrics.conversionRate}%`,
+                      }}
                     ></div>
                   </div>
                 </CardContent>
@@ -352,8 +381,12 @@ export function SupplierAnalytics() {
                       <DollarSign className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg font-bold text-gray-900">Average Order Value</CardTitle>
-                      <CardDescription className="text-gray-600">Revenue per order</CardDescription>
+                      <CardTitle className="text-lg font-bold text-gray-900">
+                        Average Order Value
+                      </CardTitle>
+                      <CardDescription className="text-gray-600">
+                        Revenue per order
+                      </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -372,8 +405,12 @@ export function SupplierAnalytics() {
                       <Users className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg font-bold text-gray-900">Customer Retention</CardTitle>
-                      <CardDescription className="text-gray-600">Returning customers</CardDescription>
+                      <CardTitle className="text-lg font-bold text-gray-900">
+                        Customer Retention
+                      </CardTitle>
+                      <CardDescription className="text-gray-600">
+                        Returning customers
+                      </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -382,9 +419,11 @@ export function SupplierAnalytics() {
                     {stats.performanceMetrics.customerRetentionRate.toFixed(1)}%
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-gradient-to-r from-purple-500 to-violet-600 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${stats.performanceMetrics.customerRetentionRate}%` }}
+                      style={{
+                        width: `${stats.performanceMetrics.customerRetentionRate}%`,
+                      }}
                     ></div>
                   </div>
                 </CardContent>
@@ -400,7 +439,9 @@ export function SupplierAnalytics() {
                   <TrendingUp className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold text-gray-900">Revenue Trend</CardTitle>
+                  <CardTitle className="text-xl font-bold text-gray-900">
+                    Revenue Trend
+                  </CardTitle>
                   <CardDescription className="text-gray-600">
                     Monthly revenue over time
                   </CardDescription>
@@ -412,7 +453,9 @@ export function SupplierAnalytics() {
                 <div className="text-center">
                   <BarChart3 className="w-12 h-12 text-blue-400 mx-auto mb-4" />
                   <p className="text-gray-600 font-medium">Revenue Chart</p>
-                  <p className="text-sm text-gray-500">Interactive chart coming soon</p>
+                  <p className="text-sm text-gray-500">
+                    Interactive chart coming soon
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -428,7 +471,9 @@ export function SupplierAnalytics() {
                   <Zap className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold text-gray-900">Performance Metrics</CardTitle>
+                  <CardTitle className="text-xl font-bold text-gray-900">
+                    Performance Metrics
+                  </CardTitle>
                   <CardDescription className="text-gray-600">
                     Detailed performance analysis
                   </CardDescription>
@@ -439,8 +484,12 @@ export function SupplierAnalytics() {
               <div className="h-64 flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-dashed border-green-200">
                 <div className="text-center">
                   <Activity className="w-12 h-12 text-green-400 mx-auto mb-4" />
-                  <p className="text-gray-600 font-medium">Performance Dashboard</p>
-                  <p className="text-sm text-gray-500">Advanced metrics coming soon</p>
+                  <p className="text-gray-600 font-medium">
+                    Performance Dashboard
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Advanced metrics coming soon
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -456,7 +505,9 @@ export function SupplierAnalytics() {
                   <Globe className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold text-gray-900">Customer Insights</CardTitle>
+                  <CardTitle className="text-xl font-bold text-gray-900">
+                    Customer Insights
+                  </CardTitle>
                   <CardDescription className="text-gray-600">
                     Customer behavior and segmentation
                   </CardDescription>
@@ -467,8 +518,12 @@ export function SupplierAnalytics() {
               <div className="h-64 flex items-center justify-center bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border-2 border-dashed border-purple-200">
                 <div className="text-center">
                   <Users className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                  <p className="text-gray-600 font-medium">Customer Analytics</p>
-                  <p className="text-sm text-gray-500">Customer insights coming soon</p>
+                  <p className="text-gray-600 font-medium">
+                    Customer Analytics
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Customer insights coming soon
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -484,7 +539,9 @@ export function SupplierAnalytics() {
                   <Award className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold text-gray-900">Product Performance</CardTitle>
+                  <CardTitle className="text-xl font-bold text-gray-900">
+                    Product Performance
+                  </CardTitle>
                   <CardDescription className="text-gray-600">
                     Top performing products and categories
                   </CardDescription>
@@ -496,7 +553,9 @@ export function SupplierAnalytics() {
                 <div className="text-center">
                   <Package className="w-12 h-12 text-orange-400 mx-auto mb-4" />
                   <p className="text-gray-600 font-medium">Product Analytics</p>
-                  <p className="text-sm text-gray-500">Product insights coming soon</p>
+                  <p className="text-sm text-gray-500">
+                    Product insights coming soon
+                  </p>
                 </div>
               </div>
             </CardContent>
