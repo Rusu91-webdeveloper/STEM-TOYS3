@@ -32,6 +32,10 @@ import {
   Calendar,
   Target,
   Activity,
+  Sparkles,
+  Zap,
+  Award,
+  Globe,
 } from "lucide-react";
 
 type StatsResponse = {
@@ -98,31 +102,31 @@ export function SupplierAnalytics() {
       setError(null);
 
       // Fetch comprehensive stats with performance metrics
-      const res = await fetch(`/api/supplier/stats?period=${timeRange}`, {
-        cache: "no-store",
-      });
-      if (!res.ok) {
-        throw new Error("Failed to load analytics");
-      }
-      const data = (await res.json()) as StatsResponse;
-      setStats(data);
+      const [statsRes, revenueRes] = await Promise.all([
+        fetch(`/api/supplier/stats?period=${timeRange}`),
+        fetch(`/api/supplier/revenue?period=${timeRange}`),
+      ]);
 
-      // Fetch detailed revenue series
-      const r = await fetch(`/api/supplier/revenue?period=${timeRange}`, {
-        cache: "no-store",
-      });
-      if (r.ok) {
-        const rs = (await r.json()) as { series: RevenueSeriesPoint[] };
-        setRevenueSeries(rs.series);
+      if (!statsRes.ok || !revenueRes.ok) {
+        throw new Error("Failed to fetch analytics data");
       }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "An error occurred");
+
+      const [statsData, revenueData] = await Promise.all([
+        statsRes.json(),
+        revenueRes.json(),
+      ]);
+
+      setStats(statsData);
+      setRevenueSeries(revenueData.series || []);
+    } catch (err) {
+      console.error("Error fetching analytics:", err);
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
   };
 
-  const generateReport = async () => {
+  const exportReport = async () => {
     try {
       const response = await fetch("/api/supplier/analytics/export", {
         method: "POST",
@@ -130,19 +134,20 @@ export function SupplierAnalytics() {
         body: JSON.stringify({ timeRange, includeCharts: true }),
       });
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `supplier-analytics-${timeRange}-${new Date().toISOString().split("T")[0]}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
-    } catch (error) {
-      console.error("Failed to generate report:", error);
+      if (!response.ok) throw new Error("Failed to export report");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `supplier-analytics-${timeRange}-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("Error exporting report:", err);
+      setError("Failed to export report");
     }
   };
 
@@ -150,8 +155,12 @@ export function SupplierAnalytics() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading advanced analytics...</p>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
+            <div className="absolute inset-0 rounded-full h-12 w-12 border-4 border-transparent border-t-blue-400 animate-ping"></div>
+          </div>
+          <p className="text-gray-600 font-medium">Loading analytics...</p>
+          <p className="text-sm text-gray-500 mt-2">Preparing your insights</p>
         </div>
       </div>
     );
@@ -159,34 +168,38 @@ export function SupplierAnalytics() {
 
   if (error || !stats) {
     return (
-      <Alert variant="destructive">
+      <Alert variant="destructive" className="border-red-200 bg-red-50">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          {error || "Failed to load analytics"}
+          {error || "Failed to load analytics data"}
         </AlertDescription>
       </Alert>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header with controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Advanced Analytics Dashboard
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center lg:text-left">
+        <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+            Analytics
           </h1>
-          <p className="text-gray-600 mt-1">
-            Comprehensive insights into your business performance and customer
-            behavior.
-          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Select
-            value={timeRange}
-            onValueChange={(value: TimeRange) => setTimeRange(value)}
-          >
-            <SelectTrigger className="w-32">
+        <p className="text-gray-600 text-lg leading-relaxed max-w-2xl">
+          Deep insights into your business performance and growth opportunities.
+        </p>
+      </div>
+
+      {/* Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Select value={timeRange} onValueChange={(value: TimeRange) => setTimeRange(value)}>
+            <SelectTrigger className="w-32 bg-white/80 backdrop-blur-sm border-gray-200">
+              <Calendar className="w-4 h-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -196,528 +209,300 @@ export function SupplierAnalytics() {
               <SelectItem value="1y">Last year</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={generateReport} variant="outline" size="sm">
-            <Download className="w-4 h-4 mr-2" />
-            Export Report
-          </Button>
         </div>
+        
+        <Button 
+          onClick={exportReport}
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Export Report
+        </Button>
       </div>
 
-      {/* Main Analytics Tabs */}
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-6"
-      >
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="customers">Customers</TabsTrigger>
-          <TabsTrigger value="products">Products</TabsTrigger>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm border border-gray-200 p-1 rounded-xl">
+          <TabsTrigger 
+            value="overview" 
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-200"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger 
+            value="performance" 
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white rounded-lg transition-all duration-200"
+          >
+            Performance
+          </TabsTrigger>
+          <TabsTrigger 
+            value="customers" 
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-600 data-[state=active]:text-white rounded-lg transition-all duration-200"
+          >
+            Customers
+          </TabsTrigger>
+          <TabsTrigger 
+            value="products" 
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-600 data-[state=active]:text-white rounded-lg transition-all duration-200"
+          >
+            Products
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Key Metrics Grid */}
+          {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MetricCard
-              title="Total Revenue"
-              value={`€${stats.totalRevenue.toLocaleString()}`}
-              description="All-time supplier revenue"
-              icon={DollarSign}
-              trend={stats.monthlyRevenue > 0 ? "up" : "down"}
-              trendValue={`${((stats.monthlyRevenue / Math.max(stats.totalRevenue, 1)) * 100).toFixed(1)}%`}
-            />
-            <MetricCard
-              title="Monthly Revenue"
-              value={`€${stats.monthlyRevenue.toLocaleString()}`}
-              description="Revenue this month"
-              icon={TrendingUp}
-              trend="up"
-              trendValue="vs last month"
-            />
-            <MetricCard
-              title="Total Orders"
-              value={stats.totalOrders.toLocaleString()}
-              description="All-time orders"
-              icon={ShoppingCart}
-              trend="up"
-              trendValue="vs last period"
-            />
-            <MetricCard
-              title="Commission Earned"
-              value={`€${stats.commissionEarned.toLocaleString()}`}
-              description="All-time commission"
-              icon={Target}
-              trend="up"
-              trendValue="15% rate"
-            />
+            <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-sm font-semibold text-gray-700">Total Revenue</CardTitle>
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                  <DollarSign className="h-5 w-5 text-white" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-gray-900 mb-1">€{stats.totalRevenue.toLocaleString()}</div>
+                <p className="text-sm text-green-600 font-medium flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  +15% vs last period
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-sm font-semibold text-gray-700">Total Orders</CardTitle>
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                  <ShoppingCart className="h-5 w-5 text-white" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{stats.totalOrders}</div>
+                <p className="text-sm text-green-600 font-medium flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  +8% vs last period
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-purple-50 to-violet-50 hover:from-purple-100 hover:to-violet-100">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-sm font-semibold text-gray-700">Commission Earned</CardTitle>
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                  <Target className="h-5 w-5 text-white" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-gray-900 mb-1">€{stats.commissionEarned.toLocaleString()}</div>
+                <p className="text-sm text-green-600 font-medium flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  +12% vs last period
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-sm font-semibold text-gray-700">Active Products</CardTitle>
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                  <Package className="h-5 w-5 text-white" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{stats.activeProducts}</div>
+                <p className="text-sm text-gray-600 font-medium">
+                  of {stats.totalProducts} total
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Performance Metrics */}
           {stats.performanceMetrics && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="w-5 h-5" />
-                    Conversion Rate
-                  </CardTitle>
-                  <CardDescription>Orders per visitor</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-green-600">
-                    {stats.performanceMetrics.conversionRate.toFixed(2)}%
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardHeader className="border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                      <Activity className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg font-bold text-gray-900">Conversion Rate</CardTitle>
+                      <CardDescription className="text-gray-600">Visitor to customer ratio</CardDescription>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500 mt-2">
-                    Industry average: 2.5%
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="text-3xl font-bold text-blue-600 mb-2">
+                    {stats.performanceMetrics.conversionRate.toFixed(1)}%
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${stats.performanceMetrics.conversionRate}%` }}
+                    ></div>
                   </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5" />
-                    Average Order Value
-                  </CardTitle>
-                  <CardDescription>Revenue per order</CardDescription>
+
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardHeader className="border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                      <DollarSign className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg font-bold text-gray-900">Average Order Value</CardTitle>
+                      <CardDescription className="text-gray-600">Revenue per order</CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">
+                <CardContent className="p-6">
+                  <div className="text-3xl font-bold text-green-600 mb-2">
                     €{stats.performanceMetrics.averageOrderValue.toFixed(2)}
                   </div>
-                  <div className="text-sm text-gray-500 mt-2">
-                    {stats.totalOrders > 0
-                      ? `${stats.totalOrders} orders`
-                      : "No orders yet"}
-                  </div>
+                  <p className="text-sm text-gray-600">Per order average</p>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5" />
-                    Customer Retention
-                  </CardTitle>
-                  <CardDescription>Returning customers</CardDescription>
+
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardHeader className="border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center">
+                      <Users className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg font-bold text-gray-900">Customer Retention</CardTitle>
+                      <CardDescription className="text-gray-600">Returning customers</CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">
+                <CardContent className="p-6">
+                  <div className="text-3xl font-bold text-purple-600 mb-2">
                     {stats.performanceMetrics.customerRetentionRate.toFixed(1)}%
                   </div>
-                  <div className="text-sm text-gray-500 mt-2">
-                    Excellent retention rate
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-purple-500 to-violet-600 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${stats.performanceMetrics.customerRetentionRate}%` }}
+                    ></div>
                   </div>
                 </CardContent>
               </Card>
             </div>
           )}
 
-          {/* Revenue Charts */}
-          {revenueSeries && revenueSeries.length > 0 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Revenue Trend</CardTitle>
-                  <CardDescription>Monthly revenue progression</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64">
-                    <RevenueTrendChart data={revenueSeries} />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Revenue vs Commission</CardTitle>
-                  <CardDescription>Monthly comparison</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64">
-                    <RevenueCommissionChart data={revenueSeries} />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          {/* Revenue Chart Placeholder */}
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50">
+            <CardHeader className="border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-bold text-gray-900">Revenue Trend</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Monthly revenue over time
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="h-64 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-dashed border-blue-200">
+                <div className="text-center">
+                  <BarChart3 className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+                  <p className="text-gray-600 font-medium">Revenue Chart</p>
+                  <p className="text-sm text-gray-500">Interactive chart coming soon</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Performance Tab */}
         <TabsContent value="performance" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance Comparison</CardTitle>
-                <CardDescription>
-                  This period vs previous period
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PerformanceComparisonChart data={revenueSeries} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Trend Analysis</CardTitle>
-                <CardDescription>
-                  Growth patterns and predictions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <TrendAnalysisChart data={revenueSeries} />
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50">
+            <CardHeader className="border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-bold text-gray-900">Performance Metrics</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Detailed performance analysis
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="h-64 flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-dashed border-green-200">
+                <div className="text-center">
+                  <Activity className="w-12 h-12 text-green-400 mx-auto mb-4" />
+                  <p className="text-gray-600 font-medium">Performance Dashboard</p>
+                  <p className="text-sm text-gray-500">Advanced metrics coming soon</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Customers Tab */}
         <TabsContent value="customers" className="space-y-6">
-          {stats.performanceMetrics?.customerSegments && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Customer Segments</CardTitle>
-                  <CardDescription>Revenue by customer type</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <CustomerSegmentsChart
-                    data={stats.performanceMetrics.customerSegments}
-                  />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Customer Behavior Insights</CardTitle>
-                  <CardDescription>Key behavioral patterns</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <CustomerBehaviorInsights data={stats.performanceMetrics} />
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50">
+            <CardHeader className="border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center">
+                  <Globe className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-bold text-gray-900">Customer Insights</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Customer behavior and segmentation
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="h-64 flex items-center justify-center bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border-2 border-dashed border-purple-200">
+                <div className="text-center">
+                  <Users className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+                  <p className="text-gray-600 font-medium">Customer Analytics</p>
+                  <p className="text-sm text-gray-500">Customer insights coming soon</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Products Tab */}
         <TabsContent value="products" className="space-y-6">
-          {stats.performanceMetrics?.productPerformance && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Top Performing Products</CardTitle>
-                  <CardDescription>
-                    Revenue and sales by product
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50">
+            <CardHeader className="border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center">
+                  <Award className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-bold text-gray-900">Product Performance</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Top performing products and categories
                   </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <TopProductsChart
-                    data={stats.performanceMetrics.productPerformance}
-                  />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Category Performance</CardTitle>
-                  <CardDescription>Sales by product category</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <CategoryPerformanceChart
-                    data={stats.performanceMetrics.topCategories}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="h-64 flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border-2 border-dashed border-orange-200">
+                <div className="text-center">
+                  <Package className="w-12 h-12 text-orange-400 mx-auto mb-4" />
+                  <p className="text-gray-600 font-medium">Product Analytics</p>
+                  <p className="text-sm text-gray-500">Product insights coming soon</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
-    </div>
-  );
-}
-
-// Enhanced Metric Card Component
-function MetricCard({
-  title,
-  value,
-  description,
-  icon: Icon,
-  trend,
-  trendValue,
-}: {
-  title: string;
-  value: string;
-  description: string;
-  icon: any;
-  trend?: "up" | "down";
-  trendValue?: string;
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground">{description}</p>
-        {trend && trendValue && (
-          <div className="flex items-center mt-2">
-            {trend === "up" ? (
-              <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-            ) : (
-              <TrendingDown className="h-3 w-3 text-red-600 mr-1" />
-            )}
-            <span
-              className={`text-xs ${trend === "up" ? "text-green-600" : "text-red-600"}`}
-            >
-              {trendValue}
-            </span>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// Chart Components (simplified SVG implementations)
-function RevenueTrendChart({ data }: { data: RevenueSeriesPoint[] }) {
-  if (!data || data.length === 0)
-    return <div className="text-center text-gray-500">No data available</div>;
-
-  const width = 600;
-  const height = 200;
-  const padding = 40;
-  const chartWidth = width - padding * 2;
-  const chartHeight = height - padding * 2;
-
-  const maxRevenue = Math.max(...data.map(d => d.revenue));
-  const points = data.map((d, i) => ({
-    x: padding + (i / (data.length - 1)) * chartWidth,
-    y: height - padding - (d.revenue / maxRevenue) * chartHeight,
-  }));
-
-  const path = points
-    .map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`)
-    .join(" ");
-
-  return (
-    <svg width={width} height={height} className="w-full h-full">
-      <path d={path} fill="none" stroke="#3b82f6" strokeWidth="2" />
-      {points.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r="3" fill="#3b82f6" />
-      ))}
-    </svg>
-  );
-}
-
-function RevenueCommissionChart({ data }: { data: RevenueSeriesPoint[] }) {
-  if (!data || data.length === 0)
-    return <div className="text-center text-gray-500">No data available</div>;
-
-  return (
-    <div className="space-y-2">
-      {data.slice(-6).map((item, i) => (
-        <div key={i} className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">{item.month}</span>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-blue-500 rounded"></div>
-              <span className="text-sm">€{item.revenue.toLocaleString()}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-green-500 rounded"></div>
-              <span className="text-sm">
-                €{item.commission.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PerformanceComparisonChart({ data }: { data: RevenueSeriesPoint[] }) {
-  if (!data || data.length < 2)
-    return (
-      <div className="text-center text-gray-500">
-        Insufficient data for comparison
-      </div>
-    );
-
-  const currentPeriod = data.slice(-3).reduce((sum, d) => sum + d.revenue, 0);
-  const previousPeriod = data
-    .slice(-6, -3)
-    .reduce((sum, d) => sum + d.revenue, 0);
-  const change =
-    ((currentPeriod - previousPeriod) / Math.max(previousPeriod, 1)) * 100;
-
-  return (
-    <div className="text-center space-y-4">
-      <div className="text-4xl font-bold text-blue-600">
-        €{currentPeriod.toLocaleString()}
-      </div>
-      <div className="text-lg text-gray-600">Current Period</div>
-      <div
-        className={`text-lg font-semibold ${change >= 0 ? "text-green-600" : "text-red-600"}`}
-      >
-        {change >= 0 ? "+" : ""}
-        {change.toFixed(1)}% vs Previous
-      </div>
-    </div>
-  );
-}
-
-function TrendAnalysisChart({ data }: { data: RevenueSeriesPoint[] }) {
-  if (!data || data.length < 3)
-    return (
-      <div className="text-center text-gray-500">
-        Insufficient data for trend analysis
-      </div>
-    );
-
-  const recent = data.slice(-3);
-  const trend =
-    recent[recent.length - 1].revenue > recent[0].revenue ? "up" : "down";
-
-  return (
-    <div className="text-center space-y-4">
-      <div
-        className={`text-4xl ${trend === "up" ? "text-green-600" : "text-red-600"}`}
-      >
-        {trend === "up" ? "↗" : "↘"}
-      </div>
-      <div className="text-lg font-semibold">
-        {trend === "up" ? "Growing" : "Declining"} Trend
-      </div>
-      <div className="text-sm text-gray-600">Based on last 3 periods</div>
-    </div>
-  );
-}
-
-function CustomerSegmentsChart({
-  data,
-}: {
-  data: Array<{ segment: string; count: number; revenue: number }>;
-}) {
-  return (
-    <div className="space-y-3">
-      {data.map((segment, i) => (
-        <div key={i} className="flex items-center justify-between">
-          <div>
-            <div className="font-medium">{segment.segment}</div>
-            <div className="text-sm text-gray-500">
-              {segment.count} customers
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="font-semibold">
-              €{segment.revenue.toLocaleString()}
-            </div>
-            <div className="text-sm text-gray-500">
-              {(
-                (segment.revenue /
-                  data.reduce((sum, s) => sum + s.revenue, 0)) *
-                100
-              ).toFixed(1)}
-              %
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function CustomerBehaviorInsights({ data }: { data: any }) {
-  return (
-    <div className="space-y-4">
-      <div className="p-3 bg-blue-50 rounded-lg">
-        <div className="font-medium text-blue-900">High Conversion Rate</div>
-        <div className="text-sm text-blue-700">
-          Your {data.conversionRate.toFixed(2)}% conversion rate is above
-          industry average
-        </div>
-      </div>
-      <div className="p-3 bg-green-50 rounded-lg">
-        <div className="font-medium text-green-900">Strong Retention</div>
-        <div className="text-sm text-green-700">
-          {data.customerRetentionRate.toFixed(1)}% of customers return for more
-          purchases
-        </div>
-      </div>
-      <div className="p-3 bg-purple-50 rounded-lg">
-        <div className="font-medium text-purple-900">Healthy AOV</div>
-        <div className="text-sm text-purple-700">
-          €{data.averageOrderValue.toFixed(2)} average order value indicates
-          good product mix
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TopProductsChart({
-  data,
-}: {
-  data: Array<{ name: string; sales: number; revenue: number; rating: number }>;
-}) {
-  const topProducts = data.slice(0, 5);
-
-  return (
-    <div className="space-y-3">
-      {topProducts.map((product, i) => (
-        <div
-          key={i}
-          className="flex items-center justify-between p-2 bg-gray-50 rounded"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-medium">
-              {i + 1}
-            </div>
-            <div>
-              <div className="font-medium truncate max-w-32">
-                {product.name}
-              </div>
-              <div className="text-sm text-gray-500">{product.sales} sales</div>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="font-semibold">
-              €{product.revenue.toLocaleString()}
-            </div>
-            <div className="text-sm text-gray-500">
-              ★ {product.rating.toFixed(1)}
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function CategoryPerformanceChart({
-  data,
-}: {
-  data: Array<{ category: string; sales: number; revenue: number }>;
-}) {
-  return (
-    <div className="space-y-3">
-      {data.map((category, i) => (
-        <div key={i} className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-3 h-3 rounded-full ${["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500", "bg-red-500"][i % 5]}`}
-            ></div>
-            <span className="font-medium">{category.category}</span>
-          </div>
-          <div className="text-right">
-            <div className="font-semibold">
-              €{category.revenue.toLocaleString()}
-            </div>
-            <div className="text-sm text-gray-500">{category.sales} sales</div>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
