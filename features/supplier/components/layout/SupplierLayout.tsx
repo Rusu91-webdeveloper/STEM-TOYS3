@@ -144,8 +144,12 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
               <div className="absolute inset-0 rounded-full h-12 w-12 border-4 border-transparent border-t-blue-400 animate-ping"></div>
             </div>
-            <p className="text-gray-600 font-medium">Loading supplier portal...</p>
-            <p className="text-sm text-gray-500 mt-2">Preparing your dashboard</p>
+            <p className="text-gray-600 font-medium">
+              Loading supplier portal...
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              Preparing your dashboard
+            </p>
           </div>
         </div>
       </div>
@@ -166,7 +170,10 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
             <p className="text-gray-600 mb-6 leading-relaxed">
               You need to be logged in as a supplier to access this portal.
             </p>
-            <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+            <Button
+              asChild
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            >
               <Link href="/supplier">Go to Supplier Portal</Link>
             </Button>
           </CardContent>
@@ -187,9 +194,11 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
           className="fixed inset-0 bg-black/50 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
-        <div className={`fixed inset-y-0 left-0 flex w-80 flex-col bg-white shadow-2xl transform transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}>
+        <div
+          className={`fixed inset-y-0 left-0 flex w-80 flex-col bg-white shadow-2xl transform transition-transform duration-300 ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
           <div className="flex h-16 items-center justify-between px-6 border-b border-gray-100">
             <div className="flex items-center">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -222,15 +231,19 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <item.icon className={`mr-3 h-5 w-5 ${
-                    isActive ? "text-white" : "text-gray-500 group-hover:text-gray-700"
-                  }`} />
+                  <item.icon
+                    className={`mr-3 h-5 w-5 ${
+                      isActive
+                        ? "text-white"
+                        : "text-gray-500 group-hover:text-gray-700"
+                    }`}
+                  />
                   {item.name}
                 </Link>
               );
             })}
           </nav>
-          
+
           {/* Supplier Info */}
           <div className="border-t border-gray-100 p-4">
             <div className="flex items-center p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl">
@@ -248,8 +261,8 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                     supplier.status === "APPROVED" ? "default" : "secondary"
                   }
                   className={`text-xs ${
-                    supplier.status === "APPROVED" 
-                      ? "bg-green-100 text-green-800 border-green-200" 
+                    supplier.status === "APPROVED"
+                      ? "bg-green-100 text-green-800 border-green-200"
                       : "bg-yellow-100 text-yellow-800 border-yellow-200"
                   }`}
                 >
@@ -285,9 +298,13 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                       : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md"
                   }`}
                 >
-                  <item.icon className={`mr-3 h-5 w-5 ${
-                    isActive ? "text-white" : "text-gray-500 group-hover:text-gray-700"
-                  }`} />
+                  <item.icon
+                    className={`mr-3 h-5 w-5 ${
+                      isActive
+                        ? "text-white"
+                        : "text-gray-500 group-hover:text-gray-700"
+                    }`}
+                  />
                   {item.name}
                 </Link>
               );
@@ -311,8 +328,8 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                     supplier.status === "APPROVED" ? "default" : "secondary"
                   }
                   className={`text-xs ${
-                    supplier.status === "APPROVED" 
-                      ? "bg-green-100 text-green-800 border-green-200" 
+                    supplier.status === "APPROVED"
+                      ? "bg-green-100 text-green-800 border-green-200"
                       : "bg-yellow-100 text-yellow-800 border-yellow-200"
                   }`}
                 >
@@ -341,7 +358,11 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
             <div className="flex flex-1"></div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
               {/* Notifications */}
-              <Button variant="ghost" size="sm" className="relative hover:bg-gray-100 rounded-full">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="relative hover:bg-gray-100 rounded-full"
+              >
                 <Bell className="w-5 h-5" />
                 <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full text-xs bg-red-500 border-2 border-white">
                   3
@@ -351,7 +372,10 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
               {/* Profile dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-x-2 hover:bg-gray-100 rounded-full">
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-x-2 hover:bg-gray-100 rounded-full"
+                  >
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
                       <User className="w-4 h-4 text-white" />
                     </div>
@@ -361,7 +385,10 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                     <ChevronDown className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-sm border-gray-200/50 shadow-xl">
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 bg-white/95 backdrop-blur-sm border-gray-200/50 shadow-xl"
+                >
                   <DropdownMenuItem asChild className="hover:bg-gray-50">
                     <Link href="/supplier/settings">
                       <Settings className="w-4 h-4 mr-2" />
@@ -374,7 +401,10 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                       Profile
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} className="hover:bg-red-50 text-red-700">
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="hover:bg-red-50 text-red-700"
+                  >
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign out
                   </DropdownMenuItem>
