@@ -6,6 +6,7 @@ export const en = {
   categories: "Categories",
   blog: "Blog",
   about: "About",
+  become_supplier: "Become a Supplier",
   account: "Account",
   admin: "Admin",
   login: "Log in",
