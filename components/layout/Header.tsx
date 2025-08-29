@@ -9,6 +9,7 @@ import {
   Heart,
   Boxes,
   LogIn,
+  Building2,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -44,6 +45,7 @@ export default function Header() {
   const isAuthenticated =
     status === "authenticated" && !!session?.user && !session.user.error;
   const isAdmin = isAuthenticated && session?.user?.role === "ADMIN";
+  const isSupplier = isAuthenticated && session?.user?.role === "SUPPLIER";
   const isLoading = status === "loading";
 
   // FIXED: Only show authenticated UI if truly authenticated
@@ -261,6 +263,16 @@ export default function Header() {
                     </Link>
                   )}
 
+                  {isSupplier && (
+                    <Link
+                      href="/supplier/dashboard"
+                      className="flex items-center gap-2 px-3 2xl:px-4 py-2 rounded-md text-sm 2xl:text-base font-medium bg-gradient-to-r from-green-500 to-teal-600 text-white hover:from-green-600 hover:to-teal-700 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg border border-transparent transform hover:scale-105"
+                    >
+                      <Building2 className="h-4 w-4 2xl:h-5 2xl:w-5" />
+                      <span>{t("supplier")}</span>
+                    </Link>
+                  )}
+
                   <Button
                     onClick={handleSignOut}
                     variant="ghost"
@@ -344,6 +356,22 @@ export default function Header() {
                       <div className="flex items-center gap-3">
                         <Settings className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6" />
                         <span>{t("admin")}</span>
+                      </div>
+                    </Link>
+                  </div>
+                )}
+
+                {/* Supplier Navigation in Mobile Menu */}
+                {isSupplier && (
+                  <div className="space-y-1 border-t border-gray-200 pt-4">
+                    <Link
+                      href="/supplier/dashboard"
+                      className="block rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium bg-gradient-to-r from-green-500 to-teal-600 text-white hover:from-green-600 hover:to-teal-700 transition-all duration-200 cursor-pointer shadow-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Building2 className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6" />
+                        <span>{t("supplier")}</span>
                       </div>
                     </Link>
                   </div>
