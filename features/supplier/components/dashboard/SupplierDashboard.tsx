@@ -27,6 +27,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { type SupplierStats, type SupplierOrder } from "@/features/supplier/types/supplier";
+import { QuickAccess } from "./QuickAccess";
 
 interface DashboardData {
   stats: SupplierStats;
@@ -226,6 +227,16 @@ export function SupplierDashboard() {
           Welcome back! Here's what's happening with your business today.
         </p>
       </div>
+
+      {/* Quick Access Component */}
+      <QuickAccess 
+        stats={{
+          pendingOrders: dashboardData.stats.pendingOrders,
+          unreadMessages: dashboardData.notifications.filter(n => !n.read).length,
+          overdueInvoices: dashboardData.stats.pendingInvoices,
+          activeProducts: dashboardData.stats.activeProducts,
+        }}
+      />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

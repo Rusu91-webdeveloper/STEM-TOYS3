@@ -19,6 +19,21 @@ import {
   MessageSquare,
   HelpCircle,
   Sparkles,
+  Plus,
+  TrendingUp,
+  DollarSign,
+  Target,
+  Users,
+  Award,
+  Globe,
+  Zap,
+  Home,
+  ExternalLink,
+  Star,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,57 +43,104 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { type Supplier } from "@/features/supplier/types/supplier";
+import { SupplierBreadcrumbs } from "./SupplierBreadcrumbs";
 
+// Enhanced navigation with categories and quick actions
 const navigation = [
   {
-    name: "Dashboard",
-    href: "/supplier/dashboard",
-    icon: BarChart3,
-    current: true,
+    category: "Overview",
+    items: [
+      {
+        name: "Dashboard",
+        href: "/supplier/dashboard",
+        icon: Home,
+        description: "Overview of your business",
+        badge: null,
+      },
+    ],
   },
   {
-    name: "Products",
-    href: "/supplier/products",
-    icon: Package,
-    current: false,
+    category: "Business Management",
+    items: [
+      {
+        name: "Products",
+        href: "/supplier/products",
+        icon: Package,
+        description: "Manage your product catalog",
+        badge: null,
+        quickActions: [
+          { name: "Add Product", href: "/supplier/products/new", icon: Plus },
+          { name: "Bulk Upload", href: "/supplier/products/bulk-upload", icon: Upload },
+        ],
+      },
+      {
+        name: "Orders",
+        href: "/supplier/orders",
+        icon: ShoppingCart,
+        description: "Track and manage orders",
+        badge: null,
+      },
+      {
+        name: "Invoices",
+        href: "/supplier/invoices",
+        icon: FileText,
+        description: "View and manage invoices",
+        badge: null,
+      },
+    ],
   },
   {
-    name: "Orders",
-    href: "/supplier/orders",
-    icon: ShoppingCart,
-    current: false,
+    category: "Analytics & Insights",
+    items: [
+      {
+        name: "Analytics",
+        href: "/supplier/analytics",
+        icon: BarChart3,
+        description: "Business performance insights",
+        badge: null,
+      },
+      {
+        name: "Revenue",
+        href: "/supplier/revenue",
+        icon: DollarSign,
+        description: "Track your earnings",
+        badge: null,
+      },
+    ],
   },
   {
-    name: "Invoices",
-    href: "/supplier/invoices",
-    icon: FileText,
-    current: false,
+    category: "Communication",
+    items: [
+      {
+        name: "Messages",
+        href: "/supplier/messages",
+        icon: MessageSquare,
+        description: "Communicate with TechTots",
+        badge: null,
+      },
+      {
+        name: "Support",
+        href: "/supplier/support",
+        icon: HelpCircle,
+        description: "Get help and support",
+        badge: null,
+      },
+    ],
   },
   {
-    name: "Analytics",
-    href: "/supplier/analytics",
-    icon: BarChart3,
-    current: false,
-  },
-  {
-    name: "Messages",
-    href: "/supplier/messages",
-    icon: MessageSquare,
-    current: false,
-  },
-  {
-    name: "Support",
-    href: "/supplier/support",
-    icon: HelpCircle,
-    current: false,
-  },
-  {
-    name: "Settings",
-    href: "/supplier/settings",
-    icon: Settings,
-    current: false,
+    category: "Account",
+    items: [
+      {
+        name: "Settings",
+        href: "/supplier/settings",
+        icon: Settings,
+        description: "Manage your account",
+        badge: null,
+      },
+    ],
   },
 ];
 
@@ -93,6 +155,17 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<{
+    unreadMessages: number;
+    pendingOrders: number;
+    overdueInvoices: number;
+    newAnnouncements: number;
+  }>({
+    unreadMessages: 0,
+    pendingOrders: 0,
+    overdueInvoices: 0,
+    newAnnouncements: 0,
+  });
   const pathname = usePathname();
 
   // Check if current route is public
@@ -102,6 +175,7 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
     // Only fetch supplier data for protected routes
     if (!isPublicRoute) {
       fetchSupplierData();
+      fetchNotifications();
     } else {
       setLoading(false);
     }
@@ -127,6 +201,64 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
       window.location.href = "/supplier";
     } catch (error) {
       console.error("Error logging out:", error);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      // Fetch various notification counts
+      const [statsRes, messagesRes] = await Promise.all([
+        fetch("/api/supplier/stats"),
+        fetch("/api/supplier/messages?unread=true"),
+      ]);
+
+      if (statsRes.ok) {
+        const stats = await statsRes.json();
+        setNotifications(prev => ({
+          ...prev,
+          pendingOrders: stats.pendingOrders || 0,
+        }));
+      }
+
+      if (messagesRes.ok) {
+        const messages = await messagesRes.json();
+        setNotifications(prev => ({
+          ...prev,
+          unreadMessages: messages.length || 0,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "APPROVED":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "REJECTED":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "SUSPENDED":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "APPROVED":
+        return CheckCircle;
+      case "PENDING":
+        return Clock;
+      case "REJECTED":
+        return AlertCircle;
+      case "SUSPENDED":
+        return AlertCircle;
+      default:
+        return Clock;
     }
   };
 
@@ -217,32 +349,74 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
               <X className="w-5 h-5" />
             </Button>
           </div>
-          <nav className="flex-1 space-y-2 px-4 py-6">
-            {navigation.map(item => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                    isActive
-                      ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg"
-                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md"
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon
-                    className={`mr-3 h-5 w-5 ${
-                      isActive
-                        ? "text-white"
-                        : "text-gray-500 group-hover:text-gray-700"
-                    }`}
-                  />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Mobile Navigation */}
+          <div className="flex-1 overflow-y-auto py-4">
+            {navigation.map((category, categoryIndex) => (
+              <div key={categoryIndex} className="px-4 mb-6">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  {category.category}
+                </h3>
+                <div className="space-y-1">
+                  {category.items.map((item) => {
+                    const isActive = pathname === item.href;
+                    const StatusIcon = getStatusIcon(supplier.status);
+                    
+                    return (
+                      <div key={item.name}>
+                        <Link
+                          href={item.href}
+                          className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                            isActive
+                              ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg"
+                              : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          }`}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <item.icon
+                            className={`mr-3 h-5 w-5 ${
+                              isActive ? "text-white" : "text-gray-500 group-hover:text-gray-700"
+                            }`}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <span>{item.name}</span>
+                              {item.badge && (
+                                <Badge className="ml-2 text-xs">
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className={`text-xs mt-0.5 ${
+                              isActive ? "text-blue-100" : "text-gray-500"
+                            }`}>
+                              {item.description}
+                            </p>
+                          </div>
+                        </Link>
+                        
+                        {/* Quick Actions */}
+                        {item.quickActions && isActive && (
+                          <div className="ml-8 mt-2 space-y-1">
+                            {item.quickActions.map((action) => (
+                              <Link
+                                key={action.name}
+                                href={action.href}
+                                className="flex items-center px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                                onClick={() => setSidebarOpen(false)}
+                              >
+                                <action.icon className="w-3 h-3 mr-2" />
+                                {action.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
 
           {/* Supplier Info */}
           <div className="border-t border-gray-100 p-4">
@@ -285,31 +459,72 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
               Supplier Portal
             </span>
           </div>
-          <nav className="flex-1 space-y-2 px-4 py-6">
-            {navigation.map(item => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                    isActive
-                      ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg"
-                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md"
-                  }`}
-                >
-                  <item.icon
-                    className={`mr-3 h-5 w-5 ${
-                      isActive
-                        ? "text-white"
-                        : "text-gray-500 group-hover:text-gray-700"
-                    }`}
-                  />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Desktop Navigation */}
+          <div className="flex-1 overflow-y-auto py-6">
+            {navigation.map((category, categoryIndex) => (
+              <div key={categoryIndex} className="px-6 mb-8">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  {category.category}
+                </h3>
+                <div className="space-y-1">
+                  {category.items.map((item) => {
+                    const isActive = pathname === item.href;
+                    const StatusIcon = getStatusIcon(supplier.status);
+                    
+                    return (
+                      <div key={item.name}>
+                        <Link
+                          href={item.href}
+                          className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                            isActive
+                              ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg"
+                              : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          }`}
+                        >
+                          <item.icon
+                            className={`mr-3 h-5 w-5 ${
+                              isActive ? "text-white" : "text-gray-500 group-hover:text-gray-700"
+                            }`}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <span>{item.name}</span>
+                              {item.badge && (
+                                <Badge className="ml-2 text-xs">
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className={`text-xs mt-0.5 ${
+                              isActive ? "text-blue-100" : "text-gray-500"
+                            }`}>
+                              {item.description}
+                            </p>
+                          </div>
+                        </Link>
+                        
+                        {/* Quick Actions */}
+                        {item.quickActions && isActive && (
+                          <div className="ml-8 mt-2 space-y-1">
+                            {item.quickActions.map((action) => (
+                              <Link
+                                key={action.name}
+                                href={action.href}
+                                className="flex items-center px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                              >
+                                <action.icon className="w-3 h-3 mr-2" />
+                                {action.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
 
           {/* Supplier Info */}
           <div className="border-t border-gray-100 p-4">
@@ -323,18 +538,17 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                 <p className="text-sm font-semibold text-gray-900 truncate">
                   {supplier.companyName}
                 </p>
-                <Badge
-                  variant={
-                    supplier.status === "APPROVED" ? "default" : "secondary"
-                  }
-                  className={`text-xs ${
-                    supplier.status === "APPROVED"
-                      ? "bg-green-100 text-green-800 border-green-200"
-                      : "bg-yellow-100 text-yellow-800 border-yellow-200"
-                  }`}
-                >
-                  {supplier.status}
-                </Badge>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge
+                    className={`text-xs ${getStatusColor(supplier.status)}`}
+                  >
+                    {(() => {
+                      const StatusIcon = getStatusIcon(supplier.status);
+                      return <StatusIcon className="w-3 h-3 mr-1" />;
+                    })()}
+                    {supplier.status}
+                  </Badge>
+                </div>
               </div>
             </div>
           </div>
@@ -357,6 +571,43 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1"></div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
+              {/* Quick Actions */}
+              <div className="hidden md:flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="hover:bg-green-50 text-green-700"
+                >
+                  <Link href="/supplier/products/new">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Product
+                  </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="hover:bg-blue-50 text-blue-700"
+                >
+                  <Link href="/supplier/orders">
+                    <ShoppingCart className="w-4 h-4 mr-1" />
+                    Orders
+                  </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="hover:bg-purple-50 text-purple-700"
+                >
+                  <Link href="/supplier/analytics">
+                    <BarChart3 className="w-4 h-4 mr-1" />
+                    Analytics
+                  </Link>
+                </Button>
+              </div>
+
               {/* Notifications */}
               <Button
                 variant="ghost"
@@ -364,9 +615,11 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                 className="relative hover:bg-gray-100 rounded-full"
               >
                 <Bell className="w-5 h-5" />
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full text-xs bg-red-500 border-2 border-white">
-                  3
-                </Badge>
+                {(notifications.unreadMessages > 0 || notifications.pendingOrders > 0) && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full text-xs bg-red-500 border-2 border-white">
+                    {notifications.unreadMessages + notifications.pendingOrders}
+                  </Badge>
+                )}
               </Button>
 
               {/* Profile dropdown */}
@@ -389,18 +642,23 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                   align="end"
                   className="w-56 bg-white/95 backdrop-blur-sm border-gray-200/50 shadow-xl"
                 >
+                  <div className="px-3 py-2 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-900">{supplier.companyName}</p>
+                    <p className="text-xs text-gray-500">{supplier.contactPersonEmail}</p>
+                  </div>
+                  <DropdownMenuItem asChild className="hover:bg-gray-50">
+                    <Link href="/supplier/dashboard">
+                      <Home className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild className="hover:bg-gray-50">
                     <Link href="/supplier/settings">
                       <Settings className="w-4 h-4 mr-2" />
                       Settings
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="hover:bg-gray-50">
-                    <Link href="/supplier/profile">
-                      <User className="w-4 h-4 mr-2" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="hover:bg-red-50 text-red-700"
@@ -417,6 +675,7 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
         {/* Page content */}
         <main className="py-8">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <SupplierBreadcrumbs />
             {children}
           </div>
         </main>
