@@ -22,12 +22,16 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { UploadButton } from "@uploadthing/react";
+import { OurFileRouter } from "@/lib/uploadthing";
 import {
   Loader2,
   Plus,
   MessageSquare,
   Send,
   AlertTriangle,
+  Paperclip,
+  X,
 } from "lucide-react";
 
 interface Ticket {
@@ -37,6 +41,12 @@ interface Ticket {
   status: string;
   priority: string;
   category: string;
+  attachments: string[];
+  attachmentDetails?: Array<{
+    url: string;
+    name: string;
+    size: number;
+  }>;
   createdAt: string;
   updatedAt: string;
 }
@@ -48,6 +58,12 @@ interface TicketDetail extends Ticket {
     content: string;
     responder: { id: string; name: string; email: string };
     createdAt: string;
+    attachments: string[];
+    attachmentDetails?: Array<{
+      url: string;
+      name: string;
+      size: number;
+    }>;
   }>;
 }
 
@@ -64,11 +80,17 @@ export function SupplierSupport() {
     category: "all",
   });
   const [creating, setCreating] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [newTicket, setNewTicket] = useState({
     subject: "",
     description: "",
     category: "SUPPORT",
     priority: "MEDIUM",
+    attachments: [] as Array<{
+      url: string;
+      name: string;
+      size: number;
+    }>,
   });
   const [reply, setReply] = useState("");
   const [replying, setReplying] = useState(false);
@@ -116,10 +138,23 @@ export function SupplierSupport() {
   const createTicket = async () => {
     try {
       setCreating(true);
+      
+      const formData = new FormData();
+      formData.append("subject", newTicket.subject);
+      formData.append("description", newTicket.description);
+      formData.append("category", newTicket.category);
+      formData.append("priority", newTicket.priority);
+
+      // Add attachment details
+      newTicket.attachments.forEach((attachment, index) => {
+        formData.append("attachmentUrls", attachment.url);
+        formData.append("attachmentNames", attachment.name);
+        formData.append("attachmentSizes", attachment.size.toString());
+      });
+
       const res = await fetch("/api/supplier/tickets", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTicket),
+        body: formData,
       });
       if (!res.ok) throw new Error("Failed to create ticket");
       await fetchTickets();
@@ -128,12 +163,20 @@ export function SupplierSupport() {
         description: "",
         category: "SUPPORT",
         priority: "MEDIUM",
+        attachments: [],
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to create ticket");
     } finally {
       setCreating(false);
     }
+  };
+
+  const removeAttachment = (index: number) => {
+    setNewTicket(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, i) => i !== index),
+    }));
   };
 
   const sendReply = async () => {
@@ -234,13 +277,90 @@ export function SupplierSupport() {
                   </Select>
                 </div>
               </div>
+              <div>
+                <label className="text-sm font-medium">Attachments</label>
+                <div className="mt-2">
+                  <UploadButton<OurFileRouter, "ticketAttachment">
+                    endpoint="ticketAttachment"
+                    onClientUploadComplete={(res: any) => {
+                      console.log("Files uploaded successfully:", res);
+                      setIsUploading(false);
+                      if (res) {
+                        // Handle both array and single object responses
+                        const files = Array.isArray(res) ? res : [res];
+                        const newAttachments = files.map((file: any) => ({
+                          url: file.fileUrl,
+                          name: file.fileName,
+                          size: file.fileSize,
+                        }));
+                        setNewTicket(prev => ({
+                          ...prev,
+                          attachments: [...prev.attachments, ...newAttachments],
+                        }));
+                      }
+                    }}
+                    onUploadError={(error: Error) => {
+                      console.error("Upload error:", error);
+                      setIsUploading(false);
+                      setError(`Upload failed: ${error.message}`);
+                    }}
+                    onUploadBegin={(fileName: string) => {
+                      console.log("Upload started for:", fileName);
+                      setIsUploading(true);
+                    }}
+                    className="ut-button:bg-blue-600 ut-button:hover:bg-blue-700 ut-button:text-white ut-button:rounded-md ut-button:px-4 ut-button:py-2 ut-button:font-medium"
+                    content={{
+                      button: (
+                        <div className="flex items-center gap-2">
+                          <Paperclip className="w-4 h-4" />
+                          {isUploading ? "Uploading..." : "Add Files"}
+                        </div>
+                      ),
+                      allowedContent: "Images, documents, and archives up to 10MB",
+                    }}
+                  />
+                </div>
+                {newTicket.attachments.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {newTicket.attachments.map((attachment, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Paperclip className="w-4 h-4 text-gray-500" />
+                          <div>
+                            <span className="text-sm font-medium">
+                              {attachment.name}
+                            </span>
+                            <span className="text-xs text-gray-500 ml-2">
+                              ({(attachment.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeAttachment(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div className="flex justify-end">
-                <Button onClick={createTicket} disabled={creating}>
-                  {creating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    "Create Ticket"
-                  )}
+                <Button 
+                  onClick={createTicket} 
+                  disabled={creating || isUploading || !newTicket.subject || !newTicket.description}
+                >
+                  {creating
+                    ? "Creating..."
+                    : isUploading
+                      ? "Uploading..."
+                      : "Create Ticket"}
                 </Button>
               </div>
             </div>

@@ -312,6 +312,74 @@ export const ourFileRouter = {
         fileSize: res.file.size,
       };
     }),
+
+  // Ticket attachment endpoint for support tickets
+  ticketAttachment: f({
+    blob: {
+      maxFileSize: "10MB",
+      maxFileCount: 5,
+    },
+  })
+    .middleware(async () => {
+      console.log("UploadThing middleware running for ticketAttachment");
+
+      // Get the authenticated user from the session
+      const session = await auth();
+
+      // Check if the user is authenticated
+      if (!session?.user) {
+        throw new Error("Unauthorized: You must be logged in to upload files");
+      }
+
+      // Check if the user is a supplier or admin
+      if (session.user.role !== "SUPPLIER" && session.user.role !== "ADMIN") {
+        throw new Error(
+          "Forbidden: Only suppliers and admins can upload ticket attachments"
+        );
+      }
+
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(res => {
+      console.log("Ticket attachment upload complete:", res);
+
+      // Validate file extensions for common document types
+      const allowedExtensions = [
+        ".pdf",
+        ".doc",
+        ".docx",
+        ".txt",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".bmp",
+        ".svg",
+        ".xls",
+        ".xlsx",
+        ".ppt",
+        ".pptx",
+        ".zip",
+        ".rar",
+        ".7z",
+      ];
+      const fileName = res.file.name.toLowerCase();
+      const hasValidExtension = allowedExtensions.some(ext =>
+        fileName.endsWith(ext)
+      );
+
+      if (!hasValidExtension) {
+        throw new Error(
+          "Invalid file type. Only common document, image, and archive files are allowed for ticket attachments."
+        );
+      }
+
+      return {
+        fileUrl: res.file.ufsUrl,
+        fileName: res.file.name,
+        fileSize: res.file.size,
+      };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

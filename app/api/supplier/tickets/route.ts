@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { sendNewTicketNotification } from "@/lib/admin-notifications";
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,6 +47,8 @@ export async function GET(request: NextRequest) {
           status: true,
           priority: true,
           category: true,
+          attachments: true,
+          attachmentDetails: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -80,7 +83,12 @@ export async function POST(request: NextRequest) {
 
     const supplier = await db.supplier.findUnique({
       where: { userId: session.user.id },
-      select: { id: true },
+      select: { 
+        id: true,
+        companyName: true,
+        contactPersonName: true,
+        contactPersonEmail: true,
+      },
     });
 
     if (!supplier) {
@@ -90,8 +98,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { subject, description, category, priority } = body;
+    const formData = await request.formData();
+    const subject = formData.get("subject") as string;
+    const description = formData.get("description") as string;
+    const category = formData.get("category") as string;
+    const priority = formData.get("priority") as string;
+    const attachmentUrls = formData.getAll("attachmentUrls") as string[];
+    const attachmentNames = formData.getAll("attachmentNames") as string[];
+    const attachmentSizes = formData.getAll("attachmentSizes") as string[];
 
     if (!subject || !description || !category) {
       return NextResponse.json(
@@ -100,14 +114,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate attachment URLs (they should be UploadThing URLs)
+    const validAttachmentUrls = attachmentUrls.filter(
+      url =>
+        url &&
+        typeof url === "string" &&
+        (url.includes("uploadthing.com") || url.includes("utfs.io"))
+    );
+
+    // Create attachment objects with full information
+    const attachments = validAttachmentUrls.map((url, index) => ({
+      url,
+      name: attachmentNames[index] || `File ${index + 1}`,
+      size: parseInt(attachmentSizes[index] || "0"),
+    }));
+
     const ticket = await db.supplierSupportTicket.create({
       data: {
         supplierId: supplier.id,
         subject,
         description,
-        category,
+        category: category as any,
         priority: (priority as any) || "MEDIUM",
         ticketNumber: `SUP-${Date.now()}`,
+        attachments: validAttachmentUrls, // Keep URLs for backward compatibility
+        attachmentDetails: attachments, // Store full attachment details as JSON
       },
       select: {
         id: true,
@@ -116,9 +147,31 @@ export async function POST(request: NextRequest) {
         status: true,
         priority: true,
         category: true,
+        attachments: true,
+        attachmentDetails: true,
         createdAt: true,
       },
     });
+
+    // Send notification to admin team
+    try {
+      await sendNewTicketNotification({
+        ticketId: ticket.id,
+        ticketNumber: ticket.ticketNumber,
+        subject,
+        description,
+        priority: priority || "MEDIUM",
+        category,
+        supplierName: supplier.contactPersonName || supplier.companyName,
+        supplierEmail: supplier.contactPersonEmail || session.user.email || "",
+        hasAttachments: validAttachmentUrls.length > 0,
+        attachmentCount: validAttachmentUrls.length,
+        attachments: attachments, // Pass the full attachment details
+      });
+    } catch (error) {
+      console.error("Failed to send admin notification:", error);
+      // Don't fail the ticket creation if notification fails
+    }
 
     return NextResponse.json({ success: true, ticket });
   } catch (error) {
