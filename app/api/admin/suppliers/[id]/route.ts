@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { resolveAdminUserId } from "@/lib/admin-utils";
 import { sendMail } from "@/lib/brevo";
+import { hash } from "bcryptjs";
+import crypto from "crypto";
 
 export async function GET(request: NextRequest) {
   try {
@@ -268,10 +270,50 @@ export async function PUT(request: NextRequest) {
         updatedFields: Object.keys(updateData),
       });
 
-      // Send approval email if status was changed to APPROVED
+      // Create user account and send approval email if status was changed to APPROVED
       if (status === "APPROVED") {
         try {
-          await sendSupplierApprovalEmail(supplier);
+          // Check if user account already exists
+          const existingUser = await db.user.findUnique({
+            where: { email: supplier.contactPersonEmail }
+          });
+
+          if (!existingUser) {
+            // Generate a secure temporary password
+            const tempPassword = generateSecurePassword();
+            const hashedPassword = await hash(tempPassword, 12);
+
+            // Create user account
+            const newUser = await db.user.create({
+              data: {
+                name: supplier.contactPersonName,
+                email: supplier.contactPersonEmail,
+                password: hashedPassword,
+                role: "SUPPLIER",
+                isActive: true,
+                emailVerified: new Date(),
+              }
+            });
+
+            // Link the user to the supplier
+            await db.supplier.update({
+              where: { id: supplierId },
+              data: { userId: newUser.id }
+            });
+
+            logger.info("Supplier user account created", {
+              supplierId,
+              userId: newUser.id,
+              email: supplier.contactPersonEmail,
+            });
+
+            // Send approval email with login credentials
+            await sendSupplierApprovalEmail(supplier, tempPassword);
+          } else {
+            // User already exists, just send approval email
+            await sendSupplierApprovalEmail(supplier);
+          }
+
           logger.info("Supplier approval email sent", {
             supplierId,
             email: supplier.contactPersonEmail,
@@ -398,8 +440,19 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
+// Function to generate secure password
+function generateSecurePassword(): string {
+  const length = 12;
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  return password;
+}
+
 // Function to send supplier approval email
-async function sendSupplierApprovalEmail(supplier: any) {
+async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
   const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier/dashboard`;
   const productsUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier/products`;
   const ordersUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier/orders`;
@@ -474,13 +527,25 @@ async function sendSupplierApprovalEmail(supplier: any) {
             <div class="next-steps">
               <h3>🚀 Next Steps to Get Started</h3>
               <ol class="step-list">
-                <li><strong>Access Your Dashboard:</strong> Log in to your supplier portal to manage your account</li>
+                <li><strong>Log In to Your Account:</strong> Use the credentials below to access your supplier portal</li>
+                <li><strong>Access Your Dashboard:</strong> Manage your account and view your performance</li>
                 <li><strong>Upload Your Products:</strong> Add your STEM educational products to our catalog</li>
                 <li><strong>Set Up Payment Information:</strong> Configure your payment details for commission payments</li>
                 <li><strong>Review Our Guidelines:</strong> Familiarize yourself with our product and shipping standards</li>
                 <li><strong>Start Selling:</strong> Your products will be visible to our customers once approved</li>
               </ol>
             </div>
+            
+            ${tempPassword ? `
+            <div class="login-credentials" style="background-color: #f0f9ff; border: 1px solid #0ea5e9; padding: 25px; margin: 30px 0; border-radius: 8px;">
+              <h3 style="margin: 0 0 20px 0; color: #0c4a6e; font-size: 18px;">🔐 Your Login Credentials</h3>
+              <div style="background-color: white; padding: 20px; border-radius: 6px; border: 1px solid #e0f2fe;">
+                <p style="margin: 5px 0; font-size: 14px; color: #0c4a6e;"><strong>Email:</strong> ${supplier.contactPersonEmail}</p>
+                <p style="margin: 5px 0; font-size: 14px; color: #0c4a6e;"><strong>Temporary Password:</strong> ${tempPassword}</p>
+                <p style="margin: 15px 0 5px 0; font-size: 12px; color: #0369a1; font-style: italic;">⚠️ Please change your password after your first login for security</p>
+              </div>
+            </div>
+            ` : ''}
             
             <div class="action-buttons">
               <a href="${dashboardUrl}" class="btn btn-primary">📊 Access Dashboard</a>
