@@ -12,6 +12,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useTranslation } from "@/lib/i18n";
 
 // Form validation schema
@@ -307,9 +308,8 @@ function ResetPasswordContent() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="password">{t("newPassword")}</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder={t("enterYourNewPassword")}
                 {...register("password")}
                 autoComplete="new-password"
@@ -324,9 +324,8 @@ function ResetPasswordContent() {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">{t("confirmNewPassword")}</Label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 placeholder={t("confirmYourNewPassword")}
                 {...register("confirmPassword")}
                 autoComplete="new-password"

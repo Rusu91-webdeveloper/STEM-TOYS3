@@ -5,18 +5,18 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { 
-  Save, 
-  ArrowLeft, 
-  Upload, 
-  X, 
-  Plus, 
+import {
+  Save,
+  ArrowLeft,
+  Upload,
+  X,
+  Plus,
   AlertCircle,
   Package,
   DollarSign,
   Hash,
   FileText,
-  Image as ImageIcon
+  Image as ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,27 +34,67 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { useCsrfToken } from "@/hooks/useCsrfToken";
 import { type SupplierProduct } from "@/features/supplier/types/supplier";
 
 // Product form schema
 const productSchema = z.object({
-  name: z.string().min(1, "Product name is required").max(100, "Name must be less than 100 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters").max(1000, "Description must be less than 1000 characters"),
+  name: z
+    .string()
+    .min(1, "Product name is required")
+    .max(100, "Name must be less than 100 characters"),
+  description: z
+    .string()
+    .min(10, "Description must be at least 10 characters")
+    .max(1000, "Description must be less than 1000 characters"),
   price: z.number().min(0.01, "Price must be greater than 0"),
   compareAtPrice: z.number().optional(),
   sku: z.string().optional(),
   stockQuantity: z.number().min(0, "Stock quantity cannot be negative"),
-  reorderPoint: z.number().min(0, "Reorder point cannot be negative").optional(),
+  reorderPoint: z
+    .number()
+    .min(0, "Reorder point cannot be negative")
+    .optional(),
   weight: z.number().min(0, "Weight cannot be negative").optional(),
   categoryId: z.string().optional(),
   tags: z.array(z.string()).default([]),
   isActive: z.boolean().default(true),
   featured: z.boolean().default(false),
-  ageGroup: z.enum(["TODDLER", "PRESCHOOL", "SCHOOL_AGE", "TEEN", "ALL_AGES"]).optional(),
-  stemDiscipline: z.enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATH", "GENERAL"]).default("GENERAL"),
-  productType: z.enum(["ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"]).optional(),
-  learningOutcomes: z.array(z.string()).default([]),
-  specialCategories: z.array(z.string()).default([]),
+  ageGroup: z
+    .enum([
+      "TODDLERS_1_3",
+      "PRESCHOOL_3_5",
+      "ELEMENTARY_6_8",
+      "MIDDLE_SCHOOL_9_12",
+      "TEENS_13_PLUS",
+    ])
+    .optional(),
+  stemDiscipline: z
+    .enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"])
+    .default("GENERAL"),
+  productType: z
+    .enum([
+      "ROBOTICS",
+      "PUZZLES",
+      "CONSTRUCTION_SETS",
+      "EXPERIMENT_KITS",
+      "BOARD_GAMES",
+    ])
+    .optional(),
+  learningOutcomes: z
+    .array(
+      z.enum([
+        "PROBLEM_SOLVING",
+        "CREATIVITY",
+        "CRITICAL_THINKING",
+        "MOTOR_SKILLS",
+        "LOGIC",
+      ])
+    )
+    .default([]),
+  specialCategories: z
+    .array(z.enum(["NEW_ARRIVALS", "BEST_SELLERS", "GIFT_IDEAS", "SALE_ITEMS"]))
+    .default([]),
   attributes: z.record(z.any()).optional(),
 });
 
@@ -67,13 +107,15 @@ interface SupplierProductFormProps {
 export function SupplierProductForm({ productId }: SupplierProductFormProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { addToHeaders } = useCsrfToken();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [product, setProduct] = useState<SupplierProduct | null>(null);
-  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [categories, setCategories] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
   const [images, setImages] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
-  const [newLearningOutcome, setNewLearningOutcome] = useState("");
 
   const {
     register,
@@ -125,7 +167,7 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
     try {
       setLoading(true);
       const response = await fetch(`/api/supplier/products/${productId}`);
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch product");
       }
@@ -133,7 +175,7 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
       const data = await response.json();
       setProduct(data);
       setImages(data.images || []);
-      
+
       // Reset form with product data
       reset({
         name: data.name,
@@ -176,17 +218,17 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
         images,
       };
 
-      const url = productId 
+      const url = productId
         ? `/api/supplier/products/${productId}`
         : "/api/supplier/products";
-      
+
       const method = productId ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
-        headers: {
+        headers: addToHeaders({
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify(productData),
       });
 
@@ -198,8 +240,8 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
 
       toast({
         title: "Success",
-        description: productId 
-          ? "Product updated successfully" 
+        description: productId
+          ? "Product updated successfully"
           : "Product created successfully",
       });
 
@@ -207,7 +249,8 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save product",
+        description:
+          error instanceof Error ? error.message : "Failed to save product",
         variant: "destructive",
       });
       console.error("Error saving product:", error);
@@ -216,14 +259,18 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
     }
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = event.target.files;
     if (!files) return;
 
     try {
       // In a real implementation, you would upload to your file storage service
       // For now, we'll simulate with placeholder URLs
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
+      const newImages = Array.from(files).map(file =>
+        URL.createObjectURL(file)
+      );
       setImages(prev => [...prev, ...newImages]);
     } catch (error) {
       toast({
@@ -246,18 +293,19 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
   };
 
   const removeTag = (tagToRemove: string) => {
-    setValue("tags", watchedValues.tags?.filter(tag => tag !== tagToRemove) || []);
-  };
-
-  const addLearningOutcome = () => {
-    if (newLearningOutcome.trim() && !watchedValues.learningOutcomes?.includes(newLearningOutcome.trim())) {
-      setValue("learningOutcomes", [...(watchedValues.learningOutcomes || []), newLearningOutcome.trim()]);
-      setNewLearningOutcome("");
-    }
+    setValue(
+      "tags",
+      watchedValues.tags?.filter(tag => tag !== tagToRemove) || []
+    );
   };
 
   const removeLearningOutcome = (outcomeToRemove: string) => {
-    setValue("learningOutcomes", watchedValues.learningOutcomes?.filter(outcome => outcome !== outcomeToRemove) || []);
+    setValue(
+      "learningOutcomes",
+      watchedValues.learningOutcomes?.filter(
+        outcome => outcome !== outcomeToRemove
+      ) || []
+    );
   };
 
   if (loading) {
@@ -305,7 +353,9 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
               {productId ? "Edit Product" : "Add New Product"}
             </h2>
             <p className="text-muted-foreground">
-              {productId ? "Update your product information" : "Create a new product for your catalog"}
+              {productId
+                ? "Update your product information"
+                : "Create a new product for your catalog"}
             </p>
           </div>
         </div>
@@ -336,7 +386,9 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                     placeholder="Enter product name"
                   />
                   {errors.name && (
-                    <p className="text-sm text-red-600">{errors.name.message}</p>
+                    <p className="text-sm text-red-600">
+                      {errors.name.message}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -358,7 +410,9 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                   rows={4}
                 />
                 {errors.description && (
-                  <p className="text-sm text-red-600">{errors.description.message}</p>
+                  <p className="text-sm text-red-600">
+                    {errors.description.message}
+                  </p>
                 )}
               </div>
 
@@ -367,13 +421,13 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                   <Label htmlFor="categoryId">Category</Label>
                   <Select
                     value={watchedValues.categoryId || ""}
-                    onValueChange={(value) => setValue("categoryId", value)}
+                    onValueChange={value => setValue("categoryId", value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
+                      {categories.map(category => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
                         </SelectItem>
@@ -385,17 +439,27 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                   <Label htmlFor="ageGroup">Age Group</Label>
                   <Select
                     value={watchedValues.ageGroup || ""}
-                    onValueChange={(value) => setValue("ageGroup", value as any)}
+                    onValueChange={value => setValue("ageGroup", value as any)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select age group" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="TODDLER">Toddler (1-3 years)</SelectItem>
-                      <SelectItem value="PRESCHOOL">Preschool (3-5 years)</SelectItem>
-                      <SelectItem value="SCHOOL_AGE">School Age (6-12 years)</SelectItem>
-                      <SelectItem value="TEEN">Teen (13+ years)</SelectItem>
-                      <SelectItem value="ALL_AGES">All Ages</SelectItem>
+                      <SelectItem value="TODDLERS_1_3">
+                        Toddlers (1-3 years)
+                      </SelectItem>
+                      <SelectItem value="PRESCHOOL_3_5">
+                        Preschool (3-5 years)
+                      </SelectItem>
+                      <SelectItem value="ELEMENTARY_6_8">
+                        Elementary (6-8 years)
+                      </SelectItem>
+                      <SelectItem value="MIDDLE_SCHOOL_9_12">
+                        Middle School (9-12 years)
+                      </SelectItem>
+                      <SelectItem value="TEENS_13_PLUS">
+                        Teens (13+ years)
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -403,7 +467,9 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                   <Label htmlFor="stemDiscipline">STEM Discipline</Label>
                   <Select
                     value={watchedValues.stemDiscipline || "GENERAL"}
-                    onValueChange={(value) => setValue("stemDiscipline", value as any)}
+                    onValueChange={value =>
+                      setValue("stemDiscipline", value as any)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -412,7 +478,7 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                       <SelectItem value="SCIENCE">Science</SelectItem>
                       <SelectItem value="TECHNOLOGY">Technology</SelectItem>
                       <SelectItem value="ENGINEERING">Engineering</SelectItem>
-                      <SelectItem value="MATH">Math</SelectItem>
+                      <SelectItem value="MATHEMATICS">Mathematics</SelectItem>
                       <SelectItem value="GENERAL">General</SelectItem>
                     </SelectContent>
                   </Select>
@@ -442,7 +508,9 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                     placeholder="0.00"
                   />
                   {errors.price && (
-                    <p className="text-sm text-red-600">{errors.price.message}</p>
+                    <p className="text-sm text-red-600">
+                      {errors.price.message}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -480,7 +548,9 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                     placeholder="0"
                   />
                   {errors.stockQuantity && (
-                    <p className="text-sm text-red-600">{errors.stockQuantity.message}</p>
+                    <p className="text-sm text-red-600">
+                      {errors.stockQuantity.message}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -562,7 +632,11 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-2">
                 {watchedValues.tags?.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
                     {tag}
                     <Button
                       type="button"
@@ -579,9 +653,11 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
               <div className="flex gap-2">
                 <Input
                   value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
+                  onChange={e => setNewTag(e.target.value)}
                   placeholder="Add a tag"
-                  onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                  onKeyPress={e =>
+                    e.key === "Enter" && (e.preventDefault(), addTag())
+                  }
                 />
                 <Button type="button" variant="outline" onClick={addTag}>
                   <Plus className="w-4 h-4" />
@@ -598,8 +674,15 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-2">
                 {watchedValues.learningOutcomes?.map((outcome, index) => (
-                  <Badge key={index} variant="outline" className="flex items-center gap-1">
-                    {outcome}
+                  <Badge
+                    key={index}
+                    variant="outline"
+                    className="flex items-center gap-1"
+                  >
+                    {outcome
+                      .replace(/_/g, " ")
+                      .toLowerCase()
+                      .replace(/\b\w/g, l => l.toUpperCase())}
                     <Button
                       type="button"
                       variant="ghost"
@@ -612,16 +695,42 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                   </Badge>
                 ))}
               </div>
-              <div className="flex gap-2">
-                <Input
-                  value={newLearningOutcome}
-                  onChange={(e) => setNewLearningOutcome(e.target.value)}
-                  placeholder="Add learning outcome"
-                  onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addLearningOutcome())}
-                />
-                <Button type="button" variant="outline" onClick={addLearningOutcome}>
-                  <Plus className="w-4 h-4" />
-                </Button>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  "PROBLEM_SOLVING",
+                  "CREATIVITY",
+                  "CRITICAL_THINKING",
+                  "MOTOR_SKILLS",
+                  "LOGIC",
+                ].map(outcome => (
+                  <Button
+                    key={outcome}
+                    type="button"
+                    variant={
+                      watchedValues.learningOutcomes?.includes(outcome)
+                        ? "default"
+                        : "outline"
+                    }
+                    size="sm"
+                    onClick={() => {
+                      const current = watchedValues.learningOutcomes || [];
+                      if (current.includes(outcome)) {
+                        setValue(
+                          "learningOutcomes",
+                          current.filter(o => o !== outcome)
+                        );
+                      } else {
+                        setValue("learningOutcomes", [...current, outcome]);
+                      }
+                    }}
+                    className="justify-start"
+                  >
+                    {outcome
+                      .replace(/_/g, " ")
+                      .toLowerCase()
+                      .replace(/\b\w/g, l => l.toUpperCase())}
+                  </Button>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -639,7 +748,9 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                 <Checkbox
                   id="isActive"
                   checked={watchedValues.isActive}
-                  onCheckedChange={(checked) => setValue("isActive", checked as boolean)}
+                  onCheckedChange={checked =>
+                    setValue("isActive", checked as boolean)
+                  }
                 />
                 <Label htmlFor="isActive">Active</Label>
               </div>
@@ -647,7 +758,9 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                 <Checkbox
                   id="featured"
                   checked={watchedValues.featured}
-                  onCheckedChange={(checked) => setValue("featured", checked as boolean)}
+                  onCheckedChange={checked =>
+                    setValue("featured", checked as boolean)
+                  }
                 />
                 <Label htmlFor="featured">Featured Product</Label>
               </div>
@@ -662,7 +775,7 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
             <CardContent>
               <Select
                 value={watchedValues.productType || ""}
-                onValueChange={(value) => setValue("productType", value as any)}
+                onValueChange={value => setValue("productType", value as any)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select product type" />
@@ -670,8 +783,12 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                 <SelectContent>
                   <SelectItem value="ROBOTICS">Robotics</SelectItem>
                   <SelectItem value="PUZZLES">Puzzles</SelectItem>
-                  <SelectItem value="CONSTRUCTION_SETS">Construction Sets</SelectItem>
-                  <SelectItem value="EXPERIMENT_KITS">Experiment Kits</SelectItem>
+                  <SelectItem value="CONSTRUCTION_SETS">
+                    Construction Sets
+                  </SelectItem>
+                  <SelectItem value="EXPERIMENT_KITS">
+                    Experiment Kits
+                  </SelectItem>
                   <SelectItem value="BOARD_GAMES">Board Games</SelectItem>
                 </SelectContent>
               </Select>
@@ -684,25 +801,35 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
               <CardTitle>Special Categories</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {["NEW_ARRIVALS", "BEST_SELLERS", "GIFT_IDEAS", "SALE_ITEMS"].map((category) => (
-                <div key={category} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={category}
-                    checked={watchedValues.specialCategories?.includes(category)}
-                    onCheckedChange={(checked) => {
-                      const current = watchedValues.specialCategories || [];
-                      if (checked) {
-                        setValue("specialCategories", [...current, category]);
-                      } else {
-                        setValue("specialCategories", current.filter(c => c !== category));
-                      }
-                    }}
-                  />
-                  <Label htmlFor={category} className="text-sm">
-                    {category.replace("_", " ").toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
-                  </Label>
-                </div>
-              ))}
+              {["NEW_ARRIVALS", "BEST_SELLERS", "GIFT_IDEAS", "SALE_ITEMS"].map(
+                category => (
+                  <div key={category} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={category}
+                      checked={watchedValues.specialCategories?.includes(
+                        category
+                      )}
+                      onCheckedChange={checked => {
+                        const current = watchedValues.specialCategories || [];
+                        if (checked) {
+                          setValue("specialCategories", [...current, category]);
+                        } else {
+                          setValue(
+                            "specialCategories",
+                            current.filter(c => c !== category)
+                          );
+                        }
+                      }}
+                    />
+                    <Label htmlFor={category} className="text-sm">
+                      {category
+                        .replace(/_/g, " ")
+                        .toLowerCase()
+                        .replace(/\b\w/g, l => l.toUpperCase())}
+                    </Label>
+                  </div>
+                )
+              )}
             </CardContent>
           </Card>
         </div>

@@ -19,10 +19,16 @@ const createProductSchema = z.object({
   isActive: z.boolean().default(true),
   featured: z.boolean().default(false),
   ageGroup: z
-    .enum(["TODDLER", "PRESCHOOL", "SCHOOL_AGE", "TEEN", "ALL_AGES"])
+    .enum([
+      "TODDLERS_1_3",
+      "PRESCHOOL_3_5",
+      "ELEMENTARY_6_8",
+      "MIDDLE_SCHOOL_9_12",
+      "TEENS_13_PLUS",
+    ])
     .optional(),
   stemDiscipline: z
-    .enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATH", "GENERAL"])
+    .enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"])
     .default("GENERAL"),
   productType: z
     .enum([
@@ -33,8 +39,20 @@ const createProductSchema = z.object({
       "BOARD_GAMES",
     ])
     .optional(),
-  learningOutcomes: z.array(z.string()).default([]),
-  specialCategories: z.array(z.string()).default([]),
+  learningOutcomes: z
+    .array(
+      z.enum([
+        "PROBLEM_SOLVING",
+        "CREATIVITY",
+        "CRITICAL_THINKING",
+        "MOTOR_SKILLS",
+        "LOGIC",
+      ])
+    )
+    .default([]),
+  specialCategories: z
+    .array(z.enum(["NEW_ARRIVALS", "BEST_SELLERS", "GIFT_IDEAS", "SALE_ITEMS"]))
+    .default([]),
   attributes: z.record(z.any()).optional(),
   images: z.array(z.string()).default([]),
 });
@@ -227,6 +245,10 @@ export async function POST(request: NextRequest) {
       data: {
         ...(validatedData as any),
         ageGroup: ((validatedData as any).ageGroup ?? null) as any,
+        learningOutcomes: ((validatedData as any).learningOutcomes ??
+          []) as any,
+        specialCategories: ((validatedData as any).specialCategories ??
+          []) as any,
         slug,
         supplierId: supplier.id,
       },

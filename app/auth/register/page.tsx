@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslation, type TranslationKey } from "@/lib/i18n";
@@ -233,9 +234,8 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="password">{t("password")}</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder={t("passwordPlaceholder")}
                 autoComplete="new-password"
                 {...register("password")}
@@ -250,9 +250,8 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 placeholder={t("passwordPlaceholder")}
                 autoComplete="new-password"
                 {...register("confirmPassword")}

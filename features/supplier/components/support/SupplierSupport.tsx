@@ -138,7 +138,7 @@ export function SupplierSupport() {
   const createTicket = async () => {
     try {
       setCreating(true);
-      
+
       const formData = new FormData();
       formData.append("subject", newTicket.subject);
       formData.append("description", newTicket.description);
@@ -316,7 +316,8 @@ export function SupplierSupport() {
                           {isUploading ? "Uploading..." : "Add Files"}
                         </div>
                       ),
-                      allowedContent: "Images, documents, and archives up to 10MB",
+                      allowedContent:
+                        "Images, documents, and archives up to 10MB",
                     }}
                   />
                 </div>
@@ -352,9 +353,14 @@ export function SupplierSupport() {
                 )}
               </div>
               <div className="flex justify-end">
-                <Button 
-                  onClick={createTicket} 
-                  disabled={creating || isUploading || !newTicket.subject || !newTicket.description}
+                <Button
+                  onClick={createTicket}
+                  disabled={
+                    creating ||
+                    isUploading ||
+                    !newTicket.subject ||
+                    !newTicket.description
+                  }
                 >
                   {creating
                     ? "Creating..."

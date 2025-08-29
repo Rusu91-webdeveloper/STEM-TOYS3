@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     const supplier = await db.supplier.findUnique({
       where: { userId: session.user.id },
-      select: { 
+      select: {
         id: true,
         companyName: true,
         contactPersonName: true,

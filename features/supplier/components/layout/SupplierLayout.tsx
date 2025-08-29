@@ -356,7 +356,10 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
           {/* Mobile Navigation */}
           <div className="flex-1 overflow-y-auto py-4">
             {navigation.map((category, categoryIndex) => (
-              <div key={categoryIndex} className="px-4 mb-6">
+              <div
+                key={categoryIndex}
+                className={`px-4 mb-6 ${categoryIndex === 0 ? "mt-4" : ""}`}
+              >
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                   {category.category}
                 </h3>
@@ -470,7 +473,10 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
           {/* Desktop Navigation */}
           <div className="flex-1 overflow-y-auto py-6">
             {navigation.map((category, categoryIndex) => (
-              <div key={categoryIndex} className="px-6 mb-8">
+              <div
+                key={categoryIndex}
+                className={`px-6 mb-8 ${categoryIndex === 0 ? "mt-4" : ""}`}
+              >
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                   {category.category}
                 </h3>
