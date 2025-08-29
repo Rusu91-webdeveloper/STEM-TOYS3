@@ -10,8 +10,6 @@ const nextConfig = {
     },
     // Enable optimized package imports
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
-    // Enable memory-based compilation
-    memoryBasedWorkers: true,
   },
   reactStrictMode: true,
   poweredByHeader: false,
@@ -23,10 +21,7 @@ const nextConfig = {
   },
   // Enhanced performance settings
   // Enable experimental features for better performance
-  experimental: {
-    // Enable optimized images (disabled due to critters dependency)
-    // optimizeCss: true,
-  },
+  // Note: experimental config is already defined above
   // Don't block production builds even with ESLint errors
   eslint: {
     ignoreDuringBuilds: true,
@@ -93,6 +88,11 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "placekitten.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
         pathname: "/**",
       },
     ],

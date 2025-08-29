@@ -58,6 +58,23 @@ interface SupplierData {
   catalogUrl: string | null;
 }
 
+interface NotificationPreferences {
+  email: {
+    messages: boolean;
+    tickets: boolean;
+    announcements: boolean;
+    invoices: boolean;
+    orders: boolean;
+  };
+  inApp: {
+    messages: boolean;
+    tickets: boolean;
+    announcements: boolean;
+    invoices: boolean;
+    orders: boolean;
+  };
+}
+
 export function SupplierSettings() {
   const [supplier, setSupplier] = useState<SupplierData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,9 +82,13 @@ export function SupplierSettings() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<SupplierData>>({});
+  const [notificationPrefs, setNotificationPrefs] =
+    useState<NotificationPreferences | null>(null);
+  const [savingPrefs, setSavingPrefs] = useState(false);
 
   useEffect(() => {
     fetchSupplierData();
+    fetchNotificationPrefs();
   }, []);
 
   const fetchSupplierData = async () => {
@@ -84,6 +105,52 @@ export function SupplierSettings() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchNotificationPrefs = async () => {
+    try {
+      const res = await fetch("/api/supplier/notifications/preferences", {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotificationPrefs(data.notificationPreferences);
+      }
+    } catch (e) {
+      // non-blocking
+    }
+  };
+
+  const saveNotificationPrefs = async () => {
+    if (!notificationPrefs) return;
+    try {
+      setSavingPrefs(true);
+      const res = await fetch("/api/supplier/notifications/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(notificationPrefs),
+      });
+      if (!res.ok) throw new Error("Failed to save notification preferences");
+      setSuccess("Notification preferences saved.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save preferences");
+    } finally {
+      setSavingPrefs(false);
+    }
+  };
+
+  const togglePref = (
+    channel: keyof NotificationPreferences,
+    key: keyof NotificationPreferences["email"]
+  ) => {
+    setNotificationPrefs(prev =>
+      prev
+        ? {
+            ...prev,
+            [channel]: { ...prev[channel], [key]: !prev[channel][key] },
+          }
+        : prev
+    );
   };
 
   const handleSave = async () => {
@@ -468,7 +535,7 @@ export function SupplierSettings() {
           </CardContent>
         </Card>
 
-        {/* Notifications */}
+        {/* Notifications (wired to API) */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -477,33 +544,167 @@ export function SupplierSettings() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Email Notifications</Label>
-                <p className="text-sm text-gray-600">
-                  Receive notifications about orders and payments
-                </p>
+            {!notificationPrefs ? (
+              <div className="text-sm text-gray-500">
+                Loading preferences...
               </div>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Order Updates</Label>
-                <p className="text-sm text-gray-600">
-                  Get notified when order status changes
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Payment Reminders</Label>
-                <p className="text-sm text-gray-600">
-                  Receive payment due reminders
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-medium mb-2">Email Notifications</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Messages</Label>
+                          <p className="text-sm text-gray-600">
+                            New messages from TechTots
+                          </p>
+                        </div>
+                        <Switch
+                          checked={notificationPrefs.email.messages}
+                          onCheckedChange={() =>
+                            togglePref("email", "messages")
+                          }
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Support Tickets</Label>
+                          <p className="text-sm text-gray-600">
+                            Ticket updates and replies
+                          </p>
+                        </div>
+                        <Switch
+                          checked={notificationPrefs.email.tickets}
+                          onCheckedChange={() => togglePref("email", "tickets")}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Announcements</Label>
+                          <p className="text-sm text-gray-600">
+                            Important news and updates
+                          </p>
+                        </div>
+                        <Switch
+                          checked={notificationPrefs.email.announcements}
+                          onCheckedChange={() =>
+                            togglePref("email", "announcements")
+                          }
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Invoices</Label>
+                          <p className="text-sm text-gray-600">
+                            New or due invoices
+                          </p>
+                        </div>
+                        <Switch
+                          checked={notificationPrefs.email.invoices}
+                          onCheckedChange={() =>
+                            togglePref("email", "invoices")
+                          }
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Orders</Label>
+                          <p className="text-sm text-gray-600">
+                            Order status changes
+                          </p>
+                        </div>
+                        <Switch
+                          checked={notificationPrefs.email.orders}
+                          onCheckedChange={() => togglePref("email", "orders")}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">In-App Notifications</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Messages</Label>
+                          <p className="text-sm text-gray-600">
+                            New messages from TechTots
+                          </p>
+                        </div>
+                        <Switch
+                          checked={notificationPrefs.inApp.messages}
+                          onCheckedChange={() =>
+                            togglePref("inApp", "messages")
+                          }
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Support Tickets</Label>
+                          <p className="text-sm text-gray-600">
+                            Ticket updates and replies
+                          </p>
+                        </div>
+                        <Switch
+                          checked={notificationPrefs.inApp.tickets}
+                          onCheckedChange={() => togglePref("inApp", "tickets")}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Announcements</Label>
+                          <p className="text-sm text-gray-600">
+                            Important news and updates
+                          </p>
+                        </div>
+                        <Switch
+                          checked={notificationPrefs.inApp.announcements}
+                          onCheckedChange={() =>
+                            togglePref("inApp", "announcements")
+                          }
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Invoices</Label>
+                          <p className="text-sm text-gray-600">
+                            New or due invoices
+                          </p>
+                        </div>
+                        <Switch
+                          checked={notificationPrefs.inApp.invoices}
+                          onCheckedChange={() =>
+                            togglePref("inApp", "invoices")
+                          }
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Orders</Label>
+                          <p className="text-sm text-gray-600">
+                            Order status changes
+                          </p>
+                        </div>
+                        <Switch
+                          checked={notificationPrefs.inApp.orders}
+                          onCheckedChange={() => togglePref("inApp", "orders")}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={saveNotificationPrefs}
+                    disabled={savingPrefs}
+                  >
+                    {savingPrefs ? "Saving..." : "Save Preferences"}
+                  </Button>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
