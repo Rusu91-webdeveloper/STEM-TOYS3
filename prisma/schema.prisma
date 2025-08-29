@@ -35,6 +35,9 @@ model User {
   wishlistItems       Wishlist[]
   supplier            Supplier?
   approvedSuppliers   Supplier[]           @relation("SupplierApprovedBy")
+  messagesSent        SupplierMessage[]    @relation("MessageSender")
+  ticketAssignedTo    SupplierSupportTicket[] @relation("TicketAssignedTo")
+  ticketResponses     SupplierTicketResponse[] @relation("TicketResponder")
 
   @@index([email])
 }
@@ -220,6 +223,7 @@ model Supplier {
   catalogUrl            String?
   termsAccepted         Boolean  @default(false)
   privacyAccepted       Boolean  @default(false)
+  notificationPreferences Json?
 
   // Timestamps
   createdAt             DateTime @default(now())
@@ -231,6 +235,9 @@ model Supplier {
   products              Product[]
   orders                SupplierOrder[]
   invoices              SupplierInvoice[]
+  messagesReceived      SupplierMessage[]
+  notificationsReceived SupplierNotification[]
+  supportTickets        SupplierSupportTicket[]
 
   @@index([status])
   @@index([companySlug])
@@ -501,6 +508,126 @@ model SupplierInvoice {
   @@index([invoiceNumber])
   @@index([status])
   @@index([dueDate])
+}
+
+// Communication System Models
+model SupplierMessage {
+  id              String   @id @default(cuid())
+  supplierId      String
+  senderId        String
+  senderType      MessageSenderType
+  subject         String
+  content         String
+  isRead          Boolean  @default(false)
+  readAt          DateTime?
+  priority        MessagePriority @default(NORMAL)
+  category        MessageCategory @default(GENERAL)
+  attachments     String[] // URLs to uploaded files
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  sender          User     @relation("MessageSender", fields: [senderId], references: [id])
+
+  @@index([supplierId])
+  @@index([senderId])
+  @@index([isRead])
+  @@index([priority])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model SupplierNotification {
+  id              String   @id @default(cuid())
+  supplierId      String
+  type            NotificationType
+  title           String
+  message         String
+  isRead          Boolean  @default(false)
+  readAt          DateTime?
+  actionUrl       String?  // URL to navigate to when clicked
+  metadata        Json?    // Additional data for the notification
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([supplierId])
+  @@index([type])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model SupplierSupportTicket {
+  id              String   @id @default(cuid())
+  supplierId      String
+  ticketNumber    String   @unique
+  subject         String
+  description     String
+  status          TicketStatus @default(OPEN)
+  priority        TicketPriority @default(MEDIUM)
+  category        TicketCategory
+  assignedTo      String?  // Admin user ID
+  attachments     String[] // URLs to uploaded files
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  closedAt        DateTime?
+
+  // Relations
+  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  assignedAdmin   User?    @relation("TicketAssignedTo", fields: [assignedTo], references: [id])
+  responses       SupplierTicketResponse[]
+
+  @@index([supplierId])
+  @@index([ticketNumber])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([assignedTo])
+  @@index([createdAt])
+}
+
+model SupplierTicketResponse {
+  id              String   @id @default(cuid())
+  ticketId        String
+  responderId     String
+  responderType   ResponderType
+  content         String
+  isInternal      Boolean  @default(false) // Internal note vs customer response
+  attachments     String[] // URLs to uploaded files
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  ticket          SupplierSupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  responder       User                  @relation("TicketResponder", fields: [responderId], references: [id])
+
+  @@index([ticketId])
+  @@index([responderId])
+  @@index([responderType])
+  @@index([createdAt])
+}
+
+model SupplierAnnouncement {
+  id              String   @id @default(cuid())
+  title           String
+  content         String
+  type            AnnouncementType
+  priority        AnnouncementPriority @default(NORMAL)
+  isActive        Boolean  @default(true)
+  publishedAt     DateTime @default(now())
+  expiresAt       DateTime?
+  targetSuppliers String[] // Array of supplier IDs or "ALL" for all suppliers
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([type])
+  @@index([priority])
+  @@index([isActive])
+  @@index([publishedAt])
+  @@index([expiresAt])
 }
 
 model Return {
@@ -927,6 +1054,82 @@ enum InvoiceStatus {
   PAID
   OVERDUE
   CANCELLED
+}
+
+enum MessageSenderType {
+  SUPPLIER
+  ADMIN
+  SYSTEM
+}
+
+enum MessagePriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum MessageCategory {
+  GENERAL
+  ACCOUNT
+  ORDER
+  SUPPORT
+  MARKETING
+  ANNOUNCEMENT
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  ERROR
+  SUCCESS
+}
+
+enum TicketStatus {
+  OPEN
+  PENDING_CUSTOMER
+  PENDING_SUPPLIER
+  RESOLVED
+  CLOSED
+  REOPENED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketCategory {
+  GENERAL
+  ACCOUNT
+  ORDER
+  SUPPORT
+  MARKETING
+  ANNOUNCEMENT
+}
+
+enum ResponderType {
+  SUPPLIER
+  ADMIN
+  SYSTEM
+}
+
+enum AnnouncementType {
+  GENERAL
+  ACCOUNT
+  ORDER
+  SUPPORT
+  MARKETING
+  ANNOUNCEMENT
+}
+
+enum AnnouncementPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
 }
 
 

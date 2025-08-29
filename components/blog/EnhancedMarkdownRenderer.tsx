@@ -81,27 +81,13 @@ export default function EnhancedMarkdownRenderer({
             <em className="italic text-gray-800 font-medium">{children}</em>
           ),
           ul: ({ children }) => (
-            <ul className="my-8 space-y-4">
-              {React.Children.map(children, (child, index) => (
-                <li key={index} className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-3"></div>
-                  <div className="flex-1 text-gray-700 leading-7 text-lg">
-                    {child}
-                  </div>
-                </li>
-              ))}
+            <ul className="my-8 space-y-4 list-disc list-inside marker:text-blue-500 marker:text-lg">
+              {children}
             </ul>
           ),
           ol: ({ children }) => (
-            <ol className="my-8 space-y-4 list-decimal list-inside">
-              {React.Children.map(children, (child, index) => (
-                <li
-                  key={index}
-                  className="text-gray-700 leading-7 text-lg marker:text-blue-500 marker:font-bold"
-                >
-                  {child}
-                </li>
-              ))}
+            <ol className="my-8 space-y-4 list-decimal list-inside marker:text-blue-500 marker:font-bold">
+              {children}
             </ol>
           ),
           li: ({ children }) => (

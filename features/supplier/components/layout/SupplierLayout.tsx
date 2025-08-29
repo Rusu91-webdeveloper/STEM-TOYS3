@@ -16,6 +16,8 @@ import {
   Bell,
   User,
   ChevronDown,
+  MessageSquare,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,6 +59,18 @@ const navigation = [
     name: "Analytics",
     href: "/supplier/analytics",
     icon: BarChart3,
+    current: false,
+  },
+  {
+    name: "Messages",
+    href: "/supplier/messages",
+    icon: MessageSquare,
+    current: false,
+  },
+  {
+    name: "Support",
+    href: "/supplier/support",
+    icon: HelpCircle,
     current: false,
   },
   {
