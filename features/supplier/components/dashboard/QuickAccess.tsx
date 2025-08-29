@@ -112,19 +112,25 @@ export function QuickAccess({ stats }: QuickAccessProps) {
               <Zap className="w-4 h-4 text-white" />
             </div>
             <div>
-              <CardTitle className="text-lg font-bold text-gray-900">Quick Actions</CardTitle>
+              <CardTitle className="text-lg font-bold text-gray-900">
+                Quick Actions
+              </CardTitle>
               <p className="text-sm text-gray-600">Most common tasks</p>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {quickActions.map((action) => (
+            {quickActions.map(action => (
               <Link key={action.name} href={action.href}>
-                <Card className={`group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${action.bgColor} hover:${action.hoverColor} cursor-pointer`}>
+                <Card
+                  className={`group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${action.bgColor} hover:${action.hoverColor} cursor-pointer`}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <div className={`w-10 h-10 bg-gradient-to-br ${action.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
+                      <div
+                        className={`w-10 h-10 bg-gradient-to-br ${action.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}
+                      >
                         <action.icon className="w-5 h-5 text-white" />
                       </div>
                       {action.badge && action.badge > 0 && (
@@ -133,8 +139,12 @@ export function QuickAccess({ stats }: QuickAccessProps) {
                         </Badge>
                       )}
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{action.name}</h3>
-                    <p className="text-sm text-gray-600">{action.description}</p>
+                    <h3 className="font-semibold text-gray-900 mb-1">
+                      {action.name}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {action.description}
+                    </p>
                   </CardContent>
                 </Card>
               </Link>
@@ -151,14 +161,16 @@ export function QuickAccess({ stats }: QuickAccessProps) {
               <Star className="w-4 h-4 text-white" />
             </div>
             <div>
-              <CardTitle className="text-lg font-bold text-gray-900">Quick Access</CardTitle>
+              <CardTitle className="text-lg font-bold text-gray-900">
+                Quick Access
+              </CardTitle>
               <p className="text-sm text-gray-600">Navigate to key sections</p>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {quickLinks.map((link) => (
+            {quickLinks.map(link => (
               <Link key={link.name} href={link.href}>
                 <Card className="group hover:shadow-lg transition-all duration-200 border border-gray-100 hover:border-gray-200 cursor-pointer">
                   <CardContent className="p-4">
@@ -172,7 +184,9 @@ export function QuickAccess({ stats }: QuickAccessProps) {
                         </Badge>
                       )}
                     </div>
-                    <h3 className="font-medium text-gray-900 mb-1">{link.name}</h3>
+                    <h3 className="font-medium text-gray-900 mb-1">
+                      {link.name}
+                    </h3>
                     <p className="text-sm text-gray-600">{link.description}</p>
                   </CardContent>
                 </Card>
@@ -190,7 +204,9 @@ export function QuickAccess({ stats }: QuickAccessProps) {
               <TrendingUp className="w-4 h-4 text-white" />
             </div>
             <div>
-              <CardTitle className="text-lg font-bold text-gray-900">Performance Highlights</CardTitle>
+              <CardTitle className="text-lg font-bold text-gray-900">
+                Performance Highlights
+              </CardTitle>
               <p className="text-sm text-gray-600">Key metrics at a glance</p>
             </div>
           </div>

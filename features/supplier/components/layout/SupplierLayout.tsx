@@ -73,7 +73,11 @@ const navigation = [
         badge: null,
         quickActions: [
           { name: "Add Product", href: "/supplier/products/new", icon: Plus },
-          { name: "Bulk Upload", href: "/supplier/products/bulk-upload", icon: Upload },
+          {
+            name: "Bulk Upload",
+            href: "/supplier/products/bulk-upload",
+            icon: Upload,
+          },
         ],
       },
       {
@@ -357,10 +361,10 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                   {category.category}
                 </h3>
                 <div className="space-y-1">
-                  {category.items.map((item) => {
+                  {category.items.map(item => {
                     const isActive = pathname === item.href;
                     const StatusIcon = getStatusIcon(supplier.status);
-                    
+
                     return (
                       <div key={item.name}>
                         <Link
@@ -374,7 +378,9 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                         >
                           <item.icon
                             className={`mr-3 h-5 w-5 ${
-                              isActive ? "text-white" : "text-gray-500 group-hover:text-gray-700"
+                              isActive
+                                ? "text-white"
+                                : "text-gray-500 group-hover:text-gray-700"
                             }`}
                           />
                           <div className="flex-1">
@@ -386,18 +392,20 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                                 </Badge>
                               )}
                             </div>
-                            <p className={`text-xs mt-0.5 ${
-                              isActive ? "text-blue-100" : "text-gray-500"
-                            }`}>
+                            <p
+                              className={`text-xs mt-0.5 ${
+                                isActive ? "text-blue-100" : "text-gray-500"
+                              }`}
+                            >
                               {item.description}
                             </p>
                           </div>
                         </Link>
-                        
+
                         {/* Quick Actions */}
                         {item.quickActions && isActive && (
                           <div className="ml-8 mt-2 space-y-1">
-                            {item.quickActions.map((action) => (
+                            {item.quickActions.map(action => (
                               <Link
                                 key={action.name}
                                 href={action.href}
@@ -467,10 +475,10 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                   {category.category}
                 </h3>
                 <div className="space-y-1">
-                  {category.items.map((item) => {
+                  {category.items.map(item => {
                     const isActive = pathname === item.href;
                     const StatusIcon = getStatusIcon(supplier.status);
-                    
+
                     return (
                       <div key={item.name}>
                         <Link
@@ -483,7 +491,9 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                         >
                           <item.icon
                             className={`mr-3 h-5 w-5 ${
-                              isActive ? "text-white" : "text-gray-500 group-hover:text-gray-700"
+                              isActive
+                                ? "text-white"
+                                : "text-gray-500 group-hover:text-gray-700"
                             }`}
                           />
                           <div className="flex-1">
@@ -495,18 +505,20 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                                 </Badge>
                               )}
                             </div>
-                            <p className={`text-xs mt-0.5 ${
-                              isActive ? "text-blue-100" : "text-gray-500"
-                            }`}>
+                            <p
+                              className={`text-xs mt-0.5 ${
+                                isActive ? "text-blue-100" : "text-gray-500"
+                              }`}
+                            >
                               {item.description}
                             </p>
                           </div>
                         </Link>
-                        
+
                         {/* Quick Actions */}
                         {item.quickActions && isActive && (
                           <div className="ml-8 mt-2 space-y-1">
-                            {item.quickActions.map((action) => (
+                            {item.quickActions.map(action => (
                               <Link
                                 key={action.name}
                                 href={action.href}
@@ -615,7 +627,8 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                 className="relative hover:bg-gray-100 rounded-full"
               >
                 <Bell className="w-5 h-5" />
-                {(notifications.unreadMessages > 0 || notifications.pendingOrders > 0) && (
+                {(notifications.unreadMessages > 0 ||
+                  notifications.pendingOrders > 0) && (
                   <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full text-xs bg-red-500 border-2 border-white">
                     {notifications.unreadMessages + notifications.pendingOrders}
                   </Badge>
@@ -643,8 +656,12 @@ export function SupplierLayout({ children }: { children: React.ReactNode }) {
                   className="w-56 bg-white/95 backdrop-blur-sm border-gray-200/50 shadow-xl"
                 >
                   <div className="px-3 py-2 border-b border-gray-100">
-                    <p className="text-sm font-medium text-gray-900">{supplier.companyName}</p>
-                    <p className="text-xs text-gray-500">{supplier.contactPersonEmail}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {supplier.companyName}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {supplier.contactPersonEmail}
+                    </p>
                   </div>
                   <DropdownMenuItem asChild className="hover:bg-gray-50">
                     <Link href="/supplier/dashboard">

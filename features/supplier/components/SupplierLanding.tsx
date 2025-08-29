@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CheckCircle, Building2, Users, TrendingUp, Shield, Clock, Award, Globe } from "lucide-react";
+import { ArrowRight, CheckCircle, Building2, Users, TrendingUp, Shield, Clock, Award, Globe, Star } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -104,13 +104,13 @@ export function SupplierLanding() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild>
-                <Link href="/supplier/register">
+                <Link href="/supplier/apply">
                   Start Your Application
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="#benefits">
+                <Link href="/supplier/benefits">
                   Learn More
                 </Link>
               </Button>
@@ -139,6 +139,55 @@ export function SupplierLanding() {
               <div className="text-3xl lg:text-4xl font-bold text-blue-600 mb-2">98%</div>
               <div className="text-gray-600">Satisfaction Rate</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Links */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+              Get Started
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Everything you need to know about becoming a TechTots supplier
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <Link href="/supplier/benefits">
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer group">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <Star className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Benefits</h3>
+                  <p className="text-gray-600">Discover the advantages of partnering with TechTots</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/supplier/requirements">
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer group">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <Shield className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Requirements</h3>
+                  <p className="text-gray-600">Learn about our quality standards and eligibility criteria</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/supplier/apply">
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer group">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <ArrowRight className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Apply Now</h3>
+                  <p className="text-gray-600">Start your application to become a TechTots supplier</p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </div>
       </section>
@@ -248,7 +297,7 @@ export function SupplierLanding() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" variant="secondary" asChild>
-              <Link href="/supplier/register">
+              <Link href="/supplier/apply">
                 Apply Now
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
