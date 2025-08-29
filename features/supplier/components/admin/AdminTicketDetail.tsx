@@ -49,6 +49,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { UploadButton } from "@uploadthing/react";
+import { OurFileRouter } from "@/lib/uploadthing";
 
 interface Ticket {
   id: string;
@@ -60,6 +62,11 @@ interface Ticket {
   category: string;
   assignedTo: string | null;
   attachments: string[];
+  attachmentDetails?: Array<{
+    url: string;
+    name: string;
+    size: number;
+  }>;
   createdAt: string;
   updatedAt: string;
   closedAt: string | null;
@@ -82,6 +89,11 @@ interface Ticket {
     responderType: string;
     isInternal: boolean;
     attachments: string[];
+    attachmentDetails?: Array<{
+      url: string;
+      name: string;
+      size: number;
+    }>;
     createdAt: string;
     updatedAt: string;
     responder: {
@@ -170,8 +182,13 @@ export function AdminTicketDetail({
   // Response form state
   const [responseContent, setResponseContent] = useState("");
   const [isInternal, setIsInternal] = useState(false);
-  const [responseAttachments, setResponseAttachments] = useState<string[]>([]);
+  const [responseAttachments, setResponseAttachments] = useState<Array<{
+    url: string;
+    name: string;
+    size: number;
+  }>>([]);
   const [sendingResponse, setSendingResponse] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
   // Assignment form state
   const [selectedAdmin, setSelectedAdmin] = useState<string>("");
@@ -226,14 +243,20 @@ export function AdminTicketDetail({
       setSendingResponse(true);
       setError(null);
 
+      const formData = new FormData();
+      formData.append("content", responseContent.trim());
+      formData.append("isInternal", isInternal.toString());
+
+      // Add attachment details
+      responseAttachments.forEach((attachment, index) => {
+        formData.append("attachmentUrls", attachment.url);
+        formData.append("attachmentNames", attachment.name);
+        formData.append("attachmentSizes", attachment.size.toString());
+      });
+
       const res = await fetch(`/api/admin/tickets/${currentTicket.id}/responses`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: responseContent.trim(),
-          isInternal,
-          attachments: responseAttachments,
-        }),
+        body: formData,
       });
 
       if (!res.ok) throw new Error("Failed to send response");
@@ -256,6 +279,10 @@ export function AdminTicketDetail({
     } finally {
       setSendingResponse(false);
     }
+  };
+
+  const removeResponseAttachment = (index: number) => {
+    setResponseAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleAssignTicket = async () => {
@@ -462,6 +489,57 @@ export function AdminTicketDetail({
                     <div className="p-4 bg-gray-50 rounded-md whitespace-pre-wrap">
                       {currentTicket.description}
                     </div>
+                    
+                    {/* Display attachments if any */}
+                    {currentTicket.attachments.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="text-sm font-medium text-gray-700 mb-2">Attachments:</div>
+                        <div className="space-y-2">
+                          {currentTicket.attachmentDetails
+                            ? // Use detailed attachment info if available
+                              currentTicket.attachmentDetails.map((attachment, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <Paperclip className="w-4 h-4 text-gray-500" />
+                                    <div>
+                                      <a
+                                        href={attachment.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline font-medium"
+                                      >
+                                        {attachment.name}
+                                      </a>
+                                      <span className="text-xs text-gray-500 ml-2">
+                                        ({(attachment.size / 1024 / 1024).toFixed(2)} MB)
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            : // Fallback to basic attachment info
+                              currentTicket.attachments.map((attachment, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-2 p-2 bg-gray-50 rounded"
+                                >
+                                  <Paperclip className="w-4 h-4 text-gray-500" />
+                                  <a
+                                    href={attachment}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:underline"
+                                  >
+                                    Attachment {index + 1}
+                                  </a>
+                                </div>
+                              ))}
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -542,6 +620,78 @@ export function AdminTicketDetail({
                       />
                     </div>
                     
+                    <div>
+                      <Label className="text-sm font-medium">Attachments</Label>
+                      <div className="mt-2">
+                        <UploadButton<OurFileRouter, "ticketAttachment">
+                          endpoint="ticketAttachment"
+                          onClientUploadComplete={(res: any) => {
+                            console.log("Files uploaded successfully:", res);
+                            setIsUploading(false);
+                            if (res) {
+                              // Handle both array and single object responses
+                              const files = Array.isArray(res) ? res : [res];
+                              const newAttachments = files.map((file: any) => ({
+                                url: file.fileUrl,
+                                name: file.fileName,
+                                size: file.fileSize,
+                              }));
+                              setResponseAttachments(prev => [...prev, ...newAttachments]);
+                            }
+                          }}
+                          onUploadError={(error: Error) => {
+                            console.error("Upload error:", error);
+                            setIsUploading(false);
+                            setError(`Upload failed: ${error.message}`);
+                          }}
+                          onUploadBegin={(fileName: string) => {
+                            console.log("Upload started for:", fileName);
+                            setIsUploading(true);
+                          }}
+                          className="ut-button:bg-blue-600 ut-button:hover:bg-blue-700 ut-button:text-white ut-button:rounded-md ut-button:px-4 ut-button:py-2 ut-button:font-medium"
+                          content={{
+                            button: (
+                              <div className="flex items-center gap-2">
+                                <Paperclip className="w-4 h-4" />
+                                {isUploading ? "Uploading..." : "Add Files"}
+                              </div>
+                            ),
+                            allowedContent: "Images, documents, and archives up to 10MB",
+                          }}
+                        />
+                      </div>
+                      {responseAttachments.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                          {responseAttachments.map((attachment, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Paperclip className="w-4 h-4 text-gray-500" />
+                                <div>
+                                  <span className="text-sm font-medium">
+                                    {attachment.name}
+                                  </span>
+                                  <span className="text-xs text-gray-500 ml-2">
+                                    ({(attachment.size / 1024 / 1024).toFixed(2)} MB)
+                                  </span>
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeResponseAttachment(index)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="internal-note"
@@ -554,19 +704,13 @@ export function AdminTicketDetail({
                     <div className="flex gap-2">
                       <Button 
                         onClick={handleSendResponse}
-                        disabled={!responseContent.trim() || sendingResponse}
+                        disabled={!responseContent.trim() || sendingResponse || isUploading}
                       >
-                        {sendingResponse ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Sending...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4 mr-2" />
-                            Send Response
-                          </>
-                        )}
+                        {sendingResponse
+                          ? "Sending..."
+                          : isUploading
+                            ? "Uploading..."
+                            : "Send Response"}
                       </Button>
                     </div>
                   </div>
@@ -612,6 +756,57 @@ export function AdminTicketDetail({
                               </span>
                             </div>
                             <div className="whitespace-pre-wrap">{response.content}</div>
+                            
+                            {/* Display attachments if any */}
+                            {response.attachments.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="text-sm font-medium text-gray-700 mb-2">Attachments:</div>
+                                <div className="space-y-1">
+                                  {response.attachmentDetails
+                                    ? // Use detailed attachment info if available
+                                      response.attachmentDetails.map((attachment, index) => (
+                                        <div
+                                          key={index}
+                                          className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <Paperclip className="w-4 h-4 text-gray-500" />
+                                            <div>
+                                              <a
+                                                href={attachment.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline font-medium"
+                                              >
+                                                {attachment.name}
+                                              </a>
+                                              <span className="text-xs text-gray-500 ml-2">
+                                                ({(attachment.size / 1024 / 1024).toFixed(2)} MB)
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))
+                                    : // Fallback to basic attachment info
+                                      response.attachments.map((attachment, index) => (
+                                        <div
+                                          key={index}
+                                          className="flex items-center gap-2 p-2 bg-gray-50 rounded"
+                                        >
+                                          <Paperclip className="w-4 h-4 text-gray-500" />
+                                          <a
+                                            href={attachment}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline"
+                                          >
+                                            Attachment {index + 1}
+                                          </a>
+                                        </div>
+                                      ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))
                       )}
