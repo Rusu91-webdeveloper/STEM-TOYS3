@@ -36,6 +36,7 @@ export default async function RootLayout({
     <html
       lang={initialLanguage}
       className="scroll-smooth"
+      data-scroll-behavior="smooth"
       suppressHydrationWarning={true}
     >
       <head>
@@ -46,7 +47,6 @@ export default async function RootLayout({
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         {/* Preload critical resources */}
-        <link rel="preload" href="/TechTots_LOGO.png" as="image" />
         <link
           rel="preload"
           href="/images/homepage_hero_banner_01.png"
@@ -75,7 +75,7 @@ export default async function RootLayout({
                   </ClientLayout>
                   <Toaster />
                   <ServiceWorkerRegistration />
-        <ConversionTrackingProvider />
+                  <ConversionTrackingProvider />
                 </CartProviderWrapper>
               </CurrencyProvider>
             </I18nProvider>

@@ -13,6 +13,7 @@ import {
   Tag,
   Mail,
   Building2,
+  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -98,6 +99,16 @@ export const adminNavItems = [
     title: "Suppliers",
     href: "/admin/suppliers",
     icon: Building2,
+  },
+  {
+    title: "Messages",
+    href: "/admin/messages",
+    icon: Mail,
+  },
+  {
+    title: "Support Tickets",
+    href: "/admin/tickets",
+    icon: MessageSquare,
   },
   {
     title: "Customers",

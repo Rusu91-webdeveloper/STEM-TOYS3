@@ -80,223 +80,251 @@ export async function isApprovedSupplier(
 
 /**
  * Middleware to verify supplier role for API routes
- * @param request The incoming request
  * @param handler The handler function to execute if authorized
- * @returns Response from the handler or 403 error
+ * @returns A function that can be used as a route handler
  */
-export async function withSupplierAuth<T>(
-  request: NextRequest,
-  handler: (request: NextRequest, session: Session) => Promise<T>
-): Promise<T | NextResponse> {
-  try {
-    // Check authentication
-    let session;
+export function withSupplierAuth<T>(
+  handler: (
+    request: NextRequest,
+    session: Session,
+    ...args: any[]
+  ) => Promise<T>
+) {
+  return async (
+    request: NextRequest,
+    ...args: any[]
+  ): Promise<T | NextResponse> => {
     try {
-      session = await auth();
-    } catch (authError) {
-      // Handle auth errors during build time
-      if (
-        process.env.NODE_ENV === "production" ||
-        process.env.NODE_ENV === "development"
-      ) {
-        logger.warn("Auth error during build time, skipping auth check", {
-          error: authError,
-        });
+      // Check authentication
+      let session;
+      try {
+        session = await auth();
+      } catch (authError) {
+        // Handle auth errors during build time
+        if (
+          process.env.NODE_ENV === "production" ||
+          process.env.NODE_ENV === "development"
+        ) {
+          logger.warn("Auth error during build time, skipping auth check", {
+            error: authError,
+          });
+          return NextResponse.json(
+            { error: "Authentication required" },
+            { status: 401 }
+          );
+        }
+        throw authError;
+      }
+
+      if (!session?.user?.id) {
         return NextResponse.json(
           { error: "Authentication required" },
           { status: 401 }
         );
       }
-      throw authError;
-    }
 
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
+      // Check if user has a supplier profile
+      try {
+        const { db } = await import("@/lib/db");
+        const supplier = await db.supplier.findUnique({
+          where: { userId: session.user.id },
+          select: { id: true, status: true },
+        });
 
-    // Check if user has a supplier profile
-    try {
-      const { db } = await import("@/lib/db");
-      const supplier = await db.supplier.findUnique({
-        where: { userId: session.user.id },
-        select: { id: true, status: true },
-      });
+        if (!supplier) {
+          logger.warn(
+            "Unauthorized supplier access attempt - no supplier profile",
+            {
+              path: request.nextUrl.pathname,
+              userId: session.user.id,
+            }
+          );
+          return unauthorizedResponse("Supplier profile required");
+        }
 
-      if (!supplier) {
-        logger.warn(
-          "Unauthorized supplier access attempt - no supplier profile",
-          {
-            path: request.nextUrl.pathname,
-            userId: session.user.id,
-          }
+        // Execute the handler with the authenticated session
+        return await handler(request, session as Session, ...args);
+      } catch (dbError) {
+        logger.error("Database error in supplier auth middleware", {
+          error: dbError,
+        });
+        return NextResponse.json(
+          { error: "Internal server error" },
+          { status: 500 }
         );
-        return unauthorizedResponse("Supplier profile required");
       }
-
-      // Execute the handler with the authenticated session
-      return await handler(request, session as Session);
-    } catch (dbError) {
-      logger.error("Database error in supplier auth middleware", {
-        error: dbError,
-      });
+    } catch (error) {
+      logger.error("Error in supplier auth middleware", { error });
       return NextResponse.json(
         { error: "Internal server error" },
         { status: 500 }
       );
     }
-  } catch (error) {
-    logger.error("Error in supplier auth middleware", { error });
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
+  };
 }
 
 /**
  * Middleware to verify approved supplier role for API routes
- * @param request The incoming request
  * @param handler The handler function to execute if authorized
- * @returns Response from the handler or 403 error
+ * @returns A function that can be used as a route handler
  */
-export async function withApprovedSupplierAuth<T>(
-  request: NextRequest,
-  handler: (request: NextRequest, session: Session) => Promise<T>
-): Promise<T | NextResponse> {
-  try {
-    // Check authentication
-    let session;
+export function withApprovedSupplierAuth<T>(
+  handler: (
+    request: NextRequest,
+    session: Session,
+    ...args: any[]
+  ) => Promise<T>
+) {
+  return async (
+    request: NextRequest,
+    ...args: any[]
+  ): Promise<T | NextResponse> => {
     try {
-      session = await auth();
-    } catch (authError) {
-      // Handle auth errors during build time
-      if (
-        process.env.NODE_ENV === "production" ||
-        process.env.NODE_ENV === "development"
-      ) {
-        logger.warn("Auth error during build time, skipping auth check", {
-          error: authError,
-        });
-        return NextResponse.json(
-          { error: "Authentication required" },
-          { status: 401 }
-        );
+      // Check authentication
+      let session;
+      try {
+        session = await auth();
+      } catch (authError) {
+        // Handle auth errors during build time
+        if (
+          process.env.NODE_ENV === "production" ||
+          process.env.NODE_ENV === "development"
+        ) {
+          logger.warn("Auth error during build time, skipping auth check", {
+            error: authError,
+          });
+          return NextResponse.json(
+            { error: "Authentication required" },
+            { status: 401 }
+          );
+        }
+        throw authError;
       }
-      throw authError;
-    }
 
-    if (!(await isApprovedSupplier(session))) {
-      logger.warn("Unauthorized approved supplier access attempt", {
-        path: request.nextUrl.pathname,
-        userId: session?.user?.id,
-      });
-      return unauthorizedResponse("Approved supplier access required");
-    }
+      if (!(await isApprovedSupplier(session))) {
+        logger.warn("Unauthorized approved supplier access attempt", {
+          path: request.nextUrl.pathname,
+          userId: session?.user?.id,
+        });
+        return unauthorizedResponse("Approved supplier access required");
+      }
 
-    // Execute the handler with the authenticated session
-    return await handler(request, session as Session);
-  } catch (error) {
-    logger.error("Error in approved supplier auth middleware", { error });
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
+      // Execute the handler with the authenticated session
+      return await handler(request, session as Session, ...args);
+    } catch (error) {
+      logger.error("Error in approved supplier auth middleware", { error });
+      return NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 }
+      );
+    }
+  };
 }
 
 /**
  * Middleware to verify admin role for API routes
- * @param request The incoming request
  * @param handler The handler function to execute if authorized
- * @returns Response from the handler or 403 error
+ * @returns A function that can be used as a route handler
  */
-export async function withAdminAuth<T>(
-  request: NextRequest,
-  handler: (request: NextRequest, session: Session) => Promise<T>
-): Promise<T | NextResponse> {
-  try {
-    // Check authentication
-    let session;
+export function withAdminAuth<T>(
+  handler: (
+    request: NextRequest,
+    session: Session,
+    ...args: any[]
+  ) => Promise<T>
+) {
+  return async (
+    request: NextRequest,
+    ...args: any[]
+  ): Promise<T | NextResponse> => {
     try {
-      session = await auth();
-    } catch (authError) {
-      // Handle auth errors during build time
-      if (
-        process.env.NODE_ENV === "production" ||
-        process.env.NODE_ENV === "development"
-      ) {
-        logger.warn("Auth error during build time, skipping auth check", {
-          error: authError,
-        });
-        return NextResponse.json(
-          { error: "Authentication required" },
-          { status: 401 }
-        );
+      // Check authentication
+      let session;
+      try {
+        session = await auth();
+      } catch (authError) {
+        // Handle auth errors during build time
+        if (
+          process.env.NODE_ENV === "production" ||
+          process.env.NODE_ENV === "development"
+        ) {
+          logger.warn("Auth error during build time, skipping auth check", {
+            error: authError,
+          });
+          return NextResponse.json(
+            { error: "Authentication required" },
+            { status: 401 }
+          );
+        }
+        throw authError;
       }
-      throw authError;
-    }
 
-    if (!isAdmin(session)) {
-      logger.warn("Unauthorized admin access attempt", {
-        path: request.nextUrl.pathname,
-        userId: session?.user?.id,
-      });
-      return unauthorizedResponse("Admin access required");
-    }
+      if (!isAdmin(session)) {
+        logger.warn("Unauthorized admin access attempt", {
+          path: request.nextUrl.pathname,
+          userId: session?.user?.id,
+        });
+        return unauthorizedResponse("Admin access required");
+      }
 
-    // Execute the handler with the authenticated session
-    // At this point we know session is not null because isAdmin checks that
-    return await handler(request, session as Session);
-  } catch (error) {
-    logger.error("Error in admin auth middleware", { error });
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
+      // Execute the handler with the authenticated session
+      // At this point we know session is not null because isAdmin checks that
+      return await handler(request, session as Session, ...args);
+    } catch (error) {
+      logger.error("Error in admin auth middleware", { error });
+      return NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 }
+      );
+    }
+  };
 }
 
 /**
  * Middleware to verify user authentication for API routes
- * @param request The incoming request
  * @param handler The handler function to execute if authorized
  * @param requiredRole Optional role requirement
- * @returns Response from the handler or unauthorized error
+ * @returns A function that can be used as a route handler
  */
-export async function withAuth<T>(
-  request: NextRequest,
-  handler: (request: NextRequest, session: Session) => Promise<T>,
+export function withAuth<T>(
+  handler: (
+    request: NextRequest,
+    session: Session,
+    ...args: any[]
+  ) => Promise<T>,
   requiredRole?: string
-): Promise<T | NextResponse> {
-  try {
-    // Check authentication
-    const session = await auth();
+) {
+  return async (
+    request: NextRequest,
+    ...args: any[]
+  ): Promise<T | NextResponse> => {
+    try {
+      // Check authentication
+      const session = await auth();
 
-    if (!isAuthorized(session, requiredRole)) {
-      const message = requiredRole
-        ? `Role '${requiredRole}' required`
-        : "Authentication required";
+      if (!isAuthorized(session, requiredRole)) {
+        const message = requiredRole
+          ? `Role '${requiredRole}' required`
+          : "Authentication required";
 
-      logger.warn("Unauthorized access attempt", {
-        path: request.nextUrl.pathname,
-        userId: session?.user?.id,
-        requiredRole,
-      });
+        logger.warn("Unauthorized access attempt", {
+          path: request.nextUrl.pathname,
+          userId: session?.user?.id,
+          requiredRole,
+        });
 
-      return unauthorizedResponse(message);
+        return unauthorizedResponse(message);
+      }
+
+      // Execute the handler with the authenticated session
+      // At this point we know session is not null because isAuthorized checks that
+      return await handler(request, session as Session, ...args);
+    } catch (error) {
+      logger.error("Error in auth middleware", { error });
+      return NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 }
+      );
     }
-
-    // Execute the handler with the authenticated session
-    // At this point we know session is not null because isAuthorized checks that
-    return await handler(request, session as Session);
-  } catch (error) {
-    logger.error("Error in auth middleware", { error });
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
+  };
 }

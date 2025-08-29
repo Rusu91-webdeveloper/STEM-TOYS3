@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
+import { UploadButton } from "@uploadthing/react";
+import { OurFileRouter } from "@/lib/uploadthing";
 import {
   Mail,
   Send,
@@ -45,6 +47,8 @@ import {
   Trash2,
   Reply,
   Forward,
+  Upload,
+  X,
 } from "lucide-react";
 
 interface SupplierMessage {
@@ -67,6 +71,11 @@ interface SupplierMessage {
   isRead: boolean;
   readAt?: string;
   attachments: string[];
+  attachmentDetails?: Array<{
+    url: string;
+    name: string;
+    size: number;
+  }>;
   createdAt: string;
   updatedAt: string;
 }
@@ -82,7 +91,11 @@ interface ComposeMessageData {
     | "SUPPORT"
     | "MARKETING"
     | "ANNOUNCEMENT";
-  attachments: File[];
+  attachments: Array<{
+    url: string;
+    name: string;
+    size: number;
+  }>;
 }
 
 const priorityConfig = {
@@ -119,6 +132,9 @@ export function SupplierMessaging() {
     category: "GENERAL",
     attachments: [],
   });
+
+  // State for tracking upload status
+  const [isUploading, setIsUploading] = useState(false);
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
@@ -167,6 +183,7 @@ export function SupplierMessaging() {
   const sendMessage = async () => {
     try {
       setSending(true);
+      setError(null);
 
       const formData = new FormData();
       formData.append("subject", composeData.subject);
@@ -174,8 +191,11 @@ export function SupplierMessaging() {
       formData.append("priority", composeData.priority);
       formData.append("category", composeData.category);
 
-      composeData.attachments.forEach(file => {
-        formData.append("attachments", file);
+      // Add attachment details
+      composeData.attachments.forEach((attachment, index) => {
+        formData.append("attachmentUrls", attachment.url);
+        formData.append("attachmentNames", attachment.name);
+        formData.append("attachmentSizes", attachment.size.toString());
       });
 
       const response = await fetch("/api/supplier/messages", {
@@ -183,32 +203,32 @@ export function SupplierMessaging() {
         body: formData,
       });
 
-      if (response.ok) {
-        setComposeOpen(false);
-        setComposeData({
-          subject: "",
-          content: "",
-          priority: "NORMAL",
-          category: "GENERAL",
-          attachments: [],
-        });
-        fetchMessages(); // Refresh messages
-      } else {
-        throw new Error("Failed to send message");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to send message");
       }
+
+      const result = await response.json();
+      console.log("Message sent successfully:", result);
+
+      // Reset form and close dialog
+      setComposeData({
+        subject: "",
+        content: "",
+        priority: "NORMAL",
+        category: "GENERAL",
+        attachments: [],
+      });
+      setComposeOpen(false);
+
+      // Refresh messages
+      fetchMessages();
     } catch (err) {
+      console.error("Error sending message:", err);
       setError(err instanceof Error ? err.message : "Failed to send message");
     } finally {
       setSending(false);
     }
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    setComposeData(prev => ({
-      ...prev,
-      attachments: [...prev.attachments, ...files],
-    }));
   };
 
   const removeAttachment = (index: number) => {
@@ -340,34 +360,71 @@ export function SupplierMessaging() {
               <div>
                 <label className="text-sm font-medium">Attachments</label>
                 <div className="mt-2">
-                  <input
-                    type="file"
-                    multiple
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="file-upload"
+                  <UploadButton<OurFileRouter, "messageAttachment">
+                    endpoint="messageAttachment"
+                    onClientUploadComplete={(res: any) => {
+                      console.log("Files uploaded successfully:", res);
+                      setIsUploading(false);
+                      if (res) {
+                        // Handle both array and single object responses
+                        const files = Array.isArray(res) ? res : [res];
+                        const newAttachments = files.map((file: any) => ({
+                          url: file.url,
+                          name: file.name,
+                          size: file.size,
+                        }));
+                        setComposeData(prev => ({
+                          ...prev,
+                          attachments: [...prev.attachments, ...newAttachments],
+                        }));
+                      }
+                    }}
+                    onUploadError={(error: Error) => {
+                      console.error("Upload error:", error);
+                      setIsUploading(false);
+                      setError(`Upload failed: ${error.message}`);
+                    }}
+                    onUploadBegin={(fileName: string) => {
+                      console.log("Upload started for:", fileName);
+                      setIsUploading(true);
+                    }}
+                    className="ut-button:bg-blue-600 ut-button:hover:bg-blue-700 ut-button:text-white ut-button:rounded-md ut-button:px-4 ut-button:py-2 ut-button:font-medium"
+                    content={{
+                      button: (
+                        <div className="flex items-center gap-2">
+                          <Paperclip className="w-4 h-4" />
+                          {isUploading ? "Uploading..." : "Add Files"}
+                        </div>
+                      ),
+                      allowedContent: "Images, documents, and PDFs up to 10MB",
+                    }}
                   />
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    <Button variant="outline" type="button">
-                      <Paperclip className="w-4 h-4 mr-2" />
-                      Add Files
-                    </Button>
-                  </label>
                 </div>
                 {composeData.attachments.length > 0 && (
                   <div className="mt-2 space-y-2">
-                    {composeData.attachments.map((file, index) => (
+                    {composeData.attachments.map((attachment, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between p-2 bg-gray-50 rounded"
                       >
-                        <span className="text-sm">{file.name}</span>
+                        <div className="flex items-center gap-2">
+                          <Paperclip className="w-4 h-4 text-gray-500" />
+                          <div>
+                            <span className="text-sm font-medium">
+                              {attachment.name}
+                            </span>
+                            <span className="text-xs text-gray-500 ml-2">
+                              ({(attachment.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          </div>
+                        </div>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => removeAttachment(index)}
+                          className="text-red-500 hover:text-red-700"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <X className="w-4 h-4" />
                         </Button>
                       </div>
                     ))}
@@ -381,10 +438,17 @@ export function SupplierMessaging() {
                 <Button
                   onClick={sendMessage}
                   disabled={
-                    sending || !composeData.subject || !composeData.content
+                    sending ||
+                    isUploading ||
+                    !composeData.subject ||
+                    !composeData.content
                   }
                 >
-                  {sending ? "Sending..." : "Send Message"}
+                  {sending
+                    ? "Sending..."
+                    : isUploading
+                      ? "Uploading..."
+                      : "Send Message"}
                 </Button>
               </div>
             </div>
@@ -573,24 +637,58 @@ export function SupplierMessaging() {
                       <div>
                         <h4 className="font-medium mb-2">Attachments</h4>
                         <div className="space-y-2">
-                          {selectedMessage.attachments.map(
-                            (attachment, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center gap-2 p-2 bg-gray-50 rounded"
-                              >
-                                <Paperclip className="w-4 h-4 text-gray-500" />
-                                <a
-                                  href={attachment}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:underline"
-                                >
-                                  Attachment {index + 1}
-                                </a>
-                              </div>
-                            )
-                          )}
+                          {selectedMessage.attachmentDetails
+                            ? // Use detailed attachment info if available
+                              selectedMessage.attachmentDetails.map(
+                                (attachment, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <Paperclip className="w-4 h-4 text-gray-500" />
+                                      <div>
+                                        <a
+                                          href={attachment.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:underline font-medium"
+                                        >
+                                          {attachment.name}
+                                        </a>
+                                        <span className="text-xs text-gray-500 ml-2">
+                                          (
+                                          {(
+                                            attachment.size /
+                                            1024 /
+                                            1024
+                                          ).toFixed(2)}{" "}
+                                          MB)
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )
+                              )
+                            : // Fallback to basic attachment info
+                              selectedMessage.attachments.map(
+                                (attachment, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center gap-2 p-2 bg-gray-50 rounded"
+                                  >
+                                    <Paperclip className="w-4 h-4 text-gray-500" />
+                                    <a
+                                      href={attachment}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:underline"
+                                    >
+                                      Attachment {index + 1}
+                                    </a>
+                                  </div>
+                                )
+                              )}
                         </div>
                       </div>
                     </>
