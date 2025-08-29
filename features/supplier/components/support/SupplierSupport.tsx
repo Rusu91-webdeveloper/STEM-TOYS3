@@ -59,9 +59,9 @@ export function SupplierSupport() {
     null
   );
   const [filters, setFilters] = useState({
-    status: "",
-    priority: "",
-    category: "",
+    status: "all",
+    priority: "all",
+    category: "all",
   });
   const [creating, setCreating] = useState(false);
   const [newTicket, setNewTicket] = useState({
@@ -82,9 +82,12 @@ export function SupplierSupport() {
       setLoading(true);
       setError(null);
       const params = new URLSearchParams();
-      if (filters.status) params.append("status", filters.status);
-      if (filters.priority) params.append("priority", filters.priority);
-      if (filters.category) params.append("category", filters.category);
+      if (filters.status && filters.status !== "all")
+        params.append("status", filters.status);
+      if (filters.priority && filters.priority !== "all")
+        params.append("priority", filters.priority);
+      if (filters.category && filters.category !== "all")
+        params.append("category", filters.category);
       const res = await fetch(`/api/supplier/tickets?${params.toString()}`, {
         cache: "no-store",
       });
@@ -263,7 +266,7 @@ export function SupplierSupport() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="OPEN">Open</SelectItem>
                 <SelectItem value="PENDING_SUPPLIER">
                   Pending Supplier
@@ -283,7 +286,7 @@ export function SupplierSupport() {
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Priorities</SelectItem>
+                <SelectItem value="all">All Priorities</SelectItem>
                 <SelectItem value="LOW">Low</SelectItem>
                 <SelectItem value="MEDIUM">Medium</SelectItem>
                 <SelectItem value="HIGH">High</SelectItem>
@@ -298,7 +301,7 @@ export function SupplierSupport() {
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 <SelectItem value="GENERAL">General</SelectItem>
                 <SelectItem value="ACCOUNT">Account</SelectItem>
                 <SelectItem value="ORDER">Order</SelectItem>

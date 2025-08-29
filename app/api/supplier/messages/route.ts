@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { utapi } from "@/lib/uploadthing";
+import { sendSupplierMessageNotification } from "@/lib/admin-notifications";
 
 // GET - List supplier messages
 export async function GET(request: NextRequest) {
@@ -49,7 +51,18 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: "desc" },
-        include: {
+        select: {
+          id: true,
+          subject: true,
+          content: true,
+          priority: true,
+          category: true,
+          isRead: true,
+          readAt: true,
+          createdAt: true,
+          updatedAt: true,
+          attachments: true,
+          attachmentDetails: true,
           sender: {
             select: {
               id: true,
@@ -90,7 +103,12 @@ export async function POST(request: NextRequest) {
 
     const supplier = await db.supplier.findUnique({
       where: { userId: session.user.id },
-      select: { id: true, companyName: true },
+      select: {
+        id: true,
+        companyName: true,
+        contactPersonName: true,
+        contactPersonEmail: true,
+      },
     });
 
     if (!supplier) {
@@ -105,7 +123,9 @@ export async function POST(request: NextRequest) {
     const content = formData.get("content") as string;
     const priority = formData.get("priority") as string;
     const category = formData.get("category") as string;
-    const attachments = formData.getAll("attachments") as File[];
+    const attachmentUrls = formData.getAll("attachmentUrls") as string[];
+    const attachmentNames = formData.getAll("attachmentNames") as string[];
+    const attachmentSizes = formData.getAll("attachmentSizes") as string[];
 
     if (!subject || !content) {
       return NextResponse.json(
@@ -114,8 +134,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Handle file uploads to cloud storage
-    const attachmentUrls: string[] = [];
+    // Validate attachment URLs (they should be UploadThing URLs)
+    const validAttachmentUrls = attachmentUrls.filter(
+      url =>
+        url &&
+        typeof url === "string" &&
+        (url.includes("uploadthing.com") || url.includes("utfs.io"))
+    );
+
+    // Create attachment objects with full information
+    const attachments = validAttachmentUrls.map((url, index) => ({
+      url,
+      name: attachmentNames[index] || `File ${index + 1}`,
+      size: parseInt(attachmentSizes[index] || "0"),
+    }));
 
     // Create the message
     const message = await db.supplierMessage.create({
@@ -127,7 +159,8 @@ export async function POST(request: NextRequest) {
         content,
         priority: priority as any,
         category: category as any,
-        attachments: attachmentUrls,
+        attachments: validAttachmentUrls, // Keep URLs for backward compatibility
+        attachmentDetails: attachments, // Store full attachment details as JSON
       },
       include: {
         sender: {
@@ -140,13 +173,24 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: Send notification to admin team
-    // await sendAdminNotification({
-    //   type: "NEW_SUPPLIER_MESSAGE",
-    //   title: `New message from ${supplier.companyName}`,
-    //   message: `Subject: ${subject}`,
-    //   metadata: { messageId: message.id, supplierId: supplier.id },
-    // });
+    // Send notification to admin team
+    try {
+      await sendSupplierMessageNotification({
+        supplierName: supplier.contactPersonName || supplier.companyName,
+        supplierEmail: supplier.contactPersonEmail || session.user.email || "",
+        subject,
+        content,
+        priority,
+        category,
+        messageId: message.id,
+        hasAttachments: validAttachmentUrls.length > 0,
+        attachmentCount: validAttachmentUrls.length,
+        attachments: attachments, // Pass the full attachment details
+      });
+    } catch (error) {
+      console.error("Failed to send admin notification:", error);
+      // Don't fail the message creation if notification fails
+    }
 
     return NextResponse.json({
       success: true,

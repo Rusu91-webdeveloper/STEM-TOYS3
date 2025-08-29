@@ -242,6 +242,71 @@ export const ourFileRouter = {
       }
 
       return {
+        url: res.file.ufsUrl,
+        name: res.file.name,
+        size: res.file.size,
+      };
+    }),
+
+  // Message attachment endpoint for supplier messages
+  messageAttachment: f({
+    blob: {
+      maxFileSize: "10MB",
+      maxFileCount: 5,
+    },
+  })
+    .middleware(async () => {
+      console.log("UploadThing middleware running for messageAttachment");
+
+      // Get the authenticated user from the session
+      const session = await auth();
+
+      // Check if the user is authenticated
+      if (!session?.user) {
+        throw new Error("Unauthorized: You must be logged in to upload files");
+      }
+
+      // Check if the user is a supplier
+      if (session.user.role !== "SUPPLIER") {
+        throw new Error(
+          "Forbidden: Only suppliers can upload message attachments"
+        );
+      }
+
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(res => {
+      console.log("Message attachment upload complete:", res);
+
+      // Validate file extensions for common document types
+      const allowedExtensions = [
+        ".pdf",
+        ".doc",
+        ".docx",
+        ".txt",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".bmp",
+        ".svg",
+        ".xls",
+        ".xlsx",
+        ".ppt",
+        ".pptx",
+      ];
+      const fileName = res.file.name.toLowerCase();
+      const hasValidExtension = allowedExtensions.some(ext =>
+        fileName.endsWith(ext)
+      );
+
+      if (!hasValidExtension) {
+        throw new Error(
+          "Invalid file type. Only common document and image files are allowed for message attachments."
+        );
+      }
+
+      return {
         fileUrl: res.file.ufsUrl,
         fileName: res.file.name,
         fileSize: res.file.size,

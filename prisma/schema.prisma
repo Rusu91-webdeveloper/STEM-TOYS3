@@ -523,6 +523,7 @@ model SupplierMessage {
   priority        MessagePriority @default(NORMAL)
   category        MessageCategory @default(GENERAL)
   attachments     String[] // URLs to uploaded files
+  attachmentDetails Json?  // Full attachment details (name, size, etc.)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

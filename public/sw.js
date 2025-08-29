@@ -50,6 +50,7 @@ const API_PATTERNS = [
   /^\/api\/categories/,
   /^\/api\/cart/,
   /^\/api\/user/,
+  /^\/api\/supplier/,
 ];
 
 // Install event - cache critical assets
@@ -380,7 +381,6 @@ function isAuthRequest(pathname) {
          pathname.includes('/signin') ||
          pathname.includes('/signout') ||
          pathname.includes('/session') ||
-         pathname.startsWith('/api/supplier/') ||  // Skip supplier API routes
          pathname.startsWith('/api/admin/');       // Skip admin API routes
 }
 
