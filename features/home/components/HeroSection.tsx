@@ -96,6 +96,20 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
         >
           {t("exploreCategories")}
         </Link>
+        {/* Become a Supplier CTA */}
+        <Link
+          href="/supplier"
+          aria-label={t("become_supplier")}
+          tabIndex={0}
+          data-conversion="cta"
+          data-conversion-type="click"
+          data-conversion-category="cta"
+          data-conversion-action="become_supplier"
+          data-conversion-element="hero_supplier_button"
+          className="w-full xs:w-auto min-h-[36px] sm:min-h-[44px] px-3 sm:px-6 py-2 sm:py-3 bg-green-600 text-white border-green-600 hover:bg-green-700 hover:border-green-700 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 text-xs sm:text-base md:text-lg font-semibold mt-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-green-600 text-center flex items-center justify-center"
+        >
+          {t("become_supplier")}
+        </Link>
       </div>
     </div>
   </section>

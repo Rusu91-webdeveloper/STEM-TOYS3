@@ -178,6 +178,15 @@ export default function Footer() {
                   {t("about")}
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/supplier"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
+                >
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
+                  {t("become_supplier")}
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -8,6 +8,7 @@ export const ro = {
   categories: "Categorii",
   blog: "Blog",
   about: "Despre noi",
+  become_supplier: "Devino Furnizor",
   account: "Cont",
   admin: "Admin",
   login: "Autentificare",
