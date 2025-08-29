@@ -19,10 +19,16 @@ const updateProductSchema = z.object({
   isActive: z.boolean().optional(),
   featured: z.boolean().optional(),
   ageGroup: z
-    .enum(["TODDLER", "PRESCHOOL", "SCHOOL_AGE", "TEEN", "ALL_AGES"])
+    .enum([
+      "TODDLERS_1_3",
+      "PRESCHOOL_3_5",
+      "ELEMENTARY_6_8",
+      "MIDDLE_SCHOOL_9_12",
+      "TEENS_13_PLUS",
+    ])
     .optional(),
   stemDiscipline: z
-    .enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATH", "GENERAL"])
+    .enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"])
     .optional(),
   productType: z
     .enum([
@@ -33,8 +39,20 @@ const updateProductSchema = z.object({
       "BOARD_GAMES",
     ])
     .optional(),
-  learningOutcomes: z.array(z.string()).optional(),
-  specialCategories: z.array(z.string()).optional(),
+  learningOutcomes: z
+    .array(
+      z.enum([
+        "PROBLEM_SOLVING",
+        "CREATIVITY",
+        "CRITICAL_THINKING",
+        "MOTOR_SKILLS",
+        "LOGIC",
+      ])
+    )
+    .optional(),
+  specialCategories: z
+    .array(z.enum(["NEW_ARRIVALS", "BEST_SELLERS", "GIFT_IDEAS", "SALE_ITEMS"]))
+    .optional(),
   attributes: z.record(z.any()).optional(),
   images: z.array(z.string()).optional(),
 });

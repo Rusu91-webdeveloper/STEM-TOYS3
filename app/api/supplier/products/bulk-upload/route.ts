@@ -5,24 +5,53 @@ import { db } from "@/lib/db";
 
 // Bulk upload schema
 const bulkUploadSchema = z.object({
-  products: z.array(z.object({
-    name: z.string().min(1, "Product name is required").max(100),
-    description: z.string().min(10, "Description must be at least 10 characters").max(1000),
-    price: z.number().min(0.01, "Price must be greater than 0"),
-    compareAtPrice: z.number().optional(),
-    sku: z.string().optional(),
-    stockQuantity: z.number().min(0, "Stock quantity cannot be negative"),
-    reorderPoint: z.number().min(0).optional(),
-    weight: z.number().min(0).optional(),
-    category: z.string().optional(),
-    tags: z.string().optional(),
-    ageGroup: z.enum(["TODDLER", "PRESCHOOL", "SCHOOL_AGE", "TEEN", "ALL_AGES"]).optional(),
-    stemDiscipline: z.enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATH", "GENERAL"]).default("GENERAL"),
-    productType: z.enum(["ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"]).optional(),
-    learningOutcomes: z.string().optional(),
-    specialCategories: z.string().optional(),
-    images: z.string().optional(),
-  }))
+  products: z.array(
+    z.object({
+      name: z.string().min(1, "Product name is required").max(100),
+      description: z
+        .string()
+        .min(10, "Description must be at least 10 characters")
+        .max(1000),
+      price: z.number().min(0.01, "Price must be greater than 0"),
+      compareAtPrice: z.number().optional(),
+      sku: z.string().optional(),
+      stockQuantity: z.number().min(0, "Stock quantity cannot be negative"),
+      reorderPoint: z.number().min(0).optional(),
+      weight: z.number().min(0).optional(),
+      category: z.string().optional(),
+      tags: z.string().optional(),
+      ageGroup: z
+        .enum([
+          "TODDLERS_1_3",
+          "PRESCHOOL_3_5",
+          "ELEMENTARY_6_8",
+          "MIDDLE_SCHOOL_9_12",
+          "TEENS_13_PLUS",
+        ])
+        .optional(),
+      stemDiscipline: z
+        .enum([
+          "SCIENCE",
+          "TECHNOLOGY",
+          "ENGINEERING",
+          "MATHEMATICS",
+          "GENERAL",
+        ])
+        .default("GENERAL"),
+      productType: z
+        .enum([
+          "ROBOTICS",
+          "PUZZLES",
+          "CONSTRUCTION_SETS",
+          "EXPERIMENT_KITS",
+          "BOARD_GAMES",
+        ])
+        .optional(),
+      learningOutcomes: z.string().optional(),
+      specialCategories: z.string().optional(),
+      images: z.string().optional(),
+    })
+  ),
 });
 
 // POST - Bulk upload products
@@ -53,7 +82,7 @@ export async function POST(request: NextRequest) {
     const results = {
       success: 0,
       failed: 0,
-      errors: [] as Array<{ row: number; field: string; message: string }>
+      errors: [] as Array<{ row: number; field: string; message: string }>,
     };
 
     // Process each product
@@ -78,7 +107,7 @@ export async function POST(request: NextRequest) {
           results.errors.push({
             row: rowNumber,
             field: "name",
-            message: "A product with this name already exists"
+            message: "A product with this name already exists",
           });
           continue;
         }
@@ -90,27 +119,44 @@ export async function POST(request: NextRequest) {
             where: {
               name: {
                 contains: productData.category,
-                mode: "insensitive"
-              }
-            }
+                mode: "insensitive",
+              },
+            },
           });
           categoryId = category?.id;
         }
 
         // Process tags
-        const tags = productData.tags ? productData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+        const tags = productData.tags
+          ? productData.tags
+              .split(",")
+              .map(tag => tag.trim())
+              .filter(Boolean)
+          : [];
 
         // Process learning outcomes
-        const learningOutcomes = productData.learningOutcomes ? 
-          productData.learningOutcomes.split(',').map(outcome => outcome.trim()).filter(Boolean) : [];
+        const learningOutcomes = productData.learningOutcomes
+          ? productData.learningOutcomes
+              .split(",")
+              .map(outcome => outcome.trim())
+              .filter(Boolean)
+          : [];
 
         // Process special categories
-        const specialCategories = productData.specialCategories ? 
-          productData.specialCategories.split(',').map(cat => cat.trim().toUpperCase()).filter(Boolean) : [];
+        const specialCategories = productData.specialCategories
+          ? productData.specialCategories
+              .split(",")
+              .map(cat => cat.trim().toUpperCase())
+              .filter(Boolean)
+          : [];
 
         // Process images
-        const images = productData.images ? 
-          productData.images.split(',').map(img => img.trim()).filter(Boolean) : [];
+        const images = productData.images
+          ? productData.images
+              .split(",")
+              .map(img => img.trim())
+              .filter(Boolean)
+          : [];
 
         // Create product
         await db.product.create({
@@ -144,7 +190,8 @@ export async function POST(request: NextRequest) {
         results.errors.push({
           row: rowNumber,
           field: "general",
-          message: error instanceof Error ? error.message : "Unknown error occurred"
+          message:
+            error instanceof Error ? error.message : "Unknown error occurred",
         });
         console.error(`Error creating product at row ${rowNumber}:`, error);
       }

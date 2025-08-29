@@ -2,19 +2,19 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  Upload, 
-  Download, 
-  FileText, 
-  CheckCircle, 
-  AlertCircle, 
-  X, 
+import {
+  Upload,
+  Download,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  X,
   ArrowLeft,
   FileSpreadsheet,
   FileX,
   Eye,
   EyeOff,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,11 +59,13 @@ export function SupplierBulkUpload() {
   const router = useRouter();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [products, setProducts] = useState<ProductRow[]>([]);
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
+    []
+  );
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
@@ -75,9 +77,9 @@ export function SupplierBulkUpload() {
 
     // Validate file type
     const validTypes = [
-      'text/csv',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      "text/csv",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ];
 
     if (!validTypes.includes(selectedFile.type)) {
@@ -104,7 +106,7 @@ export function SupplierBulkUpload() {
       const data = await readFile(file);
       const parsedProducts = parseProducts(data);
       setProducts(parsedProducts);
-      
+
       // Validate the parsed data
       const errors = validateProducts(parsedProducts);
       setValidationErrors(errors);
@@ -124,7 +126,8 @@ export function SupplierBulkUpload() {
     } catch (error) {
       toast({
         title: "Error parsing file",
-        description: "Failed to parse the uploaded file. Please check the format.",
+        description:
+          "Failed to parse the uploaded file. Please check the format.",
         variant: "destructive",
       });
       console.error("Error parsing file:", error);
@@ -134,8 +137,8 @@ export function SupplierBulkUpload() {
   const readFile = (file: File): Promise<any[]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
-      reader.onload = (e) => {
+
+      reader.onload = e => {
         try {
           const data = e.target?.result;
           if (!data) {
@@ -143,23 +146,30 @@ export function SupplierBulkUpload() {
             return;
           }
 
-          if (file.type === 'text/csv') {
+          if (file.type === "text/csv") {
             // Handle CSV
             const csv = data as string;
-            const lines = csv.split('\n');
-            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-            const rows = lines.slice(1).filter(line => line.trim()).map(line => {
-              const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-              const row: any = {};
-              headers.forEach((header, index) => {
-                row[header] = values[index] || '';
+            const lines = csv.split("\n");
+            const headers = lines[0]
+              .split(",")
+              .map(h => h.trim().replace(/"/g, ""));
+            const rows = lines
+              .slice(1)
+              .filter(line => line.trim())
+              .map(line => {
+                const values = line
+                  .split(",")
+                  .map(v => v.trim().replace(/"/g, ""));
+                const row: any = {};
+                headers.forEach((header, index) => {
+                  row[header] = values[index] || "";
+                });
+                return row;
               });
-              return row;
-            });
             resolve(rows);
           } else {
             // Handle Excel
-            const workbook = XLSX.read(data, { type: 'binary' });
+            const workbook = XLSX.read(data, { type: "binary" });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
             const jsonData = XLSX.utils.sheet_to_json(worksheet);
@@ -172,7 +182,7 @@ export function SupplierBulkUpload() {
 
       reader.onerror = () => reject(new Error("Failed to read file"));
 
-      if (file.type === 'text/csv') {
+      if (file.type === "text/csv") {
         reader.readAsText(file);
       } else {
         reader.readAsBinaryString(file);
@@ -182,22 +192,60 @@ export function SupplierBulkUpload() {
 
   const parseProducts = (data: any[]): ProductRow[] => {
     return data.map((row, index) => ({
-      name: row.name || row.Name || row.NAME || '',
-      description: row.description || row.Description || row.DESCRIPTION || '',
-      price: parseFloat(row.price || row.Price || row.PRICE || '0'),
-      compareAtPrice: row.compareAtPrice || row['Compare At Price'] || row['compare_at_price'] ? parseFloat(row.compareAtPrice || row['Compare At Price'] || row['compare_at_price'] || '0') : undefined,
-      sku: row.sku || row.SKU || row.Sku || '',
-      stockQuantity: parseInt(row.stockQuantity || row['Stock Quantity'] || row['stock_quantity'] || row.quantity || '0'),
-      reorderPoint: row.reorderPoint || row['Reorder Point'] || row['reorder_point'] ? parseInt(row.reorderPoint || row['Reorder Point'] || row['reorder_point'] || '0') : undefined,
-      weight: row.weight || row.Weight || row.WEIGHT ? parseFloat(row.weight || row.Weight || row.WEIGHT || '0') : undefined,
-      category: row.category || row.Category || row.CATEGORY || '',
-      tags: row.tags || row.Tags || row.TAGS || '',
-      ageGroup: row.ageGroup || row['Age Group'] || row['age_group'] || '',
-      stemDiscipline: row.stemDiscipline || row['STEM Discipline'] || row['stem_discipline'] || '',
-      productType: row.productType || row['Product Type'] || row['product_type'] || '',
-      learningOutcomes: row.learningOutcomes || row['Learning Outcomes'] || row['learning_outcomes'] || '',
-      specialCategories: row.specialCategories || row['Special Categories'] || row['special_categories'] || '',
-      images: row.images || row.Images || row.IMAGES || '',
+      name: row.name || row.Name || row.NAME || "",
+      description: row.description || row.Description || row.DESCRIPTION || "",
+      price: parseFloat(row.price || row.Price || row.PRICE || "0"),
+      compareAtPrice:
+        row.compareAtPrice || row["Compare At Price"] || row["compare_at_price"]
+          ? parseFloat(
+              row.compareAtPrice ||
+                row["Compare At Price"] ||
+                row["compare_at_price"] ||
+                "0"
+            )
+          : undefined,
+      sku: row.sku || row.SKU || row.Sku || "",
+      stockQuantity: parseInt(
+        row.stockQuantity ||
+          row["Stock Quantity"] ||
+          row["stock_quantity"] ||
+          row.quantity ||
+          "0"
+      ),
+      reorderPoint:
+        row.reorderPoint || row["Reorder Point"] || row["reorder_point"]
+          ? parseInt(
+              row.reorderPoint ||
+                row["Reorder Point"] ||
+                row["reorder_point"] ||
+                "0"
+            )
+          : undefined,
+      weight:
+        row.weight || row.Weight || row.WEIGHT
+          ? parseFloat(row.weight || row.Weight || row.WEIGHT || "0")
+          : undefined,
+      category: row.category || row.Category || row.CATEGORY || "",
+      tags: row.tags || row.Tags || row.TAGS || "",
+      ageGroup: row.ageGroup || row["Age Group"] || row["age_group"] || "",
+      stemDiscipline:
+        row.stemDiscipline ||
+        row["STEM Discipline"] ||
+        row["stem_discipline"] ||
+        "",
+      productType:
+        row.productType || row["Product Type"] || row["product_type"] || "",
+      learningOutcomes:
+        row.learningOutcomes ||
+        row["Learning Outcomes"] ||
+        row["learning_outcomes"] ||
+        "",
+      specialCategories:
+        row.specialCategories ||
+        row["Special Categories"] ||
+        row["special_categories"] ||
+        "",
+      images: row.images || row.Images || row.IMAGES || "",
     }));
   };
 
@@ -209,52 +257,123 @@ export function SupplierBulkUpload() {
 
       // Required fields
       if (!product.name.trim()) {
-        errors.push({ row: rowNumber, field: 'name', message: 'Product name is required' });
+        errors.push({
+          row: rowNumber,
+          field: "name",
+          message: "Product name is required",
+        });
       }
 
       if (!product.description.trim()) {
-        errors.push({ row: rowNumber, field: 'description', message: 'Description is required' });
+        errors.push({
+          row: rowNumber,
+          field: "description",
+          message: "Description is required",
+        });
       }
 
       if (product.description.length < 10) {
-        errors.push({ row: rowNumber, field: 'description', message: 'Description must be at least 10 characters' });
+        errors.push({
+          row: rowNumber,
+          field: "description",
+          message: "Description must be at least 10 characters",
+        });
       }
 
       if (product.price <= 0) {
-        errors.push({ row: rowNumber, field: 'price', message: 'Price must be greater than 0' });
+        errors.push({
+          row: rowNumber,
+          field: "price",
+          message: "Price must be greater than 0",
+        });
       }
 
       if (product.stockQuantity < 0) {
-        errors.push({ row: rowNumber, field: 'stockQuantity', message: 'Stock quantity cannot be negative' });
+        errors.push({
+          row: rowNumber,
+          field: "stockQuantity",
+          message: "Stock quantity cannot be negative",
+        });
       }
 
       // Optional field validations
       if (product.compareAtPrice && product.compareAtPrice <= 0) {
-        errors.push({ row: rowNumber, field: 'compareAtPrice', message: 'Compare at price must be greater than 0' });
+        errors.push({
+          row: rowNumber,
+          field: "compareAtPrice",
+          message: "Compare at price must be greater than 0",
+        });
       }
 
       if (product.reorderPoint && product.reorderPoint < 0) {
-        errors.push({ row: rowNumber, field: 'reorderPoint', message: 'Reorder point cannot be negative' });
+        errors.push({
+          row: rowNumber,
+          field: "reorderPoint",
+          message: "Reorder point cannot be negative",
+        });
       }
 
       if (product.weight && product.weight < 0) {
-        errors.push({ row: rowNumber, field: 'weight', message: 'Weight cannot be negative' });
+        errors.push({
+          row: rowNumber,
+          field: "weight",
+          message: "Weight cannot be negative",
+        });
       }
 
       // Validate enums
-      const validAgeGroups = ['TODDLER', 'PRESCHOOL', 'SCHOOL_AGE', 'TEEN', 'ALL_AGES'];
-      if (product.ageGroup && !validAgeGroups.includes(product.ageGroup.toUpperCase())) {
-        errors.push({ row: rowNumber, field: 'ageGroup', message: `Invalid age group. Must be one of: ${validAgeGroups.join(', ')}` });
+      const validAgeGroups = [
+        "TODDLERS_1_3",
+        "PRESCHOOL_3_5",
+        "ELEMENTARY_6_8",
+        "MIDDLE_SCHOOL_9_12",
+        "TEENS_13_PLUS",
+      ];
+      if (
+        product.ageGroup &&
+        !validAgeGroups.includes(product.ageGroup.toUpperCase())
+      ) {
+        errors.push({
+          row: rowNumber,
+          field: "ageGroup",
+          message: `Invalid age group. Must be one of: ${validAgeGroups.join(", ")}`,
+        });
       }
 
-      const validStemDisciplines = ['SCIENCE', 'TECHNOLOGY', 'ENGINEERING', 'MATH', 'GENERAL'];
-      if (product.stemDiscipline && !validStemDisciplines.includes(product.stemDiscipline.toUpperCase())) {
-        errors.push({ row: rowNumber, field: 'stemDiscipline', message: `Invalid STEM discipline. Must be one of: ${validStemDisciplines.join(', ')}` });
+      const validStemDisciplines = [
+        "SCIENCE",
+        "TECHNOLOGY",
+        "ENGINEERING",
+        "MATH",
+        "GENERAL",
+      ];
+      if (
+        product.stemDiscipline &&
+        !validStemDisciplines.includes(product.stemDiscipline.toUpperCase())
+      ) {
+        errors.push({
+          row: rowNumber,
+          field: "stemDiscipline",
+          message: `Invalid STEM discipline. Must be one of: ${validStemDisciplines.join(", ")}`,
+        });
       }
 
-      const validProductTypes = ['ROBOTICS', 'PUZZLES', 'CONSTRUCTION_SETS', 'EXPERIMENT_KITS', 'BOARD_GAMES'];
-      if (product.productType && !validProductTypes.includes(product.productType.toUpperCase())) {
-        errors.push({ row: rowNumber, field: 'productType', message: `Invalid product type. Must be one of: ${validProductTypes.join(', ')}` });
+      const validProductTypes = [
+        "ROBOTICS",
+        "PUZZLES",
+        "CONSTRUCTION_SETS",
+        "EXPERIMENT_KITS",
+        "BOARD_GAMES",
+      ];
+      if (
+        product.productType &&
+        !validProductTypes.includes(product.productType.toUpperCase())
+      ) {
+        errors.push({
+          row: rowNumber,
+          field: "productType",
+          message: `Invalid product type. Must be one of: ${validProductTypes.join(", ")}`,
+        });
       }
     });
 
@@ -264,53 +383,108 @@ export function SupplierBulkUpload() {
   const downloadTemplate = () => {
     const template = [
       {
-        name: 'Sample STEM Toy',
-        description: 'An educational toy that teaches children about robotics and programming',
+        name: "Sample STEM Toy",
+        description:
+          "An educational toy that teaches children about robotics and programming",
         price: 29.99,
         compareAtPrice: 39.99,
-        sku: 'STEM-001',
+        sku: "STEM-001",
         stockQuantity: 100,
         reorderPoint: 10,
         weight: 0.5,
-        category: 'Robotics',
-        tags: 'educational,robotics,programming',
-        ageGroup: 'SCHOOL_AGE',
-        stemDiscipline: 'TECHNOLOGY',
-        productType: 'ROBOTICS',
-        learningOutcomes: 'Problem solving,Logical thinking,Programming basics',
-        specialCategories: 'NEW_ARRIVALS,BEST_SELLERS',
-        images: 'https://example.com/image1.jpg,https://example.com/image2.jpg'
-      }
+        category: "Robotics",
+        tags: "educational,robotics,programming",
+        ageGroup: "ELEMENTARY_6_8",
+        stemDiscipline: "TECHNOLOGY",
+        productType: "ROBOTICS",
+        learningOutcomes: "Problem solving,Logical thinking,Programming basics",
+        specialCategories: "NEW_ARRIVALS,BEST_SELLERS",
+        images: "https://example.com/image1.jpg,https://example.com/image2.jpg",
+      },
     ];
 
     const ws = XLSX.utils.json_to_sheet(template);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Products');
-    
+    XLSX.utils.book_append_sheet(wb, ws, "Products");
+
     // Add a second sheet with field descriptions
     const fieldDescriptions = [
-      { Field: 'name', Required: 'Yes', Description: 'Product name (max 100 characters)' },
-      { Field: 'description', Required: 'Yes', Description: 'Product description (min 10 characters, max 1000)' },
-      { Field: 'price', Required: 'Yes', Description: 'Product price in EUR (must be > 0)' },
-      { Field: 'compareAtPrice', Required: 'No', Description: 'Original price for comparison' },
-      { Field: 'sku', Required: 'No', Description: 'Stock keeping unit' },
-      { Field: 'stockQuantity', Required: 'Yes', Description: 'Available stock quantity' },
-      { Field: 'reorderPoint', Required: 'No', Description: 'Reorder point for inventory management' },
-      { Field: 'weight', Required: 'No', Description: 'Product weight in kg' },
-      { Field: 'category', Required: 'No', Description: 'Product category name' },
-      { Field: 'tags', Required: 'No', Description: 'Comma-separated tags' },
-      { Field: 'ageGroup', Required: 'No', Description: 'TODDLER, PRESCHOOL, SCHOOL_AGE, TEEN, ALL_AGES' },
-      { Field: 'stemDiscipline', Required: 'No', Description: 'SCIENCE, TECHNOLOGY, ENGINEERING, MATH, GENERAL' },
-      { Field: 'productType', Required: 'No', Description: 'ROBOTICS, PUZZLES, CONSTRUCTION_SETS, EXPERIMENT_KITS, BOARD_GAMES' },
-      { Field: 'learningOutcomes', Required: 'No', Description: 'Comma-separated learning outcomes' },
-      { Field: 'specialCategories', Required: 'No', Description: 'NEW_ARRIVALS, BEST_SELLERS, GIFT_IDEAS, SALE_ITEMS' },
-      { Field: 'images', Required: 'No', Description: 'Comma-separated image URLs' }
+      {
+        Field: "name",
+        Required: "Yes",
+        Description: "Product name (max 100 characters)",
+      },
+      {
+        Field: "description",
+        Required: "Yes",
+        Description: "Product description (min 10 characters, max 1000)",
+      },
+      {
+        Field: "price",
+        Required: "Yes",
+        Description: "Product price in EUR (must be > 0)",
+      },
+      {
+        Field: "compareAtPrice",
+        Required: "No",
+        Description: "Original price for comparison",
+      },
+      { Field: "sku", Required: "No", Description: "Stock keeping unit" },
+      {
+        Field: "stockQuantity",
+        Required: "Yes",
+        Description: "Available stock quantity",
+      },
+      {
+        Field: "reorderPoint",
+        Required: "No",
+        Description: "Reorder point for inventory management",
+      },
+      { Field: "weight", Required: "No", Description: "Product weight in kg" },
+      {
+        Field: "category",
+        Required: "No",
+        Description: "Product category name",
+      },
+      { Field: "tags", Required: "No", Description: "Comma-separated tags" },
+      {
+        Field: "ageGroup",
+        Required: "No",
+        Description:
+          "TODDLERS_1_3, PRESCHOOL_3_5, ELEMENTARY_6_8, MIDDLE_SCHOOL_9_12, TEENS_13_PLUS",
+      },
+      {
+        Field: "stemDiscipline",
+        Required: "No",
+        Description: "SCIENCE, TECHNOLOGY, ENGINEERING, MATHEMATICS, GENERAL",
+      },
+      {
+        Field: "productType",
+        Required: "No",
+        Description:
+          "ROBOTICS, PUZZLES, CONSTRUCTION_SETS, EXPERIMENT_KITS, BOARD_GAMES",
+      },
+      {
+        Field: "learningOutcomes",
+        Required: "No",
+        Description: "Comma-separated learning outcomes",
+      },
+      {
+        Field: "specialCategories",
+        Required: "No",
+        Description: "NEW_ARRIVALS, BEST_SELLERS, GIFT_IDEAS, SALE_ITEMS",
+      },
+      {
+        Field: "images",
+        Required: "No",
+        Description: "Comma-separated image URLs",
+      },
     ];
 
     const ws2 = XLSX.utils.json_to_sheet(fieldDescriptions);
-    XLSX.utils.book_append_sheet(wb, ws2, 'Field Descriptions');
+    XLSX.utils.book_append_sheet(wb, ws2, "Field Descriptions");
 
-    XLSX.writeFile(wb, 'product-upload-template.xlsx');
+    XLSX.writeFile(wb, "product-upload-template.xlsx");
   };
 
   const handleUpload = async () => {
@@ -327,16 +501,16 @@ export function SupplierBulkUpload() {
     setUploadProgress(0);
 
     try {
-      const response = await fetch('/api/supplier/products/bulk-upload', {
-        method: 'POST',
+      const response = await fetch("/api/supplier/products/bulk-upload", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ products }),
       });
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+        throw new Error("Upload failed");
       }
 
       const result: UploadResult = await response.json();
@@ -414,7 +588,9 @@ export function SupplierBulkUpload() {
           {!file ? (
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
               <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Upload your product file</h3>
+              <h3 className="text-lg font-medium mb-2">
+                Upload your product file
+              </h3>
               <p className="text-muted-foreground mb-4">
                 Supported formats: CSV, Excel (.xls, .xlsx)
               </p>
@@ -452,7 +628,8 @@ export function SupplierBulkUpload() {
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    {validationErrors.length} validation errors found. Please review and fix them before uploading.
+                    {validationErrors.length} validation errors found. Please
+                    review and fix them before uploading.
                   </AlertDescription>
                 </Alert>
               )}
@@ -470,10 +647,15 @@ export function SupplierBulkUpload() {
 
               {/* Upload Result */}
               {uploadResult && (
-                <Alert variant={uploadResult.failed === 0 ? "default" : "destructive"}>
+                <Alert
+                  variant={
+                    uploadResult.failed === 0 ? "default" : "destructive"
+                  }
+                >
                   <CheckCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Upload completed: {uploadResult.success} successful, {uploadResult.failed} failed
+                    Upload completed: {uploadResult.success} successful,{" "}
+                    {uploadResult.failed} failed
                   </AlertDescription>
                 </Alert>
               )}
@@ -496,7 +678,7 @@ export function SupplierBulkUpload() {
                     </>
                   )}
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   onClick={() => setShowPreview(!showPreview)}
@@ -539,7 +721,9 @@ export function SupplierBulkUpload() {
                 </thead>
                 <tbody>
                   {products.slice(0, 10).map((product, index) => {
-                    const hasErrors = validationErrors.some(error => error.row === index + 2);
+                    const hasErrors = validationErrors.some(
+                      error => error.row === index + 2
+                    );
                     return (
                       <tr key={index} className="border-b">
                         <td className="p-2 font-medium">{product.name}</td>
@@ -558,7 +742,10 @@ export function SupplierBulkUpload() {
                   })}
                   {products.length > 10 && (
                     <tr>
-                      <td colSpan={5} className="p-2 text-center text-muted-foreground">
+                      <td
+                        colSpan={5}
+                        className="p-2 text-center text-muted-foreground"
+                      >
                         ... and {products.length - 10} more products
                       </td>
                     </tr>
@@ -579,7 +766,10 @@ export function SupplierBulkUpload() {
           <CardContent>
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {validationErrors.map((error, index) => (
-                <div key={index} className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg">
+                <div
+                  key={index}
+                  className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg"
+                >
                   <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium">

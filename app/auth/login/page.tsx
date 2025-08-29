@@ -13,6 +13,7 @@ import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n";
 import { loginSchema } from "@/lib/validations";
@@ -348,9 +349,8 @@ function LoginForm() {
                 </p>
               </div>
             </div>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               placeholder={t("passwordPlaceholder")}
               autoComplete="current-password"
               {...register("password")}
