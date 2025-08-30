@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -76,7 +75,7 @@ export async function POST(request: NextRequest) {
     console.log("🧹 Force clearing all sessions via POST...");
 
     // Get current session to log what we're clearing
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (session?.user) {
       console.log(`Clearing session for user: ${session.user.email}`);
     }
