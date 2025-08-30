@@ -286,23 +286,35 @@ export function SupplierLanding() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
-        <div className="container mx-auto px-4 text-center">
+      <section className="py-20 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+        
+        <div className="container mx-auto px-4 text-center relative z-10">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
             Ready to Join TechTots?
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-emerald-100 mb-8 max-w-2xl mx-auto">
             Start your application today and become part of Romania's premier STEM toy marketplace. 
             Our team is ready to help you succeed.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" asChild>
+            <Button 
+              size="lg" 
+              className="bg-white text-emerald-700 hover:bg-emerald-50 border-2 border-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              asChild
+            >
               <Link href="/supplier/apply">
                 Apply Now
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600" asChild>
+            <Button
+              size="lg"
+              className="bg-transparent text-white border-2 border-white hover:bg-white hover:text-emerald-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              asChild
+            >
               <Link href="/contact">
                 Contact Us
               </Link>

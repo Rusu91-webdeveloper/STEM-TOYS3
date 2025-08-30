@@ -2,12 +2,15 @@ import { Metadata } from "next";
 import { SupplierRequirements } from "@/features/supplier/components/SupplierRequirements";
 
 export const metadata: Metadata = {
-  title: "Supplier Requirements & Guidelines | TechTots STEM Toys",
-  description: "Learn about the requirements and guidelines for becoming a TechTots supplier. Understand our quality standards, EU compliance, and application process.",
-  keywords: "supplier requirements, quality standards, EU compliance, STEM toys supplier guidelines",
+  title: "Supplier Requirements 2025 | TechTots STEM Toys",
+  description:
+    "2025 requirements for becoming a TechTots supplier. EU-based suppliers with 7-day shipping, premium quality standards, and full compliance.",
+  keywords:
+    "supplier requirements 2025, EU suppliers, fast shipping, quality standards, STEM toys supplier, European e-commerce",
   openGraph: {
-    title: "Supplier Requirements & Guidelines | TechTots STEM Toys",
-    description: "Requirements and guidelines for becoming a TechTots supplier",
+    title: "Supplier Requirements 2025 | TechTots STEM Toys",
+    description:
+      "2025 requirements for premium STEM toy suppliers with fast European shipping",
     type: "website",
   },
 };

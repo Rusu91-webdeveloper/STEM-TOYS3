@@ -275,7 +275,7 @@ export async function PUT(request: NextRequest) {
         try {
           // Check if user account already exists
           const existingUser = await db.user.findUnique({
-            where: { email: supplier.contactPersonEmail }
+            where: { email: supplier.contactPersonEmail },
           });
 
           if (!existingUser) {
@@ -292,13 +292,13 @@ export async function PUT(request: NextRequest) {
                 role: "SUPPLIER",
                 isActive: true,
                 emailVerified: new Date(),
-              }
+              },
             });
 
             // Link the user to the supplier
             await db.supplier.update({
               where: { id: supplierId },
-              data: { userId: newUser.id }
+              data: { userId: newUser.id },
             });
 
             logger.info("Supplier user account created", {
@@ -320,6 +320,26 @@ export async function PUT(request: NextRequest) {
           });
         } catch (emailError) {
           logger.error("Failed to send supplier approval email", {
+            supplierId,
+            email: supplier.contactPersonEmail,
+            error: emailError,
+          });
+          // Don't fail the update if email fails
+        }
+      }
+
+      // Send rejection email if status was changed to REJECTED
+      if (status === "REJECTED") {
+        try {
+          await sendSupplierRejectionEmail(supplier, rejectionReason);
+
+          logger.info("Supplier rejection email sent", {
+            supplierId,
+            email: supplier.contactPersonEmail,
+            rejectionReason,
+          });
+        } catch (emailError) {
+          logger.error("Failed to send supplier rejection email", {
             supplierId,
             email: supplier.contactPersonEmail,
             error: emailError,
@@ -443,7 +463,8 @@ export async function DELETE(request: NextRequest) {
 // Function to generate secure password
 function generateSecurePassword(): string {
   const length = 12;
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  const charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
   let password = "";
   for (let i = 0; i < length; i++) {
     password += charset.charAt(Math.floor(Math.random() * charset.length));
@@ -536,7 +557,9 @@ async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
               </ol>
             </div>
             
-            ${tempPassword ? `
+            ${
+              tempPassword
+                ? `
             <div class="login-credentials" style="background-color: #f0f9ff; border: 1px solid #0ea5e9; padding: 25px; margin: 30px 0; border-radius: 8px;">
               <h3 style="margin: 0 0 20px 0; color: #0c4a6e; font-size: 18px;">🔐 Your Login Credentials</h3>
               <div style="background-color: white; padding: 20px; border-radius: 6px; border: 1px solid #e0f2fe;">
@@ -545,7 +568,9 @@ async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
                 <p style="margin: 15px 0 5px 0; font-size: 12px; color: #0369a1; font-style: italic;">⚠️ Please change your password after your first login for security</p>
               </div>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
             
             <div class="action-buttons">
               <a href="${dashboardUrl}" class="btn btn-primary">📊 Access Dashboard</a>
@@ -595,6 +620,133 @@ async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
               <p>📧 Email: ${supportEmail}</p>
               <p>📞 Phone: +1 (555) 123-4567</p>
               <p>🌐 Support Portal: <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/support" style="color: #10b981;">support.techtots.com</a></p>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p>© 2024 TechTots STEM Store. All rights reserved.</p>
+            <p>Empowering the next generation through STEM education</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  });
+}
+
+// Function to send supplier rejection email
+async function sendSupplierRejectionEmail(
+  supplier: any,
+  rejectionReason?: string
+) {
+  const supportEmail = "support@techtots.com";
+  const reapplyUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier`;
+
+  await sendMail({
+    to: supplier.contactPersonEmail,
+    subject: "Update on Your TechTots Supplier Application",
+    html: `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Supplier Application Update - TechTots</title>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8f9fa; }
+          .container { max-width: 700px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+          .header { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; padding: 40px 30px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+          .header p { margin: 10px 0 0 0; font-size: 16px; opacity: 0.9; }
+          .content { padding: 40px 30px; }
+          .greeting { font-size: 18px; margin-bottom: 20px; color: #2d3748; }
+          .message { font-size: 16px; margin-bottom: 30px; color: #4a5568; }
+          .status-box { background-color: #fef2f2; border: 1px solid #fecaca; padding: 25px; margin: 30px 0; border-radius: 8px; text-align: center; }
+          .status-box h3 { margin: 0 0 15px 0; color: #dc2626; font-size: 20px; }
+          .reason-box { background-color: #f7fafc; border-left: 4px solid #6b7280; padding: 25px; margin: 30px 0; border-radius: 0 8px 8px 0; }
+          .reason-box h3 { margin: 0 0 20px 0; color: #2d3748; font-size: 18px; }
+          .next-steps { background-color: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 25px; margin: 30px 0; border-radius: 0 8px 8px 0; }
+          .next-steps h3 { margin: 0 0 20px 0; color: #0c4a6e; font-size: 18px; }
+          .step-list { margin: 0; padding-left: 20px; }
+          .step-list li { margin-bottom: 12px; color: #0c4a6e; }
+          .action-buttons { text-align: center; margin: 30px 0; }
+          .btn { display: inline-block; padding: 12px 24px; margin: 8px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; }
+          .btn-primary { background-color: #0ea5e9; color: white; }
+          .btn-secondary { background-color: #6b7280; color: white; }
+          .btn-outline { background-color: transparent; color: #0ea5e9; border: 2px solid #0ea5e9; }
+          .footer { background-color: #2d3748; color: white; padding: 30px; text-align: center; }
+          .footer p { margin: 5px 0; font-size: 14px; }
+          .logo { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+          .contact-info { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+          .contact-info p { margin: 5px 0; font-size: 14px; color: #718096; }
+          .encouragement { background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; margin: 30px 0; border-radius: 8px; }
+          .encouragement h4 { margin: 0 0 10px 0; color: #166534; font-size: 16px; }
+          .encouragement p { margin: 0; color: #166534; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="logo">🧩 TechTots</div>
+            <h1>Application Status Update</h1>
+            <p>Thank you for your interest in TechTots</p>
+          </div>
+          
+          <div class="content">
+            <div class="greeting">Dear ${supplier.contactPersonName},</div>
+            
+            <div class="message">
+              Thank you for your interest in becoming a supplier with TechTots STEM Store. We appreciate the time and effort you put into your application for <strong>${supplier.companyName}</strong>.
+            </div>
+            
+            <div class="status-box">
+              <h3>📋 Application Status: Not Approved</h3>
+              <p>After careful review of your application, we regret to inform you that we are unable to approve your supplier application at this time.</p>
+            </div>
+            
+            ${
+              rejectionReason
+                ? `
+            <div class="reason-box">
+              <h3>📝 Review Details</h3>
+              <p><strong>Reason for Decision:</strong></p>
+              <p style="background-color: white; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; margin: 10px 0; font-style: italic;">
+                "${rejectionReason}"
+              </p>
+            </div>
+            `
+                : ""
+            }
+            
+            <div class="next-steps">
+              <h3>🔄 Next Steps & Future Opportunities</h3>
+              <ol class="step-list">
+                <li><strong>Review Our Requirements:</strong> Take time to review our supplier requirements and guidelines</li>
+                <li><strong>Address Feedback:</strong> Consider the feedback provided and make necessary improvements</li>
+                <li><strong>Reapply When Ready:</strong> You may submit a new application after addressing the concerns</li>
+                <li><strong>Contact Support:</strong> Reach out to our team if you have questions about the decision</li>
+              </ol>
+            </div>
+            
+            <div class="encouragement">
+              <h4>💡 We Believe in Your Potential</h4>
+              <p>While we cannot approve your application at this time, we encourage you to address the feedback provided and consider reapplying in the future. Many successful suppliers have improved their applications based on our feedback.</p>
+            </div>
+            
+            <div class="action-buttons">
+              <a href="${reapplyUrl}" class="btn btn-primary">🔄 Submit New Application</a>
+              <a href="mailto:${supportEmail}" class="btn btn-secondary">📧 Contact Support</a>
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier" class="btn btn-outline">ℹ️ Learn More</a>
+            </div>
+            
+            <div class="contact-info">
+              <p><strong>Questions or Need Clarification?</strong></p>
+              <p>📧 Email: ${supportEmail}</p>
+              <p>📞 Phone: +1 (555) 123-4567</p>
+              <p>🌐 Support Portal: <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/support" style="color: #0ea5e9;">support.techtots.com</a></p>
+              <p style="margin-top: 15px; font-size: 13px; color: #9ca3af;">
+                <strong>Note:</strong> You can reapply after 30 days from the date of this decision. Please ensure all requirements are met before submitting a new application.
+              </p>
             </div>
           </div>
           

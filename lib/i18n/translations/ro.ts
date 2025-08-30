@@ -949,4 +949,282 @@ export const ro = {
   pleaseReviewOrder: "Vă rugăm să verificați comanda înainte de finalizare",
   backToPayment: "Înapoi la plată",
   cartEmpty: "Coșul dvs. este gol",
+
+  // Supplier Requirements Page Translations
+  supplierRequirements: "Cerințe Furnizori",
+  supplierRequirements2025: "Cerințe Furnizori 2025",
+  supplierRequirementsTitle: "Cerințe Furnizori & Ghiduri",
+  supplierRequirementsDescription:
+    "Află despre standardele noastre de calitate, criteriile de eligibilitate și ce presupune să devii un furnizor de încredere TechTots.",
+  supplierRequirements2025Description:
+    "Alătură-te rețelei noastre de furnizori premium de jucării STEM. Menținem cele mai înalte standarde pentru a asigura calitate excepțională și livrare rapidă în toată Europa.",
+  keyRequirements2025: "Cerințe Cheie pentru 2025",
+  keyRequirementsDescription:
+    "Standardele noastre asigură că doar produsele de cea mai înaltă calitate ajung la clienții noștri",
+  euBased: "Bazat în UE",
+  euBasedDescription: "Furnizori europeni preferați cu livrare rapidă în UE",
+  sevenDayShipping: "Livrare 7 Zile",
+  sevenDayShippingDescription: "Maximum 7 zile livrare în toate țările UE",
+  premiumQuality: "Calitate Premium",
+  premiumQualityDescription:
+    "Doar produse educaționale STEM de cea mai înaltă calitate",
+  fullCompliance: "Conformitate Completă",
+  fullComplianceDescription:
+    "Conformitate completă cu standardele de siguranță și afaceri UE",
+  eligibilityCriteria: "Criterii de Eligibilitate",
+  eligibilityCriteriaDescription:
+    "Pentru a asigura cea mai înaltă calitate pentru clienții noștri, am stabilit criterii clare pentru parteneriatele cu furnizorii.",
+  comprehensiveCriteria:
+    "criterii comprehensive pentru parteneriatele cu furnizorii.",
+  establishedBusiness: "Afacere Înființată",
+  establishedBusinessDescription:
+    "Minimum 2 ani de operațiuni de afaceri cu un istoric dovedit și stabilitate financiară",
+  establishedBusinessDetails:
+    "Trebuie să aibă entitate de afaceri înregistrată, înregistrare fiscală validă și istoric pozitiv de afaceri",
+  geographicLocation: "Locație Geografică",
+  geographicLocationDescription:
+    "Bazat în Uniunea Europeană sau țări cu livrare rapidă în UE (maximum 7 zile livrare)",
+  geographicLocationDetails:
+    "Furnizori UE preferați. Furnizorii non-UE trebuie să demonstreze capacități de livrare de încredere în 7 zile",
+  legalCompliance: "Conformitate Legală",
+  legalComplianceDescription:
+    "Conformitate completă cu reglementările UE, GDPR și legile locale de afaceri",
+  legalComplianceDetails:
+    "Marcarea CE, conformitate REACH, RoHS, protecția datelor GDPR și conformitatea fiscală",
+  qualityStandards: "Standarde de Calitate",
+  qualityStandardsDescription:
+    "Produsele trebuie să îndeplinească sau să depășească standardele de siguranță UE și cerințele de valoare educațională",
+  qualityStandardsDetails:
+    "Standardele de siguranță EN 71, certificarea educațională și procesele de asigurare a calității",
+  shippingCapabilities: "Capacități de Livrare",
+  shippingCapabilitiesDescription:
+    "Capacitatea de a livra în maximum 7 zile în toate țările UE",
+  shippingCapabilitiesDetails:
+    "Infrastructură de livrare dovedită, capacități de urmărire și parteneri de livrare de încredere",
+  customerService: "Serviciu Clienți",
+  customerServiceDescription:
+    "Disponibilitate serviciu clienți 24/7 și serviciu post-vânzare excelent",
+  customerServiceDetails:
+    "Suport multilingv, timpi de răspuns rapizi și acoperire de garanție comprehensivă",
+  growthPotential: "Potențial de Creștere",
+  growthPotentialDescription:
+    "Capacitatea demonstrată de a scala operațiunile și a satisface cererea în creștere",
+  growthPotentialDetails:
+    "Capacitatea de producție, managementul inventarului și capacitățile de expansiune",
+  innovationFocus: "Focus pe Inovație",
+  innovationFocusDescription:
+    "Angajamentul de a dezvolta produse educaționale STEM inovatoare",
+  innovationFocusDetails:
+    "Investiții în cercetare și dezvoltare, portofoliu de brevete și îmbunătățirea continuă a produselor",
+  shippingRequirements: "Cerințe de Livrare",
+  shippingRequirementsDescription:
+    "Livrarea rapidă și de încredere este esențială pentru satisfacția clienților. Necesităm ca furnizorii să îndeplinească termene limită stricte de livrare.",
+  strictDeliveryTimeframes: "termene limită stricte de livrare.",
+  europeanUnion: "Uniunea Europeană",
+  nonEuEurope: "Europa Non-UE",
+  international: "Internațional",
+  maxDays: "Max",
+  days: "zile",
+  directShipping: "Livrare directă în toate statele membre UE",
+  realTimeTracking: "Urmărire în timp real și confirmarea livrării",
+  freeShipping: "Livrare gratuită pentru comenzi peste 50€",
+  multipleShippingOptions:
+    "Multiple opțiuni de livrare (Standard, Express, Premium)",
+  customsHandling: "Gestionarea vamală și procedurile de import",
+  insuranceCoverage: "Acoperire de asigurare pentru toate expedierile",
+  fastShipping: "Livrare rapidă în țările europene din afara UE",
+  customsClearance: "Asistență pentru vămuire",
+  trackingConfirmation: "Urmărire și confirmarea livrării",
+  damageProtection: "Asigurare și protecție împotriva daunelor",
+  importDutyInfo: "Informații clare despre taxele vamale",
+  expressShipping: "Capacități de livrare expres",
+  customsDocumentation: "Documentația vamală și vămuirea",
+  realTimeUpdates: "Actualizări în timp real",
+  clearTimeframes: "Termene clare de livrare",
+  internationalSupport: "Suport pentru clienți pentru comenzi internaționale",
+  qualityStandardsSection: "Standarde de Calitate",
+  qualityStandardsSectionDescription:
+    "Menținem cele mai înalte standarde pentru a asigura cea mai bună experiență educațională pentru copii și familii.",
+  bestEducationalExperience:
+    "cea mai bună experiență educațională pentru copii și familii.",
+  safetyCompliance: "Siguranță & Conformitate",
+  safetyComplianceDescription: "Conformitate marcaj CE pentru toate produsele",
+  en71Standards: "Standarde de siguranță EN 71 pentru jucării (Părțile 1-14)",
+  rohsCompliance:
+    "Conformitate RoHS (Restricționarea Substanțelor Periculoase)",
+  reachCompliance:
+    "Conformitate REACH (Înregistrarea, Evaluarea, Autorizarea Chimicalelor)",
+  ageAppropriate:
+    "Caracteristici de siguranță și avertismente potrivite vârstei",
+  nonToxicMaterials: "Materiale non-toxice și componente sigure pentru copii",
+  durabilityTesting: "Testarea durabilității și asigurarea calității",
+  regularAudits:
+    "Audituri regulate de siguranță și monitorizarea conformității",
+  educationalValue: "Valoare Educațională",
+  educationalValueDescription: "Obiective clare de învățare și rezultate",
+  ageAppropriateComplexity: "Complexitate și dificultate potrivite vârstei",
+  stemOutcomes:
+    "Rezultate de învățare STEM (Știință, Tehnologie, Inginerie, Matematică)",
+  educationalDocumentation:
+    "Documentația educațională și ghidurile pentru profesori",
+  parentEducatorMaterials: "Materiale de suport pentru părinți/educatori",
+  curriculumAlignment: "Alinierea curriculum-ului unde este aplicabil",
+  assessmentTools: "Instrumente de evaluare și urmărirea progresului",
+  multilingualContent: "Conținut educațional multilingv",
+  productQuality: "Calitatea Produsului",
+  productQualityDescription: "Materiale premium și calitatea construcției",
+  clearInstructions: "Instrucțiuni clare și ambalaj multilingv",
+  consistentQuality: "Calitate consistentă în toate loturile de producție",
+  comprehensiveWarranty: "Informații comprehensive de garanție și suport",
+  replacementParts: "Disponibilitatea pieselor de înlocuire și serviciu",
+  productTesting: "Procese de testare a produselor și control al calității",
+  sustainableMaterials: "Materiale sustenabile și prietenoase cu mediul",
+  professionalPackaging: "Ambalaj și prezentare profesională",
+  businessStandards: "Standarde de Afaceri",
+  businessStandardsDescription:
+    "Livrare și livrare de încredere (maximum 7 zile)",
+  professionalCustomerService:
+    "Serviciu clienți profesional (disponibilitate 24/7)",
+  clearPolicies: "Politici clare de returnare și rambursare",
+  transparentPricing: "Prețuri transparente și fără costuri ascunse",
+  regularUpdates: "Actualizări regulate ale produselor și îmbunătățiri",
+  inventoryManagement: "Managementul inventarului și disponibilitatea stocului",
+  multilingualSupport: "Suport clienți multilingv",
+  dataProtection: "Protecția datelor și conformitatea confidențialității",
+  complianceRequirements: "Cerințe de Conformitate",
+  complianceRequirementsDescription:
+    "Conformitatea completă cu reglementările UE și standardele internaționale este obligatorie pentru toți furnizorii.",
+  mandatoryForAllSuppliers: "este obligatorie pentru toți furnizorii.",
+  euSafetyStandards: "Standarde de Siguranță UE",
+  ceMarking: "Marcarea CE pentru toate produsele",
+  en71ToySafety: "Standardele de Siguranță EN 71 pentru Jucării",
+  reachChemicalRegulations: "Reglementările Chimicale REACH",
+  rohsHazardousSubstances: "Substanțele Periculoase RoHS",
+  gdprDataProtection: "Protecția Datelor GDPR",
+  packagingWasteDirective: "Directiva Deseurilor de Ambalaje",
+  businessCompliance: "Conformitatea de Afaceri",
+  vatRegistration: "Înregistrarea TVA și conformitatea",
+  corporateTaxObligations: "Obligațiile fiscale corporative",
+  employmentLawCompliance: "Conformitatea cu legea muncii",
+  environmentalRegulations: "Reglementările de mediu",
+  intellectualPropertyRights: "Drepturile de proprietate intelectuală",
+  antiMoneyLaundering: "Anti-spălarea banilor (AML)",
+  qualityAssurance: "Asigurarea Calității",
+  iso9001QualityManagement: "Managementul Calității ISO 9001",
+  regularProductTesting: "Testarea regulată a produselor",
+  supplierQualityAudits: "Audituri de calitate ale furnizorilor",
+  customerFeedbackSystems: "Sisteme de feedback al clienților",
+  continuousImprovement: "Procese de îmbunătățire continuă",
+  riskManagementProtocols: "Protocoale de management al riscurilor",
+  applicationProcess: "Procesul de Aplicație",
+  applicationProcessDescription:
+    "Procesul nostru comprehensiv asigură evaluarea aprofundată și onboarding-ul fără probleme.",
+  thoroughEvaluation: "evaluarea aprofundată și onboarding-ul fără probleme.",
+  initialApplication: "Aplicația Inițială",
+  initialApplicationDescription:
+    "Completează aplicația noastră comprehensivă online cu detalii de afaceri, informații despre produse și documentația de conformitate",
+  documentationReview: "Verificarea Documentației",
+  documentationReviewDescription:
+    "Echipa noastră de conformitate verifică toate documentele trimise și verifică credențialele de afaceri",
+  productAssessment: "Evaluarea Produsului",
+  productAssessmentDescription:
+    "Evaluăm produsele tale împotriva standardelor noastre de calitate și cerințelor educaționale",
+  shippingLogistics: "Livrare & Logistică",
+  shippingLogisticsDescription:
+    "Evaluarea capacităților tale de livrare și infrastructura logistică",
+  finalDecision: "Decizia Finală",
+  finalDecisionDescription:
+    "Verificarea comprehensivă și decizia finală de aprobare cu feedback detaliat",
+  onboardingSetup: "Onboarding & Configurare",
+  onboardingSetupDescription:
+    "Completează configurarea contului, listarea produselor și integrarea cu platforma noastră",
+  businessRegistration: "Înregistrarea de afaceri",
+  taxCompliance: "Conformitatea fiscală",
+  productSamples: "Mostre de produse",
+  qualityCertificates: "Certificate de calitate",
+  legalVerification: "Verificarea legală",
+  financialAssessment: "Evaluarea financiară",
+  complianceCheck: "Verificarea conformității",
+  backgroundReview: "Verificarea de fundal",
+  safetyTesting: "Testarea de siguranță",
+  qualityEvaluation: "Evaluarea calității",
+  educationalAssessment: "Evaluarea educațională",
+  marketFitAnalysis: "Analiza potrivirii pieței",
+  shippingCapacity: "Capacitatea de livrare",
+  deliveryTimes: "Timpii de livrare",
+  trackingSystems: "Sistemele de urmărire",
+  customerServiceAssessment: "Serviciul clienți",
+  executiveReview: "Verificarea executivă",
+  riskAssessment: "Evaluarea riscurilor",
+  partnershipTerms: "Termenii de parteneriat",
+  onboardingPlan: "Planul de onboarding",
+  accountCreation: "Crearea contului",
+  productUpload: "Încărcarea produselor",
+  trainingSessions: "Sesiunile de instruire",
+  goLiveSupport: "Suportul pentru lansare",
+  commissionStructure: "Structura Comisioanelor",
+  commissionStructureDescription:
+    "Rate competitive de comision care recompensează succesul și creșterea.",
+  rewardSuccess: "succesul și creșterea.",
+  standard: "Standard",
+  premium: "Premium",
+  elite: "Elite",
+  allApprovedSuppliers: "Toți furnizorii aprobați",
+  monthlySales: "vânzări lunare",
+  standardProductListing: "Listarea standard a produselor",
+  basicAnalyticsDashboard: "Dashboard de analiză de bază",
+  emailSupport: "Suport prin email",
+  standardMarketingExposure: "Expunerea standard de marketing",
+  monthlyPaymentProcessing: "Procesarea lunară a plăților",
+  featuredProductPlacement: "Plasarea produselor în evidență",
+  advancedAnalytics: "Analiză avansată și insights",
+  prioritySupport: "Suport prioritare (24/7)",
+  enhancedMarketingCampaigns: "Campanii de marketing îmbunătățite",
+  dedicatedAccountManager: "Manager de cont dedicat",
+  exclusivePromotionalEvents: "Evenimente promoționale exclusive",
+  premiumPlacement: "Plasarea premium și branding",
+  customMarketingCampaigns: "Campanii de marketing personalizate",
+  exclusivePartnershipEvents: "Evenimente exclusive de parteneriat",
+  strategicBusinessConsulting: "Consulting strategic de afaceri",
+  coBrandedMarketingMaterials: "Materiale de marketing co-branded",
+  vipCustomerAccess: "Acces VIP pentru clienți",
+  importantNotes: "Note Importante",
+  importantNotes2025: "Note Importante pentru 2025",
+  applicationTimeline: "Cronologia Aplicației",
+  applicationTimelineDescription:
+    "Verificarea completă a aplicației durează 15-20 zile lucrătoare. Putem solicita informații suplimentare sau mostre de produse în timpul procesului de verificare.",
+  completeApplicationReview:
+    "Verificarea completă a aplicației durează 15-20 zile lucrătoare. Putem solicita informații suplimentare sau mostre de produse în timpul procesului de verificare.",
+  qualityAssurance: "Asigurarea Calității",
+  qualityAssuranceDescription:
+    "Furnizorii aprobați trebuie să mențină standardele noastre de calitate. Auditurile regulate, feedback-ul clienților și metricile de performanță asigură conformitatea continuă.",
+  approvedSuppliersMaintain:
+    "Furnizorii aprobați trebuie să mențină standardele noastre de calitate. Auditurile regulate, feedback-ul clienților și metricile de performanță asigură conformitatea continuă.",
+  euCompliance: "Conformitatea UE",
+  euComplianceDescription:
+    "Toate produsele trebuie să respecte reglementările UE și standardele de siguranță. Oferim ghiduri pentru cerințele de conformitate și procesele de certificare.",
+  allProductsComply:
+    "Toate produsele trebuie să respecte reglementările UE și standardele de siguranță. Oferim ghiduri pentru cerințele de conformitate și procesele de certificare.",
+  shippingStandards: "Standardele de Livrare",
+  shippingStandardsDescription:
+    "Livrarea rapidă (maximum 7 zile) este obligatorie. Furnizorii trebuie să demonstreze capacități logistice de încredere și de urmărire pentru toate livrările UE.",
+  fastShippingMandatory:
+    "Livrarea rapidă (maximum 7 zile) este obligatorie. Furnizorii trebuie să demonstreze capacități logistice de încredere și de urmărire pentru toate livrările UE.",
+  newFor2025: "Nou pentru 2025",
+  newFor2025Description:
+    "Am actualizat cerințele noastre pentru a ne concentra pe furnizorii europeni cu capacități de livrare rapidă, standarde de calitate îmbunătățite și conformitate comprehensivă. Furnizorii non-UE trebuie să demonstreze fiabilitate excepțională de livrare și expertiză pe piața UE.",
+  updatedRequirementsFocus:
+    "Am actualizat cerințele noastre pentru a ne concentra pe furnizorii europeni cu capacități de livrare rapidă, standarde de calitate îmbunătățite și conformitate comprehensivă. Furnizorii non-UE trebuie să demonstreze fiabilitate excepțională de livrare și expertiză pe piața UE.",
+  readyToJoin: "Gata să te Alături?",
+  readyToJoinPremium: "Gata să te Alături Rețelei Noastre Premium?",
+  readyToJoinDescription:
+    "Dacă îndeplinești cerințele noastre pentru 2025 și ești gata să oferi produse educaționale STEM excepționale cu livrare rapidă europeană, începe aplicația ta astăzi.",
+  meet2025Requirements:
+    "Dacă îndeplinești cerințele noastre pentru 2025 și ești gata să oferi produse educaționale STEM excepționale cu livrare rapidă europeană, începe aplicația ta astăzi.",
+  startApplication: "Începe Aplicația",
+  viewBenefits: "Vezi Beneficiile",
+  contactUs: "Contactează-ne",
+  required: "Obligatoriu",
+  requirements: "Cerințe:",
+  details: "Detalii:",
 };
