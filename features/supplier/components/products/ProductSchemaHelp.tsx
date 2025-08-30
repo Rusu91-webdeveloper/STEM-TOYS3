@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileText, FileSpreadsheet, Copy, Check } from "lucide-react";
+import { Download, FileText, FileSpreadsheet, Copy, Check, BookOpen, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import * as XLSX from "xlsx";
+import { ProductTemplateGenerator } from "./ProductTemplateGenerator";
 
 interface FieldDefinition {
   name: string;
@@ -190,121 +190,14 @@ const specialCategoriesOptions = [
 export function ProductSchemaHelp() {
   const { toast } = useToast();
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const templateGenerator = ProductTemplateGenerator({});
 
   const downloadCSVTemplate = () => {
-    const headers = productFields.map(field => field.name);
-    const sampleData = [
-      "RoboBot Coding Kit",
-      "An interactive robot that teaches children programming basics through fun games and challenges. Includes 50+ coding activities and a companion app.",
-      "89.99",
-      "119.99",
-      "ROBO-001",
-      "45",
-      "10",
-      "1.2",
-      "Robotics",
-      "educational,programming,interactive,app",
-      "ELEMENTARY_6_8",
-      "TECHNOLOGY",
-      "ROBOTICS",
-      "PROBLEM_SOLVING,LOGIC,CRITICAL_THINKING",
-      "NEW_ARRIVALS",
-      "https://example.com/image1.jpg,https://example.com/image2.jpg"
-    ];
-
-    const csvContent = [headers.join(','), sampleData.join(',')].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'product-upload-template.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-
-    toast({
-      title: "Template downloaded",
-      description: "CSV template has been downloaded successfully.",
-    });
+    templateGenerator.generateCSVTemplate();
   };
 
   const downloadExcelTemplate = () => {
-    const wb = XLSX.utils.book_new();
-    
-    // Create products sheet with sample data
-    const sampleProducts = [
-      {
-        name: "RoboBot Coding Kit",
-        description: "An interactive robot that teaches children programming basics through fun games and challenges.",
-        price: 89.99,
-        compareAtPrice: 119.99,
-        sku: "ROBO-001",
-        stockQuantity: 45,
-        reorderPoint: 10,
-        weight: 1.2,
-        category: "Robotics",
-        tags: "educational,programming,interactive,app",
-        ageGroup: "ELEMENTARY_6_8",
-        stemDiscipline: "TECHNOLOGY",
-        productType: "ROBOTICS",
-        learningOutcomes: "PROBLEM_SOLVING,LOGIC,CRITICAL_THINKING",
-        specialCategories: "NEW_ARRIVALS",
-        images: "https://example.com/image1.jpg,https://example.com/image2.jpg"
-      },
-      {
-        name: "Science Lab Explorer",
-        description: "Complete chemistry and physics experiment kit with 100+ safe experiments.",
-        price: 129.99,
-        compareAtPrice: 159.99,
-        sku: "SCI-002",
-        stockQuantity: 32,
-        reorderPoint: 8,
-        weight: 2.1,
-        category: "Science Kits",
-        tags: "chemistry,physics,experiments,safe",
-        ageGroup: "MIDDLE_SCHOOL_9_12",
-        stemDiscipline: "SCIENCE",
-        productType: "EXPERIMENT_KITS",
-        learningOutcomes: "CRITICAL_THINKING,PROBLEM_SOLVING,CREATIVITY",
-        specialCategories: "BEST_SELLERS",
-        images: "https://example.com/science1.jpg,https://example.com/science2.jpg"
-      }
-    ];
-
-    const ws = XLSX.utils.json_to_sheet(sampleProducts);
-    XLSX.utils.book_append_sheet(wb, ws, "Products");
-
-    // Create field descriptions sheet
-    const fieldDescriptions = productFields.map(field => ({
-      Field: field.name,
-      Required: field.required ? "Yes" : "No",
-      Type: field.type,
-      Description: field.description,
-      Example: field.example,
-      Validation: field.validation,
-      EnumValues: field.enumValues ? field.enumValues.join(", ") : ""
-    }));
-
-    const ws2 = XLSX.utils.json_to_sheet(fieldDescriptions);
-    XLSX.utils.book_append_sheet(wb, ws2, "Field Descriptions");
-
-    // Create enum values sheet
-    const enumValues = [
-      { Category: "Age Groups", Values: learningOutcomesOptions.join(", ") },
-      { Category: "STEM Disciplines", Values: "SCIENCE, TECHNOLOGY, ENGINEERING, MATHEMATICS, GENERAL" },
-      { Category: "Product Types", Values: "ROBOTICS, PUZZLES, CONSTRUCTION_SETS, EXPERIMENT_KITS, BOARD_GAMES" },
-      { Category: "Learning Outcomes", Values: learningOutcomesOptions.join(", ") },
-      { Category: "Special Categories", Values: specialCategoriesOptions.join(", ") }
-    ];
-
-    const ws3 = XLSX.utils.json_to_sheet(enumValues);
-    XLSX.utils.book_append_sheet(wb, ws3, "Enum Values");
-
-    XLSX.writeFile(wb, "product-upload-template.xlsx");
-
-    toast({
-      title: "Template downloaded",
-      description: "Excel template has been downloaded successfully.",
-    });
+    templateGenerator.generateEnhancedExcelTemplate();
   };
 
   const copyFieldName = (fieldName: string) => {
@@ -340,10 +233,11 @@ export function ProductSchemaHelp() {
       </div>
 
       <Tabs defaultValue="fields" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="fields">Field Definitions</TabsTrigger>
           <TabsTrigger value="examples">Examples</TabsTrigger>
           <TabsTrigger value="validation">Validation Rules</TabsTrigger>
+          <TabsTrigger value="api">API Documentation</TabsTrigger>
         </TabsList>
 
         <TabsContent value="fields" className="space-y-4">
@@ -559,9 +453,186 @@ export function ProductSchemaHelp() {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
+                     </div>
+         </TabsContent>
+
+         <TabsContent value="api" className="space-y-4">
+           <Alert>
+             <AlertDescription>
+               <strong>API Endpoints:</strong> Use these endpoints to programmatically manage your products
+             </AlertDescription>
+           </Alert>
+
+           <div className="grid gap-4">
+             <Card>
+               <CardHeader>
+                 <CardTitle className="flex items-center gap-2">
+                   <BookOpen className="w-5 h-5" />
+                   Product Validation API
+                 </CardTitle>
+               </CardHeader>
+               <CardContent className="space-y-4">
+                 <div>
+                   <h4 className="font-medium text-sm mb-2">Endpoint</h4>
+                   <code className="text-sm bg-muted p-2 rounded block">POST /api/supplier/products/validate</code>
+                 </div>
+                 
+                 <div>
+                   <h4 className="font-medium text-sm mb-2">Purpose</h4>
+                   <p className="text-sm text-muted-foreground">
+                     Validate product data before submission to catch errors early and get detailed feedback.
+                   </p>
+                 </div>
+
+                 <div>
+                   <h4 className="font-medium text-sm mb-2">Request Body</h4>
+                   <div className="bg-muted p-4 rounded-lg overflow-x-auto">
+                     <pre className="text-sm">
+{`{
+  "type": "single" | "bulk",
+  "data": {
+    // Single product data or array of products
+  }
+}`}
+                     </pre>
+                   </div>
+                 </div>
+
+                 <div>
+                   <h4 className="font-medium text-sm mb-2">Response</h4>
+                   <div className="bg-muted p-4 rounded-lg overflow-x-auto">
+                     <pre className="text-sm">
+{`{
+  "valid": boolean,
+  "errors": Array<{field: string, message: string, code: string}>,
+  "warnings": Array<{field: string, message: string, code: string}>,
+  "summary": {
+    "totalErrors": number,
+    "totalWarnings": number,
+    "isValid": boolean
+  }
+}`}
+                     </pre>
+                   </div>
+                 </div>
+               </CardContent>
+             </Card>
+
+             <Card>
+               <CardHeader>
+                 <CardTitle className="flex items-center gap-2">
+                   <BookOpen className="w-5 h-5" />
+                   Single Product API
+                 </CardTitle>
+               </CardHeader>
+               <CardContent className="space-y-4">
+                 <div>
+                   <h4 className="font-medium text-sm mb-2">Endpoints</h4>
+                   <div className="space-y-2">
+                     <code className="text-sm bg-muted p-2 rounded block">GET /api/supplier/products</code>
+                     <code className="text-sm bg-muted p-2 rounded block">POST /api/supplier/products</code>
+                     <code className="text-sm bg-muted p-2 rounded block">PUT /api/supplier/products/[id]</code>
+                     <code className="text-sm bg-muted p-2 rounded block">DELETE /api/supplier/products/[id]</code>
+                   </div>
+                 </div>
+                 
+                 <div>
+                   <h4 className="font-medium text-sm mb-2">Features</h4>
+                   <ul className="text-sm space-y-1 text-muted-foreground">
+                     <li>• CRUD operations for individual products</li>
+                     <li>• Advanced filtering and search</li>
+                     <li>• Pagination support</li>
+                     <li>• Real-time validation</li>
+                     <li>• Image upload support</li>
+                   </ul>
+                 </div>
+               </CardContent>
+             </Card>
+
+             <Card>
+               <CardHeader>
+                 <CardTitle className="flex items-center gap-2">
+                   <BookOpen className="w-5 h-5" />
+                   Bulk Upload API
+                 </CardTitle>
+               </CardHeader>
+               <CardContent className="space-y-4">
+                 <div>
+                   <h4 className="font-medium text-sm mb-2">Endpoint</h4>
+                   <code className="text-sm bg-muted p-2 rounded block">POST /api/supplier/products/bulk-upload</code>
+                 </div>
+                 
+                 <div>
+                   <h4 className="font-medium text-sm mb-2">Features</h4>
+                   <ul className="text-sm space-y-1 text-muted-foreground">
+                     <li>• Upload up to 1000 products at once</li>
+                     <li>• Batch processing for performance</li>
+                     <li>• Detailed error reporting by row</li>
+                     <li>• Progress tracking</li>
+                     <li>• Automatic category creation</li>
+                     <li>• Duplicate detection</li>
+                   </ul>
+                 </div>
+
+                 <div>
+                   <h4 className="font-medium text-sm mb-2">Response</h4>
+                   <div className="bg-muted p-4 rounded-lg overflow-x-auto">
+                     <pre className="text-sm">
+{`{
+  "success": number,
+  "failed": number,
+  "errors": Array<{row: number, field: string, message: string}>,
+  "warnings": Array<{row: number, field: string, message: string}>,
+  "processingTime": number,
+  "summary": {
+    "total": number,
+    "success": number,
+    "failed": number,
+    "successRate": string,
+    "processingTime": string
+  }
+}`}
+                     </pre>
+                   </div>
+                 </div>
+               </CardContent>
+             </Card>
+
+             <Card>
+               <CardHeader>
+                 <CardTitle className="flex items-center gap-2">
+                   <HelpCircle className="w-5 h-5" />
+                   Best Practices
+                 </CardTitle>
+               </CardHeader>
+               <CardContent className="space-y-4">
+                 <div>
+                   <h4 className="font-medium text-sm mb-2">API Usage Tips</h4>
+                   <ul className="text-sm space-y-2 text-muted-foreground">
+                     <li>• <strong>Always validate first:</strong> Use the validation API before submitting products</li>
+                     <li>• <strong>Handle errors gracefully:</strong> Check response status and error messages</li>
+                     <li>• <strong>Use appropriate batch sizes:</strong> 50-100 products per batch for optimal performance</li>
+                     <li>• <strong>Implement retry logic:</strong> For network failures and temporary errors</li>
+                     <li>• <strong>Monitor rate limits:</strong> Don't exceed reasonable request frequencies</li>
+                     <li>• <strong>Cache responses:</strong> Cache product lists and categories when possible</li>
+                   </ul>
+                 </div>
+
+                 <div>
+                   <h4 className="font-medium text-sm mb-2">Error Handling</h4>
+                   <ul className="text-sm space-y-1 text-muted-foreground">
+                     <li>• <strong>400 Bad Request:</strong> Validation errors - check the error details</li>
+                     <li>• <strong>403 Forbidden:</strong> Authentication or authorization issues</li>
+                     <li>• <strong>404 Not Found:</strong> Resource doesn't exist</li>
+                     <li>• <strong>429 Too Many Requests:</strong> Rate limit exceeded</li>
+                     <li>• <strong>500 Internal Server Error:</strong> Server error - try again later</li>
+                   </ul>
+                 </div>
+               </CardContent>
+             </Card>
+           </div>
+         </TabsContent>
+       </Tabs>
+     </div>
+   );
+ }

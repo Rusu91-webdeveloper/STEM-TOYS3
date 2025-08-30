@@ -1,732 +1,615 @@
-# STEM Toys E-commerce API Documentation
+# TechTots Supplier Product Management API Documentation
 
 ## Overview
 
-The STEM Toys e-commerce platform provides a comprehensive REST API for managing
-products, orders, users, and all e-commerce operations. The API supports
-multiple versions, comprehensive authentication, and follows RESTful principles.
-
-## Base URL
-
-- **Production**: `https://techtots.com/api`
-- **Development**: `http://localhost:3000/api`
-
-## API Versioning
-
-The API supports multiple versions with backward compatibility:
-
-- **Current Version**: v1 (default)
-- **Supported Versions**: v1, v2, v3
-- **Deprecation**: Automatic warnings for deprecated versions
-
-### Version Headers
-
-```http
-Accept: application/vnd.api+json;version=2
-X-API-Version: v2
-```
-
-### Version Query Parameter
-
-```http
-GET /api/products?version=v2
-```
-
-### Version URL Path
-
-```http
-GET /api/v2/products
-```
+The TechTots Supplier Product Management API provides comprehensive endpoints for managing STEM educational products. This API enables suppliers to create, update, validate, and bulk upload products programmatically.
 
 ## Authentication
 
-### JWT Token Authentication
+All API endpoints require authentication using NextAuth.js session cookies. Suppliers must be logged in and have an approved account status.
 
-Most endpoints require authentication using JWT tokens.
-
-```http
-Authorization: Bearer <jwt_token>
+### Headers Required
+```
+Content-Type: application/json
+Cookie: next-auth.session-token=<your-session-token>
 ```
 
-### Admin Authentication
-
-Admin endpoints require elevated permissions:
-
-```http
-Authorization: Bearer <admin_jwt_token>
-X-Admin-Role: ADMIN
+## Base URL
+```
+https://your-domain.com/api/supplier/products
 ```
 
-### Authentication Endpoints
+---
 
-#### POST /api/auth/login
+## Endpoints
 
-Login with email and password.
+### 1. Product Validation API
 
-**Request:**
+#### `POST /api/supplier/products/validate`
 
+Validates product data before submission to catch errors early and get detailed feedback.
+
+**Request Body:**
 ```json
 {
-  "email": "user@example.com",
-  "password": "password123"
+  "type": "single" | "bulk",
+  "data": {
+    // Single product object or array of products
+  }
+}
+```
+
+**Single Product Example:**
+```json
+{
+  "type": "single",
+  "data": {
+    "name": "RoboBot Coding Kit",
+    "description": "An interactive robot that teaches children programming basics...",
+    "price": 89.99,
+    "stockQuantity": 45,
+    "sku": "ROBO-001",
+    "ageGroup": "ELEMENTARY_6_8",
+    "stemDiscipline": "TECHNOLOGY",
+    "productType": "ROBOTICS"
+  }
+}
+```
+
+**Bulk Products Example:**
+```json
+{
+  "type": "bulk",
+  "data": {
+    "products": [
+      {
+        "name": "Product 1",
+        "description": "Description 1",
+        "price": 29.99,
+        "stockQuantity": 10
+      },
+      {
+        "name": "Product 2", 
+        "description": "Description 2",
+        "price": 39.99,
+        "stockQuantity": 15
+      }
+    ]
+  }
 }
 ```
 
 **Response:**
-
 ```json
 {
-  "user": {
-    "id": "user_123",
-    "email": "user@example.com",
-    "name": "John Doe",
-    "role": "CUSTOMER"
-  },
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+  "valid": true,
+  "errors": [
+    {
+      "field": "name",
+      "message": "Product name is required",
+      "code": "REQUIRED_FIELD"
+    }
+  ],
+  "warnings": [
+    {
+      "field": "price",
+      "message": "Price seems low for a STEM product",
+      "code": "LOW_PRICE"
+    }
+  ],
+  "summary": {
+    "totalErrors": 1,
+    "totalWarnings": 1,
+    "isValid": false
+  }
 }
 ```
 
-#### POST /api/auth/register
+**Error Codes:**
+- `REQUIRED_FIELD` - Required field is missing
+- `INVALID_FORMAT` - Field format is invalid
+- `DUPLICATE_NAME` - Product name already exists
+- `DUPLICATE_SKU` - SKU already exists
+- `INVALID_CATEGORY` - Category doesn't exist
+- `LOW_STOCK` - Stock quantity is at or below reorder point
+- `LOW_PRICE` - Price seems unusually low
 
-Register a new user account.
+---
 
-**Request:**
+### 2. Single Product Management API
 
-```json
-{
-  "name": "John Doe",
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
+#### `GET /api/supplier/products`
 
-**Response:**
-
-```json
-{
-  "user": {
-    "id": "user_123",
-    "email": "user@example.com",
-    "name": "John Doe",
-    "role": "CUSTOMER"
-  },
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "message": "Please check your email to verify your account"
-}
-```
-
-#### POST /api/auth/refresh
-
-Refresh an expired JWT token.
-
-**Request:**
-
-```json
-{
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
-}
-```
-
-## Products API
-
-### GET /api/products
-
-Retrieve products with filtering and pagination.
+Retrieves a paginated list of supplier's products with filtering and search capabilities.
 
 **Query Parameters:**
-
-- `page` (number): Page number (default: 1)
-- `limit` (number): Items per page (default: 10, max: 100)
-- `category` (string): Filter by category slug
-- `search` (string): Search in product names and descriptions
-- `priceMin` (number): Minimum price filter
-- `priceMax` (number): Maximum price filter
-- `featured` (boolean): Filter featured products
-- `inStock` (boolean): Filter products in stock
-- `sort` (string): Sort by `name`, `price`, `createdAt`, `featured`
-- `order` (string): Sort order `asc` or `desc`
+- `page` (number, default: 1) - Page number
+- `limit` (number, default: 10) - Items per page
+- `search` (string) - Search in name, description, or SKU
+- `status` (string) - Filter by status: "active", "inactive", "all"
+- `category` (string) - Filter by category ID
+- `sortBy` (string) - Sort field and direction: "name-asc", "price-desc", "createdAt-desc"
+- `minPrice` (number) - Minimum price filter
+- `maxPrice` (number) - Maximum price filter
+- `lowStock` (boolean) - Filter products with low stock
+- `lowStockThreshold` (number, default: 5) - Low stock threshold
 
 **Example Request:**
-
-```http
-GET /api/products?category=science-kits&priceMin=10&priceMax=100&featured=true&page=1&limit=20
+```
+GET /api/supplier/products?page=1&limit=20&search=robot&status=active&sortBy=name-asc
 ```
 
 **Response:**
-
 ```json
 {
-  "data": [
+  "products": [
     {
       "id": "prod_123",
-      "name": "Advanced Chemistry Set",
-      "slug": "advanced-chemistry-set",
-      "description": "Complete chemistry set for budding scientists",
-      "price": 49.99,
-      "salePrice": 39.99,
-      "sku": "CHEM-ADV-001",
-      "stockQuantity": 25,
-      "featured": true,
-      "images": [
-        {
-          "id": "img_123",
-          "url": "https://cdn.techtots.com/products/chemistry-set-1.jpg",
-          "alt": "Chemistry Set Main View",
-          "order": 1
-        }
-      ],
-      "category": {
-        "id": "cat_123",
-        "name": "Science Kits",
-        "slug": "science-kits"
-      },
-      "variants": [
-        {
-          "id": "var_123",
-          "name": "Size",
-          "options": ["Small", "Medium", "Large"]
-        }
-      ],
-      "averageRating": 4.5,
-      "reviewCount": 28,
-      "tags": ["chemistry", "science", "educational"],
+      "name": "RoboBot Coding Kit",
+      "description": "An interactive robot...",
+      "price": 89.99,
+      "stockQuantity": 45,
+      "sku": "ROBO-001",
+      "isActive": true,
       "createdAt": "2024-01-15T10:30:00Z",
-      "updatedAt": "2024-01-16T14:20:00Z"
+      "category": {
+        "id": "cat_456",
+        "name": "Robotics"
+      }
     }
   ],
   "pagination": {
     "page": 1,
     "limit": 20,
     "total": 150,
-    "totalPages": 8,
-    "hasNext": true,
-    "hasPrev": false
+    "pages": 8
   }
 }
 ```
 
-### GET /api/products/{slug}
+#### `POST /api/supplier/products`
 
-Retrieve a single product by slug.
+Creates a new product.
 
-**Response:**
-
+**Request Body:**
 ```json
 {
-  "id": "prod_123",
-  "name": "Advanced Chemistry Set",
-  "slug": "advanced-chemistry-set",
-  "description": "Complete chemistry set for budding scientists",
-  "longDescription": "This comprehensive chemistry set includes...",
-  "price": 49.99,
-  "salePrice": 39.99,
-  "sku": "CHEM-ADV-001",
-  "stockQuantity": 25,
-  "featured": true,
-  "specifications": {
-    "age": "8-14 years",
-    "materials": "Safe plastic and glass",
-    "weight": "2.5kg",
-    "dimensions": "30x20x15cm"
+  "name": "RoboBot Coding Kit",
+  "description": "An interactive robot that teaches children programming basics...",
+  "price": 89.99,
+  "compareAtPrice": 119.99,
+  "sku": "ROBO-001",
+  "stockQuantity": 45,
+  "reorderPoint": 10,
+  "weight": 1.2,
+  "categoryId": "cat_456",
+  "tags": ["educational", "programming", "interactive"],
+  "ageGroup": "ELEMENTARY_6_8",
+  "stemDiscipline": "TECHNOLOGY",
+  "productType": "ROBOTICS",
+  "learningOutcomes": ["PROBLEM_SOLVING", "LOGIC", "CRITICAL_THINKING"],
+  "specialCategories": ["NEW_ARRIVALS"],
+  "images": ["https://example.com/image1.jpg", "https://example.com/image2.jpg"],
+  "isActive": true,
+  "featured": false
+}
+```
+
+**Response:**
+```json
+{
+  "product": {
+    "id": "prod_123",
+    "name": "RoboBot Coding Kit",
+    "slug": "robobot-coding-kit",
+    "description": "An interactive robot...",
+    "price": 89.99,
+    "createdAt": "2024-01-15T10:30:00Z"
   },
-  "images": [...],
-  "category": {...},
-  "variants": [...],
-  "reviews": [...],
-  "relatedProducts": [...]
+  "message": "Product created successfully",
+  "success": true
 }
 ```
 
-### POST /api/admin/products
+#### `PUT /api/supplier/products/[id]`
 
-Create a new product (Admin only).
+Updates an existing product.
 
-**Request:**
-
-```json
-{
-  "name": "New Science Kit",
-  "description": "Amazing science experiments",
-  "price": 29.99,
-  "sku": "SCI-NEW-001",
-  "categoryId": "cat_123",
-  "stockQuantity": 50,
-  "featured": false,
-  "tags": ["science", "educational"],
-  "specifications": {
-    "age": "6-12 years",
-    "materials": "Plastic"
-  }
-}
-```
-
-## Orders API
-
-### GET /api/orders
-
-Retrieve user orders (authenticated).
-
-**Query Parameters:**
-
-- `status` (string): Filter by order status
-- `page` (number): Page number
-- `limit` (number): Items per page
+**Request Body:** Same as POST, but all fields are optional.
 
 **Response:**
-
 ```json
 {
-  "data": [
-    {
-      "id": "order_123",
-      "orderNumber": "ORD-2024-001234",
-      "status": "COMPLETED",
-      "paymentStatus": "PAID",
-      "total": 79.98,
-      "subtotal": 69.98,
-      "tax": 7.00,
-      "shippingCost": 3.00,
-      "items": [
-        {
-          "id": "item_123",
-          "productId": "prod_123",
-          "name": "Chemistry Set",
-          "price": 49.99,
-          "quantity": 1,
-          "total": 49.99
-        }
-      ],
-      "shippingAddress": {
-        "name": "John Doe",
-        "addressLine1": "123 Main St",
-        "city": "San Francisco",
-        "state": "CA",
-        "postalCode": "94102",
-        "country": "US"
-      },
-      "createdAt": "2024-01-15T10:30:00Z",
-      "deliveredAt": "2024-01-18T15:45:00Z"
-    }
-  ],
-  "pagination": {...}
+  "product": {
+    "id": "prod_123",
+    "name": "Updated RoboBot Coding Kit",
+    "updatedAt": "2024-01-15T11:30:00Z"
+  },
+  "message": "Product updated successfully",
+  "success": true
 }
 ```
 
-### POST /api/orders
+#### `DELETE /api/supplier/products/[id]`
 
-Create a new order.
-
-**Request:**
-
-```json
-{
-  "items": [
-    {
-      "productId": "prod_123",
-      "quantity": 2,
-      "variantOptions": {
-        "size": "Medium",
-        "color": "Blue"
-      }
-    }
-  ],
-  "shippingAddressId": "addr_123",
-  "paymentMethod": "stripe",
-  "couponCode": "SAVE10",
-  "notes": "Please handle with care"
-}
-```
-
-### GET /api/orders/{orderNumber}
-
-Retrieve a specific order by order number.
-
-## Cart API
-
-### GET /api/cart
-
-Retrieve current user's cart.
+Deletes a product.
 
 **Response:**
-
 ```json
 {
-  "id": "cart_123",
-  "userId": "user_123",
-  "items": [
-    {
-      "id": "cartitem_123",
-      "productId": "prod_123",
-      "product": {
-        "id": "prod_123",
-        "name": "Chemistry Set",
-        "price": 49.99,
-        "images": [...]
-      },
-      "quantity": 2,
-      "variantOptions": {
-        "size": "Medium"
-      },
-      "price": 49.99,
-      "total": 99.98
-    }
-  ],
-  "subtotal": 99.98,
-  "tax": 10.00,
-  "total": 109.98,
-  "itemCount": 2,
-  "updatedAt": "2024-01-15T10:30:00Z"
+  "message": "Product deleted successfully",
+  "success": true
 }
 ```
 
-### POST /api/cart/items
+---
 
-Add item to cart.
+### 3. Bulk Upload API
 
-**Request:**
+#### `POST /api/supplier/products/bulk-upload`
 
+Uploads multiple products at once with batch processing and detailed error reporting.
+
+**Request Body:**
 ```json
 {
-  "productId": "prod_123",
-  "quantity": 2,
-  "variantOptions": {
-    "size": "Medium",
-    "color": "Blue"
-  }
-}
-```
-
-### PUT /api/cart/items/{itemId}
-
-Update cart item quantity.
-
-### DELETE /api/cart/items/{itemId}
-
-Remove item from cart.
-
-## Categories API
-
-### GET /api/categories
-
-Retrieve all categories.
-
-**Response:**
-
-```json
-{
-  "data": [
+  "products": [
     {
-      "id": "cat_123",
-      "name": "Science Kits",
-      "slug": "science-kits",
-      "description": "Educational science experiment kits",
-      "image": "https://cdn.techtots.com/categories/science.jpg",
-      "parentId": null,
-      "children": [
-        {
-          "id": "cat_124",
-          "name": "Chemistry Sets",
-          "slug": "chemistry-sets",
-          "parentId": "cat_123"
-        }
-      ],
-      "productCount": 45,
-      "isActive": true
+      "name": "Product 1",
+      "description": "Description 1",
+      "price": 29.99,
+      "stockQuantity": 10,
+      "sku": "PROD-001",
+      "category": "Robotics",
+      "tags": "educational,programming",
+      "ageGroup": "ELEMENTARY_6_8",
+      "stemDiscipline": "TECHNOLOGY",
+      "productType": "ROBOTICS",
+      "learningOutcomes": "PROBLEM_SOLVING,LOGIC",
+      "specialCategories": "NEW_ARRIVALS",
+      "images": "https://example.com/image1.jpg,https://example.com/image2.jpg"
+    },
+    {
+      "name": "Product 2",
+      "description": "Description 2", 
+      "price": 39.99,
+      "stockQuantity": 15,
+      "sku": "PROD-002",
+      "category": "Science Kits",
+      "tags": "chemistry,experiments",
+      "ageGroup": "MIDDLE_SCHOOL_9_12",
+      "stemDiscipline": "SCIENCE",
+      "productType": "EXPERIMENT_KITS",
+      "learningOutcomes": "CRITICAL_THINKING,CREATIVITY",
+      "specialCategories": "BEST_SELLERS",
+      "images": "https://example.com/image3.jpg"
     }
   ]
 }
 ```
 
-## User Account API
-
-### GET /api/account/profile
-
-Get user profile information.
-
 **Response:**
-
 ```json
 {
-  "id": "user_123",
-  "name": "John Doe",
-  "email": "john@example.com",
-  "role": "CUSTOMER",
-  "emailVerified": true,
-  "isActive": true,
-  "createdAt": "2024-01-01T00:00:00Z",
-  "preferences": {
-    "language": "en",
-    "currency": "USD",
-    "notifications": {
-      "email": true,
-      "sms": false
+  "success": 1,
+  "failed": 1,
+  "errors": [
+    {
+      "row": 2,
+      "field": "name",
+      "message": "A product with this name already exists in your catalog",
+      "value": "Product 2"
     }
+  ],
+  "warnings": [
+    {
+      "row": 1,
+      "field": "price",
+      "message": "Price seems low for a STEM product"
+    }
+  ],
+  "processingTime": 1250,
+  "summary": {
+    "total": 2,
+    "success": 1,
+    "failed": 1,
+    "successRate": "50.0%",
+    "processingTime": "1.25s"
   }
 }
 ```
 
-### PUT /api/account/profile
+**Features:**
+- Upload up to 1000 products at once
+- Batch processing (10 products per batch)
+- Automatic category creation
+- Duplicate detection (name and SKU)
+- Detailed error reporting by row
+- Progress tracking and performance metrics
+- Image URL validation
 
-Update user profile.
+---
 
-### GET /api/account/addresses
+## Data Models
 
-Get user addresses.
+### Product Object
 
-### POST /api/account/addresses
-
-Add new address.
-
-### GET /api/account/wishlist
-
-Get user wishlist.
-
-### POST /api/account/wishlist
-
-Add item to wishlist.
-
-## Analytics API (Admin)
-
-### GET /api/admin/analytics/dashboard
-
-Get dashboard analytics data.
-
-**Query Parameters:**
-
-- `startDate` (string): Start date (ISO format)
-- `endDate` (string): End date (ISO format)
-- `period` (string): Predefined period (`today`, `week`, `month`, `year`)
-
-**Response:**
-
-```json
-{
-  "overview": {
-    "totalUsers": 1250,
-    "totalOrders": 340,
-    "totalRevenue": 15750.50,
-    "conversionRate": 3.2,
-    "averageOrderValue": 46.32
-  },
-  "chartData": {
-    "revenue": [
-      {
-        "date": "2024-01-15",
-        "revenue": 1250.00,
-        "orders": 28
-      }
-    ],
-    "userGrowth": [...],
-    "topProducts": [...],
-    "topCategories": [...]
-  }
+```typescript
+interface Product {
+  id: string;
+  name: string;                    // Required, 1-100 chars
+  slug: string;                    // Auto-generated from name
+  description: string;             // Required, 10-1000 chars
+  price: number;                   // Required, 0.01-999,999.99
+  compareAtPrice?: number;         // Optional, must be > price
+  sku?: string;                    // Optional, 1-50 chars, unique
+  stockQuantity: number;           // Required, 0-999,999
+  reorderPoint?: number;           // Optional, 0-999,999
+  weight?: number;                 // Optional, 0-999.99 kg
+  categoryId?: string;             // Optional, category reference
+  tags: string[];                  // Optional, max 20 items
+  ageGroup?: AgeGroup;             // Optional enum
+  stemDiscipline: StemDiscipline;  // Default: GENERAL
+  productType?: ProductType;       // Optional enum
+  learningOutcomes: string[];      // Optional, max 5 items
+  specialCategories: string[];     // Optional, max 4 items
+  images: string[];                // Optional, max 10 URLs
+  isActive: boolean;               // Default: true
+  featured: boolean;               // Default: false
+  supplierId: string;              // Auto-assigned
+  createdAt: string;               // Auto-generated
+  updatedAt: string;               // Auto-updated
 }
 ```
 
-### GET /api/admin/analytics/funnel
+### Enums
 
-Get conversion funnel analysis.
+```typescript
+enum AgeGroup {
+  TODDLERS_1_3 = "TODDLERS_1_3",
+  PRESCHOOL_3_5 = "PRESCHOOL_3_5", 
+  ELEMENTARY_6_8 = "ELEMENTARY_6_8",
+  MIDDLE_SCHOOL_9_12 = "MIDDLE_SCHOOL_9_12",
+  TEENS_13_PLUS = "TEENS_13_PLUS"
+}
 
-**Query Parameters:**
+enum StemDiscipline {
+  SCIENCE = "SCIENCE",
+  TECHNOLOGY = "TECHNOLOGY",
+  ENGINEERING = "ENGINEERING",
+  MATHEMATICS = "MATHEMATICS",
+  GENERAL = "GENERAL"
+}
 
-- `steps` (string): Comma-separated funnel steps
-- `startDate` (string): Analysis start date
-- `endDate` (string): Analysis end date
+enum ProductType {
+  ROBOTICS = "ROBOTICS",
+  PUZZLES = "PUZZLES",
+  CONSTRUCTION_SETS = "CONSTRUCTION_SETS",
+  EXPERIMENT_KITS = "EXPERIMENT_KITS",
+  BOARD_GAMES = "BOARD_GAMES"
+}
 
-## Blog API
+enum LearningOutcome {
+  PROBLEM_SOLVING = "PROBLEM_SOLVING",
+  CREATIVITY = "CREATIVITY",
+  CRITICAL_THINKING = "CRITICAL_THINKING",
+  MOTOR_SKILLS = "MOTOR_SKILLS",
+  LOGIC = "LOGIC"
+}
 
-### GET /api/blog
-
-Get blog posts.
-
-**Query Parameters:**
-
-- `category` (string): Filter by STEM category
-- `language` (string): Filter by language
-- `published` (boolean): Filter published posts
-- `page` (number): Page number
-- `limit` (number): Items per page
-
-### GET /api/blog/{slug}
-
-Get single blog post by slug.
-
-### POST /api/admin/blog
-
-Create new blog post (Admin only).
-
-## Reviews API
-
-### GET /api/products/{productId}/reviews
-
-Get product reviews.
-
-### POST /api/products/{productId}/reviews
-
-Create product review (authenticated).
-
-**Request:**
-
-```json
-{
-  "rating": 5,
-  "title": "Excellent product!",
-  "content": "My kids love this chemistry set...",
-  "recommendToFriend": true
+enum SpecialCategory {
+  NEW_ARRIVALS = "NEW_ARRIVALS",
+  BEST_SELLERS = "BEST_SELLERS",
+  GIFT_IDEAS = "GIFT_IDEAS",
+  SALE_ITEMS = "SALE_ITEMS"
 }
 ```
 
-## Error Responses
+---
 
-### Standard Error Format
-
-```json
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Validation failed",
-    "details": {
-      "email": ["Email is required"],
-      "password": ["Password must be at least 8 characters"]
-    },
-    "timestamp": "2024-01-15T10:30:00Z",
-    "requestId": "req_abc123"
-  }
-}
-```
+## Error Handling
 
 ### HTTP Status Codes
 
-- `200` - Success
-- `201` - Created
-- `400` - Bad Request
-- `401` - Unauthorized
-- `403` - Forbidden
-- `404` - Not Found
-- `409` - Conflict
-- `422` - Validation Error
-- `429` - Rate Limited
-- `500` - Internal Server Error
+- `200 OK` - Request successful
+- `201 Created` - Resource created successfully
+- `400 Bad Request` - Validation errors or invalid data
+- `401 Unauthorized` - Authentication required
+- `403 Forbidden` - Insufficient permissions or account not approved
+- `404 Not Found` - Resource doesn't exist
+- `429 Too Many Requests` - Rate limit exceeded
+- `500 Internal Server Error` - Server error
 
-## Rate Limiting
-
-- **General API**: 100 requests per minute per IP
-- **Authentication**: 5 login attempts per minute per IP
-- **Admin API**: 200 requests per minute per authenticated admin
-
-## Webhooks
-
-### Order Events
-
-Configure webhooks to receive order status updates:
+### Error Response Format
 
 ```json
 {
-  "event": "order.completed",
-  "data": {
-    "orderId": "order_123",
-    "orderNumber": "ORD-2024-001234",
-    "status": "COMPLETED",
-    "total": 79.98,
-    "customer": {
-      "id": "user_123",
-      "email": "john@example.com"
+  "error": "Validation error",
+  "message": "Please check your data and try again",
+  "details": [
+    {
+      "field": "name",
+      "message": "Product name is required",
+      "code": "REQUIRED_FIELD"
     }
-  },
-  "timestamp": "2024-01-15T10:30:00Z"
+  ],
+  "totalErrors": 1
 }
 ```
 
-## SDKs and Libraries
+---
 
-### JavaScript/TypeScript
+## Rate Limiting
 
-```bash
-npm install @techtots/api-client
+- **Single Product API:** 100 requests per minute
+- **Bulk Upload API:** 10 requests per minute
+- **Validation API:** 200 requests per minute
+
+Rate limit headers are included in responses:
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1642248600
 ```
 
-```typescript
-import { TechTotsAPI } from "@techtots/api-client";
+---
 
-const api = new TechTotsAPI({
-  baseURL: "https://techtots.com/api",
-  apiKey: "your_api_key",
-});
+## Best Practices
 
-const products = await api.products.list({
-  category: "science-kits",
-  limit: 20,
-});
+### 1. Validation First
+Always use the validation API before submitting products to catch errors early.
+
+### 2. Batch Processing
+For bulk uploads, use appropriate batch sizes (50-100 products) for optimal performance.
+
+### 3. Error Handling
+Implement proper error handling and retry logic for network failures.
+
+### 4. Caching
+Cache product lists and categories when possible to reduce API calls.
+
+### 5. Rate Limiting
+Monitor rate limits and implement exponential backoff for retries.
+
+### 6. Data Quality
+- Use descriptive, keyword-rich product names
+- Include high-quality images (minimum 800x600px)
+- Write detailed descriptions with key features and benefits
+- Use relevant tags for better discoverability
+- Set realistic reorder points based on sales velocity
+
+---
+
+## Examples
+
+### JavaScript/Node.js Example
+
+```javascript
+const validateProduct = async (productData) => {
+  const response = await fetch('/api/supplier/products/validate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      type: 'single',
+      data: productData
+    })
+  });
+  
+  const result = await response.json();
+  
+  if (!result.valid) {
+    console.log('Validation errors:', result.errors);
+    return false;
+  }
+  
+  return true;
+};
+
+const createProduct = async (productData) => {
+  const response = await fetch('/api/supplier/products', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(productData)
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message);
+  }
+  
+  return await response.json();
+};
+
+// Usage
+const productData = {
+  name: "RoboBot Coding Kit",
+  description: "An interactive robot that teaches children programming...",
+  price: 89.99,
+  stockQuantity: 45,
+  ageGroup: "ELEMENTARY_6_8",
+  stemDiscipline: "TECHNOLOGY"
+};
+
+try {
+  const isValid = await validateProduct(productData);
+  if (isValid) {
+    const result = await createProduct(productData);
+    console.log('Product created:', result.product);
+  }
+} catch (error) {
+  console.error('Error:', error.message);
+}
 ```
 
-### Python
-
-```bash
-pip install techtots-api
-```
+### Python Example
 
 ```python
-from techtots_api import TechTotsClient
+import requests
+import json
 
-client = TechTotsClient(
-    base_url='https://techtots.com/api',
-    api_key='your_api_key'
-)
+def validate_product(product_data):
+    response = requests.post(
+        'https://your-domain.com/api/supplier/products/validate',
+        headers={'Content-Type': 'application/json'},
+        cookies={'next-auth.session-token': 'your-session-token'},
+        json={
+            'type': 'single',
+            'data': product_data
+        }
+    )
+    
+    result = response.json()
+    return result['valid'], result.get('errors', [])
 
-products = client.products.list(
-    category='science-kits',
-    limit=20
-)
+def create_product(product_data):
+    response = requests.post(
+        'https://your-domain.com/api/supplier/products',
+        headers={'Content-Type': 'application/json'},
+        cookies={'next-auth.session-token': 'your-session-token'},
+        json=product_data
+    )
+    
+    if not response.ok:
+        error = response.json()
+        raise Exception(error['message'])
+    
+    return response.json()
+
+# Usage
+product_data = {
+    'name': 'RoboBot Coding Kit',
+    'description': 'An interactive robot that teaches children programming...',
+    'price': 89.99,
+    'stockQuantity': 45,
+    'ageGroup': 'ELEMENTARY_6_8',
+    'stemDiscipline': 'TECHNOLOGY'
+}
+
+try:
+    is_valid, errors = validate_product(product_data)
+    if is_valid:
+        result = create_product(product_data)
+        print('Product created:', result['product'])
+    else:
+        print('Validation errors:', errors)
+except Exception as e:
+    print('Error:', str(e))
 ```
 
-## Testing
-
-### Test Credentials
-
-Use these credentials in the development environment:
-
-- **Customer Account**:
-  - Email: `test@example.com`
-  - Password: `password123`
-
-- **Admin Account**:
-  - Email: `admin@techtots.com`
-  - Password: `admin123`
-
-### Test Payment Cards
-
-Use Stripe test cards for payment testing:
-
-- **Success**: `4242424242424242`
-- **Decline**: `4000000000000002`
-- **Insufficient Funds**: `4000000000009995`
-
-## Changelog
-
-### v1.2.0 (Latest)
-
-- Added A/B testing endpoints
-- Enhanced analytics dashboard
-- Improved search functionality
-- Added wishlist sharing
-
-### v1.1.0
-
-- Added blog API endpoints
-- Enhanced product filtering
-- Added review moderation
-
-### v1.0.0
-
-- Initial API release
-- Core e-commerce functionality
-- Authentication and authorization
+---
 
 ## Support
 
-- **Documentation**: [https://docs.techtots.com](https://docs.techtots.com)
-- **Support Email**: [api-support@techtots.com](mailto:api-support@techtots.com)
-- **Developer Forum**:
-  [https://community.techtots.com](https://community.techtots.com)
-- **Status Page**: [https://status.techtots.com](https://status.techtots.com)
+For API support and questions:
+- Email: api-support@techtots.com
+- Documentation: https://docs.techtots.com/api
+- Status Page: https://status.techtots.com
+
+---
+
+*Last updated: January 2024*
+*API Version: v1.0*
