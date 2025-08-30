@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from "react";
-import { 
-  BarChart3, 
-  PieChart, 
-  TrendingUp, 
-  TrendingDown, 
+import {
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  TrendingDown,
   Calendar,
   HardDrive,
   FileImage,
@@ -13,12 +13,12 @@ import {
   Upload,
   Activity,
   Target,
-  Zap
+  Zap,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -26,7 +26,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ImageManagementService, type ImageMetadata } from "@/lib/image-management";
+import {
+  ImageManagementServiceClient,
+  type ImageMetadata,
+} from "@/lib/image-management-client";
 
 interface ImageAnalyticsPanelProps {
   stats: any;
@@ -68,47 +71,69 @@ interface ChartData {
   }[];
 }
 
-export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps) {
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+export function ImageAnalyticsPanel({
+  stats,
+  images,
+}: ImageAnalyticsPanelProps) {
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
+    null
+  );
   const [timeRange, setTimeRange] = useState<string>("30d");
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { toast } = useToast();
 
   // Generate analytics data
   const generateAnalytics = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       // Simulate analytics generation
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       const mockAnalytics: AnalyticsData = {
         totalImages: images.length,
         totalSize: images.reduce((sum, img) => sum + (img.size || 0), 0),
-        averageSize: images.length > 0 ? images.reduce((sum, img) => sum + (img.size || 0), 0) / images.length : 0,
-        formats: images.reduce((acc, img) => {
-          const format = img.format || 'unknown';
-          acc[format] = (acc[format] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>),
+        averageSize:
+          images.length > 0
+            ? images.reduce((sum, img) => sum + (img.size || 0), 0) /
+              images.length
+            : 0,
+        formats: images.reduce(
+          (acc, img) => {
+            const format = img.format || "unknown";
+            acc[format] = (acc[format] || 0) + 1;
+            return acc;
+          },
+          {} as Record<string, number>
+        ),
         sizeDistribution: {
           small: images.filter(img => (img.size || 0) < 100 * 1024).length,
-          medium: images.filter(img => (img.size || 0) >= 100 * 1024 && (img.size || 0) < 1024 * 1024).length,
-          large: images.filter(img => (img.size || 0) >= 1024 * 1024 && (img.size || 0) < 5 * 1024 * 1024).length,
+          medium: images.filter(
+            img =>
+              (img.size || 0) >= 100 * 1024 && (img.size || 0) < 1024 * 1024
+          ).length,
+          large: images.filter(
+            img =>
+              (img.size || 0) >= 1024 * 1024 &&
+              (img.size || 0) < 5 * 1024 * 1024
+          ).length,
           huge: images.filter(img => (img.size || 0) >= 5 * 1024 * 1024).length,
         },
         uploadTrends: {
           last7Days: images.filter(img => {
-            const daysSinceUpload = (Date.now() - img.uploadedAt.getTime()) / (1000 * 60 * 60 * 24);
+            const daysSinceUpload =
+              (Date.now() - img.uploadedAt.getTime()) / (1000 * 60 * 60 * 24);
             return daysSinceUpload <= 7;
           }).length,
           last30Days: images.filter(img => {
-            const daysSinceUpload = (Date.now() - img.uploadedAt.getTime()) / (1000 * 60 * 60 * 24);
+            const daysSinceUpload =
+              (Date.now() - img.uploadedAt.getTime()) / (1000 * 60 * 60 * 24);
             return daysSinceUpload <= 30;
           }).length,
           last90Days: images.filter(img => {
-            const daysSinceUpload = (Date.now() - img.uploadedAt.getTime()) / (1000 * 60 * 60 * 24);
+            const daysSinceUpload =
+              (Date.now() - img.uploadedAt.getTime()) / (1000 * 60 * 60 * 24);
             return daysSinceUpload <= 90;
           }).length,
         },
@@ -122,18 +147,17 @@ export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps)
           "Resize images larger than 2MB to improve load times",
           "Implement lazy loading for product galleries",
           "Use progressive JPEGs for better perceived performance",
-          "Consider implementing a CDN for global image delivery"
-        ]
+          "Consider implementing a CDN for global image delivery",
+        ],
       };
-      
+
       setAnalyticsData(mockAnalytics);
-      
     } catch (error) {
       console.error("Failed to generate analytics:", error);
       toast({
         title: "Analytics Generation Failed",
         description: "Failed to generate image analytics",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -143,42 +167,58 @@ export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps)
   // Generate chart data for formats
   const generateFormatsChartData = useCallback((): ChartData => {
     if (!analyticsData) return { labels: [], datasets: [] };
-    
+
     const formatEntries = Object.entries(analyticsData.formats);
-    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
-    
+    const colors = [
+      "#3B82F6",
+      "#10B981",
+      "#F59E0B",
+      "#EF4444",
+      "#8B5CF6",
+      "#06B6D4",
+    ];
+
     return {
       labels: formatEntries.map(([format]) => format.toUpperCase()),
-      datasets: [{
-        label: 'Number of Images',
-        data: formatEntries.map(([, count]) => count),
-        backgroundColor: colors.slice(0, formatEntries.length),
-        borderColor: colors.slice(0, formatEntries.length),
-        borderWidth: 1
-      }]
+      datasets: [
+        {
+          label: "Number of Images",
+          data: formatEntries.map(([, count]) => count),
+          backgroundColor: colors.slice(0, formatEntries.length),
+          borderColor: colors.slice(0, formatEntries.length),
+          borderWidth: 1,
+        },
+      ],
     };
   }, [analyticsData]);
 
   // Generate chart data for size distribution
   const generateSizeDistributionChartData = useCallback((): ChartData => {
     if (!analyticsData) return { labels: [], datasets: [] };
-    
-    const colors = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444'];
-    
+
+    const colors = ["#10B981", "#3B82F6", "#F59E0B", "#EF4444"];
+
     return {
-      labels: ['Small (<100KB)', 'Medium (100KB-1MB)', 'Large (1MB-5MB)', 'Huge (>5MB)'],
-      datasets: [{
-        label: 'Number of Images',
-        data: [
-          analyticsData.sizeDistribution.small,
-          analyticsData.sizeDistribution.medium,
-          analyticsData.sizeDistribution.large,
-          analyticsData.sizeDistribution.huge
-        ],
-        backgroundColor: colors,
-        borderColor: colors,
-        borderWidth: 1
-      }]
+      labels: [
+        "Small (&lt;100KB)",
+        "Medium (100KB-1MB)",
+        "Large (1MB-5MB)",
+        "Huge (&gt;5MB)",
+      ],
+      datasets: [
+        {
+          label: "Number of Images",
+          data: [
+            analyticsData.sizeDistribution.small,
+            analyticsData.sizeDistribution.medium,
+            analyticsData.sizeDistribution.large,
+            analyticsData.sizeDistribution.huge,
+          ],
+          backgroundColor: colors,
+          borderColor: colors,
+          borderWidth: 1,
+        },
+      ],
     };
   }, [analyticsData]);
 
@@ -200,7 +240,9 @@ export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps)
   };
 
   // Get performance score badge variant
-  const getPerformanceScoreBadgeVariant = (score: number): "default" | "secondary" | "destructive" => {
+  const getPerformanceScoreBadgeVariant = (
+    score: number
+  ): "default" | "secondary" | "destructive" => {
     if (score >= 90) return "default";
     if (score >= 70) return "secondary";
     return "destructive";
@@ -219,7 +261,9 @@ export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps)
           {Array.from({ length: 3 }).map((_, i) => (
             <Card key={i}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Loading...</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Loading...
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-8 w-16 bg-muted animate-pulse rounded" />
@@ -240,9 +284,7 @@ export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps)
           <p className="text-muted-foreground mb-4">
             Generate analytics to view detailed image performance metrics
           </p>
-          <Button onClick={generateAnalytics}>
-            Generate Analytics
-          </Button>
+          <Button onClick={generateAnalytics}>Generate Analytics</Button>
         </CardContent>
       </Card>
     );
@@ -279,7 +321,9 @@ export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps)
             <FileImage className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.totalImages}</div>
+            <div className="text-2xl font-bold">
+              {analyticsData.totalImages}
+            </div>
             <p className="text-xs text-muted-foreground">
               Across all categories
             </p>
@@ -310,24 +354,24 @@ export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps)
             <div className="text-2xl font-bold">
               {analyticsData.uploadTrends.last30Days}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Last 30 days
-            </p>
+            <p className="text-xs text-muted-foreground">Last 30 days</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Optimization Score</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Optimization Score
+            </CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${getPerformanceScoreColor(analyticsData.performanceMetrics.optimizationScore)}`}>
+            <div
+              className={`text-2xl font-bold ${getPerformanceScoreColor(analyticsData.performanceMetrics.optimizationScore)}`}
+            >
               {Math.round(analyticsData.performanceMetrics.optimizationScore)}%
             </div>
-            <p className="text-xs text-muted-foreground">
-              Performance score
-            </p>
+            <p className="text-xs text-muted-foreground">Performance score</p>
           </CardContent>
         </Card>
       </div>
@@ -352,13 +396,23 @@ export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps)
               <div className="flex items-center justify-between">
                 <span className="text-sm">Compression Ratio</span>
                 <Badge variant="outline">
-                  {Math.round(analyticsData.performanceMetrics.compressionRatio * 100)}%
+                  {Math.round(
+                    analyticsData.performanceMetrics.compressionRatio * 100
+                  )}
+                  %
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Optimization Score</span>
-                <Badge variant={getPerformanceScoreBadgeVariant(analyticsData.performanceMetrics.optimizationScore)}>
-                  {Math.round(analyticsData.performanceMetrics.optimizationScore)}%
+                <Badge
+                  variant={getPerformanceScoreBadgeVariant(
+                    analyticsData.performanceMetrics.optimizationScore
+                  )}
+                >
+                  {Math.round(
+                    analyticsData.performanceMetrics.optimizationScore
+                  )}
+                  %
                 </Badge>
               </div>
             </div>
@@ -406,7 +460,7 @@ export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps)
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm">Small (<100KB)</span>
+                <span className="text-sm">Small (&lt;100KB)</span>
                 <Badge variant="outline">
                   {analyticsData.sizeDistribution.small}
                 </Badge>
@@ -424,7 +478,7 @@ export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps)
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm">Huge (>5MB)</span>
+                <span className="text-sm">Huge (&gt;5MB)</span>
                 <Badge variant="outline">
                   {analyticsData.sizeDistribution.huge}
                 </Badge>
@@ -452,7 +506,9 @@ export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps)
                   </span>
                 </div>
                 <div className="text-sm font-medium uppercase">{format}</div>
-                <div className="text-xs text-muted-foreground">{count} images</div>
+                <div className="text-xs text-muted-foreground">
+                  {count} images
+                </div>
               </div>
             ))}
           </div>
@@ -470,7 +526,10 @@ export function ImageAnalyticsPanel({ stats, images }: ImageAnalyticsPanelProps)
         <CardContent>
           <div className="space-y-3">
             {analyticsData.recommendations.map((recommendation, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
+              <div
+                key={index}
+                className="flex items-start gap-3 p-3 border rounded-lg"
+              >
                 <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
                 <span className="text-sm">{recommendation}</span>
               </div>

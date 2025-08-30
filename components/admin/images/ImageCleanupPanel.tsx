@@ -22,9 +22,9 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import {
-  ImageManagementService,
+  ImageManagementServiceClient,
   type ImageMetadata,
-} from "@/lib/image-management";
+} from "@/lib/image-management-client";
 
 interface ImageCleanupPanelProps {
   images: ImageMetadata[];
