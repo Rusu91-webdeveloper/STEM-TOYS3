@@ -1,6 +1,15 @@
 "use client";
 
-import { LogOut, Menu, X, Settings, User, Home } from "lucide-react";
+import {
+  LogOut,
+  Menu,
+  X,
+  Settings,
+  User,
+  Home,
+  Package,
+  Image,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
