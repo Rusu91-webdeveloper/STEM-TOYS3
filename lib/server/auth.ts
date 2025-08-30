@@ -138,17 +138,27 @@ const createAuthOptions = (): NextAuthConfig => {
   // Validate Google OAuth configuration
   if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
     console.log("✅ Google OAuth configured successfully");
-    console.log("🔧 Google Client ID:", env.GOOGLE_CLIENT_ID.substring(0, 20) + "...");
-    console.log("🔧 Google Client Secret:", env.GOOGLE_CLIENT_SECRET.substring(0, 10) + "...");
+    console.log(
+      "🔧 Google Client ID:",
+      env.GOOGLE_CLIENT_ID.substring(0, 20) + "..."
+    );
+    console.log(
+      "🔧 Google Client Secret:",
+      env.GOOGLE_CLIENT_SECRET.substring(0, 10) + "..."
+    );
   } else {
-    console.log("⚠️ Google OAuth not configured - authentication will work with credentials only");
+    console.log(
+      "⚠️ Google OAuth not configured - authentication will work with credentials only"
+    );
     console.log("🔍 Available env vars:", {
       AUTH_GOOGLE_ID: !!process.env.AUTH_GOOGLE_ID,
       AUTH_GOOGLE_SECRET: !!process.env.AUTH_GOOGLE_SECRET,
       GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
       GOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET,
     });
-    console.log("💡 To enable Google OAuth, add AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET to your environment variables");
+    console.log(
+      "💡 To enable Google OAuth, add AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET to your environment variables"
+    );
   }
 
   return {
@@ -504,15 +514,36 @@ const createAuthOptions = (): NextAuthConfig => {
                 where: { id: token.id },
                 select: { role: true, isActive: true },
               });
-              if (dbUser) {
-                token.role = dbUser.role;
-                token.isActive = dbUser.isActive;
+
+              // CRITICAL FIX: If user doesn't exist in database, invalidate the token
+              if (!dbUser) {
+                console.warn(
+                  `JWT token for non-existent user ${token.id} - invalidating token`
+                );
+                // Return null to invalidate the token
+                return null;
+              }
+
+              token.role = dbUser.role;
+              token.isActive = dbUser.isActive;
+
+              // Additional validation: if user is inactive, invalidate token
+              if (!dbUser.isActive) {
+                console.warn(
+                  `JWT token for inactive user ${token.id} - invalidating token`
+                );
+                return null;
               }
             } catch (error) {
               logger.error("Error refreshing user data in JWT callback", {
                 error: error instanceof Error ? error.message : String(error),
                 userId: token.id,
               });
+              // On database error, invalidate the token for security
+              console.warn(
+                `Database error for user ${token.id} - invalidating token`
+              );
+              return null;
             }
           }
         }
