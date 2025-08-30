@@ -8,20 +8,20 @@ datasource db {
 }
 
 model User {
-  id                  String               @id @default(cuid())
+  id                  String                   @id @default(cuid())
   name                String?
-  email               String               @unique
+  email               String                   @unique
   password            String
-  role                Role                 @default(CUSTOMER)
+  role                Role                     @default(CUSTOMER)
   emailVerified       DateTime?
   verificationToken   String?
-  isActive            Boolean              @default(false)
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  isActive            Boolean                  @default(false)
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
   addresses           Address[]
   blogs               Blog[]
   contentVersions     ContentVersion[]
-  couponsCreated      Coupon[]             @relation("CouponCreatedBy")
+  couponsCreated      Coupon[]                 @relation("CouponCreatedBy")
   couponUsages        CouponUsage[]
   digitalDownloads    DigitalDownload[]
   emailEvents         EmailEvent[]
@@ -32,12 +32,12 @@ model User {
   returns             Return[]
   reviews             Review[]
   Session             Session[]
-  wishlistItems       Wishlist[]
+  approvedSuppliers   Supplier[]               @relation("SupplierApprovedBy")
   supplier            Supplier?
-  approvedSuppliers   Supplier[]           @relation("SupplierApprovedBy")
-  messagesSent        SupplierMessage[]    @relation("MessageSender")
-  ticketAssignedTo    SupplierSupportTicket[] @relation("TicketAssignedTo")
+  messagesSent        SupplierMessage[]        @relation("MessageSender")
+  ticketAssignedTo    SupplierSupportTicket[]  @relation("TicketAssignedTo")
   ticketResponses     SupplierTicketResponse[] @relation("TicketResponder")
+  wishlistItems       Wishlist[]
 
   @@index([email])
 }
@@ -138,13 +138,13 @@ model Product {
   productType       ProductType?
   specialCategories SpecialCategory[]
   stemDiscipline    StemCategory      @default(GENERAL)
+  supplierId        String?
   orderItems        OrderItem[]
   category          Category?         @relation(fields: [categoryId], references: [id])
+  supplier          Supplier?         @relation(fields: [supplierId], references: [id])
   reviews           Review[]
-  wishlistItems     Wishlist[]
-  supplierId        String?
-  supplier          Supplier?            @relation(fields: [supplierId], references: [id])
   supplierOrders    SupplierOrder[]
+  wishlistItems     Wishlist[]
 
   @@index([categoryId])
   @@index([isActive])
@@ -182,62 +182,50 @@ model Wishlist {
 }
 
 model Supplier {
-  id                    String   @id @default(cuid())
-  userId                String?  @unique  // Made optional for public registration
-  companyName           String
-  companySlug           String   @unique
-  description           String?
-  website               String?
-  phone                 String
-  vatNumber             String?
-  taxId                 String?
-  businessAddress       String
-  businessCity          String
-  businessState         String
-  businessCountry       String   @default("România")
-  businessPostalCode    String
-  contactPersonName     String
-  contactPersonEmail    String
-  contactPersonPhone    String
-
-  // Business Information
-  yearEstablished       Int?
-  employeeCount         Int?
-  annualRevenue         String?
-  certifications        String[]
-  productCategories     String[]
-
-  // Status & Approval
-  status                SupplierStatus @default(PENDING)
-  approvedAt            DateTime?
-  approvedBy            String?
-  rejectionReason       String?
-
-  // Financial
-  commissionRate        Float    @default(15.0) // Default 15%
-  paymentTerms          Int      @default(30)   // Net 30 days
-  minimumOrderValue     Float    @default(0)
-
-  // Metadata
-  logo                  String?
-  catalogUrl            String?
-  termsAccepted         Boolean  @default(false)
-  privacyAccepted       Boolean  @default(false)
+  id                      String                  @id @default(cuid())
+  userId                  String?                 @unique
+  companyName             String
+  companySlug             String                  @unique
+  description             String?
+  website                 String?
+  phone                   String
+  vatNumber               String?
+  taxId                   String?
+  businessAddress         String
+  businessCity            String
+  businessState           String
+  businessCountry         String                  @default("România")
+  businessPostalCode      String
+  contactPersonName       String
+  contactPersonEmail      String
+  contactPersonPhone      String
+  yearEstablished         Int?
+  employeeCount           Int?
+  annualRevenue           String?
+  certifications          String[]
+  productCategories       String[]
+  status                  SupplierStatus          @default(PENDING)
+  approvedAt              DateTime?
+  approvedBy              String?
+  rejectionReason         String?
+  commissionRate          Float                   @default(15.0)
+  paymentTerms            Int                     @default(30)
+  minimumOrderValue       Float                   @default(0)
+  logo                    String?
+  catalogUrl              String?
+  termsAccepted           Boolean                 @default(false)
+  privacyAccepted         Boolean                 @default(false)
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
   notificationPreferences Json?
-
-  // Timestamps
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  // Relations
-  user                  User?    @relation(fields: [userId], references: [id], onDelete: Cascade)  // Made optional
-  approvedByUser        User?    @relation("SupplierApprovedBy", fields: [approvedBy], references: [id])
-  products              Product[]
-  orders                SupplierOrder[]
-  invoices              SupplierInvoice[]
-  messagesReceived      SupplierMessage[]
-  notificationsReceived SupplierNotification[]
-  supportTickets        SupplierSupportTicket[]
+  products                Product[]
+  approvedByUser          User?                   @relation("SupplierApprovedBy", fields: [approvedBy], references: [id])
+  user                    User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices                SupplierInvoice[]
+  messagesReceived        SupplierMessage[]
+  notificationsReceived   SupplierNotification[]
+  orders                  SupplierOrder[]
+  supportTickets          SupplierSupportTicket[]
 
   @@index([status])
   @@index([companySlug])
@@ -317,29 +305,29 @@ model Language {
 }
 
 model Order {
-  id                    String        @id @default(cuid())
-  orderNumber           String        @unique
+  id                    String          @id @default(cuid())
+  orderNumber           String          @unique
   userId                String
   total                 Float
   subtotal              Float
   tax                   Float
   shippingCost          Float
-  discountAmount        Float         @default(0)
+  discountAmount        Float           @default(0)
   couponCode            String?
   couponId              String?
-  status                OrderStatus   @default(PROCESSING)
-  paymentStatus         PaymentStatus @default(PENDING)
+  status                OrderStatus     @default(PROCESSING)
+  paymentStatus         PaymentStatus   @default(PENDING)
   paymentMethod         String
   notes                 String?
   shippingAddressId     String
   billingAddressId      String?
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
   deliveredAt           DateTime?
   stripePaymentIntentId String?
-  coupon                Coupon?       @relation(fields: [couponId], references: [id])
-  shippingAddress       Address       @relation(fields: [shippingAddressId], references: [id])
-  user                  User          @relation(fields: [userId], references: [id])
+  coupon                Coupon?         @relation(fields: [couponId], references: [id])
+  shippingAddress       Address         @relation(fields: [shippingAddressId], references: [id])
+  user                  User            @relation(fields: [userId], references: [id])
   items                 OrderItem[]
   returns               Return[]
   supplierOrders        SupplierOrder[]
@@ -391,14 +379,6 @@ model StoreSettings {
   metaTitle           String   @default("TechTots | STEM Toys for Curious Minds")
   metaDescription     String   @default("Discover the best STEM toys for curious minds at TechTots. Educational toys that make learning fun for children of all ages.")
   metaKeywords        String   @default("STEM toys, educational toys, science toys, technology toys, engineering toys, math toys")
-  
-  // Business Address Fields
-  businessAddress     String   @default("Mehedinți 54-56, Bl D5, sc 2, apt 70")
-  businessCity        String   @default("Cluj-Napoca")
-  businessState       String   @default("Cluj")
-  businessCountry     String   @default("România")
-  businessPostalCode  String   @default("400000")
-  
   shippingSettings    Json?
   paymentSettings     Json?
   createdAt           DateTime @default(now())
@@ -407,9 +387,14 @@ model StoreSettings {
   taxSettings         Json?
   businessHours       Json?
   customerService     Json?
-  orderProcessing     Json?
   inventoryManagement Json?
   marketingSettings   Json?
+  orderProcessing     Json?
+  businessAddress     String   @default("Mehedinți 54-56, Bl D5, sc 2, apt 70")
+  businessCity        String   @default("Cluj-Napoca")
+  businessCountry     String   @default("România")
+  businessPostalCode  String   @default("400000")
+  businessState       String   @default("Cluj")
 }
 
 model PerformanceMetric {
@@ -452,7 +437,7 @@ model ConversionLog {
 }
 
 model SupplierOrder {
-  id              String   @id @default(cuid())
+  id              String              @id @default(cuid())
   supplierId      String
   orderId         String
   orderItemId     String
@@ -466,16 +451,14 @@ model SupplierOrder {
   shippedAt       DateTime?
   trackingNumber  String?
   notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  supplier        Supplier   @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  order           Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderItem       OrderItem  @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  product         Product    @relation(fields: [productId], references: [id])
-  invoice         SupplierInvoice? @relation(fields: [invoiceId], references: [id])
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
   invoiceId       String?
+  invoice         SupplierInvoice?    @relation(fields: [invoiceId], references: [id])
+  order           Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem       OrderItem           @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  product         Product             @relation(fields: [productId], references: [id])
+  supplier        Supplier            @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
   @@index([supplierId])
   @@index([orderId])
@@ -484,25 +467,23 @@ model SupplierOrder {
 }
 
 model SupplierInvoice {
-  id              String   @id @default(cuid())
-  supplierId      String
-  invoiceNumber   String   @unique
-  periodStart     DateTime
-  periodEnd       DateTime
-  subtotal        Float
-  commission      Float
-  totalAmount     Float
-  status          InvoiceStatus @default(DRAFT)
-  dueDate         DateTime
-  paidAt          DateTime?
-  paymentMethod   String?
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  orders          SupplierOrder[]
+  id            String          @id @default(cuid())
+  supplierId    String
+  invoiceNumber String          @unique
+  periodStart   DateTime
+  periodEnd     DateTime
+  subtotal      Float
+  commission    Float
+  totalAmount   Float
+  status        InvoiceStatus   @default(DRAFT)
+  dueDate       DateTime
+  paidAt        DateTime?
+  paymentMethod String?
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  supplier      Supplier        @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  orders        SupplierOrder[]
 
   @@index([supplierId])
   @@index([invoiceNumber])
@@ -510,26 +491,23 @@ model SupplierInvoice {
   @@index([dueDate])
 }
 
-// Communication System Models
 model SupplierMessage {
-  id              String   @id @default(cuid())
-  supplierId      String
-  senderId        String
-  senderType      MessageSenderType
-  subject         String
-  content         String
-  isRead          Boolean  @default(false)
-  readAt          DateTime?
-  priority        MessagePriority @default(NORMAL)
-  category        MessageCategory @default(GENERAL)
-  attachments     String[] // URLs to uploaded files
-  attachmentDetails Json?  // Full attachment details (name, size, etc.)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  sender          User     @relation("MessageSender", fields: [senderId], references: [id])
+  id                String            @id @default(cuid())
+  supplierId        String
+  senderId          String
+  senderType        MessageSenderType
+  subject           String
+  content           String
+  isRead            Boolean           @default(false)
+  readAt            DateTime?
+  priority          MessagePriority   @default(NORMAL)
+  category          MessageCategory   @default(GENERAL)
+  attachments       String[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  attachmentDetails Json?
+  sender            User              @relation("MessageSender", fields: [senderId], references: [id])
+  supplier          Supplier          @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
   @@index([supplierId])
   @@index([senderId])
@@ -540,20 +518,18 @@ model SupplierMessage {
 }
 
 model SupplierNotification {
-  id              String   @id @default(cuid())
-  supplierId      String
-  type            NotificationType
-  title           String
-  message         String
-  isRead          Boolean  @default(false)
-  readAt          DateTime?
-  actionUrl       String?  // URL to navigate to when clicked
-  metadata        Json?    // Additional data for the notification
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  id         String           @id @default(cuid())
+  supplierId String
+  type       NotificationType
+  title      String
+  message    String
+  isRead     Boolean          @default(false)
+  readAt     DateTime?
+  actionUrl  String?
+  metadata   Json?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  supplier   Supplier         @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
   @@index([supplierId])
   @@index([type])
@@ -562,25 +538,23 @@ model SupplierNotification {
 }
 
 model SupplierSupportTicket {
-  id              String   @id @default(cuid())
-  supplierId      String
-  ticketNumber    String   @unique
-  subject         String
-  description     String
-  status          TicketStatus @default(OPEN)
-  priority        TicketPriority @default(MEDIUM)
-  category        TicketCategory
-  assignedTo      String?  // Admin user ID
-  attachments     String[] // URLs to uploaded files
-  attachmentDetails Json?  // Detailed attachment information (name, size, etc.)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  closedAt        DateTime?
-
-  // Relations
-  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  assignedAdmin   User?    @relation("TicketAssignedTo", fields: [assignedTo], references: [id])
-  responses       SupplierTicketResponse[]
+  id                String                   @id @default(cuid())
+  supplierId        String
+  ticketNumber      String                   @unique
+  subject           String
+  description       String
+  status            TicketStatus             @default(OPEN)
+  priority          TicketPriority           @default(MEDIUM)
+  category          TicketCategory
+  assignedTo        String?
+  attachments       String[]
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  closedAt          DateTime?
+  attachmentDetails Json?
+  assignedAdmin     User?                    @relation("TicketAssignedTo", fields: [assignedTo], references: [id])
+  supplier          Supplier                 @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  responses         SupplierTicketResponse[]
 
   @@index([supplierId])
   @@index([ticketNumber])
@@ -592,20 +566,18 @@ model SupplierSupportTicket {
 }
 
 model SupplierTicketResponse {
-  id              String   @id @default(cuid())
-  ticketId        String
-  responderId     String
-  responderType   ResponderType
-  content         String
-  isInternal      Boolean  @default(false) // Internal note vs customer response
-  attachments     String[] // URLs to uploaded files
-  attachmentDetails Json?  // Detailed attachment information (name, size, etc.)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  ticket          SupplierSupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  responder       User                  @relation("TicketResponder", fields: [responderId], references: [id])
+  id                String                @id @default(cuid())
+  ticketId          String
+  responderId       String
+  responderType     ResponderType
+  content           String
+  isInternal        Boolean               @default(false)
+  attachments       String[]
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  attachmentDetails Json?
+  responder         User                  @relation("TicketResponder", fields: [responderId], references: [id])
+  ticket            SupplierSupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@index([ticketId])
   @@index([responderId])
@@ -614,17 +586,17 @@ model SupplierTicketResponse {
 }
 
 model SupplierAnnouncement {
-  id              String   @id @default(cuid())
+  id              String               @id @default(cuid())
   title           String
   content         String
   type            AnnouncementType
   priority        AnnouncementPriority @default(NORMAL)
-  isActive        Boolean  @default(true)
-  publishedAt     DateTime @default(now())
+  isActive        Boolean              @default(true)
+  publishedAt     DateTime             @default(now())
   expiresAt       DateTime?
-  targetSuppliers String[] // Array of supplier IDs or "ALL" for all suppliers
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  targetSuppliers String[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
 
   @@index([type])
   @@index([priority])
@@ -906,8 +878,6 @@ model Session {
   User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-
-
 enum OrderItemReturnStatus {
   NONE
   REQUESTED
@@ -1134,5 +1104,3 @@ enum AnnouncementPriority {
   HIGH
   URGENT
 }
-
-

@@ -97,7 +97,7 @@ export function SupplierBulkUpload() {
     setUploadResult(null);
     setUploadProgress(0);
 
-    // Parse the file
+    // Parse the file with enhanced error handling
     parseFile(selectedFile);
   };
 
@@ -285,12 +285,18 @@ export function SupplierBulkUpload() {
     products.forEach((product, index) => {
       const rowNumber = index + 2; // +2 because of 0-based index and header row
 
-      // Required fields
+      // Required fields with enhanced error messages
       if (!product.name.trim()) {
         errors.push({
           row: rowNumber,
           field: "name",
-          message: "Product name is required",
+          message: "Product name is required and cannot be empty",
+        });
+      } else if (product.name.length > 100) {
+        errors.push({
+          row: rowNumber,
+          field: "name",
+          message: "Product name must be 100 characters or less",
         });
       }
 
@@ -298,15 +304,19 @@ export function SupplierBulkUpload() {
         errors.push({
           row: rowNumber,
           field: "description",
-          message: "Description is required",
+          message: "Product description is required and cannot be empty",
         });
-      }
-
-      if (product.description.length < 10) {
+      } else if (product.description.length < 10) {
         errors.push({
           row: rowNumber,
           field: "description",
-          message: "Description must be at least 10 characters",
+          message: "Product description must be at least 10 characters long",
+        });
+      } else if (product.description.length > 1000) {
+        errors.push({
+          row: rowNumber,
+          field: "description",
+          message: "Product description must be 1000 characters or less",
         });
       }
 
@@ -351,7 +361,7 @@ export function SupplierBulkUpload() {
         });
       }
 
-      // Validate enums
+      // Validate enums with enhanced error messages
       const validAgeGroups = [
         "TODDLERS_1_3",
         "PRESCHOOL_3_5",
@@ -367,7 +377,7 @@ export function SupplierBulkUpload() {
         errors.push({
           row: rowNumber,
           field: "ageGroup",
-          message: `Invalid age group. Must be one of: ${validAgeGroups.join(", ")}`,
+          message: `Invalid age group "${product.ageGroup}". Must be one of: ${validAgeGroups.join(", ")}`,
         });
       }
 
@@ -375,7 +385,7 @@ export function SupplierBulkUpload() {
         "SCIENCE",
         "TECHNOLOGY",
         "ENGINEERING",
-        "MATH",
+        "MATHEMATICS",
         "GENERAL",
       ];
       if (

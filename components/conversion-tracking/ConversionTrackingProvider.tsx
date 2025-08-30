@@ -80,7 +80,9 @@ export default function ConversionTrackingProvider() {
           try {
             metadata = JSON.parse(metadataStr);
           } catch (error) {
-            console.warn("Invalid conversion metadata JSON:", metadataStr);
+            if (process.env.NODE_ENV === "development") {
+              console.warn("Invalid conversion metadata JSON:", metadataStr);
+            }
           }
         }
 

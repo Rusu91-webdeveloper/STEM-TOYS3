@@ -17,7 +17,12 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   // Enhanced compiler options
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+            exclude: ["error", "warn"],
+          }
+        : false,
   },
   // Enhanced performance settings
   // Enable experimental features for better performance

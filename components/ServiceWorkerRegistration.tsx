@@ -12,23 +12,39 @@ export default function ServiceWorkerRegistration() {
 
   const registerServiceWorker = async () => {
     try {
-      console.log("[SW] Registering service worker...");
+      if (process.env.NODE_ENV === "development") {
+        console.log("[SW] Registering service worker...");
+      }
 
       const registration = await navigator.serviceWorker.register("/sw.js", {
         scope: "/",
         updateViaCache: "none",
       });
 
-      console.log("[SW] Service worker registered successfully:", registration);
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          "[SW] Service worker registered successfully:",
+          registration
+        );
+      }
 
       // Handle service worker updates
       registration.addEventListener("updatefound", () => {
-        console.log("[SW] Update found, installing new service worker...");
+        if (process.env.NODE_ENV === "development") {
+          console.log("[SW] Update found, installing new service worker...");
+        }
         const newWorker = registration.installing;
         if (newWorker) {
           newWorker.addEventListener("statechange", () => {
-            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-              console.log("[SW] New service worker installed, ready to activate");
+            if (
+              newWorker.state === "installed" &&
+              navigator.serviceWorker.controller
+            ) {
+              if (process.env.NODE_ENV === "development") {
+                console.log(
+                  "[SW] New service worker installed, ready to activate"
+                );
+              }
             }
           });
         }
@@ -36,17 +52,23 @@ export default function ServiceWorkerRegistration() {
 
       // Handle service worker messages
       navigator.serviceWorker.addEventListener("message", event => {
-        console.log("[SW] Message from service worker:", event.data);
+        if (process.env.NODE_ENV === "development") {
+          console.log("[SW] Message from service worker:", event.data);
+        }
 
         if (event.data.type === "CACHE_UPDATED") {
-          console.log("[SW] Cache updated, reloading page...");
+          if (process.env.NODE_ENV === "development") {
+            console.log("[SW] Cache updated, reloading page...");
+          }
           window.location.reload();
         }
       });
 
       // Check if service worker is controlling the page
       if (navigator.serviceWorker.controller) {
-        console.log("[SW] Service worker is controlling the page");
+        if (process.env.NODE_ENV === "development") {
+          console.log("[SW] Service worker is controlling the page");
+        }
 
         // Send message to service worker to get cache stats
         navigator.serviceWorker.controller.postMessage({

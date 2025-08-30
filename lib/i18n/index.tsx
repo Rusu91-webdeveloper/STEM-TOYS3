@@ -78,7 +78,7 @@ export function I18nProvider({
       return (translations.en as Record<string, string>)[key];
     }
 
-    if (process.env.NODE_ENV !== "production") {
+    if (process.env.NODE_ENV === "development") {
       console.warn(
         `Missing translation for key: '${key}' in language: '${language}'`
       );

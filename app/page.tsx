@@ -41,7 +41,9 @@ async function getFeaturedProducts(): Promise<Product[]> {
     const data = await res.json();
     return data.products?.slice(0, 3) ?? []; // Reduced from 4 to 3
   } catch (error) {
-    console.error("Error fetching featured products in Home page:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error fetching featured products in Home page:", error);
+    }
     return []; // Return empty array on error
   }
 }

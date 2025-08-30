@@ -57,8 +57,10 @@ export function useOptimizedSession(): SessionContextValue {
 
   // Otherwise, we need to use the regular useSession hook
   // This should rarely happen since we wrap the app with CentralizedSessionProvider
-  console.warn(
-    "useOptimizedSession: Falling back to regular useSession. Consider wrapping your app with CentralizedSessionProvider."
-  );
+  if (process.env.NODE_ENV === "development") {
+    console.warn(
+      "useOptimizedSession: Falling back to regular useSession. Consider wrapping your app with CentralizedSessionProvider."
+    );
+  }
   return useSession();
 }
