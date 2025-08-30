@@ -138,6 +138,17 @@ model Product {
   productType       ProductType?
   specialCategories SpecialCategory[]
   stemDiscipline    StemCategory      @default(GENERAL)
+  
+  // Romanian educational fields
+  romanianEducationalLevel RomanianEducationalLevel?
+  romanianCurriculumAlignment String[]
+  romanianSubjectAreas       String[]
+  romanianCompetencies       String[]
+  romanianTeacherResources   String[]
+  romanianParentGuides       String[]
+  romanianMinistryApproval   Boolean                 @default(false)
+  romanianEducationalCertification String?
+  
   supplierId        String?
   orderItems        OrderItem[]
   category          Category?         @relation(fields: [categoryId], references: [id])
@@ -165,6 +176,8 @@ model Product {
   @@index([productType])
   @@index([learningOutcomes])
   @@index([specialCategories])
+  @@index([romanianEducationalLevel])
+  @@index([romanianMinistryApproval])
   @@map("Product")
 }
 
@@ -218,6 +231,22 @@ model Supplier {
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
   notificationPreferences Json?
+  
+  // Romanian-specific fields
+  cui                     String?                 // Cod Unic de Înregistrare
+  nrRegCom                String?                 // Numărul de înregistrare la Registrul Comerțului
+  codFiscal               String?                 // Cod fiscal
+  adresaSediu             String?                 // Adresa sediului social
+  reprezentantLegal       String?                 // Reprezentant legal
+  anpcApproval            Boolean                 @default(false)  // ANPC approval
+  iscApproval             Boolean                 @default(false)  // ISC approval
+  educationalCertification String?                // Ministry of Education certification
+  romanianVatNumber       String?                 // Romanian VAT number
+  romanianBankAccount     String?                 // Romanian bank account
+  romanianPaymentTerms    Int                     @default(30)     // Payment terms in days
+  romanianCurrency        String                  @default("RON")  // Romanian currency
+  romanianComplianceStatus RomanianComplianceStatus @default(PENDING)
+  
   products                Product[]
   approvedByUser          User?                   @relation("SupplierApprovedBy", fields: [approvedBy], references: [id])
   user                    User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -230,6 +259,9 @@ model Supplier {
   @@index([status])
   @@index([companySlug])
   @@index([vatNumber])
+  @@index([romanianComplianceStatus])
+  @@index([anpcApproval])
+  @@index([iscApproval])
 }
 
 model Blog {
@@ -1009,6 +1041,23 @@ enum SupplierStatus {
   REJECTED
   SUSPENDED
   INACTIVE
+}
+
+enum RomanianComplianceStatus {
+  PENDING
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  EXPIRED
+  NEEDS_UPDATE
+}
+
+enum RomanianEducationalLevel {
+  GRADINITA
+  PRIMAR
+  GIMNAZIU
+  LICEU
+  UNIVERSITATE
 }
 
 enum SupplierOrderStatus {
