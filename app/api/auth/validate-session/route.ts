@@ -1,66 +1,63 @@
-import { NextResponse } from "next/server";
-
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
-/**
- * Session validation endpoint
- * Checks if the current session is valid and returns user information
- */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await auth();
 
-    if (!session?.user) {
-      return NextResponse.json(
-        {
-          valid: false,
-          reason: "No session found",
-        },
-        { status: 200 }
-      );
+    if (!session?.user?.id) {
+      return NextResponse.json({
+        valid: false,
+        reason: "No session found",
+      });
     }
 
-    // Additional validation - check if user exists and is active
-    if (!session.user.id) {
-      return NextResponse.json(
-        {
-          valid: false,
-          reason: "Invalid session - missing user ID",
-        },
-        { status: 200 }
+    // Check if the user still exists in the database
+    const user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+      },
+    });
+
+    if (!user) {
+      console.warn(
+        `Session validation failed: User ${session.user.id} not found in database`
       );
+      return NextResponse.json({
+        valid: false,
+        reason: "User not found in database",
+      });
     }
 
-    // Check if user is active
-    if (session.user.isActive === false) {
-      return NextResponse.json(
-        {
-          valid: false,
-          reason: "User account is inactive",
-        },
-        { status: 200 }
-      );
+    if (!user.isActive) {
+      console.warn(`Session validation failed: User ${user.email} is inactive`);
+      return NextResponse.json({
+        valid: false,
+        reason: "User account is inactive",
+      });
     }
 
+    // Session is valid
     return NextResponse.json({
       valid: true,
       user: {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.name,
-        role: session.user.role,
-        isActive: session.user.isActive,
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
       },
     });
   } catch (error) {
     console.error("Session validation error:", error);
-    return NextResponse.json(
-      {
-        valid: false,
-        reason: "Session validation failed",
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      valid: false,
+      reason: "Validation error",
+    });
   }
 }

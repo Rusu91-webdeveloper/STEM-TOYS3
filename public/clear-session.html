@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clear Authentication Session - TechTots</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+      }
+
+      .icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        color: #4f46e5;
+        margin-bottom: 15px;
+        font-size: 2rem;
+      }
+
+      p {
+        color: #6b7280;
+        margin-bottom: 30px;
+        font-size: 1.1rem;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 10px;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+      }
+
+      .btn-secondary {
+        background: #6b7280;
+      }
+
+      .btn-secondary:hover {
+        background: #4b5563;
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      }
+
+      .btn-danger:hover {
+        box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+      }
+
+      .status {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 10px;
+        font-weight: 600;
+      }
+
+      .status.success {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+      }
+
+      .status.error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+      }
+
+      .status.loading {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+      }
+
+      .info {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 30px;
+        text-align: left;
+      }
+
+      .info h3 {
+        color: #4f46e5;
+        margin-bottom: 10px;
+      }
+
+      .info ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .info li {
+        padding: 5px 0;
+        color: #6b7280;
+      }
+
+      .info li:before {
+        content: "• ";
+        color: #4f46e5;
+        font-weight: bold;
+      }
+
+      .warning {
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 20px 0;
+        color: #92400e;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon">🧹</div>
+      <h1>Clear Authentication Session</h1>
+      <p>
+        This will clear all your authentication data and log you out completely.
+        Use this if you're experiencing login issues or stuck with an old
+        account.
+      </p>
+
+      <div class="warning">
+        <strong>⚠️ Important:</strong> This will clear ALL authentication data
+        from your browser, including any cached sessions that might be causing
+        the automatic login issue.
+      </div>
+
+      <button class="btn" onclick="clearSession()">
+        Clear Session & Logout
+      </button>
+      <button class="btn btn-danger" onclick="forceClearAll()">
+        Force Clear Everything
+      </button>
+      <a href="/" class="btn btn-secondary">Go to Homepage</a>
+
+      <div id="status" class="status" style="display: none"></div>
+
+      <div class="info">
+        <h3>What this does:</h3>
+        <ul>
+          <li>Clears all authentication cookies</li>
+          <li>Removes session data from your browser</li>
+          <li>Clears localStorage and sessionStorage</li>
+          <li>Logs you out completely</li>
+          <li>Fixes issues with old/invalid sessions</li>
+          <li>Forces browser to forget all auth data</li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      async function clearSession() {
+        const statusDiv = document.getElementById("status");
+        const clearBtn = document.querySelector(".btn");
+
+        // Show loading state
+        statusDiv.style.display = "block";
+        statusDiv.className = "status loading";
+        statusDiv.textContent = "Clearing session...";
+        clearBtn.disabled = true;
+
+        try {
+          // Call the clear session API
+          const response = await fetch("/api/auth/clear-session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            statusDiv.className = "status success";
+            statusDiv.textContent =
+              "Session cleared successfully! Redirecting...";
+
+            // Clear any remaining client-side storage
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Clear all possible cookies manually
+            clearAllCookies();
+
+            // Redirect to login page after a short delay
+            setTimeout(() => {
+              window.location.href = "/auth/login";
+            }, 2000);
+          } else {
+            throw new Error(result.error || "Failed to clear session");
+          }
+        } catch (error) {
+          console.error("Error clearing session:", error);
+          statusDiv.className = "status error";
+          statusDiv.textContent =
+            "Error clearing session. Please try again or contact support.";
+          clearBtn.disabled = false;
+        }
+      }
+
+      async function forceClearAll() {
+        const statusDiv = document.getElementById("status");
+        const clearBtn = document.querySelector(".btn");
+
+        // Show loading state
+        statusDiv.style.display = "block";
+        statusDiv.className = "status loading";
+        statusDiv.textContent = "Force clearing everything...";
+        clearBtn.disabled = true;
+
+        try {
+          // Clear all client-side storage first
+          localStorage.clear();
+          sessionStorage.clear();
+
+          // Clear all cookies aggressively
+          clearAllCookies();
+
+          // Call the clear session API
+          const response = await fetch("/api/auth/clear-session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            statusDiv.className = "status success";
+            statusDiv.textContent = "Everything cleared! Redirecting...";
+
+            // Force page reload to clear any remaining state
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            throw new Error(result.error || "Failed to clear session");
+          }
+        } catch (error) {
+          console.error("Error force clearing:", error);
+          statusDiv.className = "status error";
+          statusDiv.textContent = "Error force clearing. Please try again.";
+          clearBtn.disabled = false;
+        }
+      }
+
+      function clearAllCookies() {
+        // Get all cookies
+        const cookies = document.cookie.split(";");
+
+        // Clear each cookie with multiple domain/path combinations
+        cookies.forEach(cookie => {
+          const name = cookie.split("=")[0].trim();
+          if (name) {
+            // Clear with different paths and domains
+            const paths = [
+              "/",
+              "/auth",
+              "/account",
+              "/checkout",
+              "/admin",
+              "/supplier",
+            ];
+            const domains = [
+              "",
+              `.${window.location.hostname}`,
+              window.location.hostname,
+            ];
+
+            paths.forEach(path => {
+              domains.forEach(domain => {
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=${path}; domain=${domain}`;
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=${path}; domain=${domain}; secure`;
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=${path}; domain=${domain}; secure; samesite=strict`;
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=${path}; domain=${domain}; secure; samesite=lax`;
+              });
+            });
+          }
+        });
+
+        console.log("🧹 All cookies cleared");
+      }
+
+      // Auto-clear on page load if requested
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("auto") === "true") {
+        clearSession();
+      }
+    </script>
+  </body>
+</html>
