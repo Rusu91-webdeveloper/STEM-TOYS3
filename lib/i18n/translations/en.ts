@@ -7,6 +7,17 @@ export const en = {
   blog: "Blog",
   about: "About",
   become_supplier: "Become a Supplier",
+  // Supplier Banner translations
+  supplier_opportunity: "Business Opportunity",
+  supplier_banner_title: "Become a TechTots Supplier",
+  supplier_banner_subtitle:
+    "Join our network of suppliers and help educate future generations with quality STEM toys.",
+  supplier_benefit_1: "Fast Payments",
+  supplier_benefit_1_desc: "Payment within 30 days",
+  supplier_benefit_2: "Rapid Growth",
+  supplier_benefit_2_desc: "Access to Romanian market",
+  supplier_benefit_3: "Full Support",
+  supplier_benefit_3_desc: "Technical and marketing assistance",
   account: "Account",
   admin: "Admin",
   supplier: "Supplier",

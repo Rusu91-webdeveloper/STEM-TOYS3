@@ -9,6 +9,17 @@ export const ro = {
   blog: "Blog",
   about: "Despre noi",
   become_supplier: "Devino Furnizor",
+  // Supplier Banner translations
+  supplier_opportunity: "Oportunitate de Afaceri",
+  supplier_banner_title: "Devino Furnizor TechTots",
+  supplier_banner_subtitle:
+    "Alătură-te rețelei noastre de furnizori și ajută la educarea generațiilor viitoare cu jucării STEM de calitate.",
+  supplier_benefit_1: "Lucrare Rapidă",
+  supplier_benefit_1_desc: "Plăți în 30 de zile",
+  supplier_benefit_2: "Crescere Rapidă",
+  supplier_benefit_2_desc: "Acces la piața românească",
+  supplier_benefit_3: "Suport Complet",
+  supplier_benefit_3_desc: "Asistență tehnică și marketing",
   account: "Cont",
   admin: "Admin",
   supplier: "Furnizor",

@@ -9,6 +9,7 @@ import {
   FeaturedProductsSection,
   FeaturedProductsSkeleton,
   HeroSection,
+  SupplierBanner,
   ValuePropositionSection,
 } from "@/features/home/components";
 import { useCurrency } from "@/lib/currency";
@@ -75,6 +76,9 @@ export default function HomePageClient({
     <div className="flex flex-col">
       {/* Hero Section with Hero Image - Load immediately */}
       <HeroSection t={t} />
+
+      {/* Supplier Banner - Professional call-to-action for suppliers */}
+      <SupplierBanner t={t} />
 
       {/* Categories Section - Load immediately */}
       <CategoriesSection categories={categories} t={t} />
