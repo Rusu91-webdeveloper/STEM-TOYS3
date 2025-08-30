@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/server/auth";
+import { auth } from "@/lib/server/auth";
 import { ImageManagementService } from "@/lib/image-management";
-import { z } from "z";
+import { z } from "zod";
 
 // Cleanup request schema
 const cleanupRequestSchema = z.object({
@@ -20,7 +19,7 @@ const cleanupRequestSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

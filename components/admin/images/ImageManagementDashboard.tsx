@@ -32,9 +32,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import {
-  ImageManagementService,
+  ImageManagementServiceClient,
   type ImageMetadata,
-} from "@/lib/image-management";
+} from "@/lib/image-management-client";
 import { ImageOptimizationPanel } from "./ImageOptimizationPanel";
 import { ImageCleanupPanel } from "./ImageCleanupPanel";
 import { ImageAnalyticsPanel } from "./ImageAnalyticsPanel";
@@ -75,66 +75,24 @@ export function ImageManagementDashboard() {
     try {
       setLoading(true);
 
-      // In a real implementation, you'd fetch images from your database
-      // For now, we'll simulate with mock data
-      const mockImages: ImageItem[] = [
-        {
-          url: "https://via.placeholder.com/800x600",
-          filename: "product-1.jpg",
-          size: 1024 * 1024, // 1MB
-          width: 800,
-          height: 600,
-          format: "jpeg",
-          uploadedAt: new Date(Date.now() - 86400000), // 1 day ago
-          tags: ["product", "electronics"],
-          alt: "Product image 1",
-          isSelected: false,
-          status: "valid",
-        },
-        {
-          url: "https://via.placeholder.com/1200x800",
-          filename: "banner-1.png",
-          size: 2 * 1024 * 1024, // 2MB
-          width: 1200,
-          height: 800,
-          format: "png",
-          uploadedAt: new Date(Date.now() - 172800000), // 2 days ago
-          tags: ["banner", "marketing"],
-          alt: "Banner image 1",
-          isSelected: false,
-          status: "valid",
-        },
-      ];
+      // Use client service to get mock data
+      const mockImagesData = await ImageManagementServiceClient.getMockImages();
+      const mockImages: ImageItem[] = mockImagesData.map(img => ({
+        ...img,
+        isSelected: false,
+        status: "valid" as const,
+      }));
 
       setImages(mockImages);
       setFilteredImages(mockImages);
 
-      // Calculate stats
-      const imageStats: ImageStats = {
-        totalImages: mockImages.length,
-        totalSize: mockImages.reduce((sum, img) => sum + img.size, 0),
-        formats: mockImages.reduce(
-          (acc, img) => {
-            acc[img.format || "unknown"] =
-              (acc[img.format || "unknown"] || 0) + 1;
-            return acc;
-          },
-          {} as Record<string, number>
-        ),
-        averageSize:
-          mockImages.reduce((sum, img) => sum + img.size, 0) /
-          mockImages.length,
-        oldestImage: new Date(
-          Math.min(...mockImages.map(img => img.uploadedAt.getTime()))
-        ),
-        newestImage: new Date(
-          Math.max(...mockImages.map(img => img.uploadedAt.getTime()))
-        ),
+      // Get stats from client service
+      const imageStats = await ImageManagementServiceClient.getMockStats();
+      setStats({
+        ...imageStats,
         orphanedImages: 0,
         invalidImages: 0,
-      };
-
-      setStats(imageStats);
+      });
     } catch (error) {
       console.error("Failed to load images:", error);
       toast({
@@ -215,7 +173,8 @@ export function ImageManagementDashboard() {
     if (selectedImages.length === 0) return;
 
     try {
-      const result = await ImageManagementService.deleteImages(selectedImages);
+      const result =
+        await ImageManagementServiceClient.deleteImages(selectedImages);
 
       if (result.success) {
         toast({

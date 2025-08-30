@@ -26,13 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/check";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import {
-  ImageManagementService,
+  ImageManagementServiceClient,
   type ImageMetadata,
-} from "@/lib/image-management";
+} from "@/lib/image-management-client";
 
 interface ImageOptimizationPanelProps {
   images: ImageMetadata[];
