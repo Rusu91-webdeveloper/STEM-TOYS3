@@ -14,6 +14,7 @@ import {
   Mail,
   Building2,
   MessageSquare,
+  Image,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -139,5 +140,10 @@ export const adminNavItems = [
     title: "Settings",
     href: "/admin/settings",
     icon: Settings,
+  },
+  {
+    title: "Images",
+    href: "/admin/images",
+    icon: Image,
   },
 ];

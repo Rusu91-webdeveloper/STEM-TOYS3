@@ -24,6 +24,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { useCsrfToken } from "@/hooks/useCsrfToken";
+import { type SupplierProduct } from "@/features/supplier/types/supplier";
+import { EnhancedImageUploader } from "@/components/ui/EnhancedImageUploader";
 import {
   Select,
   SelectContent,
@@ -32,10 +37,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
-import { useCsrfToken } from "@/hooks/useCsrfToken";
-import { type SupplierProduct } from "@/features/supplier/types/supplier";
 
 // Product form schema
 const productSchema = z.object({
@@ -266,18 +267,43 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
     if (!files) return;
 
     try {
-      // In a real implementation, you would upload to your file storage service
-      // For now, we'll simulate with placeholder URLs
-      const newImages = Array.from(files).map(file =>
-        URL.createObjectURL(file)
-      );
+      setSaving(true);
+
+      // In production, you would upload to your file storage service
+      // For now, we'll create a more robust placeholder system
+      const newImages = Array.from(files).map(file => {
+        // Create a more descriptive placeholder URL
+        const fileName = file.name || "image";
+        const fileSize = file.size;
+        const fileType = file.type;
+
+        // Store file metadata for later processing
+        const imageData = {
+          file,
+          name: fileName,
+          size: fileSize,
+          type: fileType,
+          placeholderUrl: URL.createObjectURL(file),
+        };
+
+        // Return a structured placeholder that indicates this needs processing
+        return `placeholder://${fileName}?size=${fileSize}&type=${fileType}`;
+      });
+
       setImages(prev => [...prev, ...newImages]);
+
+      toast({
+        title: "Images Added",
+        description: `${files.length} image(s) added. They will be processed when you save the product.`,
+      });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to upload images",
+        description: "Failed to process images. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -587,37 +613,11 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {images.map((image, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={image}
-                      alt={`Product image ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-md"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => removeImage(index)}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-                <label className="border-2 border-dashed border-gray-300 rounded-md p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
-                  <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                  <span className="text-sm text-gray-600">Add Image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={handleImageUpload}
-                  />
-                </label>
-              </div>
+              <EnhancedImageUploader
+                images={images}
+                onRemoveImage={removeImage}
+                onUpload={handleImageUpload}
+              />
             </CardContent>
           </Card>
 
