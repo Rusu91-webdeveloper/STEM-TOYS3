@@ -17,25 +17,25 @@ supplier.businessCountry === "România" || supplier.businessCountry === "Romania
 **Priority: High | Estimated Time: 2-3 days**
 
 #### **1.1 Enhanced Supplier Registration Form**
-- [ ] **1.1.1** Add Romanian-specific business fields to registration form
-- [ ] **1.1.2** Implement conditional field display based on country selection
-- [ ] **1.1.3** Add Romanian business validation rules
-- [ ] **1.1.4** Create Romanian business document upload requirements
-- [ ] **1.1.5** Add Romanian tax compliance fields
+- [x] **1.1.1** Add Romanian-specific business fields to registration form
+- [x] **1.1.2** Implement conditional field display based on country selection
+- [x] **1.1.3** Add Romanian business validation rules
+- [x] **1.1.4** Create Romanian business document upload requirements
+- [x] **1.1.5** Add Romanian tax compliance fields
 
 #### **1.2 Romanian Business Schema Updates**
-- [ ] **1.2.1** Update Prisma schema with Romanian business fields
-- [ ] **1.2.2** Add Romanian business validation schemas
-- [ ] **1.2.3** Create Romanian business type definitions
-- [ ] **1.2.4** Update API endpoints for Romanian fields
-- [ ] **1.2.5** Add Romanian business data migration
+- [x] **1.2.1** Update Prisma schema with Romanian business fields
+- [x] **1.2.2** Add Romanian business validation schemas
+- [x] **1.2.3** Create Romanian business type definitions
+- [x] **1.2.4** Update API endpoints for Romanian fields
+- [x] **1.2.5** Add Romanian business data migration
 
 #### **1.3 Romanian Compliance Integration**
-- [ ] **1.3.1** Add ANPC (Autoritatea Națională pentru Protecția Consumatorilor) compliance
-- [ ] **1.3.2** Add ISC (Institutul de Sănătate Publică) approval tracking
-- [ ] **1.3.3** Add Ministry of Education certification tracking
-- [ ] **1.3.4** Create Romanian compliance dashboard
-- [ ] **1.3.5** Add Romanian compliance document templates
+- [x] **1.3.1** Add ANPC (Autoritatea Națională pentru Protecția Consumatorilor) compliance
+- [x] **1.3.2** Add ISC (Institutul de Sănătate Publică) approval tracking
+- [x] **1.3.3** Add Ministry of Education certification tracking
+- [x] **1.3.4** Create Romanian compliance dashboard
+- [x] **1.3.5** Add Romanian compliance document templates
 
 ### **Phase 2: Romanian Payment & Financial Integration**
 **Priority: High | Estimated Time: 3-4 days**
