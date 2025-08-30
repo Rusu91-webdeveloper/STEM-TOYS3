@@ -37,10 +37,14 @@ import {
   type SupplierOrder,
 } from "@/features/supplier/types/supplier";
 import { QuickAccess } from "./QuickAccess";
+import { RomanianComplianceDashboard } from "../romanian/RomanianComplianceDashboard";
 
 interface DashboardData {
   stats: SupplierStats;
   recentOrders: SupplierOrder[];
+  supplier: {
+    businessCountry: string;
+  };
   notifications: Array<{
     id: string;
     type: "order" | "payment" | "system";
@@ -70,6 +74,9 @@ export function SupplierDashboard() {
       // In a real implementation, this would fetch from the API
       // For now, we'll use mock data
       const mockData: DashboardData = {
+        supplier: {
+          businessCountry: "România", // This would come from the actual supplier data
+        },
         stats: {
           totalProducts: 24,
           activeProducts: 22,
@@ -583,6 +590,11 @@ export function SupplierDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Romanian Compliance Dashboard */}
+      {dashboardData && (
+        <RomanianComplianceDashboard supplier={dashboardData.supplier} />
+      )}
     </div>
   );
 }
