@@ -4,18 +4,51 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { validateCsrfForRequest } from "@/lib/csrf";
 
-// Product creation schema
+// Enhanced product creation schema with better validation
 const createProductSchema = z.object({
-  name: z.string().min(1, "Product name is required").max(100),
-  description: z.string().min(10).max(1000),
-  price: z.number().min(0.01, "Price must be greater than 0"),
-  compareAtPrice: z.number().optional(),
-  sku: z.string().optional(),
-  stockQuantity: z.number().min(0),
-  reorderPoint: z.number().min(0).optional(),
-  weight: z.number().min(0).optional(),
+  name: z.string()
+    .min(1, "Product name is required")
+    .max(100, "Product name must be 100 characters or less")
+    .refine(name => name.trim().length > 0, "Product name cannot be empty"),
+  description: z.string()
+    .min(10, "Description must be at least 10 characters")
+    .max(1000, "Description must be 1000 characters or less")
+    .refine(desc => desc.trim().length >= 10, "Description must be at least 10 characters"),
+  price: z.number()
+    .min(0.01, "Price must be greater than 0")
+    .max(999999.99, "Price cannot exceed 999,999.99"),
+  compareAtPrice: z.number()
+    .min(0.01, "Compare at price must be greater than 0")
+    .max(999999.99, "Compare at price cannot exceed 999,999.99")
+    .optional()
+    .refine((val, ctx) => {
+      if (val && ctx.parent.price && val <= ctx.parent.price) {
+        return false;
+      }
+      return true;
+    }, "Compare at price must be greater than regular price"),
+  sku: z.string()
+    .max(50, "SKU must be 50 characters or less")
+    .optional()
+    .refine(sku => !sku || sku.trim().length > 0, "SKU cannot be empty if provided"),
+  stockQuantity: z.number()
+    .int("Stock quantity must be a whole number")
+    .min(0, "Stock quantity cannot be negative")
+    .max(999999, "Stock quantity cannot exceed 999,999"),
+  reorderPoint: z.number()
+    .int("Reorder point must be a whole number")
+    .min(0, "Reorder point cannot be negative")
+    .max(999999, "Reorder point cannot exceed 999,999")
+    .optional(),
+  weight: z.number()
+    .min(0, "Weight cannot be negative")
+    .max(999.99, "Weight cannot exceed 999.99 kg")
+    .optional(),
   categoryId: z.string().optional(),
-  tags: z.array(z.string()).default([]),
+  tags: z.array(z.string())
+    .max(20, "Cannot have more than 20 tags")
+    .default([])
+    .refine(tags => tags.every(tag => tag.trim().length > 0), "Tags cannot be empty"),
   isActive: z.boolean().default(true),
   featured: z.boolean().default(false),
   ageGroup: z
@@ -49,12 +82,17 @@ const createProductSchema = z.object({
         "LOGIC",
       ])
     )
+    .max(5, "Cannot have more than 5 learning outcomes")
     .default([]),
   specialCategories: z
     .array(z.enum(["NEW_ARRIVALS", "BEST_SELLERS", "GIFT_IDEAS", "SALE_ITEMS"]))
+    .max(4, "Cannot have more than 4 special categories")
     .default([]),
   attributes: z.record(z.any()).optional(),
-  images: z.array(z.string()).default([]),
+  images: z.array(z.string())
+    .max(10, "Cannot have more than 10 images")
+    .default([])
+    .refine(images => images.every(img => img.startsWith('http')), "All images must be valid URLs"),
 });
 
 // GET - List supplier products
@@ -189,7 +227,10 @@ export async function POST(request: NextRequest) {
     // Check authentication
     const session = await auth();
     if (!session?.user || session.user.role !== "SUPPLIER") {
-      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+      return NextResponse.json({ 
+        error: "Not authorized", 
+        message: "You must be logged in as a supplier to create products" 
+      }, { status: 403 });
     }
 
     // Get supplier ID from session
@@ -199,8 +240,16 @@ export async function POST(request: NextRequest) {
 
     if (!supplier) {
       return NextResponse.json(
-        { error: "Supplier not found" },
+        { error: "Supplier not found", message: "Your supplier account could not be found" },
         { status: 404 }
+      );
+    }
+
+    // Check if supplier is approved
+    if (supplier.status !== "APPROVED") {
+      return NextResponse.json(
+        { error: "Account not approved", message: "Your supplier account must be approved before creating products" },
+        { status: 403 }
       );
     }
 
@@ -229,15 +278,39 @@ export async function POST(request: NextRequest) {
       .replace(/(^-|-$)/g, "");
 
     // Check if slug already exists
-    const existingProduct = await db.product.findUnique({
-      where: { slug },
+    const existingProduct = await db.product.findFirst({
+      where: { 
+        OR: [
+          { slug },
+          { name: validatedData.name, supplierId: supplier.id }
+        ]
+      },
     });
 
     if (existingProduct) {
       return NextResponse.json(
-        { error: "A product with this name already exists" },
+        { 
+          error: "Product already exists", 
+          message: existingProduct.slug === slug 
+            ? "A product with this name already exists" 
+            : "A product with this name already exists in your catalog"
+        },
         { status: 400 }
       );
+    }
+
+    // Check if SKU already exists
+    if (validatedData.sku) {
+      const existingSku = await db.product.findFirst({
+        where: { sku: validatedData.sku },
+      });
+
+      if (existingSku) {
+        return NextResponse.json(
+          { error: "SKU already exists", message: "A product with this SKU already exists" },
+          { status: 400 }
+        );
+      }
     }
 
     // Create product
@@ -262,18 +335,36 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(product, { status: 201 });
+    return NextResponse.json({
+      product,
+      message: "Product created successfully",
+      success: true
+    }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const formattedErrors = error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message,
+        code: err.code
+      }));
+      
       return NextResponse.json(
-        { error: "Validation error", details: error.errors },
+        { 
+          error: "Validation error", 
+          message: "Please check your data and try again",
+          details: formattedErrors,
+          totalErrors: formattedErrors.length
+        },
         { status: 400 }
       );
     }
 
     console.error("Error creating supplier product:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: "Internal server error",
+        message: "An unexpected error occurred. Please try again later."
+      },
       { status: 500 }
     );
   }
