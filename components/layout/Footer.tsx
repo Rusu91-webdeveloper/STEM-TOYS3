@@ -87,7 +87,7 @@ export default function Footer() {
             </Link>
           </span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           {/* Company Info */}
           <div className="md:col-span-2">
             <div className="flex items-center mb-6">
@@ -178,6 +178,15 @@ export default function Footer() {
                   {t("about")}
                 </Link>
               </li>
+            </ul>
+          </div>
+
+          {/* Suppliers */}
+          <div>
+            <h3 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">
+              {t("suppliers")}
+            </h3>
+            <ul className="space-y-3">
               <li>
                 <Link
                   href="/supplier"
@@ -193,7 +202,7 @@ export default function Footer() {
                   className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
                 >
                   <span className="w-2 h-2 bg-orange-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
-                  Supplier Requirements
+                  {t("supplierRequirements")}
                 </Link>
               </li>
               <li>
@@ -202,7 +211,7 @@ export default function Footer() {
                   className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
                 >
                   <span className="w-2 h-2 bg-purple-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
-                  Supplier Benefits
+                  {t("supplierBenefits")}
                 </Link>
               </li>
             </ul>

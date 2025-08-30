@@ -9,6 +9,7 @@ export const ro = {
   blog: "Blog",
   about: "Despre noi",
   become_supplier: "Devino Furnizor",
+  suppliers: "Furnizori",
   // Supplier Banner translations
   supplier_opportunity: "Oportunitate de Afaceri",
   supplier_banner_title: "Devino Furnizor TechTots",
@@ -964,6 +965,7 @@ export const ro = {
   // Supplier Requirements Page Translations
   supplierRequirements: "Cerințe Furnizori",
   supplierRequirements2025: "Cerințe Furnizori 2025",
+  supplierBenefits: "Beneficii Furnizori",
   supplierRequirementsTitle: "Cerințe Furnizori & Ghiduri",
   supplierRequirementsDescription:
     "Află despre standardele noastre de calitate, criteriile de eligibilitate și ce presupune să devii un furnizor de încredere TechTots.",

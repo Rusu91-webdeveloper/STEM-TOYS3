@@ -7,6 +7,7 @@ export const en = {
   blog: "Blog",
   about: "About",
   become_supplier: "Become a Supplier",
+  suppliers: "Suppliers",
   // Supplier Banner translations
   supplier_opportunity: "Business Opportunity",
   supplier_banner_title: "Become a TechTots Supplier",
@@ -831,6 +832,7 @@ export const en = {
   // Supplier Requirements Page Translations
   supplierRequirements: "Supplier Requirements",
   supplierRequirements2025: "Supplier Requirements 2025",
+  supplierBenefits: "Supplier Benefits",
   supplierRequirementsTitle: "Supplier Requirements & Guidelines",
   supplierRequirementsDescription:
     "Learn about our quality standards, eligibility criteria, and what it takes to become a trusted TechTots supplier.",
