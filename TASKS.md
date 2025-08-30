@@ -553,6 +553,40 @@ platform.
 - **Files Modified**:
   - `components/layout/Footer.tsx` - Added Supplier Benefits link
 
+### ✅ Footer Reorganization - Separate Suppliers Section
+
+- **Task**: Reorganize footer to separate supplier-related links into dedicated
+  "Suppliers" section
+- **Status**: COMPLETED ✅
+- **Date**: 2025-01-27
+- **Time Spent**: ~20 minutes
+- **Details**:
+  - Created new dedicated "Suppliers" section in footer
+  - Moved all supplier-related links from "Explore" section to new section
+  - Updated grid layout from 4 columns to 5 columns to accommodate new section
+- **Implementation**:
+  - **New Structure**: Company Info (span 2) + Quick Links + Suppliers + Support
+  - **Suppliers Section**: Dedicated section with proper heading and styling
+  - **Grid Layout**: Changed from `md:grid-cols-4` to `md:grid-cols-5`
+  - **Translation Support**: Added missing translations for "suppliers" and
+    "supplierBenefits"
+- **Footer Organization**:
+  - **Company Info** (span 2): Logo, description, social media
+  - **Quick Links** (Explore): Products, Categories, Blog, About
+  - **Suppliers**: Become Supplier, Requirements, Benefits
+  - **Support**: Contact, Returns, Warranty
+- **User Experience**:
+  - **Better Organization**: Supplier links are now logically grouped
+  - **Clearer Navigation**: Users can easily find supplier-related information
+  - **Improved Structure**: Footer is more organized and easier to navigate
+  - **Consistent Styling**: Maintains visual consistency with other sections
+- **Files Modified**:
+  - `components/layout/Footer.tsx` - Reorganized footer structure
+  - `lib/i18n/translations/en.ts` - Added "suppliers" and "supplierBenefits"
+    translations
+  - `lib/i18n/translations/ro.ts` - Added "furnizori" and "beneficii furnizori"
+    translations
+
 ### ✅ Supplier Requirements CTA Section UI Enhancement
 
 - **Task**: Improve CTA section background and button visibility to
