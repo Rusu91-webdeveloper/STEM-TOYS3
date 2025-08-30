@@ -62,7 +62,8 @@ export function initializeWebVitalsMonitoring(
 
   // CLS (Cumulative Layout Shift)
   onCLS(metric => {
-    if (debug) console.log("CLS:", metric);
+    if (debug && process.env.NODE_ENV === "development")
+      console.log("CLS:", metric);
 
     const isGood = metric.value < customThresholds.CLS!;
     const rating = isGood
@@ -80,7 +81,8 @@ export function initializeWebVitalsMonitoring(
 
   // FID (First Input Delay)
   onFID(metric => {
-    if (debug) console.log("FID:", metric);
+    if (debug && process.env.NODE_ENV === "development")
+      console.log("FID:", metric);
 
     const isGood = metric.value < customThresholds.FID!;
     const rating = isGood
@@ -98,7 +100,8 @@ export function initializeWebVitalsMonitoring(
 
   // FCP (First Contentful Paint)
   onFCP(metric => {
-    if (debug) console.log("FCP:", metric);
+    if (debug && process.env.NODE_ENV === "development")
+      console.log("FCP:", metric);
 
     const isGood = metric.value < customThresholds.FCP!;
     const rating = isGood
@@ -116,7 +119,8 @@ export function initializeWebVitalsMonitoring(
 
   // LCP (Largest Contentful Paint)
   onLCP(metric => {
-    if (debug) console.log("LCP:", metric);
+    if (debug && process.env.NODE_ENV === "development")
+      console.log("LCP:", metric);
 
     const isGood = metric.value < customThresholds.LCP!;
     const rating = isGood
@@ -134,7 +138,8 @@ export function initializeWebVitalsMonitoring(
 
   // TTFB (Time to First Byte)
   onTTFB(metric => {
-    if (debug) console.log("TTFB:", metric);
+    if (debug && process.env.NODE_ENV === "development")
+      console.log("TTFB:", metric);
 
     const isGood = metric.value < customThresholds.TTFB!;
     const rating = isGood

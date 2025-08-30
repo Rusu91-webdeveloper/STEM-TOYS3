@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { SupplierProductList } from "@/features/supplier/components/products/SupplierProductList";
+import { ProductSchemaHelp } from "@/features/supplier/components/products/ProductSchemaHelp";
 
 export const metadata: Metadata = {
   title: "Products | Supplier Dashboard",
@@ -17,6 +18,10 @@ export default function SupplierProductsPage() {
       </div>
       
       <SupplierProductList />
+      
+      <div className="mt-12">
+        <ProductSchemaHelp />
+      </div>
     </div>
   );
 }

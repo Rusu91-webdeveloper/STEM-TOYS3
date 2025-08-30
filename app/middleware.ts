@@ -88,7 +88,10 @@ export async function middleware(request: NextRequest) {
   if (!rateLimitResult.success) {
     // Rate limit exceeded - return the rate limit response
     // Don't log for session endpoint since it has its own rate limiter
-    if (!pathname.includes("/api/auth/session")) {
+    if (
+      !pathname.includes("/api/auth/session") &&
+      process.env.NODE_ENV === "development"
+    ) {
       console.log(`Rate limit exceeded for ${pathname}`);
     }
     return rateLimitResult.response!;
@@ -110,9 +113,11 @@ export async function middleware(request: NextRequest) {
   if (shouldApplyCSRF) {
     const csrfResult = await validateCsrfForRequest(request);
     if (!csrfResult.valid) {
-      console.log(
-        `CSRF validation failed for ${pathname}: ${csrfResult.error}`
-      );
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `CSRF validation failed for ${pathname}: ${csrfResult.error}`
+        );
+      }
       return new Response(
         JSON.stringify({
           error: "CSRF validation failed",
@@ -189,7 +194,7 @@ export async function middleware(request: NextRequest) {
   const isUserAuthenticated = isAuthenticated || isClientAuthenticated;
 
   // **PERFORMANCE**: Reduced logging for non-critical paths
-  if (requiresValidation) {
+  if (requiresValidation && process.env.NODE_ENV === "development") {
     console.log(
       `Path: ${pathname}, Auth Status: ${isUserAuthenticated ? "Authenticated" : "Not Authenticated"}`
     );
@@ -233,9 +238,11 @@ export async function middleware(request: NextRequest) {
 
     // If URL has our special auth parameter, treat as authenticated
     if (isUserAuthenticated || isSpecialClient || hasAuthParam) {
-      console.log(
-        `User is authenticated or has auth param, allowing access to ${pathname}`
-      );
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `User is authenticated or has auth param, allowing access to ${pathname}`
+        );
+      }
 
       // Continue with the request if authenticated
       const response = NextResponse.next();
@@ -259,9 +266,11 @@ export async function middleware(request: NextRequest) {
     // If this is a client navigation or coming from cart, allow it
     // The client-side code will handle the redirect
     if (isClientNav || isComingFromCart) {
-      console.log(
-        `Client-side navigation to checkout, bypassing middleware redirect`
-      );
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `Client-side navigation to checkout, bypassing middleware redirect`
+        );
+      }
       return NextResponse.next();
     }
 
@@ -280,13 +289,17 @@ export async function middleware(request: NextRequest) {
       redirectCount > 2
     ) {
       if (redirectCount > 2) {
-        console.log(
-          `Detected potential redirect loop (${redirectCount} redirects), allowing access`
-        );
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `Detected potential redirect loop (${redirectCount} redirects), allowing access`
+          );
+        }
       } else {
-        console.log(
-          `Coming from login page or same page, not redirecting again`
-        );
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `Coming from login page or same page, not redirecting again`
+          );
+        }
       }
 
       // Create a response that allows access
@@ -303,9 +316,11 @@ export async function middleware(request: NextRequest) {
     // Store the original checkout URL in a cookie so we can redirect back after login
     const signInUrl = new URL("/auth/login", request.url);
     signInUrl.searchParams.set("callbackUrl", pathname);
-    console.log(
-      `Redirecting unauthenticated user to login with callback to ${pathname}`
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `Redirecting unauthenticated user to login with callback to ${pathname}`
+      );
+    }
 
     // Create the redirect response
     const response = NextResponse.redirect(signInUrl);
@@ -323,10 +338,10 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/supplier")) {
     try {
       // Import supplier middleware functions
-      const { 
-        protectSupplierRoute, 
-        checkSupplierRegistration, 
-        handleSupplierStatusRedirect 
+      const {
+        protectSupplierRoute,
+        checkSupplierRegistration,
+        handleSupplierStatusRedirect,
       } = await import("@/lib/supplier-middleware");
 
       // Handle supplier registration page
@@ -336,32 +351,39 @@ export async function middleware(request: NextRequest) {
       }
 
       // Handle supplier status pages
-      if (pathname.startsWith("/supplier/pending") || 
-          pathname.startsWith("/supplier/rejected") || 
-          pathname.startsWith("/supplier/suspended")) {
+      if (
+        pathname.startsWith("/supplier/pending") ||
+        pathname.startsWith("/supplier/rejected") ||
+        pathname.startsWith("/supplier/suspended")
+      ) {
         const statusRedirect = await handleSupplierStatusRedirect(request);
         if (statusRedirect) return statusRedirect;
       }
 
       // Protect supplier dashboard and other supplier routes
-      if (pathname.startsWith("/supplier/dashboard") || 
-          pathname.startsWith("/supplier/products") || 
-          pathname.startsWith("/supplier/orders") || 
-          pathname.startsWith("/supplier/invoices") || 
-          pathname.startsWith("/supplier/analytics")) {
+      if (
+        pathname.startsWith("/supplier/dashboard") ||
+        pathname.startsWith("/supplier/products") ||
+        pathname.startsWith("/supplier/orders") ||
+        pathname.startsWith("/supplier/invoices") ||
+        pathname.startsWith("/supplier/analytics")
+      ) {
         const protection = await protectSupplierRoute(request, true);
         if (protection) return protection;
       }
 
       // Protect supplier profile and settings (allow pending suppliers)
-      if (pathname.startsWith("/supplier/profile") || 
-          pathname.startsWith("/supplier/settings")) {
+      if (
+        pathname.startsWith("/supplier/profile") ||
+        pathname.startsWith("/supplier/settings")
+      ) {
         const protection = await protectSupplierRoute(request, false);
         if (protection) return protection;
       }
-
     } catch (error) {
-      console.error("Error in supplier route protection:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error in supplier route protection:", error);
+      }
       // On error, redirect to login
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }
@@ -370,11 +392,15 @@ export async function middleware(request: NextRequest) {
   // Handle admin supplier management route protection
   if (pathname.startsWith("/admin/suppliers")) {
     try {
-      const { protectAdminSupplierRoute } = await import("@/lib/supplier-middleware");
+      const { protectAdminSupplierRoute } = await import(
+        "@/lib/supplier-middleware"
+      );
       const protection = await protectAdminSupplierRoute(request);
       if (protection) return protection;
     } catch (error) {
-      console.error("Error in admin supplier route protection:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error in admin supplier route protection:", error);
+      }
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }
   }
@@ -465,9 +491,11 @@ export async function middleware(request: NextRequest) {
       const validationCacheKey = `validation_${token.id}_${Math.floor(Date.now() / 300000)}`; // Cache for 5 minutes
 
       // Log the auth state to help debugging
-      console.log(
-        `Path: ${request.nextUrl.pathname}, Auth Status: Authenticated - Validating Critical Route`
-      );
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `Path: ${request.nextUrl.pathname}, Auth Status: Authenticated - Validating Critical Route`
+        );
+      }
 
       // For critical routes only, validate the user still exists in database
       try {
@@ -488,19 +516,25 @@ export async function middleware(request: NextRequest) {
         if (validationResponse.ok) {
           const data = await validationResponse.json();
           if (!data.valid) {
-            console.log(`Session validation failed: ${data.reason}`);
+            if (process.env.NODE_ENV === "development") {
+              console.log(`Session validation failed: ${data.reason}`);
+            }
 
             // For fresh Google auth that failed validation, show a special error
             if (isRecentGoogleAuth && data.isRecentAuth) {
-              console.log(
-                "Fresh Google auth detected but validation failed - giving more time"
-              );
+              if (process.env.NODE_ENV === "development") {
+                console.log(
+                  "Fresh Google auth detected but validation failed - giving more time"
+                );
+              }
 
               // For very fresh sessions (under 15 seconds), give more time
               if (Date.now() - (token.googleAuthTimestamp as number) < 15000) {
-                console.log(
-                  "Very fresh session, delaying validation to allow propagation"
-                );
+                if (process.env.NODE_ENV === "development") {
+                  console.log(
+                    "Very fresh session, delaying validation to allow propagation"
+                  );
+                }
                 return response;
               }
 
@@ -518,11 +552,15 @@ export async function middleware(request: NextRequest) {
       } catch (error) {
         // **PERFORMANCE**: Don't block on validation errors for better UX
         if (error instanceof Error && error.name === "AbortError") {
-          console.error(
-            "Session validation timeout - allowing request to proceed"
-          );
+          if (process.env.NODE_ENV === "development") {
+            console.error(
+              "Session validation timeout - allowing request to proceed"
+            );
+          }
         } else {
-          console.error("Error validating session:", error);
+          if (process.env.NODE_ENV === "development") {
+            console.error("Error validating session:", error);
+          }
         }
         // Continue to allow the user to proceed
       }
@@ -535,14 +573,18 @@ export async function middleware(request: NextRequest) {
       request.nextUrl.pathname === "/auth/login" &&
       !request.nextUrl.search.includes("error=")
     ) {
-      console.log(
-        `Redirecting authenticated user from login page to account page`
-      );
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `Redirecting authenticated user from login page to account page`
+        );
+      }
       return NextResponse.redirect(new URL("/account", request.url));
     }
   } catch (error) {
     // Log the error but don't fail the middleware
-    console.error("Error checking session token:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error checking session token:", error);
+    }
   }
 
   return corsResponse;
@@ -658,9 +700,9 @@ function getContentSecurityPolicy(nonce: string) {
 
     // Specific connection permissions for production with Stripe
     "connect-src": [
-      "'self'", 
-      "api.stripe.com", 
-      "uploadthing.com", 
+      "'self'",
+      "api.stripe.com",
+      "uploadthing.com",
       "utfs.io",
       "https://api.stripe.com",
       "https://m.stripe.com",

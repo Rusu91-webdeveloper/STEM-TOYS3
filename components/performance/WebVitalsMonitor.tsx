@@ -56,7 +56,9 @@ export default function WebVitalsMonitor({
         setReport(performanceReport);
         setMetrics(performanceReport.webVitals);
       } catch (error) {
-        console.error("Failed to get performance report:", error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Failed to get performance report:", error);
+        }
       } finally {
         setLoading(false);
       }
