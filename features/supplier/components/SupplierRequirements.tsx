@@ -1,209 +1,504 @@
 "use client";
 
 import Link from "next/link";
-import { 
-  CheckCircle, 
-  AlertTriangle, 
-  Shield, 
-  Award, 
-  Globe, 
-  Clock, 
-  FileText, 
+import {
+  CheckCircle,
+  AlertTriangle,
+  Shield,
+  Award,
+  Globe,
+  Clock,
+  FileText,
   Users,
   TrendingUp,
   Star,
   ArrowRight,
-  Building2
+  Building2,
+  Truck,
+  Zap,
+  Euro,
+  MapPin,
+  Target,
+  BarChart3,
+  Heart,
+  Eye,
+  Package,
+  CreditCard,
+  Phone,
+  Mail,
+  Calendar,
+  CheckSquare,
+  XCircle,
+  Info,
+  Languages,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/lib/i18n";
 
 export function SupplierRequirements() {
+  const { t, language, setLanguage } = useTranslation();
+
   const eligibilityCriteria = [
     {
       icon: Building2,
-      title: "Established Business",
-      description: "Minimum 1 year of business operations with proven track record",
-      required: true
+      title: t("establishedBusiness"),
+      description: t("establishedBusinessDescription"),
+      required: true,
+      details: t("establishedBusinessDetails"),
+    },
+    {
+      icon: MapPin,
+      title: t("geographicLocation"),
+      description: t("geographicLocationDescription"),
+      required: true,
+      details: t("geographicLocationDetails"),
     },
     {
       icon: Shield,
-      title: "Legal Compliance",
-      description: "Valid business registration and tax compliance in Romania or EU",
-      required: true
+      title: t("legalCompliance"),
+      description: t("legalComplianceDescription"),
+      required: true,
+      details: t("legalComplianceDetails"),
     },
     {
       icon: Award,
-      title: "Quality Standards",
-      description: "Products must meet EU safety standards and educational value",
-      required: true
+      title: t("qualityStandards"),
+      description: t("qualityStandardsDescription"),
+      required: true,
+      details: t("qualityStandardsDetails"),
+    },
+    {
+      icon: Truck,
+      title: t("shippingCapabilities"),
+      description: t("shippingCapabilitiesDescription"),
+      required: true,
+      details: t("shippingCapabilitiesDetails"),
     },
     {
       icon: Users,
-      title: "Customer Service",
-      description: "Ability to provide excellent customer support and after-sales service",
-      required: true
+      title: t("customerService"),
+      description: t("customerServiceDescription"),
+      required: true,
+      details: t("customerServiceDetails"),
     },
     {
       icon: TrendingUp,
-      title: "Growth Potential",
-      description: "Demonstrated ability to scale and meet growing demand",
-      required: false
+      title: t("growthPotential"),
+      description: t("growthPotentialDescription"),
+      required: false,
+      details: t("growthPotentialDetails"),
     },
     {
       icon: Star,
-      title: "Innovation Focus",
-      description: "Commitment to developing innovative STEM educational products",
-      required: false
-    }
+      title: t("innovationFocus"),
+      description: t("innovationFocusDescription"),
+      required: false,
+      details: t("innovationFocusDetails"),
+    },
   ];
 
   const qualityStandards = [
     {
-      category: "Safety Standards",
+      category: t("safetyCompliance"),
+      icon: Shield,
       requirements: [
-        "CE Marking compliance",
-        "EN 71 safety standard for toys",
-        "RoHS compliance (Restriction of Hazardous Substances)",
-        "REACH compliance (Registration, Evaluation, Authorization of Chemicals)",
-        "Age-appropriate safety features"
-      ]
+        t("safetyComplianceDescription"),
+        t("en71Standards"),
+        t("rohsCompliance"),
+        t("reachCompliance"),
+        t("ageAppropriate"),
+        t("nonToxicMaterials"),
+        t("durabilityTesting"),
+        t("regularAudits"),
+      ],
     },
     {
-      category: "Educational Value",
+      category: t("educationalValue"),
+      icon: Target,
       requirements: [
-        "Clear learning objectives",
-        "Age-appropriate complexity",
-        "STEM learning outcomes",
-        "Educational documentation",
-        "Teacher/parent guides"
-      ]
+        t("educationalValueDescription"),
+        t("ageAppropriateComplexity"),
+        t("stemOutcomes"),
+        t("educationalDocumentation"),
+        t("parentEducatorMaterials"),
+        t("curriculumAlignment"),
+        t("assessmentTools"),
+        t("multilingualContent"),
+      ],
     },
     {
-      category: "Product Quality",
+      category: t("productQuality"),
+      icon: Award,
       requirements: [
-        "Durable materials and construction",
-        "Clear instructions and packaging",
-        "Consistent quality across batches",
-        "Warranty and support information",
-        "Replacement parts availability"
-      ]
+        t("productQualityDescription"),
+        t("clearInstructions"),
+        t("consistentQuality"),
+        t("comprehensiveWarranty"),
+        t("replacementParts"),
+        t("productTesting"),
+        t("sustainableMaterials"),
+        t("professionalPackaging"),
+      ],
     },
     {
-      category: "Business Standards",
+      category: t("businessStandards"),
+      icon: Building2,
       requirements: [
-        "Reliable shipping and delivery",
-        "Professional customer service",
-        "Clear return and refund policies",
-        "Transparent pricing",
-        "Regular product updates"
-      ]
-    }
+        t("businessStandardsDescription"),
+        t("professionalCustomerService"),
+        t("clearPolicies"),
+        t("transparentPricing"),
+        t("regularUpdates"),
+        t("inventoryManagement"),
+        t("multilingualSupport"),
+        t("dataProtection"),
+      ],
+    },
+  ];
+
+  const shippingRequirements = [
+    {
+      region: t("europeanUnion"),
+      maxDays: "3-5 " + t("days"),
+      requirements: [
+        t("directShipping"),
+        t("realTimeTracking"),
+        t("freeShipping"),
+        t("multipleShippingOptions"),
+        t("customsHandling"),
+        t("insuranceCoverage"),
+      ],
+    },
+    {
+      region: t("nonEuEurope"),
+      maxDays: "5-7 " + t("days"),
+      requirements: [
+        t("fastShipping"),
+        t("customsClearance"),
+        t("trackingConfirmation"),
+        t("multipleShippingOptions"),
+        t("damageProtection"),
+        t("importDutyInfo"),
+      ],
+    },
+    {
+      region: t("international"),
+      maxDays: "7 " + t("days") + " " + t("maxDays").toLowerCase(),
+      requirements: [
+        t("expressShipping"),
+        t("customsDocumentation"),
+        t("realTimeUpdates"),
+        t("damageProtection"),
+        t("clearTimeframes"),
+        t("internationalSupport"),
+      ],
+    },
   ];
 
   const applicationProcess = [
     {
       step: "01",
-      title: "Submit Application",
-      description: "Complete our comprehensive online application form with all required information",
-      duration: "15-30 minutes"
+      title: t("initialApplication"),
+      description: t("initialApplicationDescription"),
+      duration: "30-45 minutes",
+      requirements: [
+        t("businessRegistration"),
+        t("taxCompliance"),
+        t("productSamples"),
+        t("qualityCertificates"),
+      ],
     },
     {
       step: "02",
-      title: "Initial Review",
-      description: "Our team reviews your application and verifies business credentials",
-      duration: "2-3 business days"
+      title: t("documentationReview"),
+      description: t("documentationReviewDescription"),
+      duration: "3-5 business days",
+      requirements: [
+        t("legalVerification"),
+        t("financialAssessment"),
+        t("complianceCheck"),
+        t("backgroundReview"),
+      ],
     },
     {
       step: "03",
-      title: "Quality Assessment",
-      description: "We evaluate your products and business practices against our standards",
-      duration: "3-5 business days"
+      title: t("productAssessment"),
+      description: t("productAssessmentDescription"),
+      duration: "5-7 business days",
+      requirements: [
+        t("safetyTesting"),
+        t("qualityEvaluation"),
+        t("educationalAssessment"),
+        t("marketFitAnalysis"),
+      ],
     },
     {
       step: "04",
-      title: "Final Decision",
-      description: "You receive our approval decision with next steps or feedback",
-      duration: "1-2 business days"
+      title: t("shippingLogistics"),
+      description: t("shippingLogisticsDescription"),
+      duration: "3-5 business days",
+      requirements: [
+        t("shippingCapacity"),
+        t("deliveryTimes"),
+        t("trackingSystems"),
+        t("customerServiceAssessment"),
+      ],
     },
     {
       step: "05",
-      title: "Onboarding",
-      description: "If approved, we guide you through account setup and product listing",
-      duration: "1-2 weeks"
-    }
+      title: t("finalDecision"),
+      description: t("finalDecisionDescription"),
+      duration: "2-3 business days",
+      requirements: [
+        t("executiveReview"),
+        t("riskAssessment"),
+        t("partnershipTerms"),
+        t("onboardingPlan"),
+      ],
+    },
+    {
+      step: "06",
+      title: t("onboardingSetup"),
+      description: t("onboardingSetupDescription"),
+      duration: "1-2 weeks",
+      requirements: [
+        t("accountCreation"),
+        t("productUpload"),
+        t("trainingSessions"),
+        t("goLiveSupport"),
+      ],
+    },
   ];
 
   const commissionStructure = [
     {
-      tier: "Standard",
+      tier: t("standard"),
       rate: "15%",
-      requirements: "All approved suppliers",
-      features: ["Standard listing", "Basic analytics", "Email support"]
+      requirements: t("allApprovedSuppliers"),
+      features: [
+        t("standardProductListing"),
+        t("basicAnalyticsDashboard"),
+        t("emailSupport"),
+        t("standardMarketingExposure"),
+        t("monthlyPaymentProcessing"),
+      ],
+      color: "bg-gray-100",
     },
     {
-      tier: "Premium",
+      tier: t("premium"),
       rate: "12%",
-      requirements: "€10k+ monthly sales",
-      features: ["Featured listings", "Advanced analytics", "Priority support", "Marketing assistance"]
+      requirements: "€15k+ " + t("monthlySales"),
+      features: [
+        t("featuredProductPlacement"),
+        t("advancedAnalytics"),
+        t("prioritySupport"),
+        t("enhancedMarketingCampaigns"),
+        t("dedicatedAccountManager"),
+        t("exclusivePromotionalEvents"),
+      ],
+      color: "bg-blue-50",
     },
     {
-      tier: "Elite",
+      tier: t("elite"),
       rate: "10%",
-      requirements: "€50k+ monthly sales",
-      features: ["Premium placement", "Dedicated account manager", "Custom marketing campaigns", "Exclusive events"]
-    }
+      requirements: "€50k+ " + t("monthlySales"),
+      features: [
+        t("premiumPlacement"),
+        t("customMarketingCampaigns"),
+        t("exclusivePartnershipEvents"),
+        t("strategicBusinessConsulting"),
+        t("coBrandedMarketingMaterials"),
+        t("vipCustomerAccess"),
+      ],
+      color: "bg-purple-50",
+    },
+  ];
+
+  const complianceRequirements = [
+    {
+      category: t("euSafetyStandards"),
+      requirements: [
+        t("ceMarking"),
+        t("en71ToySafety"),
+        t("reachChemicalRegulations"),
+        t("rohsHazardousSubstances"),
+        t("gdprDataProtection"),
+        t("packagingWasteDirective"),
+      ],
+    },
+    {
+      category: t("businessCompliance"),
+      requirements: [
+        t("vatRegistration"),
+        t("corporateTaxObligations"),
+        t("employmentLawCompliance"),
+        t("environmentalRegulations"),
+        t("intellectualPropertyRights"),
+        t("antiMoneyLaundering"),
+      ],
+    },
+    {
+      category: t("qualityAssurance"),
+      requirements: [
+        t("iso9001QualityManagement"),
+        t("regularProductTesting"),
+        t("supplierQualityAudits"),
+        t("customerFeedbackSystems"),
+        t("continuousImprovement"),
+        t("riskManagementProtocols"),
+      ],
+    },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Floating Language Toggle */}
+      <div className="fixed top-24 right-4 z-50">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setLanguage(language === "ro" ? "en" : "ro")}
+          className="flex items-center gap-2 border-2 bg-white/90 backdrop-blur-sm hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl"
+        >
+          <Languages className="w-4 h-4" />
+          {language === "ro" ? "🇬🇧 EN" : "🇷🇴 RO"}
+        </Button>
+      </div>
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
         <div className="relative container mx-auto px-4 py-20 lg:py-32">
           <div className="max-w-4xl mx-auto text-center">
-            <Badge variant="secondary" className="mb-6">
-              <Shield className="w-4 h-4 mr-2" />
-              Quality Standards
-            </Badge>
+            <div className="flex justify-center items-center gap-4 mb-6">
+              <Badge variant="secondary">
+                <Shield className="w-4 h-4 mr-2" />
+                {t("qualityStandards")} 2025
+              </Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLanguage(language === "ro" ? "en" : "ro")}
+                className="flex items-center gap-2 border-2 hover:bg-blue-50 transition-colors"
+              >
+                <Languages className="w-4 h-4" />
+                {language === "ro" ? "🇬🇧 English" : "🇷🇴 Română"}
+              </Button>
+            </div>
             <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Supplier <span className="text-blue-600">Requirements</span> & Guidelines
+              {t("supplierRequirements")}{" "}
+              <span className="text-blue-600">2025</span>
             </h1>
             <p className="text-xl lg:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Learn about our quality standards, eligibility criteria, and what it takes to become a trusted TechTots supplier.
+              {t("supplierRequirements2025Description")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild>
                 <Link href="/supplier/apply">
-                  Start Application
+                  {t("startApplication")}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="/supplier/benefits">
-                  View Benefits
-                </Link>
+                <Link href="/supplier/benefits">{t("viewBenefits")}</Link>
               </Button>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Key Requirements Summary */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              {t("keyRequirements2025")}
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              {t("keyRequirementsDescription")}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="border-0 shadow-lg text-center">
+              <CardContent className="p-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {t("euBased")}
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  {t("euBasedDescription")}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-lg text-center">
+              <CardContent className="p-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Truck className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {t("sevenDayShipping")}
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  {t("sevenDayShippingDescription")}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-lg text-center">
+              <CardContent className="p-6">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Award className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {t("premiumQuality")}
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  {t("premiumQualityDescription")}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-lg text-center">
+              <CardContent className="p-6">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-8 h-8 text-orange-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {t("fullCompliance")}
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  {t("fullComplianceDescription")}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Eligibility Criteria */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Eligibility Criteria
+              {t("eligibilityCriteria")}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              To ensure the highest quality for our customers, we have established clear criteria for supplier partnerships.
+              {t("eligibilityCriteriaDescription")}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {eligibilityCriteria.map((criterion, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <Card
+                key={index}
+                className="border-0 shadow-lg hover:shadow-xl transition-shadow"
+              >
                 <CardHeader className="text-center">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <criterion.icon className="w-8 h-8 text-blue-600" />
@@ -211,14 +506,62 @@ export function SupplierRequirements() {
                   <CardTitle className="text-xl flex items-center justify-center gap-2">
                     {criterion.title}
                     {criterion.required && (
-                      <Badge variant="destructive" className="text-xs">Required</Badge>
+                      <Badge variant="destructive" className="text-xs">
+                        {t("required")}
+                      </Badge>
                     )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-base text-gray-600">
+                  <CardDescription className="text-base text-gray-600 mb-3">
                     {criterion.description}
                   </CardDescription>
+                  <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+                    <strong>{t("details")}:</strong> {criterion.details}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Shipping Requirements */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              {t("shippingRequirements")}
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              {t("shippingRequirementsDescription")}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {shippingRequirements.map((region, index) => (
+              <Card key={index} className="border-0 shadow-lg">
+                <CardHeader className="text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Truck className="w-8 h-8 text-green-600" />
+                  </div>
+                  <CardTitle className="text-xl">{region.region}</CardTitle>
+                  <Badge variant="secondary" className="w-fit mx-auto">
+                    <Clock className="w-3 h-3 mr-1" />
+                    {t("maxDays")} {region.maxDays}
+                  </Badge>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {region.requirements.map((requirement, reqIndex) => (
+                      <li
+                        key={reqIndex}
+                        className="flex items-start gap-2 text-sm"
+                      >
+                        <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">{requirement}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </CardContent>
               </Card>
             ))}
@@ -231,10 +574,10 @@ export function SupplierRequirements() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Quality Standards
+              {t("qualityStandardsSection")}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We maintain high standards to ensure the best educational experience for children and families.
+              {t("qualityStandardsSectionDescription")}
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -242,7 +585,7 @@ export function SupplierRequirements() {
               <Card key={index} className="border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-xl flex items-center gap-2">
-                    <Award className="w-5 h-5 text-blue-600" />
+                    <standard.icon className="w-5 h-5 text-blue-600" />
                     {standard.category}
                   </CardTitle>
                 </CardHeader>
@@ -262,55 +605,118 @@ export function SupplierRequirements() {
         </div>
       </section>
 
-      {/* Application Process */}
+      {/* Compliance Requirements */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Application Process
+              {t("complianceRequirements")}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our streamlined process ensures a smooth experience from application to approval.
+              {t("complianceRequirementsDescription")}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {complianceRequirements.map((compliance, index) => (
+              <Card key={index} className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-blue-600" />
+                    {compliance.category}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {compliance.requirements.map((requirement, reqIndex) => (
+                      <li
+                        key={reqIndex}
+                        className="flex items-start gap-2 text-sm"
+                      >
+                        <CheckSquare className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">{requirement}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Application Process */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              {t("applicationProcess")}
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              {t("applicationProcessDescription")}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {applicationProcess.map((step, index) => (
-              <div key={index} className="text-center relative">
-                <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-white font-bold text-xl">{step.step}</span>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{step.title}</h3>
-                <p className="text-gray-600 mb-2">{step.description}</p>
-                <Badge variant="secondary" className="text-xs">
-                  <Clock className="w-3 h-3 mr-1" />
-                  {step.duration}
-                </Badge>
-                {index < applicationProcess.length - 1 && (
-                  <div className="hidden lg:block absolute top-10 left-full w-full h-0.5 bg-blue-200 transform translate-x-4" />
-                )}
-              </div>
+              <Card key={index} className="border-0 shadow-lg">
+                <CardHeader className="text-center">
+                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-white font-bold text-xl">
+                      {step.step}
+                    </span>
+                  </div>
+                  <CardTitle className="text-xl">{step.title}</CardTitle>
+                  <Badge variant="secondary" className="w-fit mx-auto">
+                    <Clock className="w-3 h-3 mr-1" />
+                    {step.duration}
+                  </Badge>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 mb-4">{step.description}</p>
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <h4 className="font-semibold text-blue-900 mb-2">
+                      {t("requirements")}
+                    </h4>
+                    <ul className="space-y-1">
+                      {step.requirements.map((req, reqIndex) => (
+                        <li
+                          key={reqIndex}
+                          className="flex items-center gap-2 text-sm text-blue-800"
+                        >
+                          <CheckCircle className="w-3 h-3" />
+                          {req}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
       {/* Commission Structure */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Commission Structure
+              {t("commissionStructure")}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Competitive commission rates that reward success and growth.
+              {t("commissionStructureDescription")}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {commissionStructure.map((tier, index) => (
-              <Card key={index} className={`border-0 shadow-lg ${index === 1 ? 'ring-2 ring-blue-500' : ''}`}>
+              <Card
+                key={index}
+                className={`border-0 shadow-lg ${tier.color} ${index === 1 ? "ring-2 ring-blue-500" : ""}`}
+              >
                 <CardHeader className="text-center">
                   <CardTitle className="text-2xl">{tier.tier}</CardTitle>
-                  <div className="text-4xl font-bold text-blue-600">{tier.rate}</div>
+                  <div className="text-4xl font-bold text-blue-600">
+                    {tier.rate}
+                  </div>
                   <CardDescription className="text-sm">
                     {tier.requirements}
                   </CardDescription>
@@ -318,7 +724,10 @@ export function SupplierRequirements() {
                 <CardContent>
                   <ul className="space-y-2">
                     {tier.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center gap-2 text-sm">
+                      <li
+                        key={featureIndex}
+                        className="flex items-center gap-2 text-sm"
+                      >
                         <CheckCircle className="w-4 h-4 text-green-600" />
                         {feature}
                       </li>
@@ -332,42 +741,63 @@ export function SupplierRequirements() {
       </section>
 
       {/* Important Notes */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
                   <AlertTriangle className="w-6 h-6 text-orange-600" />
-                  Important Notes
+                  {t("importantNotes2025")}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Application Review</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      {t("applicationTimeline")}
+                    </h4>
                     <p className="text-gray-600 text-sm">
-                      All applications are reviewed within 5-7 business days. We may request additional information or product samples during the review process.
+                      {t("applicationTimelineDescription")}
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Quality Assurance</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <Target className="w-4 h-4" />
+                      {t("qualityAssurance")}
+                    </h4>
                     <p className="text-gray-600 text-sm">
-                      Approved suppliers must maintain our quality standards. Regular audits and customer feedback help ensure continued compliance.
+                      {t("qualityAssuranceDescription")}
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">EU Compliance</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <Euro className="w-4 h-4" />
+                      {t("euCompliance")}
+                    </h4>
                     <p className="text-gray-600 text-sm">
-                      All products must comply with EU regulations and safety standards. We provide guidance on compliance requirements.
+                      {t("euComplianceDescription")}
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Partnership Terms</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <Truck className="w-4 h-4" />
+                      {t("shippingStandards")}
+                    </h4>
                     <p className="text-gray-600 text-sm">
-                      Supplier partnerships are reviewed annually. Performance metrics and customer satisfaction are key factors in continued partnership.
+                      {t("shippingStandardsDescription")}
                     </p>
                   </div>
+                </div>
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
+                    <Info className="w-4 h-4" />
+                    {t("newFor2025")}
+                  </h4>
+                  <p className="text-orange-800 text-sm">
+                    {t("newFor2025Description")}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -376,25 +806,42 @@ export function SupplierRequirements() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
-        <div className="container mx-auto px-4 text-center">
+      <section className="py-20 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+
+        <div className="container mx-auto px-4 text-center relative z-10">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-            Ready to Apply?
+            {t("readyToJoinPremium")}
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            If you meet our requirements and are ready to join our network of trusted STEM toy suppliers, start your application today.
+          <p className="text-xl text-emerald-100 mb-8 max-w-2xl mx-auto">
+            {t("readyToJoinDescription")}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" asChild>
+            <Button
+              size="lg"
+              className="bg-white text-emerald-700 hover:bg-emerald-50 border-2 border-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              asChild
+            >
               <Link href="/supplier/apply">
-                Start Application
+                {t("startApplication")}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600" asChild>
-              <Link href="/contact">
-                Contact Us
-              </Link>
+            <Button
+              size="lg"
+              className="bg-transparent text-white border-2 border-white hover:bg-white hover:text-emerald-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              asChild
+            >
+              <Link href="/supplier/benefits">{t("viewBenefits")}</Link>
+            </Button>
+            <Button
+              size="lg"
+              className="bg-transparent text-white border-2 border-white hover:bg-white hover:text-emerald-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              asChild
+            >
+              <Link href="/contact">{t("contactUs")}</Link>
             </Button>
           </div>
         </div>

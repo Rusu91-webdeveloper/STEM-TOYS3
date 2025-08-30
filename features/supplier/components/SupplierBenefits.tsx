@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { 
-  CheckCircle, 
-  TrendingUp, 
-  Users, 
-  Shield, 
-  Clock, 
-  Award, 
-  Globe, 
+import {
+  CheckCircle,
+  TrendingUp,
+  Users,
+  Shield,
+  Clock,
+  Award,
+  Globe,
   Zap,
   Star,
   ArrowRight,
@@ -16,10 +16,16 @@ import {
   BarChart3,
   MessageSquare,
   Settings,
-  Target
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export function SupplierBenefits() {
@@ -27,120 +33,133 @@ export function SupplierBenefits() {
     {
       icon: Users,
       title: "Growing Customer Base",
-      description: "Access thousands of families and educators actively seeking quality STEM toys",
+      description:
+        "Access thousands of families and educators actively seeking quality STEM toys",
       stats: "50K+ customers",
-      color: "from-blue-500 to-indigo-600"
+      color: "from-blue-500 to-indigo-600",
     },
     {
       icon: TrendingUp,
       title: "Revenue Growth",
-      description: "Increase your sales with our proven platform and marketing support",
+      description:
+        "Increase your sales with our proven platform and marketing support",
       stats: "300% average growth",
-      color: "from-green-500 to-emerald-600"
+      color: "from-green-500 to-emerald-600",
     },
     {
       icon: Shield,
       title: "Professional Platform",
-      description: "Benefit from our established e-commerce infrastructure and security",
+      description:
+        "Benefit from our established e-commerce infrastructure and security",
       stats: "99.9% uptime",
-      color: "from-purple-500 to-violet-600"
+      color: "from-purple-500 to-violet-600",
     },
     {
       icon: Clock,
       title: "Quick Onboarding",
-      description: "Get started quickly with our streamlined setup and training process",
+      description:
+        "Get started quickly with our streamlined setup and training process",
       stats: "1-2 weeks setup",
-      color: "from-orange-500 to-amber-600"
-    }
+      color: "from-orange-500 to-amber-600",
+    },
   ];
 
   const platformFeatures = [
     {
       icon: BarChart3,
       title: "Advanced Analytics",
-      description: "Comprehensive sales reports, customer insights, and performance metrics"
+      description:
+        "Comprehensive sales reports, customer insights, and performance metrics",
     },
     {
       icon: MessageSquare,
       title: "Dedicated Support",
-      description: "Personalized support from our team to help you succeed"
+      description: "Personalized support from our team to help you succeed",
     },
     {
       icon: Settings,
       title: "Easy Management",
-      description: "User-friendly dashboard for managing products, orders, and inventory"
+      description:
+        "User-friendly dashboard for managing products, orders, and inventory",
     },
     {
       icon: Target,
       title: "Marketing Support",
-      description: "Promotional campaigns and marketing assistance to boost sales"
-    }
+      description:
+        "Promotional campaigns and marketing assistance to boost sales",
+    },
   ];
 
   const successMetrics = [
     {
       metric: "500+",
       label: "Active Suppliers",
-      description: "Growing network of trusted partners"
+      description: "Growing network of trusted partners",
     },
     {
       metric: "50K+",
       label: "Happy Customers",
-      description: "Loyal customer base across Romania"
+      description: "Loyal customer base across Romania",
     },
     {
       metric: "10K+",
       label: "Products Listed",
-      description: "Diverse catalog of STEM toys"
+      description: "Diverse catalog of STEM toys",
     },
     {
       metric: "98%",
       label: "Satisfaction Rate",
-      description: "High customer satisfaction scores"
-    }
+      description: "High customer satisfaction scores",
+    },
   ];
 
   const supportFeatures = [
     {
       title: "24/7 Platform Access",
-      description: "Manage your business anytime, anywhere with our always-available platform"
+      description:
+        "Manage your business anytime, anywhere with our always-available platform",
     },
     {
       title: "Training & Resources",
-      description: "Comprehensive training materials and best practices guides"
+      description: "Comprehensive training materials and best practices guides",
     },
     {
       title: "Technical Support",
-      description: "Expert technical support for platform and integration issues"
+      description:
+        "Expert technical support for platform and integration issues",
     },
     {
       title: "Business Consulting",
-      description: "Strategic advice to help optimize your performance and growth"
-    }
+      description:
+        "Strategic advice to help optimize your performance and growth",
+    },
   ];
 
   const testimonials = [
     {
       name: "Maria Popescu",
       company: "EduTech Solutions",
-      content: "TechTots has transformed our business. We've seen a 300% increase in sales since joining their platform.",
+      content:
+        "TechTots has transformed our business. We've seen a 300% increase in sales since joining their platform.",
       rating: 5,
-      growth: "+300%"
+      growth: "+300%",
     },
     {
       name: "Alexandru Ionescu",
       company: "Science Toys Pro",
-      content: "The platform is incredibly user-friendly and the support team is always helpful. Highly recommended!",
+      content:
+        "The platform is incredibly user-friendly and the support team is always helpful. Highly recommended!",
       rating: 5,
-      growth: "+250%"
+      growth: "+250%",
     },
     {
       name: "Elena Dumitrescu",
       company: "Learning Innovations",
-      content: "TechTots helped us reach customers we never could have reached on our own. Excellent partnership!",
+      content:
+        "TechTots helped us reach customers we never could have reached on our own. Excellent partnership!",
       rating: 5,
-      growth: "+400%"
-    }
+      growth: "+400%",
+    },
   ];
 
   return (
@@ -158,8 +177,9 @@ export function SupplierBenefits() {
               Why Choose <span className="text-blue-600">TechTots</span>?
             </h1>
             <p className="text-xl lg:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Join our network of successful suppliers and benefit from our professional platform, 
-              growing customer base, and comprehensive support system.
+              Join our network of successful suppliers and benefit from our
+              professional platform, growing customer base, and comprehensive
+              support system.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild>
@@ -169,9 +189,7 @@ export function SupplierBenefits() {
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="/supplier/requirements">
-                  View Requirements
-                </Link>
+                <Link href="/supplier/requirements">View Requirements</Link>
               </Button>
             </div>
           </div>
@@ -186,14 +204,20 @@ export function SupplierBenefits() {
               Key Benefits
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover why leading STEM toy suppliers choose TechTots as their preferred platform.
+              Discover why leading STEM toy suppliers choose TechTots as their
+              preferred platform.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {mainBenefits.map((benefit, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
+              <Card
+                key={index}
+                className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group"
+              >
                 <CardHeader className="text-center">
-                  <div className={`w-16 h-16 bg-gradient-to-br ${benefit.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200`}>
+                  <div
+                    className={`w-16 h-16 bg-gradient-to-br ${benefit.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200`}
+                  >
                     <benefit.icon className="w-8 h-8 text-white" />
                   </div>
                   <CardTitle className="text-xl">{benefit.title}</CardTitle>
@@ -220,7 +244,8 @@ export function SupplierBenefits() {
               Platform Success
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Join a thriving marketplace with proven results and growing success.
+              Join a thriving marketplace with proven results and growing
+              success.
             </p>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
@@ -254,7 +279,10 @@ export function SupplierBenefits() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {platformFeatures.map((feature, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <Card
+                key={index}
+                className="border-0 shadow-lg hover:shadow-xl transition-shadow"
+              >
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -295,9 +323,7 @@ export function SupplierBenefits() {
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
                         {feature.title}
                       </h3>
-                      <p className="text-gray-600">
-                        {feature.description}
-                      </p>
+                      <p className="text-gray-600">{feature.description}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -315,7 +341,8 @@ export function SupplierBenefits() {
               Success Stories
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Hear from our successful suppliers about their experience with TechTots.
+              Hear from our successful suppliers about their experience with
+              TechTots.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -325,17 +352,26 @@ export function SupplierBenefits() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                        <Star
+                          key={i}
+                          className="w-5 h-5 text-yellow-400 fill-current"
+                        />
                       ))}
                     </div>
                     <Badge className="bg-green-100 text-green-800">
                       {testimonial.growth} Growth
                     </Badge>
                   </div>
-                  <p className="text-gray-600 mb-4 italic">"{testimonial.content}"</p>
+                  <p className="text-gray-600 mb-4 italic">
+                    "{testimonial.content}"
+                  </p>
                   <div>
-                    <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                    <div className="text-sm text-gray-500">{testimonial.company}</div>
+                    <div className="font-semibold text-gray-900">
+                      {testimonial.name}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {testimonial.company}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -345,32 +381,40 @@ export function SupplierBenefits() {
       </section>
 
       {/* Revenue Potential */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="container mx-auto px-4 text-center">
+      <section className="py-20 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+
+        <div className="container mx-auto px-4 text-center relative z-10">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
             Revenue Potential
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-indigo-100 mb-8 max-w-3xl mx-auto">
             Our suppliers see significant revenue growth through our platform.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
               <DollarSign className="w-12 h-12 text-white mx-auto mb-4" />
               <div className="text-3xl font-bold text-white mb-2">€50K+</div>
-              <div className="text-blue-100">Average Monthly Revenue</div>
+              <div className="text-indigo-100">Average Monthly Revenue</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
               <TrendingUp className="w-12 h-12 text-white mx-auto mb-4" />
               <div className="text-3xl font-bold text-white mb-2">300%</div>
-              <div className="text-blue-100">Average Growth Rate</div>
+              <div className="text-indigo-100">Average Growth Rate</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
               <Users className="w-12 h-12 text-white mx-auto mb-4" />
               <div className="text-3xl font-bold text-white mb-2">10K+</div>
-              <div className="text-blue-100">New Customers Monthly</div>
+              <div className="text-indigo-100">New Customers Monthly</div>
             </div>
           </div>
-          <Button size="lg" variant="secondary" asChild>
+          <Button
+            size="lg"
+            className="bg-white text-indigo-700 hover:bg-indigo-50 border-2 border-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            asChild
+          >
             <Link href="/supplier/apply">
               Start Earning Today
               <ArrowRight className="w-5 h-5 ml-2" />
@@ -380,25 +424,36 @@ export function SupplierBenefits() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gray-900">
-        <div className="container mx-auto px-4 text-center">
+      <section className="py-20 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+
+        <div className="container mx-auto px-4 text-center relative z-10">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
             Ready to Grow Your Business?
           </h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Join hundreds of successful suppliers who have transformed their business with TechTots.
+          <p className="text-xl text-emerald-100 mb-8 max-w-2xl mx-auto">
+            Join hundreds of successful suppliers who have transformed their
+            business with TechTots.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
+            <Button
+              size="lg"
+              className="bg-white text-emerald-700 hover:bg-emerald-50 border-2 border-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              asChild
+            >
               <Link href="/supplier/apply">
                 Apply Now
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-gray-900" asChild>
-              <Link href="/contact">
-                Contact Sales
-              </Link>
+            <Button
+              size="lg"
+              className="bg-transparent text-white border-2 border-white hover:bg-white hover:text-emerald-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              asChild
+            >
+              <Link href="/contact">Contact Sales</Link>
             </Button>
           </div>
         </div>

@@ -187,6 +187,24 @@ export default function Footer() {
                   {t("become_supplier")}
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/supplier/requirements"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
+                >
+                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
+                  Supplier Requirements
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/supplier/benefits"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
+                >
+                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
+                  Supplier Benefits
+                </Link>
+              </li>
             </ul>
           </div>
 
