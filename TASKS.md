@@ -856,6 +856,60 @@ maintaining the site's modern aesthetic and accessibility standards.
 
 ---
 
+## 🚀 **Completed Tasks**
+
+### **SKU & Image System Fixes (Completed: 2025-01-31)**
+
+- [x] **SKU-001** Fix SKU uniqueness constraint - Make SKUs unique per supplier
+      instead of globally
+  - **Time Spent**: 2 hours
+  - **Changes Made**:
+    - Updated Prisma schema: Removed global `@unique` constraint on SKU
+    - Added composite unique constraint: `@@unique([sku, supplierId])`
+    - Applied database migration:
+      `20250831001128_fix_sku_uniqueness_per_supplier`
+    - Updated API validation to check SKU uniqueness per supplier
+    - Improved error messages with specific SKU information
+  - **Files Modified**:
+    - `prisma/schema.prisma` - Schema update
+    - `app/api/supplier/products/route.ts` - API validation fix
+    - `SKU_AND_IMAGE_FIXES_SUMMARY.md` - Documentation
+  - **Result**: SKUs now unique per supplier, allowing multiple suppliers to use
+    same SKU codes
+
+- [x] **IMG-001** Enhance image upload system with multiple sizes
+  - **Time Spent**: 1.5 hours
+  - **Changes Made**:
+    - Created `lib/image-processing.ts` - Image processing utility
+    - Created `components/ui/SimpleImageUploader.tsx` - Custom upload component
+    - Implemented automatic generation of 5 image sizes (150x150 to 1200x1200)
+    - Added drag & drop functionality with visual feedback
+    - Enhanced image preview grid with metadata display
+  - **Files Created**:
+    - `lib/image-processing.ts` - Image processing functions
+    - `components/ui/SimpleImageUploader.tsx` - Upload component
+  - **Result**: Better image upload experience with automatic size generation
+    for responsive design
+
+### **Issues Resolved:**
+
+1. ✅ **SKU Error**: "SKU already exists" - Now allows same SKU across different
+   suppliers
+2. ✅ **Image Sizes**: Multiple sizes generated automatically for optimal
+   performance
+3. ✅ **User Experience**: Improved upload interface with drag & drop and
+   previews
+4. ✅ **Error Messages**: More descriptive and helpful error information
+
+### **Testing Status:**
+
+- **Build**: ✅ Successful - No TypeScript errors
+- **Database**: ✅ Migration applied successfully
+- **API**: ✅ Updated with supplier-specific SKU validation
+- **Frontend**: ✅ Enhanced image upload component ready for use
+
+---
+
 ## 🐛 **Discovered During Work**
 
 ### ✅ **3.1.8 CRITICAL BUG FIX: Fixed 500 error in product creation API (image validation issue)**

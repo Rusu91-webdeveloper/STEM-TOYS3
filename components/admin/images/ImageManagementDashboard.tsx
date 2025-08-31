@@ -38,6 +38,7 @@ import {
 import { ImageOptimizationPanel } from "./ImageOptimizationPanel";
 import { ImageCleanupPanel } from "./ImageCleanupPanel";
 import { ImageAnalyticsPanel } from "./ImageAnalyticsPanel";
+import { ProcessedImageInfo } from "./ProcessedImageInfo";
 
 interface ImageStats {
   totalImages: number;

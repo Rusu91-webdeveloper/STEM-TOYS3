@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { SimpleImageUploader } from "@/components/ui/SimpleImageUploader";
 
 // Product form schema
 const productSchema = z.object({
@@ -613,10 +614,10 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <EnhancedImageUploader
+              <SimpleImageUploader
                 images={images}
-                onRemoveImage={removeImage}
-                onUpload={handleImageUpload}
+                onImagesChange={setImages}
+                maxImages={10}
               />
             </CardContent>
           </Card>
