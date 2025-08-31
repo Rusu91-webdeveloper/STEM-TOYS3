@@ -3,8 +3,12 @@
  * Integrates with UploadThing for file management
  */
 
-import { utapi } from "@/lib/uploadthing";
-import { deleteUploadThingFiles } from "@/lib/uploadthing";
+import {
+  processProductImages,
+  ProcessedImage,
+  parseStoredImages,
+  extractImageUrlsForStorage,
+} from "@/lib/image-processing";
 
 export interface ImageMetadata {
   url: string;

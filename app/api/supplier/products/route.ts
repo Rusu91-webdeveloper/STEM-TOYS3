@@ -375,17 +375,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if SKU already exists
+    // Check if SKU already exists for this supplier
     if (validatedData.sku) {
       const existingSku = await db.product.findFirst({
-        where: { sku: validatedData.sku },
+        where: {
+          sku: validatedData.sku,
+          supplierId: supplier.id, // Only check within the same supplier
+        },
       });
 
       if (existingSku) {
         return NextResponse.json(
           {
             error: "SKU already exists",
-            message: "A product with this SKU already exists",
+            message: `A product with SKU "${validatedData.sku}" already exists in your catalog. SKUs must be unique within your supplier account.`,
           },
           { status: 400 }
         );
@@ -396,7 +399,7 @@ export async function POST(request: NextRequest) {
     const product = await db.product.create({
       data: {
         ...(validatedData as any),
-        images: processedImages,
+        images: processedImages, // Use the processed images
         ageGroup: ((validatedData as any).ageGroup ?? null) as any,
         learningOutcomes: ((validatedData as any).learningOutcomes ??
           []) as any,

@@ -114,7 +114,7 @@ model Product {
   description       String?
   price             Float
   compareAtPrice    Float?
-  sku               String?           @unique
+  sku               String?
   images            String[]
   categoryId        String?
   tags              String[]
@@ -178,6 +178,7 @@ model Product {
   @@index([specialCategories])
   @@index([romanianEducationalLevel])
   @@index([romanianMinistryApproval])
+  @@unique([sku, supplierId]) // Make SKU unique per supplier instead of globally
   @@map("Product")
 }
 
