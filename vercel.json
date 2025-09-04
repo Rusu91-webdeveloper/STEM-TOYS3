@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/process-orders",
-      "schedule": "*/10 * * * *"
+      "schedule": "0 1 * * *"
     },
     {
       "path": "/api/cron/auto-complete-orders",
-      "schedule": "0 * * * *"
+      "schedule": "0 2 * * *"
     }
   ]
 }
