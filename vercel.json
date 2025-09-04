@@ -1,12 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/process-orders",
+      "path": "/api/cron/daily-maintenance",
       "schedule": "0 1 * * *"
-    },
-    {
-      "path": "/api/cron/auto-complete-orders",
-      "schedule": "0 2 * * *"
     }
   ]
 }
