@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -396,7 +397,7 @@ export async function POST(request: NextRequest) {
       results.valid = results.summary.invalid === 0;
 
       return NextResponse.json(results);
-    } else {
+    } 
       return NextResponse.json(
         {
           error: "Invalid validation type",
@@ -404,7 +405,7 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
-    }
+    
   } catch (error) {
     if (error instanceof z.ZodError) {
       const formattedErrors = error.errors.map(err => ({

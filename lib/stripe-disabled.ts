@@ -7,7 +7,7 @@ export const getDisabledStripe = (): Promise<Stripe | null> => {
 };
 
 // Check if Stripe should be disabled based on environment
-export const shouldDisableStripe = (): boolean => {
+export const shouldDisableStripe = (): boolean => 
   // Enable Stripe in all environments now that we have secure client-side loading
-  return false;
-};
+   false
+;

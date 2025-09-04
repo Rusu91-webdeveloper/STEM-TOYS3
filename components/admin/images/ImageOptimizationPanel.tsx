@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
 import {
   Zap,
   Download,
@@ -13,11 +12,15 @@ import {
   HardDrive,
   BarChart3,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useCallback } from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -26,8 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import {
   ImageManagementServiceClient,
@@ -207,8 +208,7 @@ export function ImageOptimizationPanel({
   );
 
   // Simulate optimization process
-  const simulateOptimization = async (job: OptimizationJob): Promise<void> => {
-    return new Promise((resolve, reject) => {
+  const simulateOptimization = async (job: OptimizationJob): Promise<void> => new Promise((resolve, reject) => {
       let progress = 10;
       const interval = setInterval(() => {
         progress += Math.random() * 20;
@@ -250,7 +250,6 @@ export function ImageOptimizationPanel({
         }
       }, 200);
     });
-  };
 
   // Download optimized images
   const downloadOptimizedImages = useCallback(async () => {

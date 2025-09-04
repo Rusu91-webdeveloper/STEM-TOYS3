@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+
 import { sendMail } from "../brevo";
 
 /**

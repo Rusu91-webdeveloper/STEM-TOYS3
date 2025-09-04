@@ -2,19 +2,24 @@
 
 ## Overview
 
-The TechTots Supplier Product Management API provides comprehensive endpoints for managing STEM educational products. This API enables suppliers to create, update, validate, and bulk upload products programmatically.
+The TechTots Supplier Product Management API provides comprehensive endpoints
+for managing STEM educational products. This API enables suppliers to create,
+update, validate, and bulk upload products programmatically.
 
 ## Authentication
 
-All API endpoints require authentication using NextAuth.js session cookies. Suppliers must be logged in and have an approved account status.
+All API endpoints require authentication using NextAuth.js session cookies.
+Suppliers must be logged in and have an approved account status.
 
 ### Headers Required
+
 ```
 Content-Type: application/json
 Cookie: next-auth.session-token=<your-session-token>
 ```
 
 ## Base URL
+
 ```
 https://your-domain.com/api/supplier/products
 ```
@@ -27,9 +32,11 @@ https://your-domain.com/api/supplier/products
 
 #### `POST /api/supplier/products/validate`
 
-Validates product data before submission to catch errors early and get detailed feedback.
+Validates product data before submission to catch errors early and get detailed
+feedback.
 
 **Request Body:**
+
 ```json
 {
   "type": "single" | "bulk",
@@ -40,6 +47,7 @@ Validates product data before submission to catch errors early and get detailed 
 ```
 
 **Single Product Example:**
+
 ```json
 {
   "type": "single",
@@ -57,6 +65,7 @@ Validates product data before submission to catch errors early and get detailed 
 ```
 
 **Bulk Products Example:**
+
 ```json
 {
   "type": "bulk",
@@ -69,7 +78,7 @@ Validates product data before submission to catch errors early and get detailed 
         "stockQuantity": 10
       },
       {
-        "name": "Product 2", 
+        "name": "Product 2",
         "description": "Description 2",
         "price": 39.99,
         "stockQuantity": 15
@@ -80,6 +89,7 @@ Validates product data before submission to catch errors early and get detailed 
 ```
 
 **Response:**
+
 ```json
 {
   "valid": true,
@@ -106,6 +116,7 @@ Validates product data before submission to catch errors early and get detailed 
 ```
 
 **Error Codes:**
+
 - `REQUIRED_FIELD` - Required field is missing
 - `INVALID_FORMAT` - Field format is invalid
 - `DUPLICATE_NAME` - Product name already exists
@@ -120,26 +131,31 @@ Validates product data before submission to catch errors early and get detailed 
 
 #### `GET /api/supplier/products`
 
-Retrieves a paginated list of supplier's products with filtering and search capabilities.
+Retrieves a paginated list of supplier's products with filtering and search
+capabilities.
 
 **Query Parameters:**
+
 - `page` (number, default: 1) - Page number
 - `limit` (number, default: 10) - Items per page
 - `search` (string) - Search in name, description, or SKU
 - `status` (string) - Filter by status: "active", "inactive", "all"
 - `category` (string) - Filter by category ID
-- `sortBy` (string) - Sort field and direction: "name-asc", "price-desc", "createdAt-desc"
+- `sortBy` (string) - Sort field and direction: "name-asc", "price-desc",
+  "createdAt-desc"
 - `minPrice` (number) - Minimum price filter
 - `maxPrice` (number) - Maximum price filter
 - `lowStock` (boolean) - Filter products with low stock
 - `lowStockThreshold` (number, default: 5) - Low stock threshold
 
 **Example Request:**
+
 ```
 GET /api/supplier/products?page=1&limit=20&search=robot&status=active&sortBy=name-asc
 ```
 
 **Response:**
+
 ```json
 {
   "products": [
@@ -172,6 +188,7 @@ GET /api/supplier/products?page=1&limit=20&search=robot&status=active&sortBy=nam
 Creates a new product.
 
 **Request Body:**
+
 ```json
 {
   "name": "RoboBot Coding Kit",
@@ -189,13 +206,17 @@ Creates a new product.
   "productType": "ROBOTICS",
   "learningOutcomes": ["PROBLEM_SOLVING", "LOGIC", "CRITICAL_THINKING"],
   "specialCategories": ["NEW_ARRIVALS"],
-  "images": ["https://example.com/image1.jpg", "https://example.com/image2.jpg"],
+  "images": [
+    "https://example.com/image1.jpg",
+    "https://example.com/image2.jpg"
+  ],
   "isActive": true,
   "featured": false
 }
 ```
 
 **Response:**
+
 ```json
 {
   "product": {
@@ -211,6 +232,10 @@ Creates a new product.
 }
 ```
 
+Note: Supplier-created products are stored with `status = PENDING_APPROVAL`. An
+email is sent to admin to review, and to supplier informing review can take up
+to 48 hours.
+
 #### `PUT /api/supplier/products/[id]`
 
 Updates an existing product.
@@ -218,6 +243,7 @@ Updates an existing product.
 **Request Body:** Same as POST, but all fields are optional.
 
 **Response:**
+
 ```json
 {
   "product": {
@@ -235,6 +261,7 @@ Updates an existing product.
 Deletes a product.
 
 **Response:**
+
 ```json
 {
   "message": "Product deleted successfully",
@@ -248,9 +275,11 @@ Deletes a product.
 
 #### `POST /api/supplier/products/bulk-upload`
 
-Uploads multiple products at once with batch processing and detailed error reporting.
+Uploads multiple products at once with batch processing and detailed error
+reporting.
 
 **Request Body:**
+
 ```json
 {
   "products": [
@@ -271,7 +300,7 @@ Uploads multiple products at once with batch processing and detailed error repor
     },
     {
       "name": "Product 2",
-      "description": "Description 2", 
+      "description": "Description 2",
       "price": 39.99,
       "stockQuantity": 15,
       "sku": "PROD-002",
@@ -289,6 +318,7 @@ Uploads multiple products at once with batch processing and detailed error repor
 ```
 
 **Response:**
+
 ```json
 {
   "success": 1,
@@ -320,6 +350,7 @@ Uploads multiple products at once with batch processing and detailed error repor
 ```
 
 **Features:**
+
 - Upload up to 1000 products at once
 - Batch processing (10 products per batch)
 - Automatic category creation
@@ -337,28 +368,29 @@ Uploads multiple products at once with batch processing and detailed error repor
 ```typescript
 interface Product {
   id: string;
-  name: string;                    // Required, 1-100 chars
-  slug: string;                    // Auto-generated from name
-  description: string;             // Required, 10-1000 chars
-  price: number;                   // Required, 0.01-999,999.99
-  compareAtPrice?: number;         // Optional, must be > price
-  sku?: string;                    // Optional, 1-50 chars, unique
-  stockQuantity: number;           // Required, 0-999,999
-  reorderPoint?: number;           // Optional, 0-999,999
-  weight?: number;                 // Optional, 0-999.99 kg
-  categoryId?: string;             // Optional, category reference
-  tags: string[];                  // Optional, max 20 items
-  ageGroup?: AgeGroup;             // Optional enum
-  stemDiscipline: StemDiscipline;  // Default: GENERAL
-  productType?: ProductType;       // Optional enum
-  learningOutcomes: string[];      // Optional, max 5 items
-  specialCategories: string[];     // Optional, max 4 items
-  images: string[];                // Optional, max 10 URLs
-  isActive: boolean;               // Default: true
-  featured: boolean;               // Default: false
-  supplierId: string;              // Auto-assigned
-  createdAt: string;               // Auto-generated
-  updatedAt: string;               // Auto-updated
+  name: string; // Required, 1-100 chars
+  slug: string; // Auto-generated from name
+  description: string; // Required, 10-1000 chars
+  price: number; // Required, 0.01-999,999.99
+  compareAtPrice?: number; // Optional, must be > price
+  sku?: string; // Optional, 1-50 chars, unique
+  stockQuantity: number; // Required, 0-999,999
+  reorderPoint?: number; // Optional, 0-999,999
+  weight?: number; // Optional, 0-999.99 kg
+  categoryId?: string; // Optional, category reference
+  tags: string[]; // Optional, max 20 items
+  ageGroup?: AgeGroup; // Optional enum
+  stemDiscipline: StemDiscipline; // Default: GENERAL
+  productType?: ProductType; // Optional enum
+  learningOutcomes: string[]; // Optional, max 5 items
+  specialCategories: string[]; // Optional, max 4 items
+  images: string[]; // Optional, max 10 URLs
+  isActive: boolean; // Default: true
+  featured: boolean; // Default: false
+  status?: "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "REJECTED";
+  supplierId: string; // Auto-assigned
+  createdAt: string; // Auto-generated
+  updatedAt: string; // Auto-updated
 }
 ```
 
@@ -367,10 +399,10 @@ interface Product {
 ```typescript
 enum AgeGroup {
   TODDLERS_1_3 = "TODDLERS_1_3",
-  PRESCHOOL_3_5 = "PRESCHOOL_3_5", 
+  PRESCHOOL_3_5 = "PRESCHOOL_3_5",
   ELEMENTARY_6_8 = "ELEMENTARY_6_8",
   MIDDLE_SCHOOL_9_12 = "MIDDLE_SCHOOL_9_12",
-  TEENS_13_PLUS = "TEENS_13_PLUS"
+  TEENS_13_PLUS = "TEENS_13_PLUS",
 }
 
 enum StemDiscipline {
@@ -378,7 +410,7 @@ enum StemDiscipline {
   TECHNOLOGY = "TECHNOLOGY",
   ENGINEERING = "ENGINEERING",
   MATHEMATICS = "MATHEMATICS",
-  GENERAL = "GENERAL"
+  GENERAL = "GENERAL",
 }
 
 enum ProductType {
@@ -386,7 +418,7 @@ enum ProductType {
   PUZZLES = "PUZZLES",
   CONSTRUCTION_SETS = "CONSTRUCTION_SETS",
   EXPERIMENT_KITS = "EXPERIMENT_KITS",
-  BOARD_GAMES = "BOARD_GAMES"
+  BOARD_GAMES = "BOARD_GAMES",
 }
 
 enum LearningOutcome {
@@ -394,14 +426,14 @@ enum LearningOutcome {
   CREATIVITY = "CREATIVITY",
   CRITICAL_THINKING = "CRITICAL_THINKING",
   MOTOR_SKILLS = "MOTOR_SKILLS",
-  LOGIC = "LOGIC"
+  LOGIC = "LOGIC",
 }
 
 enum SpecialCategory {
   NEW_ARRIVALS = "NEW_ARRIVALS",
   BEST_SELLERS = "BEST_SELLERS",
   GIFT_IDEAS = "GIFT_IDEAS",
-  SALE_ITEMS = "SALE_ITEMS"
+  SALE_ITEMS = "SALE_ITEMS",
 }
 ```
 
@@ -446,6 +478,7 @@ enum SpecialCategory {
 - **Validation API:** 200 requests per minute
 
 Rate limit headers are included in responses:
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
@@ -457,21 +490,28 @@ X-RateLimit-Reset: 1642248600
 ## Best Practices
 
 ### 1. Validation First
+
 Always use the validation API before submitting products to catch errors early.
 
 ### 2. Batch Processing
-For bulk uploads, use appropriate batch sizes (50-100 products) for optimal performance.
+
+For bulk uploads, use appropriate batch sizes (50-100 products) for optimal
+performance.
 
 ### 3. Error Handling
+
 Implement proper error handling and retry logic for network failures.
 
 ### 4. Caching
+
 Cache product lists and categories when possible to reduce API calls.
 
 ### 5. Rate Limiting
+
 Monitor rate limits and implement exponential backoff for retries.
 
 ### 6. Data Quality
+
 - Use descriptive, keyword-rich product names
 - Include high-quality images (minimum 800x600px)
 - Write detailed descriptions with key features and benefits
@@ -485,42 +525,42 @@ Monitor rate limits and implement exponential backoff for retries.
 ### JavaScript/Node.js Example
 
 ```javascript
-const validateProduct = async (productData) => {
-  const response = await fetch('/api/supplier/products/validate', {
-    method: 'POST',
+const validateProduct = async productData => {
+  const response = await fetch("/api/supplier/products/validate", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      type: 'single',
-      data: productData
-    })
+      type: "single",
+      data: productData,
+    }),
   });
-  
+
   const result = await response.json();
-  
+
   if (!result.valid) {
-    console.log('Validation errors:', result.errors);
+    console.log("Validation errors:", result.errors);
     return false;
   }
-  
+
   return true;
 };
 
-const createProduct = async (productData) => {
-  const response = await fetch('/api/supplier/products', {
-    method: 'POST',
+const createProduct = async productData => {
+  const response = await fetch("/api/supplier/products", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(productData)
+    body: JSON.stringify(productData),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message);
   }
-  
+
   return await response.json();
 };
 
@@ -531,17 +571,17 @@ const productData = {
   price: 89.99,
   stockQuantity: 45,
   ageGroup: "ELEMENTARY_6_8",
-  stemDiscipline: "TECHNOLOGY"
+  stemDiscipline: "TECHNOLOGY",
 };
 
 try {
   const isValid = await validateProduct(productData);
   if (isValid) {
     const result = await createProduct(productData);
-    console.log('Product created:', result.product);
+    console.log("Product created:", result.product);
   }
 } catch (error) {
-  console.error('Error:', error.message);
+  console.error("Error:", error.message);
 }
 ```
 
@@ -561,7 +601,7 @@ def validate_product(product_data):
             'data': product_data
         }
     )
-    
+
     result = response.json()
     return result['valid'], result.get('errors', [])
 
@@ -572,11 +612,11 @@ def create_product(product_data):
         cookies={'next-auth.session-token': 'your-session-token'},
         json=product_data
     )
-    
+
     if not response.ok:
         error = response.json()
         raise Exception(error['message'])
-    
+
     return response.json()
 
 # Usage
@@ -605,11 +645,11 @@ except Exception as e:
 ## Support
 
 For API support and questions:
+
 - Email: api-support@techtots.com
 - Documentation: https://docs.techtots.com/api
 - Status Page: https://status.techtots.com
 
 ---
 
-*Last updated: January 2024*
-*API Version: v1.0*
+_Last updated: January 2024_ _API Version: v1.0_

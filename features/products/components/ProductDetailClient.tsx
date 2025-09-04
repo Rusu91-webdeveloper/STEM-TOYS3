@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/email/base";
-import { OptimizedProductImage } from "./OptimizedProductImage";
+import { ProductImageGallery } from "./ProductImageGallery";
 
 interface ProductDetailClientProps {
   product: any;
@@ -54,15 +54,7 @@ export default function ProductDetailClient({
     fetchFreeShippingSettings();
   }, []);
 
-  // Debug product images
-  useEffect(() => {
-    console.log("Product detail images:", {
-      images: product.images,
-      length: product.images?.length,
-      firstImage: product.images?.[0],
-      productName: product.name,
-    });
-  }, [product.images, product.name]);
+  // Debug product images - removed as no longer needed
 
   const getCategoryName = () => {
     return product.category?.name || t("generalCategory");
@@ -106,22 +98,11 @@ export default function ProductDetailClient({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="relative aspect-square bg-gray-200 rounded-lg overflow-hidden">
-              {product.images && product.images.length > 0 ? (
-                <OptimizedProductImage
-                  src={product.images[0]}
-                  alt={product.name}
-                  fill
-                  className="object-cover rounded-lg"
-                  quality={85}
-                  priority
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-500">
-                  <span>No image available</span>
-                </div>
-              )}
-            </div>
+            <ProductImageGallery
+              images={product.images || []}
+              alt={product.name}
+              className="w-full"
+            />
           </div>
 
           {/* Product Info */}
@@ -192,20 +173,13 @@ export default function ProductDetailClient({
 
               {/* Stock Status */}
               <div className="text-sm text-gray-600">
-                {(() => {
-                  console.log("Product stock data:", {
-                    stockQuantity: product.stockQuantity,
-                    type: typeof product.stockQuantity,
-                    product: product.name,
-                  });
-                  return product.stockQuantity > 0 ? (
-                    <span className="text-green-600">
-                      In Stock ({product.stockQuantity} available)
-                    </span>
-                  ) : (
-                    <span className="text-red-600">Out of Stock</span>
-                  );
-                })()}
+                {product.stockQuantity > 0 ? (
+                  <span className="text-green-600">
+                    In Stock ({product.stockQuantity} available)
+                  </span>
+                ) : (
+                  <span className="text-red-600">Out of Stock</span>
+                )}
               </div>
             </div>
 

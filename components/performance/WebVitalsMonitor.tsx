@@ -1,22 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  startPerformanceMonitoring,
-  getPerformanceReport,
-  type WebVitalsMetrics,
-  type PerformanceReport,
-} from "@/lib/utils/web-vitals";
 import {
   Activity,
   Clock,
@@ -26,6 +9,24 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import {
+  startPerformanceMonitoring,
+  getPerformanceReport,
+  type WebVitalsMetrics,
+  type PerformanceReport,
+} from "@/lib/utils/web-vitals";
 
 interface WebVitalsDisplayProps {
   showDetails?: boolean;

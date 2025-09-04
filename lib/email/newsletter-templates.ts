@@ -3,8 +3,9 @@
  * Enhanced with enterprise-grade design system and components
  */
 
-import { sendMail } from "../brevo";
 import { prisma } from "@/lib/prisma";
+
+import { sendMail } from "../brevo";
 
 import { getStoreSettings, getBaseUrl } from "./base";
 

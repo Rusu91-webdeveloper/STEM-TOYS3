@@ -7,9 +7,10 @@ import { redirect, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 
-import SidebarNav, { adminNavItems } from "./components/sidebar-nav";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
+
+import SidebarNav, { adminNavItems } from "./components/sidebar-nav";
 
 export default function AdminLayout({
   children,

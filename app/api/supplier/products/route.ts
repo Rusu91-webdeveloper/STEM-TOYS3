@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { validateCsrfForRequest } from "@/lib/csrf";
+import { db } from "@/lib/db";
 
 // Enhanced product creation schema with better validation
 const createProductSchema = z.object({
@@ -23,11 +24,13 @@ const createProductSchema = z.object({
     .number()
     .min(0.01, "Price must be greater than 0")
     .max(999999.99, "Price cannot exceed 999,999.99"),
+  priceCurrency: z.enum(["EUR", "RON"]).default("RON"),
   compareAtPrice: z
     .number()
     .min(0.01, "Compare at price must be greater than 0")
     .max(999999.99, "Compare at price cannot exceed 999,999.99")
     .optional(),
+  compareAtPriceCurrency: z.enum(["EUR", "RON"]).default("RON").optional(),
   sku: z
     .string()
     .max(50, "SKU must be 50 characters or less")
@@ -107,14 +110,13 @@ const createProductSchema = z.object({
     .default([])
     .refine(
       images =>
-        images.every(img => {
-          // Accept HTTP URLs, blob URLs, and placeholder URLs
-          return (
+        images.every(
+          img =>
+            // Accept HTTP URLs, blob URLs, and placeholder URLs
             img.startsWith("http") ||
             img.startsWith("blob:") ||
             img.startsWith("placeholder://")
-          );
-        }),
+        ),
       "All images must be valid URLs, blob URLs, or placeholder URLs"
     ),
 });
@@ -329,7 +331,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Keep valid HTTP URLs as-is
+      // Keep valid HTTP URLs as-is (including UploadThing URLs)
       if (img.startsWith("http")) {
         return img;
       }
@@ -345,7 +347,7 @@ export async function POST(request: NextRequest) {
         originalCount: validatedData.images.length,
         processedCount: processedImages.length,
         originalImages: validatedData.images,
-        processedImages: processedImages,
+        processedImages,
       }
     );
 
@@ -396,9 +398,43 @@ export async function POST(request: NextRequest) {
     }
 
     // Create product
+    const {
+      categoryId: createCategoryId,
+      sku: createSku,
+      price: inputPrice,
+      priceCurrency: inputCurrency,
+      compareAtPrice: inputComparePrice,
+      compareAtPriceCurrency: inputCompareCurrency,
+      ...restValidated
+    } = (validatedData as any) || {};
+
+    const normalizedSku =
+      typeof createSku === "string" && createSku.trim() === ""
+        ? undefined
+        : createSku;
+
+    // Convert prices to RON for storage
+    const finalPrice = inputCurrency === "EUR" ? inputPrice * 5 : inputPrice;
+    const finalComparePrice =
+      inputComparePrice && inputCompareCurrency === "EUR"
+        ? inputComparePrice * 5
+        : inputComparePrice;
+
     const product = await db.product.create({
       data: {
-        ...(validatedData as any),
+        ...(restValidated as any),
+        price: finalPrice, // Always store in RON
+        priceCurrency: "RON", // Always store as RON
+        compareAtPrice: finalComparePrice, // Always store in RON
+        compareAtPriceCurrency: finalComparePrice ? "RON" : undefined, // Always store as RON
+        ...(normalizedSku ? { sku: normalizedSku } : {}),
+        ...(createCategoryId
+          ? {
+              category: {
+                connect: { id: createCategoryId },
+              },
+            }
+          : {}),
         images: processedImages, // Use the processed images
         ageGroup: ((validatedData as any).ageGroup ?? null) as any,
         learningOutcomes: ((validatedData as any).learningOutcomes ??
@@ -406,7 +442,7 @@ export async function POST(request: NextRequest) {
         specialCategories: ((validatedData as any).specialCategories ??
           []) as any,
         slug,
-        supplierId: supplier.id,
+        supplier: { connect: { id: supplier.id } },
       },
       include: {
         category: {
@@ -417,6 +453,43 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // Send notification emails to admin and supplier
+    try {
+      const { sendMail } = await import("@/lib/brevo");
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+      const adminEmail = process.env.ADMIN_EMAIL || "admin@techtots.com";
+      const supplierEmail = session.user.email as string | undefined;
+
+      await sendMail({
+        to: adminEmail,
+        subject: `New supplier product pending approval: ${product.name}`,
+        html: `
+          <p>A new product was submitted by supplier <strong>${supplier.companyName}</strong> and is pending approval.</p>
+          <p><strong>Product:</strong> ${product.name}</p>
+          <p><strong>SKU:</strong> ${product.sku || "—"}</p>
+          <p><strong>Price:</strong> ${product.price} RON</p>
+          <p><a href="${siteUrl}/admin/products">Review in Admin</a></p>
+        `,
+        text: `New supplier product pending approval: ${product.name} by ${supplier.companyName}. Review: ${siteUrl}/admin/products`,
+      });
+
+      if (supplierEmail) {
+        await sendMail({
+          to: supplierEmail,
+          subject: `We've received your product: ${product.name}`,
+          html: `
+            <p>Thank you for submitting <strong>${product.name}</strong>.</p>
+            <p>Your product is now <strong>Pending Approval</strong>. Our team will review it within 48 hours. Once approved, it will be visible on the website.</p>
+            <p>You can track and edit it in your dashboard: <a href="${siteUrl}/supplier/products">Supplier Products</a></p>
+          `,
+          text: `We've received your product ${product.name}. It is pending approval and will be reviewed within 48 hours. Track it at ${siteUrl}/supplier/products`,
+        });
+      }
+    } catch (emailError) {
+      console.error("Failed sending supplier product emails", emailError);
+    }
 
     return NextResponse.json(
       {

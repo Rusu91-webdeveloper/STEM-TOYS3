@@ -1,5 +1,5 @@
-import { performanceMonitor } from "../monitoring/performance-monitor";
 import { cdnManager } from "../cdn/static-assets";
+import { performanceMonitor } from "../monitoring/performance-monitor";
 
 export interface ImageOptimizationConfig {
   formats: {

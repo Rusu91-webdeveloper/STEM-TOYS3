@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { z } from "zod";
 import { hash } from "bcryptjs";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
 import { sendMail } from "@/lib/brevo";
+import { prisma } from "@/lib/prisma";
 
 // Validation schema for supplier application
 const supplierApplicationSchema = z.object({

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
 import { withSupplierAuth } from "@/lib/authorization";
-import { getCurrentSupplier } from "@/lib/supplier-auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
-import { z } from "zod";
+import { getCurrentSupplier } from "@/lib/supplier-auth";
 
 // Validation schema for order status update
 const orderUpdateSchema = z.object({

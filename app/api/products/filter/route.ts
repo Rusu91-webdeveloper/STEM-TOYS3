@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
     // Build where clause
     const where: any = {
       isActive: true,
+      status: "APPROVED",
     };
 
     if (ageGroup) {

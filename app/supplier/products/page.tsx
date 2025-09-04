@@ -1,6 +1,7 @@
 import { Metadata } from "next";
-import { SupplierProductList } from "@/features/supplier/components/products/SupplierProductList";
+
 import { ProductSchemaHelp } from "@/features/supplier/components/products/ProductSchemaHelp";
+import { SupplierProductList } from "@/features/supplier/components/products/SupplierProductList";
 
 export const metadata: Metadata = {
   title: "Products | Supplier Dashboard",

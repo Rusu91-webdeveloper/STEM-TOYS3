@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
       title: data.title,
       slug: data.slug,
       excerpt: data.excerpt,
-      content: content,
+      content,
       coverImage: data.coverImage || undefined,
       categoryId: data.categoryId,
       authorId,

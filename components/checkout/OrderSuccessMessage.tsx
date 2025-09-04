@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, Package, CreditCard } from "lucide-react";
+import React from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface OrderSuccessMessageProps {
   orderId: string;

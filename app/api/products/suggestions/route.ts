@@ -30,6 +30,7 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
       where: {
         AND: [
           { isActive: true },
+          { status: "APPROVED" as any },
           {
             OR: [
               { name: { contains: query, mode: "insensitive" } },
@@ -107,7 +108,11 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     // 3. Tag suggestions (from product tags)
     const tagSuggestions = await db.product.findMany({
       where: {
-        AND: [{ isActive: true }, { tags: { hasSome: [query] } }],
+        AND: [
+          { isActive: true },
+          { status: "APPROVED" as any },
+          { tags: { hasSome: [query] } },
+        ],
       },
       select: {
         tags: true,

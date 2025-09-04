@@ -7,12 +7,10 @@
 import { sendMail } from "@/lib/brevo";
 import { db } from "@/lib/db";
 import { getStoreSettings } from "@/lib/utils/store-settings";
-import { personalizationEngine } from "./personalization-engine";
+
 import { emailAnalyticsEngine } from "./analytics-engine";
 import { emailAutomationEngine } from "./automation-engine";
-import { emailPerformanceEngine } from "./performance-engine";
 import { generateProfessionalEmail, generatePreviewText } from "./base";
-import { colors, gradients, typography, spacing } from "./design-system";
 import {
   createHeroSection,
   createAlert,
@@ -20,6 +18,9 @@ import {
   createCTASection,
   createTestimonial,
 } from "./components";
+import { colors, gradients, typography, spacing } from "./design-system";
+import { emailPerformanceEngine } from "./performance-engine";
+import { personalizationEngine } from "./personalization-engine";
 
 export interface EmailServiceConfig {
   enablePersonalization: boolean;

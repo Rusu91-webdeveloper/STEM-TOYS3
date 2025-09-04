@@ -517,7 +517,9 @@ export function SupplierSettings() {
               />
             </div>
             <div>
-              <Label htmlFor="minimumOrderValue">Minimum Order Value (€)</Label>
+              <Label htmlFor="minimumOrderValue">
+                Minimum Order Value (RON)
+              </Label>
               <Input
                 id="minimumOrderValue"
                 type="number"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { logger } from "@/lib/utils/logger";
 
 interface PerformanceMetrics {
@@ -137,21 +138,19 @@ export default function PerformanceOptimizer() {
 
   const calculateBundleSize = (
     resources: Array<{ url: string; size: number; type: string }>
-  ): number => {
-    return resources.reduce((total, resource) => {
+  ): number => resources.reduce((total, resource) => {
       // Only count scripts and stylesheets for bundle size
       if (resource.type === "script" || resource.type === "stylesheet") {
         return total + resource.size;
       }
       return total;
     }, 0);
-  };
 
-  const calculateCacheHitRate = async (): Promise<number> => {
+  const calculateCacheHitRate = async (): Promise<number> => 
     // Simplified cache hit rate calculation
     // In a real implementation, you'd track actual cache hits
-    return 0.85; // Assume 85% cache hit rate
-  };
+     0.85 // Assume 85% cache hit rate
+  ;
 
   const optimizeImages = () => {
     // Lazy load images that are not in viewport

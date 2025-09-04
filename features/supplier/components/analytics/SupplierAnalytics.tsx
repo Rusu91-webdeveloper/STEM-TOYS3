@@ -19,6 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatPriceWithCurrency } from "@/lib/currency-converter";
 import {
   AlertTriangle,
   TrendingUp,
@@ -271,7 +272,7 @@ export function SupplierAnalytics() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-gray-900 mb-1">
-                  €{stats.totalRevenue.toLocaleString()}
+                  {formatPriceWithCurrency(stats.totalRevenue, "RON")}
                 </div>
                 <p className="text-sm text-green-600 font-medium flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
@@ -311,7 +312,7 @@ export function SupplierAnalytics() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-gray-900 mb-1">
-                  €{stats.commissionEarned.toLocaleString()}
+                  {formatPriceWithCurrency(stats.commissionEarned, "RON")}
                 </div>
                 <p className="text-sm text-green-600 font-medium flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
@@ -392,7 +393,10 @@ export function SupplierAnalytics() {
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="text-3xl font-bold text-green-600 mb-2">
-                    €{stats.performanceMetrics.averageOrderValue.toFixed(2)}
+                    {formatPriceWithCurrency(
+                      stats.performanceMetrics.averageOrderValue,
+                      "RON"
+                    )}
                   </div>
                   <p className="text-sm text-gray-600">Per order average</p>
                 </CardContent>

@@ -4,8 +4,9 @@
  * For seasonal campaigns, product launches, and special promotions
  */
 
-import { sendMail } from "../brevo";
 import { prisma } from "@/lib/prisma";
+
+import { sendMail } from "../brevo";
 
 import { getStoreSettings, getBaseUrl } from "./base";
 

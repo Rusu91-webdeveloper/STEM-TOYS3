@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { sendNewTicketNotification } from "@/lib/admin-notifications";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { sendNewTicketNotification } from "@/lib/admin-notifications";
 
 export async function GET(request: NextRequest) {
   try {
@@ -166,7 +167,7 @@ export async function POST(request: NextRequest) {
         supplierEmail: supplier.contactPersonEmail || session.user.email || "",
         hasAttachments: validAttachmentUrls.length > 0,
         attachmentCount: validAttachmentUrls.length,
-        attachments: attachments, // Pass the full attachment details
+        attachments, // Pass the full attachment details
       });
     } catch (error) {
       console.error("Failed to send admin notification:", error);

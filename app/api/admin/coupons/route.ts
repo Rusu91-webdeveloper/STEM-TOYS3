@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { resolveAdminUserId } from "@/lib/admin-utils";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { resolveAdminUserId } from "@/lib/admin-utils";
 
 // Validation schema for creating coupons
 const createCouponSchema = z

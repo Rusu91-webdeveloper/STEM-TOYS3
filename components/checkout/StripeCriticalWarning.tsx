@@ -1,9 +1,10 @@
 "use client";
 
+import { AlertTriangle, RefreshCw, Shield } from "lucide-react";
 import React from "react";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw, Shield } from "lucide-react";
 
 interface StripeCriticalWarningProps {
   onRetry: () => void;

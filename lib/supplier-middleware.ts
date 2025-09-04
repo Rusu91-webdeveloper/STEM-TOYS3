@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@/lib/auth";
-import { getCurrentSupplier } from "@/lib/supplier-auth";
 import { logger } from "@/lib/logger";
+import { getCurrentSupplier } from "@/lib/supplier-auth";
 
 /**
  * Middleware to protect supplier routes

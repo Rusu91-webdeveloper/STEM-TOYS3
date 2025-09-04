@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import { SupplierBulkUpload } from "@/features/supplier/components/products/SupplierBulkUpload";
 
 export const metadata: Metadata = {

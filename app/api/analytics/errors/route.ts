@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 import { ErrorEvent } from "@/lib/utils/error-tracking";
 
@@ -16,8 +17,7 @@ export async function POST(request: NextRequest) {
 
     // Store errors in database
     const storedErrors = await Promise.all(
-      errors.map(async (error: ErrorEvent) => {
-        return await prisma.errorLog.create({
+      errors.map(async (error: ErrorEvent) => await prisma.errorLog.create({
           data: {
             errorId: error.id,
             type: error.type,
@@ -31,8 +31,7 @@ export async function POST(request: NextRequest) {
             metadata: error.metadata,
             timestamp: new Date(error.timestamp),
           },
-        });
-      })
+        }))
     );
 
     return NextResponse.json({

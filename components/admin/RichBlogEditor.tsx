@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import {
   Bold,
   Italic,
@@ -17,15 +16,16 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 
+import EnhancedMarkdownRenderer from "@/components/blog/EnhancedMarkdownRenderer";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import EnhancedMarkdownRenderer from "@/components/blog/EnhancedMarkdownRenderer";
+import { Textarea } from "@/components/ui/textarea";
 
 interface RichBlogEditorProps {
   value: string;
@@ -168,7 +168,7 @@ export default function RichBlogEditor({
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!textareaRef.current || !textareaRef.current.matches(":focus"))
+      if (!textareaRef.current?.matches(":focus"))
         return;
 
       const isCtrl = e.ctrlKey || e.metaKey;

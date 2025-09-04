@@ -1,8 +1,8 @@
 "use client";
 
+import { Instagram } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Instagram } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import NewsletterSignup from "@/components/NewsletterSignup";

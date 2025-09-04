@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 import { ConversionEvent } from "@/lib/utils/conversion-tracking";
 
@@ -16,8 +17,7 @@ export async function POST(request: NextRequest) {
 
     // Store conversions in database
     const storedConversions = await Promise.all(
-      conversions.map(async (conversion: ConversionEvent) => {
-        return await prisma.conversionLog.create({
+      conversions.map(async (conversion: ConversionEvent) => await prisma.conversionLog.create({
           data: {
             conversionId: conversion.id,
             type: conversion.type,
@@ -30,8 +30,7 @@ export async function POST(request: NextRequest) {
             metadata: conversion.metadata,
             timestamp: new Date(conversion.timestamp),
           },
-        });
-      })
+        }))
     );
 
     return NextResponse.json({

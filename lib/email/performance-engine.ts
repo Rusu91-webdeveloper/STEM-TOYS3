@@ -5,6 +5,7 @@
  */
 
 import { cache } from "@/lib/cache";
+
 import { emailAnalyticsEngine } from "./analytics-engine";
 
 export interface EmailPerformanceMetrics {
@@ -404,9 +405,9 @@ export class EmailPerformanceEngine {
         return 3; // High engagement, can send more
       } else if (engagementRate > 0.5 && unsubscribeRate < 0.05) {
         return 2; // Medium engagement
-      } else {
+      } 
         return 1; // Low engagement, send less
-      }
+      
     } catch (error) {
       console.error("Error calculating optimal frequency:", error);
       return 1;

@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
+import ProfessionalBlogTemplate from "@/components/blog/ProfessionalBlogTemplate";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
-import ProfessionalBlogTemplate from "@/components/blog/ProfessionalBlogTemplate";
 
 interface BlogPost {
   id: string;

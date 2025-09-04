@@ -1,9 +1,9 @@
 "use client";
 
+import { Chrome } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { Chrome } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 

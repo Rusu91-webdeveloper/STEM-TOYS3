@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { prisma } from "@/lib/prisma";
 import {
   sendNewsletterWelcomeEmail,
   sendNewsletterResubscribeEmail,
 } from "@/lib/email/newsletter-templates";
+import { prisma } from "@/lib/prisma";
 
 // Schema for newsletter subscription validation
 const subscribeSchema = z.object({

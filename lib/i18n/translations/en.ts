@@ -410,6 +410,9 @@ export const en = {
     "Handpicked products that have proven to be favorites among parents and educators for their exceptional educational value.",
   viewAllProducts: "View All Products",
   whyChooseTechTots: "Why Choose TechTots?",
+  b2bSolutions: "B2B Programs",
+  b2bSolutionsDesc:
+    "Wholesale pricing, bulk orders, and partnerships for schools and businesses.",
 
   // Categories page
   categoryProducts: "{0} Products",

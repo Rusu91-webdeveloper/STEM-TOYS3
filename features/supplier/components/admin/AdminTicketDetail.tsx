@@ -57,7 +57,13 @@ interface Ticket {
   ticketNumber: string;
   subject: string;
   description: string;
-  status: "OPEN" | "PENDING_CUSTOMER" | "PENDING_SUPPLIER" | "RESOLVED" | "CLOSED" | "REOPENED";
+  status:
+    | "OPEN"
+    | "PENDING_CUSTOMER"
+    | "PENDING_SUPPLIER"
+    | "RESOLVED"
+    | "CLOSED"
+    | "REOPENED";
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   category: string;
   assignedTo: string | null;
@@ -177,23 +183,27 @@ export function AdminTicketDetail({
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"details" | "responses" | "assign">("details");
-  
+  const [activeTab, setActiveTab] = useState<
+    "details" | "responses" | "assign"
+  >("details");
+
   // Response form state
   const [responseContent, setResponseContent] = useState("");
   const [isInternal, setIsInternal] = useState(false);
-  const [responseAttachments, setResponseAttachments] = useState<Array<{
-    url: string;
-    name: string;
-    size: number;
-  }>>([]);
+  const [responseAttachments, setResponseAttachments] = useState<
+    Array<{
+      url: string;
+      name: string;
+      size: number;
+    }>
+  >([]);
   const [sendingResponse, setSendingResponse] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  
+
   // Assignment form state
-  const [selectedAdmin, setSelectedAdmin] = useState<string>("");
+  const [selectedAdmin, setSelectedAdmin] = useState<string>("unassigned");
   const [assigning, setAssigning] = useState(false);
-  
+
   // Status update state
   const [newStatus, setNewStatus] = useState<string>("");
   const [statusNote, setStatusNote] = useState("");
@@ -221,7 +231,7 @@ export function AdminTicketDetail({
 
   const fetchTicketDetails = async () => {
     if (!ticket) return;
-    
+
     try {
       setLoading(true);
       const res = await fetch(`/api/admin/tickets/${ticket.id}`);
@@ -254,24 +264,27 @@ export function AdminTicketDetail({
         formData.append("attachmentSizes", attachment.size.toString());
       });
 
-      const res = await fetch(`/api/admin/tickets/${currentTicket.id}/responses`, {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        `/api/admin/tickets/${currentTicket.id}/responses`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!res.ok) throw new Error("Failed to send response");
 
       const data = await res.json();
-      
+
       // Reset form
       setResponseContent("");
       setIsInternal(false);
       setResponseAttachments([]);
-      
+
       // Refresh ticket data
       await fetchTicketDetails();
       onTicketUpdate();
-      
+
       // Show success message
       setError(null);
     } catch (error) {
@@ -296,22 +309,22 @@ export function AdminTicketDetail({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          assignedTo: selectedAdmin || null,
+          assignedTo: selectedAdmin === "unassigned" ? null : selectedAdmin,
         }),
       });
 
       if (!res.ok) throw new Error("Failed to assign ticket");
 
       const data = await res.json();
-      
+
       // Refresh ticket data
       await fetchTicketDetails();
       onTicketUpdate();
-      
+
       // Reset form
-      setSelectedAdmin("");
+      setSelectedAdmin("unassigned");
       setActiveTab("details");
-      
+
       // Show success message
       setError(null);
     } catch (error) {
@@ -340,14 +353,14 @@ export function AdminTicketDetail({
       if (!res.ok) throw new Error("Failed to update status");
 
       const data = await res.json();
-      
+
       // Refresh ticket data
       await fetchTicketDetails();
       onTicketUpdate();
-      
+
       // Reset form
       setStatusNote("");
-      
+
       // Show success message
       setError(null);
     } catch (error) {
@@ -442,38 +455,62 @@ export function AdminTicketDetail({
                 {/* Ticket Info */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Ticket Information</CardTitle>
+                    <CardTitle className="text-lg">
+                      Ticket Information
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Status</Label>
+                        <Label className="text-sm font-medium text-gray-500">
+                          Status
+                        </Label>
                         <Badge className={getStatusColor(currentTicket.status)}>
-                          {statusConfig[currentTicket.status]?.label || currentTicket.status}
+                          {statusConfig[currentTicket.status]?.label ||
+                            currentTicket.status}
                         </Badge>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Priority</Label>
-                        <Badge className={getPriorityColor(currentTicket.priority)}>
-                          {priorityConfig[currentTicket.priority]?.label || currentTicket.priority}
+                        <Label className="text-sm font-medium text-gray-500">
+                          Priority
+                        </Label>
+                        <Badge
+                          className={getPriorityColor(currentTicket.priority)}
+                        >
+                          {priorityConfig[currentTicket.priority]?.label ||
+                            currentTicket.priority}
                         </Badge>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Category</Label>
+                        <Label className="text-sm font-medium text-gray-500">
+                          Category
+                        </Label>
                         <div className="text-sm">{currentTicket.category}</div>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Created</Label>
-                        <div className="text-sm">{formatDate(currentTicket.createdAt)}</div>
+                        <Label className="text-sm font-medium text-gray-500">
+                          Created
+                        </Label>
+                        <div className="text-sm">
+                          {formatDate(currentTicket.createdAt)}
+                        </div>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Last Updated</Label>
-                        <div className="text-sm">{formatDate(currentTicket.updatedAt)}</div>
+                        <Label className="text-sm font-medium text-gray-500">
+                          Last Updated
+                        </Label>
+                        <div className="text-sm">
+                          {formatDate(currentTicket.updatedAt)}
+                        </div>
                       </div>
                       {currentTicket.closedAt && (
                         <div>
-                          <Label className="text-sm font-medium text-gray-500">Closed</Label>
-                          <div className="text-sm">{formatDate(currentTicket.closedAt)}</div>
+                          <Label className="text-sm font-medium text-gray-500">
+                            Closed
+                          </Label>
+                          <div className="text-sm">
+                            {formatDate(currentTicket.closedAt)}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -489,54 +526,66 @@ export function AdminTicketDetail({
                     <div className="p-4 bg-gray-50 rounded-md whitespace-pre-wrap">
                       {currentTicket.description}
                     </div>
-                    
+
                     {/* Display attachments if any */}
                     {currentTicket.attachments.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-gray-200">
-                        <div className="text-sm font-medium text-gray-700 mb-2">Attachments:</div>
+                        <div className="text-sm font-medium text-gray-700 mb-2">
+                          Attachments:
+                        </div>
                         <div className="space-y-2">
                           {currentTicket.attachmentDetails
                             ? // Use detailed attachment info if available
-                              currentTicket.attachmentDetails.map((attachment, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center justify-between p-2 bg-gray-50 rounded"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <Paperclip className="w-4 h-4 text-gray-500" />
-                                    <div>
-                                      <a
-                                        href={attachment.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline font-medium"
-                                      >
-                                        {attachment.name}
-                                      </a>
-                                      <span className="text-xs text-gray-500 ml-2">
-                                        ({(attachment.size / 1024 / 1024).toFixed(2)} MB)
-                                      </span>
+                              currentTicket.attachmentDetails.map(
+                                (attachment, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <Paperclip className="w-4 h-4 text-gray-500" />
+                                      <div>
+                                        <a
+                                          href={attachment.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:underline font-medium"
+                                        >
+                                          {attachment.name}
+                                        </a>
+                                        <span className="text-xs text-gray-500 ml-2">
+                                          (
+                                          {(
+                                            attachment.size /
+                                            1024 /
+                                            1024
+                                          ).toFixed(2)}{" "}
+                                          MB)
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))
+                                )
+                              )
                             : // Fallback to basic attachment info
-                              currentTicket.attachments.map((attachment, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center gap-2 p-2 bg-gray-50 rounded"
-                                >
-                                  <Paperclip className="w-4 h-4 text-gray-500" />
-                                  <a
-                                    href={attachment}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:underline"
+                              currentTicket.attachments.map(
+                                (attachment, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center gap-2 p-2 bg-gray-50 rounded"
                                   >
-                                    Attachment {index + 1}
-                                  </a>
-                                </div>
-                              ))}
+                                    <Paperclip className="w-4 h-4 text-gray-500" />
+                                    <a
+                                      href={attachment}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:underline"
+                                    >
+                                      Attachment {index + 1}
+                                    </a>
+                                  </div>
+                                )
+                              )}
                         </div>
                       </div>
                     )}
@@ -546,27 +595,45 @@ export function AdminTicketDetail({
                 {/* Supplier Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Supplier Information</CardTitle>
+                    <CardTitle className="text-lg">
+                      Supplier Information
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="p-4 bg-blue-50 rounded-md">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-sm font-medium text-gray-500">Company</Label>
-                          <div className="font-medium">{currentTicket.supplier.companyName}</div>
+                          <Label className="text-sm font-medium text-gray-500">
+                            Company
+                          </Label>
+                          <div className="font-medium">
+                            {currentTicket.supplier.companyName}
+                          </div>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-500">Contact Person</Label>
-                          <div className="font-medium">{currentTicket.supplier.contactPersonName}</div>
+                          <Label className="text-sm font-medium text-gray-500">
+                            Contact Person
+                          </Label>
+                          <div className="font-medium">
+                            {currentTicket.supplier.contactPersonName}
+                          </div>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-500">Email</Label>
-                          <div className="text-sm">{currentTicket.supplier.contactPersonEmail}</div>
+                          <Label className="text-sm font-medium text-gray-500">
+                            Email
+                          </Label>
+                          <div className="text-sm">
+                            {currentTicket.supplier.contactPersonEmail}
+                          </div>
                         </div>
                         {currentTicket.supplier.phone && (
                           <div>
-                            <Label className="text-sm font-medium text-gray-500">Phone</Label>
-                            <div className="text-sm">{currentTicket.supplier.phone}</div>
+                            <Label className="text-sm font-medium text-gray-500">
+                              Phone
+                            </Label>
+                            <div className="text-sm">
+                              {currentTicket.supplier.phone}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -585,11 +652,17 @@ export function AdminTicketDetail({
                         <MessageSquare className="w-4 h-4 mr-2" />
                         Respond
                       </Button>
-                      <Button variant="outline" onClick={() => setActiveTab("assign")}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setActiveTab("assign")}
+                      >
                         <User className="w-4 h-4 mr-2" />
                         Assign
                       </Button>
-                      <Button variant="outline" onClick={() => setActiveTab("responses")}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setActiveTab("responses")}
+                      >
                         <FileText className="w-4 h-4 mr-2" />
                         View Responses
                       </Button>
@@ -615,11 +688,11 @@ export function AdminTicketDetail({
                         id="response-content"
                         placeholder="Type your response..."
                         value={responseContent}
-                        onChange={(e) => setResponseContent(e.target.value)}
+                        onChange={e => setResponseContent(e.target.value)}
                         rows={4}
                       />
                     </div>
-                    
+
                     <div>
                       <Label className="text-sm font-medium">Attachments</Label>
                       <div className="mt-2">
@@ -636,7 +709,10 @@ export function AdminTicketDetail({
                                 name: file.fileName,
                                 size: file.fileSize,
                               }));
-                              setResponseAttachments(prev => [...prev, ...newAttachments]);
+                              setResponseAttachments(prev => [
+                                ...prev,
+                                ...newAttachments,
+                              ]);
                             }
                           }}
                           onUploadError={(error: Error) => {
@@ -656,7 +732,8 @@ export function AdminTicketDetail({
                                 {isUploading ? "Uploading..." : "Add Files"}
                               </div>
                             ),
-                            allowedContent: "Images, documents, and archives up to 10MB",
+                            allowedContent:
+                              "Images, documents, and archives up to 10MB",
                           }}
                         />
                       </div>
@@ -674,7 +751,9 @@ export function AdminTicketDetail({
                                     {attachment.name}
                                   </span>
                                   <span className="text-xs text-gray-500 ml-2">
-                                    ({(attachment.size / 1024 / 1024).toFixed(2)} MB)
+                                    (
+                                    {(attachment.size / 1024 / 1024).toFixed(2)}{" "}
+                                    MB)
                                   </span>
                                 </div>
                               </div>
@@ -696,15 +775,23 @@ export function AdminTicketDetail({
                       <Checkbox
                         id="internal-note"
                         checked={isInternal}
-                        onCheckedChange={(checked) => setIsInternal(checked as boolean)}
+                        onCheckedChange={checked =>
+                          setIsInternal(checked as boolean)
+                        }
                       />
-                      <Label htmlFor="internal-note">Internal note (not visible to supplier)</Label>
+                      <Label htmlFor="internal-note">
+                        Internal note (not visible to supplier)
+                      </Label>
                     </div>
 
                     <div className="flex gap-2">
-                      <Button 
+                      <Button
                         onClick={handleSendResponse}
-                        disabled={!responseContent.trim() || sendingResponse || isUploading}
+                        disabled={
+                          !responseContent.trim() ||
+                          sendingResponse ||
+                          isUploading
+                        }
                       >
                         {sendingResponse
                           ? "Sending..."
@@ -730,7 +817,7 @@ export function AdminTicketDetail({
                           No responses yet
                         </div>
                       ) : (
-                        currentTicket.responses.map((response) => (
+                        currentTicket.responses.map(response => (
                           <div
                             key={response.id}
                             className={`p-4 rounded-lg border ${
@@ -741,12 +828,17 @@ export function AdminTicketDetail({
                           >
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium">{response.responder.name}</span>
+                                <span className="font-medium">
+                                  {response.responder.name}
+                                </span>
                                 <Badge variant="outline" className="text-xs">
                                   {response.responderType}
                                 </Badge>
                                 {response.isInternal && (
-                                  <Badge variant="outline" className="text-xs bg-yellow-100">
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs bg-yellow-100"
+                                  >
                                     Internal
                                   </Badge>
                                 )}
@@ -755,55 +847,69 @@ export function AdminTicketDetail({
                                 {formatDate(response.createdAt)}
                               </span>
                             </div>
-                            <div className="whitespace-pre-wrap">{response.content}</div>
-                            
+                            <div className="whitespace-pre-wrap">
+                              {response.content}
+                            </div>
+
                             {/* Display attachments if any */}
                             {response.attachments.length > 0 && (
                               <div className="mt-3 pt-3 border-t border-gray-200">
-                                <div className="text-sm font-medium text-gray-700 mb-2">Attachments:</div>
+                                <div className="text-sm font-medium text-gray-700 mb-2">
+                                  Attachments:
+                                </div>
                                 <div className="space-y-1">
                                   {response.attachmentDetails
                                     ? // Use detailed attachment info if available
-                                      response.attachmentDetails.map((attachment, index) => (
-                                        <div
-                                          key={index}
-                                          className="flex items-center justify-between p-2 bg-gray-50 rounded"
-                                        >
-                                          <div className="flex items-center gap-2">
-                                            <Paperclip className="w-4 h-4 text-gray-500" />
-                                            <div>
-                                              <a
-                                                href={attachment.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 hover:underline font-medium"
-                                              >
-                                                {attachment.name}
-                                              </a>
-                                              <span className="text-xs text-gray-500 ml-2">
-                                                ({(attachment.size / 1024 / 1024).toFixed(2)} MB)
-                                              </span>
+                                      response.attachmentDetails.map(
+                                        (attachment, index) => (
+                                          <div
+                                            key={index}
+                                            className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <Paperclip className="w-4 h-4 text-gray-500" />
+                                              <div>
+                                                <a
+                                                  href={attachment.url}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="text-blue-600 hover:underline font-medium"
+                                                >
+                                                  {attachment.name}
+                                                </a>
+                                                <span className="text-xs text-gray-500 ml-2">
+                                                  (
+                                                  {(
+                                                    attachment.size /
+                                                    1024 /
+                                                    1024
+                                                  ).toFixed(2)}{" "}
+                                                  MB)
+                                                </span>
+                                              </div>
                                             </div>
                                           </div>
-                                        </div>
-                                      ))
+                                        )
+                                      )
                                     : // Fallback to basic attachment info
-                                      response.attachments.map((attachment, index) => (
-                                        <div
-                                          key={index}
-                                          className="flex items-center gap-2 p-2 bg-gray-50 rounded"
-                                        >
-                                          <Paperclip className="w-4 h-4 text-gray-500" />
-                                          <a
-                                            href={attachment}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 hover:underline"
+                                      response.attachments.map(
+                                        (attachment, index) => (
+                                          <div
+                                            key={index}
+                                            className="flex items-center gap-2 p-2 bg-gray-50 rounded"
                                           >
-                                            Attachment {index + 1}
-                                          </a>
-                                        </div>
-                                      ))}
+                                            <Paperclip className="w-4 h-4 text-gray-500" />
+                                            <a
+                                              href={attachment}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-600 hover:underline"
+                                            >
+                                              Attachment {index + 1}
+                                            </a>
+                                          </div>
+                                        )
+                                      )}
                                 </div>
                               </div>
                             )}
@@ -830,13 +936,16 @@ export function AdminTicketDetail({
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="assign-admin">Assign to</Label>
-                      <Select value={selectedAdmin} onValueChange={setSelectedAdmin}>
+                      <Select
+                        value={selectedAdmin}
+                        onValueChange={setSelectedAdmin}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select an admin or leave unassigned" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Unassigned</SelectItem>
-                          {admins.map((admin) => (
+                          <SelectItem value="unassigned">Unassigned</SelectItem>
+                          {admins.map(admin => (
                             <SelectItem key={admin.id} value={admin.id}>
                               {admin.name} ({admin.email})
                             </SelectItem>
@@ -846,10 +955,7 @@ export function AdminTicketDetail({
                     </div>
 
                     <div className="flex gap-2">
-                      <Button 
-                        onClick={handleAssignTicket}
-                        disabled={assigning}
-                      >
+                      <Button onClick={handleAssignTicket} disabled={assigning}>
                         {assigning ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -895,13 +1001,13 @@ export function AdminTicketDetail({
                         id="status-note"
                         placeholder="Add a note about this status change..."
                         value={statusNote}
-                        onChange={(e) => setStatusNote(e.target.value)}
+                        onChange={e => setStatusNote(e.target.value)}
                         rows={3}
                       />
                     </div>
 
                     <div className="flex gap-2">
-                      <Button 
+                      <Button
                         onClick={handleUpdateStatus}
                         disabled={updatingStatus}
                       >

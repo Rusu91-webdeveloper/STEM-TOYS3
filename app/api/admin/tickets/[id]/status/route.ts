@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { sendTicketStatusNotification } from "@/lib/admin-notifications";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { sendTicketStatusNotification } from "@/lib/admin-notifications";
 
 // GET - Get ticket status history
 export async function GET(

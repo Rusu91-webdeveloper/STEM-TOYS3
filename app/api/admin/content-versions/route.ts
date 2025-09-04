@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { resolveAdminUserId } from "@/lib/admin-utils";
 import { auth } from "@/lib/auth";
 import { contentVersioningService } from "@/lib/services/content-versioning";
-import { resolveAdminUserId } from "@/lib/admin-utils";
 
 // GET /api/admin/content-versions - Get version history
 export async function GET(request: NextRequest) {

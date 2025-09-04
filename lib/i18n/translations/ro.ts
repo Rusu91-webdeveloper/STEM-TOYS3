@@ -426,6 +426,9 @@ export const ro = {
     "Produse atent selectate care s-au dovedit a fi preferate de părinți și educatori pentru valoarea lor educațională excepțională.",
   viewAllProducts: "Vezi Toate Produsele",
   whyChooseTechTots: "De ce să alegi TechTots?",
+  b2bSolutions: "Programe B2B",
+  b2bSolutionsDesc:
+    "Prețuri en-gros, comenzi în volum și parteneriate pentru școli și companii.",
 
   // Categories page
   categoryProducts: "{0} Produse",

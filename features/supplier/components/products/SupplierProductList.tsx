@@ -55,6 +55,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { type SupplierProduct } from "@/features/supplier/types/supplier";
+import { formatPriceWithCurrency } from "@/lib/currency-converter";
 
 interface ProductFilters {
   search?: string;
@@ -376,7 +377,7 @@ export function SupplierProductList() {
             <div className="flex items-center space-x-2">
               <Input
                 type="number"
-                placeholder="Min €"
+                placeholder="Min RON"
                 value={filters.minPrice ?? ""}
                 onChange={e =>
                   setFilters(prev => ({
@@ -391,7 +392,7 @@ export function SupplierProductList() {
               <span className="text-muted-foreground">-</span>
               <Input
                 type="number"
-                placeholder="Max €"
+                placeholder="Max RON"
                 value={filters.maxPrice ?? ""}
                 onChange={e =>
                   setFilters(prev => ({
@@ -508,11 +509,14 @@ export function SupplierProductList() {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">
-                          €{product.price.toFixed(2)}
+                          {formatPriceWithCurrency(product.price, "RON")}
                         </div>
                         {product.compareAtPrice && (
                           <div className="text-sm text-muted-foreground line-through">
-                            €{product.compareAtPrice.toFixed(2)}
+                            {formatPriceWithCurrency(
+                              product.compareAtPrice,
+                              "RON"
+                            )}
                           </div>
                         )}
                       </TableCell>

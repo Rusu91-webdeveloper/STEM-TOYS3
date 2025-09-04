@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { validateCsrfForRequest } from "@/lib/csrf";
+import { db } from "@/lib/db";
 
 // Product update schema (all fields optional except id)
 const updateProductSchema = z.object({
@@ -86,7 +87,7 @@ export async function GET(
     // Get product and verify ownership
     const product = await db.product.findFirst({
       where: {
-        id: id,
+        id,
         supplierId: supplier.id,
       },
       include: {
@@ -142,7 +143,7 @@ export async function PUT(
     // Verify product ownership
     const existingProduct = await db.product.findFirst({
       where: {
-        id: id,
+        id,
         supplierId: supplier.id,
       },
     });
@@ -196,7 +197,7 @@ export async function PUT(
 
     // Update product
     const updatedProduct = await db.product.update({
-      where: { id: id },
+      where: { id },
       data: validatedData,
       include: {
         category: {
@@ -254,7 +255,7 @@ export async function PATCH(
     // Verify product ownership
     const existingProduct = await db.product.findFirst({
       where: {
-        id: id,
+        id,
         supplierId: supplier.id,
       },
     });
@@ -284,7 +285,7 @@ export async function PATCH(
 
     // Update product
     const updatedProduct = await db.product.update({
-      where: { id: id },
+      where: { id },
       data: body,
       include: {
         category: {
@@ -343,7 +344,7 @@ export async function DELETE(
     // Verify product ownership
     const existingProduct = await db.product.findFirst({
       where: {
-        id: id,
+        id,
         supplierId: supplier.id,
       },
     });
@@ -368,7 +369,7 @@ export async function DELETE(
 
     // Delete product
     await db.product.delete({
-      where: { id: id },
+      where: { id },
     });
 
     return NextResponse.json({ message: "Product deleted successfully" });

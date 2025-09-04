@@ -1,5 +1,8 @@
 "use client";
 
+import { TrendingUp } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,8 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { TrendingUp } from "lucide-react";
 
 export function EmailAnalytics() {
   return (

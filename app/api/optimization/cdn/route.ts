@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { cdnManager, optimizeAsset, generateAssetUrl, preloadAssets, invalidateCache } from "../../../../lib/optimization/cdn-manager";
 import { withRateLimiting } from "../../../../lib/security/rate-limiter";
 import { withSecurityHeaders } from "../../../../lib/security/security-middleware";

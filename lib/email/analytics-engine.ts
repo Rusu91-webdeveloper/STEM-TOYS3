@@ -4,8 +4,8 @@
  * for enterprise-grade email analytics
  */
 
-import { prisma } from "@/lib/prisma";
 import { cache } from "@/lib/cache";
+import { prisma } from "@/lib/prisma";
 
 export interface EmailEvent {
   id: string;

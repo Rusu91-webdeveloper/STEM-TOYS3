@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { formatPriceWithCurrency } from "@/lib/currency-converter";
 
 type Invoice = {
   id: string;
@@ -42,7 +43,7 @@ export function SupplierInvoicesPage() {
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(0);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("all");
 
   useEffect(() => {
     const run = async () => {
@@ -158,7 +159,9 @@ export function SupplierInvoicesPage() {
                       {new Date(inv.periodEnd).toLocaleDateString()}
                     </TableCell>
                     <TableCell>{inv.status}</TableCell>
-                    <TableCell>€{inv.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell>
+                      {formatPriceWithCurrency(inv.totalAmount, "RON")}
+                    </TableCell>
                     <TableCell>
                       {new Date(inv.dueDate).toLocaleDateString()}
                     </TableCell>

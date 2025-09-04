@@ -28,61 +28,23 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const [currency, setCurrencyState] = useState<CurrencyType>(currencies[0]);
 
   useEffect(() => {
-    // Check if we're in the admin section
-    const isAdmin =
-      typeof window !== "undefined" &&
-      window.location.pathname.startsWith("/admin");
+    // Force RON for all areas since all prices are now stored in RON
+    const ronCurrency = currencies.find(c => c.code === "RON") || currencies[0];
+    setCurrencyState(ronCurrency);
 
-    if (isAdmin) {
-      // Force RON for admin area
-      const ronCurrency =
-        currencies.find(c => c.code === "RON") || currencies[0];
-      setCurrencyState(ronCurrency);
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem("currency", "RON");
-      }
-    } else {
-      // For non-admin areas, try to get from localStorage
-      const storedCurrency =
-        typeof window !== "undefined" ? localStorage.getItem("currency") : null;
-
-      if (storedCurrency) {
-        const foundCurrency = currencies.find(c => c.code === storedCurrency);
-        if (foundCurrency) {
-          setCurrencyState(foundCurrency);
-        }
-      }
+    if (typeof window !== "undefined") {
+      localStorage.setItem("currency", "RON");
     }
   }, []);
 
-  // Set currency based on currency code
+  // Set currency based on currency code - always force RON
   const setCurrency = (currencyCode: string) => {
-    // For admin area, enforce RON
-    const isAdmin =
-      typeof window !== "undefined" &&
-      window.location.pathname.startsWith("/admin");
+    // Always force RON since all prices are now stored in RON
+    const ronCurrency = currencies.find(c => c.code === "RON") || currencies[0];
+    setCurrencyState(ronCurrency);
 
-    if (isAdmin) {
-      // Force RON for admin area
-      const ronCurrency =
-        currencies.find(c => c.code === "RON") || currencies[0];
-      setCurrencyState(ronCurrency);
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem("currency", "RON");
-      }
-      return;
-    }
-
-    // For non-admin areas, allow currency switching
-    const newCurrency =
-      currencies.find(c => c.code === currencyCode) || currencies[0];
-    setCurrencyState(newCurrency);
-
-    // Save to localStorage
     if (typeof window !== "undefined") {
-      localStorage.setItem("currency", newCurrency.code);
+      localStorage.setItem("currency", "RON");
     }
   };
 

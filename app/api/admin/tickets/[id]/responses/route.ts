@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { sendTicketResponseNotification } from "@/lib/admin-notifications";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { sendTicketResponseNotification } from "@/lib/admin-notifications";
 
 // GET - Get all responses for a ticket
 export async function GET(
@@ -149,7 +150,7 @@ export async function POST(
           isInternal,
           hasAttachments: validAttachmentUrls.length > 0,
           attachmentCount: validAttachmentUrls.length,
-          attachments: attachments, // Pass the full attachment details
+          attachments, // Pass the full attachment details
         });
       } catch (error) {
         console.error("Failed to send supplier notification:", error);

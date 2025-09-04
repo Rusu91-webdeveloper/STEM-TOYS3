@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
 import {
   Trash2,
   Search,
@@ -15,11 +14,13 @@ import {
   Shield,
   Info,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import React, { useState, useCallback, useEffect } from "react";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import {
   ImageManagementServiceClient,
@@ -283,8 +284,7 @@ export function ImageCleanupPanel({
   );
 
   // Simulate cleanup process
-  const simulateCleanup = async (job: CleanupJob): Promise<void> => {
-    return new Promise((resolve, reject) => {
+  const simulateCleanup = async (job: CleanupJob): Promise<void> => new Promise((resolve, reject) => {
       let progress = 10;
       const interval = setInterval(() => {
         progress += Math.random() * 30;
@@ -326,7 +326,6 @@ export function ImageCleanupPanel({
         }
       }, 300);
     });
-  };
 
   // Get cleanup type info
   const getCleanupTypeInfo = useCallback(
@@ -380,7 +379,7 @@ export function ImageCleanupPanel({
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
   };
 
   // Get cleanup type badge variant

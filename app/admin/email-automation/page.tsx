@@ -1,16 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import {
   Mail,
   Users,
@@ -31,13 +20,26 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import { EmailAutomationOverview } from "./components/email-automation-overview";
-import { EmailSequences } from "./components/email-sequences";
-import { EmailCampaigns } from "./components/email-campaigns";
+import { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { EmailAnalytics } from "./components/email-analytics";
+import { EmailAutomationOverview } from "./components/email-automation-overview";
+import { EmailCampaigns } from "./components/email-campaigns";
 import { EmailSegments } from "./components/email-segments";
-import { EmailTemplates } from "./components/email-templates";
+import { EmailSequences } from "./components/email-sequences";
 import { EmailSettings } from "./components/email-settings";
+import { EmailTemplates } from "./components/email-templates";
 
 interface EmailStats {
   totalSent: number;
@@ -149,11 +151,11 @@ export default function EmailAutomationPage() {
       if (rate >= 80) return "text-green-600";
       if (rate >= 60) return "text-yellow-600";
       return "text-red-600";
-    } else {
+    } 
       if (rate <= 2) return "text-green-600";
       if (rate <= 5) return "text-yellow-600";
       return "text-red-600";
-    }
+    
   };
 
   if (loading) {

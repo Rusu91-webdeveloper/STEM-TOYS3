@@ -113,7 +113,9 @@ model Product {
   slug              String            @unique
   description       String?
   price             Float
+  priceCurrency     String                  @default("RON")  // Currency of the price (EUR or RON)
   compareAtPrice    Float?
+  compareAtPriceCurrency String              @default("RON")  // Currency of compare price
   sku               String?
   images            String[]
   categoryId        String?
@@ -122,6 +124,7 @@ model Product {
   metadata          Json?
   isActive          Boolean           @default(true)
   featured          Boolean           @default(false)
+  status            ProductStatus     @default(PENDING_APPROVAL)
   stockQuantity     Int               @default(0)
   reservedQuantity  Int               @default(0)
   reorderPoint      Int?
@@ -158,6 +161,7 @@ model Product {
   wishlistItems     Wishlist[]
 
   @@index([categoryId])
+  @@index([status])
   @@index([isActive])
   @@index([slug])
   @@index([name])
@@ -1069,6 +1073,13 @@ enum SupplierOrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+enum ProductStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
 }
 
 enum InvoiceStatus {

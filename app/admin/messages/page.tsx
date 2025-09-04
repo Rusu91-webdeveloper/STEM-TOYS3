@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import { AdminMessagesList } from "@/features/supplier/components/admin/AdminMessagesList";
 
 export const metadata: Metadata = {

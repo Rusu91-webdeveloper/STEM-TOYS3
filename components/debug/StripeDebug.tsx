@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+
 import { getStripe } from "@/lib/stripe";
 
 export function StripeDebug() {

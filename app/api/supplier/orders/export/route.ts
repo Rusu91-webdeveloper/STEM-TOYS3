@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { withSupplierAuth } from "@/lib/authorization";
-import { getCurrentSupplier } from "@/lib/supplier-auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { getCurrentSupplier } from "@/lib/supplier-auth";
 
 export const GET = withSupplierAuth(async (request: NextRequest, session) => {
   try {
