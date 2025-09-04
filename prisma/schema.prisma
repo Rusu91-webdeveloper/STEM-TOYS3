@@ -360,7 +360,11 @@ model Order {
   billingAddressId      String?
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
+  fulfilledAt           DateTime?
+  shippedAt             DateTime?
   deliveredAt           DateTime?
+  completedAt           DateTime?
+  trackingNumber        String?
   stripePaymentIntentId String?
   coupon                Coupon?         @relation(fields: [couponId], references: [id])
   shippingAddress       Address         @relation(fields: [shippingAddressId], references: [id])
@@ -368,12 +372,29 @@ model Order {
   items                 OrderItem[]
   returns               Return[]
   supplierOrders        SupplierOrder[]
+  statusHistory         OrderStatusHistory[]
 
   @@index([userId])
   @@index([status])
   @@index([paymentStatus])
   @@index([orderNumber])
   @@index([couponId])
+}
+
+model OrderStatusHistory {
+  id          String      @id @default(cuid())
+  orderId     String
+  fromStatus  OrderStatus
+  toStatus    OrderStatus
+  reason      String?
+  notes       String?
+  updatedBy   String?
+  createdAt   DateTime    @default(now())
+  order       Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([toStatus])
+  @@index([createdAt])
 }
 
 model OrderItem {
@@ -946,6 +967,9 @@ enum ContentType {
 
 enum OrderStatus {
   PROCESSING
+  PENDING_REVIEW
+  READY_FOR_SHIPPING
+  FULFILLED
   SHIPPED
   DELIVERED
   CANCELLED
