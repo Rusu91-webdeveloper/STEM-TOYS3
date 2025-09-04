@@ -23,81 +23,69 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { HelpTooltip } from "@/components/ui/tooltip";
 
 interface InventoryManagement {
-  // Stock alerts and notifications
+  // Stock alerts and notifications (Dropshipping-focused)
   stockAlerts: {
     enabled: boolean;
     lowStockThreshold: number; // Minimum stock level before alert
     outOfStockAlert: boolean;
-    reorderPointAlert: boolean;
     emailNotifications: boolean;
     adminNotifications: boolean;
     supplierNotifications: boolean;
+    priceChangeAlerts: boolean; // New: Alert when suppliers change prices
   };
 
-  // Reorder management
-  reorderManagement: {
+  // Supplier stock synchronization (Dropshipping-specific)
+  supplierStockSync: {
     enabled: boolean;
-    reorderPoint: number; // Stock level to trigger reorder
-    reorderQuantity: number; // Default quantity to reorder
-    autoReorder: boolean;
-    requireApproval: boolean;
-    supplierEmail: string;
-    reorderFrequency: "daily" | "weekly" | "monthly";
+    syncFrequency: "realtime" | "hourly" | "daily";
+    autoUpdateProductAvailability: boolean;
+    syncPriceChanges: boolean;
+    fallbackSuppliers: boolean; // Enable alternative suppliers for out-of-stock items
+    stockBuffer: number; // Buffer stock to account for sync delays
   };
 
-  // Inventory tracking
-  inventoryTracking: {
+  // Lead time management (Critical for dropshipping)
+  leadTimeManagement: {
     enabled: boolean;
-    trackExpiryDates: boolean;
-    trackBatchNumbers: boolean;
-    trackSerialNumbers: boolean;
-    barcodeScanning: boolean;
-    qrCodeSupport: boolean;
-    locationTracking: boolean;
-    warehouseZones: string[];
+    defaultLeadTime: number; // Default days for processing + shipping
+    dynamicLeadTimes: boolean; // Calculate based on supplier location
+    weekendProcessing: boolean;
+    holidayProcessing: boolean;
+    expressShippingAvailable: boolean;
+    leadTimeBuffer: number; // Extra days buffer for safety
   };
 
-  // Stock adjustments
-  stockAdjustments: {
-    allowNegativeStock: boolean;
-    backorderEnabled: boolean;
-    reserveStockForOrders: boolean;
-    reserveThreshold: number; // Percentage of stock to reserve
-    autoAdjustStock: boolean;
-    adjustmentReasonRequired: boolean;
+  // Supplier performance tracking (Dropshipping-focused)
+  supplierPerformance: {
+    enabled: boolean;
+    trackDeliveryTimes: boolean;
+    trackStockAccuracy: boolean;
+    trackPriceStability: boolean;
+    performanceThreshold: number; // Minimum performance score
+    autoDisablePoorPerformers: boolean;
+    performanceReportFrequency: "weekly" | "monthly";
   };
 
-  // Inventory reports
+  // Inventory reports (Simplified for dropshipping)
   inventoryReports: {
-    dailyStockReport: boolean;
-    weeklyInventoryReport: boolean;
-    monthlyValueReport: boolean;
     lowStockReport: boolean;
-    slowMovingItemsReport: boolean;
-    expiryDateReport: boolean;
+    supplierPerformanceReport: boolean;
+    priceChangeReport: boolean;
+    leadTimeReport: boolean;
     reportRecipients: string[];
   };
 
-  // Supplier management
-  supplierManagement: {
-    enabled: boolean;
-    supplierDirectory: boolean;
-    supplierPerformance: boolean;
-    leadTimeTracking: boolean;
-    costTracking: boolean;
-    supplierNotifications: boolean;
-  };
-
-  // Automated inventory
+  // Automated inventory (Dropshipping-optimized)
   automatedInventory: {
     enabled: boolean;
-    autoUpdateStock: boolean;
-    syncWithPOS: boolean;
-    syncWithEcommerce: boolean;
     realTimeUpdates: boolean;
     inventoryAPI: boolean;
+    webhookSupport: boolean; // For supplier webhooks
+    autoHideOutOfStock: boolean; // Hide products when suppliers are out of stock
+    stockSyncRetryAttempts: number; // Retry failed syncs
   };
 }
 
@@ -137,10 +125,10 @@ export default function InventoryManagementSettings({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Inventory & Stock Management</CardTitle>
+        <CardTitle>Dropshipping Inventory Management</CardTitle>
         <CardDescription>
-          Configure inventory tracking, stock alerts, reorder management, and
-          automated inventory systems
+          Configure supplier stock synchronization, lead time management, and
+          automated inventory systems optimized for dropshipping
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -151,7 +139,12 @@ export default function InventoryManagementSettings({
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="stock-alerts-enabled">Enable Stock Alerts</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="stock-alerts-enabled">
+                  Enable Stock Alerts
+                </Label>
+                <HelpTooltip content="Master switch for all stock-related notifications. When enabled, you'll receive alerts when suppliers are running low on inventory or out of stock." />
+              </div>
               <Switch
                 checked={localInventoryManagement.stockAlerts.enabled}
                 onCheckedChange={checked =>
@@ -161,7 +154,10 @@ export default function InventoryManagementSettings({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="low-stock-threshold">Low Stock Threshold</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="low-stock-threshold">Low Stock Threshold</Label>
+                <HelpTooltip content="Number of units remaining before triggering a low stock alert. For example, if set to 5, you'll get notified when a supplier has only 5 units left of a product." />
+              </div>
               <Input
                 id="low-stock-threshold"
                 value={localInventoryManagement.stockAlerts.lowStockThreshold}
@@ -180,7 +176,10 @@ export default function InventoryManagementSettings({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="out-of-stock-alert">Out of Stock Alert</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="out-of-stock-alert">Out of Stock Alert</Label>
+                <HelpTooltip content="Get notified immediately when a supplier runs out of stock for any product. This helps you quickly hide products or find alternative suppliers." />
+              </div>
               <Switch
                 checked={localInventoryManagement.stockAlerts.outOfStockAlert}
                 onCheckedChange={checked =>
@@ -190,17 +189,23 @@ export default function InventoryManagementSettings({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reorder-point-alert">Reorder Point Alert</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="price-change-alerts">Price Change Alerts</Label>
+                <HelpTooltip content="Receive notifications when suppliers change their prices. This helps you adjust your margins and stay competitive in the market." />
+              </div>
               <Switch
-                checked={localInventoryManagement.stockAlerts.reorderPointAlert}
+                checked={localInventoryManagement.stockAlerts.priceChangeAlerts}
                 onCheckedChange={checked =>
-                  updateField("stockAlerts.reorderPointAlert", checked)
+                  updateField("stockAlerts.priceChangeAlerts", checked)
                 }
-                id="reorder-point-alert"
+                id="price-change-alerts"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email-notifications">Email Notifications</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="email-notifications">Email Notifications</Label>
+                <HelpTooltip content="Send stock alerts via email to keep you informed even when you're not actively monitoring the admin panel." />
+              </div>
               <Switch
                 checked={
                   localInventoryManagement.stockAlerts.emailNotifications
@@ -215,7 +220,10 @@ export default function InventoryManagementSettings({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="admin-notifications">Admin Notifications</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="admin-notifications">Admin Notifications</Label>
+                <HelpTooltip content="Show stock alerts in the admin dashboard and notification center. Keep this enabled to stay informed about inventory issues." />
+              </div>
               <Switch
                 checked={
                   localInventoryManagement.stockAlerts.adminNotifications
@@ -227,9 +235,12 @@ export default function InventoryManagementSettings({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="supplier-notifications">
-                Supplier Notifications
-              </Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="supplier-notifications">
+                  Supplier Notifications
+                </Label>
+                <HelpTooltip content="Automatically notify suppliers when their products are running low or out of stock. This helps them restock faster." />
+              </div>
               <Switch
                 checked={
                   localInventoryManagement.stockAlerts.supplierNotifications
@@ -245,335 +256,412 @@ export default function InventoryManagementSettings({
 
         <Separator />
 
-        {/* Reorder Management */}
+        {/* Supplier Stock Synchronization */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Reorder Management</h3>
+          <h3 className="text-lg font-semibold">
+            Supplier Stock Synchronization
+          </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="reorder-management-enabled">
-                Enable Reorder Management
-              </Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="supplier-stock-sync-enabled">
+                  Enable Stock Sync
+                </Label>
+                <HelpTooltip content="Automatically sync inventory levels with your suppliers' systems. This ensures your website always shows accurate stock availability to customers." />
+              </div>
               <Switch
-                checked={localInventoryManagement.reorderManagement.enabled}
+                checked={localInventoryManagement.supplierStockSync.enabled}
                 onCheckedChange={checked =>
-                  updateField("reorderManagement.enabled", checked)
+                  updateField("supplierStockSync.enabled", checked)
                 }
-                id="reorder-management-enabled"
+                id="supplier-stock-sync-enabled"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="auto-reorder">Auto Reorder</Label>
-              <Switch
-                checked={localInventoryManagement.reorderManagement.autoReorder}
-                onCheckedChange={checked =>
-                  updateField("reorderManagement.autoReorder", checked)
-                }
-                id="auto-reorder"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="reorder-point">Reorder Point</Label>
-              <Input
-                id="reorder-point"
-                value={localInventoryManagement.reorderManagement.reorderPoint}
-                onChange={e =>
-                  updateField(
-                    "reorderManagement.reorderPoint",
-                    parseInt(e.target.value) || 0
-                  )
-                }
-                type="number"
-                min="0"
-                placeholder="10"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reorder-quantity">Reorder Quantity</Label>
-              <Input
-                id="reorder-quantity"
-                value={
-                  localInventoryManagement.reorderManagement.reorderQuantity
-                }
-                onChange={e =>
-                  updateField(
-                    "reorderManagement.reorderQuantity",
-                    parseInt(e.target.value) || 0
-                  )
-                }
-                type="number"
-                min="0"
-                placeholder="50"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reorder-frequency">Reorder Frequency</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="sync-frequency">Sync Frequency</Label>
+                <HelpTooltip content="How often to check and update stock levels. Real-time is most accurate but uses more resources. Hourly is a good balance for most businesses." />
+              </div>
               <Select
-                value={
-                  localInventoryManagement.reorderManagement.reorderFrequency
-                }
+                value={localInventoryManagement.supplierStockSync.syncFrequency}
                 onValueChange={value =>
-                  updateField("reorderManagement.reorderFrequency", value)
+                  updateField("supplierStockSync.syncFrequency", value)
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select frequency" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="realtime">Real-time</SelectItem>
+                  <SelectItem value="hourly">Hourly</SelectItem>
                   <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="require-approval">Require Approval</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.reorderManagement.requireApproval
-                }
-                onCheckedChange={checked =>
-                  updateField("reorderManagement.requireApproval", checked)
-                }
-                id="require-approval"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="supplier-email">Supplier Email</Label>
-              <Input
-                id="supplier-email"
-                value={localInventoryManagement.reorderManagement.supplierEmail}
-                onChange={e =>
-                  updateField("reorderManagement.supplierEmail", e.target.value)
-                }
-                type="email"
-                placeholder="supplier@example.com"
-              />
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Inventory Tracking */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Inventory Tracking</h3>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="inventory-tracking-enabled">
-                Enable Inventory Tracking
-              </Label>
-              <Switch
-                checked={localInventoryManagement.inventoryTracking.enabled}
-                onCheckedChange={checked =>
-                  updateField("inventoryTracking.enabled", checked)
-                }
-                id="inventory-tracking-enabled"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location-tracking">Location Tracking</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.inventoryTracking.locationTracking
-                }
-                onCheckedChange={checked =>
-                  updateField("inventoryTracking.locationTracking", checked)
-                }
-                id="location-tracking"
-              />
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="track-expiry-dates">Track Expiry Dates</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="auto-update-availability">
+                  Auto Update Availability
+                </Label>
+                <HelpTooltip content="Automatically show/hide products on your website based on supplier stock levels. When a supplier runs out, the product is hidden from customers." />
+              </div>
               <Switch
                 checked={
-                  localInventoryManagement.inventoryTracking.trackExpiryDates
-                }
-                onCheckedChange={checked =>
-                  updateField("inventoryTracking.trackExpiryDates", checked)
-                }
-                id="track-expiry-dates"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="track-batch-numbers">Track Batch Numbers</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.inventoryTracking.trackBatchNumbers
-                }
-                onCheckedChange={checked =>
-                  updateField("inventoryTracking.trackBatchNumbers", checked)
-                }
-                id="track-batch-numbers"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="track-serial-numbers">Track Serial Numbers</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.inventoryTracking.trackSerialNumbers
-                }
-                onCheckedChange={checked =>
-                  updateField("inventoryTracking.trackSerialNumbers", checked)
-                }
-                id="track-serial-numbers"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="barcode-scanning">Barcode Scanning</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.inventoryTracking.barcodeScanning
-                }
-                onCheckedChange={checked =>
-                  updateField("inventoryTracking.barcodeScanning", checked)
-                }
-                id="barcode-scanning"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="qr-code-support">QR Code Support</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.inventoryTracking.qrCodeSupport
-                }
-                onCheckedChange={checked =>
-                  updateField("inventoryTracking.qrCodeSupport", checked)
-                }
-                id="qr-code-support"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="warehouse-zones">
-              Warehouse Zones (comma-separated)
-            </Label>
-            <Input
-              id="warehouse-zones"
-              value={localInventoryManagement.inventoryTracking.warehouseZones.join(
-                ", "
-              )}
-              onChange={e =>
-                updateField(
-                  "inventoryTracking.warehouseZones",
-                  e.target.value
-                    .split(",")
-                    .map(zone => zone.trim())
-                    .filter(zone => zone)
-                )
-              }
-              type="text"
-              placeholder="Zone A, Zone B, Zone C"
-            />
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Stock Adjustments */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Stock Adjustments</h3>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="allow-negative-stock">Allow Negative Stock</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.stockAdjustments.allowNegativeStock
-                }
-                onCheckedChange={checked =>
-                  updateField("stockAdjustments.allowNegativeStock", checked)
-                }
-                id="allow-negative-stock"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="backorder-enabled">Enable Backorders</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.stockAdjustments.backorderEnabled
-                }
-                onCheckedChange={checked =>
-                  updateField("stockAdjustments.backorderEnabled", checked)
-                }
-                id="backorder-enabled"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="reserve-stock">Reserve Stock for Orders</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.stockAdjustments
-                    .reserveStockForOrders
-                }
-                onCheckedChange={checked =>
-                  updateField("stockAdjustments.reserveStockForOrders", checked)
-                }
-                id="reserve-stock"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="auto-adjust-stock">Auto Adjust Stock</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.stockAdjustments.autoAdjustStock
-                }
-                onCheckedChange={checked =>
-                  updateField("stockAdjustments.autoAdjustStock", checked)
-                }
-                id="auto-adjust-stock"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="adjustment-reason-required">
-                Require Adjustment Reason
-              </Label>
-              <Switch
-                checked={
-                  localInventoryManagement.stockAdjustments
-                    .adjustmentReasonRequired
+                  localInventoryManagement.supplierStockSync
+                    .autoUpdateProductAvailability
                 }
                 onCheckedChange={checked =>
                   updateField(
-                    "stockAdjustments.adjustmentReasonRequired",
+                    "supplierStockSync.autoUpdateProductAvailability",
                     checked
                   )
                 }
-                id="adjustment-reason-required"
+                id="auto-update-availability"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="sync-price-changes">Sync Price Changes</Label>
+                <HelpTooltip content="Automatically update your product prices when suppliers change their wholesale prices. This helps maintain consistent profit margins." />
+              </div>
+              <Switch
+                checked={
+                  localInventoryManagement.supplierStockSync.syncPriceChanges
+                }
+                onCheckedChange={checked =>
+                  updateField("supplierStockSync.syncPriceChanges", checked)
+                }
+                id="sync-price-changes"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="fallback-suppliers">Fallback Suppliers</Label>
+                <HelpTooltip content="When a primary supplier is out of stock, automatically switch to alternative suppliers for the same product. This reduces stockouts and improves customer experience." />
+              </div>
+              <Switch
+                checked={
+                  localInventoryManagement.supplierStockSync.fallbackSuppliers
+                }
+                onCheckedChange={checked =>
+                  updateField("supplierStockSync.fallbackSuppliers", checked)
+                }
+                id="fallback-suppliers"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="reserve-threshold">Reserve Threshold (%)</Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="stock-buffer">Stock Buffer (units)</Label>
+              <HelpTooltip content="Extra units to subtract from supplier stock to account for sync delays and prevent overselling. For example, if set to 2, when a supplier has 10 units, your site shows 8 available." />
+            </div>
             <Input
-              id="reserve-threshold"
-              value={localInventoryManagement.stockAdjustments.reserveThreshold}
+              id="stock-buffer"
+              value={localInventoryManagement.supplierStockSync.stockBuffer}
               onChange={e =>
                 updateField(
-                  "stockAdjustments.reserveThreshold",
+                  "supplierStockSync.stockBuffer",
                   parseInt(e.target.value) || 0
                 )
               }
               type="number"
               min="0"
-              max="100"
-              placeholder="10"
+              placeholder="2"
             />
+            <p className="text-xs text-muted-foreground">
+              Extra stock buffer to account for sync delays
+            </p>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Lead Time Management */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Lead Time Management</h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="lead-time-enabled">
+                  Enable Lead Time Management
+                </Label>
+                <HelpTooltip content="Manage and display accurate shipping times to customers. This helps set proper expectations and reduces customer complaints about delivery delays." />
+              </div>
+              <Switch
+                checked={localInventoryManagement.leadTimeManagement.enabled}
+                onCheckedChange={checked =>
+                  updateField("leadTimeManagement.enabled", checked)
+                }
+                id="lead-time-enabled"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="default-lead-time">
+                  Default Lead Time (days)
+                </Label>
+                <HelpTooltip content="Standard processing and shipping time for most products. This includes supplier processing time plus shipping time to customers." />
+              </div>
+              <Input
+                id="default-lead-time"
+                value={
+                  localInventoryManagement.leadTimeManagement.defaultLeadTime
+                }
+                onChange={e =>
+                  updateField(
+                    "leadTimeManagement.defaultLeadTime",
+                    parseInt(e.target.value) || 0
+                  )
+                }
+                type="number"
+                min="0"
+                placeholder="7"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="dynamic-lead-times">Dynamic Lead Times</Label>
+                <HelpTooltip content="Automatically calculate lead times based on supplier location and shipping zones. This provides more accurate delivery estimates to customers." />
+              </div>
+              <Switch
+                checked={
+                  localInventoryManagement.leadTimeManagement.dynamicLeadTimes
+                }
+                onCheckedChange={checked =>
+                  updateField("leadTimeManagement.dynamicLeadTimes", checked)
+                }
+                id="dynamic-lead-times"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="weekend-processing">Weekend Processing</Label>
+                <HelpTooltip content="Allow suppliers to process and ship orders on weekends. This can reduce lead times but may increase costs." />
+              </div>
+              <Switch
+                checked={
+                  localInventoryManagement.leadTimeManagement.weekendProcessing
+                }
+                onCheckedChange={checked =>
+                  updateField("leadTimeManagement.weekendProcessing", checked)
+                }
+                id="weekend-processing"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="express-shipping">
+                  Express Shipping Available
+                </Label>
+                <HelpTooltip content="Offer express shipping options to customers for faster delivery. This typically costs more but provides better customer experience." />
+              </div>
+              <Switch
+                checked={
+                  localInventoryManagement.leadTimeManagement
+                    .expressShippingAvailable
+                }
+                onCheckedChange={checked =>
+                  updateField(
+                    "leadTimeManagement.expressShippingAvailable",
+                    checked
+                  )
+                }
+                id="express-shipping"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-1">
+              <Label htmlFor="lead-time-buffer">Lead Time Buffer (days)</Label>
+              <HelpTooltip content="Extra days added to lead times as a safety margin. This helps account for unexpected delays and ensures customers receive their orders on time or earlier than expected." />
+            </div>
+            <Input
+              id="lead-time-buffer"
+              value={localInventoryManagement.leadTimeManagement.leadTimeBuffer}
+              onChange={e =>
+                updateField(
+                  "leadTimeManagement.leadTimeBuffer",
+                  parseInt(e.target.value) || 0
+                )
+              }
+              type="number"
+              min="0"
+              placeholder="2"
+            />
+            <p className="text-xs text-muted-foreground">
+              Extra days buffer for safety margin
+            </p>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Supplier Performance Tracking */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">
+            Supplier Performance Tracking
+          </h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="supplier-performance-enabled">
+                  Enable Performance Tracking
+                </Label>
+                <HelpTooltip content="Track supplier reliability metrics like delivery times, stock accuracy, and price stability. This helps you identify the best performing suppliers." />
+              </div>
+              <Switch
+                checked={localInventoryManagement.supplierPerformance.enabled}
+                onCheckedChange={checked =>
+                  updateField("supplierPerformance.enabled", checked)
+                }
+                id="supplier-performance-enabled"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="performance-threshold">
+                  Performance Threshold (%)
+                </Label>
+                <HelpTooltip content="Minimum performance score (0-100%) that suppliers must maintain. Suppliers below this threshold may be flagged for review or automatically disabled." />
+              </div>
+              <Input
+                id="performance-threshold"
+                value={
+                  localInventoryManagement.supplierPerformance
+                    .performanceThreshold
+                }
+                onChange={e =>
+                  updateField(
+                    "supplierPerformance.performanceThreshold",
+                    parseInt(e.target.value) || 0
+                  )
+                }
+                type="number"
+                min="0"
+                max="100"
+                placeholder="80"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="track-delivery-times">
+                  Track Delivery Times
+                </Label>
+                <HelpTooltip content="Monitor how long it takes suppliers to fulfill and ship orders. This helps identify suppliers who consistently meet or exceed delivery promises." />
+              </div>
+              <Switch
+                checked={
+                  localInventoryManagement.supplierPerformance
+                    .trackDeliveryTimes
+                }
+                onCheckedChange={checked =>
+                  updateField("supplierPerformance.trackDeliveryTimes", checked)
+                }
+                id="track-delivery-times"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="track-stock-accuracy">
+                  Track Stock Accuracy
+                </Label>
+                <HelpTooltip content="Monitor how accurate supplier stock levels are compared to what they report. This helps identify suppliers with reliable inventory data." />
+              </div>
+              <Switch
+                checked={
+                  localInventoryManagement.supplierPerformance
+                    .trackStockAccuracy
+                }
+                onCheckedChange={checked =>
+                  updateField("supplierPerformance.trackStockAccuracy", checked)
+                }
+                id="track-stock-accuracy"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="track-price-stability">
+                  Track Price Stability
+                </Label>
+                <HelpTooltip content="Monitor how often suppliers change their prices. Stable pricing helps you maintain consistent profit margins and pricing strategies." />
+              </div>
+              <Switch
+                checked={
+                  localInventoryManagement.supplierPerformance
+                    .trackPriceStability
+                }
+                onCheckedChange={checked =>
+                  updateField(
+                    "supplierPerformance.trackPriceStability",
+                    checked
+                  )
+                }
+                id="track-price-stability"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="auto-disable-poor-performers">
+                  Auto Disable Poor Performers
+                </Label>
+                <HelpTooltip content="Automatically disable suppliers who consistently perform below the threshold. This prevents poor-performing suppliers from affecting your business." />
+              </div>
+              <Switch
+                checked={
+                  localInventoryManagement.supplierPerformance
+                    .autoDisablePoorPerformers
+                }
+                onCheckedChange={checked =>
+                  updateField(
+                    "supplierPerformance.autoDisablePoorPerformers",
+                    checked
+                  )
+                }
+                id="auto-disable-poor-performers"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="performance-report-frequency">
+                  Report Frequency
+                </Label>
+                <HelpTooltip content="How often to generate supplier performance reports. Weekly reports help you stay on top of issues, while monthly reports provide broader insights." />
+              </div>
+              <Select
+                value={
+                  localInventoryManagement.supplierPerformance
+                    .performanceReportFrequency
+                }
+                onValueChange={value =>
+                  updateField(
+                    "supplierPerformance.performanceReportFrequency",
+                    value
+                  )
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select frequency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -584,46 +672,10 @@ export default function InventoryManagementSettings({
           <h3 className="text-lg font-semibold">Inventory Reports</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="daily-stock-report">Daily Stock Report</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.inventoryReports.dailyStockReport
-                }
-                onCheckedChange={checked =>
-                  updateField("inventoryReports.dailyStockReport", checked)
-                }
-                id="daily-stock-report"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="weekly-inventory-report">
-                Weekly Inventory Report
-              </Label>
-              <Switch
-                checked={
-                  localInventoryManagement.inventoryReports
-                    .weeklyInventoryReport
-                }
-                onCheckedChange={checked =>
-                  updateField("inventoryReports.weeklyInventoryReport", checked)
-                }
-                id="weekly-inventory-report"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="monthly-value-report">Monthly Value Report</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.inventoryReports.monthlyValueReport
-                }
-                onCheckedChange={checked =>
-                  updateField("inventoryReports.monthlyValueReport", checked)
-                }
-                id="monthly-value-report"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="low-stock-report">Low Stock Report</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="low-stock-report">Low Stock Report</Label>
+                <HelpTooltip content="Generate regular reports showing products that are running low on stock. This helps you proactively manage inventory and avoid stockouts." />
+              </div>
               <Switch
                 checked={
                   localInventoryManagement.inventoryReports.lowStockReport
@@ -635,38 +687,65 @@ export default function InventoryManagementSettings({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slow-moving-items-report">
-                Slow Moving Items Report
-              </Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="supplier-performance-report">
+                  Supplier Performance Report
+                </Label>
+                <HelpTooltip content="Generate detailed reports on supplier performance metrics including delivery times, stock accuracy, and price stability. Use this to make informed decisions about supplier relationships." />
+              </div>
               <Switch
                 checked={
                   localInventoryManagement.inventoryReports
-                    .slowMovingItemsReport
+                    .supplierPerformanceReport
                 }
                 onCheckedChange={checked =>
-                  updateField("inventoryReports.slowMovingItemsReport", checked)
+                  updateField(
+                    "inventoryReports.supplierPerformanceReport",
+                    checked
+                  )
                 }
-                id="slow-moving-items-report"
+                id="supplier-performance-report"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="expiry-date-report">Expiry Date Report</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="price-change-report">Price Change Report</Label>
+                <HelpTooltip content="Track and report on price changes from suppliers. This helps you monitor cost fluctuations and adjust your pricing strategy accordingly." />
+              </div>
               <Switch
                 checked={
-                  localInventoryManagement.inventoryReports.expiryDateReport
+                  localInventoryManagement.inventoryReports.priceChangeReport
                 }
                 onCheckedChange={checked =>
-                  updateField("inventoryReports.expiryDateReport", checked)
+                  updateField("inventoryReports.priceChangeReport", checked)
                 }
-                id="expiry-date-report"
+                id="price-change-report"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="lead-time-report">Lead Time Report</Label>
+                <HelpTooltip content="Generate reports on actual vs. expected lead times. This helps you identify suppliers with consistent delivery performance and adjust customer expectations." />
+              </div>
+              <Switch
+                checked={
+                  localInventoryManagement.inventoryReports.leadTimeReport
+                }
+                onCheckedChange={checked =>
+                  updateField("inventoryReports.leadTimeReport", checked)
+                }
+                id="lead-time-report"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="report-recipients">
-              Report Recipients (comma-separated emails)
-            </Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="report-recipients">
+                Report Recipients (comma-separated emails)
+              </Label>
+              <HelpTooltip content="Email addresses that will receive automated inventory reports. Separate multiple emails with commas. These reports help keep your team informed about inventory status and supplier performance." />
+            </div>
             <Input
               id="report-recipients"
               value={localInventoryManagement.inventoryReports.reportRecipients.join(
@@ -689,102 +768,17 @@ export default function InventoryManagementSettings({
 
         <Separator />
 
-        {/* Supplier Management */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Supplier Management</h3>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="supplier-management-enabled">
-                Enable Supplier Management
-              </Label>
-              <Switch
-                checked={localInventoryManagement.supplierManagement.enabled}
-                onCheckedChange={checked =>
-                  updateField("supplierManagement.enabled", checked)
-                }
-                id="supplier-management-enabled"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="supplier-directory">Supplier Directory</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.supplierManagement.supplierDirectory
-                }
-                onCheckedChange={checked =>
-                  updateField("supplierManagement.supplierDirectory", checked)
-                }
-                id="supplier-directory"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="supplier-performance">Supplier Performance</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.supplierManagement
-                    .supplierPerformance
-                }
-                onCheckedChange={checked =>
-                  updateField("supplierManagement.supplierPerformance", checked)
-                }
-                id="supplier-performance"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lead-time-tracking">Lead Time Tracking</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.supplierManagement.leadTimeTracking
-                }
-                onCheckedChange={checked =>
-                  updateField("supplierManagement.leadTimeTracking", checked)
-                }
-                id="lead-time-tracking"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cost-tracking">Cost Tracking</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.supplierManagement.costTracking
-                }
-                onCheckedChange={checked =>
-                  updateField("supplierManagement.costTracking", checked)
-                }
-                id="cost-tracking"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="supplier-notifications">
-                Supplier Notifications
-              </Label>
-              <Switch
-                checked={
-                  localInventoryManagement.supplierManagement
-                    .supplierNotifications
-                }
-                onCheckedChange={checked =>
-                  updateField(
-                    "supplierManagement.supplierNotifications",
-                    checked
-                  )
-                }
-                id="supplier-notifications"
-              />
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
         {/* Automated Inventory */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Automated Inventory</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="automated-inventory-enabled">
-                Enable Automated Inventory
-              </Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="automated-inventory-enabled">
+                  Enable Automated Inventory
+                </Label>
+                <HelpTooltip content="Master switch for all automated inventory features. When enabled, the system will automatically manage stock levels, product availability, and supplier synchronization without manual intervention." />
+              </div>
               <Switch
                 checked={localInventoryManagement.automatedInventory.enabled}
                 onCheckedChange={checked =>
@@ -794,43 +788,10 @@ export default function InventoryManagementSettings({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="auto-update-stock">Auto Update Stock</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.automatedInventory.autoUpdateStock
-                }
-                onCheckedChange={checked =>
-                  updateField("automatedInventory.autoUpdateStock", checked)
-                }
-                id="auto-update-stock"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="sync-with-pos">Sync with POS</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.automatedInventory.syncWithPOS
-                }
-                onCheckedChange={checked =>
-                  updateField("automatedInventory.syncWithPOS", checked)
-                }
-                id="sync-with-pos"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="sync-with-ecommerce">Sync with E-commerce</Label>
-              <Switch
-                checked={
-                  localInventoryManagement.automatedInventory.syncWithEcommerce
-                }
-                onCheckedChange={checked =>
-                  updateField("automatedInventory.syncWithEcommerce", checked)
-                }
-                id="sync-with-ecommerce"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="real-time-updates">Real-time Updates</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="real-time-updates">Real-time Updates</Label>
+                <HelpTooltip content="Update inventory levels and product availability in real-time as changes occur. This provides the most accurate information to customers but may use more system resources." />
+              </div>
               <Switch
                 checked={
                   localInventoryManagement.automatedInventory.realTimeUpdates
@@ -842,7 +803,10 @@ export default function InventoryManagementSettings({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="inventory-api">Inventory API</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="inventory-api">Inventory API</Label>
+                <HelpTooltip content="Enable API access for inventory management. This allows external systems and suppliers to directly update inventory levels and product information through API calls." />
+              </div>
               <Switch
                 checked={
                   localInventoryManagement.automatedInventory.inventoryAPI
@@ -851,6 +815,63 @@ export default function InventoryManagementSettings({
                   updateField("automatedInventory.inventoryAPI", checked)
                 }
                 id="inventory-api"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="webhook-support">Webhook Support</Label>
+                <HelpTooltip content="Enable webhook notifications for inventory changes. This allows you to receive instant notifications when stock levels change, products become unavailable, or other inventory events occur." />
+              </div>
+              <Switch
+                checked={
+                  localInventoryManagement.automatedInventory.webhookSupport
+                }
+                onCheckedChange={checked =>
+                  updateField("automatedInventory.webhookSupport", checked)
+                }
+                id="webhook-support"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="auto-hide-out-of-stock">
+                  Auto Hide Out of Stock
+                </Label>
+                <HelpTooltip content="Automatically hide products from your website when they go out of stock. This prevents customers from ordering unavailable items and improves the shopping experience." />
+              </div>
+              <Switch
+                checked={
+                  localInventoryManagement.automatedInventory.autoHideOutOfStock
+                }
+                onCheckedChange={checked =>
+                  updateField("automatedInventory.autoHideOutOfStock", checked)
+                }
+                id="auto-hide-out-of-stock"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="stock-sync-retry-attempts">
+                  Sync Retry Attempts
+                </Label>
+                <HelpTooltip content="Number of times to retry failed inventory synchronization attempts. Higher values improve reliability but may slow down the system if suppliers are consistently unavailable." />
+              </div>
+              <Input
+                id="stock-sync-retry-attempts"
+                value={
+                  localInventoryManagement.automatedInventory
+                    .stockSyncRetryAttempts
+                }
+                onChange={e =>
+                  updateField(
+                    "automatedInventory.stockSyncRetryAttempts",
+                    parseInt(e.target.value) || 0
+                  )
+                }
+                type="number"
+                min="0"
+                max="10"
+                placeholder="3"
               />
             </div>
           </div>

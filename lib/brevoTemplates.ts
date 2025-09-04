@@ -1793,4 +1793,292 @@ export const emailTemplates = {
       params: { email: to },
     });
   },
+
+  // Order Processing Email Templates
+  async sendOrderFulfilledEmail({
+    to,
+    orderNumber,
+    customerName,
+    orderTotal,
+    items,
+    shippingAddress,
+  }: {
+    to: string;
+    orderNumber: string;
+    customerName: string;
+    orderTotal: number;
+    items: Array<{ name: string; quantity: number; price: number }>;
+    shippingAddress: any;
+  }) {
+    const storeSettings = await getStoreSettings();
+    const baseUrl = getBaseUrl();
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="ro">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Comanda #${orderNumber} - Gata pentru Expediere</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .order-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+          .total { font-weight: bold; font-size: 18px; color: #667eea; }
+          .cta-button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎉 Comanda Ta Este Gata!</h1>
+            <p>Comanda #${orderNumber} a fost procesată și este gata pentru expediere</p>
+          </div>
+          <div class="content">
+            <h2>Salut ${customerName}!</h2>
+            <p>Excelente știri! Comanda ta #${orderNumber} a fost procesată cu succes și este acum gata pentru expediere.</p>
+            
+            <div class="order-details">
+              <h3>Detalii Comandă</h3>
+              ${items
+                .map(
+                  item => `
+                <div class="item">
+                  <span>${item.name} x${item.quantity}</span>
+                  <span>${new Intl.NumberFormat("ro-RO", { style: "currency", currency: "RON" }).format(item.price * item.quantity)}</span>
+                </div>
+              `
+                )
+                .join("")}
+              <div class="item total">
+                <span>Total</span>
+                <span>${new Intl.NumberFormat("ro-RO", { style: "currency", currency: "RON" }).format(orderTotal)}</span>
+              </div>
+            </div>
+
+            <p><strong>Adresa de livrare:</strong></p>
+            <p>${shippingAddress.fullName}<br>
+            ${shippingAddress.addressLine1}<br>
+            ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postalCode}<br>
+            ${shippingAddress.country}</p>
+
+            <p>Vei primi o notificare cu numărul de urmărire când comanda va fi expediată.</p>
+            
+            <a href="${baseUrl}/account/orders" class="cta-button">Vezi Comanda</a>
+            
+            <p>Mulțumim că ai ales ${storeSettings.storeName}!</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return sendMail({
+      to,
+      subject: `🎉 Comanda #${orderNumber} - Gata pentru Expediere - ${storeSettings.storeName}`,
+      html,
+      params: { email: to },
+    });
+  },
+
+  async sendOrderShippedEmail({
+    to,
+    orderNumber,
+    customerName,
+    trackingNumber,
+    items,
+    shippingAddress,
+  }: {
+    to: string;
+    orderNumber: string;
+    customerName: string;
+    trackingNumber?: string;
+    items: Array<{ name: string; quantity: number; price: number }>;
+    shippingAddress: any;
+  }) {
+    const storeSettings = await getStoreSettings();
+    const baseUrl = getBaseUrl();
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="ro">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Comanda #${orderNumber} - Expediată</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .tracking { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
+          .tracking-number { font-size: 24px; font-weight: bold; color: #4CAF50; margin: 10px 0; }
+          .cta-button { display: inline-block; background: #4CAF50; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🚚 Comanda Ta a Fost Expediată!</h1>
+            <p>Comanda #${orderNumber} este în drum spre tine</p>
+          </div>
+          <div class="content">
+            <h2>Salut ${customerName}!</h2>
+            <p>Excelente știri! Comanda ta #${orderNumber} a fost expediată și este în drum spre tine.</p>
+            
+            ${
+              trackingNumber
+                ? `
+              <div class="tracking">
+                <h3>Numărul de Urmărire</h3>
+                <div class="tracking-number">${trackingNumber}</div>
+                <p>Folosește acest număr pentru a urmări comanda ta online</p>
+              </div>
+            `
+                : ""
+            }
+
+            <p><strong>Adresa de livrare:</strong></p>
+            <p>${shippingAddress.fullName}<br>
+            ${shippingAddress.addressLine1}<br>
+            ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postalCode}<br>
+            ${shippingAddress.country}</p>
+
+            <p>Comanda ta ar trebui să ajungă în următoarele 2-5 zile lucrătoare.</p>
+            
+            <a href="${baseUrl}/account/orders" class="cta-button">Urmărește Comanda</a>
+            
+            <p>Mulțumim că ai ales ${storeSettings.storeName}!</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return sendMail({
+      to,
+      subject: `🚚 Comanda #${orderNumber} - Expediată - ${storeSettings.storeName}`,
+      html,
+      params: { email: to },
+    });
+  },
+
+  async sendOrderDeliveredEmail({
+    to,
+    orderNumber,
+    customerName,
+    items,
+  }: {
+    to: string;
+    orderNumber: string;
+    customerName: string;
+    items: Array<{ name: string; quantity: number; price: number }>;
+  }) {
+    const storeSettings = await getStoreSettings();
+    const baseUrl = getBaseUrl();
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="ro">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Comanda #${orderNumber} - Livrată</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .cta-button { display: inline-block; background: #FF9800; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>📦 Comanda Ta a Fost Livrată!</h1>
+            <p>Comanda #${orderNumber} a ajuns la destinație</p>
+          </div>
+          <div class="content">
+            <h2>Salut ${customerName}!</h2>
+            <p>Excelente știri! Comanda ta #${orderNumber} a fost livrată cu succes.</p>
+            
+            <p>Sperăm că te vei bucura de produsele tale noi! Dacă ai întrebări sau ai nevoie de asistență, nu ezita să ne contactezi.</p>
+            
+            <a href="${baseUrl}/account/orders" class="cta-button">Vezi Comanda</a>
+            <a href="${baseUrl}/contact" class="cta-button">Contactează-ne</a>
+            
+            <p>Mulțumim că ai ales ${storeSettings.storeName} și sperăm să te vedem din nou curând!</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return sendMail({
+      to,
+      subject: `📦 Comanda #${orderNumber} - Livrată - ${storeSettings.storeName}`,
+      html,
+      params: { email: to },
+    });
+  },
+
+  async sendOrderCompletedEmail({
+    to,
+    orderNumber,
+    customerName,
+  }: {
+    to: string;
+    orderNumber: string;
+    customerName: string;
+  }) {
+    const storeSettings = await getStoreSettings();
+    const baseUrl = getBaseUrl();
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="ro">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Comanda #${orderNumber} - Completată</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .cta-button { display: inline-block; background: #9C27B0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>✅ Comanda Ta a Fost Completată!</h1>
+            <p>Comanda #${orderNumber} - Proces completat</p>
+          </div>
+          <div class="content">
+            <h2>Salut ${customerName}!</h2>
+            <p>Comanda ta #${orderNumber} a fost completată cu succes! Procesul de comandă s-a încheiat.</p>
+            
+            <p>Mulțumim pentru încrederea acordată ${storeSettings.storeName}! Sperăm că te vei bucura de produsele tale și că vei reveni curând pentru alte achiziții.</p>
+            
+            <a href="${baseUrl}/products" class="cta-button">Descoperă Produse Noi</a>
+            <a href="${baseUrl}/account/orders" class="cta-button">Vezi Istoricul Comenzilor</a>
+            
+            <p>Echipa ${storeSettings.storeName}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return sendMail({
+      to,
+      subject: `✅ Comanda #${orderNumber} - Completată - ${storeSettings.storeName}`,
+      html,
+      params: { email: to },
+    });
+  },
 };

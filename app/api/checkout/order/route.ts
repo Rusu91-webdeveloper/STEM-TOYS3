@@ -10,6 +10,17 @@ import {
   getShippingSettings,
   getTaxSettings,
 } from "@/lib/utils/store-settings";
+import {
+  shouldAutoFulfillOrder,
+  calculateProcessingTime,
+  shouldHoldForReview,
+  isSignatureRequired,
+  getWarehouseLocation,
+  getPackagingNotes,
+  isQualityCheckRequired,
+  shouldAlertHighValueOrder,
+  getNotificationSettings,
+} from "@/lib/utils/order-processing";
 
 // Order validation schema - more lenient version
 const shippingAddressSchema = z
@@ -453,6 +464,60 @@ export async function POST(request: Request) {
           },
         });
 
+        // Apply order processing logic
+        console.log("Applying order processing logic...");
+
+        // Check if order should be held for review
+        const shouldHold = await shouldHoldForReview(
+          orderTotal,
+          orderData.orderNotes
+        );
+        if (shouldHold) {
+          console.log(
+            `Order ${newOrder.id} held for review due to high value or keywords`
+          );
+          await tx.order.update({
+            where: { id: newOrder.id },
+            data: { status: "PENDING_REVIEW" },
+          });
+        }
+
+        // Check if order should be auto-fulfilled
+        const shouldAutoFulfill = await shouldAutoFulfillOrder(
+          orderTotal,
+          items
+        );
+        if (shouldAutoFulfill && !shouldHold) {
+          console.log(`Order ${newOrder.id} eligible for auto-fulfillment`);
+          // Auto-fulfillment will be handled by background job
+        }
+
+        // Calculate processing time
+        const processingTime = await calculateProcessingTime(
+          orderData.shippingMethod?.name || "standard"
+        );
+        console.log(
+          `Order ${newOrder.id} processing time: ${processingTime} hours`
+        );
+
+        // Check if signature is required
+        const signatureRequired = await isSignatureRequired(orderTotal);
+        if (signatureRequired) {
+          console.log(`Order ${newOrder.id} requires signature for delivery`);
+        }
+
+        // Get fulfillment details
+        const warehouseLocation = await getWarehouseLocation();
+        const packagingNotes = await getPackagingNotes();
+        const qualityCheckRequired = await isQualityCheckRequired();
+
+        console.log(`Order ${newOrder.id} fulfillment details:`, {
+          warehouseLocation,
+          packagingNotes,
+          qualityCheckRequired,
+          signatureRequired,
+        });
+
         // If coupon was applied, track its usage and update coupon stats
         if (appliedCoupon && discountAmount > 0) {
           // Create coupon usage record
@@ -616,6 +681,47 @@ export async function POST(request: Request) {
       console.log(
         `Successfully created order ${dbOrder.id} with ${items.length} items`
       );
+
+      // Send order processing notifications
+      try {
+        const notificationSettings = await getNotificationSettings();
+
+        if (notificationSettings?.orderConfirmation) {
+          console.log(
+            `Sending order confirmation email for order ${dbOrder.id}`
+          );
+          // Order confirmation email will be sent by existing email logic
+        }
+
+        if (notificationSettings?.adminAlerts.highValueOrders) {
+          const shouldAlert = await shouldAlertHighValueOrder(orderTotal);
+          if (shouldAlert) {
+            console.log(
+              `High value order alert triggered for order ${dbOrder.id} (${orderTotal} RON)`
+            );
+            // TODO: Send admin alert email
+          }
+        }
+
+        if (notificationSettings?.adminAlerts.outOfStockItems) {
+          // Check for out of stock items
+          const outOfStockItems = items.filter(item => {
+            // This would need to be implemented based on your inventory logic
+            return false; // Placeholder
+          });
+
+          if (outOfStockItems.length > 0) {
+            console.log(`Out of stock alert triggered for order ${dbOrder.id}`);
+            // TODO: Send out of stock alert email
+          }
+        }
+      } catch (notificationError) {
+        console.error(
+          "Error sending order processing notifications:",
+          notificationError
+        );
+        // Don't fail the order creation if notifications fail
+      }
 
       // Check if this order contains digital books by checking the actual order items created
       const orderWithItems = await db.order.findUnique({

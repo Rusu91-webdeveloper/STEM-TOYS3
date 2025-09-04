@@ -407,7 +407,7 @@ const defaultSettings: StoreSettings = {
   orderProcessing: {
     autoFulfillment: {
       enabled: true,
-      threshold: 100,
+      threshold: 500, // 500 RON (equivalent to ~100 EUR)
       excludeCategories: [],
       requireInventoryCheck: true,
     },
@@ -423,8 +423,8 @@ const defaultSettings: StoreSettings = {
       requirePaymentConfirmation: true,
       holdForReview: {
         enabled: true,
-        threshold: 500,
-        keywords: ["fraud", "risky"],
+        threshold: 2500, // 2500 RON (equivalent to ~500 EUR)
+        keywords: ["fraud", "risky", "urgent", "special"],
       },
     },
     fulfillment: {
@@ -433,7 +433,7 @@ const defaultSettings: StoreSettings = {
       qualityCheckRequired: true,
       signatureRequired: {
         enabled: true,
-        threshold: 100,
+        threshold: 500, // 500 RON (equivalent to ~100 EUR)
       },
     },
     notifications: {
@@ -451,64 +451,53 @@ const defaultSettings: StoreSettings = {
   inventoryManagement: {
     stockAlerts: {
       enabled: true,
-      lowStockThreshold: 10,
+      lowStockThreshold: 5,
       outOfStockAlert: true,
-      reorderPointAlert: true,
       emailNotifications: true,
       adminNotifications: true,
       supplierNotifications: true,
+      priceChangeAlerts: true,
     },
-    reorderManagement: {
+    supplierStockSync: {
       enabled: true,
-      reorderPoint: 50,
-      reorderQuantity: 100,
-      autoReorder: true,
-      requireApproval: false,
-      supplierEmail: "suppliers@techtots.com",
-      reorderFrequency: "daily",
+      syncFrequency: "hourly",
+      autoUpdateProductAvailability: true,
+      syncPriceChanges: true,
+      fallbackSuppliers: true,
+      stockBuffer: 2,
     },
-    inventoryTracking: {
+    leadTimeManagement: {
       enabled: true,
-      trackExpiryDates: true,
-      trackBatchNumbers: true,
-      trackSerialNumbers: true,
-      barcodeScanning: true,
-      qrCodeSupport: true,
-      locationTracking: true,
-      warehouseZones: ["Zone A", "Zone B", "Zone C"],
+      defaultLeadTime: 7,
+      dynamicLeadTimes: true,
+      weekendProcessing: true,
+      holidayProcessing: false,
+      expressShippingAvailable: true,
+      leadTimeBuffer: 2,
     },
-    stockAdjustments: {
-      allowNegativeStock: false,
-      backorderEnabled: true,
-      reserveStockForOrders: true,
-      reserveThreshold: 50,
-      autoAdjustStock: true,
-      adjustmentReasonRequired: true,
+    supplierPerformance: {
+      enabled: true,
+      trackDeliveryTimes: true,
+      trackStockAccuracy: true,
+      trackPriceStability: true,
+      performanceThreshold: 80,
+      autoDisablePoorPerformers: false,
+      performanceReportFrequency: "monthly",
     },
     inventoryReports: {
-      dailyStockReport: true,
-      weeklyInventoryReport: true,
-      monthlyValueReport: true,
       lowStockReport: true,
-      slowMovingItemsReport: true,
-      expiryDateReport: true,
-      reportRecipients: ["admin@techtots.com", "finance@techtots.com"],
-    },
-    supplierManagement: {
-      enabled: true,
-      supplierDirectory: true,
-      supplierPerformance: true,
-      leadTimeTracking: true,
-      costTracking: true,
-      supplierNotifications: true,
+      supplierPerformanceReport: true,
+      priceChangeReport: true,
+      leadTimeReport: true,
+      reportRecipients: ["admin@techtots.com", "manager@techtots.com"],
     },
     automatedInventory: {
       enabled: true,
-      autoUpdateStock: true,
-      syncWithPOS: true,
-      syncWithEcommerce: true,
       realTimeUpdates: true,
       inventoryAPI: true,
+      webhookSupport: true,
+      autoHideOutOfStock: true,
+      stockSyncRetryAttempts: 3,
     },
   },
   marketingSettings: {
@@ -1619,7 +1608,7 @@ export default function SettingsPage() {
                   settings.orderProcessing || {
                     autoFulfillment: {
                       enabled: true,
-                      threshold: 100,
+                      threshold: 500, // 500 RON
                       excludeCategories: [],
                       requireInventoryCheck: true,
                     },
@@ -1635,8 +1624,8 @@ export default function SettingsPage() {
                       requirePaymentConfirmation: true,
                       holdForReview: {
                         enabled: true,
-                        threshold: 500,
-                        keywords: ["fraud", "risky"],
+                        threshold: 2500, // 2500 RON
+                        keywords: ["fraud", "risky", "urgent", "special"],
                       },
                     },
                     fulfillment: {
@@ -1645,7 +1634,7 @@ export default function SettingsPage() {
                       qualityCheckRequired: true,
                       signatureRequired: {
                         enabled: true,
-                        threshold: 100,
+                        threshold: 500, // 500 RON
                       },
                     },
                     notifications: {
@@ -1686,67 +1675,56 @@ export default function SettingsPage() {
                   settings.inventoryManagement || {
                     stockAlerts: {
                       enabled: true,
-                      lowStockThreshold: 10,
+                      lowStockThreshold: 5,
                       outOfStockAlert: true,
-                      reorderPointAlert: true,
                       emailNotifications: true,
                       adminNotifications: true,
                       supplierNotifications: true,
+                      priceChangeAlerts: true,
                     },
-                    reorderManagement: {
+                    supplierStockSync: {
                       enabled: true,
-                      reorderPoint: 50,
-                      reorderQuantity: 100,
-                      autoReorder: true,
-                      requireApproval: false,
-                      supplierEmail: "suppliers@techtots.com",
-                      reorderFrequency: "daily",
+                      syncFrequency: "hourly",
+                      autoUpdateProductAvailability: true,
+                      syncPriceChanges: true,
+                      fallbackSuppliers: true,
+                      stockBuffer: 2,
                     },
-                    inventoryTracking: {
+                    leadTimeManagement: {
                       enabled: true,
-                      trackExpiryDates: true,
-                      trackBatchNumbers: true,
-                      trackSerialNumbers: true,
-                      barcodeScanning: true,
-                      qrCodeSupport: true,
-                      locationTracking: true,
-                      warehouseZones: ["Zone A", "Zone B", "Zone C"],
+                      defaultLeadTime: 7,
+                      dynamicLeadTimes: true,
+                      weekendProcessing: true,
+                      holidayProcessing: false,
+                      expressShippingAvailable: true,
+                      leadTimeBuffer: 2,
                     },
-                    stockAdjustments: {
-                      allowNegativeStock: false,
-                      backorderEnabled: true,
-                      reserveStockForOrders: true,
-                      reserveThreshold: 50,
-                      autoAdjustStock: true,
-                      adjustmentReasonRequired: true,
+                    supplierPerformance: {
+                      enabled: true,
+                      trackDeliveryTimes: true,
+                      trackStockAccuracy: true,
+                      trackPriceStability: true,
+                      performanceThreshold: 80,
+                      autoDisablePoorPerformers: false,
+                      performanceReportFrequency: "monthly",
                     },
                     inventoryReports: {
-                      dailyStockReport: true,
-                      weeklyInventoryReport: true,
-                      monthlyValueReport: true,
                       lowStockReport: true,
-                      slowMovingItemsReport: true,
-                      expiryDateReport: true,
+                      supplierPerformanceReport: true,
+                      priceChangeReport: true,
+                      leadTimeReport: true,
                       reportRecipients: [
                         "admin@techtots.com",
-                        "finance@techtots.com",
+                        "manager@techtots.com",
                       ],
-                    },
-                    supplierManagement: {
-                      enabled: true,
-                      supplierDirectory: true,
-                      supplierPerformance: true,
-                      leadTimeTracking: true,
-                      costTracking: true,
-                      supplierNotifications: true,
                     },
                     automatedInventory: {
                       enabled: true,
-                      autoUpdateStock: true,
-                      syncWithPOS: true,
-                      syncWithEcommerce: true,
                       realTimeUpdates: true,
                       inventoryAPI: true,
+                      webhookSupport: true,
+                      autoHideOutOfStock: true,
+                      stockSyncRetryAttempts: 3,
                     },
                   }
                 }
