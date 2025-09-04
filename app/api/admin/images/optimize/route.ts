@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/server/auth";
-import { ImageManagementService } from "@/lib/image-management";
 import { z } from "zod";
+
+import { ImageManagementService } from "@/lib/image-management";
+import { auth } from "@/lib/server/auth";
 
 // Optimization request schema
 const optimizeRequestSchema = z.object({

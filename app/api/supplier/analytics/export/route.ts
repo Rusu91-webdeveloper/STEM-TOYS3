@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 export async function POST(request: NextRequest) {
   try {
@@ -289,7 +290,7 @@ async function generateAnalyticsReport({
     x: 50,
     y: yPosition,
     size: 14,
-    font: font,
+    font,
     color: rgb(0.4, 0.4, 0.4),
   });
 
@@ -301,7 +302,7 @@ async function generateAnalyticsReport({
       x: 50,
       y: yPosition,
       size: 12,
-      font: font,
+      font,
       color: rgb(0.5, 0.5, 0.5),
     }
   );
@@ -354,7 +355,7 @@ async function generateAnalyticsReport({
       x: xPosition,
       y: yPosition,
       size: 12,
-      font: font,
+      font,
       color: rgb(0.4, 0.4, 0.4),
     });
 
@@ -407,18 +408,18 @@ async function generateAnalyticsReport({
         yPosition = height - 50;
       }
 
-      page.drawText(item.month, { x: 50, y: yPosition, size: 10, font: font });
+      page.drawText(item.month, { x: 50, y: yPosition, size: 10, font });
       page.drawText(`€${item.revenue.toLocaleString()}`, {
         x: 150,
         y: yPosition,
         size: 10,
-        font: font,
+        font,
       });
       page.drawText(`€${item.commission.toLocaleString()}`, {
         x: 250,
         y: yPosition,
         size: 10,
-        font: font,
+        font,
       });
 
       yPosition -= 15;
@@ -459,21 +460,21 @@ async function generateAnalyticsReport({
 
       const productName =
         product.name.length > 30
-          ? product.name.substring(0, 30) + "..."
+          ? `${product.name.substring(0, 30)  }...`
           : product.name;
 
-      page.drawText(productName, { x: 50, y: yPosition, size: 10, font: font });
+      page.drawText(productName, { x: 50, y: yPosition, size: 10, font });
       page.drawText(product.sales.toString(), {
         x: 300,
         y: yPosition,
         size: 10,
-        font: font,
+        font,
       });
       page.drawText(`€${product.revenue.toLocaleString()}`, {
         x: 400,
         y: yPosition,
         size: 10,
-        font: font,
+        font,
       });
 
       yPosition -= 15;
@@ -486,7 +487,7 @@ async function generateAnalyticsReport({
     x: 50,
     y: 30,
     size: 10,
-    font: font,
+    font,
     color: rgb(0.5, 0.5, 0.5),
   });
 

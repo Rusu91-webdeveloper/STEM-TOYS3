@@ -14,6 +14,7 @@ interface Product {
   name: string;
   slug: string;
   price: number;
+  priceCurrency?: string; // Currency of the price (EUR or RON)
   category: {
     name: string;
   };
@@ -108,7 +109,11 @@ export function ProductTable({ products }: { products: Product[] }) {
                   <td className="px-4 py-4">
                     {product.category?.name || "N/A"}
                   </td>
-                  <td className="px-4 py-4">{formatPrice(product.price)}</td>
+                  <td className="px-4 py-4">
+                    <div className="space-y-1">
+                      <div className="font-medium">{product.price} RON</div>
+                    </div>
+                  </td>
                   <td className="px-4 py-4">
                     {product.stockQuantity !== undefined
                       ? product.stockQuantity

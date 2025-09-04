@@ -4,8 +4,8 @@
  * for enterprise-grade email personalization
  */
 
-import { prisma } from "@/lib/prisma";
 import { cache } from "@/lib/cache";
+import { prisma } from "@/lib/prisma";
 
 export interface UserProfile {
   id: string;
@@ -329,7 +329,7 @@ export class PersonalizationEngine {
     try {
       // Get test configuration (this would come from database)
       const test = await this.getABTestConfiguration(testId);
-      if (!test || !test.isActive) return null;
+      if (!test?.isActive) return null;
 
       // Check if user matches test conditions
       if (!this.matchesTestConditions(test.conditions, userProfile, context)) {

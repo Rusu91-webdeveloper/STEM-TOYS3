@@ -111,7 +111,7 @@ class CDNManager {
       }
 
       // Build CDN URL based on provider
-      let cdnUrl = this.buildUrl(normalizedPath, options);
+      const cdnUrl = this.buildUrl(normalizedPath, options);
       
       // Add performance tracking
       this.recordPerformance("url_generation", Date.now() - startTime);

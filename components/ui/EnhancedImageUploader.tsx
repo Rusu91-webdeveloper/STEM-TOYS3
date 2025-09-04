@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
 import { UploadButton } from "@uploadthing/react";
 import {
   Trash2,
@@ -11,16 +10,19 @@ import {
   RotateCcw,
 } from "lucide-react";
 import Image from "next/image";
-import { Button } from "./button";
-import { Badge } from "./badge";
-import { Alert, AlertDescription } from "./alert";
-import { OurFileRouter } from "@/lib/uploadthing";
+import React, { useState, useCallback, useRef } from "react";
+
 import {
   validateImage,
   formatFileSize,
   IMAGE_DIMENSIONS,
   type ImageValidationResult,
 } from "@/lib/image-validation";
+import { OurFileRouter } from "@/lib/uploadthing";
+
+import { Alert, AlertDescription } from "./alert";
+import { Badge } from "./badge";
+import { Button } from "./button";
 
 interface EnhancedImageUploaderProps {
   endpoint: keyof OurFileRouter;

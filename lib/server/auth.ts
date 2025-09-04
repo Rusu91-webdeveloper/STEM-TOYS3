@@ -140,11 +140,11 @@ const createAuthOptions = (): NextAuthConfig => {
     console.log("✅ Google OAuth configured successfully");
     console.log(
       "🔧 Google Client ID:",
-      env.GOOGLE_CLIENT_ID.substring(0, 20) + "..."
+      `${env.GOOGLE_CLIENT_ID.substring(0, 20)  }...`
     );
     console.log(
       "🔧 Google Client Secret:",
-      env.GOOGLE_CLIENT_SECRET.substring(0, 10) + "..."
+      `${env.GOOGLE_CLIENT_SECRET.substring(0, 10)  }...`
     );
   } else {
     console.log(

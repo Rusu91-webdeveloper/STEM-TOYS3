@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { sendTicketAssignmentNotification } from "@/lib/admin-notifications";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { sendTicketAssignmentNotification } from "@/lib/admin-notifications";
 
 // GET - Get list of available admins for assignment
 export async function GET() {

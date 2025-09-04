@@ -1,7 +1,3 @@
-import { cookies } from "next/headers";
-import Image from "next/image";
-import Link from "next/link";
-import { Suspense } from "react";
 import {
   Cpu,
   Code,
@@ -53,6 +49,10 @@ import {
   Hammer,
   Ruler,
 } from "lucide-react";
+import { cookies } from "next/headers";
+import Image from "next/image";
+import Link from "next/link";
+import { Suspense } from "react";
 
 import { getTranslation } from "@/lib/i18n/server";
 import { blogService } from "@/lib/services/blog-service";

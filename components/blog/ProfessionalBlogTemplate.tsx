@@ -19,11 +19,11 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
+import EnhancedMarkdownRenderer from "@/components/blog/EnhancedMarkdownRenderer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n";
-import EnhancedMarkdownRenderer from "@/components/blog/EnhancedMarkdownRenderer";
 
 interface BlogPost {
   id: string;

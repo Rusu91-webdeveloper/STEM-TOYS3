@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
 import {
   BarChart3,
   Image as ImageIcon,
@@ -16,11 +15,14 @@ import {
   CheckCircle,
   Clock,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import React, { useState, useEffect, useCallback } from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -28,16 +30,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
   ImageManagementServiceClient,
   type ImageMetadata,
 } from "@/lib/image-management-client";
-import { ImageOptimizationPanel } from "./ImageOptimizationPanel";
-import { ImageCleanupPanel } from "./ImageCleanupPanel";
+
 import { ImageAnalyticsPanel } from "./ImageAnalyticsPanel";
+import { ImageCleanupPanel } from "./ImageCleanupPanel";
+import { ImageOptimizationPanel } from "./ImageOptimizationPanel";
 import { ProcessedImageInfo } from "./ProcessedImageInfo";
 
 interface ImageStats {
@@ -144,9 +146,9 @@ export function ImageManagementDashboard() {
 
       if (sortOrder === "asc") {
         return aValue > bValue ? 1 : -1;
-      } else {
+      } 
         return aValue < bValue ? 1 : -1;
-      }
+      
     });
 
     setFilteredImages(filtered);
@@ -211,7 +213,7 @@ export function ImageManagementDashboard() {
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
   };
 
   // Get status badge variant

@@ -38,6 +38,7 @@ import {
 } from "@/features/supplier/types/supplier";
 import { QuickAccess } from "./QuickAccess";
 import { RomanianComplianceDashboard } from "../romanian/RomanianComplianceDashboard";
+import { formatPriceWithCurrency } from "@/lib/currency-converter";
 
 interface DashboardData {
   stats: SupplierStats;
@@ -55,118 +56,37 @@ interface DashboardData {
   }>;
 }
 
-export function SupplierDashboard() {
+export function SupplierDashboard({
+  initialData,
+}: {
+  initialData?: DashboardData | null;
+}) {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null
+    initialData ?? null
   );
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    // If no data was provided from the server, fetch from API
+    if (!initialData) {
+      fetchDashboardData();
+    }
+  }, [initialData]);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      // In a real implementation, this would fetch from the API
-      // For now, we'll use mock data
-      const mockData: DashboardData = {
-        supplier: {
-          businessCountry: "România", // This would come from the actual supplier data
-        },
-        stats: {
-          totalProducts: 24,
-          activeProducts: 22,
-          totalOrders: 156,
-          pendingOrders: 8,
-          totalRevenue: 45230.5,
-          monthlyRevenue: 8750.25,
-          commissionEarned: 6784.58,
-          pendingInvoices: 3,
-        },
-        recentOrders: [
-          {
-            id: "ord_001",
-            supplierId: "sup_001",
-            orderId: "order_123",
-            orderItemId: "item_456",
-            productId: "prod_789",
-            quantity: 5,
-            unitPrice: 29.99,
-            totalPrice: 149.95,
-            commission: 22.49,
-            supplierRevenue: 127.46,
-            status: "PENDING",
-            createdAt: new Date("2024-01-15T10:30:00Z"),
-            updatedAt: new Date("2024-01-15T10:30:00Z"),
-          },
-          {
-            id: "ord_002",
-            supplierId: "sup_001",
-            orderId: "order_124",
-            orderItemId: "item_457",
-            productId: "prod_790",
-            quantity: 2,
-            unitPrice: 45.0,
-            totalPrice: 90.0,
-            commission: 13.5,
-            supplierRevenue: 76.5,
-            status: "CONFIRMED",
-            createdAt: new Date("2024-01-14T14:20:00Z"),
-            updatedAt: new Date("2024-01-14T14:20:00Z"),
-          },
-          {
-            id: "ord_003",
-            supplierId: "sup_001",
-            orderId: "order_125",
-            orderItemId: "item_458",
-            productId: "prod_791",
-            quantity: 1,
-            unitPrice: 89.99,
-            totalPrice: 89.99,
-            commission: 13.5,
-            supplierRevenue: 76.49,
-            status: "SHIPPED",
-            trackingNumber: "TRK123456789",
-            shippedAt: new Date("2024-01-13T09:15:00Z"),
-            createdAt: new Date("2024-01-12T16:45:00Z"),
-            updatedAt: new Date("2024-01-13T09:15:00Z"),
-          },
-        ],
-        notifications: [
-          {
-            id: "notif_001",
-            type: "order",
-            title: "New Order Received",
-            message:
-              "Order #123 has been placed for 5 units of Science Kit Pro",
-            date: "2024-01-15T10:30:00Z",
-            read: false,
-          },
-          {
-            id: "notif_002",
-            type: "payment",
-            title: "Payment Received",
-            message: "Payment of €127.46 has been processed for order #124",
-            date: "2024-01-14T14:20:00Z",
-            read: false,
-          },
-          {
-            id: "notif_003",
-            type: "system",
-            title: "Product Review",
-            message:
-              "Your product 'Engineering Blocks Set' received a 5-star review",
-            date: "2024-01-13T11:45:00Z",
-            read: true,
-          },
-        ],
-      };
-
-      setDashboardData(mockData);
+      const res = await fetch("/api/supplier/dashboard", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to load dashboard data");
+      }
+      const json = (await res.json()) as DashboardData;
+      setDashboardData(json);
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -251,11 +171,12 @@ export function SupplierDashboard() {
       {/* Quick Access Component */}
       <QuickAccess
         stats={{
-          pendingOrders: dashboardData.stats.pendingOrders,
-          unreadMessages: dashboardData.notifications.filter(n => !n.read)
-            .length,
-          overdueInvoices: dashboardData.stats.pendingInvoices,
-          activeProducts: dashboardData.stats.activeProducts,
+          pendingOrders: dashboardData?.stats?.pendingOrders ?? 0,
+          unreadMessages: (dashboardData?.notifications ?? []).filter(
+            n => !n.read
+          ).length,
+          overdueInvoices: dashboardData?.stats?.pendingInvoices ?? 0,
+          activeProducts: dashboardData?.stats?.activeProducts ?? 0,
         }}
       />
 
@@ -272,10 +193,10 @@ export function SupplierDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-gray-900 mb-1">
-              {dashboardData.stats.totalProducts}
+              {dashboardData?.stats?.totalProducts ?? 0}
             </div>
             <p className="text-sm text-gray-600 font-medium">
-              {dashboardData.stats.activeProducts} active
+              {dashboardData?.stats?.activeProducts ?? 0} active
             </p>
           </CardContent>
         </Card>
@@ -291,10 +212,10 @@ export function SupplierDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-gray-900 mb-1">
-              {dashboardData.stats.totalOrders}
+              {dashboardData?.stats?.totalOrders ?? 0}
             </div>
             <p className="text-sm text-gray-600 font-medium">
-              {dashboardData.stats.pendingOrders} pending
+              {dashboardData?.stats?.pendingOrders ?? 0} pending
             </p>
           </CardContent>
         </Card>
@@ -310,7 +231,10 @@ export function SupplierDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-gray-900 mb-1">
-              €{dashboardData.stats.monthlyRevenue.toLocaleString()}
+              {formatPriceWithCurrency(
+                dashboardData?.stats?.monthlyRevenue ?? 0,
+                "RON"
+              )}
             </div>
             <p className="text-sm text-green-600 font-medium flex items-center gap-1">
               <TrendingUp className="w-3 h-3" />
@@ -330,10 +254,13 @@ export function SupplierDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-gray-900 mb-1">
-              €{dashboardData.stats.commissionEarned.toLocaleString()}
+              {formatPriceWithCurrency(
+                dashboardData?.stats?.commissionEarned ?? 0,
+                "RON"
+              )}
             </div>
             <p className="text-sm text-gray-600 font-medium">
-              {dashboardData.stats.pendingInvoices} pending invoices
+              {dashboardData?.stats?.pendingInvoices ?? 0} pending invoices
             </p>
           </CardContent>
         </Card>
@@ -368,7 +295,7 @@ export function SupplierDashboard() {
             </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-4">
-                {dashboardData.recentOrders.map((order, index) => {
+                {(dashboardData?.recentOrders ?? []).map((order, index) => {
                   const StatusIcon = getStatusIcon(order.status);
                   return (
                     <div
@@ -387,11 +314,16 @@ export function SupplierDashboard() {
                             Order #{order.orderId.slice(-6)}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {order.quantity} items • €
-                            {order.totalPrice.toFixed(2)}
+                            {order.quantity ?? 0} items •{" "}
+                            {formatPriceWithCurrency(
+                              order.totalPrice ?? 0,
+                              "RON"
+                            )}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {new Date(order.createdAt).toLocaleDateString()}
+                            {new Date(
+                              order.createdAt ?? new Date()
+                            ).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
@@ -482,46 +414,50 @@ export function SupplierDashboard() {
             </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-3">
-                {dashboardData.notifications.map((notification, index) => (
-                  <div
-                    key={notification.id}
-                    className={`p-4 rounded-xl border transition-all duration-200 hover:shadow-md ${
-                      notification.read
-                        ? "bg-gradient-to-r from-gray-50 to-white border-gray-100"
-                        : "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
-                    }`}
-                    style={{ animationDelay: `${index * 150}ms` }}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p
-                          className={`text-sm font-semibold ${
-                            notification.read
-                              ? "text-gray-900"
-                              : "text-blue-900"
-                          }`}
-                        >
-                          {notification.title}
-                        </p>
-                        <p
-                          className={`text-xs mt-1 ${
-                            notification.read
-                              ? "text-gray-600"
-                              : "text-blue-700"
-                          }`}
-                        >
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-2">
-                          {new Date(notification.date).toLocaleDateString()}
-                        </p>
+                {(dashboardData?.notifications ?? []).map(
+                  (notification, index) => (
+                    <div
+                      key={notification.id}
+                      className={`p-4 rounded-xl border transition-all duration-200 hover:shadow-md ${
+                        notification.read
+                          ? "bg-gradient-to-r from-gray-50 to-white border-gray-100"
+                          : "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
+                      }`}
+                      style={{ animationDelay: `${index * 150}ms` }}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p
+                            className={`text-sm font-semibold ${
+                              notification.read
+                                ? "text-gray-900"
+                                : "text-blue-900"
+                            }`}
+                          >
+                            {notification.title}
+                          </p>
+                          <p
+                            className={`text-xs mt-1 ${
+                              notification.read
+                                ? "text-gray-600"
+                                : "text-blue-700"
+                            }`}
+                          >
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {new Date(
+                              notification.date ?? new Date()
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                        {!notification.read && (
+                          <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full ml-2 animate-pulse"></div>
+                        )}
                       </div>
-                      {!notification.read && (
-                        <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full ml-2 animate-pulse"></div>
-                      )}
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </CardContent>
           </Card>
@@ -552,7 +488,10 @@ export function SupplierDashboard() {
                 <DollarSign className="w-8 h-8 text-white" />
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-2">
-                €{dashboardData.stats.monthlyRevenue.toLocaleString()}
+                {formatPriceWithCurrency(
+                  dashboardData?.stats?.monthlyRevenue ?? 0,
+                  "RON"
+                )}
               </div>
               <p className="text-sm text-gray-600 font-medium">
                 Monthly Revenue
@@ -566,7 +505,7 @@ export function SupplierDashboard() {
                 <ShoppingCart className="w-8 h-8 text-white" />
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-2">
-                {dashboardData.stats.totalOrders}
+                {dashboardData?.stats?.totalOrders ?? 0}
               </div>
               <p className="text-sm text-gray-600 font-medium">Total Orders</p>
               <p className="text-xs text-blue-600 font-semibold mt-1">
@@ -578,7 +517,7 @@ export function SupplierDashboard() {
                 <Package className="w-8 h-8 text-white" />
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-2">
-                {dashboardData.stats.activeProducts}
+                {dashboardData?.stats?.activeProducts ?? 0}
               </div>
               <p className="text-sm text-gray-600 font-medium">
                 Active Products

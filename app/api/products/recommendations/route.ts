@@ -176,6 +176,7 @@ async function getPersonalizedRecommendations(
       where: {
         AND: [
           { isActive: true },
+          { status: "APPROVED" as any },
           { id: { notIn: userInteractedProducts } },
           categoryIds.length > 0 ? { categoryId: { in: categoryIds } } : {},
         ],
@@ -230,6 +231,7 @@ async function getSimilarProducts(
       where: {
         AND: [
           { isActive: true },
+          { status: "APPROVED" as any },
           { id: { not: currentProduct.id } },
           { id: { notIn: viewedProducts } },
           currentProduct.categoryId
@@ -338,6 +340,7 @@ async function getCollaborativeRecommendations(
       where: {
         AND: [
           { isActive: true },
+          { status: "APPROVED" as any },
           { id: { notIn: [...referenceProducts, ...viewedProducts] } },
           { categoryId: { in: categoryIds } },
         ],
@@ -379,6 +382,7 @@ async function getSmartRecommendations(
       where: {
         AND: [
           { isActive: true },
+          { status: "APPROVED" as any },
           {
             OR: [
               { category: { slug: { in: targetCategories } } },
@@ -415,6 +419,7 @@ async function getPopularProducts(
     const popularProducts = await db.product.findMany({
       where: {
         isActive: true,
+        status: "APPROVED" as any,
       },
       include: {
         category: {

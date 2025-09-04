@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,8 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -79,13 +80,11 @@ export default function TestSettingsPage() {
     }
   };
 
-  const getStatusBadge = (success: boolean) => {
-    return success ? (
+  const getStatusBadge = (success: boolean) => success ? (
       <Badge className="bg-green-500">✓ Working</Badge>
     ) : (
       <Badge variant="destructive">✗ Failed</Badge>
     );
-  };
 
   const renderTestSection = (
     testName: string,

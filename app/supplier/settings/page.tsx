@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import { SupplierSettings } from "@/features/supplier/components/settings/SupplierSettings";
 
 export const metadata: Metadata = {

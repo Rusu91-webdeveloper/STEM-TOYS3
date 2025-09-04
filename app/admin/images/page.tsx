@@ -1,9 +1,3 @@
-import { Suspense } from "react";
-import { Metadata } from "next";
-import { ImageManagementDashboard } from "@/components/admin/images/ImageManagementDashboard";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   CheckCircle,
   Image as ImageIcon,
@@ -11,6 +5,14 @@ import {
   Monitor,
   Tablet,
 } from "lucide-react";
+import { Metadata } from "next";
+import { Suspense } from "react";
+
+import { ImageManagementDashboard } from "@/components/admin/images/ImageManagementDashboard";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 export const metadata: Metadata = {
   title: "Image Management | Admin Dashboard",

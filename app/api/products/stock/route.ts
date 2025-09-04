@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    let stocks: Record<string, number> = {};
+    const stocks: Record<string, number> = {};
 
     if (nonBookProductIds.length > 0) {
       const products = await db.product.findMany({

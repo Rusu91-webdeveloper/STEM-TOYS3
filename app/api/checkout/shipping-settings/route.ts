@@ -14,10 +14,10 @@ export async function GET(_req: NextRequest) {
     // **PERFORMANCE**: Try to get shipping settings from cache first
     const shippingSettings = await getCached(
       CacheKeys.product("shipping-settings"), // Reusing cache key pattern
-      async () => {
+      async () => 
         // Use the utility function to get shipping settings
-        return await getShippingSettings();
-      },
+         await getShippingSettings()
+      ,
       SHIPPING_SETTINGS_CACHE_TTL
     );
 

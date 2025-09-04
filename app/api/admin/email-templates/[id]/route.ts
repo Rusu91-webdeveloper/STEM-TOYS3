@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/server/auth";
-import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/server/auth";
 
 // Validation schema for updating email templates
 const EmailTemplateUpdateSchema = z.object({

@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+
 import { getStoreSettings } from "@/lib/utils/store-settings";
 
 // Lazy initialization of Resend client

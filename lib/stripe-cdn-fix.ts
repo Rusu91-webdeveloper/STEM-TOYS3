@@ -63,12 +63,10 @@ export const loadStripeWithoutAPIValidation = async (
     // Strategy 1: Use a timeout to prevent hanging on API calls
     console.log("Strategy 1: Timeout and retry mechanism");
 
-    const loadWithTimeout = (timeout: number) => {
-      return Promise.race([
+    const loadWithTimeout = (timeout: number) => Promise.race([
         loadStripe(publishableKey),
         new Promise<null>(resolve => setTimeout(() => resolve(null), timeout)),
       ]);
-    };
 
     // Try with different timeouts
     const timeouts = [5000, 3000, 1000]; // 5s, 3s, 1s

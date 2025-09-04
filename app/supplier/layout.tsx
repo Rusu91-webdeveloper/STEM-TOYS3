@@ -1,5 +1,5 @@
-import { SupplierLayout } from "@/features/supplier/components/layout/SupplierLayout";
 import { PublicSupplierLayout } from "@/features/supplier/components/layout/PublicSupplierLayout";
+import { SupplierLayout } from "@/features/supplier/components/layout/SupplierLayout";
 
 export default function SupplierPortalLayout({
   children,

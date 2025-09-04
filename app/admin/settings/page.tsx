@@ -2,6 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 
+import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
+import BusinessHoursSettings from "@/components/admin/BusinessHoursSettings";
+import CustomerServiceSettings from "@/components/admin/CustomerServiceSettings";
+import InventoryManagementSettings from "@/components/admin/InventoryManagementSettings";
+import MarketingSettings from "@/components/admin/MarketingSettings";
+import OrderProcessingSettings from "@/components/admin/OrderProcessingSettings";
+import ConversionDashboard from "@/components/conversion-tracking/ConversionDashboard";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,13 +32,6 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
-import BusinessHoursSettings from "@/components/admin/BusinessHoursSettings";
-import CustomerServiceSettings from "@/components/admin/CustomerServiceSettings";
-import OrderProcessingSettings from "@/components/admin/OrderProcessingSettings";
-import InventoryManagementSettings from "@/components/admin/InventoryManagementSettings";
-import MarketingSettings from "@/components/admin/MarketingSettings";
-import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
-import ConversionDashboard from "@/components/conversion-tracking/ConversionDashboard";
 
 interface StoreSettings {
   id?: string;

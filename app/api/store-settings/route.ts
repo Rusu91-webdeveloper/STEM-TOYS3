@@ -22,7 +22,7 @@ export async function GET(_req: NextRequest) {
       businessState: storeSettings.businessState,
       businessCountry: storeSettings.businessCountry,
       businessPostalCode: storeSettings.businessPostalCode,
-      returnThreshold: returnThreshold,
+      returnThreshold,
     };
 
     // Set cache headers for static data (5 minutes)

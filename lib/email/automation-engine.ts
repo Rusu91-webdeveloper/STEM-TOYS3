@@ -4,10 +4,11 @@
  * for enterprise-grade email automation
  */
 
-import { prisma } from "@/lib/prisma";
 import { cache } from "@/lib/cache";
-import { personalizationEngine } from "./personalization-engine";
+import { prisma } from "@/lib/prisma";
+
 import { emailAnalyticsEngine } from "./analytics-engine";
+import { personalizationEngine } from "./personalization-engine";
 
 export interface EmailTrigger {
   id: string;
@@ -126,7 +127,7 @@ export class EmailAutomationEngine {
   ): Promise<void> {
     try {
       const sequence = await this.getEmailSequence(sequenceId);
-      if (!sequence || !sequence.isActive) {
+      if (!sequence?.isActive) {
         console.log(`Sequence ${sequenceId} not found or inactive`);
         return;
       }

@@ -31,7 +31,6 @@ const navigation: { name: TranslationKey; href: string }[] = [
   { name: "categories", href: "/categories" },
   { name: "blog", href: "/blog" },
   { name: "about", href: "/about" },
-  { name: "become_supplier", href: "/supplier" },
 ];
 
 export default function Header() {

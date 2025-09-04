@@ -6,10 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
   AlertTriangle,
   FileText,
   Building2,
@@ -17,13 +17,13 @@ import {
   Award,
   TrendingUp,
   Download,
-  Upload
+  Upload,
 } from "lucide-react";
 import { RomanianFeatures } from "./RomanianFeatures";
-import { 
+import {
   RomanianComplianceStatus as ComplianceStatusEnum,
   getRomanianComplianceStatusColor,
-  getRomanianEducationalLevelLabel
+  getRomanianEducationalLevelLabel,
 } from "@/types/romanian";
 
 interface ComplianceRequirement {
@@ -58,8 +58,12 @@ interface RomanianComplianceDashboardProps {
   };
 }
 
-export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDashboardProps) {
-  const [complianceData, setComplianceData] = useState<ComplianceData | null>(null);
+export function RomanianComplianceDashboard({
+  supplier,
+}: RomanianComplianceDashboardProps) {
+  const [complianceData, setComplianceData] = useState<ComplianceData | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -72,13 +76,33 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
     try {
       setLoading(true);
       const response = await fetch("/api/supplier/romanian/compliance-status");
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch compliance status");
       }
-      
+
       const data = await response.json();
-      setComplianceData(data);
+
+      // Transform API response to match component's expected format
+      const transformedData: ComplianceData = {
+        complianceStatus: data.romanianComplianceStatus || "PENDING",
+        complianceScore: calculateComplianceScore(data),
+        completedFields: calculateCompletedFields(data),
+        totalFields: 8, // Total number of compliance fields
+        requirements: generateRequirements(data),
+        details: {
+          anpcApproval: data.anpcApproval,
+          iscApproval: data.iscApproval,
+          educationalCertification: data.educationalCertification,
+          cui: data.cui,
+          nrRegCom: data.nrRegCom,
+          codFiscal: data.codFiscal,
+          romanianVatNumber: data.romanianVatNumber,
+          romanianBankAccount: data.romanianBankAccount,
+        },
+      };
+
+      setComplianceData(transformedData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -86,7 +110,10 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
     }
   };
 
-  const updateComplianceStatus = async (field: string, value: boolean | string) => {
+  const updateComplianceStatus = async (
+    field: string,
+    value: boolean | string
+  ) => {
     try {
       setUpdating(true);
       const response = await fetch("/api/supplier/romanian/compliance-status", {
@@ -104,7 +131,11 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
       // Refresh compliance data
       await fetchComplianceStatus();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update compliance status");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to update compliance status"
+      );
     } finally {
       setUpdating(false);
     }
@@ -130,6 +161,101 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
       default:
         return "text-gray-600 bg-gray-50 border-gray-200";
     }
+  };
+
+  // Helper functions to transform API data
+  const calculateComplianceScore = (data: any): number => {
+    let completed = 0;
+    const total = 8;
+
+    if (data.anpcApproval) completed++;
+    if (data.iscApproval) completed++;
+    if (data.educationalCertification) completed++;
+    if (data.cui) completed++;
+    if (data.nrRegCom) completed++;
+    if (data.codFiscal) completed++;
+    if (data.romanianVatNumber) completed++;
+    if (data.romanianBankAccount) completed++;
+
+    return Math.round((completed / total) * 100);
+  };
+
+  const calculateCompletedFields = (data: any): number => {
+    let completed = 0;
+
+    if (data.anpcApproval) completed++;
+    if (data.iscApproval) completed++;
+    if (data.educationalCertification) completed++;
+    if (data.cui) completed++;
+    if (data.nrRegCom) completed++;
+    if (data.codFiscal) completed++;
+    if (data.romanianVatNumber) completed++;
+    if (data.romanianBankAccount) completed++;
+
+    return completed;
+  };
+
+  const generateRequirements = (data: any): ComplianceRequirement[] => {
+    return [
+      {
+        field: "anpcApproval",
+        label: "ANPC Approval",
+        description:
+          "Approval from the National Authority for Consumer Protection",
+        status: data.anpcApproval ? "completed" : "pending",
+        required: true,
+      },
+      {
+        field: "iscApproval",
+        label: "ISC Approval",
+        description: "Approval from the State Inspectorate for Construction",
+        status: data.iscApproval ? "completed" : "pending",
+        required: true,
+      },
+      {
+        field: "educationalCertification",
+        label: "Educational Certification",
+        description:
+          "Ministry of Education certification for educational products",
+        status: data.educationalCertification ? "completed" : "pending",
+        required: false,
+      },
+      {
+        field: "cui",
+        label: "CUI (Tax ID)",
+        description: "Unique Registration Code for Romanian businesses",
+        status: data.cui ? "completed" : "pending",
+        required: true,
+      },
+      {
+        field: "nrRegCom",
+        label: "Nr. Reg. Com.",
+        description: "Trade Register Number",
+        status: data.nrRegCom ? "completed" : "pending",
+        required: true,
+      },
+      {
+        field: "codFiscal",
+        label: "Cod Fiscal",
+        description: "Fiscal Code for Romanian businesses",
+        status: data.codFiscal ? "completed" : "pending",
+        required: true,
+      },
+      {
+        field: "romanianVatNumber",
+        label: "Romanian VAT Number",
+        description: "VAT registration number for Romanian operations",
+        status: data.romanianVatNumber ? "completed" : "pending",
+        required: true,
+      },
+      {
+        field: "romanianBankAccount",
+        label: "Romanian Bank Account",
+        description: "Bank account details for Romanian transactions",
+        status: data.romanianBankAccount ? "completed" : "pending",
+        required: true,
+      },
+    ];
   };
 
   if (loading) {
@@ -163,7 +289,16 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
   }
 
   if (!complianceData) {
-    return null;
+    return (
+      <RomanianFeatures supplier={supplier}>
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            No compliance data available. Please try refreshing the page.
+          </AlertDescription>
+        </Alert>
+      </RomanianFeatures>
+    );
   }
 
   return (
@@ -173,12 +308,18 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
         <Card className="border-blue-200 bg-blue-50/30">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-blue-900">Compliance Overview</CardTitle>
-              <Badge 
-                variant="outline" 
-                className={getRomanianComplianceStatusColor(complianceData.complianceStatus as ComplianceStatusEnum)}
+              <CardTitle className="text-blue-900">
+                Compliance Overview
+              </CardTitle>
+              <Badge
+                variant="outline"
+                className={getRomanianComplianceStatusColor(
+                  complianceData.complianceStatus as ComplianceStatusEnum
+                )}
               >
-                {complianceData.complianceStatus.replace('_', ' ')}
+                {complianceData.complianceStatus
+                  ? complianceData.complianceStatus.replace("_", " ")
+                  : "PENDING"}
               </Badge>
             </div>
           </CardHeader>
@@ -190,9 +331,13 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
                   <span>Compliance Score</span>
                   <span>{complianceData.complianceScore}%</span>
                 </div>
-                <Progress value={complianceData.complianceScore} className="h-2" />
+                <Progress
+                  value={complianceData.complianceScore}
+                  className="h-2"
+                />
                 <p className="text-sm text-muted-foreground">
-                  {complianceData.completedFields} of {complianceData.totalFields} requirements completed
+                  {complianceData.completedFields} of{" "}
+                  {complianceData.totalFields} requirements completed
                 </p>
               </div>
 
@@ -206,7 +351,8 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
                 </div>
                 <div className="text-center p-3 bg-white rounded-lg border">
                   <div className="text-2xl font-bold text-yellow-600">
-                    {complianceData.totalFields - complianceData.completedFields}
+                    {complianceData.totalFields -
+                      complianceData.completedFields}
                   </div>
                   <div className="text-sm text-muted-foreground">Pending</div>
                 </div>
@@ -226,12 +372,13 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
           <CardHeader>
             <CardTitle>Compliance Requirements</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Complete these requirements to maintain compliance with Romanian regulations
+              Complete these requirements to maintain compliance with Romanian
+              regulations
             </p>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {complianceData.requirements.map((requirement) => (
+              {complianceData.requirements.map(requirement => (
                 <div
                   key={requirement.field}
                   className={`p-4 rounded-lg border ${getStatusColor(requirement.status)}`}
@@ -253,19 +400,37 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
-                      <Badge variant={requirement.status === "completed" ? "default" : "secondary"}>
-                        {requirement.status === "completed" ? "Completed" : "Pending"}
+                      <Badge
+                        variant={
+                          requirement.status === "completed"
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
+                        {requirement.status === "completed"
+                          ? "Completed"
+                          : "Pending"}
                       </Badge>
-                      
+
                       {/* Action buttons for boolean fields */}
-                      {["anpcApproval", "iscApproval"].includes(requirement.field) && (
+                      {["anpcApproval", "iscApproval"].includes(
+                        requirement.field
+                      ) && (
                         <div className="flex gap-1">
                           <Button
                             size="sm"
-                            variant={complianceData.details[requirement.field as keyof typeof complianceData.details] ? "default" : "outline"}
-                            onClick={() => updateComplianceStatus(requirement.field, true)}
+                            variant={
+                              complianceData.details[
+                                requirement.field as keyof typeof complianceData.details
+                              ]
+                                ? "default"
+                                : "outline"
+                            }
+                            onClick={() =>
+                              updateComplianceStatus(requirement.field, true)
+                            }
                             disabled={updating}
                           >
                             <CheckCircle className="w-4 h-4 mr-1" />
@@ -273,8 +438,16 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
                           </Button>
                           <Button
                             size="sm"
-                            variant={!complianceData.details[requirement.field as keyof typeof complianceData.details] ? "default" : "outline"}
-                            onClick={() => updateComplianceStatus(requirement.field, false)}
+                            variant={
+                              !complianceData.details[
+                                requirement.field as keyof typeof complianceData.details
+                              ]
+                                ? "default"
+                                : "outline"
+                            }
+                            onClick={() =>
+                              updateComplianceStatus(requirement.field, false)
+                            }
                             disabled={updating}
                           >
                             <XCircle className="w-4 h-4 mr-1" />
@@ -297,7 +470,10 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+              <Button
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-center gap-2"
+              >
                 <Download className="w-6 h-6" />
                 <div className="text-center">
                   <div className="font-medium">Download Compliance Guide</div>
@@ -306,8 +482,11 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
                   </div>
                 </div>
               </Button>
-              
-              <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+
+              <Button
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-center gap-2"
+              >
                 <Upload className="w-6 h-6" />
                 <div className="text-center">
                   <div className="font-medium">Upload Documents</div>
@@ -316,8 +495,11 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
                   </div>
                 </div>
               </Button>
-              
-              <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+
+              <Button
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-center gap-2"
+              >
                 <FileText className="w-6 h-6" />
                 <div className="text-center">
                   <div className="font-medium">Generate Compliance Report</div>
@@ -326,8 +508,11 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
                   </div>
                 </div>
               </Button>
-              
-              <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+
+              <Button
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-center gap-2"
+              >
                 <TrendingUp className="w-6 h-6" />
                 <div className="text-center">
                   <div className="font-medium">View Compliance History</div>
@@ -352,27 +537,32 @@ export function RomanianComplianceDashboard({ supplier }: RomanianComplianceDash
                 <div>
                   <h4 className="font-medium text-green-900">ANPC Approval</h4>
                   <p className="text-sm text-green-700">
-                    Ensure your products meet consumer protection standards and have proper safety certifications.
+                    Ensure your products meet consumer protection standards and
+                    have proper safety certifications.
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <Award className="w-5 h-5 text-green-600 mt-0.5" />
                 <div>
                   <h4 className="font-medium text-green-900">ISC Approval</h4>
                   <p className="text-sm text-green-700">
-                    Verify that your products comply with health and safety regulations for educational materials.
+                    Verify that your products comply with health and safety
+                    regulations for educational materials.
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <Building2 className="w-5 h-5 text-green-600 mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-green-900">Business Registration</h4>
+                  <h4 className="font-medium text-green-900">
+                    Business Registration
+                  </h4>
                   <p className="text-sm text-green-700">
-                    Keep your CUI, Nr. Reg. Com., and Cod Fiscal information up to date for tax compliance.
+                    Keep your CUI, Nr. Reg. Com., and Cod Fiscal information up
+                    to date for tax compliance.
                   </p>
                 </div>
               </div>

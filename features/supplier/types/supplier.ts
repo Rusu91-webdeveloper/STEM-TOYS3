@@ -36,14 +36,14 @@ export interface Supplier {
   updatedAt: Date;
 }
 
-export type SupplierStatus = 
+export type SupplierStatus =
   | "PENDING"
-  | "APPROVED" 
+  | "APPROVED"
   | "REJECTED"
   | "SUSPENDED"
   | "INACTIVE";
 
-export type SupplierOrderStatus = 
+export type SupplierOrderStatus =
   | "PENDING"
   | "CONFIRMED"
   | "IN_PRODUCTION"
@@ -52,12 +52,7 @@ export type SupplierOrderStatus =
   | "DELIVERED"
   | "CANCELLED";
 
-export type InvoiceStatus = 
-  | "DRAFT"
-  | "SENT"
-  | "PAID"
-  | "OVERDUE"
-  | "CANCELLED";
+export type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED";
 
 export interface SupplierRegistrationData {
   // Company Information
@@ -67,30 +62,30 @@ export interface SupplierRegistrationData {
   phone: string;
   vatNumber?: string;
   taxId?: string;
-  
+
   // Business Address
   businessAddress: string;
   businessCity: string;
   businessState: string;
   businessCountry: string;
   businessPostalCode: string;
-  
+
   // Contact Person
   contactPersonName: string;
   contactPersonEmail: string;
   contactPersonPhone: string;
-  
+
   // Business Details
   yearEstablished?: number;
   employeeCount?: number;
   annualRevenue?: string;
   certifications: string[];
   productCategories: string[];
-  
+
   // Legal
   termsAccepted: boolean;
   privacyAccepted: boolean;
-  
+
   // Files
   logo?: File;
   catalogUrl?: string;
@@ -150,7 +145,9 @@ export interface SupplierProduct {
   slug: string;
   description?: string;
   price: number;
+  priceCurrency?: string; // Currency of the price (EUR or RON)
   compareAtPrice?: number;
+  compareAtPriceCurrency?: string; // Currency of compare price
   sku?: string;
   images: string[];
   categoryId?: string;

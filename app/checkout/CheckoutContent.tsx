@@ -2,9 +2,9 @@
 
 import React from "react";
 
+import { StripeBypassProvider } from "@/components/checkout/StripeBypassProvider";
 import { CheckoutFlow } from "@/features/checkout/components/CheckoutFlow";
 import { useTranslation } from "@/lib/i18n";
-import { StripeBypassProvider } from "@/components/checkout/StripeBypassProvider";
 
 export function CheckoutContent() {
   const { t } = useTranslation();

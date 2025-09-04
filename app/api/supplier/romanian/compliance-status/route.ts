@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user) {
-      return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     // Check if user is a supplier
@@ -23,13 +21,18 @@ export async function GET(request: NextRequest) {
         iscApproval: true,
         educationalCertification: true,
         romanianComplianceStatus: true,
-        User: {
+        cui: true,
+        nrRegCom: true,
+        codFiscal: true,
+        romanianVatNumber: true,
+        romanianBankAccount: true,
+        user: {
           select: {
             email: true,
-            role: true
-          }
-        }
-      }
+            role: true,
+          },
+        },
+      },
     });
 
     if (!supplier) {
@@ -46,9 +49,14 @@ export async function GET(request: NextRequest) {
       iscApproval: supplier.iscApproval,
       educationalCertification: supplier.educationalCertification,
       romanianComplianceStatus: supplier.romanianComplianceStatus,
-      userEmail: supplier.User?.email
+      userEmail: supplier.user?.email,
+      // Additional fields needed for compliance dashboard
+      cui: supplier.cui,
+      nrRegCom: supplier.nrRegCom,
+      codFiscal: supplier.codFiscal,
+      romanianVatNumber: supplier.romanianVatNumber,
+      romanianBankAccount: supplier.romanianBankAccount,
     });
-
   } catch (error) {
     console.error("Error fetching compliance status:", error);
     return NextResponse.json(
@@ -61,12 +69,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user) {
-      return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -74,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user is a supplier
     const supplier = await db.supplier.findUnique({
-      where: { userId: session.user.id }
+      where: { userId: session.user.id },
     });
 
     if (!supplier) {
@@ -86,21 +91,21 @@ export async function POST(request: NextRequest) {
 
     // Update compliance status based on approval type
     const updateData: any = {};
-    
-    if (approvalType === 'anpc') {
-      updateData.anpcApproval = complianceStatus === 'approved';
-    } else if (approvalType === 'isc') {
-      updateData.iscApproval = complianceStatus === 'approved';
-    } else if (approvalType === 'educational') {
+
+    if (approvalType === "anpc") {
+      updateData.anpcApproval = complianceStatus === "approved";
+    } else if (approvalType === "isc") {
+      updateData.iscApproval = complianceStatus === "approved";
+    } else if (approvalType === "educational") {
       updateData.educationalCertification = certificationNumber;
     }
 
-    if (complianceStatus === 'approved') {
-      updateData.romanianComplianceStatus = 'APPROVED';
-    } else if (complianceStatus === 'pending') {
-      updateData.romanianComplianceStatus = 'PENDING';
-    } else if (complianceStatus === 'rejected') {
-      updateData.romanianComplianceStatus = 'REJECTED';
+    if (complianceStatus === "approved") {
+      updateData.romanianComplianceStatus = "APPROVED";
+    } else if (complianceStatus === "pending") {
+      updateData.romanianComplianceStatus = "PENDING";
+    } else if (complianceStatus === "rejected") {
+      updateData.romanianComplianceStatus = "REJECTED";
     }
 
     const updatedSupplier = await db.supplier.update({
@@ -112,15 +117,14 @@ export async function POST(request: NextRequest) {
         anpcApproval: true,
         iscApproval: true,
         educationalCertification: true,
-        romanianComplianceStatus: true
-      }
+        romanianComplianceStatus: true,
+      },
     });
 
     return NextResponse.json({
       success: true,
-      supplier: updatedSupplier
+      supplier: updatedSupplier,
     });
-
   } catch (error) {
     console.error("Error updating compliance status:", error);
     return NextResponse.json(

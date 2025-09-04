@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
 import { auth } from "@/lib/auth";
+import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
-import { z } from "zod";
-import { validateCsrfForRequest } from "@/lib/csrf";
 
 // Validation schema for supplier registration
 const supplierRegistrationSchema = z.object({

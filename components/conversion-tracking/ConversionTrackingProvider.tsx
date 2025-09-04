@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+
 import { conversionTracker } from "@/lib/utils/conversion-tracking";
 
 export default function ConversionTrackingProvider() {
@@ -99,7 +100,7 @@ export default function ConversionTrackingProvider() {
       setupConversionTracking();
 
       // Set up time on page tracking
-      let pageStartTime = Date.now();
+      const pageStartTime = Date.now();
       const trackTimeOnPage = () => {
         const timeOnPage = Math.round((Date.now() - pageStartTime) / 1000);
 

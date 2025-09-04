@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SimpleImageUploader } from "@/components/ui/SimpleImageUploader";
+import { ImageUploader } from "@/components/ui/ImageUploader";
 
 // Product form schema
 const productSchema = z.object({
@@ -50,7 +51,9 @@ const productSchema = z.object({
     .min(10, "Description must be at least 10 characters")
     .max(1000, "Description must be less than 1000 characters"),
   price: z.number().min(0.01, "Price must be greater than 0"),
+  priceCurrency: z.enum(["EUR", "RON"]),
   compareAtPrice: z.number().optional(),
+  compareAtPriceCurrency: z.enum(["EUR", "RON"]).optional(),
   sku: z.string().optional(),
   stockQuantity: z.number().min(0, "Stock quantity cannot be negative"),
   reorderPoint: z
@@ -59,9 +62,9 @@ const productSchema = z.object({
     .optional(),
   weight: z.number().min(0, "Weight cannot be negative").optional(),
   categoryId: z.string().optional(),
-  tags: z.array(z.string()).default([]),
-  isActive: z.boolean().default(true),
-  featured: z.boolean().default(false),
+  tags: z.array(z.string()).default([]).optional(),
+  isActive: z.boolean().default(true).optional(),
+  featured: z.boolean().default(false).optional(),
   ageGroup: z
     .enum([
       "TODDLERS_1_3",
@@ -73,7 +76,8 @@ const productSchema = z.object({
     .optional(),
   stemDiscipline: z
     .enum(["SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"])
-    .default("GENERAL"),
+    .default("GENERAL")
+    .optional(),
   productType: z
     .enum([
       "ROBOTICS",
@@ -93,10 +97,12 @@ const productSchema = z.object({
         "LOGIC",
       ])
     )
-    .default([]),
+    .default([])
+    .optional(),
   specialCategories: z
     .array(z.enum(["NEW_ARRIVALS", "BEST_SELLERS", "GIFT_IDEAS", "SALE_ITEMS"]))
-    .default([]),
+    .default([])
+    .optional(),
   attributes: z.record(z.any()).optional(),
 });
 
@@ -109,7 +115,12 @@ interface SupplierProductFormProps {
 export function SupplierProductForm({ productId }: SupplierProductFormProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const { addToHeaders } = useCsrfToken();
+  const {
+    addToHeaders,
+    token: csrfToken,
+    loading: csrfLoading,
+    error: csrfError,
+  } = useCsrfToken();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [product, setProduct] = useState<SupplierProduct | null>(null);
@@ -132,6 +143,7 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
       name: "",
       description: "",
       price: 0,
+      priceCurrency: "RON",
       stockQuantity: 0,
       isActive: true,
       featured: false,
@@ -143,6 +155,21 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
   });
 
   const watchedValues = watch();
+
+  // Handle currency conversion when currency changes
+  useEffect(() => {
+    const currentPrice = watchedValues.price;
+    const currentCurrency = watchedValues.priceCurrency;
+
+    if (currentPrice && currentPrice > 0) {
+      // If currency is EUR, convert to RON for storage
+      if (currentCurrency === "EUR") {
+        const convertedPrice = currentPrice * 5; // 1 EUR = 5 RON
+        setValue("price", convertedPrice);
+      }
+      // If currency is RON, keep the price as is
+    }
+  }, [watchedValues.priceCurrency, setValue]);
 
   useEffect(() => {
     fetchCategories();
@@ -183,7 +210,9 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
         name: data.name,
         description: data.description || "",
         price: data.price,
+        priceCurrency: data.priceCurrency || "RON",
         compareAtPrice: data.compareAtPrice,
+        compareAtPriceCurrency: data.compareAtPriceCurrency || "RON",
         sku: data.sku || "",
         stockQuantity: data.stockQuantity,
         reorderPoint: data.reorderPoint,
@@ -211,8 +240,29 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
     }
   };
 
-  const onSubmit = async (data: ProductFormData) => {
+  const onSubmit = async (data: any) => {
     try {
+      // Check if form is actually valid
+      if (Object.keys(errors).length > 0) {
+        toast({
+          title: "Validation Error",
+          description: "Please fix the form errors before submitting",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check if CSRF token is available
+      if (!csrfToken) {
+        toast({
+          title: "Security Error",
+          description:
+            "Security token not available. Please refresh the page and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setSaving(true);
 
       const productData = {
@@ -226,16 +276,28 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
 
       const method = productId ? "PUT" : "POST";
 
+      const headers = addToHeaders({
+        "Content-Type": "application/json",
+      });
+
       const response = await fetch(url, {
         method,
-        headers: addToHeaders({
-          "Content-Type": "application/json",
-        }),
+        headers,
         body: JSON.stringify(productData),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save product");
+        const errorText = await response.text();
+
+        let errorMessage = "Failed to save product";
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          // Could not parse error response as JSON
+        }
+
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -249,58 +311,12 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
 
       router.push("/supplier/products");
     } catch (error) {
+      console.error("💥 [ERROR] Error in form submission:", error);
+
       toast({
         title: "Error",
         description:
           error instanceof Error ? error.message : "Failed to save product",
-        variant: "destructive",
-      });
-      console.error("Error saving product:", error);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = event.target.files;
-    if (!files) return;
-
-    try {
-      setSaving(true);
-
-      // In production, you would upload to your file storage service
-      // For now, we'll create a more robust placeholder system
-      const newImages = Array.from(files).map(file => {
-        // Create a more descriptive placeholder URL
-        const fileName = file.name || "image";
-        const fileSize = file.size;
-        const fileType = file.type;
-
-        // Store file metadata for later processing
-        const imageData = {
-          file,
-          name: fileName,
-          size: fileSize,
-          type: fileType,
-          placeholderUrl: URL.createObjectURL(file),
-        };
-
-        // Return a structured placeholder that indicates this needs processing
-        return `placeholder://${fileName}?size=${fileSize}&type=${fileType}`;
-      });
-
-      setImages(prev => [...prev, ...newImages]);
-
-      toast({
-        title: "Images Added",
-        description: `${files.length} image(s) added. They will be processed when you save the product.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to process images. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -362,458 +378,553 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => router.push("/supplier/products")}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Products
-          </Button>
-          <div>
-            <h2 className="text-2xl font-semibold">
-              {productId ? "Edit Product" : "Add New Product"}
-            </h2>
-            <p className="text-muted-foreground">
-              {productId
-                ? "Update your product information"
-                : "Create a new product for your catalog"}
-            </p>
+    <div>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/supplier/products")}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Products
+            </Button>
+            <div>
+              <h2 className="text-2xl font-semibold">
+                {productId ? "Edit Product" : "Add New Product"}
+              </h2>
+              <p className="text-muted-foreground">
+                {productId
+                  ? "Update your product information"
+                  : "Create a new product for your catalog"}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button type="submit" disabled={saving}>
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? "Saving..." : "Save Product"}
+            </Button>
           </div>
         </div>
-        <Button type="submit" disabled={saving}>
-          <Save className="w-4 h-4 mr-2" />
-          {saving ? "Saving..." : "Save Product"}
-        </Button>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Form */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                Basic Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Form */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Basic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-4 h-4" />
+                  Basic Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Product Name *</Label>
+                    <Input
+                      id="name"
+                      {...register("name")}
+                      placeholder="Enter product name"
+                    />
+                    {errors.name && (
+                      <p className="text-sm text-red-600">
+                        {errors.name.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sku">SKU</Label>
+                    <Input
+                      id="sku"
+                      {...register("sku")}
+                      placeholder="Stock keeping unit"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="name">Product Name *</Label>
-                  <Input
-                    id="name"
-                    {...register("name")}
-                    placeholder="Enter product name"
+                  <Label htmlFor="description">Description *</Label>
+                  <Textarea
+                    id="description"
+                    {...register("description")}
+                    placeholder="Describe your product..."
+                    rows={4}
                   />
-                  {errors.name && (
+                  {errors.description && (
                     <p className="text-sm text-red-600">
-                      {errors.name.message}
+                      {errors.description.message}
                     </p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="sku">SKU</Label>
-                  <Input
-                    id="sku"
-                    {...register("sku")}
-                    placeholder="Stock keeping unit"
-                  />
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
-                <Textarea
-                  id="description"
-                  {...register("description")}
-                  placeholder="Describe your product..."
-                  rows={4}
-                />
-                {errors.description && (
-                  <p className="text-sm text-red-600">
-                    {errors.description.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="categoryId">Category</Label>
-                  <Select
-                    value={watchedValues.categoryId || ""}
-                    onValueChange={value => setValue("categoryId", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(category => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ageGroup">Age Group</Label>
-                  <Select
-                    value={watchedValues.ageGroup || ""}
-                    onValueChange={value => setValue("ageGroup", value as any)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select age group" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="TODDLERS_1_3">
-                        Toddlers (1-3 years)
-                      </SelectItem>
-                      <SelectItem value="PRESCHOOL_3_5">
-                        Preschool (3-5 years)
-                      </SelectItem>
-                      <SelectItem value="ELEMENTARY_6_8">
-                        Elementary (6-8 years)
-                      </SelectItem>
-                      <SelectItem value="MIDDLE_SCHOOL_9_12">
-                        Middle School (9-12 years)
-                      </SelectItem>
-                      <SelectItem value="TEENS_13_PLUS">
-                        Teens (13+ years)
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="stemDiscipline">STEM Discipline</Label>
-                  <Select
-                    value={watchedValues.stemDiscipline || "GENERAL"}
-                    onValueChange={value =>
-                      setValue("stemDiscipline", value as any)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SCIENCE">Science</SelectItem>
-                      <SelectItem value="TECHNOLOGY">Technology</SelectItem>
-                      <SelectItem value="ENGINEERING">Engineering</SelectItem>
-                      <SelectItem value="MATHEMATICS">Mathematics</SelectItem>
-                      <SelectItem value="GENERAL">General</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Pricing */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
-                Pricing
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price (€) *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    {...register("price", { valueAsNumber: true })}
-                    placeholder="0.00"
-                  />
-                  {errors.price && (
-                    <p className="text-sm text-red-600">
-                      {errors.price.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="compareAtPrice">Compare at Price (€)</Label>
-                  <Input
-                    id="compareAtPrice"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    {...register("compareAtPrice", { valueAsNumber: true })}
-                    placeholder="Original price"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Inventory */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Hash className="w-4 h-4" />
-                Inventory
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="stockQuantity">Stock Quantity *</Label>
-                  <Input
-                    id="stockQuantity"
-                    type="number"
-                    min="0"
-                    {...register("stockQuantity", { valueAsNumber: true })}
-                    placeholder="0"
-                  />
-                  {errors.stockQuantity && (
-                    <p className="text-sm text-red-600">
-                      {errors.stockQuantity.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reorderPoint">Reorder Point</Label>
-                  <Input
-                    id="reorderPoint"
-                    type="number"
-                    min="0"
-                    {...register("reorderPoint", { valueAsNumber: true })}
-                    placeholder="5"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="weight">Weight (kg)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    {...register("weight", { valueAsNumber: true })}
-                    placeholder="0.5"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Images */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ImageIcon className="w-4 h-4" />
-                Product Images
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <SimpleImageUploader
-                images={images}
-                onImagesChange={setImages}
-                maxImages={10}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Tags */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Tags
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {watchedValues.tags?.map((tag, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="flex items-center gap-1"
-                  >
-                    {tag}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-auto p-0 ml-1"
-                      onClick={() => removeTag(tag)}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="categoryId">Category</Label>
+                    <Select
+                      value={watchedValues.categoryId || ""}
+                      onValueChange={value => setValue("categoryId", value)}
                     >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </Badge>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  value={newTag}
-                  onChange={e => setNewTag(e.target.value)}
-                  placeholder="Add a tag"
-                  onKeyPress={e =>
-                    e.key === "Enter" && (e.preventDefault(), addTag())
-                  }
-                />
-                <Button type="button" variant="outline" onClick={addTag}>
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Learning Outcomes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Learning Outcomes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {watchedValues.learningOutcomes?.map((outcome, index) => (
-                  <Badge
-                    key={index}
-                    variant="outline"
-                    className="flex items-center gap-1"
-                  >
-                    {outcome
-                      .replace(/_/g, " ")
-                      .toLowerCase()
-                      .replace(/\b\w/g, l => l.toUpperCase())}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-auto p-0 ml-1"
-                      onClick={() => removeLearningOutcome(outcome)}
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </Badge>
-                ))}
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  "PROBLEM_SOLVING",
-                  "CREATIVITY",
-                  "CRITICAL_THINKING",
-                  "MOTOR_SKILLS",
-                  "LOGIC",
-                ].map(outcome => (
-                  <Button
-                    key={outcome}
-                    type="button"
-                    variant={
-                      watchedValues.learningOutcomes?.includes(outcome)
-                        ? "default"
-                        : "outline"
-                    }
-                    size="sm"
-                    onClick={() => {
-                      const current = watchedValues.learningOutcomes || [];
-                      if (current.includes(outcome)) {
-                        setValue(
-                          "learningOutcomes",
-                          current.filter(o => o !== outcome)
-                        );
-                      } else {
-                        setValue("learningOutcomes", [...current, outcome]);
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(category => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ageGroup">Age Group</Label>
+                    <Select
+                      value={watchedValues.ageGroup || ""}
+                      onValueChange={value =>
+                        setValue("ageGroup", value as any)
                       }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select age group" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="TODDLERS_1_3">
+                          Toddlers (1-3 years)
+                        </SelectItem>
+                        <SelectItem value="PRESCHOOL_3_5">
+                          Preschool (3-5 years)
+                        </SelectItem>
+                        <SelectItem value="ELEMENTARY_6_8">
+                          Elementary (6-8 years)
+                        </SelectItem>
+                        <SelectItem value="MIDDLE_SCHOOL_9_12">
+                          Middle School (9-12 years)
+                        </SelectItem>
+                        <SelectItem value="TEENS_13_PLUS">
+                          Teens (13+ years)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="stemDiscipline">STEM Discipline</Label>
+                    <Select
+                      value={watchedValues.stemDiscipline || "GENERAL"}
+                      onValueChange={value =>
+                        setValue("stemDiscipline", value as any)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SCIENCE">Science</SelectItem>
+                        <SelectItem value="TECHNOLOGY">Technology</SelectItem>
+                        <SelectItem value="ENGINEERING">Engineering</SelectItem>
+                        <SelectItem value="MATHEMATICS">Mathematics</SelectItem>
+                        <SelectItem value="GENERAL">General</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Pricing */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" />
+                  Pricing
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Price *</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      {...register("price", { valueAsNumber: true })}
+                      placeholder="0.00"
+                    />
+                    {errors.price && (
+                      <p className="text-sm text-red-600">
+                        {errors.price.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="priceCurrency">Currency *</Label>
+                    <Select
+                      value={watchedValues.priceCurrency || "RON"}
+                      onValueChange={value => {
+                        setValue("priceCurrency", value as "EUR" | "RON");
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="RON">RON (Romanian Lei)</SelectItem>
+                        <SelectItem value="EUR">EUR (Euro)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.priceCurrency && (
+                      <p className="text-sm text-red-600">
+                        {errors.priceCurrency.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="compareAtPrice">Compare at Price</Label>
+                    <Input
+                      id="compareAtPrice"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      {...register("compareAtPrice", { valueAsNumber: true })}
+                      placeholder="Original price"
+                    />
+                  </div>
+                </div>
+                {watchedValues.compareAtPrice && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="compareAtPriceCurrency">
+                        Compare Price Currency
+                      </Label>
+                      <Select
+                        value={watchedValues.compareAtPriceCurrency || "RON"}
+                        onValueChange={value => {
+                          setValue(
+                            "compareAtPriceCurrency",
+                            value as "EUR" | "RON"
+                          );
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="RON">
+                            RON (Romanian Lei)
+                          </SelectItem>
+                          <SelectItem value="EUR">EUR (Euro)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.compareAtPriceCurrency && (
+                        <p className="text-sm text-red-600">
+                          {errors.compareAtPriceCurrency.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> If you select EUR, the price will be
+                    automatically converted to RON (1 EUR = 5 RON) and stored in
+                    RON. The admin dashboard will display prices in RON.
+                  </p>
+                  {watchedValues.priceCurrency === "EUR" &&
+                    watchedValues.price > 0 && (
+                      <p className="text-sm text-blue-800 mt-2">
+                        <strong>Converted Price:</strong>{" "}
+                        {watchedValues.price * 5} RON
+                      </p>
+                    )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Inventory */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Hash className="w-4 h-4" />
+                  Inventory
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="stockQuantity">Stock Quantity *</Label>
+                    <Input
+                      id="stockQuantity"
+                      type="number"
+                      min="0"
+                      {...register("stockQuantity", { valueAsNumber: true })}
+                      placeholder="0"
+                    />
+                    {errors.stockQuantity && (
+                      <p className="text-sm text-red-600">
+                        {errors.stockQuantity.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reorderPoint">Reorder Point</Label>
+                    <Input
+                      id="reorderPoint"
+                      type="number"
+                      min="0"
+                      {...register("reorderPoint", { valueAsNumber: true })}
+                      placeholder="5"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="weight">Weight (kg)</Label>
+                    <Input
+                      id="weight"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      {...register("weight", { valueAsNumber: true })}
+                      placeholder="0.5"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Images */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4" />
+                  Product Images
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Isolate UploadThing to prevent form interference - only stop form submission events */}
+                <div
+                  onSubmit={e => {
+                    e.stopPropagation();
+                  }}
+                  style={{ position: "relative", zIndex: 1 }}
+                >
+                  <ImageUploader
+                    maxImages={10}
+                    onImagesUploaded={newImages => {
+                      setImages(newImages);
                     }}
-                    className="justify-start"
-                  >
-                    {outcome
-                      .replace(/_/g, " ")
-                      .toLowerCase()
-                      .replace(/\b\w/g, l => l.toUpperCase())}
+                    initialImages={images}
+                    endpoint="productImage"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tags */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Tags
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {watchedValues.tags?.map((tag, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      {tag}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto p-0 ml-1"
+                        onClick={() => removeTag(tag)}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={newTag}
+                    onChange={e => setNewTag(e.target.value)}
+                    placeholder="Add a tag"
+                    onKeyPress={e =>
+                      e.key === "Enter" && (e.preventDefault(), addTag())
+                    }
+                  />
+                  <Button type="button" variant="outline" onClick={addTag}>
+                    <Plus className="w-4 h-4" />
                   </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="isActive"
-                  checked={watchedValues.isActive}
-                  onCheckedChange={checked =>
-                    setValue("isActive", checked as boolean)
-                  }
-                />
-                <Label htmlFor="isActive">Active</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="featured"
-                  checked={watchedValues.featured}
-                  onCheckedChange={checked =>
-                    setValue("featured", checked as boolean)
-                  }
-                />
-                <Label htmlFor="featured">Featured Product</Label>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Learning Outcomes */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Learning Outcomes</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {watchedValues.learningOutcomes?.map((outcome, index) => (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="flex items-center gap-1"
+                    >
+                      {outcome
+                        .replace(/_/g, " ")
+                        .toLowerCase()
+                        .replace(/\b\w/g, l => l.toUpperCase())}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto p-0 ml-1"
+                        onClick={() => removeLearningOutcome(outcome)}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    "PROBLEM_SOLVING",
+                    "CREATIVITY",
+                    "CRITICAL_THINKING",
+                    "MOTOR_SKILLS",
+                    "LOGIC",
+                  ].map(outcome => (
+                    <Button
+                      key={outcome}
+                      type="button"
+                      variant={
+                        watchedValues.learningOutcomes?.includes(outcome as any)
+                          ? "default"
+                          : "outline"
+                      }
+                      size="sm"
+                      onClick={() => {
+                        const current = watchedValues.learningOutcomes || [];
+                        if (current.includes(outcome as any)) {
+                          setValue(
+                            "learningOutcomes",
+                            current.filter(o => o !== outcome)
+                          );
+                        } else {
+                          setValue("learningOutcomes", [
+                            ...current,
+                            outcome as any,
+                          ]);
+                        }
+                      }}
+                      className="justify-start"
+                    >
+                      {outcome
+                        .replace(/_/g, " ")
+                        .toLowerCase()
+                        .replace(/\b\w/g, l => l.toUpperCase())}
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-          {/* Product Type */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Product Type</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select
-                value={watchedValues.productType || ""}
-                onValueChange={value => setValue("productType", value as any)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select product type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ROBOTICS">Robotics</SelectItem>
-                  <SelectItem value="PUZZLES">Puzzles</SelectItem>
-                  <SelectItem value="CONSTRUCTION_SETS">
-                    Construction Sets
-                  </SelectItem>
-                  <SelectItem value="EXPERIMENT_KITS">
-                    Experiment Kits
-                  </SelectItem>
-                  <SelectItem value="BOARD_GAMES">Board Games</SelectItem>
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Status</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="isActive"
+                    checked={watchedValues.isActive}
+                    onCheckedChange={checked =>
+                      setValue("isActive", checked as boolean)
+                    }
+                  />
+                  <Label htmlFor="isActive">Active</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="featured"
+                    checked={watchedValues.featured}
+                    onCheckedChange={checked =>
+                      setValue("featured", checked as boolean)
+                    }
+                  />
+                  <Label htmlFor="featured">Featured Product</Label>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Special Categories */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Special Categories</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {["NEW_ARRIVALS", "BEST_SELLERS", "GIFT_IDEAS", "SALE_ITEMS"].map(
-                category => (
+            {/* Product Type */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Product Type</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select
+                  value={watchedValues.productType || ""}
+                  onValueChange={value => setValue("productType", value as any)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select product type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ROBOTICS">Robotics</SelectItem>
+                    <SelectItem value="PUZZLES">Puzzles</SelectItem>
+                    <SelectItem value="CONSTRUCTION_SETS">
+                      Construction Sets
+                    </SelectItem>
+                    <SelectItem value="EXPERIMENT_KITS">
+                      Experiment Kits
+                    </SelectItem>
+                    <SelectItem value="BOARD_GAMES">Board Games</SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+
+            {/* Special Categories */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Special Categories</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {[
+                  "NEW_ARRIVALS",
+                  "BEST_SELLERS",
+                  "GIFT_IDEAS",
+                  "SALE_ITEMS",
+                ].map(category => (
                   <div key={category} className="flex items-center space-x-2">
                     <Checkbox
                       id={category}
                       checked={watchedValues.specialCategories?.includes(
-                        category
+                        category as any
                       )}
                       onCheckedChange={checked => {
                         const current = watchedValues.specialCategories || [];
                         if (checked) {
-                          setValue("specialCategories", [...current, category]);
+                          setValue("specialCategories", [
+                            ...current,
+                            category as any,
+                          ]);
                         } else {
                           setValue(
                             "specialCategories",
@@ -829,12 +940,12 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                         .replace(/\b\w/g, l => l.toUpperCase())}
                     </Label>
                   </div>
-                )
-              )}
-            </CardContent>
-          </Card>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

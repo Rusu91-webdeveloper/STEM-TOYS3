@@ -1,11 +1,13 @@
+import crypto from "crypto";
+
+import { hash } from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
+
+import { resolveAdminUserId } from "@/lib/admin-utils";
 import { auth } from "@/lib/auth";
+import { sendMail } from "@/lib/brevo";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
-import { resolveAdminUserId } from "@/lib/admin-utils";
-import { sendMail } from "@/lib/brevo";
-import { hash } from "bcryptjs";
-import crypto from "crypto";
 
 export async function GET(request: NextRequest) {
   try {

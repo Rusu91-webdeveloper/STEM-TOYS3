@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import { SupplierInvoicesPage } from "@/features/supplier/components/invoices/SupplierInvoicesPage";
 
 export const metadata: Metadata = {

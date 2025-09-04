@@ -162,16 +162,14 @@ export default function EnhancedMarkdownRenderer({
               {children}
             </td>
           ),
-          tr: ({ children, ...props }) => {
-            return (
+          tr: ({ children, ...props }) => (
               <tr
                 className="hover:bg-gray-50 transition-colors duration-200"
                 {...props}
               >
                 {children}
               </tr>
-            );
-          },
+            ),
           hr: () => (
             <hr className="my-16 border-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
           ),

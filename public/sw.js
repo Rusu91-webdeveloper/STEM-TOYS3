@@ -115,8 +115,8 @@ self.addEventListener('fetch', (event) => {
   // FIXED: Skip external domains (like utfs.io, vercel.live, etc.) to prevent image loading issues
   if (isExternalDomain(url.hostname)) {
     console.log('[SW] Skipping external domain:', url.hostname);
-    // For external domains, let the browser handle the request normally
-    event.respondWith(fetch(request));
+    // For external domains, fetch safely and always return a Response
+    event.respondWith(safeFetchExternal(request));
     return;
   }
   
@@ -137,6 +137,24 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(handleDefaultRequest(request));
   }
 });
+
+// Safe external fetch wrapper to guarantee a Response is returned
+async function safeFetchExternal(request) {
+  try {
+    return await fetch(request);
+  } catch (_e) {
+    // If the external request fails (e.g., DNS), return a sensible fallback
+    const url = new URL(request.url);
+    const isImage = /\.(png|jpg|jpeg|gif|svg|webp|avif)$/i.test(url.pathname) || url.pathname.startsWith('/_next/image');
+    if (isImage) {
+      const cached = await caches.match('/images/placeholder.jpg');
+      if (cached) return cached;
+      // Try to generate a minimal placeholder Response
+      return new Response('', { status: 204 });
+    }
+    return new Response('External fetch failed', { status: 502, statusText: 'Bad Gateway' });
+  }
+}
 
 // Handle static assets (CSS, JS, images, fonts)
 async function handleStaticAsset(request) {

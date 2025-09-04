@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { sendSupplierMessageNotification } from "@/lib/admin-notifications";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { utapi } from "@/lib/uploadthing";
-import { sendSupplierMessageNotification } from "@/lib/admin-notifications";
 
 // GET - List supplier messages
 export async function GET(request: NextRequest) {
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest) {
         messageId: message.id,
         hasAttachments: validAttachmentUrls.length > 0,
         attachmentCount: validAttachmentUrls.length,
-        attachments: attachments, // Pass the full attachment details
+        attachments, // Pass the full attachment details
       });
     } catch (error) {
       console.error("Failed to send admin notification:", error);

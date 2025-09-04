@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
 import { getServerSession } from "@/lib/auth/server";
 import { prisma } from "@/lib/db";
-import { z } from "zod";
 
 // Validation schema for creating/updating email sequences
 const EmailSequenceSchema = z.object({

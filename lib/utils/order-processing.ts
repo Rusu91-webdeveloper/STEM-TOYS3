@@ -73,7 +73,7 @@ export async function shouldAutoFulfillOrder(
   try {
     const settings = await getOrderProcessingSettings();
 
-    if (!settings || !settings.autoFulfillment.enabled) {
+    if (!settings?.autoFulfillment.enabled) {
       return false;
     }
 
@@ -169,7 +169,7 @@ export async function shouldHoldForReview(
   try {
     const settings = await getOrderProcessingSettings();
 
-    if (!settings || !settings.statusWorkflow.holdForReview.enabled) {
+    if (!settings?.statusWorkflow.holdForReview.enabled) {
       return false;
     }
 
@@ -209,7 +209,7 @@ export async function isSignatureRequired(
   try {
     const settings = await getOrderProcessingSettings();
 
-    if (!settings || !settings.fulfillment.signatureRequired.enabled) {
+    if (!settings?.fulfillment.signatureRequired.enabled) {
       return false;
     }
 

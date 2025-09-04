@@ -615,51 +615,37 @@ export const cacheUtils = {
   /**
    * Generate cache key with prefix
    */
-  key: (prefix: string, ...parts: (string | number)[]): string => {
-    return `${prefix}:${parts.join(":")}`;
-  },
+  key: (prefix: string, ...parts: (string | number)[]): string => `${prefix}:${parts.join(":")}`,
 
   /**
    * Generate cache key for user data
    */
-  userKey: (userId: string, type: string): string => {
-    return cacheUtils.key("user", userId, type);
-  },
+  userKey: (userId: string, type: string): string => cacheUtils.key("user", userId, type),
 
   /**
    * Generate cache key for email data
    */
-  emailKey: (emailId: string, type: string): string => {
-    return cacheUtils.key("email", emailId, type);
-  },
+  emailKey: (emailId: string, type: string): string => cacheUtils.key("email", emailId, type),
 
   /**
    * Generate cache key for campaign data
    */
-  campaignKey: (campaignId: string, type: string): string => {
-    return cacheUtils.key("campaign", campaignId, type);
-  },
+  campaignKey: (campaignId: string, type: string): string => cacheUtils.key("campaign", campaignId, type),
 
   /**
    * Generate cache key for sequence data
    */
-  sequenceKey: (sequenceId: string, type: string): string => {
-    return cacheUtils.key("sequence", sequenceId, type);
-  },
+  sequenceKey: (sequenceId: string, type: string): string => cacheUtils.key("sequence", sequenceId, type),
 
   /**
    * Generate cache key for template data
    */
-  templateKey: (templateId: string, type: string): string => {
-    return cacheUtils.key("template", templateId, type);
-  },
+  templateKey: (templateId: string, type: string): string => cacheUtils.key("template", templateId, type),
 
   /**
    * Generate cache key for analytics data
    */
-  analyticsKey: (type: string, ...parts: (string | number)[]): string => {
-    return cacheUtils.key("analytics", type, ...parts);
-  },
+  analyticsKey: (type: string, ...parts: (string | number)[]): string => cacheUtils.key("analytics", type, ...parts),
 
   /**
    * Default TTL values

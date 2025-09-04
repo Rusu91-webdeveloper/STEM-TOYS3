@@ -76,7 +76,7 @@ export const createCompatibleMockStripe = (): Stripe => {
       return {
         error: null,
         paymentIntent: {
-          id: 'mock_pi_' + Math.random().toString(36).substr(2, 9),
+          id: `mock_pi_${  Math.random().toString(36).substr(2, 9)}`,
           status: 'succeeded',
           client_secret: clientSecret,
         },
@@ -88,7 +88,7 @@ export const createCompatibleMockStripe = (): Stripe => {
       return {
         error: null,
         paymentIntent: {
-          id: 'mock_pi_' + Math.random().toString(36).substr(2, 9),
+          id: `mock_pi_${  Math.random().toString(36).substr(2, 9)}`,
           status: 'succeeded',
         },
       };
@@ -100,7 +100,7 @@ export const createCompatibleMockStripe = (): Stripe => {
       return {
         error: null,
         token: {
-          id: 'mock_tok_' + Math.random().toString(36).substr(2, 9),
+          id: `mock_tok_${  Math.random().toString(36).substr(2, 9)}`,
           type: 'card',
         },
       };
@@ -111,7 +111,7 @@ export const createCompatibleMockStripe = (): Stripe => {
       return {
         error: null,
         source: {
-          id: 'mock_src_' + Math.random().toString(36).substr(2, 9),
+          id: `mock_src_${  Math.random().toString(36).substr(2, 9)}`,
           type: 'card',
         },
       };
@@ -122,7 +122,7 @@ export const createCompatibleMockStripe = (): Stripe => {
       return {
         error: null,
         paymentMethod: {
-          id: 'mock_pm_' + Math.random().toString(36).substr(2, 9),
+          id: `mock_pm_${  Math.random().toString(36).substr(2, 9)}`,
           type: 'card',
         },
       };

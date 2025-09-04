@@ -6,6 +6,8 @@
 import { StoreSettings } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+
+import { createHeader, createProfessionalFooter } from "./components";
 import {
   colors,
   typography,
@@ -13,7 +15,6 @@ import {
   borderRadius,
   shadows,
 } from "./design-system";
-import { createHeader, createProfessionalFooter } from "./components";
 
 // Base URL for links
 export const getBaseUrl = () =>
@@ -188,7 +189,7 @@ export function generatePreviewText(
     .replace(/\s+/g, " ")
     .trim();
   return cleanText.length > maxLength
-    ? cleanText.substring(0, maxLength) + "..."
+    ? `${cleanText.substring(0, maxLength)  }...`
     : cleanText;
 }
 

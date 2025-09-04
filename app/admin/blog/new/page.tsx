@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
+import BlogContentTemplates from "@/components/admin/BlogContentTemplates";
+import RichBlogEditor from "@/components/admin/RichBlogEditor";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,8 +29,6 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import RichBlogEditor from "@/components/admin/RichBlogEditor";
-import BlogContentTemplates from "@/components/admin/BlogContentTemplates";
 
 // Define the Category type
 type Category = {
@@ -247,7 +247,7 @@ export default function NewBlogPage() {
                       onTemplateSelect={(content, tags) => {
                         setBlogData(prev => ({
                           ...prev,
-                          content: content,
+                          content,
                           tags: tags.join(", "),
                         }));
                       }}

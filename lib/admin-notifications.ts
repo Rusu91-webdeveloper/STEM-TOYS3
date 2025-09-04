@@ -1,5 +1,5 @@
-import { sendMail } from "./nodemailer";
 import { logger } from "./logger";
+import { sendMail } from "./nodemailer";
 
 // Admin email configuration
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@techtots.com";

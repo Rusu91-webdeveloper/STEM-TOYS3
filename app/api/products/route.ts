@@ -212,6 +212,7 @@ async function fetchProductsFromDatabase(params: {
   // **PERFORMANCE**: Build optimized where clause
   const where: Prisma.ProductWhereInput = {
     isActive: true,
+    status: "APPROVED" as any,
   };
 
   // **PERFORMANCE**: Optimized category filtering (supports multiple categories)
@@ -254,15 +255,14 @@ async function fetchProductsFromDatabase(params: {
             },
           ],
         };
-      } else {
-        // For non-STEM categories (like educational-books), only check category.slug
-        return {
-          category: {
-            slug: normalizedCategory,
-            isActive: true,
-          },
-        };
       }
+      // For non-STEM categories (like educational-books), only check category.slug
+      return {
+        category: {
+          slug: normalizedCategory,
+          isActive: true,
+        },
+      };
     });
 
     // If multiple categories, use OR to match any of them
@@ -513,8 +513,6 @@ async function fetchProductsFromDatabase(params: {
     } else {
       [products, totalCount] = fetchResult;
     }
-
-
 
     // Transform books to product-like structure if included
     const transformedBooks = books.map((book: any) => ({

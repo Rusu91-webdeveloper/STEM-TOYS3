@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { resolveAdminUserId } from "@/lib/admin-utils";
 import { auth } from "@/lib/auth";
 import { contentVersioningService } from "@/lib/services/content-versioning";
-import { resolveAdminUserId } from "@/lib/admin-utils";
 
 // POST /api/admin/content-versions/restore - Restore to specific version
 export async function POST(request: NextRequest) {

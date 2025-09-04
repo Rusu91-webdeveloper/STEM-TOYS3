@@ -183,7 +183,7 @@ export async function PUT(
       id: existingBlog.id,
       title: data.title,
       excerpt: data.excerpt,
-      content: content,
+      content,
       coverImage: data.coverImage,
       categoryId: data.categoryId,
       stemCategory: data.stemCategory,

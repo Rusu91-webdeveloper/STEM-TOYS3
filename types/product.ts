@@ -19,7 +19,9 @@ export interface Product {
   slug: string;
   description: string;
   price: number;
+  priceCurrency?: string; // Currency of the price (EUR or RON)
   compareAtPrice?: number;
+  compareAtPriceCurrency?: string; // Currency of compare price
   images: string[];
   category?: {
     id: string;

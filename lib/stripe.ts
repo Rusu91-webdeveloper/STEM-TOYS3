@@ -1,11 +1,12 @@
 import { loadStripe, Stripe } from "@stripe/stripe-js";
-import { getStripeProduction } from "./stripe-secure-production";
+
 import { getStripeBypassSW } from "./stripe-bypass-sw";
-import { getStripeSecure } from "./stripe-secure-client";
-import { getStripeWithFallback, testStripeConnectivity } from "./stripe-fallback";
 import { loadStripeWithoutAPIValidation } from "./stripe-cdn-fix";
-import { createCompatibleMockStripe } from "./stripe-mock";
 import { getDisabledStripe, shouldDisableStripe } from "./stripe-disabled";
+import { getStripeWithFallback, testStripeConnectivity } from "./stripe-fallback";
+import { createCompatibleMockStripe } from "./stripe-mock";
+import { getStripeSecure } from "./stripe-secure-client";
+import { getStripeProduction } from "./stripe-secure-production";
 
 // Load the Stripe public key from environment variable
 const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;

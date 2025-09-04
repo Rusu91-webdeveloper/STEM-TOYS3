@@ -1,24 +1,5 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   TrendingUp,
   TrendingDown,
@@ -33,6 +14,26 @@ import {
   PieChart,
   Activity,
 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AnalyticsData {
   overview: {
@@ -111,16 +112,12 @@ export default function AnalyticsDashboard({
   const [timeRange, setTimeRange] = useState("30d");
   const [activeTab, setActiveTab] = useState("overview");
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("ro-RO", {
+  const formatCurrency = (amount: number) => new Intl.NumberFormat("ro-RO", {
       style: "currency",
       currency: "RON",
     }).format(amount);
-  };
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat("ro-RO").format(num);
-  };
+  const formatNumber = (num: number) => new Intl.NumberFormat("ro-RO").format(num);
 
   const getChangeIcon = (change: number) => {
     if (change > 0) {

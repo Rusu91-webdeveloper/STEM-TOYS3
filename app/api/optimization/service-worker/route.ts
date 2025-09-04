@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { serviceWorkerManager, generateServiceWorker, updateCacheStrategy, clearOfflineCache, getOfflineStatus } from "../../../../lib/optimization/service-worker-manager";
 import { withRateLimiting } from "../../../../lib/security/rate-limiter";
 import { withSecurityHeaders } from "../../../../lib/security/security-middleware";

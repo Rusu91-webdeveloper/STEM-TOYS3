@@ -23,6 +23,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
+import { formatPriceWithCurrency } from "@/lib/currency-converter";
 
 interface ProductRow {
   name: string;
@@ -771,7 +772,10 @@ export function SupplierBulkUpload() {
                       <tr key={index} className="border-b">
                         <td className="p-2 font-medium">{product.name}</td>
                         <td className="p-2">
-                          €{isNaN(product.price) ? 0 : product.price}
+                          {formatPriceWithCurrency(
+                            isNaN(product.price) ? 0 : product.price,
+                            "RON"
+                          )}
                         </td>
                         <td className="p-2">
                           {isNaN(product.stockQuantity)

@@ -92,7 +92,7 @@ export async function shouldTriggerStockAlert(
   try {
     const settings = await getInventoryManagementSettings();
 
-    if (!settings || !settings.stockAlerts.enabled) {
+    if (!settings?.stockAlerts.enabled) {
       return false;
     }
 

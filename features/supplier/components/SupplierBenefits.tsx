@@ -422,42 +422,6 @@ export function SupplierBenefits() {
           </Button>
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-            Ready to Grow Your Business?
-          </h2>
-          <p className="text-xl text-emerald-100 mb-8 max-w-2xl mx-auto">
-            Join hundreds of successful suppliers who have transformed their
-            business with TechTots.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              className="bg-white text-emerald-700 hover:bg-emerald-50 border-2 border-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-              asChild
-            >
-              <Link href="/supplier/apply">
-                Apply Now
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-            </Button>
-            <Button
-              size="lg"
-              className="bg-transparent text-white border-2 border-white hover:bg-white hover:text-emerald-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-              asChild
-            >
-              <Link href="/contact">Contact Sales</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

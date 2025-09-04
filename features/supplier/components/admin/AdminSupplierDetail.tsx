@@ -3,59 +3,77 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { 
-  ArrowLeft, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  Clock, 
+import {
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Clock,
   Building2,
-  Mail, 
-  Phone, 
-  MapPin, 
-  Globe, 
-  FileText, 
+  Mail,
+  Phone,
+  MapPin,
+  Globe,
+  FileText,
   Calendar,
   User,
   Award,
   DollarSign,
   AlertCircle,
-  Send
+  Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { type Supplier, type SupplierStatus } from "@/features/supplier/types/supplier";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { formatPriceWithCurrency } from "@/lib/currency-converter";
+import {
+  type Supplier,
+  type SupplierStatus,
+} from "@/features/supplier/types/supplier";
 
 const statusConfig = {
   PENDING: {
     label: "Pending Review",
     color: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    icon: Clock
+    icon: Clock,
   },
   APPROVED: {
     label: "Approved",
     color: "bg-green-100 text-green-800 border-green-200",
-    icon: CheckCircle
+    icon: CheckCircle,
   },
   REJECTED: {
     label: "Rejected",
     color: "bg-red-100 text-red-800 border-red-200",
-    icon: XCircle
+    icon: XCircle,
   },
   SUSPENDED: {
     label: "Suspended",
     color: "bg-orange-100 text-orange-800 border-orange-200",
-    icon: AlertTriangle
+    icon: AlertTriangle,
   },
   INACTIVE: {
     label: "Inactive",
     color: "bg-gray-100 text-gray-800 border-gray-200",
-    icon: Building2
-  }
+    icon: Building2,
+  },
 };
 
 interface AdminSupplierDetailProps {
@@ -108,7 +126,8 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
         },
         body: JSON.stringify({
           status: newStatus,
-          rejectionReason: newStatus === "REJECTED" ? rejectionReason : undefined,
+          rejectionReason:
+            newStatus === "REJECTED" ? rejectionReason : undefined,
         }),
       });
 
@@ -130,16 +149,19 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
 
   const sendNotification = async (type: "approval" | "rejection") => {
     try {
-      const response = await fetch(`/api/admin/suppliers/${supplierId}/notify`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type,
-          rejectionReason: type === "rejection" ? rejectionReason : undefined,
-        }),
-      });
+      const response = await fetch(
+        `/api/admin/suppliers/${supplierId}/notify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type,
+            rejectionReason: type === "rejection" ? rejectionReason : undefined,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to send notification");
@@ -168,9 +190,7 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
       <div className="container mx-auto px-4 py-8">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {error || "Supplier not found"}
-          </AlertDescription>
+          <AlertDescription>{error || "Supplier not found"}</AlertDescription>
         </Alert>
         <Button variant="outline" className="mt-4" asChild>
           <Link href="/admin/suppliers">
@@ -197,7 +217,9 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{supplier.companyName}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {supplier.companyName}
+            </h1>
             <p className="text-gray-600">Supplier Application Details</p>
           </div>
         </div>
@@ -230,34 +252,48 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Company Name</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Company Name
+                  </label>
                   <p className="text-gray-900">{supplier.companyName}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Phone</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Phone
+                  </label>
                   <p className="text-gray-900">{supplier.phone}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">VAT Number</label>
-                  <p className="text-gray-900">{supplier.vatNumber || "Not provided"}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    VAT Number
+                  </label>
+                  <p className="text-gray-900">
+                    {supplier.vatNumber || "Not provided"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Tax ID</label>
-                  <p className="text-gray-900">{supplier.taxId || "Not provided"}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Tax ID
+                  </label>
+                  <p className="text-gray-900">
+                    {supplier.taxId || "Not provided"}
+                  </p>
                 </div>
               </div>
               {supplier.description && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Description</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Description
+                  </label>
                   <p className="text-gray-900">{supplier.description}</p>
                 </div>
               )}
               {supplier.website && (
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 text-gray-400" />
-                  <a 
-                    href={supplier.website} 
-                    target="_blank" 
+                  <a
+                    href={supplier.website}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline"
                   >
@@ -280,7 +316,8 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
               <div className="space-y-2">
                 <p className="text-gray-900">{supplier.businessAddress}</p>
                 <p className="text-gray-900">
-                  {supplier.businessCity}, {supplier.businessState} {supplier.businessPostalCode}
+                  {supplier.businessCity}, {supplier.businessState}{" "}
+                  {supplier.businessPostalCode}
                 </p>
                 <p className="text-gray-900">{supplier.businessCountry}</p>
               </div>
@@ -298,17 +335,21 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Name</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Name
+                  </label>
                   <p className="text-gray-900">{supplier.contactPersonName}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Phone</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Phone
+                  </label>
                   <p className="text-gray-900">{supplier.contactPersonPhone}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-gray-400" />
-                <a 
+                <a
                   href={`mailto:${supplier.contactPersonEmail}`}
                   className="text-blue-600 hover:underline"
                 >
@@ -330,19 +371,25 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {supplier.yearEstablished && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Year Established</label>
+                    <label className="text-sm font-medium text-gray-700">
+                      Year Established
+                    </label>
                     <p className="text-gray-900">{supplier.yearEstablished}</p>
                   </div>
                 )}
                 {supplier.employeeCount && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Employees</label>
+                    <label className="text-sm font-medium text-gray-700">
+                      Employees
+                    </label>
                     <p className="text-gray-900">{supplier.employeeCount}</p>
                   </div>
                 )}
                 {supplier.annualRevenue && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Annual Revenue</label>
+                    <label className="text-sm font-medium text-gray-700">
+                      Annual Revenue
+                    </label>
                     <p className="text-gray-900">{supplier.annualRevenue}</p>
                   </div>
                 )}
@@ -350,9 +397,11 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
 
               {supplier.productCategories.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Product Categories</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Product Categories
+                  </label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {supplier.productCategories.map((category) => (
+                    {supplier.productCategories.map(category => (
                       <Badge key={category} variant="secondary">
                         {category}
                       </Badge>
@@ -363,9 +412,11 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
 
               {supplier.certifications.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Certifications</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Certifications
+                  </label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {supplier.certifications.map((cert) => (
+                    {supplier.certifications.map(cert => (
                       <Badge key={cert} variant="outline">
                         <Award className="w-3 h-3 mr-1" />
                         {cert}
@@ -398,10 +449,16 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Approve Application
                 </Button>
-                
-                <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
+
+                <Dialog
+                  open={showRejectionDialog}
+                  onOpenChange={setShowRejectionDialog}
+                >
                   <DialogTrigger asChild>
-                    <Button variant="outline" className="w-full text-red-600 border-red-600 hover:bg-red-50">
+                    <Button
+                      variant="outline"
+                      className="w-full text-red-600 border-red-600 hover:bg-red-50"
+                    >
                       <XCircle className="w-4 h-4 mr-2" />
                       Reject Application
                     </Button>
@@ -410,14 +467,15 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                     <DialogHeader>
                       <DialogTitle>Reject Supplier Application</DialogTitle>
                       <DialogDescription>
-                        Please provide a reason for rejection. This will be sent to the supplier.
+                        Please provide a reason for rejection. This will be sent
+                        to the supplier.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                       <Textarea
                         placeholder="Enter rejection reason..."
                         value={rejectionReason}
-                        onChange={(e) => setRejectionReason(e.target.value)}
+                        onChange={e => setRejectionReason(e.target.value)}
                         rows={4}
                       />
                     </div>
@@ -519,8 +577,12 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
               )}
               {supplier.rejectionReason && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Rejection Reason</label>
-                  <p className="text-sm text-gray-600 mt-1">{supplier.rejectionReason}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Rejection Reason
+                  </label>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {supplier.rejectionReason}
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -536,16 +598,26 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Commission Rate</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Commission Rate
+                </label>
                 <p className="text-gray-900">{supplier.commissionRate}%</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Payment Terms</label>
-                <p className="text-gray-900">Net {supplier.paymentTerms} days</p>
+                <label className="text-sm font-medium text-gray-700">
+                  Payment Terms
+                </label>
+                <p className="text-gray-900">
+                  Net {supplier.paymentTerms} days
+                </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Minimum Order Value</label>
-                <p className="text-gray-900">€{supplier.minimumOrderValue}</p>
+                <label className="text-sm font-medium text-gray-700">
+                  Minimum Order Value
+                </label>
+                <p className="text-gray-900">
+                  {formatPriceWithCurrency(supplier.minimumOrderValue, "RON")}
+                </p>
               </div>
             </CardContent>
           </Card>

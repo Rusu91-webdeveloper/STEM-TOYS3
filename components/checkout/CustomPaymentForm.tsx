@@ -1,10 +1,11 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
 
 interface CustomPaymentFormProps {
   onSuccess: (paymentDetails: any) => void;
@@ -70,15 +71,15 @@ export function CustomPaymentForm({
     
     if (parts.length) {
       return parts.join(' ');
-    } else {
+    } 
       return v;
-    }
+    
   };
 
   const formatExpiryDate = (value: string) => {
     const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
     if (v.length >= 2) {
-      return v.substring(0, 2) + '/' + v.substring(2, 4);
+      return `${v.substring(0, 2)  }/${  v.substring(2, 4)}`;
     }
     return v;
   };

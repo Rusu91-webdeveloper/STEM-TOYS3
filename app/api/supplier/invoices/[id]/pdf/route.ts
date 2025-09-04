@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 export async function GET(
   request: NextRequest,

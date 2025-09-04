@@ -1,422 +1,124 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 
 interface ValuePropositionSectionProps {
   t: (key: string, defaultValue?: string) => string;
 }
 
-// Modal component for displaying full card content
-const CardModal = ({
-  isOpen,
-  onClose,
-  title,
-  description,
-  icon: Icon,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-}) => {
-  if (!isOpen) return null;
+function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
+  const cards = [
+    {
+      key: "cognitive",
+      title: t("cognitiveDevelopment"),
+      description: t("cognitiveDevelopmentDesc"),
+      image: "/images/category_banner_science_01.png",
+      badge: t("features", "Features"),
+    },
+    {
+      key: "quality",
+      title: t("qualitySafety", "Quality & Safety"),
+      description: t(
+        "qualitySafetyDesc",
+        "All our products meet or exceed safety standards and are built to last."
+      ),
+      image: "/images/category_banner_engineering_01.png",
+      badge: t("features", "Features"),
+    },
+    {
+      key: "future",
+      title: t("futureReady"),
+      description: t("futureReadyDesc"),
+      image: "/images/category_banner_technology_01.png",
+      badge: t("features", "Features"),
+    },
+    {
+      key: "b2b",
+      title: t("b2bSolutions", "B2B Programs"),
+      description: t(
+        "b2bSolutionsDesc",
+        "Wholesale pricing, bulk orders, and partnerships for schools and businesses."
+      ),
+      image: "/images/blog_homepage_hero_01.png",
+      badge: t("programs", "Programs"),
+    },
+  ];
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      {/* Enhanced blur background with gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-black/20 to-black/40 backdrop-blur-md" />
+    <section className="py-3 sm:py-10 md:py-16 bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 text-gray-900">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <h2 className="text-sm xs:text-lg sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-6 md:mb-8 text-center">
+          {t("whyChooseTechTots")}
+        </h2>
 
-      {/* Professional modal content */}
-      <div
-        className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-lg w-full mx-4 transform transition-all duration-300 scale-100 border border-gray-100 dark:border-gray-700"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Enhanced close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-all duration-200 hover:scale-110 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-          aria-label="Close modal"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-y-3 sm:gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8">
+          {cards.map(card => (
+            <div
+              key={card.key}
+              className="group relative w-full overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-2xl focus-within:ring-2 focus-within:ring-white/80"
+              aria-label={card.title}
+              role="region"
+            >
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url(${card.image})` }}
+                aria-hidden="true"
+              />
+              <div
+                className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/50 to-black/80"
+                aria-hidden="true"
+              />
 
-        {/* Enhanced header with gradient background */}
-        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 dark:from-primary/20 dark:via-primary/10 dark:to-primary/20 rounded-t-3xl p-8 pb-6">
-          {/* Professional icon presentation */}
-          <div className="flex justify-center mb-6">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 shadow-lg border border-primary/20">
-              <Icon className="w-12 h-12 text-primary dark:text-primary-foreground" />
+              <div className="relative flex min-h-[140px] xs:min-h-[180px] sm:min-h-[260px] md:min-h-[300px] flex-col justify-end p-4 xs:p-5 sm:p-6">
+                <div className="mb-2 inline-flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.35)]" />
+                  <span className="text-[10px] xs:text-xs tracking-wider uppercase text-white/90">
+                    {card.badge}
+                  </span>
+                </div>
+
+                <div className="w-full max-w-[98%] backdrop-blur-sm bg-black/40 hover:bg-black/50 transition-colors rounded-xl px-3.5 py-3 md:px-4 md:py-4">
+                  <h3 className="text-base xs:text-lg sm:text-xl md:text-2xl font-extrabold text-white drop-shadow-md">
+                    {card.title}
+                  </h3>
+                  <p className="mt-2 text-[11px] xs:text-sm md:text-base text-white/95 leading-snug">
+                    {card.description}
+                  </p>
+                  <div className="mt-3 md:mt-4 flex items-center gap-2 text-white/90">
+                    <div className="h-6 w-6 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="h-3.5 w-3.5"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M12 2.25a.75.75 0 0 1 .75.75v8.19l5.03 2.9a.75.75 0 1 1-.75 1.3l-5.4-3.11a.75.75 0 0 1-.38-.65V3a.75.75 0 0 1 .75-.75Z"
+                          clipRule="evenodd"
+                        />
+                        <path
+                          d="M3.375 12C3.375 6.753 7.753 2.375 13 2.375S22.625 6.753 22.625 12 18.247 21.625 13 21.625 3.375 17.247 3.375 12Z"
+                          opacity=".2"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-xs xs:text-sm">
+                      {t("inspiringMinds", "Inspiring young minds")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className="absolute inset-0 ring-1 ring-white/10 rounded-2xl"
+                aria-hidden="true"
+              />
             </div>
-          </div>
-
-          {/* Enhanced title styling */}
-          <h3 className="text-2xl font-bold text-center mb-2 text-gray-900 dark:text-white leading-tight">
-            {title}
-          </h3>
-        </div>
-
-        {/* Enhanced content section */}
-        <div className="p-8 pt-6">
-          {/* Professional description with better typography */}
-          <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-center text-lg font-medium">
-            {description}
-          </p>
-
-          {/* Decorative element */}
-          <div className="flex justify-center mt-6">
-            <div className="w-16 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full"></div>
-          </div>
+          ))}
         </div>
       </div>
-    </div>
-  );
-};
-
-function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
-  const [selectedCard, setSelectedCard] = useState<{
-    title: string;
-    description: string;
-    icon: React.ComponentType<{ className?: string }>;
-  } | null>(null);
-
-  const handleCardClick = (
-    title: string,
-    description: string,
-    icon: React.ComponentType<{ className?: string }>
-  ) => {
-    setSelectedCard({ title, description, icon });
-  };
-
-  const closeModal = () => {
-    setSelectedCard(null);
-  };
-
-  return (
-    <>
-      <section className="py-3 sm:py-10 md:py-16 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <h2 className="text-sm xs:text-lg sm:text-4xl md:text-5xl font-bold mb-1 sm:mb-4 md:mb-6 text-center">
-            {t("whyChooseTechTots")}
-          </h2>
-          {/* Responsive grid: 1-col mobile, 2-col sm, 3-col md+ */}
-          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-y-2 sm:gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8 lg:gap-x-12 justify-items-center">
-            {/* Cognitive Development */}
-            <div
-              className="bg-primary-foreground/10 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-h-[24px] sm:min-h-[44px] flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group cursor-pointer"
-              tabIndex={0}
-              aria-label={t("cognitiveDevelopment")}
-              onClick={() =>
-                handleCardClick(
-                  t("cognitiveDevelopment"),
-                  t("cognitiveDevelopmentDesc"),
-                  () => (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-full h-full"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"
-                      />
-                    </svg>
-                  )
-                )
-              }
-              onKeyDown={e => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleCardClick(
-                    t("cognitiveDevelopment"),
-                    t("cognitiveDevelopmentDesc"),
-                    () => (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-full h-full"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"
-                        />
-                      </svg>
-                    )
-                  );
-                }
-              }}
-            >
-              {/* Icon section - similar to image in categories */}
-              <div className="relative h-12 xs:h-16 sm:h-40 md:h-48 w-full flex items-center justify-center bg-primary-foreground/5">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6 xs:w-8 xs:h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 text-primary"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"
-                  />
-                </svg>
-              </div>
-              <div className="p-1.5 xs:p-2 sm:p-5 md:p-6 flex flex-col flex-grow">
-                <h3 className="text-xs xs:text-xs sm:text-lg md:text-xl font-bold mb-0.5 xs:mb-2 truncate">
-                  {t("cognitiveDevelopment")}
-                </h3>
-                <p
-                  className="text-primary-foreground/90 text-xs xs:text-xs md:text-base mb-1.5 sm:mb-3 md:mb-4 overflow-hidden"
-                  style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                  }}
-                >
-                  {t("cognitiveDevelopmentDesc")}
-                </p>
-                {/* Click indicator */}
-                <div className="mt-auto text-center">
-                  <span className="text-xs text-primary-foreground/70">
-                    Tap to read more
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quality & Safety */}
-            <div
-              className="bg-primary-foreground/10 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-h-[24px] sm:min-h-[44px] flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group cursor-pointer"
-              tabIndex={0}
-              aria-label={t("qualitySafety", "Quality & Safety")}
-              onClick={() =>
-                handleCardClick(
-                  t("qualitySafety", "Quality & Safety"),
-                  t(
-                    "qualitySafetyDesc",
-                    "All our products meet or exceed safety standards and are built to last."
-                  ),
-                  () => (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-full h-full"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"
-                      />
-                    </svg>
-                  )
-                )
-              }
-              onKeyDown={e => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleCardClick(
-                    t("qualitySafety", "Quality & Safety"),
-                    t(
-                      "qualitySafetyDesc",
-                      "All our products meet or exceed safety standards and are built to last."
-                    ),
-                    () => (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-full h-full"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"
-                        />
-                      </svg>
-                    )
-                  );
-                }
-              }}
-            >
-              {/* Icon section - similar to image in categories */}
-              <div className="relative h-12 xs:h-16 sm:h-40 md:h-48 w-full flex items-center justify-center bg-primary-foreground/5">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6 xs:w-8 xs:h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 text-primary"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"
-                  />
-                </svg>
-              </div>
-              <div className="p-1.5 xs:p-2 sm:p-5 md:p-6 flex flex-col flex-grow">
-                <h3 className="text-xs xs:text-xs sm:text-lg md:text-xl font-bold mb-0.5 xs:mb-2 truncate">
-                  {t("qualitySafety", "Quality & Safety")}
-                </h3>
-                <p
-                  className="text-primary-foreground/90 text-xs xs:text-xs md:text-base mb-1.5 sm:mb-3 md:mb-4 overflow-hidden"
-                  style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                  }}
-                >
-                  {t(
-                    "qualitySafetyDesc",
-                    "All our products meet or exceed safety standards and are built to last."
-                  )}
-                </p>
-                {/* Click indicator */}
-                <div className="mt-auto text-center">
-                  <span className="text-xs text-primary-foreground/70">
-                    Tap to read more
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Future Ready */}
-            <div
-              className="bg-primary-foreground/10 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-h-[24px] sm:min-h-[44px] flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/70 focus-visible:ring-offset-2 group cursor-pointer"
-              tabIndex={0}
-              aria-label={t("futureReady")}
-              onClick={() =>
-                handleCardClick(t("futureReady"), t("futureReadyDesc"), () => (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-full h-full"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"
-                    />
-                  </svg>
-                ))
-              }
-              onKeyDown={e => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleCardClick(
-                    t("futureReady"),
-                    t("futureReadyDesc"),
-                    () => (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-full h-full"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"
-                        />
-                      </svg>
-                    )
-                  );
-                }
-              }}
-            >
-              {/* Icon section - similar to image in categories */}
-              <div className="relative h-12 xs:h-16 sm:h-40 md:h-48 w-full flex items-center justify-center bg-primary-foreground/5">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6 xs:w-8 xs:h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 text-primary"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"
-                  />
-                </svg>
-              </div>
-              <div className="p-1.5 xs:p-2 sm:p-5 md:p-6 flex flex-col flex-grow">
-                <h3 className="text-xs xs:text-xs sm:text-lg md:text-xl font-bold mb-0.5 xs:mb-2 truncate">
-                  {t("futureReady")}
-                </h3>
-                <p
-                  className="text-primary-foreground/90 text-xs xs:text-xs md:text-base mb-1.5 sm:mb-3 md:mb-4 overflow-hidden"
-                  style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                  }}
-                >
-                  {t("futureReadyDesc")}
-                </p>
-                {/* Click indicator */}
-                <div className="mt-auto text-center">
-                  <span className="text-xs text-primary-foreground/70">
-                    Tap to read more
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Modal */}
-      {selectedCard && (
-        <CardModal
-          isOpen={!!selectedCard}
-          onClose={closeModal}
-          title={selectedCard.title}
-          description={selectedCard.description}
-          icon={selectedCard.icon}
-        />
-      )}
-    </>
+    </section>
   );
 }
 

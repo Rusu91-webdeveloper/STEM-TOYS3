@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import { SupplierOrderDetail } from "@/features/supplier/components/orders/SupplierOrderDetail";
 
 export const metadata: Metadata = {
