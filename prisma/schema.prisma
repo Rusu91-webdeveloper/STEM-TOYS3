@@ -108,58 +108,56 @@ model Category {
 }
 
 model Product {
-  id                String            @id @default(cuid())
-  name              String
-  slug              String            @unique
-  description       String?
-  price             Float
-  priceCurrency     String                  @default("RON")  // Currency of the price (EUR or RON)
-  compareAtPrice    Float?
-  compareAtPriceCurrency String              @default("RON")  // Currency of compare price
-  sku               String?
-  images            String[]
-  categoryId        String?
-  tags              String[]
-  attributes        Json?
-  metadata          Json?
-  isActive          Boolean           @default(true)
-  featured          Boolean           @default(false)
-  status            ProductStatus     @default(PENDING_APPROVAL)
-  stockQuantity     Int               @default(0)
-  reservedQuantity  Int               @default(0)
-  reorderPoint      Int?
-  weight            Float?
-  dimensions        Json?
-  averageRating     Float?
-  reviewCount       Int               @default(0)
-  totalSold         Int               @default(0)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  barcode           String?
-  ageGroup          AgeGroup?
-  learningOutcomes  LearningOutcome[]
-  productType       ProductType?
-  specialCategories SpecialCategory[]
-  stemDiscipline    StemCategory      @default(GENERAL)
-  
-  // Romanian educational fields
-  romanianEducationalLevel RomanianEducationalLevel?
-  romanianCurriculumAlignment String[]
-  romanianSubjectAreas       String[]
-  romanianCompetencies       String[]
-  romanianTeacherResources   String[]
-  romanianParentGuides       String[]
-  romanianMinistryApproval   Boolean                 @default(false)
+  id                               String                    @id @default(cuid())
+  name                             String
+  slug                             String                    @unique
+  description                      String?
+  price                            Float
+  compareAtPrice                   Float?
+  sku                              String?
+  images                           String[]
+  categoryId                       String?
+  tags                             String[]
+  attributes                       Json?
+  metadata                         Json?
+  isActive                         Boolean                   @default(true)
+  featured                         Boolean                   @default(false)
+  stockQuantity                    Int                       @default(0)
+  reservedQuantity                 Int                       @default(0)
+  reorderPoint                     Int?
+  weight                           Float?
+  dimensions                       Json?
+  averageRating                    Float?
+  reviewCount                      Int                       @default(0)
+  totalSold                        Int                       @default(0)
+  createdAt                        DateTime                  @default(now())
+  updatedAt                        DateTime                  @updatedAt
+  barcode                          String?
+  ageGroup                         AgeGroup?
+  learningOutcomes                 LearningOutcome[]
+  productType                      ProductType?
+  specialCategories                SpecialCategory[]
+  stemDiscipline                   StemCategory              @default(GENERAL)
+  supplierId                       String?
+  romanianCompetencies             String[]
+  romanianCurriculumAlignment      String[]
   romanianEducationalCertification String?
-  
-  supplierId        String?
-  orderItems        OrderItem[]
-  category          Category?         @relation(fields: [categoryId], references: [id])
-  supplier          Supplier?         @relation(fields: [supplierId], references: [id])
-  reviews           Review[]
-  supplierOrders    SupplierOrder[]
-  wishlistItems     Wishlist[]
+  romanianEducationalLevel         RomanianEducationalLevel?
+  romanianMinistryApproval         Boolean                   @default(false)
+  romanianParentGuides             String[]
+  romanianSubjectAreas             String[]
+  romanianTeacherResources         String[]
+  status                           ProductStatus             @default(PENDING_APPROVAL)
+  compareAtPriceCurrency           String                    @default("RON")
+  priceCurrency                    String                    @default("RON")
+  orderItems                       OrderItem[]
+  category                         Category?                 @relation(fields: [categoryId], references: [id])
+  supplier                         Supplier?                 @relation(fields: [supplierId], references: [id])
+  reviews                          Review[]
+  supplierOrders                   SupplierOrder[]
+  wishlistItems                    Wishlist[]
 
+  @@unique([sku, supplierId])
   @@index([categoryId])
   @@index([status])
   @@index([isActive])
@@ -182,7 +180,6 @@ model Product {
   @@index([specialCategories])
   @@index([romanianEducationalLevel])
   @@index([romanianMinistryApproval])
-  @@unique([sku, supplierId]) // Make SKU unique per supplier instead of globally
   @@map("Product")
 }
 
@@ -200,66 +197,63 @@ model Wishlist {
 }
 
 model Supplier {
-  id                      String                  @id @default(cuid())
-  userId                  String?                 @unique
-  companyName             String
-  companySlug             String                  @unique
-  description             String?
-  website                 String?
-  phone                   String
-  vatNumber               String?
-  taxId                   String?
-  businessAddress         String
-  businessCity            String
-  businessState           String
-  businessCountry         String                  @default("România")
-  businessPostalCode      String
-  contactPersonName       String
-  contactPersonEmail      String
-  contactPersonPhone      String
-  yearEstablished         Int?
-  employeeCount           Int?
-  annualRevenue           String?
-  certifications          String[]
-  productCategories       String[]
-  status                  SupplierStatus          @default(PENDING)
-  approvedAt              DateTime?
-  approvedBy              String?
-  rejectionReason         String?
-  commissionRate          Float                   @default(15.0)
-  paymentTerms            Int                     @default(30)
-  minimumOrderValue       Float                   @default(0)
-  logo                    String?
-  catalogUrl              String?
-  termsAccepted           Boolean                 @default(false)
-  privacyAccepted         Boolean                 @default(false)
-  createdAt               DateTime                @default(now())
-  updatedAt               DateTime                @updatedAt
-  notificationPreferences Json?
-  
-  // Romanian-specific fields
-  cui                     String?                 // Cod Unic de Înregistrare
-  nrRegCom                String?                 // Numărul de înregistrare la Registrul Comerțului
-  codFiscal               String?                 // Cod fiscal
-  adresaSediu             String?                 // Adresa sediului social
-  reprezentantLegal       String?                 // Reprezentant legal
-  anpcApproval            Boolean                 @default(false)  // ANPC approval
-  iscApproval             Boolean                 @default(false)  // ISC approval
-  educationalCertification String?                // Ministry of Education certification
-  romanianVatNumber       String?                 // Romanian VAT number
-  romanianBankAccount     String?                 // Romanian bank account
-  romanianPaymentTerms    Int                     @default(30)     // Payment terms in days
-  romanianCurrency        String                  @default("RON")  // Romanian currency
+  id                       String                   @id @default(cuid())
+  userId                   String?                  @unique
+  companyName              String
+  companySlug              String                   @unique
+  description              String?
+  website                  String?
+  phone                    String
+  vatNumber                String?
+  taxId                    String?
+  businessAddress          String
+  businessCity             String
+  businessState            String
+  businessCountry          String                   @default("România")
+  businessPostalCode       String
+  contactPersonName        String
+  contactPersonEmail       String
+  contactPersonPhone       String
+  yearEstablished          Int?
+  employeeCount            Int?
+  annualRevenue            String?
+  certifications           String[]
+  productCategories        String[]
+  status                   SupplierStatus           @default(PENDING)
+  approvedAt               DateTime?
+  approvedBy               String?
+  rejectionReason          String?
+  commissionRate           Float                    @default(15.0)
+  paymentTerms             Int                      @default(30)
+  minimumOrderValue        Float                    @default(0)
+  logo                     String?
+  catalogUrl               String?
+  termsAccepted            Boolean                  @default(false)
+  privacyAccepted          Boolean                  @default(false)
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
+  notificationPreferences  Json?
+  adresaSediu              String?
+  anpcApproval             Boolean                  @default(false)
+  codFiscal                String?
+  cui                      String?
+  educationalCertification String?
+  iscApproval              Boolean                  @default(false)
+  nrRegCom                 String?
+  reprezentantLegal        String?
+  romanianBankAccount      String?
   romanianComplianceStatus RomanianComplianceStatus @default(PENDING)
-  
-  products                Product[]
-  approvedByUser          User?                   @relation("SupplierApprovedBy", fields: [approvedBy], references: [id])
-  user                    User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invoices                SupplierInvoice[]
-  messagesReceived        SupplierMessage[]
-  notificationsReceived   SupplierNotification[]
-  orders                  SupplierOrder[]
-  supportTickets          SupplierSupportTicket[]
+  romanianCurrency         String                   @default("RON")
+  romanianPaymentTerms     Int                      @default(30)
+  romanianVatNumber        String?
+  products                 Product[]
+  approvedByUser           User?                    @relation("SupplierApprovedBy", fields: [approvedBy], references: [id])
+  user                     User?                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices                 SupplierInvoice[]
+  messagesReceived         SupplierMessage[]
+  notificationsReceived    SupplierNotification[]
+  orders                   SupplierOrder[]
+  supportTickets           SupplierSupportTicket[]
 
   @@index([status])
   @@index([companySlug])
@@ -342,38 +336,38 @@ model Language {
 }
 
 model Order {
-  id                    String          @id @default(cuid())
-  orderNumber           String          @unique
+  id                    String                @id @default(cuid())
+  orderNumber           String                @unique
   userId                String
   total                 Float
   subtotal              Float
   tax                   Float
   shippingCost          Float
-  discountAmount        Float           @default(0)
+  discountAmount        Float                 @default(0)
   couponCode            String?
   couponId              String?
-  status                OrderStatus     @default(PROCESSING)
-  paymentStatus         PaymentStatus   @default(PENDING)
+  status                OrderStatus           @default(PROCESSING)
+  paymentStatus         PaymentStatus         @default(PENDING)
   paymentMethod         String
   notes                 String?
   shippingAddressId     String
   billingAddressId      String?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  deliveredAt           DateTime?
+  stripePaymentIntentId String?
+  completedAt           DateTime?
   fulfilledAt           DateTime?
   shippedAt             DateTime?
-  deliveredAt           DateTime?
-  completedAt           DateTime?
   trackingNumber        String?
-  stripePaymentIntentId String?
-  coupon                Coupon?         @relation(fields: [couponId], references: [id])
-  shippingAddress       Address         @relation(fields: [shippingAddressId], references: [id])
-  user                  User            @relation(fields: [userId], references: [id])
+  campaignApplications  CampaignApplication[]
+  coupon                Coupon?               @relation(fields: [couponId], references: [id])
+  shippingAddress       Address               @relation(fields: [shippingAddressId], references: [id])
+  user                  User                  @relation(fields: [userId], references: [id])
   items                 OrderItem[]
+  statusHistory         OrderStatusHistory[]
   returns               Return[]
   supplierOrders        SupplierOrder[]
-  statusHistory         OrderStatusHistory[]
-  campaignApplications  CampaignApplication[]
 
   @@index([userId])
   @@index([status])
@@ -383,15 +377,15 @@ model Order {
 }
 
 model OrderStatusHistory {
-  id          String      @id @default(cuid())
-  orderId     String
-  fromStatus  OrderStatus
-  toStatus    OrderStatus
-  reason      String?
-  notes       String?
-  updatedBy   String?
-  createdAt   DateTime    @default(now())
-  order       Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id         String      @id @default(cuid())
+  orderId    String
+  fromStatus OrderStatus
+  toStatus   OrderStatus
+  reason     String?
+  notes      String?
+  updatedBy  String?
+  createdAt  DateTime    @default(now())
+  order      Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
   @@index([toStatus])
@@ -496,25 +490,23 @@ model ConversionLog {
 }
 
 model Campaign {
-  id                    String   @id @default(cuid())
+  id                    String                @id @default(cuid())
   name                  String
-  type                  String   // flashSale, seasonalSale, loyaltyProgram, referralProgram, birthdayOffer, firstTimeBuyer
-  status                String   @default("draft") // draft, active, paused, completed, cancelled
+  type                  String
+  status                String                @default("draft")
   startDate             DateTime
   endDate               DateTime
   discountPercent       Float?
   minimumOrderAmount    Float?
   maximumDiscountAmount Float?
-  applicableCategories  String[] @default([])
-  applicableProducts    String[] @default([])
-  customerSegments      String[] @default([])
+  applicableCategories  String[]              @default([])
+  applicableProducts    String[]              @default([])
+  customerSegments      String[]              @default([])
   maxUses               Int?
-  currentUses           Int      @default(0)
+  currentUses           Int                   @default(0)
   metadata              Json?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  // Relations
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
   applications          CampaignApplication[]
 
   @@index([status])
@@ -524,17 +516,15 @@ model Campaign {
 }
 
 model CampaignApplication {
-  id           String   @id @default(cuid())
-  campaignId   String
-  orderId      String?
-  customerId   String
+  id             String   @id @default(cuid())
+  campaignId     String
+  orderId        String?
+  customerId     String
   discountAmount Float
-  appliedAt    DateTime @default(now())
-  metadata     Json?
-
-  // Relations
-  campaign     Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  order        Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  appliedAt      DateTime @default(now())
+  metadata       Json?
+  campaign       Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  order          Order?   @relation(fields: [orderId], references: [id])
 
   @@index([campaignId])
   @@index([customerId])
@@ -544,8 +534,8 @@ model CampaignApplication {
 model AutomationWorkflow {
   id                String   @id @default(cuid())
   name              String
-  type              String   // welcomeSeries, abandonedCart, postPurchase, reEngagement, birthdayCampaign, seasonalPromotions
-  status            String   @default("active") // active, paused, completed
+  type              String
+  status            String   @default("active")
   customerId        String
   currentStep       Int      @default(0)
   totalSteps        Int
@@ -1034,13 +1024,13 @@ enum ContentType {
 
 enum OrderStatus {
   PROCESSING
-  PENDING_REVIEW
-  READY_FOR_SHIPPING
-  FULFILLED
   SHIPPED
   DELIVERED
   CANCELLED
   COMPLETED
+  PENDING_REVIEW
+  READY_FOR_SHIPPING
+  FULFILLED
 }
 
 enum PaymentStatus {
