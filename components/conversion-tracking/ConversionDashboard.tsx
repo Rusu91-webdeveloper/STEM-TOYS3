@@ -1,12 +1,12 @@
 "use client";
 
-import { 
-  TrendingUp, 
-  MousePointer, 
-  FormInput, 
-  ShoppingCart, 
-  UserPlus, 
-  Download, 
+import {
+  TrendingUp,
+  MousePointer,
+  FormInput,
+  ShoppingCart,
+  UserPlus,
+  Download,
   RefreshCw,
   CheckCircle,
   AlertCircle,
@@ -14,16 +14,25 @@ import {
   Clock,
   BarChart3,
   Users,
-  Target
+  Target,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProgressBar } from "@/components/ui/analytics-chart";
 
 interface ConversionData {
   conversions: any[];
@@ -63,65 +72,118 @@ interface ConversionData {
   };
 }
 
-export default function ConversionDashboard() {
-  const [conversionData, setConversionData] = useState<ConversionData | null>(null);
+interface ConversionDashboardProps {
+  timeRange?: string;
+  autoRefresh?: boolean;
+  refreshInterval?: number;
+}
+
+export default function ConversionDashboard({
+  timeRange = "7d",
+  autoRefresh = false,
+  refreshInterval = 30000,
+}: ConversionDashboardProps) {
+  const [conversionData, setConversionData] = useState<ConversionData | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
-  const fetchConversionData = async () => {
+  const fetchConversionData = async (range: string = timeRange) => {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch('/api/analytics/conversions?days=7&limit=50');
+
+      const days =
+        range === "7d" ? 7 : range === "30d" ? 30 : range === "90d" ? 90 : 7;
+      const response = await fetch(
+        `/api/analytics/conversions?days=${days}&limit=100`
+      );
+
       if (!response.ok) {
-        throw new Error('Failed to fetch conversion data');
+        const errorText = await response.text();
+        throw new Error(
+          `HTTP ${response.status}: ${errorText || response.statusText}`
+        );
       }
-      
+
       const data = await response.json();
       if (data.success) {
         setConversionData(data.data);
+        setLastRefresh(new Date());
       } else {
-        throw new Error(data.error || 'Failed to fetch conversion data');
+        throw new Error(data.error || "Failed to fetch conversion data");
       }
     } catch (err: any) {
+      console.error("Error fetching conversion data:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRefresh = () => {
+    fetchConversionData();
+  };
+
   useEffect(() => {
     fetchConversionData();
-  }, []);
+  }, [timeRange]);
+
+  // Auto-refresh functionality
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      fetchConversionData();
+    }, refreshInterval);
+
+    return () => clearInterval(interval);
+  }, [autoRefresh, refreshInterval, timeRange]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'click': return <MousePointer className="w-4 h-4" />;
-      case 'form_submit': return <FormInput className="w-4 h-4" />;
-      case 'purchase': return <ShoppingCart className="w-4 h-4" />;
-      case 'signup': return <UserPlus className="w-4 h-4" />;
-      case 'download': return <Download className="w-4 h-4" />;
-      case 'scroll': return <BarChart3 className="w-4 h-4" />;
-      case 'time_on_page': return <Clock className="w-4 h-4" />;
-      default: return <Target className="w-4 h-4" />;
+      case "click":
+        return <MousePointer className="w-4 h-4" />;
+      case "form_submit":
+        return <FormInput className="w-4 h-4" />;
+      case "purchase":
+        return <ShoppingCart className="w-4 h-4" />;
+      case "signup":
+        return <UserPlus className="w-4 h-4" />;
+      case "download":
+        return <Download className="w-4 h-4" />;
+      case "scroll":
+        return <BarChart3 className="w-4 h-4" />;
+      case "time_on_page":
+        return <Clock className="w-4 h-4" />;
+      default:
+        return <Target className="w-4 h-4" />;
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'cta': return 'bg-blue-100 text-blue-800';
-      case 'navigation': return 'bg-green-100 text-green-800';
-      case 'form': return 'bg-purple-100 text-purple-800';
-      case 'ecommerce': return 'bg-orange-100 text-orange-800';
-      case 'engagement': return 'bg-pink-100 text-pink-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "cta":
+        return "bg-blue-100 text-blue-800";
+      case "navigation":
+        return "bg-green-100 text-green-800";
+      case "form":
+        return "bg-purple-100 text-purple-800";
+      case "ecommerce":
+        return "bg-orange-100 text-orange-800";
+      case "engagement":
+        return "bg-pink-100 text-pink-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
 
   const formatPercentage = (value: number) => `${value.toFixed(2)}%`;
@@ -161,14 +223,17 @@ export default function ConversionDashboard() {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               {error}
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="ml-2"
-                onClick={fetchConversionData}
+                onClick={handleRefresh}
+                disabled={loading}
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Retry
+                <RefreshCw
+                  className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
+                />
+                {loading ? "Retrying..." : "Retry"}
               </Button>
             </AlertDescription>
           </Alert>
@@ -209,36 +274,61 @@ export default function ConversionDashboard() {
           </h2>
           <p className="text-muted-foreground">
             {summary.dateRange} • {summary.category} • {summary.action}
+            {lastRefresh && (
+              <span className="ml-2 text-xs">
+                • Last updated: {lastRefresh.toLocaleTimeString()}
+              </span>
+            )}
           </p>
         </div>
-        <Button onClick={fetchConversionData} variant="outline">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex items-center space-x-2">
+          {autoRefresh && (
+            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+              {loading ? (
+                <WifiOff className="w-4 h-4" />
+              ) : (
+                <Wifi className="w-4 h-4 text-green-500" />
+              )}
+              <span>Auto-refresh</span>
+            </div>
+          )}
+          <Button onClick={handleRefresh} variant="outline" disabled={loading}>
+            <RefreshCw
+              className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
+            />
+            {loading ? "Loading..." : "Refresh"}
+          </Button>
+        </div>
       </div>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Conversions</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Conversions
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{statistics.totalConversions}</div>
-            <p className="text-xs text-muted-foreground">
-              {summary.dateRange}
-            </p>
+            <div className="text-2xl font-bold">
+              {statistics.totalConversions}
+            </div>
+            <p className="text-xs text-muted-foreground">{summary.dateRange}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Conversion Rate
+            </CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatPercentage(statistics.conversionRate)}</div>
+            <div className="text-2xl font-bold">
+              {formatPercentage(statistics.conversionRate)}
+            </div>
             <p className="text-xs text-muted-foreground">
               {statistics.conversionRate > 5 ? (
                 <span className="text-green-600 flex items-center gap-1">
@@ -257,38 +347,43 @@ export default function ConversionDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Top Performing</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Top Performing
+            </CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {statistics.topPerformingElements.length > 0 
-                ? statistics.topPerformingElements[0].conversions 
+              {statistics.topPerformingElements.length > 0
+                ? statistics.topPerformingElements[0].conversions
                 : 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              {statistics.topPerformingElements.length > 0 
-                ? statistics.topPerformingElements[0].element?.tagName || 'Unknown'
-                : 'No data'}
+              {statistics.topPerformingElements.length > 0
+                ? statistics.topPerformingElements[0].element?.tagName ||
+                  "Unknown"
+                : "No data"}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue Impact</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Revenue Impact
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {statistics.revenueImpact 
+              {statistics.revenueImpact
                 ? formatCurrency(statistics.revenueImpact.totalRevenue)
-                : '$0.00'}
+                : "$0.00"}
             </div>
             <p className="text-xs text-muted-foreground">
-              {statistics.revenueImpact 
+              {statistics.revenueImpact
                 ? `AOV: ${formatCurrency(statistics.revenueImpact.averageOrderValue)}`
-                : 'No revenue data'}
+                : "No revenue data"}
             </p>
           </CardContent>
         </Card>
@@ -308,19 +403,28 @@ export default function ConversionDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Conversions by Type</CardTitle>
-                <CardDescription>Distribution of conversions by interaction type</CardDescription>
+                <CardDescription>
+                  Distribution of conversions by interaction type
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {Object.entries(statistics.conversionsByType).map(([type, count]) => (
-                    <div key={type} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {getTypeIcon(type)}
-                        <span className="capitalize">{type.replace('_', ' ')}</span>
+                  {Object.entries(statistics.conversionsByType).map(
+                    ([type, count]) => (
+                      <div
+                        key={type}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-2">
+                          {getTypeIcon(type)}
+                          <span className="capitalize">
+                            {type.replace("_", " ")}
+                          </span>
+                        </div>
+                        <Badge variant="secondary">{count}</Badge>
                       </div>
-                      <Badge variant="secondary">{count}</Badge>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -328,16 +432,25 @@ export default function ConversionDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Conversions by Category</CardTitle>
-                <CardDescription>Distribution of conversions by category</CardDescription>
+                <CardDescription>
+                  Distribution of conversions by category
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {Object.entries(statistics.conversionsByCategory).map(([category, count]) => (
-                    <div key={category} className="flex items-center justify-between">
-                      <span className="capitalize">{category}</span>
-                      <Badge className={getCategoryColor(category)}>{count}</Badge>
-                    </div>
-                  ))}
+                  {Object.entries(statistics.conversionsByCategory).map(
+                    ([category, count]) => (
+                      <div
+                        key={category}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="capitalize">{category}</span>
+                        <Badge className={getCategoryColor(category)}>
+                          {count}
+                        </Badge>
+                      </div>
+                    )
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -348,26 +461,26 @@ export default function ConversionDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>User Journey Analysis</CardTitle>
-              <CardDescription>Conversion funnel and dropoff rates</CardDescription>
+              <CardDescription>
+                Conversion funnel and dropoff rates
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {statistics.userJourney.map((step, index) => (
-                  <div key={step.step} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium capitalize">{step.step.replace('_', ' ')}</span>
-                        <Badge variant="outline">{step.conversions}</Badge>
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {formatPercentage(step.dropoffRate)} dropoff
-                      </span>
-                    </div>
-                    <Progress 
-                      value={100 - step.dropoffRate} 
-                      className="h-2"
-                    />
-                  </div>
+                  <ProgressBar
+                    key={step.step}
+                    label={`${step.step.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())} (${step.conversions} conversions)`}
+                    value={step.conversions}
+                    max={statistics.totalConversions}
+                    color={
+                      index === 0
+                        ? "#10B981"
+                        : index === statistics.userJourney.length - 1
+                          ? "#EF4444"
+                          : "#3B82F6"
+                    }
+                  />
                 ))}
               </div>
             </CardContent>
@@ -378,14 +491,18 @@ export default function ConversionDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Top Performing Elements</CardTitle>
-              <CardDescription>Best converting buttons, forms, and interactions</CardDescription>
+              <CardDescription>
+                Best converting buttons, forms, and interactions
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {statistics.topPerformingElements.length === 0 ? (
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>No performance data available</AlertDescription>
+                    <AlertDescription>
+                      No performance data available
+                    </AlertDescription>
                   </Alert>
                 ) : (
                   statistics.topPerformingElements.map((element, index) => (
@@ -393,13 +510,17 @@ export default function ConversionDashboard() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">
-                            {element.element?.tagName || 'Unknown'} - {element.element?.text || 'No text'}
+                            {element.element?.tagName || "Unknown"} -{" "}
+                            {element.element?.text || "No text"}
                           </span>
                         </div>
                         <Badge variant="secondary">{element.conversions}</Badge>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Progress value={element.conversionRate} className="flex-1 h-2" />
+                        <Progress
+                          value={element.conversionRate}
+                          className="flex-1 h-2"
+                        />
                         <span className="text-sm text-muted-foreground">
                           {formatPercentage(element.conversionRate)}
                         </span>
@@ -424,7 +545,10 @@ export default function ConversionDashboard() {
                   {Object.entries(statistics.timeBasedAnalysis.hourly)
                     .sort(([a], [b]) => parseInt(a) - parseInt(b))
                     .map(([hour, count]) => (
-                      <div key={hour} className="flex items-center justify-between">
+                      <div
+                        key={hour}
+                        className="flex items-center justify-between"
+                      >
                         <span className="text-sm">{hour}:00</span>
                         <Badge variant="outline">{count}</Badge>
                       </div>
@@ -443,7 +567,10 @@ export default function ConversionDashboard() {
                   {Object.entries(statistics.timeBasedAnalysis.daily)
                     .slice(-7) // Last 7 days
                     .map(([day, count]) => (
-                      <div key={day} className="flex items-center justify-between">
+                      <div
+                        key={day}
+                        className="flex items-center justify-between"
+                      >
                         <span className="text-sm">{day}</span>
                         <Badge variant="outline">{count}</Badge>
                       </div>
@@ -462,7 +589,10 @@ export default function ConversionDashboard() {
                   {Object.entries(statistics.timeBasedAnalysis.weekly)
                     .slice(-4) // Last 4 weeks
                     .map(([week, count]) => (
-                      <div key={week} className="flex items-center justify-between">
+                      <div
+                        key={week}
+                        className="flex items-center justify-between"
+                      >
                         <span className="text-sm">{week}</span>
                         <Badge variant="outline">{count}</Badge>
                       </div>

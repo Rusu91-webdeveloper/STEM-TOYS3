@@ -13,6 +13,7 @@ import {
   BarChart3,
   PieChart,
   Activity,
+  AlertCircle,
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 
@@ -34,6 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnalyticsChart, ProgressBar } from "@/components/ui/analytics-chart";
 
 interface AnalyticsData {
   overview: {
@@ -105,19 +107,84 @@ interface AnalyticsDashboardProps {
 }
 
 export default function AnalyticsDashboard({
-  data,
-  isLoading = false,
-  onRefresh,
+  data: propData,
+  isLoading: propIsLoading = false,
+  onRefresh: propOnRefresh,
 }: AnalyticsDashboardProps) {
   const [timeRange, setTimeRange] = useState("30d");
   const [activeTab, setActiveTab] = useState("overview");
+  const [data, setData] = useState<AnalyticsData | null>(propData || null);
+  const [isLoading, setIsLoading] = useState(propIsLoading);
+  const [error, setError] = useState<string | null>(null);
 
-  const formatCurrency = (amount: number) => new Intl.NumberFormat("ro-RO", {
+  // Fetch analytics data
+  const fetchAnalyticsData = async (range: string = timeRange) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        `/api/admin/analytics?timeRange=${range}&type=full`
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setData(result.data);
+      } else {
+        throw new Error(result.error || "Failed to fetch analytics data");
+      }
+    } catch (err: any) {
+      console.error("Error fetching analytics data:", err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle refresh
+  const handleRefresh = () => {
+    if (propOnRefresh) {
+      propOnRefresh();
+    } else {
+      fetchAnalyticsData();
+    }
+  };
+
+  // Handle time range change
+  const handleTimeRangeChange = (newRange: string) => {
+    setTimeRange(newRange);
+    fetchAnalyticsData(newRange);
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    if (!propData && !propIsLoading) {
+      fetchAnalyticsData();
+    }
+  }, []);
+
+  // Update data when props change
+  useEffect(() => {
+    if (propData) {
+      setData(propData);
+    }
+  }, [propData]);
+
+  useEffect(() => {
+    setIsLoading(propIsLoading);
+  }, [propIsLoading]);
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("ro-RO", {
       style: "currency",
       currency: "RON",
     }).format(amount);
 
-  const formatNumber = (num: number) => new Intl.NumberFormat("ro-RO").format(num);
+  const formatNumber = (num: number) =>
+    new Intl.NumberFormat("ro-RO").format(num);
 
   const getChangeIcon = (change: number) => {
     if (change > 0) {
@@ -193,49 +260,39 @@ export default function AnalyticsDashboard({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue Trend</CardTitle>
-            <CardDescription>
-              Daily revenue over the last 30 days
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 flex items-center justify-center text-muted-foreground">
-              <BarChart3 className="h-12 w-12" />
-              <span className="ml-2">Chart placeholder</span>
-            </div>
-          </CardContent>
-        </Card>
+        <AnalyticsChart
+          data={
+            data?.sales.daily.map(item => ({
+              name: new Date(item.date).toLocaleDateString("ro-RO", {
+                month: "short",
+                day: "numeric",
+              }),
+              value: item.revenue,
+              orders: item.orders,
+            })) || []
+          }
+          type="line"
+          title="Revenue Trend"
+          description="Daily revenue over the selected period"
+          dataKey="value"
+          xAxisKey="name"
+          yAxisKey="value"
+          color="#10B981"
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Categories</CardTitle>
-            <CardDescription>Revenue by product category</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {data?.sales.byCategory.slice(0, 5).map((category, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    {category.category}
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-20 bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${category.percentage}%` }}
-                      />
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {formatCurrency(category.revenue)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <AnalyticsChart
+          data={
+            data?.sales.byCategory.slice(0, 5).map(category => ({
+              name: category.category,
+              value: category.revenue,
+              percentage: category.percentage,
+            })) || []
+          }
+          type="pie"
+          title="Top Categories"
+          description="Revenue by product category"
+          dataKey="value"
+        />
       </div>
     </div>
   );
@@ -243,18 +300,22 @@ export default function AnalyticsDashboard({
   const renderSalesTab = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Sales Performance</CardTitle>
-            <CardDescription>Monthly sales comparison</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 flex items-center justify-center text-muted-foreground">
-              <Activity className="h-12 w-12" />
-              <span className="ml-2">Sales chart placeholder</span>
-            </div>
-          </CardContent>
-        </Card>
+        <AnalyticsChart
+          data={
+            data?.sales.monthly.map(item => ({
+              name: item.month,
+              value: item.revenue,
+              orders: item.orders,
+            })) || []
+          }
+          type="bar"
+          title="Sales Performance"
+          description="Monthly sales comparison"
+          dataKey="value"
+          xAxisKey="name"
+          yAxisKey="value"
+          color="#3B82F6"
+        />
 
         <Card>
           <CardHeader>
@@ -367,18 +428,19 @@ export default function AnalyticsDashboard({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Customer Segments</CardTitle>
-            <CardDescription>Customer distribution by segment</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 flex items-center justify-center text-muted-foreground">
-              <PieChart className="h-12 w-12" />
-              <span className="ml-2">Segments chart placeholder</span>
-            </div>
-          </CardContent>
-        </Card>
+        <AnalyticsChart
+          data={
+            data?.customers.customerSegments.map(segment => ({
+              name: segment.segment,
+              value: segment.count,
+              percentage: segment.percentage,
+            })) || []
+          }
+          type="pie"
+          title="Customer Segments"
+          description="Customer distribution by segment"
+          dataKey="value"
+        />
       </div>
     </div>
   );
@@ -607,6 +669,41 @@ export default function AnalyticsDashboard({
     </div>
   );
 
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">
+              Analytics Dashboard
+            </h2>
+            <p className="text-muted-foreground">
+              Comprehensive insights into your e-commerce performance
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
+            <Calendar className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                Error Loading Analytics
+              </h3>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={handleRefresh} variant="outline">
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -620,7 +717,11 @@ export default function AnalyticsDashboard({
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <Select value={timeRange} onValueChange={setTimeRange}>
+            <Select
+              value={timeRange}
+              onValueChange={handleTimeRangeChange}
+              disabled
+            >
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -633,7 +734,7 @@ export default function AnalyticsDashboard({
             </Select>
             <Button variant="outline" size="sm" disabled>
               <Calendar className="h-4 w-4 mr-2" />
-              Refresh
+              Loading...
             </Button>
           </div>
         </div>
@@ -666,7 +767,7 @@ export default function AnalyticsDashboard({
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Select value={timeRange} onValueChange={setTimeRange}>
+          <Select value={timeRange} onValueChange={handleTimeRangeChange}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
@@ -677,9 +778,14 @@ export default function AnalyticsDashboard({
               <SelectItem value="1y">Last year</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={onRefresh}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
             <Calendar className="h-4 w-4 mr-2" />
-            Refresh
+            {isLoading ? "Loading..." : "Refresh"}
           </Button>
         </div>
       </div>

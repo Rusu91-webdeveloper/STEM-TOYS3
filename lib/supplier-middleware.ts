@@ -16,7 +16,7 @@ export async function protectSupplierRoute(
 ): Promise<NextResponse | null> {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       logger.warn("Unauthenticated access attempt to supplier route", {
         path: request.nextUrl.pathname,
@@ -24,9 +24,9 @@ export async function protectSupplierRoute(
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
-    // Check if user has supplier role
-    if (session.user.role !== "SUPPLIER") {
-      logger.warn("Non-supplier access attempt to supplier route", {
+    // Check if user has supplier or visitor role
+    if (session.user.role !== "SUPPLIER" && session.user.role !== "VISITOR") {
+      logger.warn("Non-supplier/visitor access attempt to supplier route", {
         path: request.nextUrl.pathname,
         userId: session.user.id,
         role: session.user.role,
@@ -34,9 +34,14 @@ export async function protectSupplierRoute(
       return NextResponse.redirect(new URL("/", request.url));
     }
 
-    // Get supplier profile
+    // For VISITOR users, skip supplier profile check
+    if (session.user.role === "VISITOR") {
+      return null; // Allow access
+    }
+
+    // Get supplier profile for SUPPLIER users
     const supplier = await getCurrentSupplier(session);
-    
+
     if (!supplier) {
       logger.warn("Supplier profile not found", {
         path: request.nextUrl.pathname,
@@ -52,17 +57,25 @@ export async function protectSupplierRoute(
         userId: session.user.id,
         status: supplier.status,
       });
-      
+
       // Redirect based on status
       switch (supplier.status) {
         case "PENDING":
-          return NextResponse.redirect(new URL("/supplier/pending", request.url));
+          return NextResponse.redirect(
+            new URL("/supplier/pending", request.url)
+          );
         case "REJECTED":
-          return NextResponse.redirect(new URL("/supplier/rejected", request.url));
+          return NextResponse.redirect(
+            new URL("/supplier/rejected", request.url)
+          );
         case "SUSPENDED":
-          return NextResponse.redirect(new URL("/supplier/suspended", request.url));
+          return NextResponse.redirect(
+            new URL("/supplier/suspended", request.url)
+          );
         default:
-          return NextResponse.redirect(new URL("/supplier/status", request.url));
+          return NextResponse.redirect(
+            new URL("/supplier/status", request.url)
+          );
       }
     }
 
@@ -84,7 +97,7 @@ export async function protectAdminSupplierRoute(
 ): Promise<NextResponse | null> {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       logger.warn("Unauthenticated access attempt to admin supplier route", {
         path: request.nextUrl.pathname,
@@ -120,7 +133,7 @@ export async function checkSupplierRegistration(
 ): Promise<NextResponse | null> {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       // Not authenticated, allow access to registration page
       return null;
@@ -134,7 +147,7 @@ export async function checkSupplierRegistration(
 
     // Get supplier profile
     const supplier = await getCurrentSupplier(session);
-    
+
     if (supplier) {
       // Supplier already exists, redirect to dashboard
       logger.info("Supplier already registered, redirecting to dashboard", {
@@ -163,13 +176,13 @@ export async function handleSupplierStatusRedirect(
 ): Promise<NextResponse | null> {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id || session.user.role !== "SUPPLIER") {
       return null;
     }
 
     const supplier = await getCurrentSupplier(session);
-    
+
     if (!supplier) {
       return null;
     }
@@ -180,19 +193,27 @@ export async function handleSupplierStatusRedirect(
     if (pathname === "/supplier/dashboard" && supplier.status !== "APPROVED") {
       switch (supplier.status) {
         case "PENDING":
-          return NextResponse.redirect(new URL("/supplier/pending", request.url));
+          return NextResponse.redirect(
+            new URL("/supplier/pending", request.url)
+          );
         case "REJECTED":
-          return NextResponse.redirect(new URL("/supplier/rejected", request.url));
+          return NextResponse.redirect(
+            new URL("/supplier/rejected", request.url)
+          );
         case "SUSPENDED":
-          return NextResponse.redirect(new URL("/supplier/suspended", request.url));
+          return NextResponse.redirect(
+            new URL("/supplier/suspended", request.url)
+          );
       }
     }
 
     // If accessing status pages but approved, redirect to dashboard
-    if (supplier.status === "APPROVED" && 
-        (pathname === "/supplier/pending" || 
-         pathname === "/supplier/rejected" || 
-         pathname === "/supplier/suspended")) {
+    if (
+      supplier.status === "APPROVED" &&
+      (pathname === "/supplier/pending" ||
+        pathname === "/supplier/rejected" ||
+        pathname === "/supplier/suspended")
+    ) {
       return NextResponse.redirect(new URL("/supplier/dashboard", request.url));
     }
 

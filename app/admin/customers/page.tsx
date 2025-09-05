@@ -16,6 +16,9 @@ import {
   Trash2,
   UserCheck,
   UserX,
+  Shield,
+  Truck,
+  Settings,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -41,6 +44,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrency } from "@/lib/currency";
+import { RoleChangeDialog } from "@/components/admin/RoleChangeDialog";
 
 // Type definitions
 type Customer = {
@@ -51,6 +55,7 @@ type Customer = {
   orders: number;
   spent: number;
   status: string;
+  role: "CUSTOMER" | "ADMIN" | "SUPPLIER";
 };
 
 type Pagination = {
@@ -75,6 +80,10 @@ export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [status, setStatus] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  );
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
 
   // Function to fetch customers from the API
   const fetchCustomers = async () => {
@@ -133,6 +142,18 @@ export default function CustomersPage() {
     if (pagination.page < pagination.pages) {
       setPagination({ ...pagination, page: pagination.page + 1 });
     }
+  };
+
+  // Function to handle role change dialog
+  const handleRoleChange = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setIsRoleDialogOpen(true);
+  };
+
+  // Function to handle role change completion
+  const handleRoleChanged = () => {
+    fetchCustomers(); // Refresh the customers list
+    setSelectedCustomer(null);
   };
 
   // Add function to handle user status toggle
@@ -350,6 +371,7 @@ export default function CustomersPage() {
                       </div>
                     </th>
                     <th className="px-4 py-3 text-left">Status</th>
+                    <th className="px-4 py-3 text-left">Role</th>
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -393,6 +415,26 @@ export default function CustomersPage() {
                           {customer.status}
                         </span>
                       </td>
+                      <td className="px-4 py-4">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            customer.role === "ADMIN"
+                              ? "bg-purple-100 text-purple-700"
+                              : customer.role === "SUPPLIER"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {customer.role === "ADMIN" ? (
+                            <Shield className="mr-1 h-3 w-3" />
+                          ) : customer.role === "SUPPLIER" ? (
+                            <Truck className="mr-1 h-3 w-3" />
+                          ) : (
+                            <User className="mr-1 h-3 w-3" />
+                          )}
+                          {customer.role}
+                        </span>
+                      </td>
                       <td className="px-4 py-4 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -424,6 +466,12 @@ export default function CustomersPage() {
                             >
                               <Mail className="mr-2 h-4 w-4" />
                               Send Email
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleRoleChange(customer)}
+                            >
+                              <Settings className="mr-2 h-4 w-4" />
+                              Change Role
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             {customer.status === "Active" ? (
@@ -494,6 +542,21 @@ export default function CustomersPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Role Change Dialog */}
+      {selectedCustomer && (
+        <RoleChangeDialog
+          isOpen={isRoleDialogOpen}
+          onClose={() => {
+            setIsRoleDialogOpen(false);
+            setSelectedCustomer(null);
+          }}
+          userId={selectedCustomer.id}
+          userName={selectedCustomer.name || selectedCustomer.email}
+          currentRole={selectedCustomer.role}
+          onRoleChanged={handleRoleChanged}
+        />
+      )}
     </div>
   );
 }

@@ -15,6 +15,10 @@ import {
   Clock,
   DollarSign,
   ShoppingCart,
+  Shield,
+  Truck,
+  User,
+  Settings,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -53,6 +57,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrency } from "@/lib/currency";
+import { RoleChangeDialog } from "@/components/admin/RoleChangeDialog";
 
 type Order = {
   id: string;
@@ -90,6 +95,7 @@ type CustomerDetails = {
   name: string;
   email: string;
   status: string;
+  role: "CUSTOMER" | "ADMIN" | "SUPPLIER";
   joined: string;
   totalOrders: number;
   totalSpent: number;
@@ -109,6 +115,7 @@ export default function CustomerDetailsPage() {
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
 
   // Fetch customer data
   useEffect(() => {
@@ -177,6 +184,23 @@ export default function CustomerDetailsPage() {
         variant: "destructive",
       });
     }
+  };
+
+  // Function to handle role change completion
+  const handleRoleChanged = () => {
+    // Refresh customer data to get updated role
+    const fetchCustomerData = async () => {
+      try {
+        const response = await fetch(`/api/admin/customers/${customerId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setCustomer(data);
+        }
+      } catch (error) {
+        console.error("Error refreshing customer data:", error);
+      }
+    };
+    fetchCustomerData();
   };
 
   // Delete customer account
@@ -278,6 +302,14 @@ export default function CustomerDetailsPage() {
             <Mail className="h-4 w-4" />
             <span>Send Email</span>
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsRoleDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            <span>Change Role</span>
+          </Button>
           {customer.status === "Active" ? (
             <Button
               variant="destructive"
@@ -348,16 +380,37 @@ export default function CustomerDetailsPage() {
                 <span>{customer.email}</span>
               </CardDescription>
             </div>
-            <Badge
-              variant={customer.status === "Active" ? "default" : "secondary"}
-              className={
-                customer.status === "Active"
-                  ? "bg-green-100 text-green-800 hover:bg-green-100"
-                  : ""
-              }
-            >
-              {customer.status}
-            </Badge>
+            <div className="flex gap-2">
+              <Badge
+                variant={customer.status === "Active" ? "default" : "secondary"}
+                className={
+                  customer.status === "Active"
+                    ? "bg-green-100 text-green-800 hover:bg-green-100"
+                    : ""
+                }
+              >
+                {customer.status}
+              </Badge>
+              <Badge
+                variant="outline"
+                className={
+                  customer.role === "ADMIN"
+                    ? "bg-purple-100 text-purple-800 border-purple-200"
+                    : customer.role === "SUPPLIER"
+                      ? "bg-blue-100 text-blue-800 border-blue-200"
+                      : "bg-gray-100 text-gray-800 border-gray-200"
+                }
+              >
+                {customer.role === "ADMIN" ? (
+                  <Shield className="mr-1 h-3 w-3" />
+                ) : customer.role === "SUPPLIER" ? (
+                  <Truck className="mr-1 h-3 w-3" />
+                ) : (
+                  <User className="mr-1 h-3 w-3" />
+                )}
+                {customer.role}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -578,6 +631,18 @@ export default function CustomerDetailsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Role Change Dialog */}
+      {customer && (
+        <RoleChangeDialog
+          isOpen={isRoleDialogOpen}
+          onClose={() => setIsRoleDialogOpen(false)}
+          userId={customer.id}
+          userName={customer.name || customer.email}
+          currentRole={customer.role}
+          onRoleChanged={handleRoleChanged}
+        />
+      )}
     </div>
   );
 }

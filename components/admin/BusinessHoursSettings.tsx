@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { HelpTooltip } from "@/components/ui/tooltip";
 
 interface BusinessHours {
   monday: { open: string; close: string; closed: boolean };
@@ -81,7 +82,27 @@ export default function BusinessHoursSettings({
           <div key={day.key}>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor={`${day.key}-open`}>{day.label} Open</Label>
+                <div className="flex items-center gap-1">
+                  <Label htmlFor={`${day.key}-open`}>{day.label} Open</Label>
+                  <HelpTooltip
+                    content={
+                      <div className="space-y-2">
+                        <p className="font-medium">Opening Time</p>
+                        <p>
+                          The time your store opens on {day.label}. This affects
+                          when customers can expect to receive support and when
+                          orders are processed.
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          <strong>Example:</strong> Set to "09:00" if your store
+                          opens at 9 AM. This helps customers know when they can
+                          expect responses to inquiries and when order
+                          processing begins.
+                        </p>
+                      </div>
+                    }
+                  />
+                </div>
                 <Input
                   id={`${day.key}-open`}
                   value={localBusinessHours[day.key].open}
@@ -91,7 +112,27 @@ export default function BusinessHoursSettings({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor={`${day.key}-close`}>{day.label} Close</Label>
+                <div className="flex items-center gap-1">
+                  <Label htmlFor={`${day.key}-close`}>{day.label} Close</Label>
+                  <HelpTooltip
+                    content={
+                      <div className="space-y-2">
+                        <p className="font-medium">Closing Time</p>
+                        <p>
+                          The time your store closes on {day.label}. Orders
+                          placed after this time will be processed the next
+                          business day.
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          <strong>Example:</strong> Set to "18:00" if your store
+                          closes at 6 PM. Orders placed after 6 PM will be
+                          processed the next business day, affecting delivery
+                          estimates.
+                        </p>
+                      </div>
+                    }
+                  />
+                </div>
                 <Input
                   id={`${day.key}-close`}
                   value={localBusinessHours[day.key].close}
@@ -101,7 +142,29 @@ export default function BusinessHoursSettings({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor={`${day.key}-closed`}>{day.label} Closed</Label>
+                <div className="flex items-center gap-1">
+                  <Label htmlFor={`${day.key}-closed`}>
+                    {day.label} Closed
+                  </Label>
+                  <HelpTooltip
+                    content={
+                      <div className="space-y-2">
+                        <p className="font-medium">Store Closed</p>
+                        <p>
+                          Toggle this on if your store is closed on {day.label}.
+                          When enabled, the open/close times are ignored and the
+                          store is considered closed all day.
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          <strong>Example:</strong> Enable this for Sunday if
+                          your store is closed on Sundays. Orders placed on
+                          Sunday will be processed on Monday, and customers
+                          won't expect support responses.
+                        </p>
+                      </div>
+                    }
+                  />
+                </div>
                 <Switch
                   checked={localBusinessHours[day.key].closed}
                   onCheckedChange={checked =>

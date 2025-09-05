@@ -109,6 +109,15 @@ export async function validateSupplierAccess(
       };
     }
 
+    // Check if user is a VISITOR role (can view supplier dashboard without being a supplier)
+    if (currentSession.user.role === "VISITOR") {
+      return {
+        isValid: true,
+        supplier: null, // VISITOR users don't have supplier records
+        error: null,
+      };
+    }
+
     const supplier = await getCurrentSupplier(currentSession);
 
     if (!supplier) {
@@ -155,7 +164,20 @@ export async function getSupplierDashboardData(session?: Session | null) {
       return null;
     }
 
-    const supplier = validation.supplier!;
+    const supplier = validation.supplier;
+
+    // For VISITOR users, return empty/default data since they don't have supplier records
+    if (!supplier) {
+      return {
+        supplier: null,
+        stats: {
+          productCount: 0,
+          orderCount: 0,
+          totalRevenue: 0,
+        },
+        recentOrders: [],
+      };
+    }
 
     // Get basic stats
     const [productCount, orderCount, totalRevenue] = await Promise.all([

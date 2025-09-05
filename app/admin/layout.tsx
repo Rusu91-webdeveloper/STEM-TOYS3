@@ -22,9 +22,11 @@ export default function AdminLayout({
   const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Check if user is authenticated and has admin role
+  // Check if user is authenticated and has admin or visitor role
   const isAuthenticated = status === "authenticated";
-  const isAdmin = isAuthenticated && session?.user?.role === "ADMIN";
+  const isAdmin =
+    isAuthenticated &&
+    (session?.user?.role === "ADMIN" || session?.user?.role === "VISITOR");
 
   // Handle unauthorized access
   useEffect(() => {
@@ -121,7 +123,11 @@ export default function AdminLayout({
                 <span className="text-sm font-medium text-gray-900">
                   {userName}
                 </span>
-                <span className="text-xs text-gray-500">Administrator</span>
+                <span className="text-xs text-gray-500">
+                  {session?.user?.role === "VISITOR"
+                    ? "Visitor"
+                    : "Administrator"}
+                </span>
               </div>
             </div>
 

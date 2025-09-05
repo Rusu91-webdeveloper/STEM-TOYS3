@@ -23,6 +23,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { HelpTooltip } from "@/components/ui/tooltip";
 
 interface MarketingSettings {
   // Email marketing
@@ -244,9 +245,29 @@ export default function MarketingSettings({
           <h3 className="text-lg font-semibold">Email Marketing</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="email-marketing-enabled">
-                Enable Email Marketing
-              </Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="email-marketing-enabled">
+                  Enable Email Marketing
+                </Label>
+                <HelpTooltip
+                  content={
+                    <div className="space-y-2">
+                      <p className="font-medium">Email Marketing System</p>
+                      <p>
+                        When enabled, your store can send automated emails to
+                        customers including order confirmations, shipping
+                        updates, promotional campaigns, and newsletters.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        <strong>Example:</strong> When enabled, customers will
+                        receive welcome emails, abandoned cart reminders, and
+                        promotional offers. This helps increase customer
+                        engagement and repeat purchases.
+                      </p>
+                    </div>
+                  }
+                />
+              </div>
               <Switch
                 checked={localMarketingSettings.emailMarketing.enabled}
                 onCheckedChange={checked =>
@@ -256,7 +277,27 @@ export default function MarketingSettings({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email-provider">Email Provider</Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="email-provider">Email Provider</Label>
+                <HelpTooltip
+                  content={
+                    <div className="space-y-2">
+                      <p className="font-medium">Email Service Provider</p>
+                      <p>
+                        Choose the email service provider that will handle
+                        sending your marketing emails. Each provider has
+                        different features and pricing.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        <strong>Example:</strong> SendGrid is great for
+                        transactional emails, Mailchimp is excellent for
+                        newsletters, and Brevo offers both features. Choose
+                        based on your needs and budget.
+                      </p>
+                    </div>
+                  }
+                />
+              </div>
               <Select
                 value={localMarketingSettings.emailMarketing.provider}
                 onValueChange={value =>
@@ -362,9 +403,29 @@ export default function MarketingSettings({
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Social Media Integration</h3>
           <div className="space-y-2">
-            <Label htmlFor="social-media-enabled">
-              Enable Social Media Integration
-            </Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="social-media-enabled">
+                Enable Social Media Integration
+              </Label>
+              <HelpTooltip
+                content={
+                  <div className="space-y-2">
+                    <p className="font-medium">Social Media Integration</p>
+                    <p>
+                      When enabled, your store can automatically share new
+                      products, blog posts, and promotions to your social media
+                      accounts. This helps increase brand visibility.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      <strong>Example:</strong> When enabled, new STEM toys will
+                      be automatically posted to your Facebook and Instagram
+                      pages, helping reach more customers and drive traffic to
+                      your store.
+                    </p>
+                  </div>
+                }
+              />
+            </div>
             <Switch
               checked={localMarketingSettings.socialMedia.enabled}
               onCheckedChange={checked =>
@@ -493,9 +554,29 @@ export default function MarketingSettings({
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Promotional Campaigns</h3>
           <div className="space-y-2">
-            <Label htmlFor="promotional-campaigns-enabled">
-              Enable Promotional Campaigns
-            </Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="promotional-campaigns-enabled">
+                Enable Promotional Campaigns
+              </Label>
+              <HelpTooltip
+                content={
+                  <div className="space-y-2">
+                    <p className="font-medium">Promotional Campaigns</p>
+                    <p>
+                      When enabled, your store can run various promotional
+                      campaigns including flash sales, seasonal discounts,
+                      loyalty programs, and referral rewards.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      <strong>Example:</strong> When enabled, you can create
+                      flash sales for robotics kits, offer birthday discounts to
+                      customers, and reward loyal customers with points for
+                      future purchases.
+                    </p>
+                  </div>
+                }
+              />
+            </div>
             <Switch
               checked={localMarketingSettings.promotionalCampaigns.enabled}
               onCheckedChange={checked =>
