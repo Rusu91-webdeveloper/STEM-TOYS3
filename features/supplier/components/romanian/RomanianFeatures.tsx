@@ -8,12 +8,21 @@ import { isRomanianSupplier } from "@/types/romanian";
 interface RomanianFeaturesProps {
   supplier: {
     businessCountry: string;
-  };
+  } | null;
   children: ReactNode;
   showBadge?: boolean;
 }
 
-export function RomanianFeatures({ supplier, children, showBadge = true }: RomanianFeaturesProps) {
+export function RomanianFeatures({
+  supplier,
+  children,
+  showBadge = true,
+}: RomanianFeaturesProps) {
+  // Handle null supplier (for VISITOR users)
+  if (!supplier) {
+    return null;
+  }
+
   const isRomanian = isRomanianSupplier(supplier.businessCountry);
 
   if (!isRomanian) {
@@ -24,7 +33,10 @@ export function RomanianFeatures({ supplier, children, showBadge = true }: Roman
     <div className="romanian-features space-y-4">
       {showBadge && (
         <div className="flex items-center gap-2 mb-4">
-          <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+          <Badge
+            variant="secondary"
+            className="bg-blue-50 text-blue-700 border-blue-200"
+          >
             🇷🇴 Romanian Market Features
           </Badge>
           <span className="text-sm text-muted-foreground">
@@ -40,20 +52,25 @@ export function RomanianFeatures({ supplier, children, showBadge = true }: Roman
 interface RomanianFeatureCardProps {
   supplier: {
     businessCountry: string;
-  };
+  } | null;
   title: string;
   description: string;
   children: ReactNode;
   icon?: ReactNode;
 }
 
-export function RomanianFeatureCard({ 
-  supplier, 
-  title, 
-  description, 
-  children, 
-  icon 
+export function RomanianFeatureCard({
+  supplier,
+  title,
+  description,
+  children,
+  icon,
 }: RomanianFeatureCardProps) {
+  // Handle null supplier (for VISITOR users)
+  if (!supplier) {
+    return null;
+  }
+
   const isRomanian = isRomanianSupplier(supplier.businessCountry);
 
   if (!isRomanian) {
@@ -72,9 +89,7 @@ export function RomanianFeatureCard({
         </div>
         <p className="text-sm text-blue-700">{description}</p>
       </CardHeader>
-      <CardContent>
-        {children}
-      </CardContent>
+      <CardContent>{children}</CardContent>
     </Card>
   );
 }
@@ -86,10 +101,17 @@ interface RomanianComplianceStatusProps {
     anpcApproval?: boolean;
     iscApproval?: boolean;
     educationalCertification?: string;
-  };
+  } | null;
 }
 
-export function RomanianComplianceStatus({ supplier }: RomanianComplianceStatusProps) {
+export function RomanianComplianceStatus({
+  supplier,
+}: RomanianComplianceStatusProps) {
+  // Handle null supplier (for VISITOR users)
+  if (!supplier) {
+    return null;
+  }
+
   const isRomanian = isRomanianSupplier(supplier.businessCountry);
 
   if (!isRomanian) {
@@ -118,19 +140,23 @@ export function RomanianComplianceStatus({ supplier }: RomanianComplianceStatusP
             </Badge>
           </div>
         </div>
-        
+
         {supplier.romanianComplianceStatus && (
           <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
             <span className="text-sm font-medium">Overall Compliance</span>
             <Badge variant="outline" className="capitalize">
-              {supplier.romanianComplianceStatus.toLowerCase().replace('_', ' ')}
+              {supplier.romanianComplianceStatus
+                .toLowerCase()
+                .replace("_", " ")}
             </Badge>
           </div>
         )}
-        
+
         {supplier.educationalCertification && (
           <div className="p-3 bg-white rounded-lg border">
-            <span className="text-sm font-medium block mb-1">Educational Certification</span>
+            <span className="text-sm font-medium block mb-1">
+              Educational Certification
+            </span>
             <span className="text-sm text-muted-foreground">
               {supplier.educationalCertification}
             </span>
@@ -144,7 +170,7 @@ export function RomanianComplianceStatus({ supplier }: RomanianComplianceStatusP
 interface RomanianEducationalStandardsProps {
   supplier: {
     businessCountry: string;
-  };
+  } | null;
   product?: {
     romanianEducationalLevel?: string;
     romanianMinistryApproval?: boolean;
@@ -152,7 +178,15 @@ interface RomanianEducationalStandardsProps {
   };
 }
 
-export function RomanianEducationalStandards({ supplier, product }: RomanianEducationalStandardsProps) {
+export function RomanianEducationalStandards({
+  supplier,
+  product,
+}: RomanianEducationalStandardsProps) {
+  // Handle null supplier (for VISITOR users)
+  if (!supplier) {
+    return null;
+  }
+
   const isRomanian = isRomanianSupplier(supplier.businessCountry);
 
   if (!isRomanian) {
@@ -175,28 +209,35 @@ export function RomanianEducationalStandards({ supplier, product }: RomanianEduc
             </Badge>
           </div>
         )}
-        
+
         {product?.romanianMinistryApproval !== undefined && (
           <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
             <span className="text-sm font-medium">Ministry Approval</span>
-            <Badge variant={product.romanianMinistryApproval ? "default" : "secondary"}>
+            <Badge
+              variant={
+                product.romanianMinistryApproval ? "default" : "secondary"
+              }
+            >
               {product.romanianMinistryApproval ? "✅ Approved" : "⏳ Pending"}
             </Badge>
           </div>
         )}
-        
-        {product?.romanianCurriculumAlignment && product.romanianCurriculumAlignment.length > 0 && (
-          <div className="p-3 bg-white rounded-lg border">
-            <span className="text-sm font-medium block mb-2">Curriculum Alignment</span>
-            <div className="flex flex-wrap gap-1">
-              {product.romanianCurriculumAlignment.map((alignment, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  {alignment}
-                </Badge>
-              ))}
+
+        {product?.romanianCurriculumAlignment &&
+          product.romanianCurriculumAlignment.length > 0 && (
+            <div className="p-3 bg-white rounded-lg border">
+              <span className="text-sm font-medium block mb-2">
+                Curriculum Alignment
+              </span>
+              <div className="flex flex-wrap gap-1">
+                {product.romanianCurriculumAlignment.map((alignment, index) => (
+                  <Badge key={index} variant="outline" className="text-xs">
+                    {alignment}
+                  </Badge>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </RomanianFeatureCard>
   );
@@ -208,10 +249,15 @@ interface RomanianPaymentInfoProps {
     romanianBankAccount?: string;
     romanianPaymentTerms?: number;
     romanianCurrency?: string;
-  };
+  } | null;
 }
 
 export function RomanianPaymentInfo({ supplier }: RomanianPaymentInfoProps) {
+  // Handle null supplier (for VISITOR users)
+  if (!supplier) {
+    return null;
+  }
+
   const isRomanian = isRomanianSupplier(supplier.businessCountry);
 
   if (!isRomanian) {
@@ -234,7 +280,7 @@ export function RomanianPaymentInfo({ supplier }: RomanianPaymentInfoProps) {
             </span>
           </div>
         )}
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
             <span className="text-sm font-medium">Payment Terms</span>

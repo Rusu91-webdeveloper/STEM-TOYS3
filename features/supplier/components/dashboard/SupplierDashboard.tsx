@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
   Package,
   ShoppingCart,
@@ -21,6 +22,7 @@ import {
   Sparkles,
   Target,
   Zap,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,6 +63,7 @@ export function SupplierDashboard({
 }: {
   initialData?: DashboardData | null;
 }) {
+  const { data: session } = useSession();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     initialData ?? null
   );
@@ -167,6 +170,18 @@ export function SupplierDashboard({
           Welcome back! Here's what's happening with your business today.
         </p>
       </div>
+
+      {/* Demo Mode Banner for VISITOR users */}
+      {session?.user?.role === "VISITOR" && (
+        <Alert className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            <strong>Demo Mode:</strong> You're viewing sample data to explore
+            the supplier dashboard functionality. This shows what the dashboard
+            would look like with real business data.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Quick Access Component */}
       <QuickAccess
