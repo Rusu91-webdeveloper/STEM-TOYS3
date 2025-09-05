@@ -43,8 +43,8 @@ export default function Header() {
   // FIXED: Simplified and consistent authentication state logic
   const isAuthenticated =
     status === "authenticated" && !!session?.user && !session.user.error;
-  const isAdmin = isAuthenticated && session?.user?.role === "ADMIN";
-  const isSupplier = isAuthenticated && session?.user?.role === "SUPPLIER";
+  const isAdmin = isAuthenticated && (session?.user?.role === "ADMIN" || session?.user?.role === "VISITOR");
+  const isSupplier = isAuthenticated && (session?.user?.role === "SUPPLIER" || session?.user?.role === "VISITOR");
   const isLoading = status === "loading";
 
   // FIXED: Only show authenticated UI if truly authenticated

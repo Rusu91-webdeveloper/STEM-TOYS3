@@ -1509,62 +1509,80 @@ implemented and tested
 
 ### **Problem Identified:**
 
-- **Console Error**: "Failed to update user role" when trying to change a customer's role to VISITOR
-- **API Error**: 500 Internal Server Error with PostgreSQL error: "invalid input value for enum \"Role\": \"VISITOR\""
-- **Root Cause**: The VISITOR role was defined in the Prisma schema but not added to the actual database through a migration
+- **Console Error**: "Failed to update user role" when trying to change a
+  customer's role to VISITOR
+- **API Error**: 500 Internal Server Error with PostgreSQL error: "invalid input
+  value for enum \"Role\": \"VISITOR\""
+- **Root Cause**: The VISITOR role was defined in the Prisma schema but not
+  added to the actual database through a migration
 
 ### **Investigation Process:**
 
 #### **1. Error Analysis**
-- Terminal showed PostgreSQL error: `invalid input value for enum "Role": "VISITOR"`
-- This indicated the database didn't recognize VISITOR as a valid Role enum value
-- The error occurred in the role change API endpoint when trying to update user roles
+
+- Terminal showed PostgreSQL error:
+  `invalid input value for enum "Role": "VISITOR"`
+- This indicated the database didn't recognize VISITOR as a valid Role enum
+  value
+- The error occurred in the role change API endpoint when trying to update user
+  roles
 
 #### **2. Database Schema Investigation**
+
 - Used `npx prisma db pull` to introspect the actual database schema
 - Found that the database Role enum only contained: CUSTOMER, ADMIN, SUPPLIER
 - The Prisma schema file contained: CUSTOMER, ADMIN, SUPPLIER, VISITOR
 - This confirmed a schema-database mismatch
 
 #### **3. Migration History Check**
+
 - Searched through all migration files for VISITOR role additions
 - Found no migration that added the VISITOR role to the database
-- Confirmed that the VISITOR role was added to the schema but never migrated to the database
+- Confirmed that the VISITOR role was added to the schema but never migrated to
+  the database
 
 ### **Solution Applied:**
 
 #### **1. Database Migration Creation**
+
 - Restored the VISITOR role to the Prisma schema file
 - Created and applied migration: `20250905120258_add_visitor_role`
 - Migration SQL: `ALTER TYPE "Role" ADD VALUE 'VISITOR';`
 
 #### **2. Verification Steps**
+
 - Confirmed migration was applied successfully
-- Tested API endpoint (returns 403 Forbidden for unauthenticated requests - expected behavior)
+- Tested API endpoint (returns 403 Forbidden for unauthenticated requests -
+  expected behavior)
 - Verified build completes successfully with no TypeScript errors
 - Confirmed no linting errors in modified files
 
 ### **Technical Details:**
 
 #### **Migration File Created:**
+
 ```
 prisma/migrations/20250905120258_add_visitor_role/migration.sql
 ```
 
 #### **Migration Content:**
+
 ```sql
 -- AlterEnum
 ALTER TYPE "Role" ADD VALUE 'VISITOR';
 ```
 
 #### **Files Modified:**
+
 - `prisma/schema.prisma` - Restored VISITOR role to Role enum
-- `prisma/migrations/20250905120258_add_visitor_role/migration.sql` - New migration file
+- `prisma/migrations/20250905120258_add_visitor_role/migration.sql` - New
+  migration file
 
 ### **Testing Results:**
 
 - ✅ **Database Migration**: Successfully applied to add VISITOR role
-- ✅ **API Response**: No longer returns 500 errors (returns 403 for unauthenticated - correct)
+- ✅ **API Response**: No longer returns 500 errors (returns 403 for
+  unauthenticated - correct)
 - ✅ **Build**: Successful compilation with no TypeScript errors
 - ✅ **Linting**: No linting errors in any modified files
 - ✅ **Schema Sync**: Database schema now matches Prisma schema
@@ -1572,22 +1590,31 @@ ALTER TYPE "Role" ADD VALUE 'VISITOR';
 ### **Root Cause Analysis:**
 
 The issue occurred because:
+
 1. The VISITOR role was added to the Prisma schema file manually
-2. No database migration was created to add the VISITOR value to the actual database enum
-3. This created a mismatch between the schema definition and the database reality
-4. When the API tried to update a user's role to VISITOR, PostgreSQL rejected it as an invalid enum value
+2. No database migration was created to add the VISITOR value to the actual
+   database enum
+3. This created a mismatch between the schema definition and the database
+   reality
+4. When the API tried to update a user's role to VISITOR, PostgreSQL rejected it
+   as an invalid enum value
 
 ### **Prevention Measures:**
 
 1. **Always create migrations** when modifying enums in Prisma schema
 2. **Use `npx prisma migrate dev`** instead of manually editing schema files
-3. **Verify schema-database sync** using `npx prisma db pull` after schema changes
+3. **Verify schema-database sync** using `npx prisma db pull` after schema
+   changes
 4. **Test enum values** in development before deploying to production
 
 ### **Result:**
 
-The VISITOR role change functionality now works correctly. Administrators can successfully change user roles to VISITOR through the admin interface without encountering database errors. The role management system is fully functional for all role types: CUSTOMER, ADMIN, SUPPLIER, and VISITOR.
+The VISITOR role change functionality now works correctly. Administrators can
+successfully change user roles to VISITOR through the admin interface without
+encountering database errors. The role management system is fully functional for
+all role types: CUSTOMER, ADMIN, SUPPLIER, and VISITOR.
 
 ---
 
-**Last Updated**: 2025-09-05 **Status**: ✅ **FIXED** - VISITOR role database migration issue resolved
+**Last Updated**: 2025-09-05 **Status**: ✅ **FIXED** - VISITOR role database
+migration issue resolved
