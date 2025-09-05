@@ -373,6 +373,7 @@ model Order {
   returns               Return[]
   supplierOrders        SupplierOrder[]
   statusHistory         OrderStatusHistory[]
+  campaignApplications  CampaignApplication[]
 
   @@index([userId])
   @@index([status])
@@ -492,6 +493,71 @@ model ConversionLog {
   @@index([type])
   @@index([category])
   @@index([action])
+}
+
+model Campaign {
+  id                    String   @id @default(cuid())
+  name                  String
+  type                  String   // flashSale, seasonalSale, loyaltyProgram, referralProgram, birthdayOffer, firstTimeBuyer
+  status                String   @default("draft") // draft, active, paused, completed, cancelled
+  startDate             DateTime
+  endDate               DateTime
+  discountPercent       Float?
+  minimumOrderAmount    Float?
+  maximumDiscountAmount Float?
+  applicableCategories  String[] @default([])
+  applicableProducts    String[] @default([])
+  customerSegments      String[] @default([])
+  maxUses               Int?
+  currentUses           Int      @default(0)
+  metadata              Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  applications          CampaignApplication[]
+
+  @@index([status])
+  @@index([type])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model CampaignApplication {
+  id           String   @id @default(cuid())
+  campaignId   String
+  orderId      String?
+  customerId   String
+  discountAmount Float
+  appliedAt    DateTime @default(now())
+  metadata     Json?
+
+  // Relations
+  campaign     Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  order        Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId])
+  @@index([customerId])
+  @@index([appliedAt])
+}
+
+model AutomationWorkflow {
+  id                String   @id @default(cuid())
+  name              String
+  type              String   // welcomeSeries, abandonedCart, postPurchase, reEngagement, birthdayCampaign, seasonalPromotions
+  status            String   @default("active") // active, paused, completed
+  customerId        String
+  currentStep       Int      @default(0)
+  totalSteps        Int
+  nextExecutionDate DateTime
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([type])
+  @@index([nextExecutionDate])
 }
 
 model SupplierOrder {
@@ -949,6 +1015,7 @@ enum Role {
   CUSTOMER
   ADMIN
   SUPPLIER
+  VISITOR
 }
 
 enum StemCategory {

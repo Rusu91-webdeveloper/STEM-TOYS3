@@ -32,6 +32,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { HelpTooltip } from "@/components/ui/tooltip";
 
 interface StoreSettings {
   id?: string;
@@ -1058,7 +1059,26 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="storeName">Store Name</Label>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="storeName">Store Name</Label>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Store Name</p>
+                          <p>
+                            The official name of your store that appears in
+                            emails, invoices, and customer communications. This
+                            is your brand identity.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Example:</strong> "TechTots" - This name
+                            will appear on order confirmations, shipping labels,
+                            and customer emails.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
                   <Input
                     id="storeName"
                     value={settings.storeName}
@@ -1066,7 +1086,26 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="storeUrl">Store URL</Label>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="storeUrl">Store URL</Label>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Store URL</p>
+                          <p>
+                            The main website URL for your store. This is used in
+                            emails, social media links, and customer
+                            communications.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Example:</strong> "https://techtots.com" -
+                            Customers will see this URL in emails and can click
+                            to visit your store.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
                   <Input
                     id="storeUrl"
                     value={settings.storeUrl}
@@ -1074,7 +1113,27 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="storeDescription">Store Description</Label>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="storeDescription">Store Description</Label>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Store Description</p>
+                          <p>
+                            A brief description of your store that explains what
+                            you sell and your mission. This appears in search
+                            results and social media.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Example:</strong> "TechTots is a premier
+                            online destination for STEM toys that inspire
+                            learning through play." - This helps customers
+                            understand your brand and products.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
                   <Textarea
                     id="storeDescription"
                     value={settings.storeDescription}
@@ -1083,7 +1142,26 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contactEmail">Contact Email</Label>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="contactEmail">Contact Email</Label>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Contact Email</p>
+                          <p>
+                            The primary email address customers can use to
+                            contact you. This appears on your website and in
+                            customer communications.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Example:</strong> "info@techtots.com" -
+                            Customers will use this email for general inquiries,
+                            support, and business matters.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
                   <Input
                     id="contactEmail"
                     value={settings.contactEmail}
@@ -1092,7 +1170,26 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contactPhone">Contact Phone</Label>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="contactPhone">Contact Phone</Label>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Contact Phone</p>
+                          <p>
+                            The primary phone number customers can call for
+                            support or inquiries. This appears on your website
+                            and in customer communications.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Example:</strong> "+1 (555) 123-4567" -
+                            Customers can call this number for urgent support or
+                            to speak with your team directly.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
                   <Input
                     id="contactPhone"
                     value={settings.contactPhone}
@@ -1121,7 +1218,27 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="currency">Currency</Label>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="currency">Currency</Label>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Store Currency</p>
+                          <p>
+                            The primary currency for your store. All prices,
+                            orders, and financial reports will be displayed in
+                            this currency.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Example:</strong> If set to EUR (€), all
+                            product prices will be shown in euros, and customers
+                            will pay in euros. This affects pricing, taxes, and
+                            payment processing.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
                   <Select
                     value={settings.currency}
                     onValueChange={value =>
@@ -1142,7 +1259,27 @@ export default function SettingsPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="timezone">Timezone</Label>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="timezone">Timezone</Label>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Store Timezone</p>
+                          <p>
+                            The timezone for your store operations. This affects
+                            order timestamps, business hours, and scheduled
+                            operations.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Example:</strong> If set to "Europe/Paris
+                            (UTC+1)", all order times, business hours, and
+                            automated tasks will be based on Central European
+                            Time.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
                   <Select
                     value={settings.timezone}
                     onValueChange={value =>
@@ -1172,7 +1309,27 @@ export default function SettingsPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dateFormat">Date Format</Label>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="dateFormat">Date Format</Label>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Date Display Format</p>
+                          <p>
+                            How dates are displayed throughout your store,
+                            including order dates, delivery dates, and admin
+                            reports.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Example:</strong> If set to "DD/MM/YYYY",
+                            dates will appear as "25/12/2024" instead of
+                            "12/25/2024". This should match your local date
+                            format preferences.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
                   <Select
                     value={settings.dateFormat}
                     onValueChange={value =>
@@ -1190,7 +1347,26 @@ export default function SettingsPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="weightUnit">Weight Unit</Label>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="weightUnit">Weight Unit</Label>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Product Weight Unit</p>
+                          <p>
+                            The unit used to measure and display product
+                            weights. This affects shipping calculations and
+                            product specifications.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Example:</strong> If set to "kg", product
+                            weights will be shown as "2.5 kg" and shipping costs
+                            will be calculated based on kilograms.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
                   <Select
                     value={settings.weightUnit}
                     onValueChange={value =>
@@ -1229,7 +1405,27 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="metaTitle">Meta Title</Label>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="metaTitle">Meta Title</Label>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Meta Title</p>
+                          <p>
+                            The title that appears in browser tabs, search
+                            engine results, and when your site is shared on
+                            social media. This is crucial for SEO.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Example:</strong> "TechTots | STEM Toys for
+                            Curious Minds" - This appears in Google search
+                            results and browser tabs. Keep it under 60
+                            characters for best results.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
                   <Input
                     id="metaTitle"
                     value={settings.metaTitle}
@@ -1241,7 +1437,28 @@ export default function SettingsPage() {
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="metaDescription">Meta Description</Label>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="metaDescription">Meta Description</Label>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Meta Description</p>
+                          <p>
+                            A brief description of your store that appears in
+                            search engine results below the title. This helps
+                            customers understand what you offer.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Example:</strong> "Discover the best STEM
+                            toys for curious minds at TechTots. Educational toys
+                            that make learning fun for children of all ages." -
+                            This appears in Google search results and should be
+                            150-160 characters.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
                   <Textarea
                     id="metaDescription"
                     value={settings.metaDescription}
@@ -1254,7 +1471,27 @@ export default function SettingsPage() {
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="metaKeywords">Meta Keywords</Label>
+                  <div className="flex items-center gap-1">
+                    <Label htmlFor="metaKeywords">Meta Keywords</Label>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Meta Keywords</p>
+                          <p>
+                            Keywords that describe your store and products.
+                            While less important for modern SEO, they can still
+                            help search engines understand your content.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Example:</strong> "STEM toys, educational
+                            toys, science toys, technology toys, engineering
+                            toys, math toys" - Separate keywords with commas and
+                            focus on terms customers might search for.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
                   <Input
                     id="metaKeywords"
                     value={settings.metaKeywords}
@@ -1284,7 +1521,29 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between space-x-2">
                   <div className="flex flex-col space-y-1">
-                    <Label htmlFor="standard-shipping">Standard Shipping</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="standard-shipping">
+                        Standard Shipping
+                      </Label>
+                      <HelpTooltip
+                        content={
+                          <div className="space-y-2">
+                            <p className="font-medium">Standard Shipping</p>
+                            <p>
+                              The default shipping method for most orders. This
+                              is typically the most cost-effective option for
+                              customers who don't need rush delivery.
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              <strong>Example:</strong> Set to €5.99 for 3-5
+                              business days. This is perfect for regular orders
+                              where customers can wait a few days for their STEM
+                              toys to arrive.
+                            </p>
+                          </div>
+                        }
+                      />
+                    </div>
                     <span className="text-sm text-muted-foreground">
                       3-5 business days
                     </span>
@@ -1318,7 +1577,27 @@ export default function SettingsPage() {
                 <Separator />
                 <div className="flex items-center justify-between space-x-2">
                   <div className="flex flex-col space-y-1">
-                    <Label htmlFor="express-shipping">Express Shipping</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="express-shipping">Express Shipping</Label>
+                      <HelpTooltip
+                        content={
+                          <div className="space-y-2">
+                            <p className="font-medium">Express Shipping</p>
+                            <p>
+                              A faster shipping option for customers who need
+                              their orders quickly. This typically costs more
+                              but provides faster delivery.
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              <strong>Example:</strong> Set to €12.99 for 1-2
+                              business days. Perfect for customers who need STEM
+                              toys quickly for birthdays, school projects, or
+                              last-minute gifts.
+                            </p>
+                          </div>
+                        }
+                      />
+                    </div>
                     <span className="text-sm text-muted-foreground">
                       1-2 business days
                     </span>
@@ -1352,9 +1631,32 @@ export default function SettingsPage() {
                 <Separator />
                 <div className="flex items-center justify-between space-x-2">
                   <div className="flex flex-col space-y-1">
-                    <Label htmlFor="free-shipping-threshold">
-                      Free Shipping Threshold
-                    </Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="free-shipping-threshold">
+                        Free Shipping Threshold
+                      </Label>
+                      <HelpTooltip
+                        content={
+                          <div className="space-y-2">
+                            <p className="font-medium">
+                              Free Shipping Threshold
+                            </p>
+                            <p>
+                              The minimum order amount required for customers to
+                              receive free shipping. This encourages larger
+                              orders and can increase average order value.
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              <strong>Example:</strong> Set to €50. When
+                              customers add items worth €50 or more to their
+                              cart, they'll see "Free shipping!" and won't pay
+                              shipping fees. This encourages customers to buy
+                              more items.
+                            </p>
+                          </div>
+                        }
+                      />
+                    </div>
                     <span className="text-sm text-muted-foreground">
                       Orders above this amount qualify for free shipping. This
                       setting affects all components that display free shipping
@@ -1996,19 +2298,13 @@ export default function SettingsPage() {
 
         {/* Analytics Dashboard */}
         <TabsContent value="analytics" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Analytics Dashboard</CardTitle>
-              <CardDescription>
-                Comprehensive insights into your e-commerce performance
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <AnalyticsDashboard />
-              <Separator />
-              <ConversionDashboard />
-            </CardContent>
-          </Card>
+          <AnalyticsDashboard />
+          <Separator />
+          <ConversionDashboard
+            timeRange="7d"
+            autoRefresh={true}
+            refreshInterval={60000}
+          />
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-4">

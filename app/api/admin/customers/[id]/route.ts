@@ -85,6 +85,7 @@ export async function GET(
       name: customer.name || "Anonymous",
       email: customer.email,
       status: customer.isActive ? "Active" : "Inactive",
+      role: customer.role,
       joined: customer.createdAt,
       totalOrders: customer._count.orders,
       totalSpent,

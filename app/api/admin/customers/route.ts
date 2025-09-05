@@ -152,6 +152,7 @@ export const GET = withRateLimit(
             orders: customer._count.orders,
             spent: totalSpent,
             status,
+            role: customer.role,
           };
         }
       );
