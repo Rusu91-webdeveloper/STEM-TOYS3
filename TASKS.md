@@ -1618,3 +1618,103 @@ all role types: CUSTOMER, ADMIN, SUPPLIER, and VISITOR.
 
 **Last Updated**: 2025-09-05 **Status**: ✅ **FIXED** - VISITOR role database
 migration issue resolved
+
+---
+
+## 🐛 **FIXED: VISITOR Role Navigation Links Missing**
+
+**Date Fixed:** 2025-09-05  
+**Time Spent:** 30 minutes  
+**Status:** ✅ **FIXED**
+
+### **Problem Identified:**
+
+- **Issue**: VISITOR role users couldn't see admin and supplier dashboard links in the navigation bar
+- **Root Cause**: Header component role checking logic only showed admin link for ADMIN users and supplier link for SUPPLIER users
+- **Impact**: VISITOR users had access to both dashboards but couldn't navigate to them from the header
+
+### **Investigation Process:**
+
+#### **1. Navigation Component Analysis**
+- Examined `components/layout/Header.tsx` to understand role-based navigation logic
+- Found role checking variables on lines 46-47:
+  ```typescript
+  const isAdmin = isAuthenticated && session?.user?.role === "ADMIN";
+  const isSupplier = isAuthenticated && session?.user?.role === "SUPPLIER";
+  ```
+- Confirmed that VISITOR role was not included in either check
+
+#### **2. Existing VISITOR Support Verification**
+- Verified that VISITOR role support was already implemented in:
+  - ✅ Admin Layout (`app/admin/layout.tsx`) - Supports VISITOR role
+  - ✅ Supplier Auth (`lib/supplier-auth.ts`) - Supports VISITOR role  
+  - ✅ Supplier Middleware (`lib/supplier-middleware.ts`) - Supports VISITOR role
+- Only missing piece was the Header navigation component
+
+### **Solution Applied:**
+
+#### **Updated Header Component Role Logic**
+- Modified role checking logic to include VISITOR role:
+  ```typescript
+  // Before
+  const isAdmin = isAuthenticated && session?.user?.role === "ADMIN";
+  const isSupplier = isAuthenticated && session?.user?.role === "SUPPLIER";
+  
+  // After
+  const isAdmin = isAuthenticated && (session?.user?.role === "ADMIN" || session?.user?.role === "VISITOR");
+  const isSupplier = isAuthenticated && (session?.user?.role === "SUPPLIER" || session?.user?.role === "VISITOR");
+  ```
+
+#### **Navigation Links Now Available for VISITOR Role**
+- **Desktop Navigation**: VISITOR users see both admin and supplier dashboard links
+- **Mobile Navigation**: VISITOR users see both admin and supplier dashboard links in mobile menu
+- **Consistent Experience**: Both desktop and mobile navigation work identically
+
+### **Technical Details:**
+
+#### **Files Modified:**
+- `components/layout/Header.tsx` - Updated role checking logic
+
+#### **Changes Made:**
+- Updated `isAdmin` variable to include VISITOR role
+- Updated `isSupplier` variable to include VISITOR role
+- Both desktop and mobile navigation automatically inherit the updated logic
+
+### **Testing Results:**
+
+- ✅ **Build**: Successful compilation with no TypeScript errors
+- ✅ **Linting**: No linting errors in modified files
+- ✅ **Navigation**: Both admin and supplier links now visible for VISITOR role
+- ✅ **Mobile Menu**: Mobile navigation also supports VISITOR role
+- ✅ **Consistency**: All navigation components now support VISITOR role uniformly
+
+### **User Experience Improvements:**
+
+#### **For VISITOR Users:**
+- Can now see and access admin dashboard link in header navigation
+- Can now see and access supplier dashboard link in header navigation
+- Consistent navigation experience across desktop and mobile
+- No need to manually type URLs to access dashboards
+
+#### **Navigation Link Behavior:**
+- **Admin Link**: Shows for both ADMIN and VISITOR roles
+- **Supplier Link**: Shows for both SUPPLIER and VISITOR roles
+- **Visual Styling**: Same gradient styling and hover effects for all roles
+- **Mobile Support**: Both links appear in mobile menu for VISITOR users
+
+### **Role-Based Navigation Summary:**
+
+| Role | Admin Link | Supplier Link | Access Level |
+|------|------------|---------------|--------------|
+| CUSTOMER | ❌ | ❌ | Customer features only |
+| ADMIN | ✅ | ❌ | Full admin access |
+| SUPPLIER | ❌ | ✅ | Full supplier access |
+| VISITOR | ✅ | ✅ | Read-only access to both |
+
+### **Result:**
+
+VISITOR role users now have complete navigation access to both admin and supplier dashboards through the header navigation. The navigation system is fully functional for all role types, providing a seamless user experience for VISITOR users who need to monitor both admin and supplier activities.
+
+---
+
+**Last Updated**: 2025-09-05 **Status**: ✅ **FIXED** - VISITOR role navigation links now visible
