@@ -80,7 +80,8 @@ export default function TestSettingsPage() {
     }
   };
 
-  const getStatusBadge = (success: boolean) => success ? (
+  const getStatusBadge = (success: boolean) =>
+    success ? (
       <Badge className="bg-green-500">✓ Working</Badge>
     ) : (
       <Badge variant="destructive">✗ Failed</Badge>
@@ -155,9 +156,8 @@ export default function TestSettingsPage() {
       </div>
 
       <Tabs defaultValue="business-hours" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="business-hours">Business Hours</TabsTrigger>
-          <TabsTrigger value="customer-service">Customer Service</TabsTrigger>
           <TabsTrigger value="order-processing">Order Processing</TabsTrigger>
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
           <TabsTrigger value="marketing">Marketing</TabsTrigger>
@@ -168,14 +168,6 @@ export default function TestSettingsPage() {
             "businessHours",
             "Business Hours Settings",
             "Test business hours configuration, operating hours, and availability checks"
-          )}
-        </TabsContent>
-
-        <TabsContent value="customer-service" className="space-y-6">
-          {renderTestSection(
-            "customerService",
-            "Customer Service Settings",
-            "Test customer service contact details, live chat configuration, and support channels"
           )}
         </TabsContent>
 

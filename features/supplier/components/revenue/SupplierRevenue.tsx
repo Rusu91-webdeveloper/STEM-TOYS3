@@ -138,11 +138,14 @@ export function SupplierRevenue() {
 
   const formatCurrency = (amount: number | undefined | null) => {
     if (amount === undefined || amount === null) {
-      return "$0.00";
+      return new Intl.NumberFormat("ro-RO", {
+        style: "currency",
+        currency: "RON",
+      }).format(0);
     }
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("ro-RO", {
       style: "currency",
-      currency: "USD",
+      currency: "RON",
     }).format(amount);
   };
 

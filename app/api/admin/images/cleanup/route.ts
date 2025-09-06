@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { ImageManagementService } from "@/lib/image-management";
+import { ImageManagementService } from "@/lib/image-management-real";
 import { auth } from "@/lib/server/auth";
 
 // Cleanup request schema
@@ -42,75 +42,126 @@ export async function POST(request: NextRequest) {
       `[IMAGE CLEANUP API] Starting cleanup for types: ${cleanupTypes.join(", ")}. Dry run: ${dryRun}`
     );
 
-    // In a real implementation, you would:
-    // 1. Query the database for images matching cleanup criteria
-    // 2. Analyze images for duplicates, orphaned status, etc.
-    // 3. Generate cleanup recommendations
-    // 4. Execute cleanup if not dry run
-
-    // Simulate cleanup analysis
-    const analysisResults = {
-      orphaned: {
-        count: Math.floor(Math.random() * 10) + 1,
-        totalSize: Math.floor(Math.random() * 50 * 1024 * 1024) + 1024 * 1024, // 1-50MB
-        images: Array.from(
-          { length: Math.floor(Math.random() * 10) + 1 },
-          (_, i) => ({
-            url: `https://via.placeholder.com/400x300?text=Orphaned+${i + 1}`,
-            filename: `orphaned-${i + 1}.jpg`,
-            size: Math.floor(Math.random() * 1024 * 1024) + 100 * 1024,
-            uploadedAt: new Date(
-              Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000
-            ),
-          })
-        ),
-      },
-      invalid: {
-        count: Math.floor(Math.random() * 5),
-        totalSize: Math.floor(Math.random() * 10 * 1024 * 1024),
-        images: [],
-      },
-      duplicate: {
-        count: Math.floor(Math.random() * 8) + 2,
-        totalSize: Math.floor(Math.random() * 30 * 1024 * 1024) + 1024 * 1024,
-        groups: [
-          Array.from({ length: Math.floor(Math.random() * 3) + 2 }, (_, i) => ({
-            url: `https://via.placeholder.com/400x300?text=Duplicate+${i + 1}`,
-            filename: `duplicate-${i + 1}.jpg`,
-            size: Math.floor(Math.random() * 1024 * 1024) + 100 * 1024,
-            similarity: 0.95 + Math.random() * 0.05,
-          })),
-        ],
-      },
-      large: {
-        count: Math.floor(Math.random() * 6) + 1,
-        totalSize:
-          Math.floor(Math.random() * 100 * 1024 * 1024) + 10 * 1024 * 1024,
-        images: Array.from(
-          { length: Math.floor(Math.random() * 6) + 1 },
-          (_, i) => ({
-            url: `https://via.placeholder.com/800x600?text=Large+${i + 1}`,
-            filename: `large-${i + 1}.jpg`,
-            size: Math.floor(Math.random() * 5 * 1024 * 1024) + 2 * 1024 * 1024,
-            dimensions: `${800 + Math.floor(Math.random() * 400)}x${600 + Math.floor(Math.random() * 300)}`,
-          })
-        ),
-      },
-      old: {
-        count: Math.floor(Math.random() * 15) + 5,
-        totalSize:
-          Math.floor(Math.random() * 80 * 1024 * 1024) + 20 * 1024 * 1024,
-        images: Array.from(
-          { length: Math.floor(Math.random() * 15) + 5 },
-          (_, i) => ({
-            url: `https://via.placeholder.com/400x300?text=Old+${i + 1}`,
-            filename: `old-${i + 1}.jpg`,
-            size: Math.floor(Math.random() * 1024 * 1024) + 100 * 1024,
-            age: Math.floor(Math.random() * 200) + 60, // 60-260 days
-          })
-        ),
-      },
+    // Query the database for images matching cleanup criteria
+    const analysisResults: any = {
+      orphaned: { count: 0, totalSize: 0, images: [] },
+      invalid: { count: 0, totalSize: 0, images: [] },
+      duplicate: { count: 0, totalSize: 0, groups: [] },
+      large: { count: 0, totalSize: 0, images: [] },
+      old: { count: 0, totalSize: 0, images: [] },
     };
+
+    // Find orphaned images
+    if (cleanupTypes.includes("orphaned")) {
+      const orphanedImages = await ImageManagementService.findOrphanedImages();
+      analysisResults.orphaned = {
+        count: orphanedImages.length,
+        totalSize: orphanedImages.reduce((sum, img) => sum + img.fileSize, 0),
+        images: orphanedImages.map(img => ({
+          id: img.id,
+          url: img.originalUrl,
+          filename: img.filename,
+          size: img.fileSize,
+          uploadedAt: img.uploadedAt,
+        })),
+      };
+    }
+
+    // Find duplicate images
+    if (cleanupTypes.includes("duplicate")) {
+      const duplicateData = await ImageManagementService.findDuplicateImages();
+      analysisResults.duplicate = {
+        count: duplicateData.totalDuplicates,
+        totalSize: duplicateData.potentialSavings,
+        groups: duplicateData.duplicates.map(group =>
+          group.map(img => ({
+            id: img.id,
+            url: img.originalUrl,
+            filename: img.filename,
+            size: img.fileSize,
+            similarity: 0.95, // Simplified similarity score
+          }))
+        ),
+      };
+    }
+
+    // Find large images
+    if (cleanupTypes.includes("large")) {
+      const largeImages = await ImageManagementService.getImages({
+        limit: 1000, // Get all images to filter
+      });
+
+      const largeImagesFiltered = largeImages.images.filter(
+        img => img.fileSize > settings.maxSize
+      );
+      analysisResults.large = {
+        count: largeImagesFiltered.length,
+        totalSize: largeImagesFiltered.reduce(
+          (sum, img) => sum + img.fileSize,
+          0
+        ),
+        images: largeImagesFiltered.map(img => ({
+          id: img.id,
+          url: img.originalUrl,
+          filename: img.filename,
+          size: img.fileSize,
+          dimensions: `${img.width}x${img.height}`,
+        })),
+      };
+    }
+
+    // Find old images
+    if (cleanupTypes.includes("old")) {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - settings.maxAge);
+
+      const oldImages = await ImageManagementService.getImages({
+        limit: 1000, // Get all images to filter
+      });
+
+      const oldImagesFiltered = oldImages.images.filter(
+        img => img.uploadedAt < cutoffDate
+      );
+      analysisResults.old = {
+        count: oldImagesFiltered.length,
+        totalSize: oldImagesFiltered.reduce(
+          (sum, img) => sum + img.fileSize,
+          0
+        ),
+        images: oldImagesFiltered.map(img => ({
+          id: img.id,
+          url: img.originalUrl,
+          filename: img.filename,
+          size: img.fileSize,
+          age: Math.floor(
+            (Date.now() - img.uploadedAt.getTime()) / (1000 * 60 * 60 * 24)
+          ),
+        })),
+      };
+    }
+
+    // Find invalid images (inactive or corrupted)
+    if (cleanupTypes.includes("invalid")) {
+      const invalidImages = await ImageManagementService.getImages({
+        isActive: false,
+        limit: 1000,
+      });
+
+      analysisResults.invalid = {
+        count: invalidImages.images.length,
+        totalSize: invalidImages.images.reduce(
+          (sum, img) => sum + img.fileSize,
+          0
+        ),
+        images: invalidImages.images.map(img => ({
+          id: img.id,
+          url: img.originalUrl,
+          filename: img.filename,
+          size: img.fileSize,
+          status: img.status,
+        })),
+      };
+    }
 
     // Calculate total potential savings
     const totalSavings = Object.values(analysisResults).reduce(
@@ -172,21 +223,63 @@ export async function POST(request: NextRequest) {
       `[IMAGE CLEANUP API] Executing cleanup for ${cleanupTypes.length} types`
     );
 
-    // Simulate cleanup execution
-    const cleanupResults = {
-      orphaned: { deleted: analysisResults.orphaned.count, failed: 0 },
-      invalid: { deleted: analysisResults.invalid.count, failed: 0 },
-      duplicate: { deleted: analysisResults.duplicate.count, failed: 0 },
-      large: { deleted: analysisResults.large.count, failed: 0 },
-      old: { deleted: analysisResults.old.count, failed: 0 },
+    const cleanupResults: any = {
+      orphaned: { deleted: 0, failed: 0 },
+      invalid: { deleted: 0, failed: 0 },
+      duplicate: { deleted: 0, failed: 0 },
+      large: { deleted: 0, failed: 0 },
+      old: { deleted: 0, failed: 0 },
     };
 
+    // Execute cleanup for each type
+    for (const cleanupType of cleanupTypes) {
+      const imagesToDelete: string[] = [];
+
+      switch (cleanupType) {
+        case "orphaned":
+          imagesToDelete.push(
+            ...analysisResults.orphaned.images.map((img: any) => img.id)
+          );
+          break;
+        case "invalid":
+          imagesToDelete.push(
+            ...analysisResults.invalid.images.map((img: any) => img.id)
+          );
+          break;
+        case "duplicate":
+          // For duplicates, keep the first image in each group, delete the rest
+          analysisResults.duplicate.groups.forEach((group: any[]) => {
+            imagesToDelete.push(...group.slice(1).map((img: any) => img.id));
+          });
+          break;
+        case "large":
+          imagesToDelete.push(
+            ...analysisResults.large.images.map((img: any) => img.id)
+          );
+          break;
+        case "old":
+          imagesToDelete.push(
+            ...analysisResults.old.images.map((img: any) => img.id)
+          );
+          break;
+      }
+
+      if (imagesToDelete.length > 0) {
+        const deleteResult =
+          await ImageManagementService.deleteImages(imagesToDelete);
+        cleanupResults[cleanupType] = {
+          deleted: deleteResult.deleted,
+          failed: deleteResult.errors.length,
+        };
+      }
+    }
+
     const totalDeleted = Object.values(cleanupResults).reduce(
-      (sum, type) => sum + type.deleted,
+      (sum: number, type: any) => sum + type.deleted,
       0
     );
     const totalFailed = Object.values(cleanupResults).reduce(
-      (sum, type) => sum + type.failed,
+      (sum: number, type: any) => sum + type.failed,
       0
     );
 

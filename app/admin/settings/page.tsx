@@ -4,10 +4,10 @@ import React, { useState, useEffect } from "react";
 
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import BusinessHoursSettings from "@/components/admin/BusinessHoursSettings";
-import CustomerServiceSettings from "@/components/admin/CustomerServiceSettings";
 import InventoryManagementSettings from "@/components/admin/InventoryManagementSettings";
 import MarketingSettings from "@/components/admin/MarketingSettings";
 import OrderProcessingSettings from "@/components/admin/OrderProcessingSettings";
+import UserManagementSettings from "@/components/admin/UserManagementSettings";
 import ConversionDashboard from "@/components/conversion-tracking/ConversionDashboard";
 import { Button } from "@/components/ui/button";
 import {
@@ -75,12 +75,6 @@ interface StoreSettings {
     friday: { open: string; close: string; closed: boolean };
     saturday: { open: string; close: string; closed: boolean };
     sunday: { open: string; close: string; closed: boolean };
-  } | null;
-  customerService: {
-    supportEmail: string;
-    supportPhone: string;
-    liveChatEnabled: boolean;
-    liveChatHours: string;
   } | null;
   orderProcessing: {
     autoFulfillment: {
@@ -399,12 +393,6 @@ const defaultSettings: StoreSettings = {
     saturday: { open: "10:00", close: "16:00", closed: false },
     sunday: { open: "10:00", close: "16:00", closed: false },
   },
-  customerService: {
-    supportEmail: "support@techtots.com",
-    supportPhone: "+1 (555) 234-5678",
-    liveChatEnabled: true,
-    liveChatHours: "24/7",
-  },
   orderProcessing: {
     autoFulfillment: {
       enabled: true,
@@ -694,7 +682,6 @@ export default function SettingsPage() {
     payments: false,
     tax: false,
     businessHours: false,
-    customerService: false,
     orderProcessing: false,
     inventoryManagement: false,
     marketing: false,
@@ -728,9 +715,6 @@ export default function SettingsPage() {
           taxSettings: data.taxSettings || defaultSettings.taxSettings,
           // Only set businessHours defaults if it's completely missing
           businessHours: data.businessHours || defaultSettings.businessHours,
-          // Only set customerService defaults if it's completely missing
-          customerService:
-            data.customerService || defaultSettings.customerService,
           // Only set orderProcessing defaults if it's completely missing
           orderProcessing:
             data.orderProcessing || defaultSettings.orderProcessing,
@@ -805,11 +789,6 @@ export default function SettingsPage() {
         case "businessHours":
           sectionData = {
             businessHours: settings.businessHours,
-          };
-          break;
-        case "customerService":
-          sectionData = {
-            customerService: settings.customerService,
           };
           break;
         case "orderProcessing":
@@ -1036,14 +1015,12 @@ export default function SettingsPage() {
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="tax">Tax</TabsTrigger>
           <TabsTrigger value="businessHours">Business Hours</TabsTrigger>
-          <TabsTrigger value="customerService">Customer Service</TabsTrigger>
           <TabsTrigger value="orderProcessing">Order Processing</TabsTrigger>
           <TabsTrigger value="inventoryManagement">
             Inventory Management
           </TabsTrigger>
           <TabsTrigger value="marketing">Marketing</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
 
@@ -1866,35 +1843,6 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Customer Service Settings */}
-        <TabsContent value="customerService" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Service</CardTitle>
-              <CardDescription>
-                Configure customer support and live chat settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <CustomerServiceSettings
-                customerService={
-                  settings.customerService || {
-                    supportEmail: "support@techtots.com",
-                    supportPhone: "+1 (555) 234-5678",
-                    liveChatEnabled: true,
-                    liveChatHours: "24/7",
-                  }
-                }
-                onSave={customerService => {
-                  setSettings(prev => ({ ...prev, customerService }));
-                  handleSave("customerService");
-                }}
-                isSaving={isSaving.customerService}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         {/* Order Processing Settings */}
         <TabsContent value="orderProcessing" className="space-y-4">
           <Card>
@@ -2307,40 +2255,8 @@ export default function SettingsPage() {
           />
         </TabsContent>
 
-        <TabsContent value="notifications" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
-              <CardDescription>
-                Configure email and system notifications
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <p className="text-muted-foreground">
-                  Notification settings content would go here
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         <TabsContent value="users" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>
-                Manage admin users and permissions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <p className="text-muted-foreground">
-                  User management content would go here
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <UserManagementSettings />
         </TabsContent>
       </Tabs>
     </div>
