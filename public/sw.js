@@ -150,7 +150,12 @@ async function safeFetchExternal(request) {
       const cached = await caches.match('/images/placeholder.jpg');
       if (cached) return cached;
       // Try to generate a minimal placeholder Response
-      return new Response('', { status: 204 });
+      return new Response('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', { 
+        status: 200,
+        headers: {
+          'Content-Type': 'image/gif',
+        },
+      });
     }
     return new Response('External fetch failed', { status: 502, statusText: 'Bad Gateway' });
   }
@@ -183,7 +188,17 @@ async function handleStaticAsset(request) {
   
   // Return offline placeholder for images
   if (request.url.match(/\.(png|jpg|jpeg|gif|svg|webp|avif)$/)) {
-    return caches.match('/images/placeholder.jpg');
+    const placeholder = await caches.match('/images/placeholder.jpg');
+    if (placeholder) {
+      return placeholder;
+    }
+    // Fallback to a simple 1x1 transparent pixel if no placeholder cached
+    return new Response('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', {
+      status: 200,
+      headers: {
+        'Content-Type': 'image/gif',
+      },
+    });
   }
   // As a last resort, try network again to avoid throwing non-Response
   try {
@@ -256,7 +271,22 @@ async function handlePageRequest(request) {
   }
   
   // Return offline page
-  return caches.match('/offline');
+  const offlinePage = await caches.match('/offline');
+  if (offlinePage) {
+    return offlinePage;
+  }
+  
+  // Fallback offline response if no offline page cached
+  return new Response(
+    '<!DOCTYPE html><html><head><title>Offline</title></head><body><h1>You are offline</h1><p>Please check your internet connection.</p></body></html>',
+    {
+      status: 200,
+      statusText: 'OK',
+      headers: {
+        'Content-Type': 'text/html',
+      },
+    }
+  );
 }
 
 // Handle default requests

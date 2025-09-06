@@ -26,21 +26,106 @@ export class EmailTemplateService {
         );
       }
 
+      // Debug logging for development
+      if (process.env.NODE_ENV === "development") {
+        console.log("📧 EmailTemplateService found template:", {
+          id: template.id,
+          name: template.name,
+          slug: template.slug,
+          subject: template.subject,
+          contentLength: template.content.length,
+          contentPreview: template.content.substring(0, 200) + "...",
+          category: template.category,
+          isActive: template.isActive,
+          metadata: template.metadata,
+        });
+      }
+
       // Replace variables in subject and content
+      console.log("📧 Variables being passed to template:", variables);
       const subject = this.replaceVariables(template.subject, variables);
-      const content = this.replaceVariables(template.content, variables);
+      let content = this.replaceVariables(template.content, variables);
+      console.log("📧 Content after variable replacement:", {
+        originalLength: template.content.length,
+        processedLength: content.length,
+        contentPreview: content.substring(0, 200),
+      });
+
+      // Process images from metadata
+      if (
+        template.metadata &&
+        typeof template.metadata === "object" &&
+        "images" in template.metadata
+      ) {
+        const images = (template.metadata as any).images || [];
+        content = this.processImagesInContent(content, images);
+      }
+
+      // Debug logging for development
+      if (process.env.NODE_ENV === "development") {
+        console.log("📧 EmailTemplateService sending email:", {
+          to,
+          subject,
+          contentLength: content.length,
+          contentPreview: content.substring(0, 200) + "...",
+          templateSlug,
+        });
+      }
 
       // Send the email
-      return await sendMail({
+      const result = await sendMail({
         to,
         subject,
         html: content,
         params: { email: to },
       });
+
+      // Debug logging for development
+      if (process.env.NODE_ENV === "development") {
+        console.log("📧 EmailTemplateService result:", result);
+      }
+
+      return result;
     } catch (error) {
       console.error(`Error sending template email '${templateSlug}':`, error);
       throw error;
     }
+  }
+
+  /**
+   * Process images in email content
+   */
+  private static processImagesInContent(
+    content: string,
+    images: any[]
+  ): string {
+    if (!images || images.length === 0) {
+      return content;
+    }
+
+    let processedContent = content;
+
+    // Replace image placeholders with actual image URLs
+    images.forEach((image, index) => {
+      const placeholder = `{{image.${index}}}`;
+      const imageHtml = `<img src="${image.url}" alt="${image.alt || image.name}" style="max-width: 100%; height: auto;" />`;
+      processedContent = processedContent.replace(
+        new RegExp(placeholder, "g"),
+        imageHtml
+      );
+    });
+
+    // Also handle generic image placeholders
+    images.forEach(image => {
+      const placeholder = `{{image.${image.id}}}`;
+      const imageHtml = `<img src="${image.url}" alt="${image.alt || image.name}" style="max-width: 100%; height: auto;" />`;
+      processedContent = processedContent.replace(
+        new RegExp(placeholder, "g"),
+        imageHtml
+      );
+    });
+
+    return processedContent;
   }
 
   /**
@@ -56,6 +141,18 @@ export class EmailTemplateService {
     for (const [key, value] of Object.entries(variables)) {
       const regex = new RegExp(`{{${key}}}`, "g");
       result = result.replace(regex, String(value ?? ""));
+    }
+
+    // Replace nested variables {{object.property}}
+    for (const [key, value] of Object.entries(variables)) {
+      if (value && typeof value === "object" && value !== null) {
+        for (const [nestedKey, nestedValue] of Object.entries(
+          value as Record<string, unknown>
+        )) {
+          const regex = new RegExp(`{{${key}\\.${nestedKey}}}`, "g");
+          result = result.replace(regex, String(nestedValue ?? ""));
+        }
+      }
     }
 
     // Handle conditional blocks {{#if variable}}...{{/if}}

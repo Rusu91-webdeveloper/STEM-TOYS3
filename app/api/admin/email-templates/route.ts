@@ -81,6 +81,17 @@ export async function GET(request: NextRequest) {
       prisma.emailTemplate.count({ where }),
     ]);
 
+    // Debug logging for development
+    if (process.env.NODE_ENV === "development") {
+      console.log("Email templates API response:", {
+        templatesCount: templates.length,
+        total,
+        page,
+        limit,
+        where,
+      });
+    }
+
     return NextResponse.json({
       templates,
       pagination: {
@@ -104,8 +115,32 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
 
+    // Debug logging for development
+    if (process.env.NODE_ENV === "development") {
+      console.log("Email template creation attempt:", {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userRole: session?.user?.role,
+        userId: session?.user?.id,
+      });
+    }
+
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+          message: "Admin access required to create email templates",
+          debug:
+            process.env.NODE_ENV === "development"
+              ? {
+                  hasSession: !!session,
+                  hasUser: !!session?.user,
+                  userRole: session?.user?.role,
+                }
+              : undefined,
+        },
+        { status: 401 }
+      );
     }
 
     const body = await request.json();
@@ -123,11 +158,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the template
+    // Create the template with metadata including images
+    const bodyData = body as any; // Type assertion for images
     const template = await prisma.emailTemplate.create({
       data: {
         ...validatedData,
         createdBy: session.user.id,
+        metadata: {
+          images: bodyData.images || [],
+          createdAt: new Date().toISOString(),
+        },
       },
     });
 

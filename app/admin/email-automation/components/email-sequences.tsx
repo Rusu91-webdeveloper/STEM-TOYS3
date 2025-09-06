@@ -100,32 +100,73 @@ export function EmailSequences() {
       const response = await fetch("/api/admin/email-sequences");
       if (response.ok) {
         const data = await response.json();
-        // Transform the API data to match our interface
-        const transformedSequences: EmailSequence[] = data.campaigns.map(
-          (seq: any) => ({
-            id: seq.id,
-            name: seq.name,
-            description: seq.description || "",
-            trigger: seq.trigger,
-            status: seq.status,
-            stepCount: seq._count?.steps || 0,
-            activeUsers: seq._count?.users || 0,
-            totalSent: 0, // This would come from EmailEvent table
-            openRate: 0, // This would come from EmailEvent table
-            clickRate: 0, // This would come from EmailEvent table
-            createdAt: seq.createdAt,
-            lastModified: seq.updatedAt,
-            metrics: {
-              totalSent: 0,
-              totalOpened: 0,
-              totalClicked: 0,
-              totalBounced: 0,
-              totalUnsubscribed: 0,
-              conversionRate: 0,
-            },
+
+        // Fetch metrics for each sequence
+        const sequencesWithMetrics = await Promise.all(
+          data.sequences.map(async (seq: any) => {
+            try {
+              const metricsResponse = await fetch(
+                `/api/admin/email-metrics?sequenceId=${seq.id}`
+              );
+              const metrics = metricsResponse.ok
+                ? await metricsResponse.json()
+                : {
+                    totalSent: 0,
+                    totalOpened: 0,
+                    totalClicked: 0,
+                    totalBounced: 0,
+                    totalUnsubscribed: 0,
+                    openRate: 0,
+                    clickRate: 0,
+                  };
+
+              return {
+                id: seq.id,
+                name: seq.name,
+                description: seq.description || "",
+                trigger: seq.trigger,
+                status: seq.isActive ? "ACTIVE" : "PAUSED",
+                stepCount: seq._count?.steps || 0,
+                activeUsers: seq._count?.users || 0,
+                totalSent: metrics.totalSent,
+                openRate: metrics.openRate,
+                clickRate: metrics.clickRate,
+                createdAt: seq.createdAt,
+                lastModified: seq.updatedAt,
+                metrics,
+              };
+            } catch (error) {
+              console.error(
+                `Error fetching metrics for sequence ${seq.id}:`,
+                error
+              );
+              return {
+                id: seq.id,
+                name: seq.name,
+                description: seq.description || "",
+                trigger: seq.trigger,
+                status: seq.isActive ? "ACTIVE" : "PAUSED",
+                stepCount: seq._count?.steps || 0,
+                activeUsers: seq._count?.users || 0,
+                totalSent: 0,
+                openRate: 0,
+                clickRate: 0,
+                createdAt: seq.createdAt,
+                lastModified: seq.updatedAt,
+                metrics: {
+                  totalSent: 0,
+                  totalOpened: 0,
+                  totalClicked: 0,
+                  totalBounced: 0,
+                  totalUnsubscribed: 0,
+                  conversionRate: 0,
+                },
+              };
+            }
           })
         );
-        setSequences(transformedSequences);
+
+        setSequences(sequencesWithMetrics);
       } else {
         console.error("Failed to fetch sequences");
         setSequences([]);

@@ -97,6 +97,7 @@ export function EmailCampaigns() {
   });
   const [isCreating, setIsCreating] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [sendingCampaign, setSendingCampaign] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCampaigns();
@@ -108,32 +109,72 @@ export function EmailCampaigns() {
       const response = await fetch("/api/admin/email-campaigns");
       if (response.ok) {
         const data = await response.json();
-        // Transform the API data to match our interface
-        const transformedCampaigns: EmailCampaign[] = data.campaigns.map(
-          (campaign: any) => ({
-            id: campaign.id,
-            name: campaign.name,
-            description: campaign.description || "",
-            templateId: campaign.templateId,
-            template: campaign.template,
-            subject: campaign.subject,
-            content: campaign.content,
-            status: campaign.status,
-            scheduledAt: campaign.scheduledAt,
-            createdAt: campaign.createdAt,
-            updatedAt: campaign.updatedAt,
-            metrics: {
-              totalSent: 0, // This would come from EmailEvent table
-              totalOpened: 0,
-              totalClicked: 0,
-              totalBounced: 0,
-              totalUnsubscribed: 0,
-              openRate: 0,
-              clickRate: 0,
-            },
+
+        // Fetch metrics for each campaign
+        const campaignsWithMetrics = await Promise.all(
+          data.campaigns.map(async (campaign: any) => {
+            try {
+              const metricsResponse = await fetch(
+                `/api/admin/email-metrics?campaignId=${campaign.id}`
+              );
+              const metrics = metricsResponse.ok
+                ? await metricsResponse.json()
+                : {
+                    totalSent: 0,
+                    totalOpened: 0,
+                    totalClicked: 0,
+                    totalBounced: 0,
+                    totalUnsubscribed: 0,
+                    openRate: 0,
+                    clickRate: 0,
+                  };
+
+              return {
+                id: campaign.id,
+                name: campaign.name,
+                description: campaign.description || "",
+                templateId: campaign.templateId,
+                template: campaign.template,
+                subject: campaign.subject,
+                content: campaign.content,
+                status: campaign.status,
+                scheduledAt: campaign.scheduledAt,
+                createdAt: campaign.createdAt,
+                updatedAt: campaign.updatedAt,
+                metrics,
+              };
+            } catch (error) {
+              console.error(
+                `Error fetching metrics for campaign ${campaign.id}:`,
+                error
+              );
+              return {
+                id: campaign.id,
+                name: campaign.name,
+                description: campaign.description || "",
+                templateId: campaign.templateId,
+                template: campaign.template,
+                subject: campaign.subject,
+                content: campaign.content,
+                status: campaign.status,
+                scheduledAt: campaign.scheduledAt,
+                createdAt: campaign.createdAt,
+                updatedAt: campaign.updatedAt,
+                metrics: {
+                  totalSent: 0,
+                  totalOpened: 0,
+                  totalClicked: 0,
+                  totalBounced: 0,
+                  totalUnsubscribed: 0,
+                  openRate: 0,
+                  clickRate: 0,
+                },
+              };
+            }
           })
         );
-        setCampaigns(transformedCampaigns);
+
+        setCampaigns(campaignsWithMetrics);
       } else {
         console.error("Failed to fetch campaigns");
         setCampaigns([]);
@@ -293,6 +334,49 @@ export function EmailCampaigns() {
       alert("Error creating campaign. Please try again.");
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleSendCampaign = async (
+    campaignId: string,
+    testMode: boolean = false
+  ) => {
+    const recipientEmails = testMode
+      ? ["test@example.com"] // Test email
+      : ["admin@techtots.com"]; // For now, send to admin email
+
+    setSendingCampaign(campaignId);
+    try {
+      const response = await fetch(
+        `/api/admin/email-campaigns/${campaignId}/send`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            recipientEmails,
+            testMode,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(
+          `Campaign ${testMode ? "test" : ""} sent successfully! ${result.message}`
+        );
+        // Refresh campaigns to update status
+        fetchCampaigns();
+      } else {
+        const error = await response.json();
+        alert(`Failed to send campaign: ${error.error || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Error sending campaign:", error);
+      alert("Failed to send campaign. Please try again.");
+    } finally {
+      setSendingCampaign(null);
     }
   };
 
@@ -520,10 +604,20 @@ export function EmailCampaigns() {
                       <Copy className="h-4 w-4 mr-2" />
                       Duplicate
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleSendCampaign(campaign.id, true)}
+                    >
                       <Target className="h-4 w-4 mr-2" />
                       Send Test
                     </DropdownMenuItem>
+                    {campaign.status === "DRAFT" && (
+                      <DropdownMenuItem
+                        onClick={() => handleSendCampaign(campaign.id, false)}
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        Send Campaign
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem className="text-red-600">
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete
