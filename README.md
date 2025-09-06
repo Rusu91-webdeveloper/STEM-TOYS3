@@ -1,59 +1,84 @@
-# STEM Toys E-commerce Platform
+# TechTots - STEM Educational Toys E-commerce Platform
 
-A modern, production-ready e-commerce platform built with Next.js, designed
-specifically for STEM education products. The application provides a seamless
+A modern, production-ready e-commerce platform built with Next.js 15, designed
+specifically for STEM educational products. The application provides a seamless
 shopping experience with fast page loads, SEO optimization, and responsive
 design.
 
 ## 🚀 Features
 
-- 🛍️ **Complete E-commerce Platform**: Product catalog, search, filtering, cart,
-  checkout
+### Core E-commerce Features
+
+- 🛍️ **Complete Product Catalog**: Browse, search, and filter STEM educational
+  products
+- 🛒 **Shopping Cart**: Add products, manage quantities, and proceed to checkout
 - 💳 **Secure Payments**: Integrated with Stripe for secure payment processing
-- 📱 **Responsive Design**: Works smoothly on mobile, tablet, and desktop
-- 🚀 **High Performance**: Built with Next.js for optimal loading speeds
-- 🔒 **Authentication**: Secure user accounts and profiles
-- 📧 **Email Notifications**: Order confirmations and updates via Resend
-- 🖼️ **Image Uploads**: Product image management with Uploadthing
-- 🔍 **SEO Optimized**: Search engine friendly structure and metadata
-- 🌐 **Internationalization**: Support for multiple languages (i18n)
+- 📧 **Order Management**: Complete order tracking and email notifications
+- 👤 **User Accounts**: Secure authentication with Google OAuth
+- 📱 **Responsive Design**: Works seamlessly on mobile, tablet, and desktop
+
+### Admin Features
+
 - 📊 **Admin Dashboard**: Comprehensive analytics and order management
+- 🎯 **Product Management**: Create, edit, and manage product catalog
+- 👥 **Customer Management**: View and manage customer accounts
+- 📈 **Analytics**: Sales reports and performance metrics
+- 🔧 **System Configuration**: Manage settings and configurations
+
+### Supplier Features
+
+- 🏪 **Supplier Portal**: Dedicated dashboard for product suppliers
+- 📦 **Product Upload**: Bulk upload products via CSV/Excel
+- 📊 **Sales Analytics**: Track sales performance and revenue
+- 💰 **Commission Tracking**: Monitor earnings and payments
+- 📋 **Order Management**: Process and fulfill orders
+
+### Technical Features
+
+- 🚀 **High Performance**: Built with Next.js 15 for optimal loading speeds
+- 🔒 **Security**: JWT authentication, CSRF protection, and secure file uploads
+- 🌐 **Internationalization**: Support for multiple languages (Romanian/English)
+- 🔍 **SEO Optimized**: Search engine friendly structure and metadata
+- 📧 **Email Automation**: Order confirmations and updates via Resend
+- 🖼️ **Image Management**: Advanced image upload and optimization
+- 📝 **Rich Text Editor**: TinyMCE integration for content management
 - 🎨 **Modern UI**: Beautiful, accessible design with Shadcn/UI components
 
 ## 🛠️ Tech Stack
 
 ### Frontend
 
-- **Next.js 15** (App Router)
-- **React 19** with TypeScript
-- **Tailwind CSS** with custom design system
-- **Shadcn/UI** component library
-- **React Query** for server state management
+- **Next.js 15** (App Router) - React framework with server-side rendering
+- **React 19** with TypeScript - Modern React with type safety
+- **Tailwind CSS** - Utility-first CSS framework
+- **Shadcn/UI** - High-quality component library
+- **Lucide React** - Beautiful icon library
 
 ### Backend
 
-- **Next.js API Routes**
-- **Prisma ORM** with PostgreSQL
-- **NextAuth.js** for authentication
-- **Redis** for caching and sessions
+- **Next.js API Routes** - Serverless API endpoints
+- **Prisma ORM** - Type-safe database access
+- **PostgreSQL** - Primary database (Neon)
+- **NextAuth.js** - Authentication and session management
+- **Redis** - Caching and session storage (Upstash)
 
 ### Third-party Services
 
-- **Stripe** for payment processing
-- **Uploadthing** for image uploads
-- **Resend** for email notifications
-- **Sentry** for error tracking
-- **Vercel** for deployment
+- **Stripe** - Payment processing and subscription management
+- **Uploadthing** - File upload and storage
+- **Resend** - Email delivery service
+- **Google OAuth** - Social authentication
+- **Sentry** - Error tracking and monitoring
+- **Vercel** - Deployment and hosting platform
 
-## 🔒 Security Features
+### Development Tools
 
-- **Content Security Policy (CSP)** with nonce-based script execution
-- **Secure file uploads** with authentication and validation
-- **JWT-based authentication** with NextAuth.js
-- **CSRF protection** for all forms and mutations
-- **Input validation** with Zod schemas
-- **Rate limiting** on sensitive endpoints
-- **HTTPS enforcement** in production
+- **TypeScript** - Type-safe JavaScript
+- **ESLint** - Code linting and formatting
+- **Prettier** - Code formatting
+- **Jest** - Unit testing framework
+- **Playwright** - End-to-end testing
+- **Prisma Studio** - Database management
 
 ## 🚀 Quick Start
 
@@ -62,7 +87,7 @@ design.
 - Node.js 18.0 or later
 - pnpm (recommended) or npm
 - PostgreSQL database
-- Redis (optional, for caching)
+- Redis instance (optional, for caching)
 
 ### Installation
 
@@ -106,35 +131,40 @@ design.
 Create a `.env.local` file with the following variables:
 
 ```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/stemtoys"
-SHADOW_DATABASE_URL="postgresql://user:password@localhost:5432/stemtoys_shadow"
+# Core Application
+NODE_ENV=development
+NEXTAUTH_SECRET=your-super-secret-key-here-minimum-32-characters
+NEXTAUTH_URL=http://localhost:3000
 
-# Authentication
-NEXTAUTH_SECRET="your-secret-key"
-NEXTAUTH_URL="http://localhost:3000"
+# Database (Neon PostgreSQL)
+DATABASE_URL=postgresql://username:password@host:port/database
 
-# OAuth Providers
-GOOGLE_CLIENT_ID="your-google-client-id"
-GOOGLE_CLIENT_SECRET="your-google-client-secret"
+# Redis (Upstash)
+REDIS_URL=https://your-redis-url.upstash.io
+REDIS_TOKEN=your-redis-token
 
-# Stripe
-STRIPE_SECRET_KEY="sk_test_..."
-STRIPE_PUBLISHABLE_KEY="pk_test_..."
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+# Authentication (Google OAuth)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Payment Processing (Stripe)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 
 # Email (Resend)
-RESEND_API_KEY="re_..."
+RESEND_API_KEY=re_...
+EMAIL_FROM=noreply@yourdomain.com
 
-# File Uploads
-UPLOADTHING_SECRET="sk_live_..."
-UPLOADTHING_APP_ID="your-app-id"
+# File Uploads (Uploadthing)
+UPLOADTHING_SECRET=sk_live_...
+UPLOADTHING_APP_ID=your-app-id
 
-# Redis (Optional)
-REDIS_URL="redis://localhost:6379"
+# Rich Text Editor (TinyMCE)
+NEXT_PUBLIC_TINYMCE_API_KEY=your-tinymce-api-key
 
-# Sentry (Optional)
-SENTRY_DSN="https://..."
+# Monitoring (Sentry)
+SENTRY_DSN=https://...
 ```
 
 ## 🚀 Deployment
@@ -163,27 +193,6 @@ SENTRY_DSN="https://..."
 - [ ] Admin dashboard accessible
 - [ ] Performance monitoring active
 
-### Essential Commands
-
-```bash
-# Build for production
-pnpm build
-
-# Start production server
-pnpm start
-
-# Deploy to Vercel
-vercel --prod
-
-# Check application health
-curl https://your-domain.com/api/health
-
-# Database management
-pnpm prisma generate
-pnpm prisma db push
-pnpm db:studio
-```
-
 ## 🧪 Testing
 
 ```bash
@@ -196,63 +205,9 @@ pnpm test:watch
 # Run E2E tests
 pnpm test:e2e
 
-# Run accessibility tests
-pnpm test:accessibility
-
-# Run performance tests
-pnpm test:performance
+# Run tests with coverage
+pnpm test:coverage
 ```
-
-## 🛠️ Troubleshooting
-
-### Common Issues
-
-**Database Connection Errors**
-
-```bash
-# Check database connectivity
-pnpm prisma db push --preview-feature
-
-# Verify environment variables
-echo $DATABASE_URL
-```
-
-**Build Failures**
-
-```bash
-# Clear Next.js cache
-rm -rf .next
-pnpm build
-
-# Check TypeScript errors
-pnpm type-check
-```
-
-**Payment Processing Issues**
-
-- Verify Stripe keys are correct
-- Check webhook endpoints
-- Validate payment intent creation
-
-**Email Issues**
-
-- Verify Resend API key
-- Check email templates
-- Validate SMTP settings
-
-### Performance Optimization
-
-- **Core Web Vitals Targets**:
-  - LCP: < 2.5s
-  - FID: < 100ms
-  - CLS: < 0.1
-
-- **Key Metrics to Monitor**:
-  - Page load times
-  - API response times
-  - Database query performance
-  - Error rates
-  - User conversion rates
 
 ## 📁 Project Structure
 
@@ -264,24 +219,66 @@ STEM-TOYS3/
 │   ├── auth/              # Authentication pages
 │   ├── products/          # Product catalog
 │   ├── checkout/          # Checkout process
-│   └── account/           # User account pages
+│   ├── account/           # User account pages
+│   └── supplier/          # Supplier portal
 ├── components/            # Shared UI components
 │   ├── ui/               # Shadcn/UI components
 │   ├── admin/            # Admin-specific components
+│   ├── auth/             # Authentication components
 │   └── layout/           # Layout components
+├── features/             # Feature-based organization
+│   ├── auth/             # Authentication features
+│   ├── products/         # Product management
+│   ├── cart/             # Shopping cart
+│   ├── checkout/         # Checkout process
+│   ├── account/          # User account
+│   ├── supplier/         # Supplier features
+│   └── home/             # Homepage features
 ├── lib/                  # Utility functions and shared code
 │   ├── auth/             # Authentication utilities
 │   ├── db/               # Database utilities
 │   ├── email/            # Email services
+│   ├── i18n/             # Internationalization
 │   └── utils/            # General utilities
 ├── prisma/               # Database schema and migrations
 ├── public/               # Static assets
 ├── types/                # TypeScript type definitions
-└── tests/                # Test files
+└── __tests__/            # Test files
 ```
+
+## 🔒 Security Features
+
+- **Content Security Policy (CSP)** with nonce-based script execution
+- **Secure file uploads** with authentication and validation
+- **JWT-based authentication** with NextAuth.js
+- **CSRF protection** for all forms and mutations
+- **Input validation** with Zod schemas
+- **Rate limiting** on sensitive endpoints
+- **HTTPS enforcement** in production
+
+## 📊 Performance Features
+
+- **Server-side rendering** for optimal SEO and performance
+- **Image optimization** with Next.js Image component
+- **Code splitting** for faster page loads
+- **Caching strategies** for improved performance
+- **Database query optimization** with Prisma
+- **CDN integration** for static assets
+
+## 🌐 Internationalization
+
+The platform supports multiple languages:
+
+- **Romanian** (default)
+- **English**
+
+Language switching is available throughout the application with proper RTL
+support and localized content.
 
 ## 📚 Additional Documentation
 
+- [Technical Stack Documentation](./TECHNICAL_STACK.md) - Detailed information
+  about all libraries and frameworks
 - [API Documentation](./API_DOCUMENTATION.md) - Complete API reference
 - [Deployment Guide](./DEPLOYMENT_GUIDE.md) - Detailed deployment instructions
 

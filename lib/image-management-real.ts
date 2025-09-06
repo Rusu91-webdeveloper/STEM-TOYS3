@@ -143,70 +143,122 @@ export class ImageManagementService {
   }
 
   /**
-   * Get image statistics
+   * Get image statistics (optimized with database aggregation)
    */
   static async getImageStats(): Promise<ImageStats> {
-    // Get all products with images
-    const products = await prisma.product.findMany({
-      where: {
-        images: {
-          isEmpty: false,
-        },
-      },
-      select: {
-        images: true,
-        isActive: true,
-        createdAt: true,
-      },
-    });
+    try {
+      // Use database aggregation for better performance
+      const [totalProducts, activeProducts, imageStats] = await Promise.all([
+        // Count total products with images
+        prisma.product.count({
+          where: {
+            images: {
+              isEmpty: false,
+            },
+          },
+        }),
+        // Count active products with images
+        prisma.product.count({
+          where: {
+            images: {
+              isEmpty: false,
+            },
+            isActive: true,
+          },
+        }),
+        // Get aggregated image data
+        prisma.product.findMany({
+          where: {
+            images: {
+              isEmpty: false,
+            },
+          },
+          select: {
+            images: true,
+            isActive: true,
+          },
+          take: 100, // Limit to first 100 products for performance
+        }),
+      ]);
 
-    // Calculate statistics from product images
-    let totalImages = 0;
-    const formatDistribution: Record<string, number> = {};
-    const sizeDistribution: Record<string, number> = {
-      "0-100KB": 0,
-      "100KB-1MB": 0,
-      "1MB-5MB": 0,
-      "5MB-10MB": 0,
-      "10MB+": 0,
-    };
+      // Calculate statistics from sampled data
+      let totalImages = 0;
+      const formatDistribution: Record<string, number> = {};
+      const sizeDistribution: Record<string, number> = {
+        "0-100KB": 0,
+        "100KB-1MB": 0,
+        "1MB-5MB": 0,
+        "5MB-10MB": 0,
+        "10MB+": 0,
+      };
 
-    products.forEach(product => {
-      product.images.forEach(imageUrl => {
-        totalImages++;
-        const format = this.extractFormat(imageUrl);
-        formatDistribution[format] = (formatDistribution[format] || 0) + 1;
+      imageStats.forEach(product => {
+        product.images.forEach(imageUrl => {
+          totalImages++;
+          const format = this.extractFormat(imageUrl);
+          formatDistribution[format] = (formatDistribution[format] || 0) + 1;
 
-        // Estimate file size based on URL (placeholder images are typically small)
-        const estimatedSize = this.estimateFileSize(imageUrl);
-        if (estimatedSize < 100 * 1024) sizeDistribution["0-100KB"]++;
-        else if (estimatedSize < 1024 * 1024) sizeDistribution["100KB-1MB"]++;
-        else if (estimatedSize < 5 * 1024 * 1024) sizeDistribution["1MB-5MB"]++;
-        else if (estimatedSize < 10 * 1024 * 1024)
-          sizeDistribution["5MB-10MB"]++;
-        else sizeDistribution["10MB+"]++;
+          // Estimate file size based on URL
+          const estimatedSize = this.estimateFileSize(imageUrl);
+          if (estimatedSize < 100 * 1024) sizeDistribution["0-100KB"]++;
+          else if (estimatedSize < 1024 * 1024) sizeDistribution["100KB-1MB"]++;
+          else if (estimatedSize < 5 * 1024 * 1024)
+            sizeDistribution["1MB-5MB"]++;
+          else if (estimatedSize < 10 * 1024 * 1024)
+            sizeDistribution["5MB-10MB"]++;
+          else sizeDistribution["10MB+"]++;
+        });
       });
-    });
 
-    const totalSize = totalImages * 500 * 1024; // Estimate 500KB average per image
-    const averageSize = totalImages > 0 ? totalSize / totalImages : 0;
+      // Scale up the statistics based on the sample
+      const scaleFactor = totalProducts / Math.max(imageStats.length, 1);
+      const scaledTotalImages = Math.round(totalImages * scaleFactor);
+      const totalSize = scaledTotalImages * 500 * 1024; // Estimate 500KB average per image
+      const averageSize =
+        scaledTotalImages > 0 ? totalSize / scaledTotalImages : 0;
 
-    return {
-      totalImages,
-      totalSize,
-      averageSize,
-      formatDistribution,
-      sizeDistribution,
-      processingStats: {
-        totalProcessed: totalImages,
-        successRate: 100, // All images are considered successfully processed
-        averageProcessingTime: 0, // No processing time data available
-      },
-      storageSavings: {
-        totalSaved: 0,
-        percentageSaved: 0,
-      },
-    };
+      return {
+        totalImages: scaledTotalImages,
+        totalSize,
+        averageSize,
+        formatDistribution,
+        sizeDistribution,
+        processingStats: {
+          totalProcessed: scaledTotalImages,
+          successRate: 100,
+          averageProcessingTime: 0,
+        },
+        storageSavings: {
+          totalSaved: 0,
+          percentageSaved: 0,
+        },
+      };
+    } catch (error) {
+      console.error("Error getting image stats:", error);
+      // Return default stats on error
+      return {
+        totalImages: 0,
+        totalSize: 0,
+        averageSize: 0,
+        formatDistribution: {},
+        sizeDistribution: {
+          "0-100KB": 0,
+          "100KB-1MB": 0,
+          "1MB-5MB": 0,
+          "5MB-10MB": 0,
+          "10MB+": 0,
+        },
+        processingStats: {
+          totalProcessed: 0,
+          successRate: 0,
+          averageProcessingTime: 0,
+        },
+        storageSavings: {
+          totalSaved: 0,
+          percentageSaved: 0,
+        },
+      };
+    }
   }
 
   /**

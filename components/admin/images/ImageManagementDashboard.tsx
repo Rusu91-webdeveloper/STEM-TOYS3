@@ -79,14 +79,22 @@ export function ImageManagementDashboard() {
 
   const { toast } = useToast();
 
-  // Load images and stats
+  // Load images and stats (optimized)
   const loadImages = useCallback(async () => {
     try {
       setLoading(true);
 
-      // Get data from API endpoints
+      // Get data from API endpoints with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const [statusResponse, cleanupResponse] = await Promise.all([
-        fetch("/api/admin/images/status"),
+        fetch("/api/admin/images/status", {
+          signal: controller.signal,
+          headers: {
+            "Cache-Control": "max-age=300", // Cache for 5 minutes
+          },
+        }),
         fetch("/api/admin/images/cleanup", {
           method: "POST",
           headers: {
@@ -101,8 +109,11 @@ export function ImageManagementDashboard() {
               duplicateThreshold: 0.95,
             },
           }),
+          signal: controller.signal,
         }),
       ]);
+
+      clearTimeout(timeoutId);
 
       if (!statusResponse.ok || !cleanupResponse.ok) {
         throw new Error("Failed to fetch image data");
@@ -161,10 +172,31 @@ export function ImageManagementDashboard() {
       setStats(stats);
     } catch (error) {
       console.error("Failed to load images:", error);
+
+      // Handle different types of errors
+      let errorMessage = "Failed to load images";
+      if (error instanceof Error) {
+        if (error.name === "AbortError") {
+          errorMessage = "Request timed out. Please try again.";
+        } else if (error.message.includes("fetch")) {
+          errorMessage = "Network error. Please check your connection.";
+        }
+      }
+
       toast({
         title: "Error",
-        description: "Failed to load images",
+        description: errorMessage,
         variant: "destructive",
+      });
+
+      // Set default stats on error to prevent UI breaking
+      setStats({
+        totalImages: 0,
+        totalSize: 0,
+        averageSize: 0,
+        formats: {},
+        orphanedImages: 0,
+        invalidImages: 0,
       });
     } finally {
       setLoading(false);
