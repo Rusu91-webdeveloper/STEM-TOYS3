@@ -95,6 +95,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.76.1
         version: 5.83.0(react@19.1.0)
+      '@tinymce/tinymce-react':
+        specifier: ^6.3.0
+        version: 6.3.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@types/node':
         specifier: ^20
         version: 20.19.9
@@ -114,7 +117,7 @@ importers:
         specifier: ^8.18.1
         version: 8.18.1
       '@uploadthing/react':
-        specifier: ^7.3.1
+        specifier: ^7.3.2
         version: 7.3.2(next@15.4.3(@babel/core@7.28.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.54.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(uploadthing@7.7.3(next@15.4.3(@babel/core@7.28.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.54.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@20.19.9)(typescript@5.8.3))))
       '@upstash/redis':
         specifier: ^1.35.0
@@ -243,7 +246,7 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
       uploadthing:
-        specifier: ^7.7.2
+        specifier: ^7.7.3
         version: 7.7.3(next@15.4.3(@babel/core@7.28.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.54.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@20.19.9)(typescript@5.8.3)))
       winston:
         specifier: ^3.17.0
@@ -2059,6 +2062,16 @@ packages:
     engines: {node: '>=12', npm: '>=6'}
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
+
+  '@tinymce/tinymce-react@6.3.0':
+    resolution: {integrity: sha512-E++xnn0XzDzpKr40jno2Kj7umfAE6XfINZULEBBeNjTMvbACWzA6CjiR6V8eTDc9yVmdVhIPqVzV4PqD5TZ/4g==}
+    peerDependencies:
+      react: ^19.0.0 || ^18.0.0 || ^17.0.1 || ^16.7.0
+      react-dom: ^19.0.0 || ^18.0.0 || ^17.0.1 || ^16.7.0
+      tinymce: ^8.0.0 || ^7.0.0 || ^6.0.0 || ^5.5.1
+    peerDependenciesMeta:
+      tinymce:
+        optional: true
 
   '@tootallnate/once@2.0.0':
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
@@ -8156,6 +8169,12 @@ snapshots:
   '@testing-library/user-event@14.6.1(@testing-library/dom@10.4.0)':
     dependencies:
       '@testing-library/dom': 10.4.0
+
+  '@tinymce/tinymce-react@6.3.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      prop-types: 15.8.1
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   '@tootallnate/once@2.0.0': {}
 

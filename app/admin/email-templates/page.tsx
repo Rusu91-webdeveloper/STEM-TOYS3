@@ -32,7 +32,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import { EmailImageUploader } from "@/components/ui/EmailImageUploader";
+import { EmailTemplatePreview } from "@/components/ui/EmailTemplatePreview";
 
 interface EmailTemplate {
   id: string;
@@ -252,7 +254,8 @@ export default function EmailTemplatesPage() {
   };
 
   // Generate slug from name
-  const generateSlug = (name: string) => name
+  const generateSlug = (name: string) =>
+    name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
@@ -400,17 +403,38 @@ export default function EmailTemplatesPage() {
                 </div>
                 <div>
                   <Label htmlFor="content">Content</Label>
-                  <Textarea
-                    id="content"
+                  <RichTextEditor
                     value={formData.content}
-                    onChange={e =>
+                    onChange={content =>
                       setFormData(prev => ({
                         ...prev,
-                        content: e.target.value,
+                        content: content,
                       }))
                     }
-                    placeholder="Email content (HTML supported)"
-                    rows={15}
+                    placeholder="Create your email content..."
+                    height={300}
+                    showVariableHelper={true}
+                    variables={commonVariables}
+                    onVariableClick={variable => {
+                      // The RichTextEditor handles variable insertion automatically
+                    }}
+                    templateCategory={formData.category}
+                    subject={formData.subject}
+                    enableSmartSuggestions={true}
+                  />
+                </div>
+                <div>
+                  <Label>Images</Label>
+                  <EmailImageUploader
+                    onImageUploaded={image => {
+                      console.log("Image uploaded:", image);
+                    }}
+                    onImageDeleted={imageId => {
+                      console.log("Image deleted:", imageId);
+                    }}
+                    maxImages={5}
+                    maxSizeInMB={5}
+                    className="mt-2"
                   />
                 </div>
               </div>
@@ -685,14 +709,35 @@ export default function EmailTemplatesPage() {
               </div>
               <div>
                 <Label htmlFor="edit-content">Content</Label>
-                <Textarea
-                  id="edit-content"
+                <RichTextEditor
                   value={formData.content}
-                  onChange={e =>
-                    setFormData(prev => ({ ...prev, content: e.target.value }))
+                  onChange={content =>
+                    setFormData(prev => ({ ...prev, content: content }))
                   }
-                  placeholder="Email content (HTML supported)"
-                  rows={15}
+                  placeholder="Create your email content..."
+                  height={300}
+                  showVariableHelper={true}
+                  variables={commonVariables}
+                  onVariableClick={variable => {
+                    // The RichTextEditor handles variable insertion automatically
+                  }}
+                  templateCategory={formData.category}
+                  subject={formData.subject}
+                  enableSmartSuggestions={true}
+                />
+              </div>
+              <div>
+                <Label>Images</Label>
+                <EmailImageUploader
+                  onImageUploaded={image => {
+                    console.log("Image uploaded:", image);
+                  }}
+                  onImageDeleted={imageId => {
+                    console.log("Image deleted:", imageId);
+                  }}
+                  maxImages={5}
+                  maxSizeInMB={5}
+                  className="mt-2"
                 />
               </div>
             </div>
@@ -711,36 +756,15 @@ export default function EmailTemplatesPage() {
 
       {/* Preview Dialog */}
       <Dialog open={isPreviewDialogOpen} onOpenChange={setIsPreviewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Preview Email Template</DialogTitle>
           </DialogHeader>
           {selectedTemplate && (
-            <div className="space-y-4">
-              <div>
-                <Label>Subject</Label>
-                <p className="text-sm text-gray-600">
-                  {selectedTemplate.subject}
-                </p>
-              </div>
-              <div>
-                <Label>Content</Label>
-                <div
-                  className="border rounded-md p-4 bg-gray-50 max-h-96 overflow-y-auto"
-                  dangerouslySetInnerHTML={{ __html: selectedTemplate.content }}
-                />
-              </div>
-              <div>
-                <Label>Variables</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {selectedTemplate.variables.map(variable => (
-                    <Badge key={variable} variant="secondary">
-                      {variable}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <EmailTemplatePreview
+              template={selectedTemplate}
+              className="mt-4"
+            />
           )}
         </DialogContent>
       </Dialog>

@@ -4,8 +4,8 @@ import type { CartItem } from "../context/CartContext";
  * API functions for interacting with the cart backend
  */
 
-// Default timeout for API requests (10 seconds)
-const API_TIMEOUT_MS = 10000;
+// Default timeout for API requests (15 seconds - increased for better reliability)
+const API_TIMEOUT_MS = 15000;
 
 // Cache for cart data to reduce API calls
 let cartCache: CartItem[] | null = null;
@@ -56,6 +56,8 @@ export async function fetchCart(): Promise<CartItem[]> {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
+        "Cache-Control": "no-cache",
       },
       signal: controller.signal,
     });
@@ -64,7 +66,16 @@ export async function fetchCart(): Promise<CartItem[]> {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch cart: ${response.statusText}`);
+      // Handle 404 specifically - might be a routing issue
+      if (response.status === 404) {
+        console.warn(
+          "📦 [CART API] Cart endpoint not found (404), returning cached data"
+        );
+        return cartCache || [];
+      }
+      throw new Error(
+        `Failed to fetch cart: ${response.status} ${response.statusText}`
+      );
     }
 
     const data = await response.json();
@@ -73,15 +84,36 @@ export async function fetchCart(): Promise<CartItem[]> {
     // Update cache with fresh data
     updateCache(cartItems);
 
+    console.log(
+      "📦 [CART API] Successfully fetched cart with",
+      cartItems.length,
+      "items"
+    );
     return cartItems;
   } catch (error) {
     // Handle abort/timeout specifically
     if (error instanceof DOMException && error.name === "AbortError") {
-      console.error("Cart fetch request timed out after", API_TIMEOUT_MS, "ms");
+      console.error(
+        "❌ [CART API] Cart fetch request timed out after",
+        API_TIMEOUT_MS,
+        "ms"
+      );
+      console.warn("📦 [CART API] Returning cached data due to timeout");
       return cartCache || []; // Return cached data if available, otherwise empty
     }
 
-    console.error("Error fetching cart:", error);
+    // Handle network errors
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      console.error(
+        "❌ [CART API] Network error fetching cart:",
+        error.message
+      );
+      console.warn("📦 [CART API] Returning cached data due to network error");
+      return cartCache || [];
+    }
+
+    console.error("❌ [CART API] Error fetching cart:", error);
+    console.warn("📦 [CART API] Returning cached data due to error");
     return cartCache || []; // Return cached data if available, otherwise empty
   }
 }

@@ -22,8 +22,8 @@ interface RateLimitConfig {
   identifierFn?: (req: NextRequest) => string;
 }
 
-// Timeout for Redis operations (2 seconds)
-const REDIS_TIMEOUT = 2000;
+// Timeout for Redis operations (1 second - reduced for faster fallback)
+const REDIS_TIMEOUT = 1000;
 
 /**
  * Execute a Redis operation with a timeout to prevent hanging
@@ -96,6 +96,9 @@ export function rateLimit(config: RateLimitConfig) {
 
         if (result === null) {
           // If Redis timed out or failed, fall back to in-memory
+          console.warn(
+            `Redis timeout for rate limit key ${rateLimitKey}, using in-memory fallback`
+          );
           return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
         }
 
@@ -106,6 +109,9 @@ export function rateLimit(config: RateLimitConfig) {
 
         if (ttl === -1) {
           // If TTL operation failed, fall back to in-memory
+          console.warn(
+            `Redis TTL timeout for rate limit key ${rateLimitKey}, using in-memory fallback`
+          );
           return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
         }
 
@@ -124,6 +130,9 @@ export function rateLimit(config: RateLimitConfig) {
 
         if (setResult !== "OK") {
           // If set operation failed, fall back to in-memory for this request
+          console.warn(
+            `Redis set timeout for rate limit key ${rateLimitKey}, using in-memory fallback`
+          );
           return fallbackInMemoryRateLimit(req, identifier, limit, windowMs);
         }
       } else {

@@ -10,6 +10,7 @@ import {
   sendWelcomeEmail,
   sendVerificationEmail,
 } from "@/lib/email";
+import { EmailService } from "@/lib/email/email-service";
 import { withRateLimit } from "@/lib/rate-limit";
 
 // Registration schema
@@ -72,6 +73,19 @@ async function handleRegistration(req: Request) {
         },
       })
     );
+
+    // Trigger welcome email automation
+    try {
+      const emailService = new EmailService();
+      await emailService.sendWelcomeEmail(newUser.id, email);
+      console.log(`🎉 Welcome email automation triggered for ${email}`);
+    } catch (welcomeError) {
+      console.error(
+        "⚠️ Failed to trigger welcome email automation:",
+        welcomeError
+      );
+      // We don't fail the registration if welcome email automation fails
+    }
 
     // In a production environment, we would send verification email here
     // For demo purposes, we'll simulate a successful email delivery

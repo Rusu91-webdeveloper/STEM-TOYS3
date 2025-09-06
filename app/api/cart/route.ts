@@ -57,7 +57,7 @@ export const GET = withRateLimit(
     }
   },
   {
-    limit: 100, // Increased from 50 to 100 requests
+    limit: 200, // Increased from 100 to 200 requests for better reliability
     windowMs: 60000, // per minute
   }
 );
