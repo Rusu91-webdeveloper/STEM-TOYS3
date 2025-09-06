@@ -63,6 +63,11 @@ const commonVariables = [
   "{{current.year}}",
   "{{unsubscribe.link}}",
   "{{unsubscribe.text}}",
+  "{{image.0}}",
+  "{{image.1}}",
+  "{{image.2}}",
+  "{{image.3}}",
+  "{{image.4}}",
 ];
 
 export function RichTextEditor({

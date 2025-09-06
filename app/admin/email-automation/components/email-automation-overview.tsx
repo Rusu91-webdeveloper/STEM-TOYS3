@@ -86,89 +86,134 @@ export function EmailAutomationOverview({ stats }: { stats: EmailStats }) {
 
   const fetchOverviewData = async () => {
     try {
-      // Mock data - replace with actual API calls
-      const mockRecentActivity: RecentActivity[] = [
-        {
-          id: "1",
-          type: "campaign",
-          title: "Summer Sale Campaign",
-          description: "Promoting summer STEM toys with 20% discount",
-          status: "active",
-          timestamp: "2 hours ago",
-          metrics: {
-            sent: 1250,
-            opened: 1000,
-            clicked: 250,
-            openRate: 80.0,
-            clickRate: 25.0,
-          },
-        },
-        {
-          id: "2",
-          type: "sequence",
-          title: "Welcome Series",
-          description: "3-email welcome sequence for new subscribers",
-          status: "active",
-          timestamp: "1 day ago",
-          metrics: {
-            sent: 89,
-            opened: 71,
-            clicked: 18,
-            openRate: 79.8,
-            clickRate: 25.4,
-          },
-        },
-        {
-          id: "3",
-          type: "template",
-          title: "Order Confirmation",
-          description: "Updated order confirmation template",
-          status: "completed",
-          timestamp: "3 days ago",
-        },
-        {
-          id: "4",
-          type: "segment",
-          title: "High-Value Customers",
-          description: "Customers with orders over $100",
-          status: "active",
-          timestamp: "1 week ago",
-        },
-      ];
+      // Fetch real data from API endpoints
+      const [
+        campaignsResponse,
+        sequencesResponse,
+        templatesResponse,
+        metricsResponse,
+      ] = await Promise.all([
+        fetch("/api/admin/email-campaigns"),
+        fetch("/api/admin/email-sequences"),
+        fetch("/api/admin/email-templates"),
+        fetch("/api/admin/email-metrics"),
+      ]);
 
-      const mockPerformanceMetrics: PerformanceMetric[] = [
+      const campaigns = campaignsResponse.ok
+        ? await campaignsResponse.json()
+        : { campaigns: [] };
+      const sequences = sequencesResponse.ok
+        ? await sequencesResponse.json()
+        : { sequences: [] };
+      const templates = templatesResponse.ok
+        ? await templatesResponse.json()
+        : { templates: [] };
+      const overallMetrics = metricsResponse.ok
+        ? await metricsResponse.json()
+        : {
+            totalSent: 0,
+            totalOpened: 0,
+            totalClicked: 0,
+            totalBounced: 0,
+            totalUnsubscribed: 0,
+            openRate: 0,
+            clickRate: 0,
+            bounceRate: 0,
+            unsubscribeRate: 0,
+          };
+
+      // Build recent activity from real data
+      const recentActivity: RecentActivity[] = [];
+
+      // Add recent campaigns
+      campaigns.campaigns?.slice(0, 2).forEach((campaign: any) => {
+        recentActivity.push({
+          id: campaign.id,
+          type: "campaign",
+          title: campaign.name,
+          description: campaign.description || "Email campaign",
+          status: campaign.status.toLowerCase(),
+          timestamp: new Date(campaign.createdAt).toLocaleDateString(),
+          metrics: {
+            sent: 0, // Would need individual campaign metrics
+            opened: 0,
+            clicked: 0,
+            openRate: 0,
+            clickRate: 0,
+          },
+        });
+      });
+
+      // Add recent sequences
+      sequences.sequences?.slice(0, 2).forEach((sequence: any) => {
+        recentActivity.push({
+          id: sequence.id,
+          type: "sequence",
+          title: sequence.name,
+          description: sequence.description || "Email sequence",
+          status: sequence.isActive ? "active" : "paused",
+          timestamp: new Date(sequence.createdAt).toLocaleDateString(),
+          metrics: {
+            sent: 0, // Would need individual sequence metrics
+            opened: 0,
+            clicked: 0,
+            openRate: 0,
+            clickRate: 0,
+          },
+        });
+      });
+
+      // Add recent templates
+      templates.templates?.slice(0, 1).forEach((template: any) => {
+        recentActivity.push({
+          id: template.id,
+          type: "template",
+          title: template.name,
+          description: `Template: ${template.category}`,
+          status: "completed",
+          timestamp: new Date(template.updatedAt).toLocaleDateString(),
+        });
+      });
+
+      // Sort by timestamp (most recent first)
+      recentActivity.sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+      const performanceMetrics: PerformanceMetric[] = [
         {
           name: "Open Rate",
-          value: stats.openRate,
-          change: 2.5,
-          target: 85,
-          trend: "up",
+          value: overallMetrics.openRate,
+          change: 0, // Would need historical data to calculate
+          target: 25,
+          trend: overallMetrics.openRate > 20 ? "up" : "down",
         },
         {
           name: "Click Rate",
-          value: stats.clickRate,
-          change: -1.2,
-          target: 25,
-          trend: "down",
+          value: overallMetrics.clickRate,
+          change: 0, // Would need historical data to calculate
+          target: 3,
+          trend: overallMetrics.clickRate > 2 ? "up" : "down",
         },
         {
           name: "Bounce Rate",
-          value: stats.bounceRate,
-          change: -0.5,
+          value: overallMetrics.bounceRate,
+          change: 0, // Would need historical data to calculate
           target: 2,
-          trend: "up",
+          trend: overallMetrics.bounceRate < 2 ? "up" : "down",
         },
         {
           name: "Unsubscribe Rate",
-          value: stats.unsubscribeRate,
-          change: 0.1,
+          value: overallMetrics.unsubscribeRate,
+          change: 0, // Would need historical data to calculate
           target: 0.5,
-          trend: "down",
+          trend: overallMetrics.unsubscribeRate < 0.5 ? "up" : "down",
         },
       ];
 
-      setRecentActivity(mockRecentActivity);
-      setPerformanceMetrics(mockPerformanceMetrics);
+      setRecentActivity(recentActivity);
+      setPerformanceMetrics(performanceMetrics);
     } catch (error) {
       console.error("Error fetching overview data:", error);
     } finally {

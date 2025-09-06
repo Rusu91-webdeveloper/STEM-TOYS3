@@ -305,6 +305,73 @@ export class EmailService {
         throw new Error("User not found");
       }
 
+      // Try to use database template first
+      try {
+        console.log("🔍 Looking for welcome email template in database...");
+        const welcomeTemplate = await db.emailTemplate.findFirst({
+          where: {
+            category: "welcome",
+            isActive: true,
+          },
+        });
+
+        console.log("🔍 Database query result:", {
+          found: !!welcomeTemplate,
+          templateId: welcomeTemplate?.id,
+          templateName: welcomeTemplate?.name,
+          templateSlug: welcomeTemplate?.slug,
+          contentLength: welcomeTemplate?.content?.length || 0,
+        });
+
+        if (welcomeTemplate) {
+          console.log(
+            `📧 Using database welcome template: ${welcomeTemplate.name}`
+          );
+          console.log(
+            `📧 Template content preview: ${welcomeTemplate.content.substring(0, 100)}...`
+          );
+
+          // Use EmailTemplateService to send with database template
+          const { EmailTemplateService } = await import("./template-service");
+
+          const result = await EmailTemplateService.sendTemplateEmail(
+            welcomeTemplate.slug,
+            email,
+            {
+              user: user,
+              name: user.name,
+              email: user.email,
+              siteName: "TechTots",
+              siteUrl:
+                process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+            }
+          );
+
+          // Trigger welcome automation sequence
+          if (this.config.enableAutomation) {
+            await emailAutomationEngine.createWelcomeSeries(userId);
+          }
+
+          return {
+            success: true,
+            messageId: result.messageId,
+            template: welcomeTemplate.slug,
+          };
+        } else {
+          console.log(
+            "❌ No welcome template found in database, will use fallback"
+          );
+        }
+      } catch (templateError) {
+        console.warn(
+          "Failed to use database template, falling back to hardcoded:",
+          templateError
+        );
+      }
+
+      // Fallback to hardcoded template
+      console.log("📧 Using hardcoded welcome template (fallback)");
+
       // Trigger welcome automation sequence
       if (this.config.enableAutomation) {
         await emailAutomationEngine.createWelcomeSeries(userId);

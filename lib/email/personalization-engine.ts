@@ -121,14 +121,14 @@ export class PersonalizationEngine {
               },
             },
           },
-          newsletter: true,
-          cartItems: {
-            include: {
-              product: {
-                include: { category: true },
-              },
-            },
-          },
+          // Note: newsletter relation doesn't exist in current schema
+          // cartItems: {
+          //   include: {
+          //     product: {
+          //       include: { category: true },
+          //     },
+          //   },
+          // },
         },
       });
 
@@ -179,14 +179,14 @@ export class PersonalizationEngine {
         totalOrders,
         totalSpent,
         favoriteCategories,
-        newsletterActive: user.newsletter?.isActive || false,
+        newsletterActive: false, // TODO: Add newsletter relation to User model
       });
 
       const profile: UserProfile = {
         id: user.id,
         email: user.email,
-        firstName: user.firstName || undefined,
-        lastName: user.lastName || undefined,
+        firstName: user.name?.split(" ")[0] || undefined,
+        lastName: user.name?.split(" ").slice(1).join(" ") || undefined,
         preferences: {
           categories: favoriteCategories,
           priceRange: this.calculatePriceRange(user.orders),
@@ -199,7 +199,7 @@ export class PersonalizationEngine {
           averageOrderValue,
           lastOrderDate,
           favoriteCategories,
-          abandonedCarts: user.cartItems.length,
+          abandonedCarts: 0, // TODO: Add cartItems relation to User model
           emailOpenRate: 0.25, // This would come from email analytics
           emailClickRate: 0.05, // This would come from email analytics
           preferredEmailTime: "09:00", // Default, would be calculated from analytics

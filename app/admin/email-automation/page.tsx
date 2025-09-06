@@ -68,6 +68,7 @@ export default function EmailAutomationPage() {
     totalSubscribers: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     fetchEmailStats();
@@ -76,26 +77,42 @@ export default function EmailAutomationPage() {
   const fetchEmailStats = async () => {
     try {
       // Fetch real data from our API endpoints
-      const [sequencesResponse, campaignsResponse, templatesResponse] =
-        await Promise.all([
-          fetch("/api/admin/email-sequences"),
-          fetch("/api/admin/email-campaigns"),
-          fetch("/api/admin/email-templates"),
-        ]);
+      const [
+        sequencesResponse,
+        campaignsResponse,
+        templatesResponse,
+        metricsResponse,
+      ] = await Promise.all([
+        fetch("/api/admin/email-sequences"),
+        fetch("/api/admin/email-campaigns"),
+        fetch("/api/admin/email-templates"),
+        fetch("/api/admin/email-metrics"),
+      ]);
 
       const sequences = sequencesResponse.ok
         ? await sequencesResponse.json()
-        : { campaigns: [] };
+        : { sequences: [] };
       const campaigns = campaignsResponse.ok
         ? await campaignsResponse.json()
         : { campaigns: [] };
       const templates = templatesResponse.ok
         ? await templatesResponse.json()
         : { templates: [] };
+      const metrics = metricsResponse.ok
+        ? await metricsResponse.json()
+        : {
+            totalSent: 0,
+            totalOpened: 0,
+            totalClicked: 0,
+            openRate: 0,
+            clickRate: 0,
+            bounceRate: 0,
+            unsubscribeRate: 0,
+          };
 
       // Calculate real stats from actual data
       const activeSequences =
-        sequences.campaigns?.filter((seq: any) => seq.status === "ACTIVE")
+        sequences.sequences?.filter((seq: any) => seq.isActive === true)
           .length || 0;
       const activeCampaigns =
         campaigns.campaigns?.filter(
@@ -103,23 +120,18 @@ export default function EmailAutomationPage() {
             camp.status === "SENDING" || camp.status === "SCHEDULED"
         ).length || 0;
 
-      // For now, we'll use some reasonable defaults since we don't have email events yet
-      // These would come from EmailEvent table in the future
+      // Use real metrics data from the database
       const realStats: EmailStats = {
-        totalSent: activeSequences * 100 + activeCampaigns * 50, // Placeholder calculation
-        totalOpened: Math.floor(
-          (activeSequences * 100 + activeCampaigns * 50) * 0.8
-        ), // 80% open rate
-        totalClicked: Math.floor(
-          (activeSequences * 100 + activeCampaigns * 50) * 0.16
-        ), // 16% click rate
-        openRate: 80.1,
-        clickRate: 20.0,
-        bounceRate: 2.3,
-        unsubscribeRate: 0.8,
+        totalSent: metrics.totalSent,
+        totalOpened: metrics.totalOpened,
+        totalClicked: metrics.totalClicked,
+        openRate: metrics.openRate,
+        clickRate: metrics.clickRate,
+        bounceRate: metrics.bounceRate,
+        unsubscribeRate: metrics.unsubscribeRate,
         activeSequences,
         activeCampaigns,
-        totalSubscribers: 2847, // This would come from User table count
+        totalSubscribers: templates.templates?.length || 0, // This should come from newsletter subscribers
       };
 
       setStats(realStats);
@@ -151,11 +163,19 @@ export default function EmailAutomationPage() {
       if (rate >= 80) return "text-green-600";
       if (rate >= 60) return "text-yellow-600";
       return "text-red-600";
-    } 
-      if (rate <= 2) return "text-green-600";
-      if (rate <= 5) return "text-yellow-600";
-      return "text-red-600";
-    
+    }
+    if (rate <= 2) return "text-green-600";
+    if (rate <= 5) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const handleNewCampaign = () => {
+    setActiveTab("campaigns");
+  };
+
+  const handleSettings = () => {
+    // For now, just show an alert. In the future, this could open a settings modal
+    alert("Email settings functionality coming soon!");
   };
 
   if (loading) {
@@ -179,11 +199,11 @@ export default function EmailAutomationPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleSettings}>
             <Settings className="h-4 w-4 mr-2" />
             Settings
           </Button>
-          <Button>
+          <Button onClick={handleNewCampaign}>
             <Plus className="h-4 w-4 mr-2" />
             New Campaign
           </Button>
@@ -310,7 +330,11 @@ export default function EmailAutomationPage() {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />

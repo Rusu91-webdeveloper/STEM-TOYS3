@@ -525,8 +525,34 @@ export class EmailAutomationEngine {
   }
 
   private async getWelcomeSequence(): Promise<EmailSequence | null> {
-    // This would return the welcome sequence configuration
-    return null;
+    try {
+      // Look for welcome sequence in database
+      const sequence = await prisma.emailSequence.findFirst({
+        where: {
+          trigger: "user_registration",
+          isActive: true,
+        },
+        include: {
+          steps: {
+            orderBy: { order: "asc" },
+            include: {
+              template: true,
+            },
+          },
+        },
+      });
+
+      if (sequence) {
+        return sequence;
+      }
+
+      // If no sequence exists, create a default welcome sequence
+      const defaultSequence = await this.createDefaultWelcomeSequence();
+      return defaultSequence;
+    } catch (error) {
+      console.error("Error getting welcome sequence:", error);
+      return null;
+    }
   }
 
   private async getAbandonedCartSequence(): Promise<EmailSequence | null> {
@@ -544,20 +570,97 @@ export class EmailAutomationEngine {
     return null;
   }
 
+  private async createDefaultWelcomeSequence(): Promise<EmailSequence | null> {
+    try {
+      // Look for a welcome email template
+      const welcomeTemplate = await prisma.emailTemplate.findFirst({
+        where: {
+          category: "welcome",
+          isActive: true,
+        },
+      });
+
+      if (!welcomeTemplate) {
+        console.log("No welcome template found, skipping welcome sequence");
+        return null;
+      }
+
+      // Create welcome sequence
+      const sequence = await prisma.emailSequence.create({
+        data: {
+          name: "Welcome Series",
+          description: "Default welcome email sequence for new users",
+          trigger: "user_registration",
+          isActive: true,
+          maxEmails: 1,
+          cooldownHours: 0,
+          createdBy: "system",
+          steps: {
+            create: {
+              order: 1,
+              delayHours: 0,
+              templateId: welcomeTemplate.id,
+              subject: welcomeTemplate.subject,
+              content: welcomeTemplate.content,
+            },
+          },
+        },
+        include: {
+          steps: {
+            orderBy: { order: "asc" },
+            include: {
+              template: true,
+            },
+          },
+        },
+      });
+
+      console.log("Created default welcome sequence:", sequence.id);
+      return sequence;
+    } catch (error) {
+      console.error("Error creating default welcome sequence:", error);
+      return null;
+    }
+  }
+
   private async isUserInSequence(
     sequenceId: string,
     userId: string
   ): Promise<boolean> {
-    // This would check if user is already in the sequence
-    return false;
+    try {
+      const userSequence = await prisma.emailSequenceUser.findUnique({
+        where: {
+          sequenceId_userId: {
+            sequenceId,
+            userId,
+          },
+        },
+      });
+      return !!userSequence;
+    } catch (error) {
+      console.error("Error checking if user is in sequence:", error);
+      return false;
+    }
   }
 
   private async addUserToSequence(
     sequenceId: string,
     userId: string
   ): Promise<void> {
-    // This would add user to the sequence
-    console.log(`Adding user ${userId} to sequence ${sequenceId}`);
+    try {
+      await prisma.emailSequenceUser.create({
+        data: {
+          sequenceId,
+          userId,
+          status: "ACTIVE",
+          currentStep: 0,
+          startedAt: new Date(),
+        },
+      });
+      console.log(`✅ Added user ${userId} to sequence ${sequenceId}`);
+    } catch (error) {
+      console.error("Error adding user to sequence:", error);
+    }
   }
 
   private async completeSequence(
