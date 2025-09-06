@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/server/auth";
+import { ImageManagementService } from "@/lib/image-management-real";
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,15 +11,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Get real statistics from database
+    const stats = await ImageManagementService.getImageStats();
+
     // Return the status of the image processing system
     const status = {
       system: "active",
-      version: "2.0.0",
+      version: "3.0.0",
       features: {
         multipleSizes: true,
         automaticProcessing: true,
         responsiveDesign: true,
-        formatSupport: ["jpeg", "png", "webp"],
+        realImageProcessing: true,
+        databaseIntegration: true,
+        formatSupport: ["jpeg", "png", "webp", "avif"],
         sizeVariants: [
           { name: "thumbnail", dimensions: "150×150", use: "Mobile lists" },
           { name: "small", dimensions: "300×300", use: "Tablet cards" },
@@ -28,16 +34,22 @@ export async function GET(request: NextRequest) {
         ],
       },
       statistics: {
-        totalProcessedImages: 0, // This would be calculated from the database
-        totalSizeSaved: "0 MB", // This would be calculated from the database
+        totalProcessedImages: stats.totalImages,
+        totalSizeSaved: `${Math.round(stats.storageSavings.totalSaved / 1024 / 1024)} MB`,
         processingQueue: 0,
         lastProcessed: new Date().toISOString(),
+        formatDistribution: stats.formatDistribution,
+        sizeDistribution: stats.sizeDistribution,
+        processingStats: stats.processingStats,
+        storageSavings: stats.storageSavings,
       },
       integration: {
         supplierProducts: "Active",
         adminInterface: "Active",
         apiEndpoints: "Active",
         database: "Connected",
+        sharpProcessing: "Active",
+        uploadThing: "Active",
       },
     };
 

@@ -181,9 +181,9 @@ export default function ConversionDashboard({
   };
 
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-US", {
+    new Intl.NumberFormat("ro-RO", {
       style: "currency",
-      currency: "USD",
+      currency: "RON",
     }).format(amount);
 
   const formatPercentage = (value: number) => `${value.toFixed(2)}%`;
@@ -378,7 +378,7 @@ export default function ConversionDashboard({
             <div className="text-2xl font-bold">
               {statistics.revenueImpact
                 ? formatCurrency(statistics.revenueImpact.totalRevenue)
-                : "$0.00"}
+                : formatCurrency(0)}
             </div>
             <p className="text-xs text-muted-foreground">
               {statistics.revenueImpact

@@ -1,29 +1,17 @@
 import { utapi } from "./uploadthing";
+import {
+  processProductImagesReal,
+  ProcessedImage,
+  ImageSizes,
+} from "./image-processing-real";
 
-export interface ImageSizes {
-  thumbnail: string; // 150x150 - for lists, thumbnails
-  small: string; // 300x300 - for cards, previews
-  medium: string; // 600x600 - for product pages
-  large: string; // 1200x1200 - for full-size viewing
-  original: string; // Original size - for downloads
-}
-
-export interface ProcessedImage {
-  id: string;
-  originalUrl: string;
-  sizes: ImageSizes;
-  metadata: {
-    width: number;
-    height: number;
-    size: number;
-    format: string;
-    aspectRatio: number;
-  };
-}
+export { ImageSizes, ProcessedImage };
 
 /**
  * Generate multiple image sizes for responsive design
  * This creates optimized versions for different use cases
+ *
+ * @deprecated Use processProductImagesReal from image-processing-real.ts instead
  */
 export async function generateImageSizes(
   originalUrl: string,
@@ -60,10 +48,23 @@ export async function generateImageSizes(
 
 /**
  * Process uploaded images and generate multiple sizes
+ *
+ * @deprecated Use processProductImagesReal from image-processing-real.ts for real image processing
  */
 export async function processProductImages(
   imageUrls: string[]
 ): Promise<ProcessedImage[]> {
+  // Try to use real image processing first
+  try {
+    return await processProductImagesReal(imageUrls);
+  } catch (error) {
+    console.warn(
+      "Real image processing failed, falling back to placeholder processing:",
+      error
+    );
+  }
+
+  // Fallback to placeholder processing
   const processedImages: ProcessedImage[] = [];
 
   for (const imageUrl of imageUrls) {

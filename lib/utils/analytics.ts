@@ -182,7 +182,7 @@ async function getPeriodData(startDate: Date, endDate: Date) {
       },
     },
     include: {
-      orderItems: {
+      items: {
         include: {
           product: true,
         },
@@ -254,7 +254,7 @@ async function calculateSalesAnalytics(
       },
     },
     include: {
-      orderItems: {
+      items: {
         include: {
           product: {
             include: {
@@ -305,7 +305,7 @@ async function calculateSalesAnalytics(
   let totalCategoryRevenue = 0;
 
   orders.forEach(order => {
-    order.orderItems.forEach(item => {
+    order.items.forEach(item => {
       const categoryName = item.product.category?.name || "Uncategorized";
       const itemRevenue = parseFloat(item.price) * item.quantity;
       categorySales.set(
@@ -329,7 +329,7 @@ async function calculateSalesAnalytics(
   const productSales = new Map<string, { revenue: number; units: number }>();
 
   orders.forEach(order => {
-    order.orderItems.forEach(item => {
+    order.items.forEach(item => {
       const productName = item.product.name;
       const existing = productSales.get(productName) || {
         revenue: 0,

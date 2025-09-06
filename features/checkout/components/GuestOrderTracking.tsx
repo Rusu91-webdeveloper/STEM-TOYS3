@@ -154,9 +154,9 @@ export function GuestOrderTracking() {
     });
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat("en-US", {
+    new Intl.NumberFormat("ro-RO", {
       style: "currency",
-      currency: "USD",
+      currency: "RON",
     }).format(price);
 
   return (

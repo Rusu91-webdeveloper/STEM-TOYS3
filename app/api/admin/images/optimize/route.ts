@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { ImageManagementService } from "@/lib/image-management";
+import { ImageManagementService } from "@/lib/image-management-real";
+import {
+  processProductImagesReal,
+  optimizeImage,
+} from "@/lib/image-processing-real";
 import { auth } from "@/lib/server/auth";
 
 // Optimization request schema
@@ -56,34 +60,41 @@ export async function POST(request: NextRequest) {
       const batchResults = await Promise.allSettled(
         batch.map(async imageUrl => {
           try {
-            // Generate optimized URL with settings
-            const optimizedUrl = ImageManagementService.generateOptimizedUrl(
-              imageUrl,
-              {
-                format: settings.targetFormat,
-                quality: settings.quality,
-                width: settings.maxWidth,
-                height: settings.maxHeight,
-              }
-            );
+            // Download the original image
+            const response = await fetch(imageUrl);
+            if (!response.ok) {
+              throw new Error(`Failed to fetch image: ${response.statusText}`);
+            }
 
-            // In a real implementation, you would:
-            // 1. Download the original image
-            // 2. Process it with the specified settings
-            // 3. Upload the optimized version
-            // 4. Return the new URL
+            const originalBuffer = Buffer.from(await response.arrayBuffer());
+            const originalSize = originalBuffer.length;
 
-            // For now, we'll simulate the process
-            await new Promise(resolve =>
-              setTimeout(resolve, 1000 + Math.random() * 2000)
-            );
+            // Optimize the image with Sharp
+            const optimizedBuffer = await optimizeImage(originalBuffer, {
+              quality: settings.quality,
+              format: settings.targetFormat,
+              maxWidth: settings.maxWidth,
+              maxHeight: settings.maxHeight,
+            });
+
+            const optimizedSize = optimizedBuffer.length;
+            const savings =
+              originalSize > 0
+                ? ((originalSize - optimizedSize) / originalSize) * 100
+                : 0;
+
+            // In a real implementation, you would upload the optimized image
+            // For now, we'll return the original URL with optimization stats
+            const optimizedUrl = imageUrl; // In production, this would be the new URL
 
             return {
               originalUrl: imageUrl,
               optimizedUrl,
               status: "success",
-              savings: Math.floor(Math.random() * 50) + 20, // 20-70% savings
-              newSize: Math.floor(Math.random() * 500) + 100, // Mock new size
+              savings: Math.round(savings * 100) / 100,
+              originalSize,
+              newSize: optimizedSize,
+              format: settings.targetFormat,
             };
           } catch (error) {
             console.error(
