@@ -2,337 +2,218 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import {
+  Plus,
+  Settings,
+  BarChart3,
+  Play,
+  Eye,
+  Edit3,
+  Trash2,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SequenceManager } from "@/components/ui/SequenceManager";
+import { SequenceTester } from "@/components/ui/SequenceTester";
+import { SequenceFlowData } from "@/components/ui/SequenceFlowBuilder";
 
 interface EmailSequence {
   id: string;
   name: string;
   description?: string;
-  trigger: string;
-  isActive: boolean;
-  maxEmails: number;
-  delayBetweenEmails: number;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  steps: EmailSequenceStep[];
-  _count: {
-    steps: number;
-    users: number;
+  triggerType: "immediate" | "scheduled" | "event" | "manual";
+  status: "draft" | "active" | "paused" | "completed";
+  createdAt: Date;
+  updatedAt: Date;
+  flowData: SequenceFlowData;
+  stats: {
+    totalSent: number;
+    totalOpened: number;
+    totalClicked: number;
+    openRate: number;
+    clickRate: number;
+    completionRate: number;
   };
-}
-
-interface EmailSequenceStep {
-  id: string;
-  order: number;
-  templateId: string;
-  delayHours: number;
-  subject?: string;
-  content?: string;
-  conditions?: any;
-  template: {
-    id: string;
-    name: string;
-    subject: string;
-    category: string;
-  };
-}
-
-interface EmailTemplate {
-  id: string;
-  name: string;
-  slug: string;
-  subject: string;
-  category: string;
-}
-
-interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  pages: number;
+  activeUsers: number;
 }
 
 export default function EmailSequencesPage() {
   const [sequences, setSequences] = useState<EmailSequence[]>([]);
-  const [_templates, setTemplates] = useState<EmailTemplate[]>([]);
-  const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [triggerFilter, setTriggerFilter] = useState("all");
-  const [isActiveFilter, setIsActiveFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isStepsDialogOpen, setIsStepsDialogOpen] = useState(false);
   const [selectedSequence, setSelectedSequence] =
     useState<EmailSequence | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    trigger: "none",
-    isActive: true,
-    maxEmails: 5,
-    delayBetweenEmails: 24,
-  });
+  const [showTester, setShowTester] = useState(false);
 
-  const triggers = [
-    { value: "USER_REGISTRATION", label: "User Registration" },
-    { value: "FIRST_PURCHASE", label: "First Purchase" },
-    { value: "ABANDONED_CART", label: "Abandoned Cart" },
-    { value: "ORDER_PLACED", label: "Order Placed" },
-    { value: "ORDER_SHIPPED", label: "Order Shipped" },
-    { value: "ORDER_DELIVERED", label: "Order Delivered" },
-    { value: "INACTIVE_USER", label: "Inactive User" },
-    { value: "BIRTHDAY", label: "Birthday" },
-    { value: "CUSTOM", label: "Custom" },
-  ];
-
-  // Filter sequences
-  const _filteredSequences = sequences.filter(sequence => {
-    const matchesSearch = sequence.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    const matchesTrigger =
-      triggerFilter === "all" || sequence.trigger === triggerFilter;
-    const matchesActive =
-      isActiveFilter === "all" ||
-      (isActiveFilter === "active" && sequence.isActive) ||
-      (isActiveFilter === "inactive" && !sequence.isActive);
-
-    return matchesSearch && matchesTrigger && matchesActive;
-  });
-
-  // Fetch sequences
+  // Fetch sequences from API
   const fetchSequences = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: "10",
-        search,
-        trigger: triggerFilter,
-        isActive: isActiveFilter,
-      });
-
-      const response = await fetch(`/api/admin/email-sequences?${params}`);
+      const response = await fetch("/api/admin/email-sequences");
       if (!response.ok) {
         throw new Error("Failed to fetch sequences");
       }
 
       const data = await response.json();
-      setSequences(data.sequences);
-      setPagination(data.pagination);
+
+      // Transform API data to match our interface
+      const transformedSequences: EmailSequence[] =
+        data.sequences?.map((seq: any) => ({
+          id: seq.id,
+          name: seq.name,
+          description: seq.description,
+          triggerType: mapTriggerType(seq.trigger),
+          status: mapStatus(seq.isActive),
+          createdAt: new Date(seq.createdAt),
+          updatedAt: new Date(seq.updatedAt),
+          flowData: seq.flowData || createDefaultFlowData(seq),
+          stats: {
+            totalSent: seq.stats?.totalSent || 0,
+            totalOpened: seq.stats?.totalOpened || 0,
+            totalClicked: seq.stats?.totalClicked || 0,
+            openRate: seq.stats?.openRate || 0,
+            clickRate: seq.stats?.clickRate || 0,
+            completionRate: seq.stats?.completionRate || 0,
+          },
+          activeUsers: seq._count?.users || 0,
+        })) || [];
+
+      setSequences(transformedSequences);
     } catch (error) {
       console.error("Error fetching sequences:", error);
-      toast.error("Failed to fetch sequences");
+      toast.error("Failed to fetch email sequences");
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch templates for step creation
-  const fetchTemplates = async () => {
-    try {
-      const response = await fetch("/api/admin/email-templates?limit=100");
-      if (response.ok) {
-        const data = await response.json();
-        setTemplates(data.templates);
-      }
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-    }
+  // Map API trigger to our trigger type
+  const mapTriggerType = (trigger: string): EmailSequence["triggerType"] => {
+    const triggerMap: Record<string, EmailSequence["triggerType"]> = {
+      USER_REGISTRATION: "event",
+      FIRST_PURCHASE: "event",
+      ABANDONED_CART: "event",
+      ORDER_PLACED: "event",
+      ORDER_SHIPPED: "event",
+      ORDER_DELIVERED: "event",
+      INACTIVE_USER: "event",
+      BIRTHDAY: "scheduled",
+      CUSTOM: "manual",
+    };
+    return triggerMap[trigger] || "manual";
   };
 
-  // Create sequence
-  const createSequence = async () => {
-    try {
-      // Filter out "none" values before sending to API
-      const apiData = {
-        ...formData,
-        trigger: formData.trigger === "none" ? "" : formData.trigger,
-      };
-
-      const response = await fetch("/api/admin/email-sequences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(apiData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error ?? "Failed to create sequence");
-      }
-
-      toast.success("Email sequence created successfully");
-      setIsCreateDialogOpen(false);
-      resetForm();
-      fetchSequences();
-    } catch (error) {
-      console.error("Error creating sequence:", error);
-      toast.error("Failed to create sequence");
-    }
+  // Map API status to our status
+  const mapStatus = (isActive: boolean): EmailSequence["status"] => {
+    return isActive ? "active" : "draft";
   };
 
-  // Update sequence
-  const updateSequence = async () => {
-    if (!selectedSequence) return;
+  // Create default flow data for existing sequences
+  const createDefaultFlowData = (seq: any): SequenceFlowData => {
+    return {
+      nodes: [
+        {
+          id: "trigger_1",
+          type: "trigger",
+          title: "Start",
+          description: "Sequence trigger",
+          config: { triggerType: mapTriggerType(seq.trigger) },
+          position: { x: 100, y: 100 },
+          status: "active",
+          nextNodes: [],
+          prevNodes: [],
+        },
+      ],
+      connections: [],
+      metadata: {
+        name: seq.name,
+        description: seq.description,
+        triggerType: mapTriggerType(seq.trigger),
+        isActive: seq.isActive,
+      },
+    };
+  };
 
+  // Save sequence
+  const handleSave = async (sequence: EmailSequence) => {
     try {
-      // Filter out "none" values before sending to API
-      const apiData = {
-        ...formData,
-        trigger: formData.trigger === "none" ? "" : formData.trigger,
-      };
-
       const response = await fetch(
-        `/api/admin/email-sequences/${selectedSequence.id}`,
+        `/api/admin/email-sequences/${sequence.id}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(apiData),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: sequence.name,
+            description: sequence.description,
+            triggerType: sequence.triggerType,
+            isActive: sequence.status === "active",
+            flowData: sequence.flowData,
+            updatedAt: new Date().toISOString(),
+          }),
         }
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error ?? "Failed to update sequence");
+        throw new Error("Failed to save sequence");
       }
 
-      toast.success("Email sequence updated successfully");
-      setIsEditDialogOpen(false);
-      resetForm();
-      fetchSequences();
+      const updatedSequence = await response.json();
+
+      // Update local state
+      setSequences(prev =>
+        prev.map(seq =>
+          seq.id === sequence.id ? { ...sequence, ...updatedSequence } : seq
+        )
+      );
+
+      toast.success("Sequence saved successfully");
     } catch (error) {
-      console.error("Error updating sequence:", error);
-      toast.error("Failed to update sequence");
+      console.error("Error saving sequence:", error);
+      toast.error("Failed to save sequence");
     }
   };
 
   // Delete sequence
-  const deleteSequence = async (id: string) => {
+  const handleDelete = async (sequenceId: string) => {
     try {
-      const response = await fetch(`/api/admin/email-sequences/${id}`, {
+      const response = await fetch(`/api/admin/email-sequences/${sequenceId}`, {
         method: "DELETE",
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error ?? "Failed to delete sequence");
+        throw new Error("Failed to delete sequence");
       }
 
-      toast.success("Email sequence deleted successfully");
-      fetchSequences();
+      setSequences(prev => prev.filter(seq => seq.id !== sequenceId));
+      toast.success("Sequence deleted successfully");
     } catch (error) {
       console.error("Error deleting sequence:", error);
       toast.error("Failed to delete sequence");
     }
   };
 
-  // Toggle sequence active status
-  const toggleSequenceStatus = async (sequence: EmailSequence) => {
-    try {
-      const response = await fetch(
-        `/api/admin/email-sequences/${sequence.id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isActive: !sequence.isActive }),
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update sequence");
-      }
-
-      toast.success(
-        `Sequence ${sequence.isActive ? "deactivated" : "activated"} successfully`
-      );
-      fetchSequences();
-    } catch (error) {
-      console.error("Error toggling sequence status:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update sequence"
-      );
-    }
-  };
-
-  // Reset form
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      trigger: "none",
-      isActive: true,
-      maxEmails: 5,
-      delayBetweenEmails: 24,
-    });
-    setSelectedSequence(null);
-  };
-
-  // Open edit dialog
-  const openEditDialog = (sequence: EmailSequence) => {
+  // Test sequence
+  const handleTest = (sequence: EmailSequence) => {
     setSelectedSequence(sequence);
-    setFormData({
-      name: sequence.name,
-      description: sequence.description ?? "",
-      trigger: sequence.trigger ?? "none",
-      isActive: sequence.isActive,
-      maxEmails: sequence.maxEmails,
-      delayBetweenEmails: sequence.delayBetweenEmails,
-    });
-    setIsEditDialogOpen(true);
+    setShowTester(true);
   };
 
-  // Open steps dialog
-  const openStepsDialog = (sequence: EmailSequence) => {
-    setSelectedSequence(sequence);
-    setIsStepsDialogOpen(true);
-  };
-
-  // Effects
+  // Load sequences on mount
   useEffect(() => {
     fetchSequences();
-    fetchTemplates();
-  }, [currentPage, search, triggerFilter, isActiveFilter]);
+  }, []);
 
-  if (loading && sequences.length === 0) {
+  if (loading) {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading sequences...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading email sequences...</p>
           </div>
         </div>
       </div>
@@ -340,467 +221,179 @@ export default function EmailSequencesPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Email Sequences</h1>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create Email Sequence</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={e =>
-                    setFormData(prev => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder="Sequence name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={e =>
-                    setFormData(prev => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  placeholder="Sequence description"
-                  rows={3}
-                />
-              </div>
-              <div>
-                <Label htmlFor="trigger">Trigger</Label>
-                <Select
-                  value={formData.trigger === "none" ? "" : formData.trigger}
-                  onValueChange={value =>
-                    setFormData(prev => ({ ...prev, trigger: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select trigger" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {triggers.map(trigger => (
-                      <SelectItem key={trigger.value} value={trigger.value}>
-                        {trigger.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="maxEmails">Max Emails</Label>
-                  <Input
-                    id="maxEmails"
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={formData.maxEmails}
-                    onChange={e =>
-                      setFormData(prev => ({
-                        ...prev,
-                        maxEmails: parseInt(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="delayBetweenEmails">Delay (hours)</Label>
-                  <Input
-                    id="delayBetweenEmails"
-                    type="number"
-                    min="1"
-                    max="168"
-                    value={formData.delayBetweenEmails}
-                    onChange={e =>
-                      setFormData(prev => ({
-                        ...prev,
-                        delayBetweenEmails: parseInt(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={formData.isActive}
-                  onChange={e =>
-                    setFormData(prev => ({
-                      ...prev,
-                      isActive: e.target.checked,
-                    }))
-                  }
-                />
-                <Label htmlFor="isActive">Active</Label>
-              </div>
-            </div>
-            <div className="flex justify-end space-x-2 mt-6">
-              <Button
-                variant="outline"
-                onClick={() => setIsCreateDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button onClick={createSequence}>Create Sequence</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Email Sequences</h1>
+          <p className="text-gray-600 mt-2">
+            Create and manage automated email workflows with visual flow builder
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-sm">
+            {sequences.length} sequences
+          </Badge>
+        </div>
       </div>
 
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <Label htmlFor="search">Search</Label>
-              <div className="relative">
-                <input
-                  type="text"
-                  id="search"
-                  placeholder="Search sequences..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="trigger-filter">Trigger</Label>
-              <Select value={triggerFilter} onValueChange={setTriggerFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All triggers" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All triggers</SelectItem>
-                  {triggers.map(trigger => (
-                    <SelectItem key={trigger.value} value={trigger.value}>
-                      {trigger.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="status-filter">Status</Label>
-              <Select value={isActiveFilter} onValueChange={setIsActiveFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="true">Active</SelectItem>
-                  <SelectItem value="false">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearch("");
-                  setTriggerFilter("all");
-                  setIsActiveFilter("all");
-                }}
-              >
-                Clear Filters
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Sequences Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Sequences ({pagination?.total || 0})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Trigger</TableHead>
-                <TableHead>Steps</TableHead>
-                <TableHead>Active Users</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sequences.map(sequence => (
-                <TableRow key={sequence.id}>
-                  <TableCell className="font-medium">{sequence.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">
-                      {triggers.find(t => t.value === sequence.trigger)
-                        ?.label || sequence.trigger}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{sequence._count.steps} steps</TableCell>
-                  <TableCell>{sequence._count.users} users</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={sequence.isActive ? "default" : "secondary"}
-                    >
-                      {sequence.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(sequence.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleSequenceStatus(sequence)}
-                        title={sequence.isActive ? "Deactivate" : "Activate"}
-                      >
-                        {sequence.isActive ? (
-                          <Switch checked={true} onCheckedChange={() => {}} />
-                        ) : (
-                          <Switch checked={false} onCheckedChange={() => {}} />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openStepsDialog(sequence)}
-                        title="Manage Steps"
-                      >
-                        Settings
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openEditDialog(sequence)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteSequence(sequence.id)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {/* Pagination */}
-          {pagination && pagination.pages > 1 && (
-            <div className="flex justify-center mt-6">
-              <div className="flex space-x-2">
+      {/* Main Content */}
+      <div className="space-y-6">
+        {showTester && selectedSequence ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Testing: {selectedSequence.name}</span>
                 <Button
                   variant="outline"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}
+                  size="sm"
+                  onClick={() => setShowTester(false)}
                 >
-                  Previous
+                  Back to Sequences
                 </Button>
-                <span className="flex items-center px-4">
-                  Page {currentPage} of {pagination.pages}
-                </span>
-                <Button
-                  variant="outline"
-                  disabled={currentPage === pagination.pages}
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SequenceTester
+                sequence={selectedSequence.flowData}
+                onClose={() => setShowTester(false)}
+              />
+            </CardContent>
+          </Card>
+        ) : (
+          <SequenceManager
+            sequences={sequences}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            onTest={handleTest}
+          />
+        )}
+      </div>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Email Sequence</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-name">Name</Label>
-              <Input
-                id="edit-name"
-                value={formData.name}
-                onChange={e =>
-                  setFormData(prev => ({ ...prev, name: e.target.value }))
-                }
-                placeholder="Sequence name"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={e =>
-                  setFormData(prev => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-                placeholder="Sequence description"
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-trigger">Trigger</Label>
-              <Select
-                value={formData.trigger === "none" ? "" : formData.trigger}
-                onValueChange={value =>
-                  setFormData(prev => ({ ...prev, trigger: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select trigger" />
-                </SelectTrigger>
-                <SelectContent>
-                  {triggers.map(trigger => (
-                    <SelectItem key={trigger.value} value={trigger.value}>
-                      {trigger.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-maxEmails">Max Emails</Label>
-                <Input
-                  id="edit-maxEmails"
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={formData.maxEmails}
-                  onChange={e =>
-                    setFormData(prev => ({
-                      ...prev,
-                      maxEmails: parseInt(e.target.value),
-                    }))
-                  }
-                />
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <BarChart3 className="w-6 h-6 text-blue-600" />
               </div>
-              <div>
-                <Label htmlFor="edit-delayBetweenEmails">Delay (hours)</Label>
-                <Input
-                  id="edit-delayBetweenEmails"
-                  type="number"
-                  min="1"
-                  max="168"
-                  value={formData.delayBetweenEmails}
-                  onChange={e =>
-                    setFormData(prev => ({
-                      ...prev,
-                      delayBetweenEmails: parseInt(e.target.value),
-                    }))
-                  }
-                />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">
+                  Total Sequences
+                </p>
+                <p className="text-2xl font-bold">{sequences.length}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="edit-isActive"
-                checked={formData.isActive}
-                onChange={e =>
-                  setFormData(prev => ({ ...prev, isActive: e.target.checked }))
-                }
-              />
-              <Label htmlFor="edit-isActive">Active</Label>
-            </div>
-          </div>
-          <div className="flex justify-end space-x-2 mt-6">
-            <Button
-              variant="outline"
-              onClick={() => setIsEditDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={updateSequence}>Update Sequence</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </CardContent>
+        </Card>
 
-      {/* Steps Management Dialog */}
-      <Dialog open={isStepsDialogOpen} onOpenChange={setIsStepsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Manage Steps - {selectedSequence?.name}</DialogTitle>
-          </DialogHeader>
-          {selectedSequence && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Play className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">
+                  Active Sequences
+                </p>
+                <p className="text-2xl font-bold">
+                  {sequences.filter(s => s.status === "active").length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Edit3 className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">
+                  Draft Sequences
+                </p>
+                <p className="text-2xl font-bold">
+                  {sequences.filter(s => s.status === "draft").length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Eye className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Users</p>
+                <p className="text-2xl font-bold">
+                  {sequences.reduce((sum, s) => sum + s.activeUsers, 0)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Performance Overview */}
+      {sequences.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Performance Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Sequence Steps</h3>
-                <Button size="sm">Add Step</Button>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {sequences
+                      .reduce((sum, s) => sum + s.stats.totalSent, 0)
+                      .toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-600">Total Emails Sent</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {sequences.length > 0
+                      ? (
+                          sequences.reduce(
+                            (sum, s) => sum + s.stats.openRate,
+                            0
+                          ) / sequences.length
+                        ).toFixed(1)
+                      : 0}
+                    %
+                  </div>
+                  <div className="text-sm text-gray-600">Average Open Rate</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {sequences.length > 0
+                      ? (
+                          sequences.reduce(
+                            (sum, s) => sum + s.stats.clickRate,
+                            0
+                          ) / sequences.length
+                        ).toFixed(1)
+                      : 0}
+                    %
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Average Click Rate
+                  </div>
+                </div>
               </div>
-
-              {selectedSequence.steps.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No steps configured yet.</p>
-                  <p className="text-sm">
-                    Add steps to create your email sequence.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {selectedSequence.steps.map((step, index) => (
-                    <Card key={step.id}>
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <Badge variant="outline">Step {step.order}</Badge>
-                              <Badge variant="secondary">
-                                {step.template.category}
-                              </Badge>
-                            </div>
-                            <h4 className="font-medium">
-                              {step.template.name}
-                            </h4>
-                            <p className="text-sm text-gray-600">
-                              {step.template.subject}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Delay: {step.delayHours} hours
-                            </p>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button variant="ghost" size="sm">
-                              Edit
-                            </Button>
-                            <Button variant="destructive" size="sm">
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

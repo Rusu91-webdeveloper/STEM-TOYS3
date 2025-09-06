@@ -380,6 +380,58 @@ export const ourFileRouter = {
         fileSize: res.file.size,
       };
     }),
+
+  // Email template image endpoint
+  emailTemplateImage: f({
+    image: {
+      maxFileSize: "5MB",
+      maxFileCount: 10,
+    },
+  })
+    .middleware(async () => {
+      console.log("UploadThing middleware running for emailTemplateImage");
+
+      // Get the authenticated user from the session
+      const session = await auth();
+
+      // Check if the user is authenticated
+      if (!session?.user) {
+        throw new Error("Unauthorized: You must be logged in to upload files");
+      }
+
+      // Check if the user is an admin (only admins can upload email template images)
+      if (session.user.role !== "ADMIN") {
+        throw new Error(
+          "Forbidden: Only admins can upload email template images"
+        );
+      }
+
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(res => {
+      console.log("Email template image upload complete:", res);
+
+      // Validate file extensions for images
+      const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+      const fileName = res.file.name.toLowerCase();
+      const hasValidExtension = allowedExtensions.some(ext =>
+        fileName.endsWith(ext)
+      );
+
+      if (!hasValidExtension) {
+        throw new Error(
+          "Invalid file type. Only JPG, PNG, GIF, and WebP images are allowed for email templates."
+        );
+      }
+
+      return {
+        id: res.file.id,
+        url: res.file.ufsUrl,
+        name: res.file.name,
+        size: res.file.size,
+        type: res.file.type,
+      };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;
