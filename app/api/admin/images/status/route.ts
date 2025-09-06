@@ -3,6 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/server/auth";
 import { ImageManagementService } from "@/lib/image-management-real";
 
+// Simple in-memory cache for image stats
+let statsCache: any = null;
+let cacheTimestamp: number = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
@@ -10,6 +15,15 @@ export async function GET(request: NextRequest) {
     if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Check cache first
+    const now = Date.now();
+    if (statsCache && now - cacheTimestamp < CACHE_DURATION) {
+      console.log("[IMAGE STATUS API] Returning cached stats");
+      return NextResponse.json(statsCache);
+    }
+
+    console.log("[IMAGE STATUS API] Fetching fresh stats from database");
 
     // Get real statistics from database
     const stats = await ImageManagementService.getImageStats();
@@ -52,6 +66,10 @@ export async function GET(request: NextRequest) {
         uploadThing: "Active",
       },
     };
+
+    // Cache the result
+    statsCache = status;
+    cacheTimestamp = now;
 
     return NextResponse.json(status);
   } catch (error) {

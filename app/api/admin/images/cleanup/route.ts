@@ -51,13 +51,14 @@ export async function POST(request: NextRequest) {
       old: { count: 0, totalSize: 0, images: [] },
     };
 
-    // Find orphaned images
+    // Find orphaned images (optimized)
     if (cleanupTypes.includes("orphaned")) {
       const orphanedImages = await ImageManagementService.findOrphanedImages();
       analysisResults.orphaned = {
         count: orphanedImages.length,
         totalSize: orphanedImages.reduce((sum, img) => sum + img.fileSize, 0),
-        images: orphanedImages.map(img => ({
+        images: orphanedImages.slice(0, 50).map(img => ({
+          // Limit to first 50 for performance
           id: img.id,
           url: img.originalUrl,
           filename: img.filename,
@@ -85,10 +86,10 @@ export async function POST(request: NextRequest) {
       };
     }
 
-    // Find large images
+    // Find large images (optimized)
     if (cleanupTypes.includes("large")) {
       const largeImages = await ImageManagementService.getImages({
-        limit: 1000, // Get all images to filter
+        limit: 100, // Reduced limit for better performance
       });
 
       const largeImagesFiltered = largeImages.images.filter(
@@ -100,7 +101,8 @@ export async function POST(request: NextRequest) {
           (sum, img) => sum + img.fileSize,
           0
         ),
-        images: largeImagesFiltered.map(img => ({
+        images: largeImagesFiltered.slice(0, 50).map(img => ({
+          // Limit to first 50 for performance
           id: img.id,
           url: img.originalUrl,
           filename: img.filename,
@@ -110,13 +112,13 @@ export async function POST(request: NextRequest) {
       };
     }
 
-    // Find old images
+    // Find old images (optimized)
     if (cleanupTypes.includes("old")) {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - settings.maxAge);
 
       const oldImages = await ImageManagementService.getImages({
-        limit: 1000, // Get all images to filter
+        limit: 100, // Reduced limit for better performance
       });
 
       const oldImagesFiltered = oldImages.images.filter(
@@ -128,7 +130,8 @@ export async function POST(request: NextRequest) {
           (sum, img) => sum + img.fileSize,
           0
         ),
-        images: oldImagesFiltered.map(img => ({
+        images: oldImagesFiltered.slice(0, 50).map(img => ({
+          // Limit to first 50 for performance
           id: img.id,
           url: img.originalUrl,
           filename: img.filename,
@@ -140,11 +143,11 @@ export async function POST(request: NextRequest) {
       };
     }
 
-    // Find invalid images (inactive or corrupted)
+    // Find invalid images (inactive or corrupted) - optimized
     if (cleanupTypes.includes("invalid")) {
       const invalidImages = await ImageManagementService.getImages({
         isActive: false,
-        limit: 1000,
+        limit: 100, // Reduced limit for better performance
       });
 
       analysisResults.invalid = {
@@ -153,7 +156,8 @@ export async function POST(request: NextRequest) {
           (sum, img) => sum + img.fileSize,
           0
         ),
-        images: invalidImages.images.map(img => ({
+        images: invalidImages.images.slice(0, 50).map(img => ({
+          // Limit to first 50 for performance
           id: img.id,
           url: img.originalUrl,
           filename: img.filename,
