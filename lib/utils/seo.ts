@@ -92,7 +92,7 @@ export function generateProductMetadata(product: any): Metadata {
   ];
 
   // Create structured data for the product
-  const structuredData = seoData.structuredData || {
+  const productData = seoData.structuredData || {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
@@ -130,7 +130,7 @@ export function generateProductMetadata(product: any): Metadata {
 
   // Add review information if available
   if (product.rating) {
-    structuredData.aggregateRating = {
+    (productData as any).aggregateRating = {
       "@type": "AggregateRating",
       ratingValue: product.rating,
       reviewCount: product.reviewCount || 0,
@@ -138,6 +138,32 @@ export function generateProductMetadata(product: any): Metadata {
       worstRating: 1,
     };
   }
+
+  // Add BreadcrumbList JSON-LD for product detail page
+  const breadcrumbData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://www.techtots.ro/",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Products",
+        item: "https://www.techtots.ro/products",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.name,
+        item: `https://www.techtots.ro/products/${product.slug}`,
+      },
+    ],
+  };
 
   // Create translations for this product
   const safeDescription = product.description || "";
@@ -169,7 +195,7 @@ export function generateProductMetadata(product: any): Metadata {
     title: "metaTitle" as any,
     description: "metaDescription" as any,
     keywords,
-    structuredData,
+    structuredData: [productData, breadcrumbData],
     canonicalUrl:
       seoData.canonical || `https://www.techtots.ro/products/${product.slug}`,
     ogImage: product.images?.[0] || "/opengraph-image.png",

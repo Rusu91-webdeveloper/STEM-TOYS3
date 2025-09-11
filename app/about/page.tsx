@@ -383,6 +383,15 @@ export default function AboutPage() {
                   >
                     {t("linkedin", "LinkedIn")}
                   </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs sm:text-sm h-8 sm:h-9"
+                  >
+                    <Link href="/authors/techtots-editorial">
+                      {t("viewProfile", "View author profile")}
+                    </Link>
+                  </Button>
                 </div>
               </div>
             </div>

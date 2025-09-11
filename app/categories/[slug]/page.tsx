@@ -949,6 +949,37 @@ export default async function CategoryDetailPage({
 
   return (
     <div className="flex flex-col">
+      {/* Breadcrumb JSON-LD */}
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: "https://www.techtots.ro/",
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "Categories",
+                item: "https://www.techtots.ro/categories",
+              },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: heroTitle,
+                item: `https://www.techtots.ro/categories/${slug}`,
+              },
+            ],
+          }),
+        }}
+      />
       {/* Enhanced Hero Section */}
       <section className="relative h-[220px] sm:h-[320px] w-full overflow-hidden">
         <Image
@@ -1014,6 +1045,67 @@ export default async function CategoryDetailPage({
 
       {/* Overview */}
       <Overview slug={slug} locale={locale} />
+
+      {/* Helpful Resources */}
+      <section className="container mx-auto px-4 my-8">
+        <div className="rounded-lg border bg-white p-4 sm:p-6 shadow-sm">
+          <h2 className="text-lg sm:text-xl font-semibold mb-2">
+            Resurse utile
+          </h2>
+          <p className="text-sm text-muted-foreground mb-3">
+            Nu ești sigur ce să alegi? Consultă ghidurile noastre:
+          </p>
+          <div className="flex flex-wrap gap-2 text-sm">
+            <Link
+              href="/ghid-jucarii-stem-2025"
+              className="underline"
+              data-conversion="cta"
+              data-conversion-type="click"
+              data-conversion-category="category"
+              data-conversion-action="category_resources_click"
+              data-conversion-element={`cat_${slug}_ghid_2025`}
+            >
+              Ghid 2025
+            </Link>
+            <span>·</span>
+            <Link
+              href="/jucarii-stem-dupa-varsta"
+              className="underline"
+              data-conversion="cta"
+              data-conversion-type="click"
+              data-conversion-category="category"
+              data-conversion-action="category_resources_click"
+              data-conversion-element={`cat_${slug}_dupa_varsta`}
+            >
+              După vârstă
+            </Link>
+            <span>·</span>
+            <Link
+              href="/beneficiile-jucariilor-stem"
+              className="underline"
+              data-conversion="cta"
+              data-conversion-type="click"
+              data-conversion-category="category"
+              data-conversion-action="category_resources_click"
+              data-conversion-element={`cat_${slug}_beneficii`}
+            >
+              Beneficii STEM
+            </Link>
+            <span>·</span>
+            <Link
+              href="/faq"
+              className="underline"
+              data-conversion="cta"
+              data-conversion-type="click"
+              data-conversion-category="category"
+              data-conversion-action="category_resources_click"
+              data-conversion-element={`cat_${slug}_faq`}
+            >
+              FAQ
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Category Educational Benefits */}
       <CategoryEducationalBenefits slug={slug} />

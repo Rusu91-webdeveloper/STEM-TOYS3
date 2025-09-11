@@ -280,6 +280,65 @@ export default function ProductDetailClient({
             </div>
           </div>
         </div>
+
+        {/* Learn More Resources */}
+        <div className="mt-10">
+          <div className="rounded-xl border bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-semibold mb-3">Află mai multe</h3>
+            <p className="text-sm text-muted-foreground mb-3">
+              Ghiduri utile pentru a alege și folosi jucăriile STEM:
+            </p>
+            <div className="flex flex-wrap gap-3 text-sm">
+              <a
+                className="underline"
+                href="/ghid-jucarii-stem-2025"
+                data-conversion="cta"
+                data-conversion-type="click"
+                data-conversion-category="product"
+                data-conversion-action="learn_more_click"
+                data-conversion-element={`prod_${product.slug}_ghid_2025`}
+              >
+                Ghid 2025
+              </a>
+              <span>·</span>
+              <a
+                className="underline"
+                href="/jucarii-stem-dupa-varsta"
+                data-conversion="cta"
+                data-conversion-type="click"
+                data-conversion-category="product"
+                data-conversion-action="learn_more_click"
+                data-conversion-element={`prod_${product.slug}_dupa_varsta`}
+              >
+                După vârstă
+              </a>
+              <span>·</span>
+              <a
+                className="underline"
+                href="/beneficiile-jucariilor-stem"
+                data-conversion="cta"
+                data-conversion-type="click"
+                data-conversion-category="product"
+                data-conversion-action="learn_more_click"
+                data-conversion-element={`prod_${product.slug}_beneficii`}
+              >
+                Beneficii STEM
+              </a>
+              <span>·</span>
+              <a
+                className="underline"
+                href="/faq"
+                data-conversion="cta"
+                data-conversion-type="click"
+                data-conversion-category="product"
+                data-conversion-action="learn_more_click"
+                data-conversion-element={`prod_${product.slug}_faq`}
+              >
+                FAQ
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
