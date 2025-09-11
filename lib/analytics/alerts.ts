@@ -195,7 +195,7 @@ class AlertManager {
   }
 
   checkCoreWebVitals(metrics: any) {
-    const { LCP, FID, CLS } = metrics;
+    const { LCP, INP, CLS } = metrics;
 
     // Check LCP
     if (LCP > 4000) {
@@ -214,20 +214,20 @@ class AlertManager {
       );
     }
 
-    // Check FID
-    if (FID > 300) {
+    // Check INP (replaces FID)
+    if (INP > 500) {
       this.createAlert(
         "error",
-        "Poor FID Performance",
-        `First Input Delay: ${FID}ms (Poor)`,
-        { FID, threshold: 300 }
+        "Poor INP Performance",
+        `Interaction to Next Paint: ${INP}ms (Poor)`,
+        { INP, threshold: 500 }
       );
-    } else if (FID > 100) {
+    } else if (INP > 200) {
       this.createAlert(
         "warning",
-        "FID Needs Improvement",
-        `First Input Delay: ${FID}ms (Needs Improvement)`,
-        { FID, threshold: 100 }
+        "INP Needs Improvement",
+        `Interaction to Next Paint: ${INP}ms (Needs Improvement)`,
+        { INP, threshold: 200 }
       );
     }
 

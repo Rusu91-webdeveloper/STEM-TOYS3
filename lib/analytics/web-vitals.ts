@@ -3,7 +3,7 @@
  * Tracks LCP, FID, CLS, FCP, TTFB metrics
  */
 
-import { getCLS, getFID, getFCP, getLCP, getTTFB } from "web-vitals";
+import { onCLS, onINP, onFCP, onLCP, onTTFB } from "web-vitals";
 
 interface WebVitalsMetric {
   name: string;
@@ -30,7 +30,7 @@ const DEFAULT_CONFIG: WebVitalsConfig = {
 // Core Web Vitals thresholds for 2025
 const THRESHOLDS = {
   LCP: { good: 2500, poor: 4000 },
-  FID: { good: 100, poor: 300 },
+  INP: { good: 200, poor: 500 }, // INP replaces FID
   CLS: { good: 0.1, poor: 0.25 },
   FCP: { good: 1800, poor: 3000 },
   TTFB: { good: 800, poor: 1800 },
@@ -123,27 +123,27 @@ export function initWebVitals(config: Partial<WebVitalsConfig> = {}) {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
 
   // Track Largest Contentful Paint
-  getLCP(metric => {
+  onLCP(metric => {
     handleMetric(metric, finalConfig);
   });
 
-  // Track First Input Delay
-  getFID(metric => {
+  // Track Interaction to Next Paint (replaces FID)
+  onINP(metric => {
     handleMetric(metric, finalConfig);
   });
 
   // Track Cumulative Layout Shift
-  getCLS(metric => {
+  onCLS(metric => {
     handleMetric(metric, finalConfig);
   });
 
   // Track First Contentful Paint
-  getFCP(metric => {
+  onFCP(metric => {
     handleMetric(metric, finalConfig);
   });
 
   // Track Time to First Byte
-  getTTFB(metric => {
+  onTTFB(metric => {
     handleMetric(metric, finalConfig);
   });
 }
