@@ -9,6 +9,7 @@ import {
   FeaturedProductsSection,
   FeaturedProductsSkeleton,
   HeroSection,
+  PillarSection,
   SupplierBanner,
   ValuePropositionSection,
 } from "@/features/home/components";
@@ -76,6 +77,9 @@ export default function HomePageClient({
     <div className="flex flex-col">
       {/* Hero Section with Hero Image - Load immediately */}
       <HeroSection t={t} />
+
+      {/* Pillar Section - Key content themes */}
+      <PillarSection />
 
       {/* Supplier Banner - Professional call-to-action for suppliers */}
       <SupplierBanner t={t} />

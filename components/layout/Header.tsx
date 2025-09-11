@@ -31,11 +31,6 @@ const navigation: { name: TranslationKey | string; href: string }[] = [
   { name: "categories", href: "/categories" },
   { name: "blog", href: "/blog" },
   { name: "about", href: "/about" },
-  // Pillar links (non-translated keys for now)
-  { name: "Ghid 2025", href: "/ghid-jucarii-stem-2025" },
-  { name: "După vârstă", href: "/jucarii-stem-dupa-varsta" },
-  { name: "Beneficii STEM", href: "/beneficiile-jucariilor-stem" },
-  { name: "FAQ", href: "/faq" },
 ];
 
 export default function Header() {
