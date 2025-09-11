@@ -41,12 +41,12 @@ const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "TechTots - Jucării STEM pentru Minți Curioase",
-  url: "https://techtots.ro",
+  url: "https://www.techtots.ro",
   potentialAction: {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: "https://techtots.ro/search?q={search_term_string}",
+      urlTemplate: "https://www.techtots.ro/search?q={search_term_string}",
     },
     "query-input": "required name=search_term_string",
   },
@@ -57,7 +57,7 @@ const structuredData = {
     name: "TechTots",
     logo: {
       "@type": "ImageObject",
-      url: "https://techtots.com/TechTots_LOGO.png",
+      url: "https://www.techtots.ro/TechTots_LOGO.png",
       width: "180",
       height: "60",
     },
@@ -99,12 +99,12 @@ const structuredData = {
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "@id": "https://techtots.com/#organization",
+  "@id": "https://www.techtots.ro/#organization",
   name: "TechTots România",
-  url: "https://techtots.ro",
+  url: "https://www.techtots.ro",
   logo: {
     "@type": "ImageObject",
-    url: "https://techtots.com/TechTots_LOGO.png",
+    url: "https://www.techtots.ro/TechTots_LOGO.png",
     width: "180",
     height: "60",
   },

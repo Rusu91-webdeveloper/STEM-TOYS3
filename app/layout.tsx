@@ -66,6 +66,17 @@ export default async function RootLayout({
         <GoogleAnalytics />
         {/* Performance Monitoring */}
         <PerformanceMonitor />
+        {/* JSON-LD from metadata.other.structuredData */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html:
+              typeof appMetadata?.other === "object" &&
+              (appMetadata.other as any)?.structuredData
+                ? (appMetadata.other as any).structuredData
+                : "{}",
+          }}
+        />
       </head>
       <body
         className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}
