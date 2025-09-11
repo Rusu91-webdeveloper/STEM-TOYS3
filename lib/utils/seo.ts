@@ -106,7 +106,7 @@ export function generateProductMetadata(product: any): Metadata {
     },
     offers: {
       "@type": "Offer",
-      url: `https://techtots.com/products/${product.slug}`,
+      url: `https://www.techtots.ro/products/${product.slug}`,
       priceCurrency: "RON",
       price: product.price,
       priceValidUntil: new Date(
@@ -171,7 +171,7 @@ export function generateProductMetadata(product: any): Metadata {
     keywords,
     structuredData,
     canonicalUrl:
-      seoData.canonical || `https://techtots.com/products/${product.slug}`,
+      seoData.canonical || `https://www.techtots.ro/products/${product.slug}`,
     ogImage: product.images?.[0] || "/opengraph-image.png",
     pathWithoutLocale: `/products/${product.slug}`,
     translations,
@@ -447,7 +447,7 @@ export function generateBookMetadata(book: any): Metadata {
         : "https://schema.org/OutOfStock",
       price: book.price,
       priceCurrency: "RON",
-      url: `https://techtots.com/books/${book.slug}`,
+      url: `https://www.techtots.ro/books/${book.slug}`,
     },
   };
 
