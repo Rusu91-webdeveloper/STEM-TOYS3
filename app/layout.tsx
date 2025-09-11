@@ -48,13 +48,7 @@ export default async function RootLayout({
         />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        {/* Preload critical resources */}
-        <link
-          rel="preload"
-          href="/images/homepage_hero_banner_01.png"
-          as="image"
-          fetchPriority="high"
-        />
+        {/* Removed manual hero image preload; Next/Image with priority handles this */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link

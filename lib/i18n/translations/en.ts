@@ -456,6 +456,9 @@ export const en = {
   gridView: "Grid view",
   listView: "List view",
   noProductsFound: "No products found. Try different filters or search terms.",
+  // Missing keys used on homepage/product sections
+  recommendedForYou: "Recommended for you",
+  noFeaturedProducts: "No featured products at the moment",
 
   // Blog Page
   blogTitle: "STEM Learning Blog | TechTots",
@@ -684,6 +687,201 @@ export const en = {
   technologyLearning: "Technology Learning",
   technologyLearningDesc:
     "Discover how technology works through interactive projects and educational toys.",
+
+  // Pillar Section translations
+  pillarSectionTag: "Inspiration & Guidance",
+  pillarSectionTitle: "Explore our key themes",
+  pillarSectionSubtitle:
+    "Discover essential content to make the best choices for the little ones.",
+  pillarGuide2025Title: "Guide 2025",
+  pillarGuide2025Description:
+    "Top recommendations and trends in STEM toys for 2025.",
+  pillarByAgeTitle: "By Age",
+  pillarByAgeDescription: "Choose toys suitable for each stage of development.",
+  pillarBenefitsTitle: "STEM Benefits",
+  pillarBenefitsDescription:
+    "Why STEM matters: learning through play, curiosity, and key skills.",
+  pillarFaqTitle: "FAQ",
+  pillarFaqDescription:
+    "Frequently asked questions: delivery, age, safety, recommendations.",
+  pillarNewBadge: "New",
+  pillarSeeDetails: "See details",
+
+  // Guide 2025 Page translations
+  guide2025Title: "Ultimate STEM Toys Guide 2025",
+  guide2025Byline: "By TechTots Editorial · Updated",
+  guide2025Description:
+    "Choose smart STEM toys adapted to age, interests, and child's level. The guide includes STEM category recommendations, age groups, and practical tips for parents and educators.",
+  guide2025QuickSummary: "Quick Summary",
+  guide2025QuickSummary1:
+    "Choose by interest and age; gradually increase difficulty.",
+  guide2025QuickSummary2:
+    "Prefer sets with progressive projects and clear guides.",
+  guide2025QuickSummary3:
+    "Science = experiments; Technology = programming/robotics.",
+  guide2025QuickSummary4:
+    "Engineering = construction/mechanisms; Mathematics = logic games.",
+  guide2025QuickSummary5:
+    "Alternate free play with guided projects and teamwork.",
+  guide2025TableOfContents: "Table of Contents",
+  guide2025WhatAreStem: "What are STEM toys",
+  guide2025Categories:
+    "STEM Categories: Science, Technology, Engineering, Mathematics",
+  guide2025AgeRecommendations: "Age recommendations",
+  guide2025HowToChoose: "How to choose the right toy",
+  guide2025TopRecommendations: "Top recommendations 2025",
+  guide2025Faq: "Frequently asked questions",
+  guide2025WhatAreStemContent:
+    "STEM toys stimulate learning through play in science, technology, engineering, and mathematics. Their purpose is to translate abstract concepts into tactile and visual experiences, so children can explore, test hypotheses, and see the effects of their actions in real time. Unlike passive toys, STEM toys emphasize experimentation, hands-on projects, prototyping, and iteration. Whether it's building a bridge from modular pieces, programming a robot to follow a line, or observing a safe chemical reaction, these activities cultivate critical thinking, perseverance, and the ability to learn from mistakes.",
+  guide2025WhatAreStemContent2:
+    "The major benefit is learning transfer: analytical, logical, and teamwork skills gained through play become useful competencies at school and in daily life. Additionally, STEM toys are excellent for discovering interests: a child attracted to experiments may lean toward sciences, while another passionate about construction may develop an affinity for engineering. Our recommendation is to alternate challenges, maintaining a balance between free play and guided projects.",
+  guide2025ScienceCategory: "Science",
+  guide2025ScienceContent:
+    'Experiments, chemistry, physics, and biology for those curious about the world around them. Good kits include clear manuals, safe materials, and progressive activities (observe, note, conclude). Look for sets that emphasize observation and explanations children can understand, not just "wow" effects. See our selection at',
+  guide2025TechnologyCategory: "Technology",
+  guide2025TechnologyContent:
+    'Programming through games, robotics, and light electronics. For beginners, "drag-and-drop" interfaces are ideal, and as they grow, they can move to simple languages. Look for toys with scalable projects, integrated sensors, and online communities with expansion ideas. Discover recommendations at',
+  guide2025EngineeringCategory: "Engineering",
+  guide2025EngineeringContent:
+    "Construction, mechanisms, and hands-on projects. A good set offers structural stability, diverse pieces, and guides that present principles (levers, gears, weight). It's useful for projects to have difficulty levels, so children can see their progress and develop confidence. Get inspired from the category",
+  guide2025MathematicsCategory: "Mathematics",
+  guide2025MathematicsContent:
+    'Logic games, abacus, geometry, and probabilities. Choose games that introduce concepts gradually, encourage strategies, and discussions about "why it works." For children reluctant about mathematics, opt for story-driven or collaborative games to increase motivation. Explore',
+  guide2025AgeRecommendationsContent:
+    "3–5 years: sensory games, sorting, simple construction",
+  guide2025AgeRecommendationsContent2:
+    "6–8 years: scientific kits, visual programming, puzzles",
+  guide2025AgeRecommendationsContent3:
+    "9–12 years: entry-level robotics, circuits, engineering projects",
+  guide2025AgeRecommendationsContent4:
+    "13+ years: 3D printing, advanced robotics, electronic projects",
+  guide2025SeeDedicatedPage: "See dedicated page:",
+  guide2025StemByAgeLink: "STEM toys by age",
+  guide2025PracticalSuggestion:
+    "Practical suggestion: start from the child's existing abilities and gradually increase difficulty. A challenge too easy bores, one too hard demotivates. Look for sets with small-step projects, rapid feedback (visual/auditory), and teamwork opportunities. Alternate short 15–20 minute activities with longer weekend projects to maintain interest and encourage planning.",
+  guide2025HowToChooseContent1:
+    "Establish the educational objective (logic, creativity, collaboration).",
+  guide2025HowToChooseContent2:
+    "Match the difficulty level with age and interest.",
+  guide2025HowToChooseContent3: "Check materials and safety standards.",
+  guide2025HowToChooseContent4:
+    "Prefer kits with progressive projects and clear guides.",
+  guide2025HowToChooseContent5:
+    'Ask yourself: "What will my child learn concretely from this set?" and "How can I contribute as a parent?" Kits with extensions (additional pieces, online projects) ensure educational durability. Check if there are video resources, communities, or weekly challenges to transform the toy into a continuous experience.',
+  guide2025TopRecommendationsContent:
+    "Soon we will publish a clean list of representative products by age groups and categories. Until then, explore our offer at",
+  guide2025FaqContent: "For quick answers about safety, age, and returns, see",
+  guide2025ReadyToChoose: "Ready to choose?",
+  guide2025ReadyToChooseContent:
+    "Explore our carefully selected collection of STEM toys.",
+  guide2025SeeProducts: "See products",
+
+  // By Age Page translations
+  byAgeTitle: "Perfect STEM Toys for Every Age",
+  byAgeDescription:
+    "Quickly find toys suitable for your child's age and your educational objectives. The lists include development benefits and links to relevant categories.",
+  byAgeQuickSummary1: "3–5: sensory, sorting, large construction.",
+  byAgeQuickSummary2:
+    "6–8: visual programming, short experiments, simple mechanisms.",
+  byAgeQuickSummary3:
+    "9–12: entry-level robotics, circuits, multi-day projects.",
+  byAgeQuickSummary4: "13+: microcontrollers, 3D printing, real projects.",
+  byAgeQuickSummary5:
+    "Increase difficulty gradually and provide effort feedback.",
+  byAgeTableOfContents: "Table of Contents",
+  byAge3to5: "3–5 years",
+  byAge6to8: "6–8 years",
+  byAge9to12: "9–12 years",
+  byAge13plus: "13+ years",
+  byAgeSelectionTips: "Selection tips",
+  byAge3to5Content1: "Sensory games, color/shape sorting",
+  byAge3to5Content2: "Large construction sets, magnetic blocks",
+  byAge3to5Content3: "Counting and matching activities",
+  byAge3to5Explore: "Explore",
+  byAge3to5Content4:
+    'At this stage, the emphasis is on sensory exploration, fine motor skills, and language development. Choose toys that invite touch, classification, and description (soft/hard, big/small, colors/shapes). Large-piece construction sets increase frustration tolerance and provide rapid feedback (what falls, what stands). Avoid complicated rules; choose short, repeatable activities with variations (same task, different colors). Encourage "why" questions and naming steps ("put, push, count").',
+  byAge6to8Content1: "Visual programming, logic puzzles",
+  byAge6to8Content2: "Entry-level science kits",
+  byAge6to8Content3: "Construction sets with simple mechanisms",
+  byAge6to8See: "See",
+  byAge6to8Content4:
+    'Children can follow step-by-step instructions and begin to enjoy challenges with simple rules. Visual programming (blocks) introduces sequencing and cause-effect, while puzzles increase patience and cognitive flexibility. In science, choose kits with short, safe experiments that require observation and conclusions ("What changed?"). For construction, simple mechanisms (levers, gears) are ideal for making the connection between theory and result.',
+  byAge9to12Content1: "Entry-level robotics, circuits and sensors",
+  byAge9to12Content2: "Small-scale engineering projects",
+  byAge9to12Content3: "Mathematical problems and strategy games",
+  byAge9to12Recommend: "We recommend",
+  byAge9to12Content4:
+    "At this age, children can plan multi-day projects and debug errors. Entry-level robotics sets, circuits with sensors, and engineering projects stimulate systems thinking and process documentation. Strategy games and open problems develop the ability to compare solutions and justify choices. Look for extensible kits (additional pieces, online projects) to support progress.",
+  byAge13plusContent1: "Advanced robotics, 3D printing",
+  byAge13plusContent2: "Electronic projects and microcontrollers",
+  byAge13plusContent3: "Interdisciplinary STEM projects",
+  byAge13plusDiscover: "Discover",
+  byAge13plusContent4:
+    "Teenagers need autonomy, real projects, and visible results. Microcontrollers, 3D printing, and advanced robotics sets provide context for design, prototyping, and iteration. Encourage documentation (journal, video), teamwork, and connecting with communities (clubs, hackathons). Link projects to real interests (eco, mobility, art) to increase motivation.",
+  byAgeSelectionTipsContent1:
+    "Choose based on the child's interest for intrinsic motivation.",
+  byAgeSelectionTipsContent2: "Progress gradually from simple to complex.",
+  byAgeSelectionTipsContent3:
+    "Prefer sets with clear guides and online resources.",
+  byAgeSelectionTipsContent4: "Check safety standards and materials.",
+  byAgeSelectionTipsContent5:
+    "Keep sessions short and frequent for sustained learning. Alternate individual projects with team activities. If frustration appears, reduce the challenge or break the task into smaller steps. Provide positive feedback on effort (not just result) to build perseverance and joy of exploration.",
+  byAgeExploreProducts: "Explore products",
+
+  // Benefits Page translations
+  benefitsTitle: "Why STEM Toys Are Important for Child Development",
+  benefitsDescription:
+    "Learn how STEM toys accelerate cognitive, social, and emotional development through hands-on activities and engaging projects.",
+  benefitsQuickSummary1: "Critical thinking, logic, creativity, collaboration.",
+  benefitsQuickSummary2:
+    "Perseverance through iterative projects and effort feedback.",
+  benefitsQuickSummary3: "Transfer to school performance and real skills.",
+  benefitsQuickSummary4:
+    "Link activities to real themes (energy, environment, health).",
+  benefitsQuickSummary5: "Encourage presentations and guided self-reflection.",
+  benefitsTableOfContents: "Table of Contents",
+  benefitsCriticalThinking: "Critical thinking and logic",
+  benefitsCreativity: "Creativity and innovation",
+  benefitsCollaboration: "Collaboration and communication",
+  benefitsAutonomy: "Autonomy and perseverance",
+  benefitsTransfer: "Transfer to school and real life",
+  benefitsCriticalThinkingContent1:
+    "Puzzles, open problems, and visual programming develop analysis, planning, and problem-solving skills.",
+  benefitsCriticalThinkingContent2:
+    'Alternate single-answer tasks (correct/wrong) with open challenges (multiple possible solutions). Encourage children to explain their steps, compare strategies, and identify "why it worked." Use process language: observe, assume, test, adjust.',
+  benefitsCreativityContent1:
+    "Construction sets, engineering projects, and creative electronics encourage idea generation and iterative design.",
+  benefitsCreativityContent2:
+    'Offer short "briefs" (Build a bridge that holds X weight) and time for prototyping. Validate attempts, not just the final result. Introduce creative constraints (limited number of pieces) to stimulate ingenious solutions.',
+  benefitsCollaborationContent1:
+    "Team projects develop leadership, role sharing, and clear communication.",
+  benefitsCollaborationContent2:
+    "Establish roles (designer, constructor, tester) and simple feedback rules (specific, positive, constructive). Alternate roles for equity and holistic learning.",
+  benefitsAutonomyContent1:
+    "Children learn to manage constructive failure, debug, and stay motivated until results.",
+  benefitsAutonomyContent2:
+    'Use project journal (What did I try? What do I change?) and celebrate micro-progress. Normalize failure as part of the process ("Not working yet"). Offer "cooldown" time when frustration is high.',
+  benefitsTransferContent1:
+    "STEM competencies support school performance in mathematics and sciences and transfer to life skills: planning, decisions, systems thinking.",
+  benefitsTransferContent2:
+    "Link projects to real contexts (energy, environment, health). Invite children to present results (poster, video). Use simple evaluation rubrics for self-reflection: Clarity, Creativity, Rigor.",
+  benefitsExploreCategories: "Explore our categories:",
+  benefitsSeeProducts: "See products",
+
+  // FAQ Page translations
+  faqTitle: "Frequently asked questions",
+  faqWhatAreStem: "What are STEM toys?",
+  faqWhatAreStemAnswer:
+    "STEM toys encourage critical thinking, creativity, and hands-on learning in science, technology, engineering, and mathematics.",
+  faqAgeAppropriate: "Are the toys suitable for my child's age?",
+  faqAgeAppropriateAnswer:
+    "Follow the age recommendation on the product page and use filters to find appropriate options.",
+  faqReturnPolicy: "What is the return policy?",
+  faqReturnPolicyAnswer:
+    "We accept returns within 14 days for unused products. Consult the return page for steps and conditions.",
+  faqSafety: "Are the toys safe?",
+  faqSafetyAnswer:
+    "Products meet safety standards and are carefully verified for quality.",
 
   // Footer specific translations (expanded)
   // Newsletter section

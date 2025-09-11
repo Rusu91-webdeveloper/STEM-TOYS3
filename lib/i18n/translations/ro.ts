@@ -791,6 +791,206 @@ export const ro = {
   technologyLearningDesc:
     "Descoperă cum funcționează tehnologia prin proiecte interactive și jucării educaționale.",
 
+  // Pillar Section translations
+  pillarSectionTag: "Inspirație & Ghidare",
+  pillarSectionTitle: "Explorează temele noastre cheie",
+  pillarSectionSubtitle:
+    "Descoperă conținut esențial pentru a face cele mai bune alegeri pentru cei mici.",
+  pillarGuide2025Title: "Ghid 2025",
+  pillarGuide2025Description:
+    "Top recomandări și tendințe în jucării STEM pentru 2025.",
+  pillarByAgeTitle: "După vârstă",
+  pillarByAgeDescription:
+    "Alege jucării potrivite fiecărei etape de dezvoltare.",
+  pillarBenefitsTitle: "Beneficii STEM",
+  pillarBenefitsDescription:
+    "De ce STEM contează: învățare prin joacă, curiozitate și abilități-cheie.",
+  pillarFaqTitle: "FAQ",
+  pillarFaqDescription:
+    "Întrebări frecvente: livrare, vârstă, siguranță, recomandări.",
+  pillarNewBadge: "Nou",
+  pillarSeeDetails: "Vezi detalii",
+
+  // Guide 2025 Page translations
+  guide2025Title: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2025",
+  guide2025Byline: "By TechTots Editorial · Updated",
+  guide2025Description:
+    "Alege inteligent jucării STEM adaptate vârstei, intereselor și nivelului copilului. Ghidul include recomandări pe categorii STEM, grupe de vârstă și sfaturi practice pentru părinți și educatori.",
+  guide2025QuickSummary: "Pe scurt",
+  guide2025QuickSummary1:
+    "Alege după interes și vârstă; crește gradual dificultatea.",
+  guide2025QuickSummary2:
+    "Preferă seturi cu proiecte progresive și ghiduri clare.",
+  guide2025QuickSummary3:
+    "Știință = experimente; Tehnologie = programare/robotică.",
+  guide2025QuickSummary4:
+    "Inginerie = construcții/mechanisme; Matematică = jocuri logice.",
+  guide2025QuickSummary5:
+    "Alternează joaca liberă cu proiecte ghidate și lucrul în echipă.",
+  guide2025TableOfContents: "Cuprins",
+  guide2025WhatAreStem: "Ce sunt jucăriile STEM",
+  guide2025Categories:
+    "Categorii STEM: Știință, Tehnologie, Inginerie, Matematică",
+  guide2025AgeRecommendations: "Recomandări pe vârstă",
+  guide2025HowToChoose: "Cum alegi corect jucăria",
+  guide2025TopRecommendations: "Top recomandări 2025",
+  guide2025Faq: "Întrebări frecvente",
+  guide2025WhatAreStemContent:
+    "Jucăriile STEM stimulează învățarea prin joc în domeniile știință, tehnologie, inginerie și matematică. Scopul lor este să traducă concepte abstracte în experiențe tactile și vizuale, astfel încât copiii să poată explora, testa ipoteze și vedea efectele acțiunilor lor în timp real. Spre deosebire de jucăriile pasive, jucăriile STEM pun accentul pe experimentare, proiecte practice, prototipare și iterare. Fie că este vorba despre construirea unui pod din piese modulare, programarea unui robot să urmeze o linie sau observarea unei reacții chimice sigure, aceste activități cultivă gândirea critică, perseverența și capacitatea de a învăța din greșeli.",
+  guide2025WhatAreStemContent2:
+    "Beneficiul major este transferul învățării: abilitățile de analiză, logică și lucru în echipă dobândite prin joc devin competențe utile la școală și în viața de zi cu zi. În plus, jucăriile STEM sunt excelente pentru a descoperi interese: un copil atras de experimente poate înclina spre științe, în timp ce altul pasionat de construcții poate dezvolta o afinitate pentru inginerie. Recomandarea noastră este să alternați provocările, păstrând un echilibru între joacă liberă și proiecte ghidate.",
+  guide2025ScienceCategory: "Știință",
+  guide2025ScienceContent:
+    'Experimente, chimie, fizică și biologie pentru curioșii despre lumea din jur. Kiturile bune includ manuale clare, materiale sigure și activități progresive (observ, notez, concluzionez). Căutați seturi care pun accent pe observație și explicații pe înțelesul copiilor, nu doar pe efecte "wow". Vezi selecția noastră la',
+  guide2025TechnologyCategory: "Tehnologie",
+  guide2025TechnologyContent:
+    'Programare prin jocuri, robotică și electronice ușoare. Pentru începători, interfețele de tip "drag-and-drop" sunt ideale, iar pe măsură ce cresc, pot trece la limbaje simple. Căutați jucării cu proiecte scalabile, senzori integrați și comunități online cu idei de extindere. Descoperă recomandări la',
+  guide2025EngineeringCategory: "Inginerie",
+  guide2025EngineeringContent:
+    "Construcții, mecanisme și proiecte hands-on. Un set bun oferă stabilitate structurală, diversitate de piese și ghiduri care prezintă principii (pârghii, roți dințate, greutate). Este util ca proiectele să aibă niveluri de dificultate, astfel încât copiii să își poată vedea progresul și să își dezvolte încrederea. Inspiră-te din categoria",
+  guide2025MathematicsCategory: "Matematică",
+  guide2025MathematicsContent:
+    'Jocuri logice, abac, geometrie și probabilități. Alegeți jocuri care introduc concepte treptat, încurajează strategiile și discuțiile despre "de ce funcționează". Pentru copiii reticenți la matematică, optați pentru jocuri story-driven sau colaborative pentru a crește motivația. Explorează',
+  guide2025AgeRecommendationsContent:
+    "3–5 ani: jocuri senzoriale, sortare, construcții simple",
+  guide2025AgeRecommendationsContent2:
+    "6–8 ani: kituri științifice, programare vizuală, puzzle-uri",
+  guide2025AgeRecommendationsContent3:
+    "9–12 ani: robotică entry-level, circuite, proiecte inginerie",
+  guide2025AgeRecommendationsContent4:
+    "13+ ani: imprimare 3D, robotică avansată, proiecte electronice",
+  guide2025SeeDedicatedPage: "Vezi pagina dedicată:",
+  guide2025StemByAgeLink: "Jucării STEM după vârstă",
+  guide2025PracticalSuggestion:
+    "Sugestie practică: porniți de la abilitățile existente ale copilului și creșteți gradual dificultatea. O provocare prea ușoară plictisește, una prea grea demotivează. Căutați seturi cu proiecte în pași mici, feedback rapid (vizual/auditiv) și oportunități de lucru în echipă. Alternați activități scurte de 15–20 de minute cu proiecte mai lungi de weekend pentru a menține interesul și pentru a încuraja planificarea.",
+  guide2025HowToChooseContent1:
+    "Stabilește obiectivul educațional (logică, creativitate, colaborare).",
+  guide2025HowToChooseContent2:
+    "Potrivește nivelul de dificultate cu vârsta și interesul.",
+  guide2025HowToChooseContent3:
+    "Verifică materialele și standardele de siguranță.",
+  guide2025HowToChooseContent4:
+    "Preferă kituri cu proiecte progresive și ghiduri clare.",
+  guide2025HowToChooseContent5:
+    'Întreabă-te: "Ce va învăța copilul meu concret din acest set?" și "Cum pot contribui eu ca părinte?" Kiturile cu extensii (piese suplimentare, proiecte online) asigură durabilitate educațională. Verifică dacă există resurse video, comunități sau provocări săptămânale pentru a transforma jucăria într-o experiență continuă.',
+  guide2025TopRecommendationsContent:
+    "Curând vom publica o listă curată de produse reprezentative pe grupe de vârstă și categorii. Până atunci, explorează oferta noastră la",
+  guide2025FaqContent:
+    "Pentru răspunsuri rapide despre siguranță, vârstă și retur, vezi",
+  guide2025ReadyToChoose: "Gata să alegi?",
+  guide2025ReadyToChooseContent:
+    "Explorează colecția noastră de jucării STEM alese cu grijă.",
+  guide2025SeeProducts: "Vezi produsele",
+
+  // By Age Page translations
+  byAgeTitle: "Jucării STEM Perfecte pentru Fiecare Vârstă",
+  byAgeDescription:
+    "Găsește rapid jucării potrivite pentru vârsta copilului și obiectivele tale educaționale. Listele includ beneficii de dezvoltare și link-uri către categorii relevante.",
+  byAgeQuickSummary1: "3–5: senzorial, sortare, construcții mari.",
+  byAgeQuickSummary2:
+    "6–8: programare vizuală, experimente scurte, mecanisme simple.",
+  byAgeQuickSummary3:
+    "9–12: robotică entry-level, circuite, proiecte pe mai multe zile.",
+  byAgeQuickSummary4: "13+: microcontrolere, imprimare 3D, proiecte reale.",
+  byAgeQuickSummary5: "Crește dificultatea treptat și oferă feedback pe efort.",
+  byAgeTableOfContents: "Cuprins",
+  byAge3to5: "3–5 ani",
+  byAge6to8: "6–8 ani",
+  byAge9to12: "9–12 ani",
+  byAge13plus: "13+ ani",
+  byAgeSelectionTips: "Sfaturi de alegere",
+  byAge3to5Content1: "Jocuri senzoriale, sortare culori/forme",
+  byAge3to5Content2: "Seturi de construcții mari, blocuri magnetice",
+  byAge3to5Content3: "Activități de numărare și potrivire",
+  byAge3to5Explore: "Explorează",
+  byAge3to5Content4:
+    'În această etapă, accentul este pe explorare senzorială, motricitate fină și dezvoltarea limbajului. Alege jucării care invită la atingere, clasificare și descriere (moale/tare, mare/mic, culori/forme). Seturile de construcție cu piese mari cresc toleranța la frustrare și oferă feedback rapid (ce cade, ce stă). Evită regulile complicate; alege activități scurte, repetabile, cu variații (aceeași sarcină, culori diferite). Încurajează întrebări "de ce" și denumirea pașilor ("pun, împing, număr").',
+  byAge6to8Content1: "Programare vizuală, puzzle-uri logice",
+  byAge6to8Content2: "Kiturile științifice entry-level",
+  byAge6to8Content3: "Seturi de construcție cu mecanisme simple",
+  byAge6to8See: "Vezi",
+  byAge6to8Content4:
+    'Copiii pot urmări instrucțiuni pas-cu-pas și încep să se bucure de provocări cu reguli simple. Programarea vizuală (blocuri) introduce secvențierea și cauză-efect, iar puzzle-urile cresc răbdarea și flexibilitatea cognitivă. În știință, alegeți kituri cu experimente scurte, sigure, care cer observație și concluzii ("Ce s-a schimbat?"). La construcții, mecanismele simple (pârghii, roți dințate) sunt ideale pentru a face legătura între teorie și rezultat.',
+  byAge9to12Content1: "Robotică entry-level, circuite și senzori",
+  byAge9to12Content2: "Proiecte de inginerie la scară mică",
+  byAge9to12Content3: "Probleme matematice și jocuri strategice",
+  byAge9to12Recommend: "Recomandăm",
+  byAge9to12Content4:
+    "La această vârstă, copiii pot planifica proiecte pe mai multe zile și pot depana erori. Seturile de robotică entry-level, circuitele cu senzori și proiectele de inginerie stimulează gândirea sistemică și documentarea procesului. Jocurile strategice și problemele deschise dezvoltă capacitatea de a compara soluții și de a justifica alegeri. Căutați kituri extensibile (piese suplimentare, proiecte online) pentru a susține progresul.",
+  byAge13plusContent1: "Robotică avansată, imprimare 3D",
+  byAge13plusContent2: "Proiecte electronice și microcontrolere",
+  byAge13plusContent3: "Proiecte interdisciplinare STEM",
+  byAge13plusDiscover: "Descoperă",
+  byAge13plusContent4:
+    "Adolescenții au nevoie de autonomie, proiecte reale și rezultate vizibile. Microcontrolerele, imprimarea 3D și seturile de robotică avansată oferă context pentru design, prototipare și iterație. Încurajați documentarea (jurnal, video), lucrul în echipă și conectarea cu comunități (cluburi, hackathoane). Legați proiectele de interese reale (eco, mobilitate, artă) pentru a crește motivația.",
+  byAgeSelectionTipsContent1:
+    "Alege după interesul copilului pentru motivație intrinsecă.",
+  byAgeSelectionTipsContent2: "Progresează treptat de la simplu la complex.",
+  byAgeSelectionTipsContent3:
+    "Preferă seturi cu ghiduri clare și resurse online.",
+  byAgeSelectionTipsContent4:
+    "Verifică standardele de siguranță și materialele.",
+  byAgeSelectionTipsContent5:
+    "Păstrați sesiuni scurte și frecvente pentru învățare susținută. Alternați proiecte individuale cu activități în echipă. Dacă apare frustrarea, micșorați provocarea sau împărțiți sarcina în pași mai mici. Oferiți feedback pozitiv pe efort (nu doar pe rezultat) pentru a construi perseverența și bucuria explorării.",
+  byAgeExploreProducts: "Explorează produsele",
+
+  // Benefits Page translations
+  benefitsTitle:
+    "De ce Sunt Importante Jucăriile STEM pentru Dezvoltarea Copilului",
+  benefitsDescription:
+    "Învață cum jucăriile STEM accelerează dezvoltarea cognitivă, socială și emoțională prin activități practice și proiecte captivante.",
+  benefitsQuickSummary1: "Gândire critică, logică, creativitate, colaborare.",
+  benefitsQuickSummary2:
+    "Perseverență prin proiecte iterative și feedback pe efort.",
+  benefitsQuickSummary3:
+    "Transfer spre performanța școlară și abilități reale.",
+  benefitsQuickSummary4:
+    "Leagă activitățile de teme reale (energie, mediu, sănătate).",
+  benefitsQuickSummary5: "Încurajează prezentări și auto-reflecție ghidată.",
+  benefitsTableOfContents: "Cuprins",
+  benefitsCriticalThinking: "Gândire critică și logică",
+  benefitsCreativity: "Creativitate și inovație",
+  benefitsCollaboration: "Colaborare și comunicare",
+  benefitsAutonomy: "Autonomie și perseverență",
+  benefitsTransfer: "Transfer spre școală și viața reală",
+  benefitsCriticalThinkingContent1:
+    "Puzzle-urile, problemele deschise și programarea vizuală dezvoltă abilități de analiză, planificare și rezolvare de probleme.",
+  benefitsCriticalThinkingContent2:
+    'Alternați sarcini cu răspuns unic (corect/greșit) cu provocări deschise (mai multe soluții posibile). Încurajați copiii să-și explice pașii, să compare strategii și să identifice "de ce a funcționat". Folosiți limbajul procesului: observ, presupun, testez, ajustez.',
+  benefitsCreativityContent1:
+    "Seturile de construcții, proiectele de inginerie și electronica creativă încurajează generarea de idei și design iterativ.",
+  benefitsCreativityContent2:
+    'Oferiți "brief-uri" scurte (Construiește un pod care să țină X greutate) și timp pentru prototipare. Validați încercările, nu doar rezultatul final. Introduceți restricții creative (număr limitat de piese) pentru a stimula soluții ingenioase.',
+  benefitsCollaborationContent1:
+    "Proiectele în echipă dezvoltă leadership, împărțirea rolurilor și comunicarea clară.",
+  benefitsCollaborationContent2:
+    "Stabiliți roluri (designer, constructor, tester) și reguli simple de feedback (specific, pozitiv, constructiv). Alternați rolurile pentru echitate și învățare holistică.",
+  benefitsAutonomyContent1:
+    "Copiii învață să gestioneze eșecul constructiv, să depaneze și să rămână motivați până la rezultat.",
+  benefitsAutonomyContent2:
+    'Folosiți jurnal de proiect (Ce am încercat? Ce schimb?) și sărbătoriți micro-progresele. Normalizați eșecul ca parte a procesului ("Nu a mers încă"). Oferiți timp de "cooldown" când frustrarea e mare.',
+  benefitsTransferContent1:
+    "Competențele STEM susțin performanța școlară la matematică și științe și se transferă în abilități de viață: planificare, decizii, gândire sistemică.",
+  benefitsTransferContent2:
+    "Legați proiectele de contexte reale (energie, mediu, sănătate). Invitați copiii să prezinte rezultatele (poster, video). Folosiți rubrici simple de evaluare pentru auto-reflecție: Claritate, Creativitate, Rigoare.",
+  benefitsExploreCategories: "Explorează categoriile noastre:",
+  benefitsSeeProducts: "Vezi produsele",
+
+  // FAQ Page translations
+  faqTitle: "Întrebări frecvente",
+  faqWhatAreStem: "Ce sunt jucăriile STEM?",
+  faqWhatAreStemAnswer:
+    "Jucăriile STEM încurajează gândirea critică, creativitatea și învățarea practică în știință, tehnologie, inginerie și matematică.",
+  faqAgeAppropriate: "Sunt jucăriile potrivite pentru vârsta copilului meu?",
+  faqAgeAppropriateAnswer:
+    "Urmăriți recomandarea de vârstă de pe pagina produsului și folosiți filtrele pentru a găsi opțiuni adecvate.",
+  faqReturnPolicy: "Care este politica de retur?",
+  faqReturnPolicyAnswer:
+    "Acceptăm retur în 14 zile pentru produse nefolosite. Consultați pagina de retur pentru pași și condiții.",
+  faqSafety: "Sunt jucăriile sigure?",
+  faqSafetyAnswer:
+    "Produsele respectă standardele de siguranță și sunt atent verificate pentru calitate.",
+
   // Footer specific translations (expanded)
   // Newsletter section
   joinEducatorsParents: "🚀 Alătură-te la 50.000+ Educatori și Părinți STEM",

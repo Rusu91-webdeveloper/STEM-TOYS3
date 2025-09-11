@@ -1,5 +1,6 @@
 // [INFO] This is the Next.js homepage entry point. All child components have been refactored for perfect responsiveness, accessibility, and a premium, app-like user experience. See section files for detailed comments and rationale.
 import type { Product } from "@/types/product";
+import { headers } from "next/headers";
 
 import HomePageClient from "./HomePageClient";
 
@@ -27,13 +28,18 @@ const heroSectionCriticalCSS = `
 
 async function getFeaturedProducts(): Promise<Product[]> {
   try {
-    // We can use the full URL here for server-side fetching
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/products?featured=true&limit=3`, // Reduced from 4 to 3 for faster loading
-      {
-        next: { revalidate: 120 }, // Increased cache time to 2 minutes for better performance
-      }
-    );
+    // Build absolute URL for server-side fetch
+    const hdrs = await headers();
+    const host =
+      hdrs.get("x-forwarded-host") || hdrs.get("host") || "localhost:3000";
+    const proto =
+      hdrs.get("x-forwarded-proto") ||
+      (process.env.NODE_ENV === "production" ? "https" : "http");
+    const baseUrl = `${proto}://${host}`;
+
+    const res = await fetch(`${baseUrl}/api/products?featured=true&limit=3`, {
+      next: { revalidate: 120 }, // Increased cache time to 2 minutes for better performance
+    });
 
     if (!res.ok) {
       throw new Error("Failed to fetch featured products");

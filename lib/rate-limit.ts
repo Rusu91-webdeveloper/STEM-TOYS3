@@ -22,8 +22,61 @@ interface RateLimitConfig {
   identifierFn?: (req: NextRequest) => string;
 }
 
-// Timeout for Redis operations (1 second - reduced for faster fallback)
-const REDIS_TIMEOUT = 1000;
+// Provider selection and timeouts
+const RATE_LIMIT_PROVIDER = (
+  process.env.RATE_LIMIT_PROVIDER || "auto"
+).toLowerCase();
+// Default to faster timeouts in production, slightly looser in dev
+const REDIS_TIMEOUT = parseInt(
+  process.env.REDIS_TIMEOUT ??
+    (process.env.NODE_ENV === "production" ? "150" : "1000"),
+  10
+);
+
+// Simple circuit breaker state
+let circuitOpen = false;
+let circuitOpenedAt = 0;
+let rollingCalls = 0;
+let rollingTimeouts = 0;
+const CIRCUIT_WINDOW_MS = 60_000; // 60s window
+const CIRCUIT_OPEN_MS = 30_000; // stay open 30s
+const TIMEOUT_THRESHOLD_RATIO = 0.2; // 20%
+
+function maybeResetRollingWindow() {
+  // Lightweight decay each minute
+  // If last open was long ago, reset counters
+  if (Date.now() - circuitOpenedAt > CIRCUIT_WINDOW_MS) {
+    rollingCalls = 0;
+    rollingTimeouts = 0;
+  }
+}
+
+function recordRedisAttempt(didTimeout: boolean) {
+  rollingCalls += 1;
+  if (didTimeout) rollingTimeouts += 1;
+
+  const ratio = rollingCalls > 0 ? rollingTimeouts / rollingCalls : 0;
+  if (!circuitOpen && rollingCalls >= 50 && ratio > TIMEOUT_THRESHOLD_RATIO) {
+    circuitOpen = true;
+    circuitOpenedAt = Date.now();
+    console.warn(
+      `[ratelimit] Circuit opened: timeouts=${rollingTimeouts} calls=${rollingCalls} ratio=${ratio.toFixed(2)}`
+    );
+  }
+}
+
+function circuitAllowsRedis(): boolean {
+  if (!circuitOpen) return true;
+  // Half-open after open interval
+  if (Date.now() - circuitOpenedAt > CIRCUIT_OPEN_MS) {
+    circuitOpen = false;
+    rollingCalls = 0;
+    rollingTimeouts = 0;
+    console.warn("[ratelimit] Circuit half-open: probing Redis again");
+    return true;
+  }
+  return false;
+}
 
 /**
  * Execute a Redis operation with a timeout to prevent hanging
@@ -33,6 +86,7 @@ async function withRedisTimeout<T>(
   fallbackFn: () => T
 ): Promise<T> {
   try {
+    maybeResetRollingWindow();
     // Create a promise that rejects after the timeout
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
@@ -45,9 +99,12 @@ async function withRedisTimeout<T>(
     });
 
     // Race the operation against the timeout
-    return await Promise.race([operation, timeoutPromise]);
+    const result = await Promise.race([operation, timeoutPromise]);
+    recordRedisAttempt(false);
+    return result as T;
   } catch (error) {
     console.error("Redis rate limit operation failed or timed out:", error);
+    recordRedisAttempt(true);
     // Execute fallback function if operation fails or times out
     return fallbackFn();
   }
@@ -79,12 +136,16 @@ export function rateLimit(config: RateLimitConfig) {
     let resetTime = 0;
 
     try {
-      // Check if Redis is configured and available
-      const isRedisConfigured = !!(
-        process.env.REDIS_URL && process.env.REDIS_TOKEN
-      );
+      // Provider selection
+      const preferMemory =
+        RATE_LIMIT_PROVIDER === "memory" ||
+        (RATE_LIMIT_PROVIDER === "auto" &&
+          process.env.NODE_ENV !== "production");
 
-      if (isRedisConfigured) {
+      const canUseRedis =
+        !preferMemory && isRedisConfigured && circuitAllowsRedis();
+
+      if (canUseRedis) {
         // Using Redis for rate limiting
         // Use Redis for distributed rate limiting with timeout protection
 
@@ -288,6 +349,20 @@ export function withRateLimit(
     return handler(req);
   };
 }
+
+// Expose minimal health for the circuit state
+export const rateLimitHealth = {
+  get status() {
+    return {
+      provider: RATE_LIMIT_PROVIDER,
+      redisConfigured: isRedisConfigured,
+      circuitOpen,
+      rollingCalls,
+      rollingTimeouts,
+      redisTimeoutMs: REDIS_TIMEOUT,
+    };
+  },
+};
 
 /**
  * Rate limiting utility for API endpoints
