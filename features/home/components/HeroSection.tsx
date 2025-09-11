@@ -96,20 +96,6 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
         >
           {t("exploreCategories")}
         </Link>
-        {/* Pillar Pages CTA: Guide 2025 */}
-        <Link
-          href="/ghid-jucarii-stem-2025"
-          aria-label="Ghidul Jucăriilor STEM 2025"
-          tabIndex={0}
-          data-conversion="cta"
-          data-conversion-type="click"
-          data-conversion-category="cta"
-          data-conversion-action="hero_guide_2025"
-          data-conversion-element="hero_ghid_2025"
-          className="w-full xs:w-auto min-h-[36px] sm:min-h-[44px] px-3 sm:px-6 py-2 sm:py-3 bg-white text-gray-900 hover:bg-gray-100 rounded-lg shadow-lg hover:shadow-xl transition-all text-xs sm:text-base md:text-lg font-semibold focus:outline-none"
-        >
-          Ghid 2025
-        </Link>
       </div>
     </div>
   </section>

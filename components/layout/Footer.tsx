@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import NewsletterSignup from "@/components/NewsletterSignup";
+import { SupplierBanner } from "@/features/home/components";
 import { useTranslation } from "@/lib/i18n";
 
 interface StoreSettings {
@@ -73,6 +74,9 @@ export default function Footer() {
 
   return (
     <footer className="bg-gray-900 text-white">
+      {/* Supplier Banner - Professional call-to-action for suppliers */}
+      <SupplierBanner t={t} />
+      
       {/* Newsletter always visible at top */}
       <NewsletterSignup />
 

@@ -10,7 +10,6 @@ import {
   FeaturedProductsSkeleton,
   HeroSection,
   PillarSection,
-  SupplierBanner,
   ValuePropositionSection,
 } from "@/features/home/components";
 import { useCurrency } from "@/lib/currency";
@@ -80,9 +79,6 @@ export default function HomePageClient({
 
       {/* Pillar Section - Key content themes */}
       <PillarSection />
-
-      {/* Supplier Banner - Professional call-to-action for suppliers */}
-      <SupplierBanner t={t} />
 
       {/* Categories Section - Load immediately */}
       <CategoriesSection categories={categories} t={t} />
