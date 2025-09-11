@@ -41,13 +41,13 @@ export default function NewsletterSignup() {
   };
 
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-purple-600 py-8 sm:py-12">
+    <div className="bg-gradient-to-r from-purple-700 via-fuchsia-600 to-purple-500 py-8 sm:py-12">
       <div className="container mx-auto px-3 sm:px-4 md:px-6">
         <div className="text-center max-w-2xl mx-auto">
           <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2">
             {t("joinEducatorsParents")}
           </h3>
-          <p className="text-sm sm:text-base text-blue-100 mb-4 sm:mb-6">
+          <p className="text-sm sm:text-base text-purple-100 mb-4 sm:mb-6">
             {t("newsletterSubtitle")}
           </p>
           <form
@@ -67,7 +67,7 @@ export default function NewsletterSignup() {
             <button
               type="submit"
               disabled={isSubscribing}
-              className="bg-white text-blue-600 font-semibold px-6 py-2 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 text-sm sm:text-base whitespace-nowrap"
+              className="bg-white text-purple-700 font-semibold px-6 py-2 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 text-sm sm:text-base whitespace-nowrap"
               aria-label="Subscribe to newsletter"
             >
               {isSubscribing ? t("subscribing") : t("getFreeResources")}

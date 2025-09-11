@@ -222,7 +222,7 @@ export default function Header() {
                     data-conversion-action="header_link_click"
                     data-conversion-element={`header_${typeof item.name === "string" ? item.name : String(item.name)}`}
                   >
-                    <span className="relative">
+                    <span className="relative capitalize">
                       {typeof item.name === "string" ? item.name : t(item.name)}
                       <span
                         className={cn(
@@ -348,7 +348,7 @@ export default function Header() {
                         )}
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        {t(item.name)}
+                        <span className="capitalize">{t(item.name)}</span>
                       </Link>
                     ))}
                 </div>
