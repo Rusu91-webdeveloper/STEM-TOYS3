@@ -178,6 +178,62 @@ export default function Footer() {
                   {t("about")}
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/ghid-jucarii-stem-2025"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
+                  data-conversion="cta"
+                  data-conversion-type="click"
+                  data-conversion-category="footer"
+                  data-conversion-action="footer_link_click"
+                  data-conversion-element="footer_ghid_2025"
+                >
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
+                  Ghid 2025
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/jucarii-stem-dupa-varsta"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
+                  data-conversion="cta"
+                  data-conversion-type="click"
+                  data-conversion-category="footer"
+                  data-conversion-action="footer_link_click"
+                  data-conversion-element="footer_dupa_varsta"
+                >
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
+                  După vârstă
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/beneficiile-jucariilor-stem"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
+                  data-conversion="cta"
+                  data-conversion-type="click"
+                  data-conversion-category="footer"
+                  data-conversion-action="footer_link_click"
+                  data-conversion-element="footer_beneficii_stem"
+                >
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
+                  Beneficii STEM
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/faq"
+                  className="text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-200 flex items-center group"
+                  data-conversion="cta"
+                  data-conversion-type="click"
+                  data-conversion-category="footer"
+                  data-conversion-action="footer_link_click"
+                  data-conversion-element="footer_faq"
+                >
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 group-hover:bg-white transition-colors"></span>
+                  FAQ
+                </Link>
+              </li>
             </ul>
           </div>
 

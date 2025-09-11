@@ -23,8 +23,42 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       return notFound();
     }
 
-    // Pass blog post data to client component
-    return <BlogPostDetail post={blogPost} />;
+    // Pass blog post data to client component and render Breadcrumb JSON-LD
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                {
+                  "@type": "ListItem",
+                  position: 1,
+                  name: "Home",
+                  item: "https://www.techtots.ro/",
+                },
+                {
+                  "@type": "ListItem",
+                  position: 2,
+                  name: "Blog",
+                  item: "https://www.techtots.ro/blog",
+                },
+                {
+                  "@type": "ListItem",
+                  position: 3,
+                  name: blogPost.title,
+                  item: `https://www.techtots.ro/blog/${slug}`,
+                },
+              ],
+            }),
+          }}
+        />
+        <BlogPostDetail post={blogPost} />
+      </>
+    );
   } catch (error) {
     console.error("Error fetching blog post:", error);
     return notFound();

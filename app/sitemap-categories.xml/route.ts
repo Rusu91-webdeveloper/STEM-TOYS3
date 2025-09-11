@@ -26,31 +26,53 @@ export async function GET() {
     let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">`;
 
+    // If no categories, include the categories index page so the sitemap always has at least one <url>
+    if (!categories || categories.length === 0) {
+      const now = new Date().toISOString();
+      ["ro", "en"].forEach(lang => {
+        const url =
+          lang === "ro"
+            ? `${baseUrl}/categories`
+            : `${baseUrl}/${lang}/categories`;
+        sitemap += `
+  <url>
+    <loc>${url}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+      });
+    }
+
     // Add categories
-    categories.forEach((category) => {
-      const lastmod = new Date(category.updatedAt || category.createdAt || new Date()).toISOString();
-      
-      languages.forEach((lang) => {
-        const url = lang === "ro" 
-          ? `${baseUrl}/categories/${category.slug}`
-          : `${baseUrl}/${lang}/categories/${category.slug}`;
-        
+    categories.forEach(category => {
+      const lastmod = new Date(
+        category.updatedAt || category.createdAt || new Date()
+      ).toISOString();
+
+      languages.forEach(lang => {
+        const url =
+          lang === "ro"
+            ? `${baseUrl}/categories/${category.slug}`
+            : `${baseUrl}/${lang}/categories/${category.slug}`;
+
         sitemap += `
   <url>
     <loc>${url}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>`;
-        
+
         // Add hreflang for multilingual support
         languages.forEach(hreflang => {
-          const hreflangUrl = hreflang === "ro"
-            ? `${baseUrl}/categories/${category.slug}`
-            : `${baseUrl}/${hreflang}/categories/${category.slug}`;
+          const hreflangUrl =
+            hreflang === "ro"
+              ? `${baseUrl}/categories/${category.slug}`
+              : `${baseUrl}/${hreflang}/categories/${category.slug}`;
           sitemap += `
     <xhtml:link rel="alternate" hreflang="${hreflang}" href="${hreflangUrl}" />`;
         });
-        
+
         sitemap += `
   </url>`;
       });
@@ -67,7 +89,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Error generating categories sitemap:", error);
-    
+
     // Return empty sitemap on error
     const emptySitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

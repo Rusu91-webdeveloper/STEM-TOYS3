@@ -27,6 +27,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       { path: "blog", priority: 0.8, changeFreq: "weekly" },
       { path: "about", priority: 0.7, changeFreq: "monthly" },
       { path: "contact", priority: 0.7, changeFreq: "monthly" },
+      { path: "faq", priority: 0.6, changeFreq: "monthly" },
+      { path: "ghid-jucarii-stem-2025", priority: 0.7, changeFreq: "monthly" },
+      {
+        path: "jucarii-stem-dupa-varsta",
+        priority: 0.7,
+        changeFreq: "monthly",
+      },
+      {
+        path: "beneficiile-jucariilor-stem",
+        priority: 0.7,
+        changeFreq: "monthly",
+      },
     ];
 
     mainSections.forEach(section => {

@@ -25,12 +25,17 @@ import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation, TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-const navigation: { name: TranslationKey; href: string }[] = [
+const navigation: { name: TranslationKey | string; href: string }[] = [
   { name: "home", href: "/" },
   { name: "products", href: "/products" },
   { name: "categories", href: "/categories" },
   { name: "blog", href: "/blog" },
   { name: "about", href: "/about" },
+  // Pillar links (non-translated keys for now)
+  { name: "Ghid 2025", href: "/ghid-jucarii-stem-2025" },
+  { name: "După vârstă", href: "/jucarii-stem-dupa-varsta" },
+  { name: "Beneficii STEM", href: "/beneficiile-jucariilor-stem" },
+  { name: "FAQ", href: "/faq" },
 ];
 
 export default function Header() {
@@ -43,8 +48,12 @@ export default function Header() {
   // FIXED: Simplified and consistent authentication state logic
   const isAuthenticated =
     status === "authenticated" && !!session?.user && !session.user.error;
-  const isAdmin = isAuthenticated && (session?.user?.role === "ADMIN" || session?.user?.role === "VISITOR");
-  const isSupplier = isAuthenticated && (session?.user?.role === "SUPPLIER" || session?.user?.role === "VISITOR");
+  const isAdmin =
+    isAuthenticated &&
+    (session?.user?.role === "ADMIN" || session?.user?.role === "VISITOR");
+  const isSupplier =
+    isAuthenticated &&
+    (session?.user?.role === "SUPPLIER" || session?.user?.role === "VISITOR");
   const isLoading = status === "loading";
 
   // FIXED: Only show authenticated UI if truly authenticated
@@ -212,9 +221,14 @@ export default function Header() {
                         ? "text-indigo-700 bg-indigo-50 shadow-sm"
                         : "text-gray-700 hover:text-indigo-600 hover:bg-indigo-50/50"
                     )}
+                    data-conversion="cta"
+                    data-conversion-type="click"
+                    data-conversion-category="nav"
+                    data-conversion-action="header_link_click"
+                    data-conversion-element={`header_${typeof item.name === "string" ? item.name : String(item.name)}`}
                   >
                     <span className="relative">
-                      {t(item.name)}
+                      {typeof item.name === "string" ? item.name : t(item.name)}
                       <span
                         className={cn(
                           "absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-200 group-hover:w-full",

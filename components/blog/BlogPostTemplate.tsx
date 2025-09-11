@@ -37,14 +37,19 @@ interface BlogPostTemplateProps {
   language?: string;
 }
 
-export default function BlogPostTemplate({ post, language = "ro" }: BlogPostTemplateProps) {
+export default function BlogPostTemplate({
+  post,
+  language = "ro",
+}: BlogPostTemplateProps) {
   const { t } = useTranslation();
 
   if (!post) {
     return (
       <div className="container py-12 flex justify-center items-center min-h-[60vh]">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Post not found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Post not found
+          </h2>
           <Link href="/blog">
             <Button>
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -259,6 +264,62 @@ export default function BlogPostTemplate({ post, language = "ro" }: BlogPostTemp
           </div>
         )}
 
+        {/* Related Reading (Pillars) */}
+        <div className="max-w-4xl mx-auto mt-10">
+          <div className="bg-white rounded-2xl shadow p-6 border">
+            <h3 className="text-lg font-semibold mb-3">Citește și</h3>
+            <div className="flex flex-wrap gap-3 text-sm">
+              <Link
+                className="underline"
+                href="/ghid-jucarii-stem-2025"
+                data-conversion="cta"
+                data-conversion-type="click"
+                data-conversion-category="blog"
+                data-conversion-action="related_reading_click"
+                data-conversion-element="blog_related_ghid_2025"
+              >
+                Ghid 2025
+              </Link>
+              <span>·</span>
+              <Link
+                className="underline"
+                href="/jucarii-stem-dupa-varsta"
+                data-conversion="cta"
+                data-conversion-type="click"
+                data-conversion-category="blog"
+                data-conversion-action="related_reading_click"
+                data-conversion-element="blog_related_dupa_varsta"
+              >
+                După vârstă
+              </Link>
+              <span>·</span>
+              <Link
+                className="underline"
+                href="/beneficiile-jucariilor-stem"
+                data-conversion="cta"
+                data-conversion-type="click"
+                data-conversion-category="blog"
+                data-conversion-action="related_reading_click"
+                data-conversion-element="blog_related_beneficii"
+              >
+                Beneficii STEM
+              </Link>
+              <span>·</span>
+              <Link
+                className="underline"
+                href="/faq"
+                data-conversion="cta"
+                data-conversion-type="click"
+                data-conversion-category="blog"
+                data-conversion-action="related_reading_click"
+                data-conversion-element="blog_related_faq"
+              >
+                FAQ
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* Call to Action */}
         <div className="max-w-4xl mx-auto mt-8">
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 text-center border border-blue-100">
@@ -270,7 +331,11 @@ export default function BlogPostTemplate({ post, language = "ro" }: BlogPostTemp
               children of all ages. From science experiments to coding robots,
               we have everything to spark curiosity and creativity.
             </p>
-            <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+            <Button
+              asChild
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            >
               <Link href="/products">Shop STEM Toys</Link>
             </Button>
           </div>
@@ -279,7 +344,11 @@ export default function BlogPostTemplate({ post, language = "ro" }: BlogPostTemp
         {/* Back to Blog */}
         <div className="flex justify-center mt-12">
           <Link href="/blog">
-            <Button variant="outline" size="lg" className="flex items-center gap-2 hover:bg-gray-50">
+            <Button
+              variant="outline"
+              size="lg"
+              className="flex items-center gap-2 hover:bg-gray-50"
+            >
               <ArrowLeft className="h-4 w-4" />
               {t("backToBlog", "Back to Blog")}
             </Button>

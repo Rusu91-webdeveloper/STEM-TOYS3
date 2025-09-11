@@ -122,6 +122,11 @@ export const adminNavItems = [
     icon: BarChart,
   },
   {
+    title: "SEO Dashboard",
+    href: "/admin/seo-dashboard",
+    icon: BarChart,
+  },
+  {
     title: "Email Templates",
     href: "/admin/email-templates",
     icon: Mail,
