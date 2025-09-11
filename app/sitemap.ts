@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 // Base URL for the site - use an environment variable or localhost during build
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://techtots.com";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
 
 // Supported languages
 const languages = ["ro", "en"];
