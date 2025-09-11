@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://techtots.com";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
 
 export async function GET() {
   const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>

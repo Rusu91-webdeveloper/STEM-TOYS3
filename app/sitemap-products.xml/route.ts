@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://techtots.com";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
 const languages = ["ro", "en"];
 
 export async function GET() {
