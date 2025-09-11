@@ -41,12 +41,12 @@ const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "TechTots - Jucării STEM pentru Minți Curioase",
-  url: "https://techtots.com",
+  url: "https://techtots.ro",
   potentialAction: {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: "https://techtots.com/search?q={search_term_string}",
+      urlTemplate: "https://techtots.ro/search?q={search_term_string}",
     },
     "query-input": "required name=search_term_string",
   },
@@ -101,7 +101,7 @@ const organizationSchema = {
   "@type": "Organization",
   "@id": "https://techtots.com/#organization",
   name: "TechTots România",
-  url: "https://techtots.com",
+  url: "https://techtots.ro",
   logo: {
     "@type": "ImageObject",
     url: "https://techtots.com/TechTots_LOGO.png",
@@ -140,11 +140,11 @@ export const metadata = createMetadata({
   pathWithoutLocale: "/",
   // Google Search Console verification
   verification: {
-    google: "DpROhqXJbkK0a-s4_Dn1UHANYy6K5WtJ7BhIJ9oy9tc",
+    google: "46d30c56bd33dcae",
   },
   // Additional SEO meta tags for 2025
   other: {
-    "google-site-verification": "DpROhqXJbkK0a-s4_Dn1UHANYy6K5WtJ7BhIJ9oy9tc",
+    "google-site-verification": "46d30c56bd33dcae",
     "msvalidate.01": "REPLACE_WITH_BING_VERIFICATION_CODE",
   },
   translations: {
