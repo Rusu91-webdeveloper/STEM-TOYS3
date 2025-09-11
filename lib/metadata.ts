@@ -77,7 +77,7 @@ export function createMetadata({
   const alternateLanguages = [];
 
   // Base URL for the canonical URL
-  const baseUrl = "https://techtots.com";
+  const baseUrl = "https://www.techtots.ro";
 
   // Build the languages object for alternates
   for (const lang of metadataLanguages) {
