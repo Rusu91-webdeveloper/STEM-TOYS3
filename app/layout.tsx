@@ -5,6 +5,8 @@ import { cookies } from "next/headers";
 import { SessionProvider } from "next-auth/react";
 
 import ConversionTrackingProvider from "@/components/conversion-tracking/ConversionTrackingProvider";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import PerformanceMonitor from "@/components/analytics/PerformanceMonitor";
 import ClientLayout from "@/components/layout/ClientLayout";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { Toaster } from "@/components/ui/toaster";
@@ -60,6 +62,10 @@ export default async function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        {/* Google Analytics 4 */}
+        <GoogleAnalytics />
+        {/* Performance Monitoring */}
+        <PerformanceMonitor />
       </head>
       <body
         className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}

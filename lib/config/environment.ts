@@ -3,6 +3,7 @@ import { z } from "zod";
 // Environment variable schemas
 const DatabaseConfigSchema = z.object({
   DATABASE_URL: z.string().url(),
+  DIRECT_URL: z.string().url().optional(),
   DATABASE_POOL_SIZE: z
     .string()
     .transform(val => parseInt(val, 10))
@@ -110,6 +111,26 @@ const MonitoringConfigSchema = z.object({
     .default("false"),
 });
 
+const AIConfigSchema = z.object({
+  OPENAI_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
+  AI_PROVIDER: z.enum(["openai", "anthropic", "gemini"]).default("openai"),
+  AI_MODEL: z.string().default("gpt-4"),
+  AI_MAX_TOKENS: z
+    .string()
+    .transform(val => parseInt(val, 10))
+    .default("2000"),
+  AI_TEMPERATURE: z
+    .string()
+    .transform(val => parseFloat(val))
+    .default("0.7"),
+  AI_ENHANCEMENT_ENABLED: z
+    .string()
+    .transform(val => val === "true")
+    .default("true"),
+});
+
 // Combined environment schema
 const EnvironmentSchema = z.object({
   NODE_ENV: z
@@ -122,11 +143,12 @@ const EnvironmentSchema = z.object({
   ...CacheConfigSchema.shape,
   ...SecurityConfigSchema.shape,
   ...MonitoringConfigSchema.shape,
+  ...AIConfigSchema.shape,
 });
 
 // Environment configuration class
 class EnvironmentConfig {
-  private static instance: EnvironmentConfig;
+  private static configInstance: EnvironmentConfig;
   private config: z.infer<typeof EnvironmentSchema>;
   private validated = false;
 
@@ -135,16 +157,17 @@ class EnvironmentConfig {
   }
 
   static getInstance(): EnvironmentConfig {
-    if (!EnvironmentConfig.instance) {
-      EnvironmentConfig.instance = new EnvironmentConfig();
+    if (!EnvironmentConfig.configInstance) {
+      EnvironmentConfig.configInstance = new EnvironmentConfig();
     }
-    return EnvironmentConfig.instance;
+    return EnvironmentConfig.configInstance;
   }
 
   private loadEnvironment(): z.infer<typeof EnvironmentSchema> {
     const env = {
       NODE_ENV: process.env.NODE_ENV,
       DATABASE_URL: process.env.DATABASE_URL,
+      DIRECT_URL: process.env.DIRECT_URL,
       DATABASE_POOL_SIZE: process.env.DATABASE_POOL_SIZE,
       DATABASE_CONNECTION_TIMEOUT: process.env.DATABASE_CONNECTION_TIMEOUT,
       DATABASE_IDLE_TIMEOUT: process.env.DATABASE_IDLE_TIMEOUT,
@@ -179,6 +202,15 @@ class EnvironmentConfig {
       SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
       LOG_LEVEL: process.env.LOG_LEVEL,
       ENABLE_ANALYTICS: process.env.ENABLE_ANALYTICS,
+      // AI Configuration
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+      GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+      AI_PROVIDER: process.env.AI_PROVIDER,
+      AI_MODEL: process.env.AI_MODEL,
+      AI_MAX_TOKENS: process.env.AI_MAX_TOKENS,
+      AI_TEMPERATURE: process.env.AI_TEMPERATURE,
+      AI_ENHANCEMENT_ENABLED: process.env.AI_ENHANCEMENT_ENABLED,
     };
 
     return env as z.infer<typeof EnvironmentSchema>;
@@ -216,6 +248,7 @@ class EnvironmentConfig {
   get database() {
     return {
       url: this.get("DATABASE_URL"),
+      directUrl: this.get("DIRECT_URL"),
       poolSize: this.get("DATABASE_POOL_SIZE"),
       connectionTimeout: this.get("DATABASE_CONNECTION_TIMEOUT"),
       idleTimeout: this.get("DATABASE_IDLE_TIMEOUT"),
@@ -292,6 +325,25 @@ class EnvironmentConfig {
     };
   }
 
+  // AI configuration
+  get ai() {
+    return {
+      openaiApiKey: this.get("OPENAI_API_KEY"),
+      anthropicApiKey: this.get("ANTHROPIC_API_KEY"),
+      geminiApiKey: this.get("GEMINI_API_KEY"),
+      provider: this.get("AI_PROVIDER"),
+      model: this.get("AI_MODEL"),
+      maxTokens: this.get("AI_MAX_TOKENS"),
+      temperature: this.get("AI_TEMPERATURE"),
+      enhancementEnabled: this.get("AI_ENHANCEMENT_ENABLED"),
+      isConfigured: !!(
+        this.get("OPENAI_API_KEY") ||
+        this.get("ANTHROPIC_API_KEY") ||
+        this.get("GEMINI_API_KEY")
+      ),
+    };
+  }
+
   // Environment info
   get environment() {
     return {
@@ -311,6 +363,7 @@ class EnvironmentConfig {
       performance: this.get("PERFORMANCE_MONITORING"),
       caching: this.get("API_CACHING"),
       monitoring: !!this.get("SENTRY_DSN"),
+      ai: this.ai.isConfigured,
     };
   }
 
@@ -326,6 +379,7 @@ class EnvironmentConfig {
     );
     console.log(`  API Caching: ${this.cache.apiCaching ? "✅" : "❌"}`);
     console.log(`  Monitoring: ${this.monitoring.sentryDsn ? "✅" : "❌"}`);
+    console.log(`  AI Enhancement: ${this.ai.isConfigured ? "✅" : "❌"}`);
   }
 }
 
@@ -342,6 +396,7 @@ export const getPerformanceConfig = () => envConfig.performance;
 export const getCacheConfig = () => envConfig.cache;
 export const getSecurityConfig = () => envConfig.security;
 export const getMonitoringConfig = () => envConfig.monitoring;
+export const getAIConfig = () => envConfig.ai;
 export const getEnvironmentInfo = () => envConfig.environment;
 export const getServiceHealth = () => envConfig.getServiceHealth();
 export const printConfigSummary = () => envConfig.printSummary();
