@@ -138,6 +138,15 @@ export const metadata = createMetadata({
   structuredData: combinedStructuredData,
   ogImage: "/opengraph-image.png",
   pathWithoutLocale: "/",
+  // Google Search Console verification
+  verification: {
+    google: "DpROhqXJbkK0a-s4_Dn1UHANYy6K5WtJ7BhIJ9oy9tc",
+  },
+  // Additional SEO meta tags for 2025
+  other: {
+    "google-site-verification": "DpROhqXJbkK0a-s4_Dn1UHANYy6K5WtJ7BhIJ9oy9tc",
+    "msvalidate.01": "REPLACE_WITH_BING_VERIFICATION_CODE",
+  },
   translations: {
     ro: {
       title: "TechTots | Jucării STEM pentru Minți Curioase",

@@ -24,6 +24,7 @@ import {
 import { ProductDeleteButton } from "./components/ProductDeleteButton";
 import { ProductStatusActions } from "./components/ProductStatusActions";
 import { ProductFilterBar } from "./components/ProductFilterBar";
+import { BulkUploadModal } from "./components/BulkUploadModal";
 
 // Force this page to be dynamic and not cached
 export const dynamic = "force-dynamic";
@@ -218,12 +219,15 @@ export default async function AdminProductsPage({
             materiale)
           </p>
         </div>
-        <Button asChild>
-          <Link href="/admin/products/create">
-            <Plus className="h-4 w-4 mr-2" />
-            Adaugă Produs Nou
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <BulkUploadModal />
+          <Button asChild>
+            <Link href="/admin/products/create">
+              <Plus className="h-4 w-4 mr-2" />
+              Adaugă Produs Nou
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
