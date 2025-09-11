@@ -5,6 +5,8 @@ import Link from "next/link";
 import React from "react";
 
 import { cn } from "@/lib/utils";
+import SeoJsonLd from "@/components/seo/SeoJsonLd";
+import { SITE_URL } from "@/lib/site";
 
 export interface BreadcrumbItem {
   label: string;
@@ -52,19 +54,14 @@ export function Breadcrumb({
         name: item.label,
         item: item.href?.startsWith("http")
           ? item.href
-          : `https://techtots.com${item.href}`,
+          : `${SITE_URL}${item.href}`,
       })),
   };
 
   return (
     <>
       {/* Structured Data for SEO */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData),
-        }}
-      />
+      <SeoJsonLd data={structuredData} />
 
       {/* Visual Breadcrumb */}
       <nav

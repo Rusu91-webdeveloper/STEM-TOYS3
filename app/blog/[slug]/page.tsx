@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import React from "react";
 
 import BlogPostDetail from "@/features/blog/components/BlogPostDetail";
+import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import { getBlogPost } from "@/lib/api/blog";
 
 type BlogPostPageProps = {
@@ -26,34 +27,30 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     // Pass blog post data to client component and render Breadcrumb JSON-LD
     return (
       <>
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                {
-                  "@type": "ListItem",
-                  position: 1,
-                  name: "Home",
-                  item: "https://www.techtots.ro/",
-                },
-                {
-                  "@type": "ListItem",
-                  position: 2,
-                  name: "Blog",
-                  item: "https://www.techtots.ro/blog",
-                },
-                {
-                  "@type": "ListItem",
-                  position: 3,
-                  name: blogPost.title,
-                  item: `https://www.techtots.ro/blog/${slug}`,
-                },
-              ],
-            }),
+        <SeoJsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: `/${""}`,
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "Blog",
+                item: `/blog`,
+              },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: blogPost.title,
+                item: `/blog/${slug}`,
+              },
+            ],
           }}
         />
         <BlogPostDetail post={blogPost} />

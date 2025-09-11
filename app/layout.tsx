@@ -44,7 +44,7 @@ export default async function RootLayout({
       <head>
         <meta
           name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+          content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -60,17 +60,7 @@ export default async function RootLayout({
         <GoogleAnalytics />
         {/* Performance Monitoring */}
         <PerformanceMonitor />
-        {/* JSON-LD from metadata.other.structuredData */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html:
-              typeof appMetadata?.other === "object" &&
-              (appMetadata.other as any)?.structuredData
-                ? (appMetadata.other as any).structuredData
-                : "{}",
-          }}
-        />
+        {/* Page-scoped JSON-LD only; global injection removed */}
       </head>
       <body
         className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}

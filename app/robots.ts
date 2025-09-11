@@ -1,7 +1,11 @@
 import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
+  const baseUrl = (
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "https://www.techtots.ro"
+  ).replace(/\/$/, "");
 
   return {
     rules: [
@@ -31,10 +35,9 @@ export default function robots(): MetadataRoute.Robots {
           "/_next/",
           "/unsubscribe/",
           "/offline/",
-          "/*?*", // Prevent indexing of pages with query parameters
-          "/products/*?*", // Except allow clean product URLs
-          "/categories/*?*", // Except allow clean category URLs
-          "/blog/*?*", // Except allow clean blog URLs
+          // Targeted param blocks; allow pagination and filters for discovery with canonicals
+          "/*?utm_*",
+          "/*?ref=*",
         ],
         crawlDelay: 1, // Be respectful to server resources
       },

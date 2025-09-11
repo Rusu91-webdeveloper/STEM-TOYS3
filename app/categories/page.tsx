@@ -8,6 +8,7 @@ import {
 } from "@/lib/services/categories-service";
 
 import { CategoriesGrid } from "./components/CategoriesGrid";
+import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import { CategoriesSkeleton } from "./components/CategoriesSkeleton";
 
 // Enable ISR with 5 minute revalidation
@@ -39,12 +40,7 @@ async function CategoriesContent({ locale }: { locale: string }) {
       <CategoriesGrid categories={categories} />
 
       {/* Structured Data for SEO */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(generateCategoriesStructuredData(categories)),
-        }}
-      />
+      <SeoJsonLd data={generateCategoriesStructuredData(categories)} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 
 import { createMetadata } from "../metadata";
+import { SITE_URL } from "@/lib/site";
 
 type SeoMetadata = {
   metaTitle?: string;
@@ -106,7 +107,7 @@ export function generateProductMetadata(product: any): Metadata {
     },
     offers: {
       "@type": "Offer",
-      url: `https://www.techtots.ro/products/${product.slug}`,
+      url: `${SITE_URL}/products/${product.slug}`,
       priceCurrency: "RON",
       price: product.price,
       priceValidUntil: new Date(
@@ -148,19 +149,19 @@ export function generateProductMetadata(product: any): Metadata {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://www.techtots.ro/",
+        item: `${SITE_URL}/`,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Products",
-        item: "https://www.techtots.ro/products",
+        item: `${SITE_URL}/products`,
       },
       {
         "@type": "ListItem",
         position: 3,
         name: product.name,
-        item: `https://www.techtots.ro/products/${product.slug}`,
+        item: `${SITE_URL}/products/${product.slug}`,
       },
     ],
   };
@@ -196,8 +197,7 @@ export function generateProductMetadata(product: any): Metadata {
     description: "metaDescription" as any,
     keywords,
     structuredData: [productData, breadcrumbData],
-    canonicalUrl:
-      seoData.canonical || `https://www.techtots.ro/products/${product.slug}`,
+    canonicalUrl: seoData.canonical || `${SITE_URL}/products/${product.slug}`,
     ogImage: product.images?.[0] || "/opengraph-image.png",
     pathWithoutLocale: `/products/${product.slug}`,
     translations,
@@ -241,7 +241,7 @@ export function generateCategoryMetadata(category: any): Metadata {
     description:
       category.description ||
       `Browse our ${category.name} STEM toys collection`,
-    url: `https://techtots.com/categories/${category.slug}`,
+    url: `${SITE_URL}/categories/${category.slug}`,
     mainEntity: {
       "@type": "ItemList",
       itemListElement: [], // This would be populated dynamically with products
@@ -257,19 +257,19 @@ export function generateCategoryMetadata(category: any): Metadata {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://techtots.com",
+        item: `${SITE_URL}`,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Categories",
-        item: "https://techtots.com/categories",
+        item: `${SITE_URL}/categories`,
       },
       {
         "@type": "ListItem",
         position: 3,
         name: category.name,
-        item: `https://techtots.com/categories/${category.slug}`,
+        item: `${SITE_URL}/categories/${category.slug}`,
       },
     ],
   };
@@ -303,7 +303,7 @@ export function generateCategoryMetadata(category: any): Metadata {
     keywords: [...defaultStemKeywords, ...keywords],
     structuredData: [structuredData, breadcrumbData],
     canonicalUrl:
-      seoData.canonical || `https://techtots.com/categories/${category.slug}`,
+      seoData.canonical || `${SITE_URL}/categories/${category.slug}`,
     ogImage: category.image || "/opengraph-image.png",
     pathWithoutLocale: `/categories/${category.slug}`,
     translations,
@@ -370,14 +370,14 @@ export function generateBlogMetadata(blog: any): Metadata {
       name: "TechTots",
       logo: {
         "@type": "ImageObject",
-        url: "https://techtots.com/TechTots_LOGO.png",
+        url: `${SITE_URL}/TechTots_LOGO.png`,
       },
     },
     datePublished: blog.publishedAt || blog.createdAt,
     dateModified: blog.updatedAt,
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://techtots.com/blog/${blog.slug}`,
+      "@id": `${SITE_URL}/blog/${blog.slug}`,
     },
     keywords: blog.tags.join(", "),
   };
@@ -404,7 +404,7 @@ export function generateBlogMetadata(blog: any): Metadata {
     description: "metaDescription" as any,
     keywords,
     structuredData,
-    canonicalUrl: seoData.canonical || `https://techtots.com/blog/${blog.slug}`,
+    canonicalUrl: seoData.canonical || `${SITE_URL}/blog/${blog.slug}`,
     ogImage: blog.coverImage || "/opengraph-image.png",
     pathWithoutLocale: `/blog/${blog.slug}`,
     translations,
@@ -473,7 +473,7 @@ export function generateBookMetadata(book: any): Metadata {
         : "https://schema.org/OutOfStock",
       price: book.price,
       priceCurrency: "RON",
-      url: `https://www.techtots.ro/books/${book.slug}`,
+      url: `${SITE_URL}/books/${book.slug}`,
     },
   };
 
@@ -508,8 +508,7 @@ export function generateBookMetadata(book: any): Metadata {
     description: "metaDescription" as any,
     keywords,
     structuredData,
-    canonicalUrl:
-      seoData.canonical || `https://techtots.com/books/${book.slug}`,
+    canonicalUrl: seoData.canonical || `${SITE_URL}/books/${book.slug}`,
     ogImage: book.coverImage || "/opengraph-image.png",
     pathWithoutLocale: `/books/${book.slug}`,
     translations,
@@ -556,7 +555,7 @@ export function generateHomepageMetadata(storeSettings: any): Metadata {
     description: "metaDescription" as any,
     keywords: keywordsArray,
     structuredData: seoData.structuredData,
-    canonicalUrl: storeSettings.storeUrl,
+    canonicalUrl: storeSettings.storeUrl || SITE_URL,
     ogImage: "/opengraph-image.png",
     pathWithoutLocale: "/",
     translations,

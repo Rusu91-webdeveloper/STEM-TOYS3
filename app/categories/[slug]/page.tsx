@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import { cookies } from "next/headers";
 import Image from "next/image";
+import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -950,34 +951,25 @@ export default async function CategoryDetailPage({
   return (
     <div className="flex flex-col">
       {/* Breadcrumb JSON-LD */}
-      <script
-        type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              {
-                "@type": "ListItem",
-                position: 1,
-                name: "Home",
-                item: "https://www.techtots.ro/",
-              },
-              {
-                "@type": "ListItem",
-                position: 2,
-                name: "Categories",
-                item: "https://www.techtots.ro/categories",
-              },
-              {
-                "@type": "ListItem",
-                position: 3,
-                name: heroTitle,
-                item: `https://www.techtots.ro/categories/${slug}`,
-              },
-            ],
-          }),
+      <SeoJsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "/" },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Categories",
+              item: "/categories",
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: heroTitle,
+              item: `/categories/${slug}`,
+            },
+          ],
         }}
       />
       {/* Enhanced Hero Section */}
