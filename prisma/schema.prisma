@@ -20,13 +20,13 @@ model User {
   updatedAt           DateTime                 @updatedAt
   addresses           Address[]
   blogs               Blog[]
+  consentRecords      ConsentRecord[]
   contentVersions     ContentVersion[]
   couponsCreated      Coupon[]                 @relation("CouponCreatedBy")
   couponUsages        CouponUsage[]
   digitalDownloads    DigitalDownload[]
   emailEvents         EmailEvent[]
   emailSequenceUsers  EmailSequenceUser[]
-  consentRecords      ConsentRecord[]
   orders              Order[]
   passwordResetTokens PasswordResetToken[]
   paymentCards        PaymentCard[]
@@ -790,8 +790,8 @@ model EmailTemplate {
   createdBy     String
   metadata      Json?
   campaigns     EmailCampaign[]
-  sequenceSteps EmailSequenceStep[]
   emailEvents   EmailEvent[]
+  sequenceSteps EmailSequenceStep[]
 
   @@index([slug])
   @@index([category])
@@ -877,20 +877,20 @@ model EmailSequenceUser {
 }
 
 model EmailEvent {
-  id              String               @id @default(cuid())
-  emailId         String               @unique
-  userId          String?
-  email           String
-  eventType       EmailEventType
-  deliveryStatus  EmailDeliveryStatus  @default(PENDING)
-  campaignId      String?
-  sequenceId      String?
-  templateId      String?
-  metadata        Json?
-  createdAt       DateTime             @default(now())
-  user            User?                @relation(fields: [userId], references: [id])
-  campaign        EmailCampaign?       @relation(fields: [campaignId], references: [id])
-  template        EmailTemplate?       @relation(fields: [templateId], references: [id])
+  id             String              @id @default(cuid())
+  emailId        String              @unique
+  userId         String?
+  email          String
+  eventType      EmailEventType
+  campaignId     String?
+  sequenceId     String?
+  templateId     String?
+  metadata       Json?
+  createdAt      DateTime            @default(now())
+  deliveryStatus EmailDeliveryStatus @default(PENDING)
+  campaign       EmailCampaign?      @relation(fields: [campaignId], references: [id])
+  template       EmailTemplate?      @relation(fields: [templateId], references: [id])
+  user           User?               @relation(fields: [userId], references: [id])
 
   @@index([emailId])
   @@index([userId])
@@ -945,13 +945,6 @@ model ConsentRecord {
   @@index([consentType])
   @@index([granted])
   @@index([grantedAt])
-}
-
-enum ConsentType {
-  MARKETING
-  NEWSLETTER
-  TRANSACTIONAL
-  ALL
 }
 
 model Coupon {
@@ -1072,6 +1065,13 @@ model ImageProcessingLog {
   @@index([operation])
   @@index([status])
   @@index([startedAt])
+}
+
+enum ConsentType {
+  MARKETING
+  NEWSLETTER
+  TRANSACTIONAL
+  ALL
 }
 
 enum OrderItemReturnStatus {
