@@ -69,3 +69,6 @@ tasks.json
 tasks/ 
 *storybook.log
 storybook-static
+
+# Large migration reports
+*_MIGRATION_REPORT.md
