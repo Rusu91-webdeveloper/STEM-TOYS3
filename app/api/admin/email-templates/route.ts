@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import jwt from "jsonwebtoken";
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/server/auth";
@@ -22,14 +23,76 @@ const EmailTemplateSchema = z.object({
   metadata: z.record(z.any()).optional(),
 });
 
+// Function to check admin authentication from both NextAuth and admin session cookie
+async function checkAdminAuth(request: NextRequest) {
+  console.log("🔐 [EMAIL-TEMPLATES] Checking admin authentication...");
+  
+  // First try NextAuth session
+  console.log("🔍 [EMAIL-TEMPLATES] Checking NextAuth session...");
+  const session = await auth();
+  if (session?.user && session.user.role === "ADMIN") {
+    console.log("✅ [EMAIL-TEMPLATES] NextAuth admin session found:", { 
+      userId: session.user.id, 
+      email: session.user.email, 
+      role: session.user.role 
+    });
+    return { isAdmin: true, user: session.user };
+  }
+  console.log("❌ [EMAIL-TEMPLATES] No NextAuth admin session found");
+
+  // Then try admin session cookie
+  console.log("🍪 [EMAIL-TEMPLATES] Checking admin session cookie...");
+  const adminSessionCookie = request.cookies.get("admin-session");
+  if (adminSessionCookie) {
+    console.log("🍪 [EMAIL-TEMPLATES] Admin session cookie found, verifying JWT...");
+    try {
+      const decoded = jwt.verify(
+        adminSessionCookie.value,
+        process.env.NEXTAUTH_SECRET || "development-secret"
+      ) as any;
+
+      if (decoded.role === "ADMIN") {
+        console.log("✅ [EMAIL-TEMPLATES] Admin session cookie verified:", { 
+          userId: decoded.userId, 
+          email: decoded.email, 
+          role: decoded.role 
+        });
+        return {
+          isAdmin: true,
+          user: {
+            id: decoded.userId,
+            email: decoded.email,
+            name: decoded.name,
+            role: decoded.role,
+          },
+        };
+      } else {
+        console.log("❌ [EMAIL-TEMPLATES] JWT decoded but user is not admin, role:", decoded.role);
+      }
+    } catch (error) {
+      console.log("❌ [EMAIL-TEMPLATES] JWT verification failed:", error instanceof Error ? error.message : String(error));
+    }
+  } else {
+    console.log("❌ [EMAIL-TEMPLATES] No admin session cookie found");
+  }
+
+  console.log("❌ [EMAIL-TEMPLATES] No valid admin authentication found");
+  return { isAdmin: false, user: null };
+}
+
 // GET /api/admin/email-templates - List all email templates
 export async function GET(request: NextRequest) {
+  console.log("📧 [EMAIL-TEMPLATES] GET request received");
+  
   try {
-    const session = await auth();
+    const { isAdmin, user } = await checkAdminAuth(request);
 
-    if (!session?.user || session.user.role !== "ADMIN") {
+    if (!isAdmin || !user) {
+      console.log("❌ [EMAIL-TEMPLATES] Unauthorized access attempt");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    
+    console.log("✅ [EMAIL-TEMPLATES] Admin authentication successful, proceeding with template fetch");
 
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
@@ -37,6 +100,14 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") ?? "1");
     const limit = parseInt(searchParams.get("limit") ?? "20");
     const search = searchParams.get("search");
+
+    console.log("🔍 [EMAIL-TEMPLATES] Query parameters:", { 
+      category, 
+      isActive, 
+      page, 
+      limit, 
+      search 
+    });
 
     // Build where clause
     const where: Record<string, unknown> = {};
@@ -56,8 +127,11 @@ export async function GET(request: NextRequest) {
         { subject: { contains: search, mode: "insensitive" } },
       ];
     }
+    
+    console.log("🔍 [EMAIL-TEMPLATES] Database query where clause:", where);
 
     // Get templates with pagination
+    console.log("📊 [EMAIL-TEMPLATES] Executing database queries...");
     const [templates, total] = await Promise.all([
       prisma.emailTemplate.findMany({
         where,
@@ -80,6 +154,11 @@ export async function GET(request: NextRequest) {
       }),
       prisma.emailTemplate.count({ where }),
     ]);
+    
+    console.log("📊 [EMAIL-TEMPLATES] Database queries completed:", { 
+      templatesCount: templates.length, 
+      totalCount: total 
+    });
 
     // Debug logging for development
     if (process.env.NODE_ENV === "development") {
@@ -102,7 +181,12 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching email templates:", error);
+    console.error("❌ [EMAIL-TEMPLATES] Error fetching email templates:", error);
+    console.error("❌ [EMAIL-TEMPLATES] Error details:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    });
     return NextResponse.json(
       { error: "Failed to fetch email templates" },
       { status: 500 }
