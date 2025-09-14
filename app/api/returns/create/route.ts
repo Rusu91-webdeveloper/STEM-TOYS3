@@ -140,45 +140,33 @@ export async function POST(request: Request) {
 
     // Send emails
     try {
-      // Send admin notification using the dedicated template
-      // Sending admin notification email
-      await import("@/lib/nodemailer").then(async ({ emailTemplates }) => {
-        try {
-          const result = await emailTemplates.returnNotification({
-            to: adminEmail,
-            orderNumber: orderItem.order.orderNumber,
-            productName: orderItem.name,
-            productSku: orderItem.product?.sku || undefined,
-            customerName: returnRecord.user.name || returnRecord.user.email,
-            customerEmail: returnRecord.user.email,
-            reason: reasonLabels[reason as keyof typeof reasonLabels] || reason,
-            details: details || undefined,
-            returnId: returnRecord.id,
-          });
-
-          // Admin notification email sent
-        } catch (error) {
-          console.error("Failed to send admin notification email:", error);
-        }
+      // Send admin notification using new unified system
+      const { sendReturnNotificationEmail } = await import(
+        "@/lib/email/migration-helper"
+      );
+      await sendReturnNotificationEmail({
+        to: adminEmail,
+        orderNumber: orderItem.order.orderNumber,
+        productName: orderItem.name,
+        productSku: orderItem.product?.sku || undefined,
+        customerName: returnRecord.user.name || returnRecord.user.email,
+        customerEmail: returnRecord.user.email,
+        reason: reasonLabels[reason as keyof typeof reasonLabels] || reason,
+        details: details || undefined,
+        returnId: returnRecord.id,
       });
 
       // Send customer confirmation email
       const userEmail = session.user.email;
       if (typeof userEmail === "string" && userEmail) {
-        // Sending customer confirmation email
-        await import("@/lib/nodemailer").then(async ({ sendMail }) => {
-          await sendMail({
-            to: userEmail,
-            subject: `Return Request Received - Order #${orderItem.order.orderNumber}`,
-            html: `<div style='font-family: sans-serif; max-width: 600px; margin: 0 auto;'>
-              <h1 style='color: #333;'>Return Request Received</h1>
-              <p>Hello,</p>
-              <p>We have received your return request for <strong>${orderItem.name}</strong> from order <strong>#${orderItem.order.orderNumber}</strong>.</p>
-              <p>Our team will review your request and send you further instructions soon.</p>
-              <p>You can track your return status in your account.</p>
-              <p>Thank you for shopping with us!</p>
-            </div>`,
-          });
+        const { sendReturnConfirmationEmail } = await import(
+          "@/lib/email/migration-helper"
+        );
+        await sendReturnConfirmationEmail({
+          to: userEmail,
+          orderNumber: orderItem.order.orderNumber,
+          productName: orderItem.name,
+          returnId: returnRecord.id,
         });
       } else {
         console.warn(

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
-import { sendMail } from "@/lib/brevo";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 import { db } from "@/lib/db";
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
 import { generateReturnLabel } from "@/lib/return-label";
@@ -236,7 +236,7 @@ export async function POST(request: Request) {
         const pdfBase64 = pdfBuffer.toString("base64");
 
         // Send one consolidated email for all items
-        await sendMail({
+        await sendEmailViaUnifiedSystem({
           to: customer.email,
           subject: `TechTots - Returnare aprobată pentru ${orderReturns.length} articol(e) - Comanda #${order.orderNumber}`,
           html: emailHtml,

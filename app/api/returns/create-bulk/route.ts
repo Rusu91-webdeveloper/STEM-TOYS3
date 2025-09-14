@@ -164,21 +164,22 @@ export async function POST(request: Request) {
         adminEmail
       );
 
-      await import("@/lib/brevoTemplates").then(async ({ emailTemplates }) => {
-        await emailTemplates.bulkReturnAdminNotification({
-          to: adminEmail,
-          customerName: user?.name || "Unknown Customer",
-          customerEmail: user?.email || "unknown@email.com",
-          orderNumber: order.orderNumber,
-          returnItems: orderItems.map(item => ({
-            name: item.name,
-            quantity: item.quantity,
-            sku: item.product?.sku || undefined,
-          })),
-          reason,
-          details,
-          returnIds: createdReturns.map(r => r.id),
-        });
+      const { sendBulkReturnNotificationEmail } = await import(
+        "@/lib/email/migration-helper"
+      );
+      await sendBulkReturnNotificationEmail({
+        to: adminEmail,
+        customerName: user?.name || "Unknown Customer",
+        customerEmail: user?.email || "unknown@email.com",
+        orderNumber: order.orderNumber,
+        returnItems: orderItems.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          sku: item.product?.sku || undefined,
+        })),
+        reason,
+        details,
+        returnIds: createdReturns.map(r => r.id),
       });
 
       // Send customer confirmation email using professional template
@@ -189,23 +190,22 @@ export async function POST(request: Request) {
           userEmail
         );
 
-        await import("@/lib/brevoTemplates").then(
-          async ({ emailTemplates }) => {
-            await emailTemplates.bulkReturnConfirmation({
-              to: userEmail,
-              customerName: user?.name || "Valued Customer",
-              orderNumber: order.orderNumber,
-              returnItems: orderItems.map(item => ({
-                name: item.name,
-                quantity: item.quantity,
-                sku: item.product?.sku || undefined,
-              })),
-              reason,
-              details,
-              returnIds: createdReturns.map(r => r.id),
-            });
-          }
+        const { sendBulkReturnConfirmationEmail } = await import(
+          "@/lib/email/migration-helper"
         );
+        await sendBulkReturnConfirmationEmail({
+          to: userEmail,
+          customerName: user?.name || "Valued Customer",
+          orderNumber: order.orderNumber,
+          returnItems: orderItems.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            sku: item.product?.sku || undefined,
+          })),
+          reason,
+          details,
+          returnIds: createdReturns.map(r => r.id),
+        });
       } else {
         console.warn(
           "User email is missing or invalid, skipping return confirmation email."

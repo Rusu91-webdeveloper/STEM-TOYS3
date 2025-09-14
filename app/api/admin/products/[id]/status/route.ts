@@ -53,13 +53,15 @@ export async function PATCH(
 
     // Notify supplier on approval/rejection
     try {
-      const { sendMail } = await import("@/lib/brevo");
+      const { sendEmailViaUnifiedSystem } = await import(
+        "@/lib/email/migration-helper"
+      );
       const siteUrl =
         process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
       const supplierEmail = existing.supplier?.user?.email || undefined;
       if (supplierEmail) {
         if (status === "APPROVED") {
-          await sendMail({
+          await sendEmailViaUnifiedSystem({
             to: supplierEmail,
             subject: `Your product was approved: ${existing.name}`,
             html: `
@@ -69,7 +71,7 @@ export async function PATCH(
             text: `Your product ${existing.name} was approved and is now live. ${siteUrl}/products/${existing.slug}`,
           });
         } else if (status === "REJECTED") {
-          await sendMail({
+          await sendEmailViaUnifiedSystem({
             to: supplierEmail,
             subject: `Your product was rejected: ${existing.name}`,
             html: `

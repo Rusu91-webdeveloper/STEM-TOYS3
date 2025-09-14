@@ -456,13 +456,15 @@ export async function POST(request: NextRequest) {
 
     // Send notification emails to admin and supplier
     try {
-      const { sendMail } = await import("@/lib/brevo");
+      const { sendEmailViaUnifiedSystem } = await import(
+        "@/lib/email/migration-helper"
+      );
       const siteUrl =
         process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
       const adminEmail = process.env.ADMIN_EMAIL || "admin@techtots.com";
       const supplierEmail = session.user.email as string | undefined;
 
-      await sendMail({
+      await sendEmailViaUnifiedSystem({
         to: adminEmail,
         subject: `New supplier product pending approval: ${product.name}`,
         html: `
@@ -476,7 +478,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (supplierEmail) {
-        await sendMail({
+        await sendEmailViaUnifiedSystem({
           to: supplierEmail,
           subject: `We've received your product: ${product.name}`,
           html: `

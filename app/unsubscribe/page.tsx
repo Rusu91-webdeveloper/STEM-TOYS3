@@ -1,103 +1,273 @@
-import { Metadata } from "next";
-import { redirect } from "next/navigation";
-import React from "react";
+"use client";
 
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Container } from "@/components/ui/container";
-// import { getTranslations } from "@/lib/i18n/server";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, CheckCircle, XCircle, Mail } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Dezabonare Newsletter | TechTots",
-  description: "Dezabonează-te de la newsletter-ul TechTots.",
-};
+interface UnsubscribeData {
+  success: boolean;
+  email?: string;
+  token?: string;
+  message?: string;
+  error?: string;
+}
 
-export default async function UnsubscribePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ email?: string }>;
-}) {
-  // const t = await getTranslations();
-  const params = await searchParams;
-  const email = params.email || "";
+export default function UnsubscribePage() {
+  const searchParams = useSearchParams();
+  const [data, setData] = useState<UnsubscribeData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+
+  const [preferences, setPreferences] = useState({
+    marketing: true,
+    newsletter: true,
+    transactional: false, // Keep transactional emails by default
+  });
+  const [reason, setReason] = useState("");
+
+  useEffect(() => {
+    const token = searchParams.get("token");
+    if (!token) {
+      setData({ success: false, error: "No unsubscribe token provided" });
+      setLoading(false);
+      return;
+    }
+
+    // Validate token
+    fetch(`/api/email/unsubscribe?token=${encodeURIComponent(token)}`)
+      .then(res => res.json())
+      .then(data => {
+        setData(data);
+        if (data.success) {
+          // Pre-populate preferences based on current consents
+          // This would be enhanced with actual consent data
+        }
+      })
+      .catch(error => {
+        console.error("Error validating token:", error);
+        setData({
+          success: false,
+          error: "Failed to validate unsubscribe link",
+        });
+      })
+      .finally(() => setLoading(false));
+  }, [searchParams]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!data?.token) return;
+
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/email/unsubscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: data.token,
+          reason,
+          preferences,
+        }),
+      });
+
+      const result = await response.json();
+      setResult(result);
+    } catch (error) {
+      console.error("Error submitting unsubscribe:", error);
+      setResult({
+        success: false,
+        message: "Failed to process unsubscribe request. Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p>Validating unsubscribe link...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data?.success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <CardTitle className="text-red-600">Invalid Link</CardTitle>
+            <CardDescription>
+              {data?.error ||
+                "This unsubscribe link is invalid or has expired."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full">
+              <a href="/">Return to Homepage</a>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (result?.success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+            <CardTitle className="text-green-600">
+              Successfully Unsubscribed
+            </CardTitle>
+            <CardDescription>{result.message}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert>
+              <Mail className="h-4 w-4" />
+              <AlertDescription>
+                You will no longer receive marketing emails from TechTots STEM
+                Store. You may still receive important transactional emails
+                about your orders.
+              </AlertDescription>
+            </Alert>
+            <Button asChild className="w-full">
+              <a href="/">Return to Homepage</a>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <Container>
-      <div className="py-16 md:py-24 max-w-2xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center">
-          Dezabonare de la newsletter
-        </h1>
-        <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
-          <p className="mb-6 text-center">
-            {email
-              ? `Ești sigur că dorești să te dezabonezi de la newsletter-ul nostru cu adresa de email ${email}?`
-              : "Introdu adresa ta de email pentru a te dezabona de la newsletter-ul nostru."}
-          </p>
-
-          <form
-            className="flex flex-col gap-4"
-            action={async formData => {
-              "use server";
-
-              const emailToUse = email || (formData.get("email") as string);
-
-              if (!emailToUse) {
-                redirect("/unsubscribe/error");
-              }
-
-              let success = false;
-
-              try {
-                const response = await fetch(
-                  `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/newsletter?email=${encodeURIComponent(emailToUse)}`,
-                  {
-                    method: "DELETE",
-                  }
-                );
-
-                success = response.ok;
-              } catch (error) {
-                console.error("Error unsubscribing:", error);
-                success = false;
-              }
-
-              // Handle redirects outside of try-catch to avoid redirect errors
-              if (success) {
-                redirect("/unsubscribe/success");
-              } else {
-                redirect("/unsubscribe/error");
-              }
-            }}
-          >
-            {!email && (
-              <div className="mb-4">
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Adresa de email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="nume@email.com"
-                />
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Unsubscribe from Emails
+          </CardTitle>
+          <CardDescription>
+            Manage your email preferences for {data.email}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <h3 className="font-medium">Email Preferences</h3>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="marketing"
+                    checked={preferences.marketing}
+                    onCheckedChange={checked =>
+                      setPreferences(prev => ({
+                        ...prev,
+                        marketing: !!checked,
+                      }))
+                    }
+                  />
+                  <Label htmlFor="marketing" className="text-sm">
+                    Marketing emails (promotions, offers, new products)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="newsletter"
+                    checked={preferences.newsletter}
+                    onCheckedChange={checked =>
+                      setPreferences(prev => ({
+                        ...prev,
+                        newsletter: !!checked,
+                      }))
+                    }
+                  />
+                  <Label htmlFor="newsletter" className="text-sm">
+                    Newsletter (STEM tips, educational content)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="transactional"
+                    checked={preferences.transactional}
+                    onCheckedChange={checked =>
+                      setPreferences(prev => ({
+                        ...prev,
+                        transactional: !!checked,
+                      }))
+                    }
+                    disabled
+                  />
+                  <Label
+                    htmlFor="transactional"
+                    className="text-sm text-gray-500"
+                  >
+                    Transactional emails (order confirmations, shipping updates)
+                    - Required
+                  </Label>
+                </div>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="reason">
+                Reason for unsubscribing (optional)
+              </Label>
+              <Textarea
+                id="reason"
+                placeholder="Help us improve by sharing why you're unsubscribing..."
+                value={reason}
+                onChange={e => setReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            {result && !result.success && (
+              <Alert variant="destructive">
+                <XCircle className="h-4 w-4" />
+                <AlertDescription>{result.message}</AlertDescription>
+              </Alert>
             )}
 
-            <div className="flex justify-center">
-              <Button
-                type="submit"
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                Dezabonează-mă
+            <div className="flex gap-3">
+              <Button type="submit" disabled={submitting} className="flex-1">
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Processing...
+                  </>
+                ) : (
+                  "Update Preferences"
+                )}
+              </Button>
+              <Button type="button" variant="outline" asChild>
+                <a href="/">Cancel</a>
               </Button>
             </div>
           </form>
-        </div>
-      </div>
-    </Container>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

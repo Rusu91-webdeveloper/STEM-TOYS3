@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-import { sendMail } from "../brevo";
+import { sendEmailWithBrevo } from "../brevo";
 
 /**
  * Service for sending emails using Email Templates from the database
@@ -73,7 +73,7 @@ export class EmailTemplateService {
       }
 
       // Send the email
-      const result = await sendMail({
+      const result = await sendEmailWithBrevo({
         to,
         subject,
         html: content,

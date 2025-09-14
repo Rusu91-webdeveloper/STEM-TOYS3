@@ -5,7 +5,7 @@
 
 import { prisma } from "@/lib/prisma";
 
-import { sendMail } from "../brevo";
+import { sendEmailWithBrevo } from "../brevo";
 
 import { getStoreSettings, getBaseUrl } from "./base";
 
@@ -209,7 +209,7 @@ export async function sendNewsletterWelcomeEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailWithBrevo({
     to,
     subject: `Mulțumim pentru abonarea la newsletter-ul ${storeSettings.storeName}!`,
     html,
@@ -356,7 +356,7 @@ export async function sendNewsletterResubscribeEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailWithBrevo({
     to,
     subject: `Bine ai revenit la newsletter-ul ${storeSettings.storeName}!`,
     html,
@@ -535,7 +535,7 @@ export async function sendNewsletterNotificationEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailWithBrevo({
     to,
     subject: `Articol nou: ${blogPost.title} - ${storeSettings.storeName}`,
     html,

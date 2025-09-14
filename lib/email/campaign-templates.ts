@@ -6,7 +6,7 @@
 
 import { prisma } from "@/lib/prisma";
 
-import { sendMail } from "../brevo";
+import { sendEmailViaUnifiedSystem } from "../brevo";
 
 import { getStoreSettings, getBaseUrl } from "./base";
 
@@ -363,7 +363,7 @@ export async function sendSeasonalCampaignEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailViaUnifiedSystem({
     to,
     subject: `${campaign.title} - ${storeSettings.storeName}`,
     html,
@@ -564,7 +564,7 @@ export async function sendProductLaunchEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailViaUnifiedSystem({
     to,
     subject: `Produs nou: ${product.name} - ${storeSettings.storeName}`,
     html,

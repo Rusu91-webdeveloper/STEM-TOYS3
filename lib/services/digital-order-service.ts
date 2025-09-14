@@ -1,7 +1,6 @@
 import crypto from "crypto";
 
-import { sendMail } from "@/lib/brevo";
-import { emailTemplates } from "@/lib/brevoTemplates";
+import { sendEmailViaUnifiedSystem } from "@/lib/brevoTemplates";
 import { db } from "@/lib/db";
 
 interface DigitalOrderItem {
@@ -189,7 +188,7 @@ export async function processDigitalBookOrder(
 
     // Send delivery email
     try {
-      await emailTemplates.digitalBookDelivery({
+      await sendEmailViaUnifiedSystem.digitalBookDelivery({
         to: userInfo.email,
         customerName: userInfo.name || "Valued Customer",
         orderId: userInfo.orderNumber,

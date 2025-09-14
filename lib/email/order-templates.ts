@@ -3,7 +3,7 @@
  * Includes digital book delivery, order confirmation, and shipping notifications
  */
 
-import { sendMail } from "../brevo";
+import { sendEmailWithBrevo } from "../brevo";
 
 import {
   getStoreSettings,
@@ -150,7 +150,7 @@ export async function sendDigitalBookDeliveryEmail({
     "Cărțile tale digitale sunt gata!"
   );
 
-  return sendMail({
+  return sendEmailWithBrevo({
     to,
     subject: `📚 Cărțile tale digitale sunt gata pentru descărcare! - Comanda #${orderId}`,
     html,
@@ -358,7 +358,7 @@ export async function sendOrderConfirmationEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailWithBrevo({
     to,
     subject: `✅ Comanda #${orderId} confirmată - ${storeSettings.storeName}`,
     html,
@@ -590,7 +590,7 @@ export async function sendShippingNotificationEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailWithBrevo({
     to,
     subject: `🚚 Comanda #${orderId} a fost expediată - ${storeSettings.storeName}`,
     html,
@@ -793,7 +793,7 @@ export async function sendOrderCompletedEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailWithBrevo({
     to,
     subject: `🎉 Comanda #${orderId} a fost finalizată cu succes! - ${storeSettings.storeName}`,
     html,
@@ -996,7 +996,7 @@ export async function sendOrderDeliveredEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailWithBrevo({
     to,
     subject: `📦 Comanda #${orderId} a fost livrată - ${storeSettings.storeName}`,
     html,
@@ -1178,7 +1178,7 @@ export async function sendOrderCancellationEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailWithBrevo({
     to,
     subject: `❌ Comanda #${orderId} a fost anulată - ${storeSettings.storeName}`,
     html,

@@ -81,7 +81,7 @@ export async function sendTransactionalEmail({
 }
 
 // Email templates for different types of emails
-export const emailTemplates = {
+export const sendEmailViaUnifiedSystem = {
   async orderConfirmation(data: {
     to: string;
     order: {

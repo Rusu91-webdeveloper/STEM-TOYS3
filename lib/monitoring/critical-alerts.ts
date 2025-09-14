@@ -570,7 +570,7 @@ class CriticalAlertsService {
     rule: AlertRule
   ): Promise<void> {
     try {
-      const { sendMail } = await import("../brevo");
+      const { sendEmailViaUnifiedSystem } = await import("../brevo");
 
       const subject = channel.config.subject
         .replace("{{alertName}}", rule.name)
@@ -579,7 +579,7 @@ class CriticalAlertsService {
       const htmlContent = this.generateEmailHtml(notification, rule);
 
       for (const recipient of channel.config.recipients) {
-        await sendMail({
+        await sendEmailViaUnifiedSystem({
           to: recipient,
           subject,
           html: htmlContent,

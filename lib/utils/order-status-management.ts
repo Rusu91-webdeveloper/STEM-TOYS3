@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { getNotificationSettings } from "./order-processing";
-import { emailTemplates } from "@/lib/brevoTemplates";
+import { sendEmailViaUnifiedSystem } from "@/lib/brevoTemplates";
 
 export type OrderStatus =
   | "PROCESSING"
@@ -166,7 +166,7 @@ async function sendOrderStatusNotification(
       case "FULFILLED":
         shouldSend = notificationSettings.processingUpdate;
         if (shouldSend) {
-          await emailTemplates.sendOrderFulfilledEmail({
+          await sendEmailViaUnifiedSystem.sendOrderFulfilledEmail({
             to: order.user.email,
             orderNumber: order.orderNumber,
             customerName: order.user.name || "Customer",
@@ -183,7 +183,7 @@ async function sendOrderStatusNotification(
       case "SHIPPED":
         shouldSend = notificationSettings.shippingNotification;
         if (shouldSend) {
-          await emailTemplates.sendOrderShippedEmail({
+          await sendEmailViaUnifiedSystem.sendOrderShippedEmail({
             to: order.user.email,
             orderNumber: order.orderNumber,
             customerName: order.user.name || "Customer",
@@ -200,7 +200,7 @@ async function sendOrderStatusNotification(
       case "DELIVERED":
         shouldSend = notificationSettings.deliveryConfirmation;
         if (shouldSend) {
-          await emailTemplates.sendOrderDeliveredEmail({
+          await sendEmailViaUnifiedSystem.sendOrderDeliveredEmail({
             to: order.user.email,
             orderNumber: order.orderNumber,
             customerName: order.user.name || "Customer",
@@ -215,7 +215,7 @@ async function sendOrderStatusNotification(
       case "COMPLETED":
         shouldSend = notificationSettings.deliveryConfirmation;
         if (shouldSend) {
-          await emailTemplates.sendOrderCompletedEmail({
+          await sendEmailViaUnifiedSystem.sendOrderCompletedEmail({
             to: order.user.email,
             orderNumber: order.orderNumber,
             customerName: order.user.name || "Customer",

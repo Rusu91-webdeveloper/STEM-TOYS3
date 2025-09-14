@@ -4,7 +4,7 @@
  * automation, and performance optimization engines
  */
 
-import { sendMail } from "@/lib/brevo";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 import { db } from "@/lib/db";
 import { getStoreSettings } from "@/lib/utils/store-settings";
 
@@ -162,7 +162,7 @@ export class EmailService {
         );
       } else {
         // Send immediately
-        await sendMail({
+        await sendEmailViaUnifiedSystem({
           to: request.to,
           subject: personalizedSubject,
           html,
@@ -331,21 +331,12 @@ export class EmailService {
             `📧 Template content preview: ${welcomeTemplate.content.substring(0, 100)}...`
           );
 
-          // Use EmailTemplateService to send with database template
-          const { EmailTemplateService } = await import("./template-service");
-
-          const result = await EmailTemplateService.sendTemplateEmail(
-            welcomeTemplate.slug,
-            email,
-            {
-              user: user,
-              name: user.name,
-              email: user.email,
-              siteName: "TechTots",
-              siteUrl:
-                process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-            }
+          // Use new template library instead of database template
+          const { sendWelcomeEmailNew } = await import(
+            "./unified-email-service"
           );
+
+          const result = await sendWelcomeEmailNew(email, user.name);
 
           // Trigger welcome automation sequence
           if (this.config.enableAutomation) {

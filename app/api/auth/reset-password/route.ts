@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { db } from "@/lib/db";
 import { withRateLimit } from "@/lib/rate-limit";
+import { triggerPasswordChangeEmail } from "@/lib/email/email-triggers";
 
 // Schema for request validation
 const resetPasswordSchema = z.object({
@@ -97,6 +98,24 @@ async function handleResetPassword(request: NextRequest) {
       });
 
       console.log(`Password reset for ${userEmail} successful`);
+
+      // Trigger password change confirmation email
+      try {
+        await triggerPasswordChangeEmail(updatedUser.id, {
+          changeTime: new Date().toLocaleString("ro-RO"),
+          deviceInfo: req.headers.get("user-agent") || "Dispozitiv necunoscut",
+          ipAddress:
+            req.headers.get("x-forwarded-for") ||
+            req.headers.get("x-real-ip") ||
+            "IP necunoscut",
+        });
+        console.log(
+          `✅ Password change email triggered for user ${updatedUser.id}`
+        );
+      } catch (emailError) {
+        console.error(`❌ Failed to send password change email:`, emailError);
+        // Don't fail the request if email fails
+      }
 
       // Return success
       return NextResponse.json({

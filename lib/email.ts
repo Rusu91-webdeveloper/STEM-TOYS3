@@ -3,8 +3,12 @@
  * Uses Nodemailer for sending emails
  */
 
-import { sendMail, emailTemplates as nodemailerTemplates } from "./nodemailer";
+import {
+  sendEmailViaUnifiedSystem,
+  emailTemplates as nodemailerTemplates,
+} from "./nodemailer";
 import { isDevelopment } from "./security";
+import { DatabaseTemplateService } from "./email/database-template-service";
 
 // Email types
 export type EmailTemplate =
@@ -37,53 +41,29 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
   }
 
   try {
-    // Check if email configuration is set
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log("⚠️ Email credentials are not set. Using development mode.");
-      return true; // Return success in development mode
+    // Map old template names to new template slugs
+    const templateMapping: Record<string, string> = {
+      welcome: "welcome",
+      verification: "email-verification",
+      "password-reset": "password-reset",
+      "order-confirmation": "order-confirmation",
+    };
+
+    const templateSlug = templateMapping[options.template];
+
+    if (!templateSlug) {
+      throw new Error(`Unsupported email template: ${options.template}`);
     }
 
-    // Send the email using the appropriate template
-    switch (options.template) {
-      case "welcome":
-        // Use the nodemailer welcome template
-        await nodemailerTemplates.welcome({
-          to: options.to,
-          name: options.data.name as string,
-        });
-        break;
+    // Use the database template service
+    const result = await DatabaseTemplateService.sendEmailWithTemplate({
+      to: options.to,
+      templateSlug: templateSlug,
+      data: options.data,
+      subject: options.subject,
+    });
 
-      case "verification":
-        // Use the nodemailer verification template
-        await nodemailerTemplates.verification({
-          to: options.to,
-          name: options.data.name as string,
-          verificationLink: options.data.verificationLink as string,
-          expiresIn: options.data.expiresIn as string,
-        });
-        break;
-
-      case "password-reset":
-        // Use the existing nodemailer template
-        await nodemailerTemplates.passwordReset({
-          to: options.to,
-          resetLink: options.data.resetLink as string,
-        });
-        break;
-
-      case "order-confirmation":
-        // Use the existing nodemailer template
-        await nodemailerTemplates.orderConfirmation({
-          to: options.to,
-          order: options.data.order,
-        });
-        break;
-
-      default:
-        throw new Error(`Unsupported email template: ${options.template}`);
-    }
-
-    return true;
+    return result.success;
   } catch (error) {
     console.error("Failed to send email:", error);
 
@@ -147,12 +127,8 @@ export async function sendWelcomeEmail(
   email: string,
   name: string
 ): Promise<boolean> {
-  return sendEmail({
-    to: email,
-    subject: "Welcome to TeechTots!",
-    template: "welcome",
-    data: { name },
-  });
+  const result = await DatabaseTemplateService.sendWelcomeEmail(email, name);
+  return result.success;
 }
 
 /**
@@ -168,17 +144,12 @@ export async function sendVerificationEmail(
   token: string
 ): Promise<boolean> {
   const verificationLink = generateVerificationLink(email, token);
-
-  return sendEmail({
-    to: email,
-    subject: "Verify your email address",
-    template: "verification",
-    data: {
-      name,
-      verificationLink,
-      expiresIn: "24 hours",
-    },
-  });
+  const result = await DatabaseTemplateService.sendVerificationEmail(
+    email,
+    name,
+    verificationLink
+  );
+  return result.success;
 }
 
 /**
@@ -192,16 +163,11 @@ export async function sendPasswordResetEmail(
   token: string
 ): Promise<boolean> {
   const resetLink = generatePasswordResetLink(email, token);
-
-  return sendEmail({
-    to: email,
-    subject: "Reset your password",
-    template: "password-reset",
-    data: {
-      resetLink,
-      expiresIn: "1 hour",
-    },
-  });
+  const result = await DatabaseTemplateService.sendPasswordResetEmail(
+    email,
+    resetLink
+  );
+  return result.success;
 }
 
 /**

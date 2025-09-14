@@ -1,3 +1,46 @@
+export const designSystem = {
+  colors: {
+    primary: "#10b981",
+    secondary: "#3b82f6",
+    accent: "#f59e0b",
+    text: "#111827",
+    mutedText: "#374151",
+    border: "#e5e7eb",
+    background: "#ffffff",
+  },
+  typography: {
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    fontSize: {
+      sm: "14px",
+      base: "16px",
+      lg: "18px",
+      xl: "20px",
+    },
+  },
+  spacing: (n: number) => `${n * 4}px`,
+  components: {
+    button: (label: string, href: string) => `
+      <a href="${href}" style="
+        display:inline-block;
+        background:${"#10b981"};
+        color:#ffffff;
+        padding:12px 20px;
+        border-radius:8px;
+        text-decoration:none;
+        font-weight:600;
+      ">${label}</a>
+    `,
+    card: (content: string) => `
+      <div style="
+        border:1px solid #e5e7eb;
+        border-radius:12px;
+        padding:16px;
+        background:#ffffff;
+      ">${content}</div>
+    `,
+  },
+} as const;
+
 /**
  * Professional Email Design System for TechTots
  * Enterprise-grade design tokens and components for multi-million dollar company appearance

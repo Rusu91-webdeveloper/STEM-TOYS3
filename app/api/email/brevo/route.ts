@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
-import { emailTemplates } from "@/lib/brevoTemplates";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 
 // Schema for email request validation
 const orderConfirmationSchema = z.object({
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
           );
         }
 
-        await emailTemplates.orderConfirmation({
+        await sendEmailViaUnifiedSystem.orderConfirmation({
           to: data.to,
           order,
           user: {
@@ -134,15 +134,15 @@ export async function POST(request: Request) {
       }
 
       case "verification":
-        await emailTemplates.verification(data);
+        await sendEmailViaUnifiedSystem.verification(data);
         break;
 
       case "passwordReset":
-        await emailTemplates.passwordReset(data);
+        await sendEmailViaUnifiedSystem.passwordReset(data);
         break;
 
       case "welcome":
-        await emailTemplates.welcome(data);
+        await sendEmailViaUnifiedSystem.welcome(data);
         break;
 
       case "returnProcessing": {
@@ -171,7 +171,7 @@ export async function POST(request: Request) {
           );
         }
 
-        await emailTemplates.returnProcessing({
+        await sendEmailViaUnifiedSystem.returnProcessing({
           to: data.to,
           order,
           returnStatus: data.returnStatus,

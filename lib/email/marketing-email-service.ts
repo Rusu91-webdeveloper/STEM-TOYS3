@@ -9,8 +9,7 @@ import {
   getEmailTemplate,
   isEmailMarketingEnabled,
 } from "@/lib/utils/marketing-settings";
-import { sendEmailWithBrevoApi } from "@/lib/brevo";
-import { sendMail } from "@/lib/brevo";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 
 export interface MarketingEmailRequest {
   to: string | string[];
@@ -152,7 +151,7 @@ export class MarketingEmailService {
         ? params.to.map(email => ({ email }))
         : [{ email: params.to }];
 
-      const result = await sendEmailWithBrevoApi({
+      const result = await sendEmailViaUnifiedSystem({
         to: recipients,
         subject: params.subject,
         htmlContent: params.content,
@@ -243,17 +242,19 @@ export class MarketingEmailService {
     attachments?: any[];
   }): Promise<MarketingEmailResponse> {
     try {
-      // Use the existing sendMail function for custom providers
+      // Use the existing sendEmailViaUnifiedSystem function for custom providers
       const recipients = Array.isArray(params.to) ? params.to : [params.to];
 
       for (const recipient of recipients) {
-        await sendMail({
-          to: recipient,
-          subject: params.subject,
-          html: params.content,
-          from: params.config.fromEmail,
-          replyTo: params.config.replyToEmail,
-        });
+        await sendEmailViaUnifiedSystem(
+          recipient,
+          params.subject,
+          params.content,
+          {
+            from: params.config.fromEmail,
+            replyTo: params.config.replyToEmail,
+          }
+        );
       }
 
       return {

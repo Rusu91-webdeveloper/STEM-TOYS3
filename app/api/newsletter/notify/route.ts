@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
-import { emailTemplates } from "@/lib/brevoTemplates";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 import { prisma } from "@/lib/prisma";
 
 // Schema for blog notification validation
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
 
     // Send notification to each subscriber
     const emailPromises = subscribers.map(subscriber =>
-      emailTemplates.blogNotification({
+      sendEmailViaUnifiedSystem.blogNotification({
         to: subscriber.email,
         name: subscriber.firstName ?? subscriber.email.split("@")[0],
         blog: {

@@ -1,6 +1,6 @@
 import type { Coupon } from "@prisma/client";
 
-import { sendMail } from "@/lib/brevo";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 import { db } from "@/lib/db";
 
 /**
@@ -244,7 +244,7 @@ export async function sendCouponEmail({
     previewText
   );
 
-  await sendMail({
+  await sendEmailViaUnifiedSystem({
     to,
     subject,
     html,

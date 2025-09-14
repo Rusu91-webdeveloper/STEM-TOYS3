@@ -1,5 +1,5 @@
 import { logger } from "./logger";
-import { sendMail } from "./nodemailer";
+import { sendEmailViaUnifiedSystem } from "./nodemailer";
 
 // Admin email configuration
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@techtots.com";
@@ -188,7 +188,7 @@ View Messages in Admin Dashboard: ${process.env.NEXT_PUBLIC_SITE_URL || "http://
     `;
 
     // Send to admin email
-    await sendMail({
+    await sendEmailViaUnifiedSystem({
       to: ADMIN_EMAIL,
       subject: `[${notification.priority.toUpperCase()}] New Supplier Message: ${notification.subject}`,
       html,
@@ -197,7 +197,7 @@ View Messages in Admin Dashboard: ${process.env.NEXT_PUBLIC_SITE_URL || "http://
 
     // Also send to support email if different from admin
     if (SUPPORT_EMAIL !== ADMIN_EMAIL) {
-      await sendMail({
+      await sendEmailViaUnifiedSystem({
         to: SUPPORT_EMAIL,
         subject: `[${notification.priority.toUpperCase()}] New Supplier Message: ${notification.subject}`,
         html,
@@ -333,7 +333,7 @@ View Tickets in Admin Dashboard: ${process.env.NEXT_PUBLIC_SITE_URL || "http://l
     `;
 
     // Send to admin email
-    await sendMail({
+    await sendEmailViaUnifiedSystem({
       to: ADMIN_EMAIL,
       subject: `[${notification.priority.toUpperCase()}] New Support Ticket: ${notification.subject}`,
       html,
@@ -342,7 +342,7 @@ View Tickets in Admin Dashboard: ${process.env.NEXT_PUBLIC_SITE_URL || "http://l
 
     // Also send to support email if different from admin
     if (SUPPORT_EMAIL !== ADMIN_EMAIL) {
-      await sendMail({
+      await sendEmailViaUnifiedSystem({
         to: SUPPORT_EMAIL,
         subject: `[${notification.priority.toUpperCase()}] New Support Ticket: ${notification.subject}`,
         html,
@@ -469,7 +469,7 @@ View Ticket in Supplier Portal: ${process.env.NEXT_PUBLIC_SITE_URL || "http://lo
     `;
 
     // Send to supplier email
-    await sendMail({
+    await sendEmailViaUnifiedSystem({
       to: notification.responderEmail,
       subject: `Re: [${notification.ticketNumber}] ${notification.subject}`,
       html,
@@ -563,7 +563,7 @@ View Ticket in Admin Dashboard: ${process.env.NEXT_PUBLIC_SITE_URL || "http://lo
     `;
 
     // Send to admin email
-    await sendMail({
+    await sendEmailViaUnifiedSystem({
       to: ADMIN_EMAIL,
       subject: `[STATUS UPDATE] ${notification.ticketNumber}: ${notification.subject}`,
       html,
@@ -655,7 +655,7 @@ View Ticket in Admin Dashboard: ${process.env.NEXT_PUBLIC_SITE_URL || "http://lo
     `;
 
     // Send to assigned admin
-    await sendMail({
+    await sendEmailViaUnifiedSystem({
       to: notification.assignedToEmail,
       subject: `[ASSIGNED] ${notification.ticketNumber}: ${notification.subject}`,
       html,

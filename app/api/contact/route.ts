@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { sendMail } from "@/lib/brevo";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 
 const contactFormSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name too long"),
@@ -133,14 +133,14 @@ Date: ${new Date().toLocaleDateString("ro-RO", {
     `.trim();
 
     // Send email using Brevo
-    await sendMail({
-      to: recipientEmail,
-      subject: `[Contact Form] ${subject} - de la ${name}`,
+    await sendEmailViaUnifiedSystem(
+      recipientEmail,
+      `[Contact Form] ${subject} - de la ${name}`,
       html,
-      text: textContent,
-      from: process.env.EMAIL_FROM || "noreply@techtots.ro",
-      fromName: "TechTots Contact Form",
-    });
+      {
+        variables: { textContent },
+      }
+    );
 
     // Send confirmation email to user
     const confirmationHtml = `
@@ -201,14 +201,16 @@ Date: ${new Date().toLocaleDateString("ro-RO", {
     `;
 
     // Send confirmation to user
-    await sendMail({
-      to: email,
-      subject: "Confirmare - Am primit mesajul tău | TechTots",
-      html: confirmationHtml,
-      text: `Bună ${name},\n\nAm primit mesajul tău cu subiectul "${subject}" și îți vom răspunde în cel mai scurt timp posibil.\n\nÎți mulțumim că ne-ai contactat!\n\nEchipa TechTots\nEmail: webira.rem.srl@gmail.com\nTelefon: +40 771 248 029`,
-      from: process.env.EMAIL_FROM || "noreply@techtots.ro",
-      fromName: "TechTots STEM Store",
-    });
+    await sendEmailViaUnifiedSystem(
+      email,
+      "Confirmare - Am primit mesajul tău | TechTots",
+      confirmationHtml,
+      {
+        variables: {
+          textContent: `Bună ${name},\n\nAm primit mesajul tău cu subiectul "${subject}" și îți vom răspunde în cel mai scurt timp posibil.\n\nÎți mulțumim că ne-ai contactat!\n\nEchipa TechTots\nEmail: webira.rem.srl@gmail.com\nTelefon: +40 771 248 029`,
+        },
+      }
+    );
 
     return NextResponse.json({
       success: true,

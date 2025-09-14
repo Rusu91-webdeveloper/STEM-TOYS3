@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { emailTemplates } from "@/lib/resend";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 
 // Schema for email request validation
 const orderConfirmationSchema = z.object({
@@ -76,13 +76,13 @@ export async function POST(request: Request) {
     // Send the appropriate email based on the type
     switch (type) {
       case "orderConfirmation":
-        await emailTemplates.orderConfirmation(data);
+        await sendEmailViaUnifiedSystem.orderConfirmation(data);
         break;
       case "orderShipped":
-        await emailTemplates.orderShipped(data);
+        await sendEmailViaUnifiedSystem.orderShipped(data);
         break;
       case "passwordReset":
-        await emailTemplates.passwordReset(data);
+        await sendEmailViaUnifiedSystem.passwordReset(data);
         break;
     }
 

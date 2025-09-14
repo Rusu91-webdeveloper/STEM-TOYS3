@@ -6,7 +6,7 @@
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
 import { prisma } from "@/lib/prisma";
 
-import { sendMail } from "../brevo";
+import { sendEmailViaUnifiedSystem } from "../brevo";
 
 import {
   getStoreSettings,
@@ -173,7 +173,7 @@ export async function sendWelcomeEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailViaUnifiedSystem({
     to,
     subject: `🎉 Bine ai venit la ${storeSettings.storeName} - Primești 10% Reducere!`,
     html,
@@ -373,7 +373,7 @@ export async function sendVerificationEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailViaUnifiedSystem({
     to,
     subject: roTranslations.email_verification_subject,
     html,
@@ -560,7 +560,7 @@ export async function sendPasswordResetEmail({
     previewText
   );
 
-  return sendMail({
+  return sendEmailViaUnifiedSystem({
     to,
     subject: "🔑 Resetare parolă pentru contul tău",
     html,

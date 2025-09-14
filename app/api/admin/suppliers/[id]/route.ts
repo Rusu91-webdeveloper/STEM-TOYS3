@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { resolveAdminUserId } from "@/lib/admin-utils";
 import { auth } from "@/lib/auth";
-import { sendMail } from "@/lib/brevo";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
@@ -481,7 +481,7 @@ async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
   const ordersUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier/orders`;
   const supportEmail = "support@techtots.com";
 
-  await sendMail({
+  await sendEmailViaUnifiedSystem({
     to: supplier.contactPersonEmail,
     subject:
       "🎉 Congratulations! Your TechTots Supplier Application Has Been Approved!",
@@ -644,7 +644,7 @@ async function sendSupplierRejectionEmail(
   const supportEmail = "support@techtots.com";
   const reapplyUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier`;
 
-  await sendMail({
+  await sendEmailViaUnifiedSystem({
     to: supplier.contactPersonEmail,
     subject: "Update on Your TechTots Supplier Application",
     html: `

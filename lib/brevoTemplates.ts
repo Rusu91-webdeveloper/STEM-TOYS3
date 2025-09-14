@@ -13,7 +13,7 @@ import { StoreSettings, Product, Blog } from "@prisma/client";
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
 import { prisma } from "@/lib/prisma";
 
-import { sendMail } from "./brevo";
+import { sendEmailWithBrevo } from "./brevo";
 
 // Type for SEO metadata
 type SEOMetadata = {
@@ -155,7 +155,7 @@ function generateEmailContainer(content: string): string {
 }
 
 // Email templates with Brevo integration
-export const emailTemplates = {
+export const sendEmailViaUnifiedSystem = {
   /**
    * Digital book delivery email with download links
    */
@@ -302,7 +302,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: `📚 Cărțile tale digitale sunt gata pentru descărcare! - Comanda #${orderId}`,
       html,
@@ -387,7 +387,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: roTranslations.email_welcome_subject,
       html,
@@ -497,7 +497,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: roTranslations.email_verification_subject,
       html,
@@ -574,7 +574,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: roTranslations.email_password_reset_subject,
       html,
@@ -685,7 +685,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: "Mulțumim pentru abonarea la newsletter-ul TechTots!",
       html,
@@ -768,7 +768,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: "Bine ai revenit la newsletter-ul TechTots!",
       html,
@@ -1010,7 +1010,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: `📰 Articol nou: ${blog.title} - ${storeSettings.storeName}`,
       html,
@@ -1272,7 +1272,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: `Confirmare Comandă #${order.orderNumber} - ${storeSettings.storeName}`,
       html,
@@ -1516,7 +1516,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: `${statusInfo.title} - Comandă #${order.orderNumber} - ${storeSettings.storeName}`,
       html,
@@ -1656,7 +1656,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: `📦 Cererea de Retur Confirmată - Comandă #${orderNumber} - ${storeSettings.storeName}`,
       html,
@@ -1786,7 +1786,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: `🚨 Cerere de Retur Nouă - Comandă #${orderNumber} - ${storeSettings.storeName}`,
       html,
@@ -1876,7 +1876,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: `🎉 Comanda #${orderNumber} - Gata pentru Expediere - ${storeSettings.storeName}`,
       html,
@@ -1958,7 +1958,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: `🚚 Comanda #${orderNumber} - Expediată - ${storeSettings.storeName}`,
       html,
@@ -2017,7 +2017,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: `📦 Comanda #${orderNumber} - Livrată - ${storeSettings.storeName}`,
       html,
@@ -2074,7 +2074,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return sendEmailWithBrevo({
       to,
       subject: `✅ Comanda #${orderNumber} - Completată - ${storeSettings.storeName}`,
       html,

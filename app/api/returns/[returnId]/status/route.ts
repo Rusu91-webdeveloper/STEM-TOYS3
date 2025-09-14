@@ -2,7 +2,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
-import { sendMail } from "@/lib/brevo";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 import { db } from "@/lib/db";
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
 import { generateReturnLabel } from "@/lib/return-label";
@@ -345,7 +345,7 @@ export async function PATCH(
         const pdfBase64 = pdfBuffer.toString("base64");
 
         // Send email with attachment
-        await sendMail({
+        await sendEmailViaUnifiedSystem({
           to: updatedReturn.user.email,
           subject: `TechTots - ${roTranslations.email_return_approved_subject.replace("#{orderNumber}", updatedReturn.order.orderNumber)}`,
           html: emailHtml,

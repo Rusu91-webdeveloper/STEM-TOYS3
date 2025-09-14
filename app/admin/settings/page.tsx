@@ -193,7 +193,7 @@ interface StoreSettings {
       replyToEmail: string;
       doubleOptIn: boolean;
       unsubscribeRequired: boolean;
-      emailTemplates: {
+      sendEmailViaUnifiedSystem: {
         welcome: string;
         abandonedCart: string;
         orderConfirmation: string;
@@ -499,7 +499,7 @@ const defaultSettings: StoreSettings = {
       replyToEmail: "support@techtots.com",
       doubleOptIn: true,
       unsubscribeRequired: true,
-      emailTemplates: {
+      sendEmailViaUnifiedSystem: {
         welcome: "Welcome to TechTots!",
         abandonedCart: "Your cart is waiting for you at TechTots!",
         orderConfirmation: "Thank you for your order from TechTots!",
@@ -2011,7 +2011,7 @@ export default function SettingsPage() {
                       replyToEmail: "support@techtots.com",
                       doubleOptIn: true,
                       unsubscribeRequired: true,
-                      emailTemplates: {
+                      sendEmailViaUnifiedSystem: {
                         welcome: "Welcome to TechTots!",
                         abandonedCart:
                           "Your cart is waiting for you at TechTots!",

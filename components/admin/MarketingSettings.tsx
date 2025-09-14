@@ -36,7 +36,7 @@ interface MarketingSettings {
     replyToEmail: string;
     doubleOptIn: boolean;
     unsubscribeRequired: boolean;
-    emailTemplates: {
+    sendEmailViaUnifiedSystem: {
       welcome: string;
       abandonedCart: string;
       orderConfirmation: string;

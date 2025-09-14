@@ -38,7 +38,7 @@ export const transporter = nodemailer.createTransport({
 
 // For development environment, provide console-based email simulation
 const devTransporter = {
-  sendMail: async (options: any) => {
+  sendEmailViaUnifiedSystem: async (options: any) => {
     logger.debug("Email would be sent (DEV MODE)", {
       from: options.from,
       to: options.to,
@@ -68,7 +68,7 @@ activeTransporter
   });
 
 // Send an email using Nodemailer
-export async function sendMail({
+export async function sendEmailViaUnifiedSystem({
   to,
   subject,
   html,
@@ -208,7 +208,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return emailTemplates({
       to,
       subject: "Bun venit la TechTots! 🎉",
       html: html.replace("+40 123 456 789", "+40 771 248 029"),
@@ -268,7 +268,7 @@ export const emailTemplates = {
     const from =
       EMAIL_FROM || process.env.EMAIL_FROM || "webira.rem.srl@gmail.com";
 
-    return sendMail({
+    return emailTemplates({
       to,
       from,
       subject: `New Return Request - Order #${orderNumber}`,
@@ -410,7 +410,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return emailTemplates({
       to,
       subject: "Verifică-ți adresa de email - TechTots",
       html,
@@ -651,7 +651,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return emailTemplates({
       to,
       subject: `Confirmare Comandă TechTots #${order.id}`,
       html,
@@ -750,7 +750,7 @@ export const emailTemplates = {
       </html>
     `;
 
-    return sendMail({
+    return emailTemplates({
       to,
       subject: "Resetare Parolă - TechTots",
       html: html.replace("+40 123 456 789", "+40 771 248 029"),

@@ -10,7 +10,7 @@ export interface MarketingSettings {
     replyToEmail: string;
     doubleOptIn: boolean;
     unsubscribeRequired: boolean;
-    emailTemplates: {
+    sendEmailViaUnifiedSystem: {
       welcome: string;
       abandonedCart: string;
       orderConfirmation: string;
@@ -224,7 +224,7 @@ export async function getEmailMarketingConfig(): Promise<{
  * Get email template by type
  */
 export async function getEmailTemplate(
-  templateType: keyof MarketingSettings["emailMarketing"]["emailTemplates"]
+  templateType: keyof MarketingSettings["emailMarketing"]["sendEmailViaUnifiedSystem"]
 ): Promise<string | null> {
   try {
     const settings = await getMarketingSettings();
@@ -233,7 +233,7 @@ export async function getEmailTemplate(
       return null;
     }
 
-    return settings.emailMarketing.emailTemplates[templateType] || null;
+    return settings.emailMarketing.sendEmailViaUnifiedSystem[templateType] || null;
   } catch (error) {
     console.error("Error getting email template:", error);
     return null;

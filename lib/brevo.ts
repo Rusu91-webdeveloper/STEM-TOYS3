@@ -41,9 +41,10 @@ export const brevoTransporter = nodemailer.createTransport({
 
 // For development environment, provide console-based email simulation
 const devTransporter = {
-  sendMail: async (options: any) =>
+  sendEmailViaUnifiedSystem: async (options: any) => {
     // Development mode: Email not sent, but would be sent with these details
-    ({ messageId: `dev-${Date.now()}@localhost` }),
+    return { messageId: `dev-${Date.now()}@localhost` };
+  },
 };
 
 // Use dev transporter in development mode if credentials are missing
@@ -188,7 +189,7 @@ export async function sendEmailWithBrevoSmtp({
 }
 
 // Simpler interface that can be switched between API and SMTP approaches
-export async function sendMail({
+export async function sendEmailWithBrevo({
   to,
   subject,
   html,

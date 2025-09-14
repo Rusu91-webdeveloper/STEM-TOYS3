@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { getServerSession } from "@/lib/auth/server";
 import { prisma } from "@/lib/db";
-import { sendMail } from "@/lib/brevo";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 
 // Validation schema for sending campaign emails
 const SendCampaignSchema = z.object({
@@ -60,13 +60,15 @@ export async function POST(
         const emailId = `campaign-${campaign.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
         // Send the email
-        const emailResult = await sendMail({
-          to: email,
-          subject: campaign.subject,
-          html: campaign.content,
-          from: process.env.EMAIL_FROM || "noreply@techtots.com",
-          fromName: process.env.EMAIL_FROM_NAME || "TechTots STEM Store",
-        });
+        const emailResult = await sendEmailViaUnifiedSystem(
+          email,
+          campaign.subject,
+          campaign.content,
+          {
+            from: process.env.EMAIL_FROM || "noreply@techtots.com",
+            fromName: process.env.EMAIL_FROM_NAME || "TechTots STEM Store",
+          }
+        );
 
         // Record email event
         const emailEvent = await prisma.emailEvent.create({

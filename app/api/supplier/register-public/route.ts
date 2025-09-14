@@ -2,7 +2,7 @@ import { hash } from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { sendMail } from "@/lib/brevo";
+import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 import { prisma } from "@/lib/prisma";
 
 // Validation schema for supplier application
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation email to applicant
     try {
-      await sendMail({
+      await sendEmailViaUnifiedSystem({
         to: validatedData.contactPersonEmail,
         subject: "TechTots Supplier Application Received",
         html: `
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
     // Send notification to admin
     try {
       const adminEmail = process.env.ADMIN_EMAIL || "admin@techtots.ro";
-      await sendMail({
+      await sendEmailViaUnifiedSystem({
         to: adminEmail,
         subject: "New Supplier Application Received",
         html: `

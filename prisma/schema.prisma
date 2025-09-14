@@ -26,6 +26,7 @@ model User {
   digitalDownloads    DigitalDownload[]
   emailEvents         EmailEvent[]
   emailSequenceUsers  EmailSequenceUser[]
+  consentRecords      ConsentRecord[]
   orders              Order[]
   passwordResetTokens PasswordResetToken[]
   paymentCards        PaymentCard[]
@@ -790,6 +791,7 @@ model EmailTemplate {
   metadata      Json?
   campaigns     EmailCampaign[]
   sequenceSteps EmailSequenceStep[]
+  emailEvents   EmailEvent[]
 
   @@index([slug])
   @@index([category])
@@ -811,6 +813,7 @@ model EmailCampaign {
   createdBy   String
   metadata    Json?
   template    EmailTemplate       @relation(fields: [templateId], references: [id])
+  emailEvents EmailEvent[]
 
   @@index([status])
   @@index([scheduledAt])
@@ -874,21 +877,25 @@ model EmailSequenceUser {
 }
 
 model EmailEvent {
-  id         String         @id @default(cuid())
-  emailId    String         @unique
-  userId     String?
-  email      String
-  eventType  EmailEventType
-  campaignId String?
-  sequenceId String?
-  templateId String?
-  metadata   Json?
-  createdAt  DateTime       @default(now())
-  user       User?          @relation(fields: [userId], references: [id])
+  id              String               @id @default(cuid())
+  emailId         String               @unique
+  userId          String?
+  email           String
+  eventType       EmailEventType
+  deliveryStatus  EmailDeliveryStatus  @default(PENDING)
+  campaignId      String?
+  sequenceId      String?
+  templateId      String?
+  metadata        Json?
+  createdAt       DateTime             @default(now())
+  user            User?                @relation(fields: [userId], references: [id])
+  campaign        EmailCampaign?       @relation(fields: [campaignId], references: [id])
+  template        EmailTemplate?       @relation(fields: [templateId], references: [id])
 
   @@index([emailId])
   @@index([userId])
   @@index([eventType])
+  @@index([deliveryStatus])
   @@index([campaignId])
   @@index([sequenceId])
   @@index([templateId])
@@ -915,6 +922,36 @@ model DigitalDownload {
   @@index([digitalFileId])
   @@index([downloadToken])
   @@index([expiresAt])
+}
+
+model ConsentRecord {
+  id          String      @id @default(cuid())
+  userId      String
+  email       String
+  consentType ConsentType
+  granted     Boolean     @default(true)
+  grantedAt   DateTime    @default(now())
+  revokedAt   DateTime?
+  source      String
+  ipAddress   String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([email])
+  @@index([consentType])
+  @@index([granted])
+  @@index([grantedAt])
+}
+
+enum ConsentType {
+  MARKETING
+  NEWSLETTER
+  TRANSACTIONAL
+  ALL
 }
 
 model Coupon {
@@ -1156,6 +1193,19 @@ enum EmailEventType {
   UNSUBSCRIBED
   SPAM_REPORTED
   FAILED
+  PENDING
+}
+
+enum EmailDeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  FAILED
+  UNSUBSCRIBED
+  SPAM_REPORTED
 }
 
 enum EmailSequenceUserStatus {

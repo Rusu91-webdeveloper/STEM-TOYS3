@@ -37,7 +37,7 @@ export {
   type BlogWithAuthorAndCategory,
 } from "./base";
 
-// Legacy compatibility: Export emailTemplates object for existing code
+// Legacy compatibility: Export sendEmailViaUnifiedSystem object for existing code
 import {
   sendWelcomeEmail,
   sendVerificationEmail,
@@ -51,10 +51,10 @@ import {
 } from "./order-templates";
 
 /**
- * Legacy emailTemplates object for backward compatibility
+ * Legacy sendEmailViaUnifiedSystem object for backward compatibility
  * @deprecated Use individual template functions instead
  */
-export const emailTemplates = {
+export const sendEmailViaUnifiedSystem = {
   /**
    * @deprecated Use sendWelcomeEmail instead
    */
