@@ -186,13 +186,26 @@ export default function EmailTemplatesPage() {
       const response = await fetch(`/api/admin/email-templates?${params}`);
       if (!response.ok) {
         let errorMessage = "Failed to fetch templates";
+        let debugInfo = null;
         try {
           const error = await response.json();
           errorMessage = error.error ?? errorMessage;
+          debugInfo = error.debug;
+
+          // Log debug information in development
+          if (process.env.NODE_ENV === "development" && debugInfo) {
+            console.error("Email templates API debug info:", debugInfo);
+          }
         } catch (parseError) {
           // If response is not JSON, use status text
           errorMessage = response.statusText || errorMessage;
         }
+
+        // Show more detailed error in development
+        if (process.env.NODE_ENV === "development" && debugInfo) {
+          errorMessage += ` (Debug: ${JSON.stringify(debugInfo)})`;
+        }
+
         throw new Error(errorMessage);
       }
 
@@ -611,6 +624,27 @@ export default function EmailTemplatesPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          {process.env.NODE_ENV === "development" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  const response = await fetch("/api/debug/email-templates");
+                  const data = await response.json();
+                  console.log("Debug endpoint response:", data);
+                  toast.success(
+                    `Debug info logged to console. Templates found: ${data.templates?.length || 0}`
+                  );
+                } catch (error) {
+                  console.error("Debug endpoint error:", error);
+                  toast.error("Debug endpoint failed");
+                }
+              }}
+            >
+              🐛 Debug
+            </Button>
+          )}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

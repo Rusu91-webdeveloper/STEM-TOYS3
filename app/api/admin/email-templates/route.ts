@@ -26,15 +26,15 @@ const EmailTemplateSchema = z.object({
 // Function to check admin authentication from both NextAuth and admin session cookie
 async function checkAdminAuth(request: NextRequest) {
   console.log("🔐 [EMAIL-TEMPLATES] Checking admin authentication...");
-  
+
   // First try NextAuth session
   console.log("🔍 [EMAIL-TEMPLATES] Checking NextAuth session...");
   const session = await auth();
   if (session?.user && session.user.role === "ADMIN") {
-    console.log("✅ [EMAIL-TEMPLATES] NextAuth admin session found:", { 
-      userId: session.user.id, 
-      email: session.user.email, 
-      role: session.user.role 
+    console.log("✅ [EMAIL-TEMPLATES] NextAuth admin session found:", {
+      userId: session.user.id,
+      email: session.user.email,
+      role: session.user.role,
     });
     return { isAdmin: true, user: session.user };
   }
@@ -44,7 +44,9 @@ async function checkAdminAuth(request: NextRequest) {
   console.log("🍪 [EMAIL-TEMPLATES] Checking admin session cookie...");
   const adminSessionCookie = request.cookies.get("admin-session");
   if (adminSessionCookie) {
-    console.log("🍪 [EMAIL-TEMPLATES] Admin session cookie found, verifying JWT...");
+    console.log(
+      "🍪 [EMAIL-TEMPLATES] Admin session cookie found, verifying JWT..."
+    );
     try {
       const decoded = jwt.verify(
         adminSessionCookie.value,
@@ -52,10 +54,10 @@ async function checkAdminAuth(request: NextRequest) {
       ) as any;
 
       if (decoded.role === "ADMIN") {
-        console.log("✅ [EMAIL-TEMPLATES] Admin session cookie verified:", { 
-          userId: decoded.userId, 
-          email: decoded.email, 
-          role: decoded.role 
+        console.log("✅ [EMAIL-TEMPLATES] Admin session cookie verified:", {
+          userId: decoded.userId,
+          email: decoded.email,
+          role: decoded.role,
         });
         return {
           isAdmin: true,
@@ -67,10 +69,16 @@ async function checkAdminAuth(request: NextRequest) {
           },
         };
       } else {
-        console.log("❌ [EMAIL-TEMPLATES] JWT decoded but user is not admin, role:", decoded.role);
+        console.log(
+          "❌ [EMAIL-TEMPLATES] JWT decoded but user is not admin, role:",
+          decoded.role
+        );
       }
     } catch (error) {
-      console.log("❌ [EMAIL-TEMPLATES] JWT verification failed:", error instanceof Error ? error.message : String(error));
+      console.log(
+        "❌ [EMAIL-TEMPLATES] JWT verification failed:",
+        error instanceof Error ? error.message : String(error)
+      );
     }
   } else {
     console.log("❌ [EMAIL-TEMPLATES] No admin session cookie found");
@@ -83,16 +91,35 @@ async function checkAdminAuth(request: NextRequest) {
 // GET /api/admin/email-templates - List all email templates
 export async function GET(request: NextRequest) {
   console.log("📧 [EMAIL-TEMPLATES] GET request received");
-  
+
   try {
     const { isAdmin, user } = await checkAdminAuth(request);
 
     if (!isAdmin || !user) {
       console.log("❌ [EMAIL-TEMPLATES] Unauthorized access attempt");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+      // Get session for debug info
+      const session = await auth();
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+          debug:
+            process.env.NODE_ENV === "development"
+              ? {
+                  hasSession: !!session,
+                  hasUser: !!session?.user,
+                  userRole: session?.user?.role,
+                  hasAdminCookie: !!request.cookies.get("admin-session"),
+                }
+              : undefined,
+        },
+        { status: 401 }
+      );
     }
-    
-    console.log("✅ [EMAIL-TEMPLATES] Admin authentication successful, proceeding with template fetch");
+
+    console.log(
+      "✅ [EMAIL-TEMPLATES] Admin authentication successful, proceeding with template fetch"
+    );
 
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
@@ -101,12 +128,12 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") ?? "20");
     const search = searchParams.get("search");
 
-    console.log("🔍 [EMAIL-TEMPLATES] Query parameters:", { 
-      category, 
-      isActive, 
-      page, 
-      limit, 
-      search 
+    console.log("🔍 [EMAIL-TEMPLATES] Query parameters:", {
+      category,
+      isActive,
+      page,
+      limit,
+      search,
     });
 
     // Build where clause
@@ -127,7 +154,7 @@ export async function GET(request: NextRequest) {
         { subject: { contains: search, mode: "insensitive" } },
       ];
     }
-    
+
     console.log("🔍 [EMAIL-TEMPLATES] Database query where clause:", where);
 
     // Get templates with pagination
@@ -154,10 +181,10 @@ export async function GET(request: NextRequest) {
       }),
       prisma.emailTemplate.count({ where }),
     ]);
-    
-    console.log("📊 [EMAIL-TEMPLATES] Database queries completed:", { 
-      templatesCount: templates.length, 
-      totalCount: total 
+
+    console.log("📊 [EMAIL-TEMPLATES] Database queries completed:", {
+      templatesCount: templates.length,
+      totalCount: total,
     });
 
     // Debug logging for development
@@ -181,11 +208,14 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("❌ [EMAIL-TEMPLATES] Error fetching email templates:", error);
+    console.error(
+      "❌ [EMAIL-TEMPLATES] Error fetching email templates:",
+      error
+    );
     console.error("❌ [EMAIL-TEMPLATES] Error details:", {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
-      name: error instanceof Error ? error.name : undefined
+      name: error instanceof Error ? error.name : undefined,
     });
     return NextResponse.json(
       { error: "Failed to fetch email templates" },

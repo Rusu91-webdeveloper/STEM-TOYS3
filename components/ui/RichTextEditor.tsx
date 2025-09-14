@@ -90,7 +90,9 @@ export function RichTextEditor({
   // Check if we have a valid TinyMCE API key
   const hasApiKey =
     process.env.NEXT_PUBLIC_TINYMCE_API_KEY &&
-    process.env.NEXT_PUBLIC_TINYMCE_API_KEY !== "no-api-key";
+    process.env.NEXT_PUBLIC_TINYMCE_API_KEY !== "no-api-key" &&
+    process.env.NEXT_PUBLIC_TINYMCE_API_KEY !==
+      "fwejwtkwa87t7ufsvcovh39i7lh508a68peecskrkuycoc9l"; // Skip the invalid key
 
   // Extract existing variables from content
   const extractExistingVariables = (content: string): string[] => {
@@ -264,6 +266,8 @@ export function RichTextEditor({
               // Disable problematic features when no API key
               promotion: false,
               branding: false,
+              // Add error handling for license validation
+              license_key: "gpl", // Use GPL license to avoid validation issues
               // Use only core free plugins that are guaranteed to work
               plugins: [
                 "advlist",
@@ -403,18 +407,54 @@ export function RichTextEditor({
             }}
           />
         ) : (
-          // Fallback simple textarea editor
-          <div className="relative">
+          // Enhanced fallback editor
+          <div className="relative bg-white">
+            <div className="flex items-center justify-between p-2 border-b bg-gray-50">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-xs">
+                  Basic Editor
+                </Badge>
+                <span className="text-xs text-gray-500">
+                  TinyMCE not available
+                </span>
+              </div>
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const text = value;
+                    onChange(text.replace(/\n/g, "<br>"));
+                  }}
+                  className="text-xs h-6 px-2"
+                >
+                  Add Line Breaks
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const text = value;
+                    onChange(
+                      `<p>${text.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br>")}</p>`
+                    );
+                  }}
+                  className="text-xs h-6 px-2"
+                >
+                  Format HTML
+                </Button>
+              </div>
+            </div>
             <textarea
               value={value}
               onChange={e => onChange(e.target.value)}
               placeholder={placeholder}
               className="w-full p-4 border-0 resize-none focus:outline-none focus:ring-0"
-              style={{ height: `${height}px`, fontFamily: "monospace" }}
+              style={{
+                height: `${height - 40}px`,
+                fontFamily: "ui-monospace, SFMono-Regular, monospace",
+              }}
             />
-            <div className="absolute bottom-2 right-2 text-xs text-gray-400">
-              Simple Editor (Get TinyMCE API key for rich text features)
-            </div>
           </div>
         )}
       </div>
