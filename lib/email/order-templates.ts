@@ -292,7 +292,7 @@ export async function sendOrderConfirmationEmail({
       "Accesează contul tău pentru a vedea statusul comenzii în timp real și pentru a gestiona toate comenzile tale.",
       {
         text: "👁️ Vezi Comanda",
-        url: `${baseUrl}/account/orders/${orderId}`,
+        url: `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
       },
       {
         text: "📋 Toate Comenzile",
@@ -689,12 +689,12 @@ export async function sendOrderCompletedEmail({
         text: "✍️ Lasă un Review",
         url:
           orderItems.length > 0
-            ? `${baseUrl}/account/orders/${orderId}/review?itemId=${orderItems[0].id}&productId=${orderItems[0].productId}`
-            : `${baseUrl}/account/orders/${orderId}`,
+            ? `${baseUrl}/orders/${orderId}/review?itemId=${orderItems[0].id}&productId=${orderItems[0].productId}&email=${encodeURIComponent(to)}`
+            : `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
       },
       {
         text: "👁️ Vezi Comanda",
-        url: `${baseUrl}/account/orders/${orderId}`,
+        url: `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
       }
     )}
 
@@ -897,12 +897,12 @@ export async function sendOrderDeliveredEmail({
         text: "✍️ Lasă un Review",
         url:
           orderItems.length > 0
-            ? `${baseUrl}/account/orders/${orderId}/review?itemId=${orderItems[0].id}&productId=${orderItems[0].productId}`
-            : `${baseUrl}/account/orders/${orderId}`,
+            ? `${baseUrl}/orders/${orderId}/review?itemId=${orderItems[0].id}&productId=${orderItems[0].productId}&email=${encodeURIComponent(to)}`
+            : `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
       },
       {
         text: "👁️ Vezi Comanda",
-        url: `${baseUrl}/account/orders/${orderId}`,
+        url: `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
       }
     )}
 

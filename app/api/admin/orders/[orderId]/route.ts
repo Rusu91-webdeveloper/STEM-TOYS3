@@ -198,6 +198,7 @@ export async function PATCH(
         items: {
           select: {
             id: true,
+            productId: true,
             quantity: true,
             name: true,
             price: true,

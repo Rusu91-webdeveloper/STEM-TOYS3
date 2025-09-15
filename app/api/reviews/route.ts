@@ -25,27 +25,33 @@ const reviewSchema = z.object({
   rating: z.number().int().min(1).max(5),
   title: z.string().min(3).max(100),
   content: z.string().min(10).max(1000),
+  guestEmail: z.string().email().optional(),
 });
 
 export const POST = withErrorHandling(async (req: NextRequest) => {
-  // Verify authentication
+  // Parse and validate request body first to get guestEmail
+  const body = await req.json();
+  const validatedData = reviewSchema.parse(body);
+  
+  // Verify authentication OR guest email
   const session = await auth();
-  if (!session?.user) {
+  if (!session?.user && !validatedData.guestEmail) {
     return unauthorized("You must be logged in to submit a review");
   }
 
-  // Parse and validate request body
-  const body = await req.json();
   try {
-    const validatedData = reviewSchema.parse(body);
 
-    // Check if the order item belongs to the user and is in "delivered" status
+    // Check if the order item exists and is in "delivered" status
     const orderItem = await db.orderItem.findUnique({
       where: {
         id: validatedData.orderItemId,
       },
       include: {
-        order: true,
+        order: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -53,9 +59,19 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       return notFound("The specified order item does not exist");
     }
 
-    // Verify that the order belongs to the user
-    if (orderItem.order.userId !== session.user.id) {
-      return forbidden("You can only review items from your own orders");
+    // Verify that the order belongs to the user (authenticated or guest)
+    if (session?.user) {
+      // Authenticated user - check by userId
+      if (orderItem.order.userId !== session.user.id) {
+        return forbidden("You can only review items from your own orders");
+      }
+    } else if (validatedData.guestEmail) {
+      // Guest user - check by email
+      if (orderItem.order.user.email !== validatedData.guestEmail) {
+        return forbidden("You can only review items from your own orders");
+      }
+    } else {
+      return unauthorized("Authentication required");
     }
 
     // Verify that the order is delivered
@@ -66,8 +82,11 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     // Check if the user has already reviewed this order item
     const existingReview = await db.review.findFirst({
       where: {
-        userId: session.user.id,
         orderItemId: validatedData.orderItemId,
+        ...(session?.user 
+          ? { userId: session.user.id }
+          : { guestEmail: validatedData.guestEmail }
+        ),
       },
     });
 
@@ -78,7 +97,8 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     // Create the review
     const review = await db.review.create({
       data: {
-        userId: session.user.id,
+        userId: session?.user?.id || null,
+        guestEmail: validatedData.guestEmail || null,
         productId: validatedData.productId,
         orderItemId: validatedData.orderItemId,
         rating: validatedData.rating,

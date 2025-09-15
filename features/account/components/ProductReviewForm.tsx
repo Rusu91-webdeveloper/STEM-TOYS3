@@ -16,12 +16,14 @@ interface ProductReviewFormProps {
   productId: string;
   orderItemId: string;
   orderId: string;
+  guestEmail?: string;
 }
 
 export function ProductReviewForm({
   productId,
   orderItemId,
   orderId,
+  guestEmail,
 }: ProductReviewFormProps) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -80,6 +82,7 @@ export function ProductReviewForm({
           rating,
           title,
           content,
+          guestEmail,
         }),
       });
 
@@ -91,7 +94,11 @@ export function ProductReviewForm({
       toast.success(
         t("reviewSubmittedSuccess", "Recenzia a fost trimisă cu succes!")
       );
-      router.push(`/account/orders/${orderId}?reviewSubmitted=true`);
+      if (guestEmail) {
+        router.push(`/orders/${orderId}?email=${encodeURIComponent(guestEmail)}&reviewSubmitted=true`);
+      } else {
+        router.push(`/account/orders/${orderId}?reviewSubmitted=true`);
+      }
     } catch (error) {
       console.error("Error submitting review:", error);
       toast.error(
