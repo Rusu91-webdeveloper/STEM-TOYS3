@@ -10,6 +10,7 @@ import {
   FeaturedProductsSkeleton,
   HeroSection,
   PillarSection,
+  SupplierBanner,
   ValuePropositionSection,
 } from "@/features/home/components";
 import { useCurrency } from "@/lib/currency";
@@ -95,6 +96,9 @@ export default function HomePageClient({
           isLoading={initialFeaturedProducts.length === 0}
         />
       </Suspense>
+
+      {/* Supplier Banner - Only visible on Home page */}
+      <SupplierBanner t={t} />
     </div>
   );
 }
