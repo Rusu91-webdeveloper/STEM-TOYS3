@@ -101,10 +101,10 @@ export function BookCarousel({
 
             return (
               <div
-                className="flex-[0_0_100%] min-w-0 relative h-[300px] sm:h-[350px] md:h-[400px] px-2 sm:px-4"
+                className="flex-[0_0_100%] min-w-0 relative h-[200px] sm:h-[250px] md:h-[300px] lg:h-[350px] px-1 sm:px-2"
                 key={index}
               >
-                <div className="h-full rounded-lg overflow-hidden shadow-xl group flex items-center justify-center bg-white">
+                <div className="h-full rounded-lg overflow-hidden shadow-lg group flex items-center justify-center bg-white">
                   <div className="relative w-full h-full">
                     <Image
                       src={currentBook.src}
@@ -116,11 +116,11 @@ export function BookCarousel({
                     />
                   </div>
                   {showLanguageToggle && onLanguageToggle && (
-                    <div className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10">
+                    <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="bg-white/80 hover:bg-white border-indigo-300 text-indigo-700 text-xs h-6 sm:h-7 px-1.5 sm:px-2 py-0"
+                        className="bg-white/80 hover:bg-white border-indigo-300 text-indigo-700 text-xs h-5 sm:h-6 px-1 sm:px-1.5 py-0"
                         onClick={() => onLanguageToggle(index)}
                       >
                         {currentLang === "english" ? "🇷🇴 RO" : "🇬🇧 EN"}
@@ -137,7 +137,7 @@ export function BookCarousel({
       <Button
         variant="outline"
         size="icon"
-        className="absolute left-1 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-indigo-300 text-indigo-700 z-10 rounded-full h-8 w-8 sm:h-10 sm:w-10"
+        className="absolute left-1 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-indigo-300 text-indigo-700 z-10 rounded-full h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10"
         onClick={() => {
           scrollPrev();
           stopAutoplay();
@@ -145,13 +145,13 @@ export function BookCarousel({
         }}
         disabled={!prevBtnEnabled}
       >
-        <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+        <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
       </Button>
 
       <Button
         variant="outline"
         size="icon"
-        className="absolute right-1 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-indigo-300 text-indigo-700 z-10 rounded-full h-8 w-8 sm:h-10 sm:w-10"
+        className="absolute right-1 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-indigo-300 text-indigo-700 z-10 rounded-full h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10"
         onClick={() => {
           scrollNext();
           stopAutoplay();
@@ -159,14 +159,14 @@ export function BookCarousel({
         }}
         disabled={!nextBtnEnabled}
       >
-        <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+        <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
       </Button>
 
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center mt-2 sm:mt-3">
         {books.map((_, index) => (
           <button
             key={index}
-            className={`mx-1 w-2 h-2 rounded-full ${selectedIndex === index ? "bg-indigo-600" : "bg-indigo-200"}`}
+            className={`mx-1 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${selectedIndex === index ? "bg-indigo-600" : "bg-indigo-200"}`}
             onClick={() => {
               emblaApi?.scrollTo(index);
               stopAutoplay();

@@ -24,7 +24,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-12 sm:space-y-16 md:space-y-24">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
       {categories.map((category, index) => (
         <Link
           href={`/categories/${category.slug}`}
@@ -32,95 +32,78 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
           className="group block"
           prefetch
         >
-          <div
-            className={`relative flex flex-col sm:flex-row ${
-              index % 2 !== 0 ? "sm:flex-row-reverse" : ""
-            } gap-0 sm:gap-8 md:gap-12 items-stretch transition-all duration-500 group-hover:scale-[1.02] shadow-lg group-hover:shadow-xl rounded-xl sm:rounded-2xl overflow-hidden
-              w-full mx-2 sm:mx-0 md:w-full
-              bg-background
-              p-0 sm:px-8 sm:py-10 md:px-12 md:py-14
-            `}
-            style={{ maxWidth: "100vw", minHeight: "min(340px, 60vw)" }}
-          >
+          <div className="relative bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group-hover:scale-[1.02] border border-gray-100 dark:border-gray-700">
             {/* Image section */}
-            <div className="relative w-full sm:w-2/5 h-[160px] sm:h-auto flex-shrink-0 flex-grow-0">
-              <div className="relative h-full w-full min-h-[120px] sm:min-h-0 overflow-hidden rounded-t-xl sm:rounded-t-none sm:rounded-l-2xl shadow-lg">
-                <Image
-                  src={category.image}
-                  alt={`${category.name} category of STEM toys`}
-                  fill
-                  priority
-                  sizes="(max-width: 640px) 100vw, 40vw"
-                  style={{ objectFit: "cover" }}
-                  className="transition-transform group-hover:scale-105 duration-700"
-                />
+            <div className="relative w-full h-48 sm:h-56 md:h-64">
+              <Image
+                src={category.image}
+                alt={`${category.name} category of STEM toys`}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
+                style={{ objectFit: "cover" }}
+                className="transition-transform group-hover:scale-105 duration-500"
+              />
+              {/* Gradient overlay for better text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+
+              {/* Category badge */}
+              <div className="absolute top-3 left-3">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/90 text-gray-900 backdrop-blur-sm">
+                  {category.productCount} produse
+                </span>
               </div>
             </div>
 
-            {/* Text/content section */}
-            <div className="w-full sm:w-3/5 flex flex-col justify-center space-y-3 sm:space-y-4 md:space-y-6 p-4 sm:p-8 md:p-10">
-              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground/90">
+            {/* Content section */}
+            <div className="p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
                 {category.name}
               </h2>
-              <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 line-clamp-3 leading-relaxed">
                 {t(category.description as TranslationKey)}
               </p>
 
-              {/* Educational benefits section */}
-              <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border border-primary/10">
-                <h3 className="text-sm sm:text-base font-semibold text-foreground/80 mb-2 sm:mb-3">
-                  Beneficii Educaționale:
+              {/* Educational benefits - simplified for mobile */}
+              <div className="space-y-2">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                  Beneficii Educaționale
                 </h3>
-                <ul className="text-xs sm:text-sm text-muted-foreground space-y-1 sm:space-y-2">
-                  {category.slug === "science" && (
-                    <>
-                      <li>• Dezvoltă curiozitatea și spiritul de cercetare</li>
-                      <li>
-                        • Învață principiile științei prin experimente practice
-                      </li>
-                      <li>• Stimulează gândirea critică și analitică</li>
-                      <li>
-                        • Introduce concepte de fizică, chimie și biologie
-                      </li>
-                    </>
+                <div className="flex flex-wrap gap-1.5">
+                  {getCategoryBenefits(category.slug)
+                    .slice(0, 3)
+                    .map((benefit, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                      >
+                        {benefit}
+                      </span>
+                    ))}
+                  {getCategoryBenefits(category.slug).length > 3 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+                      +{getCategoryBenefits(category.slug).length - 3} mai multe
+                    </span>
                   )}
-                  {category.slug === "technology" && (
-                    <>
-                      <li>• Dezvoltă gândirea computațională și algoritmică</li>
-                      <li>• Introduce programarea și robotică</li>
-                      <li>• Pregătește pentru carierele viitorului</li>
-                      <li>
-                        • Învață despre inteligența artificială și inovație
-                      </li>
-                    </>
-                  )}
-                  {category.slug === "engineering" && (
-                    <>
-                      <li>• Învață principiile mecanicii și structurilor</li>
-                      <li>• Dezvoltă abilități de rezolvare a problemelor</li>
-                      <li>• Stimulează creativitatea inginerească</li>
-                      <li>• Învață procesul de proiectare și testare</li>
-                    </>
-                  )}
-                  {category.slug === "math" && (
-                    <>
-                      <li>• Face matematica distractivă și accesibilă</li>
-                      <li>• Dezvoltă gândirea logică și raționamentul</li>
-                      <li>• Învață concepte matematice prin joc</li>
-                      <li>
-                        • Construiește încrederea în rezolvarea problemelor
-                      </li>
-                    </>
-                  )}
-                  {category.slug === "educational-books" && (
-                    <>
-                      <li>• Inspiră dragostea pentru învățare</li>
-                      <li>• Dezvoltă vocabularul și abilitățile de citire</li>
-                      <li>• Introduce concepte STEM prin povești</li>
-                      <li>• Stimulează imaginația și creativitatea</li>
-                    </>
-                  )}
-                </ul>
+                </div>
+              </div>
+
+              {/* CTA Arrow */}
+              <div className="mt-4 flex items-center text-primary text-sm font-medium group-hover:translate-x-1 transition-transform duration-200">
+                Explorează categoria
+                <svg
+                  className="ml-1 w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
               </div>
             </div>
           </div>
@@ -128,4 +111,37 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
       ))}
     </div>
   );
+}
+
+// Helper function to get category benefits
+function getCategoryBenefits(slug: string): string[] {
+  const benefits: Record<string, string[]> = {
+    science: [
+      "Curiozitate științifică",
+      "Experimente practice",
+      "Gândire critică",
+      "Fizică & Chimie",
+    ],
+    technology: ["Programare", "Robotică", "AI & Inovație", "Cariere viitor"],
+    engineering: [
+      "Mecanică",
+      "Rezolvare probleme",
+      "Creativitate",
+      "Proiectare",
+    ],
+    math: [
+      "Matematică distractivă",
+      "Gândire logică",
+      "Concepte prin joc",
+      "Încredere",
+    ],
+    "educational-books": [
+      "Dragoste învățare",
+      "Vocabular",
+      "Concepte STEM",
+      "Imaginație",
+    ],
+  };
+
+  return benefits[slug] || [];
 }

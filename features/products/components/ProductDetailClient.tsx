@@ -62,235 +62,365 @@ export default function ProductDetailClient({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8">
         {/* Breadcrumb */}
-        <nav className="mb-8">
-          <ol className="flex items-center space-x-2 text-sm text-gray-600">
+        <nav className="mb-4 sm:mb-6 lg:mb-8">
+          <ol className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-gray-600 overflow-x-auto pb-1">
             <li>
-              <a href="/" className="hover:text-blue-600 transition-colors">
+              <a
+                href="/"
+                className="hover:text-blue-600 transition-colors whitespace-nowrap"
+              >
                 {t("home")}
               </a>
             </li>
-            <li>/</li>
+            <li className="text-gray-400">/</li>
             <li>
               <a
                 href="/products"
-                className="hover:text-blue-600 transition-colors"
+                className="hover:text-blue-600 transition-colors whitespace-nowrap"
               >
                 {t("products")}
               </a>
             </li>
-            <li>/</li>
+            <li className="text-gray-400">/</li>
             <li>
               <a
                 href={`/categories/${product.category?.slug}`}
-                className="hover:text-blue-600 transition-colors"
+                className="hover:text-blue-600 transition-colors whitespace-nowrap"
               >
                 {getCategoryName()}
               </a>
             </li>
-            <li>/</li>
-            <li className="text-gray-900 font-medium">{product.name}</li>
+            <li className="text-gray-400">/</li>
+            <li className="text-gray-900 font-medium truncate max-w-[120px] sm:max-w-none">
+              {product.name}
+            </li>
           </ol>
         </nav>
 
-        {/* Main Product Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-          {/* Product Images */}
-          <div className="space-y-4">
-            <ProductImageGallery
-              images={product.images || []}
-              alt={product.name}
-              className="w-full"
-            />
-          </div>
+        {/* Hero Section - Picture, Name, Price, Description in Viewport */}
+        <div className="mb-8 sm:mb-12 lg:mb-16">
+          {/* Mobile Layout - Stacked */}
+          <div className="lg:hidden space-y-4 sm:space-y-6">
+            {/* Product Image */}
+            <div className="w-full">
+              <ProductImageGallery
+                images={product.images || []}
+                alt={product.name}
+                className="w-full"
+              />
+            </div>
 
-          {/* Product Info */}
-          <div className="space-y-6">
-            {/* Product Header */}
-            <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    {product.name}
-                  </h1>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < Math.floor(product.averageRating || 0)
-                              ? "text-yellow-400 fill-current"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600">
-                      ({product.reviewCount || 0} {t("reviews")})
+            {/* Product Info */}
+            <div className="space-y-3">
+              {/* Product Header - Title and Price in Same Row */}
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight">
+                      {product.name}
+                    </h1>
+                  </div>
+                  <div className="flex items-center space-x-1 flex-shrink-0">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-7 w-7 sm:h-8 sm:w-8"
+                    >
+                      <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-7 w-7 sm:h-8 sm:w-8"
+                    >
+                      <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Price and Rating Row */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-xl sm:text-2xl font-bold text-gray-900">
+                      {formatPrice(product.price)}
                     </span>
-                    <Badge variant="secondary">
+                    {product.compareAtPrice &&
+                      product.compareAtPrice > product.price && (
+                        <span className="text-sm sm:text-base text-gray-500 line-through">
+                          {formatPrice(product.compareAtPrice)}
+                        </span>
+                      )}
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-3 w-3 ${
+                          i < Math.floor(product.averageRating || 0)
+                            ? "text-yellow-400 fill-current"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                    <span className="text-xs text-gray-600 ml-1">
+                      ({product.reviewCount || 0})
+                    </span>
+                  </div>
+                </div>
+
+                {/* Discount Badge and Stock Status Row */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    {product.compareAtPrice &&
+                      product.compareAtPrice > product.price && (
+                        <Badge variant="destructive" className="text-xs">
+                          {Math.round(
+                            ((product.compareAtPrice - product.price) /
+                              product.compareAtPrice) *
+                              100
+                          )}
+                          % {t("off")}
+                        </Badge>
+                      )}
+                    <Badge variant="secondary" className="text-xs">
                       {product.totalSold || 0} {t("sold")}
                     </Badge>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="icon">
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon">
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Price Section */}
-              <div className="space-y-2">
-                <div className="flex items-baseline space-x-2">
-                  <span className="text-3xl font-bold text-gray-900">
-                    {formatPrice(product.price)}
-                  </span>
-                  {product.compareAtPrice &&
-                    product.compareAtPrice > product.price && (
-                      <span className="text-lg text-gray-500 line-through">
-                        {formatPrice(product.compareAtPrice)}
+                  <div className="text-xs text-gray-600">
+                    {product.stockQuantity > 0 ? (
+                      <span className="text-green-600">
+                        In Stock ({product.stockQuantity})
                       </span>
+                    ) : (
+                      <span className="text-red-600">Out of Stock</span>
                     )}
+                  </div>
                 </div>
-                {product.compareAtPrice &&
-                  product.compareAtPrice > product.price && (
-                    <Badge variant="destructive" className="w-fit">
-                      {Math.round(
-                        ((product.compareAtPrice - product.price) /
-                          product.compareAtPrice) *
-                          100
+              </div>
+
+              {/* Product Description - Key Info in Viewport */}
+              <div className="bg-white rounded-lg border p-3 sm:p-4">
+                <h2 className="text-sm font-semibold text-gray-900 mb-2">
+                  {t("productDescription")}
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+                  {product.description}
+                </p>
+                <p className="text-xs sm:text-sm text-gray-700 leading-relaxed mt-2">
+                  {t("stemToyDesigned")} {getCategoryName()}.{" "}
+                  {t("providesHandsOn")}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Layout - Side by Side */}
+          <div className="hidden lg:grid lg:grid-cols-2 gap-8 xl:gap-12">
+            {/* Product Images */}
+            <div className="space-y-4">
+              <ProductImageGallery
+                images={product.images || []}
+                alt={product.name}
+                className="w-full"
+              />
+            </div>
+
+            {/* Product Info */}
+            <div className="space-y-4">
+              {/* Product Header - Title and Price in Same Row */}
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-xl xl:text-2xl font-bold text-gray-900 leading-tight">
+                      {product.name}
+                    </h1>
+                  </div>
+                  <div className="flex items-center space-x-2 flex-shrink-0">
+                    <Button variant="outline" size="icon" className="h-8 w-8">
+                      <Heart className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-8 w-8">
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Price and Rating Row */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-2xl xl:text-3xl font-bold text-gray-900">
+                      {formatPrice(product.price)}
+                    </span>
+                    {product.compareAtPrice &&
+                      product.compareAtPrice > product.price && (
+                        <span className="text-base xl:text-lg text-gray-500 line-through">
+                          {formatPrice(product.compareAtPrice)}
+                        </span>
                       )}
-                      % {t("off")}
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${
+                          i < Math.floor(product.averageRating || 0)
+                            ? "text-yellow-400 fill-current"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                    <span className="text-sm text-gray-600 ml-1">
+                      ({product.reviewCount || 0})
+                    </span>
+                  </div>
+                </div>
+
+                {/* Discount Badge and Stock Status Row */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    {product.compareAtPrice &&
+                      product.compareAtPrice > product.price && (
+                        <Badge variant="destructive" className="text-xs">
+                          {Math.round(
+                            ((product.compareAtPrice - product.price) /
+                              product.compareAtPrice) *
+                              100
+                          )}
+                          % {t("off")}
+                        </Badge>
+                      )}
+                    <Badge variant="secondary" className="text-xs">
+                      {product.totalSold || 0} {t("sold")}
                     </Badge>
-                  )}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {product.stockQuantity > 0 ? (
+                      <span className="text-green-600">
+                        In Stock ({product.stockQuantity})
+                      </span>
+                    ) : (
+                      <span className="text-red-600">Out of Stock</span>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Stock Status */}
-              <div className="text-sm text-gray-600">
-                {product.stockQuantity > 0 ? (
-                  <span className="text-green-600">
-                    In Stock ({product.stockQuantity} available)
-                  </span>
-                ) : (
-                  <span className="text-red-600">Out of Stock</span>
-                )}
+              {/* Product Description - Key Info in Viewport */}
+              <div className="bg-white rounded-lg border p-4">
+                <h2 className="text-sm font-semibold text-gray-900 mb-3">
+                  {t("productDescription")}
+                </h2>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {product.description}
+                </p>
+                <p className="text-sm text-gray-700 leading-relaxed mt-2">
+                  {t("stemToyDesigned")} {getCategoryName()}.{" "}
+                  {t("providesHandsOn")}
+                </p>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Product Features */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t">
-              <div className="flex flex-col items-center text-center space-y-2">
+        {/* Secondary Information - Below the Fold */}
+        <div className="space-y-8 sm:space-y-12">
+          {/* Product Features - Single Row */}
+          <div className="bg-white rounded-lg border p-3 sm:p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              Product Features
+            </h3>
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+              <div className="flex items-center space-x-2">
                 <div className="p-2 bg-green-100 rounded-full">
-                  <ShoppingCart className="h-5 w-5 text-green-600" />
+                  <ShoppingCart className="h-4 w-4 text-green-600" />
                 </div>
-                <div className="text-sm font-medium">Secure Payment</div>
-                <div className="text-xs text-muted-foreground">
-                  SSL Protected
+                <div className="text-xs">
+                  <div className="font-medium">Secure Payment</div>
+                  <div className="text-muted-foreground">SSL Protected</div>
                 </div>
               </div>
-              <div className="flex flex-col items-center text-center space-y-2">
+              <div className="flex items-center space-x-2">
                 <div className="p-2 bg-blue-100 rounded-full">
-                  <Truck className="h-5 w-5 text-blue-600" />
+                  <Truck className="h-4 w-4 text-blue-600" />
                 </div>
-                <div className="text-sm font-medium">Free Shipping</div>
-                <div className="text-xs text-muted-foreground">
-                  {isFreeShippingActive && freeShippingThreshold
-                    ? `Over ${formatPrice(freeShippingThreshold)}`
-                    : "Not available"}
+                <div className="text-xs">
+                  <div className="font-medium">Free Shipping</div>
+                  <div className="text-muted-foreground">
+                    {isFreeShippingActive && freeShippingThreshold
+                      ? `Over ${formatPrice(freeShippingThreshold)}`
+                      : "Not available"}
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-col items-center text-center space-y-2">
+              <div className="flex items-center space-x-2">
                 <div className="p-2 bg-orange-100 rounded-full">
-                  <RotateCcw className="h-5 w-5 text-orange-600" />
+                  <RotateCcw className="h-4 w-4 text-orange-600" />
                 </div>
-                <div className="text-sm font-medium">Easy Returns</div>
-                <div className="text-xs text-muted-foreground">
-                  30 Day Policy
+                <div className="text-xs">
+                  <div className="font-medium">Easy Returns</div>
+                  <div className="text-muted-foreground">30 Day Policy</div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Product Description Section */}
-        <div className="mt-16 lg:mt-20">
-          <div className="bg-white rounded-2xl border shadow-sm p-8 lg:p-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              {t("productDescription")}
-            </h2>
-            <Separator className="mb-8" />
+          {/* Detailed Features & Benefits */}
+          <div className="bg-white rounded-lg border p-3 sm:p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              {t("featuresBenefits")}
+            </h3>
 
-            <div className="prose prose-lg max-w-none">
-              <p className="text-base text-gray-700 leading-relaxed mb-6">
-                {product.description}
-              </p>
-              <p className="text-base text-gray-700 leading-relaxed mb-8">
-                {t("stemToyDesigned")} {getCategoryName()}.{" "}
-                {t("providesHandsOn")}
-              </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <ul className="space-y-1.5 sm:space-y-2">
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1 flex-shrink-0"></div>
+                  <span className="text-xs sm:text-sm text-gray-700">
+                    {t("developsCriticalThinking")}
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1 flex-shrink-0"></div>
+                  <span className="text-xs sm:text-sm text-gray-700">
+                    {t("encouragesCreativity")}
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-1 flex-shrink-0"></div>
+                  <span className="text-xs sm:text-sm text-gray-700">
+                    {t("buildsConfidence")}
+                  </span>
+                </li>
+              </ul>
 
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">
-                {t("featuresBenefits")}
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-base text-gray-700">
-                      {t("developsCriticalThinking")}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-base text-gray-700">
-                      {t("encouragesCreativity")}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-base text-gray-700">
-                      {t("buildsConfidence")}
-                    </span>
-                  </li>
-                </ul>
-
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-base text-gray-700">
-                      {t("teachesFundamentalConcepts")} {getCategoryName()}{" "}
-                      {t("inEngagingWay")}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-base text-gray-700">
-                      {t("safeMaterials")}
-                    </span>
-                  </li>
-                </ul>
-              </div>
+              <ul className="space-y-1.5 sm:space-y-2">
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-1 flex-shrink-0"></div>
+                  <span className="text-xs sm:text-sm text-gray-700">
+                    {t("teachesFundamentalConcepts")} {getCategoryName()}{" "}
+                    {t("inEngagingWay")}
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full mt-1 flex-shrink-0"></div>
+                  <span className="text-xs sm:text-sm text-gray-700">
+                    {t("safeMaterials")}
+                  </span>
+                </li>
+              </ul>
             </div>
           </div>
-        </div>
 
-        {/* Learn More Resources */}
-        <div className="mt-10">
-          <div className="rounded-xl border bg-white p-6 shadow-sm">
-            <h3 className="text-lg font-semibold mb-3">Află mai multe</h3>
-            <p className="text-sm text-muted-foreground mb-3">
+          {/* Learn More Resources */}
+          <div className="bg-white rounded-lg border p-3 sm:p-4">
+            <h3 className="text-sm font-semibold mb-2">Află mai multe</h3>
+            <p className="text-xs text-muted-foreground mb-2">
               Ghiduri utile pentru a alege și folosi jucăriile STEM:
             </p>
-            <div className="flex flex-wrap gap-3 text-sm">
+            <div className="flex flex-wrap gap-2 text-xs">
               <a
-                className="underline"
+                className="underline hover:text-primary transition-colors"
                 href="/ghid-jucarii-stem-2025"
                 data-conversion="cta"
                 data-conversion-type="click"
@@ -300,9 +430,9 @@ export default function ProductDetailClient({
               >
                 Ghid 2025
               </a>
-              <span>·</span>
+              <span className="text-muted-foreground">·</span>
               <a
-                className="underline"
+                className="underline hover:text-primary transition-colors"
                 href="/jucarii-stem-dupa-varsta"
                 data-conversion="cta"
                 data-conversion-type="click"
@@ -312,9 +442,9 @@ export default function ProductDetailClient({
               >
                 După vârstă
               </a>
-              <span>·</span>
+              <span className="text-muted-foreground">·</span>
               <a
-                className="underline"
+                className="underline hover:text-primary transition-colors"
                 href="/beneficiile-jucariilor-stem"
                 data-conversion="cta"
                 data-conversion-type="click"
@@ -324,9 +454,9 @@ export default function ProductDetailClient({
               >
                 Beneficii STEM
               </a>
-              <span>·</span>
+              <span className="text-muted-foreground">·</span>
               <a
-                className="underline"
+                className="underline hover:text-primary transition-colors"
                 href="/faq"
                 data-conversion="cta"
                 data-conversion-type="click"

@@ -307,30 +307,30 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile & Tablet menu - Enhanced for better UX on medium and large screens */}
+      {/* Mobile & Tablet menu - Professional compact design positioned below header */}
       {mobileMenuOpen && (
         <div className="xl:hidden fixed inset-0 z-50">
           <div
-            className="fixed inset-0 bg-black bg-opacity-25"
+            className="fixed inset-0 bg-black bg-opacity-30"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="fixed top-0 right-0 bottom-0 w-full max-w-sm md:max-w-md lg:max-w-lg bg-white shadow-2xl">
-            <div className="flex items-center justify-between h-16 px-4 md:px-6 lg:px-8 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-xl font-bold text-gray-900">Menu</h2>
+          <div className="fixed top-16 right-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-2xl border-l border-gray-200">
+            <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+              <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
               <button
                 type="button"
-                className="rounded-lg p-3 text-gray-700 hover:bg-gray-200 transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
+                className="rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200 min-h-[40px] min-w-[40px] flex items-center justify-center"
                 onClick={() => setMobileMenuOpen(false)}
                 aria-label="Close navigation menu"
               >
-                <X className="h-6 w-6" aria-hidden="true" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
             <div className="flex flex-col h-full">
-              <div className="flex-1 px-4 md:px-6 lg:px-8 py-4 space-y-2 overflow-y-auto">
+              <div className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
                 {/* Navigation Links */}
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {navigation
                     .filter(item => item.href !== "/products")
                     .map(item => (
@@ -338,68 +338,66 @@ export default function Header() {
                         key={item.name}
                         href={item.href}
                         className={cn(
-                          "flex rounded-lg px-4 py-4 text-base md:text-lg font-semibold transition-all duration-200 cursor-pointer min-h-[48px] items-center",
+                          "flex rounded-md px-3 py-3 text-sm font-medium transition-all duration-200 cursor-pointer min-h-[44px] items-center group",
                           pathname === item.href
-                            ? "bg-indigo-100 text-indigo-700 border-l-4 border-indigo-500"
-                            : "text-gray-900 hover:bg-gray-100 hover:text-indigo-600 active:bg-gray-200"
+                            ? "bg-indigo-50 text-indigo-700 border-l-2 border-indigo-500"
+                            : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600 active:bg-gray-100"
                         )}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <span className="capitalize">{t(item.name)}</span>
+                        {pathname === item.href && (
+                          <div className="ml-auto w-2 h-2 bg-indigo-500 rounded-full" />
+                        )}
                       </Link>
                     ))}
                 </div>
 
                 {/* Admin Navigation in Mobile Menu */}
                 {isAdmin && (
-                  <div className="space-y-1 border-t border-gray-200 pt-4">
+                  <div className="space-y-0.5 border-t border-gray-200 pt-3">
                     <Link
                       href="/admin"
-                      className="block rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 cursor-pointer shadow-md"
+                      className="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 cursor-pointer shadow-sm"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <div className="flex items-center gap-3">
-                        <Settings className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6" />
-                        <span>{t("admin")}</span>
-                      </div>
+                      <Settings className="h-4 w-4" />
+                      <span>{t("admin")}</span>
                     </Link>
                   </div>
                 )}
 
                 {/* Supplier Navigation in Mobile Menu */}
                 {isSupplier && (
-                  <div className="space-y-1 border-t border-gray-200 pt-4">
+                  <div className="space-y-0.5 border-t border-gray-200 pt-3">
                     <Link
                       href="/supplier/dashboard"
-                      className="block rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium bg-gradient-to-r from-green-500 to-teal-600 text-white hover:from-green-600 hover:to-teal-700 transition-all duration-200 cursor-pointer shadow-md"
+                      className="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium bg-gradient-to-r from-green-500 to-teal-600 text-white hover:from-green-600 hover:to-teal-700 transition-all duration-200 cursor-pointer shadow-sm"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <div className="flex items-center gap-3">
-                        <Building2 className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6" />
-                        <span>{t("supplier")}</span>
-                      </div>
+                      <Building2 className="h-4 w-4" />
+                      <span>{t("supplier")}</span>
                     </Link>
                   </div>
                 )}
 
                 {/* Utilities Section */}
-                <div className="py-4 border-t border-gray-200">
-                  <div className="flex flex-wrap gap-3 mb-2 mt-2">
+                <div className="py-3 border-t border-gray-200">
+                  <div className="flex flex-wrap gap-2">
                     <CurrencySwitcher allowedCodes={["RON", "EUR"]} />
                     <LanguageSwitcher />
-                    {/* Removed CartButton from mobile menu since it's already in the header */}
                   </div>
                 </div>
 
                 {/* User Actions in Mobile Menu */}
                 {shouldShowAuthenticatedUI && (
-                  <div className="border-t border-gray-200 py-3 space-y-2">
+                  <div className="border-t border-gray-200 py-3 space-y-0.5">
                     <Link
                       href="/account"
-                      className="flex items-center gap-3 rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <User className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6" />
+                      <User className="h-4 w-4" />
                       <span>{t("account")}</span>
                     </Link>
 
@@ -408,9 +406,9 @@ export default function Header() {
                         handleSignOut();
                         setMobileMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium text-red-600 hover:bg-red-50 transition-colors"
+                      className="w-full flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
                     >
-                      <LogOut className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6" />
+                      <LogOut className="h-4 w-4" />
                       <span>{t("logout")}</span>
                     </button>
                   </div>

@@ -1,16 +1,11 @@
 "use client";
 
-import { format } from "date-fns";
 import { SlidersHorizontal } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useState, useEffect } from "react";
 
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { BlogGrid, BlogPost } from "@/components/blog/BlogGrid";
 import { Button } from "@/components/ui/button";
-// import { toast } from "@/components/ui/use-toast";
-import { Card, CardContent } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import {
   Dialog,
@@ -21,27 +16,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Icon, STEMIcons } from "@/components/ui/icon-system";
-import { SkeletonCard } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n";
-
-interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  coverImage: string | null;
-  stemCategory: string;
-  publishedAt: string;
-  author: {
-    name: string | null;
-    avatarUrl?: string;
-  };
-  category: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-}
 
 interface Category {
   id: string;
@@ -190,7 +165,7 @@ export default function BlogPage() {
 
   // --- HERO SECTION ---
   const Hero = () => (
-    <section className="relative w-full min-h-[320px] flex items-center justify-center bg-black">
+    <section className="relative w-full min-h-[200px] sm:min-h-[280px] lg:min-h-[320px] flex items-center justify-center bg-black">
       <Image
         src="/images/category_banner_science_01.png"
         alt="STEM Toys Blog - Educational articles and insights"
@@ -201,11 +176,11 @@ export default function BlogPage() {
         className="z-0"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-indigo-900/80 z-10" />
-      <Container className="relative z-20 flex flex-col items-center justify-center py-16 md:py-24 text-center text-white">
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4 drop-shadow-xl">
+      <Container className="relative z-20 flex flex-col items-center justify-center py-8 sm:py-12 md:py-16 lg:py-24 text-center text-white">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight mb-2 sm:mb-4 drop-shadow-xl">
           {t("blogTitle")}
         </h1>
-        <p className="text-base sm:text-lg md:text-2xl max-w-2xl mb-6 drop-shadow-md">
+        <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl max-w-2xl mb-4 sm:mb-6 drop-shadow-md">
           {t("blogDescription")}
         </p>
       </Container>
@@ -222,19 +197,25 @@ export default function BlogPage() {
     return (
       <>
         {/* Mobile: Filter Button (sticky) */}
-        <div className="md:hidden sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm flex items-center px-4 py-2">
+        <div className="md:hidden sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm flex items-center px-4 py-3">
           <Dialog>
             <DialogTrigger asChild>
               <Button
                 variant="outline"
-                className="flex items-center gap-2 w-full justify-center"
+                className="flex items-center gap-2 w-full justify-center h-12 rounded-xl border-2 border-gray-200 hover:border-indigo-300 transition-colors"
                 aria-label="Open filters"
               >
                 <Icon icon={SlidersHorizontal} size="md" decorative />
-                <span className="font-medium">{t("Filters") || "Filters"}</span>
+                <span className="font-medium text-gray-700">
+                  {t("Filters") || "Filters"}
+                </span>
                 {isFiltered && (
-                  <span className="ml-2 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold animate-pulse">
-                    ●
+                  <span className="ml-2 px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold">
+                    {categories.filter(cat => cat.id === activeCategoryId)
+                      .length > 0
+                      ? categories.find(cat => cat.id === activeCategoryId)
+                          ?.name
+                      : "Filtered"}
                   </span>
                 )}
               </Button>
@@ -309,7 +290,7 @@ export default function BlogPage() {
 
         {/* Desktop: Horizontal Filter Bar */}
         <nav className="hidden md:block sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 shadow-sm">
-          <Container className="py-2 flex gap-2 items-center overflow-x-auto scrollbar-thin scrollbar-thumb-indigo-200">
+          <Container className="py-3 flex gap-3 items-center overflow-x-auto scrollbar-thin scrollbar-thumb-indigo-200">
             {/* 'All' Button */}
             <Button
               key="all"
@@ -367,89 +348,14 @@ export default function BlogPage() {
   };
 
   // --- BLOG GRID ---
-  const BlogGrid = () => (
-    <Container className="py-10">
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-      ) : error ? (
-        <div className="text-center text-red-500 py-12 text-lg font-semibold">
-          {error}
-        </div>
-      ) : blogPosts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {blogPosts.map(post => (
-            <Card
-              key={post.id}
-              className="flex flex-col h-full group transition-shadow hover:shadow-xl"
-            >
-              <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
-                <Image
-                  src={post.coverImage || getDefaultImage(post.stemCategory)}
-                  alt={post.title}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute top-3 left-3">
-                  <Badge
-                    variant="secondary"
-                    className="bg-white/80 text-indigo-700 font-bold shadow"
-                  >
-                    {post.category?.name || post.stemCategory}
-                  </Badge>
-                </div>
-              </div>
-              <CardContent className="flex flex-col flex-1 p-5">
-                <Link href={`/blog/post/${post.slug}`} className="flex-1 group">
-                  <h3 className="text-lg font-bold mb-2 group-hover:text-indigo-700 transition-colors line-clamp-2">
-                    {post.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                    {post.excerpt}
-                  </p>
-                </Link>
-                <div className="flex items-center gap-3 mt-auto pt-2 border-t border-gray-100">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={post.author?.avatarUrl || undefined}
-                      alt={post.author?.name || "Author"}
-                    />
-                    <AvatarFallback>
-                      {post.author?.name?.[0] || "T"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm text-gray-700 font-medium truncate max-w-[100px]">
-                    {post.author?.name || "TechTots Team"}
-                  </span>
-                  <span className="ml-auto text-xs text-gray-400">
-                    {post.publishedAt
-                      ? format(new Date(post.publishedAt), "MMM d, yyyy")
-                      : ""}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-24">
-          <Image
-            src="/images/empty-state.svg"
-            alt="No blog posts"
-            width={180}
-            height={180}
-            className="mb-6"
-          />
-          <h2 className="text-2xl font-bold mb-2">No blog posts found</h2>
-          <p className="text-gray-500 mb-4">
-            Check back soon for new articles and insights!
-          </p>
-        </div>
-      )}
+  const BlogGridSection = () => (
+    <Container className="py-4 sm:py-6 lg:py-8">
+      <BlogGrid
+        blogPosts={blogPosts}
+        isLoading={isLoading}
+        error={error}
+        getDefaultImage={getDefaultImage}
+      />
     </Container>
   );
 
@@ -458,7 +364,7 @@ export default function BlogPage() {
     <div className="flex flex-col min-h-screen bg-white">
       <Hero />
       <CategoryBar />
-      <BlogGrid />
+      <BlogGridSection />
     </div>
   );
 }
