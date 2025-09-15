@@ -47,49 +47,49 @@ export function PillarSection({ items = DEFAULT_PILLARS }: PillarSectionProps) {
   return (
     <section
       aria-label="TechTots Pillars"
-      className="relative py-10 sm:py-12 md:py-14 lg:py-16"
+      className="relative py-6 sm:py-8 md:py-12 lg:py-16"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 md:mb-8 lg:mb-10 text-center">
-          <span className="inline-flex items-center rounded-full bg-indigo-50 text-indigo-700 px-3 py-1 text-xs font-semibold tracking-wide">
+        <div className="mb-4 sm:mb-6 md:mb-8 lg:mb-10 text-center">
+          <span className="inline-flex items-center rounded-full bg-indigo-50 text-indigo-700 px-2 py-1 text-xs font-semibold tracking-wide">
             {t("pillarSectionTag")}
           </span>
-          <h2 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900">
+          <h2 className="mt-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-gray-900">
             {t("pillarSectionTitle")}
           </h2>
-          <p className="mt-2 text-sm sm:text-base text-gray-600">
+          <p className="mt-1 text-xs sm:text-sm md:text-base text-gray-600">
             {t("pillarSectionSubtitle")}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
           {items.map(item => (
             <Link
               key={item.href}
               href={item.href}
               className={`group relative overflow-hidden rounded-2xl shadow-sm ring-1 ring-gray-100 hover:shadow-xl transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 bg-gradient-to-br ${item.accent}`}
             >
-              <div className="relative h-40 sm:h-44 md:h-48 flex items-center justify-center">
-                <div className="text-white text-6xl font-bold opacity-20">
+              <div className="relative h-16 sm:h-20 md:h-24 lg:h-32 flex items-center justify-center">
+                <div className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold opacity-20">
                   {t(item.titleKey).charAt(0)}
                 </div>
               </div>
 
-              <div className="p-4 sm:p-5 bg-white/90 backdrop-blur-sm">
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900 flex items-center gap-2">
-                  {t(item.titleKey)}
-                  <span className="inline-flex items-center justify-center rounded-full bg-gray-100 text-gray-700 text-[10px] px-2 py-0.5 group-hover:bg-gray-200">
+              <div className="p-2 sm:p-3 md:p-4 lg:p-5 bg-white/90 backdrop-blur-sm">
+                <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-900 flex items-center gap-1">
+                  <span className="truncate">{t(item.titleKey)}</span>
+                  <span className="inline-flex items-center justify-center rounded-full bg-gray-100 text-gray-700 text-[8px] sm:text-[10px] px-1 py-0.5 group-hover:bg-gray-200 flex-shrink-0">
                     {t("pillarNewBadge")}
                   </span>
                 </h3>
-                <p className="mt-2 text-sm text-gray-600 line-clamp-3">
+                <p className="mt-1 text-[10px] sm:text-xs md:text-sm text-gray-600 line-clamp-2">
                   {t(item.descriptionKey)}
                 </p>
 
-                <div className="mt-3 flex items-center text-sm font-medium text-indigo-700 group-hover:text-indigo-800">
-                  {t("pillarSeeDetails")}
+                <div className="mt-2 flex items-center text-[10px] sm:text-xs md:text-sm font-medium text-indigo-700 group-hover:text-indigo-800">
+                  <span className="truncate">{t("pillarSeeDetails")}</span>
                   <svg
-                    className="ml-1 h-4 w-4"
+                    className="ml-1 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                     aria-hidden="true"

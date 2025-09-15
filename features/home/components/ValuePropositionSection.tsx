@@ -45,17 +45,17 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
   ];
 
   return (
-    <section className="py-3 sm:py-10 md:py-16 bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 text-gray-900">
+    <section className="py-4 sm:py-6 md:py-8 lg:py-12 bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 text-gray-900">
       <div className="container mx-auto px-4 max-w-7xl">
-        <h2 className="text-sm xs:text-lg sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-6 md:mb-8 text-center">
+        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-3 sm:mb-4 md:mb-6 text-center leading-tight">
           {t("whyChooseTechTots")}
         </h2>
 
-        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-y-3 sm:gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
           {cards.map(card => (
             <div
               key={card.key}
-              className="group relative w-full overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-2xl focus-within:ring-2 focus-within:ring-white/80"
+              className="group relative w-full overflow-hidden rounded-lg shadow-sm transition-all duration-300 hover:shadow-md focus-within:ring-2 focus-within:ring-white/80"
               aria-label={card.title}
               role="region"
             >
@@ -69,28 +69,28 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
                 aria-hidden="true"
               />
 
-              <div className="relative flex min-h-[140px] xs:min-h-[180px] sm:min-h-[260px] md:min-h-[300px] flex-col justify-end p-4 xs:p-5 sm:p-6">
-                <div className="mb-2 inline-flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.35)]" />
-                  <span className="text-[10px] xs:text-xs tracking-wider uppercase text-white/90">
+              <div className="relative flex min-h-[100px] sm:min-h-[120px] md:min-h-[140px] lg:min-h-[160px] flex-col justify-end p-2 sm:p-3 md:p-4">
+                <div className="mb-1 inline-flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_0_2px_rgba(16,185,129,0.35)]" />
+                  <span className="text-[8px] sm:text-[10px] tracking-wider uppercase text-white/90">
                     {card.badge}
                   </span>
                 </div>
 
-                <div className="w-full max-w-[98%] backdrop-blur-sm bg-black/40 hover:bg-black/50 transition-colors rounded-xl px-3.5 py-3 md:px-4 md:py-4">
-                  <h3 className="text-base xs:text-lg sm:text-xl md:text-2xl font-extrabold text-white drop-shadow-md">
+                <div className="w-full max-w-[98%] backdrop-blur-sm bg-black/40 hover:bg-black/50 transition-colors rounded-lg px-2 py-2 sm:px-3 sm:py-3">
+                  <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-extrabold text-white drop-shadow-md truncate">
                     {card.title}
                   </h3>
-                  <p className="mt-2 text-[11px] xs:text-sm md:text-base text-white/95 leading-snug">
+                  <p className="mt-1 text-[9px] sm:text-[10px] md:text-xs lg:text-sm text-white/95 leading-tight line-clamp-2">
                     {card.description}
                   </p>
-                  <div className="mt-3 md:mt-4 flex items-center gap-2 text-white/90">
-                    <div className="h-6 w-6 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                  <div className="mt-2 flex items-center gap-1 text-white/90">
+                    <div className="h-4 w-4 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
                         fill="currentColor"
-                        className="h-3.5 w-3.5"
+                        className="h-2.5 w-2.5"
                       >
                         <path
                           fillRule="evenodd"
@@ -103,7 +103,7 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
                         />
                       </svg>
                     </div>
-                    <span className="text-xs xs:text-sm">
+                    <span className="text-[8px] sm:text-[10px] truncate">
                       {t("inspiringMinds", "Inspiring young minds")}
                     </span>
                   </div>
@@ -111,7 +111,7 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
               </div>
 
               <div
-                className="absolute inset-0 ring-1 ring-white/10 rounded-2xl"
+                className="absolute inset-0 ring-1 ring-white/10 rounded-lg"
                 aria-hidden="true"
               />
             </div>

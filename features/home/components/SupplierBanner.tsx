@@ -83,21 +83,21 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
   ];
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/20">
+    <section className="py-4 sm:py-6 md:py-8 lg:py-12 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/20">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Main Banner Content */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 shadow-2xl">
+        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 shadow-lg sm:shadow-xl lg:shadow-2xl">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.4%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
           </div>
 
           {/* Content Container */}
-          <div className="relative z-10 px-6 py-8 sm:px-8 sm:py-12 md:px-12 md:py-16">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="relative z-10 px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 lg:px-12 lg:py-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8 lg:gap-12 items-center">
               {/* Left Side - Text Content */}
               <div className="text-center lg:text-left">
-                <div className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-white/20 text-white/90 backdrop-blur-sm mb-4 sm:mb-6">
+                <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white/90 backdrop-blur-sm mb-2 sm:mb-3 md:mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -115,11 +115,11 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
                   {t("supplier_opportunity", "Oportunitate de Afaceri")}
                 </div>
 
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 leading-tight">
+                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
                   {t("supplier_banner_title", "Devino Furnizor TechTots")}
                 </h2>
 
-                <p className="text-base sm:text-lg md:text-xl text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                <p className="text-xs sm:text-sm md:text-base lg:text-lg text-white/90 mb-3 sm:mb-4 md:mb-6 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
                   {t(
                     "supplier_banner_subtitle",
                     "Alătură-te rețelei noastre de furnizori și ajută la educarea generațiilor viitoare cu jucării STEM de calitate."
@@ -136,7 +136,7 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
                   data-conversion-category="supplier_banner"
                   data-conversion-action="become_supplier"
                   data-conversion-element="supplier_banner_button"
-                  className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 bg-white text-blue-600 hover:bg-gray-50 font-semibold text-base sm:text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600 group"
+                  className="inline-flex items-center justify-center px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 bg-white text-blue-600 hover:bg-gray-50 font-semibold text-sm sm:text-base md:text-lg rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600 group"
                 >
                   {t("become_supplier")}
                   <svg
@@ -145,7 +145,7 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
                     viewBox="0 0 24 24"
                     strokeWidth={2}
                     stroke="currentColor"
-                    className="w-5 h-5 ml-2 sm:ml-3 transform transition-transform group-hover:translate-x-1"
+                    className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2 md:ml-3 transform transition-transform group-hover:translate-x-1"
                   >
                     <path
                       strokeLinecap="round"
@@ -157,11 +157,11 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
               </div>
 
               {/* Right Side - Benefits Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
                 {benefits.map((benefit, index) => (
                   <div
                     key={index}
-                    className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center hover:bg-white/20 transition-all duration-300 hover:scale-105 group cursor-pointer"
+                    className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl lg:rounded-2xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:bg-white/20 transition-all duration-300 hover:scale-105 group cursor-pointer"
                     tabIndex={0}
                     role="button"
                     aria-label={`${benefit.title}: ${benefit.description}`}
@@ -174,19 +174,19 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
                     onClick={() => (window.location.href = "/supplier")}
                   >
                     {/* Icon */}
-                    <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-2xl mb-3 sm:mb-4 group-hover:bg-white/30 transition-colors duration-300">
+                    <div className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 bg-white/20 rounded-lg sm:rounded-xl lg:rounded-2xl mb-2 sm:mb-3 group-hover:bg-white/30 transition-colors duration-300">
                       <div className="text-white group-hover:scale-110 transition-transform duration-300">
                         {benefit.icon}
                       </div>
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-sm sm:text-base font-semibold text-white mb-2 leading-tight">
+                    <h3 className="text-xs sm:text-sm md:text-base font-semibold text-white mb-1 sm:mb-2 leading-tight truncate">
                       {benefit.title}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
+                    <p className="text-[10px] sm:text-xs md:text-sm text-white/80 leading-tight line-clamp-2">
                       {benefit.description}
                     </p>
                   </div>

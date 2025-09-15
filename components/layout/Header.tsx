@@ -314,19 +314,16 @@ export default function Header() {
             className="fixed inset-0 bg-black bg-opacity-25"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="fixed top-0 right-0 bottom-0 w-full max-w-sm md:max-w-md lg:max-w-lg bg-white shadow-xl">
-            <div className="flex items-center justify-between h-14 px-4 md:px-6 lg:px-8 border-b">
-              <h2 className="text-lg font-semibold">Menu</h2>
+          <div className="fixed top-0 right-0 bottom-0 w-full max-w-sm md:max-w-md lg:max-w-lg bg-white shadow-2xl">
+            <div className="flex items-center justify-between h-16 px-4 md:px-6 lg:px-8 border-b border-gray-200 bg-gray-50">
+              <h2 className="text-xl font-bold text-gray-900">Menu</h2>
               <button
                 type="button"
-                className="rounded-md p-2 text-gray-700 hover:bg-gray-100"
+                className="rounded-lg p-3 text-gray-700 hover:bg-gray-200 transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
                 onClick={() => setMobileMenuOpen(false)}
+                aria-label="Close navigation menu"
               >
-                <span className="sr-only">Close menu</span>
-                <X
-                  className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6"
-                  aria-hidden="true"
-                />
+                <X className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -341,10 +338,10 @@ export default function Header() {
                         key={item.name}
                         href={item.href}
                         className={cn(
-                          "block rounded-md px-4 py-3 text-base md:text-lg lg:text-xl font-medium transition-colors cursor-pointer",
+                          "flex rounded-lg px-4 py-4 text-base md:text-lg font-semibold transition-all duration-200 cursor-pointer min-h-[48px] items-center",
                           pathname === item.href
-                            ? "bg-indigo-50 text-indigo-600"
-                            : "text-gray-900 hover:bg-gray-50 hover:text-indigo-600"
+                            ? "bg-indigo-100 text-indigo-700 border-l-4 border-indigo-500"
+                            : "text-gray-900 hover:bg-gray-100 hover:text-indigo-600 active:bg-gray-200"
                         )}
                         onClick={() => setMobileMenuOpen(false)}
                       >

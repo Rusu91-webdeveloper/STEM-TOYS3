@@ -20,7 +20,7 @@ interface HeroSectionProps {
 
 const HeroSectionComponent = ({ t }: HeroSectionProps) => (
   <section
-    className="relative flex items-center justify-center min-h-[36vh] sm:min-h-[70vh] md:min-h-[80vh] max-h-[900px] overflow-hidden"
+    className="relative flex items-center justify-center min-h-[75vh] sm:min-h-[80vh] md:min-h-[85vh] max-h-[900px] overflow-hidden"
     aria-label={t("heroSection", "Homepage Hero Section")}
   >
     {/* Background Image with object-center for perfect cropping/focal point */}
@@ -44,10 +44,10 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
     </div>
     {/* Content is perfectly centered and responsive */}
     <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 max-w-3xl text-center">
-      <h1 className="text-2xl xs:text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-2 sm:mb-3 md:mb-5 drop-shadow-lg animate-fade-in text-white">
+      <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-3 sm:mb-4 md:mb-6 drop-shadow-lg animate-fade-in text-white leading-tight">
         {t("inspireMinds")}
       </h1>
-      <p className="text-sm xs:text-base sm:text-xl md:text-2xl mb-4 sm:mb-6 md:mb-10 max-w-2xl mx-auto drop-shadow-md animate-fade-in text-white/90">
+      <p className="text-base xs:text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8 md:mb-10 max-w-2xl mx-auto drop-shadow-md animate-fade-in text-white/90 leading-relaxed">
         {t("discoverCollection")}
       </p>
       <div className="flex flex-col xs:flex-row gap-3 sm:gap-4 w-full max-w-xs xs:max-w-none mx-auto items-center justify-center">
@@ -61,7 +61,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
           data-conversion-category="cta"
           data-conversion-action="shop_all_products"
           data-conversion-element="hero_shop_button"
-          className="w-full xs:w-auto min-h-[36px] sm:min-h-[44px] px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs sm:text-base md:text-lg font-semibold border-0 relative overflow-hidden group focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-purple-700 text-center flex items-center justify-center"
+          className="w-full xs:w-auto min-h-[48px] sm:min-h-[52px] px-4 sm:px-8 py-3 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm sm:text-base md:text-lg font-semibold border-0 relative overflow-hidden group focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-purple-700 text-center flex items-center justify-center"
         >
           {t("shopAllProducts")}
           <span className="ml-1 sm:ml-2 transform transition-transform group-hover:translate-x-1 inline-block align-middle">
@@ -92,7 +92,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
           data-conversion-category="cta"
           data-conversion-action="explore_categories"
           data-conversion-element="hero_categories_button"
-          className="w-full xs:w-auto min-h-[36px] sm:min-h-[44px] px-3 sm:px-6 py-2 sm:py-3 bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 text-xs sm:text-base md:text-lg font-semibold mt-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-orange-600 text-center flex items-center justify-center"
+          className="w-full xs:w-auto min-h-[48px] sm:min-h-[52px] px-4 sm:px-8 py-3 sm:py-4 bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 text-sm sm:text-base md:text-lg font-semibold mt-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-orange-600 text-center flex items-center justify-center"
         >
           {t("exploreCategories")}
         </Link>

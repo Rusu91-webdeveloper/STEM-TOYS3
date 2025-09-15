@@ -33,16 +33,16 @@ const FeaturedProductsSectionComponent = ({
   formatPrice,
   t,
 }: FeaturedProductsSectionProps) => (
-  <section className="py-3 sm:py-10">
+  <section className="py-4 sm:py-6 md:py-8 lg:py-10">
     <div className="container mx-auto px-2 sm:px-4 max-w-7xl">
-      <div className="mb-4 sm:mb-8 text-center">
+      <div className="mb-3 sm:mb-4 md:mb-6 text-center">
         <span className="inline-block px-2 py-0.5 sm:px-3 sm:py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full mb-1 sm:mb-2">
           {t("recommendedForYou", "Recommended For You")}
         </span>
-        <h2 className="text-lg xs:text-xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 md:mb-6 text-center mt-2 sm:mt-0">
+        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-2 sm:mb-3 md:mb-4 text-center mt-1 sm:mt-0 leading-tight">
           {t("featuredProducts")}
         </h2>
-        <p className="text-center text-muted-foreground mb-0 max-w-3xl mx-auto px-2 text-xs xs:text-base sm:text-lg md:text-xl">
+        <p className="text-center text-muted-foreground mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto px-4 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed">
           {t("featuredProductsDesc")}
         </p>
       </div>
@@ -54,7 +54,7 @@ const FeaturedProductsSectionComponent = ({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8 max-w-none">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-6 max-w-none">
           {products.map(product => (
             <a
               href={`/products/${product.slug}`}
@@ -67,10 +67,10 @@ const FeaturedProductsSectionComponent = ({
               data-conversion-action="view_product_details"
               data-conversion-element={`featured_product_${product.slug}`}
               data-conversion-metadata={`{"productId":"${product.id}","productName":"${product.name}","productSlug":"${product.slug}","price":${product.price}}`}
-              className="block min-h-[32px] sm:min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 w-full group"
+              className="block min-h-[120px] sm:min-h-[140px] md:min-h-[160px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 w-full group"
             >
-              <div className="bg-background rounded-md sm:rounded-xl overflow-hidden shadow-md border border-gray-200 transition-all duration-300 hover:shadow-xl h-full flex flex-col w-full group-hover:scale-[1.02]">
-                <div className="relative h-24 xs:h-32 sm:h-40 md:h-52 w-full overflow-hidden">
+              <div className="bg-background rounded-lg overflow-hidden shadow-sm border border-gray-200 transition-all duration-300 hover:shadow-md h-full flex flex-col w-full group-hover:scale-[1.02]">
+                <div className="relative h-16 sm:h-20 md:h-24 lg:h-28 w-full overflow-hidden">
                   <Image
                     src={
                       product.images && product.images.length > 0
@@ -79,16 +79,18 @@ const FeaturedProductsSectionComponent = ({
                     }
                     alt={product.name}
                     fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover w-full h-full rounded-t-md sm:rounded-t-xl transition-transform duration-300 group-hover:scale-105"
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-cover w-full h-full rounded-t-lg transition-transform duration-300 group-hover:scale-105"
+                    priority={false}
+                    loading="lazy"
                   />
                 </div>
-                <div className="p-2 xs:p-3 sm:p-4 md:p-5 flex flex-col flex-grow">
-                  <h3 className="text-xs xs:text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 truncate">
+                <div className="p-2 sm:p-3 md:p-4 flex flex-col flex-grow">
+                  <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold mb-1 sm:mb-2 truncate">
                     {product.name}
                   </h3>
                   <p
-                    className="text-xs xs:text-sm text-muted-foreground mb-2 sm:mb-4 flex-grow overflow-hidden leading-tight"
+                    className="text-[10px] sm:text-xs md:text-sm text-muted-foreground mb-2 sm:mb-3 flex-grow overflow-hidden leading-tight"
                     style={{
                       display: "-webkit-box",
                       WebkitLineClamp: 2,
@@ -98,10 +100,10 @@ const FeaturedProductsSectionComponent = ({
                     {product.description}
                   </p>
                   <div className="flex items-center justify-between mt-auto">
-                    <span className="text-xs xs:text-sm sm:text-base md:text-lg font-bold text-primary">
+                    <span className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-primary truncate">
                       {formatPrice(product.price)}
                     </span>
-                    <span className="inline-block bg-indigo-600 text-white text-xs xs:text-sm px-2 py-1 sm:px-3 sm:py-2 rounded ml-1 sm:ml-2 min-h-[32px] sm:min-h-[44px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 transition-colors group-hover:bg-indigo-700">
+                    <span className="inline-block bg-indigo-600 text-white text-[10px] sm:text-xs md:text-sm px-2 py-1 sm:px-3 sm:py-2 rounded ml-1 sm:ml-2 min-h-[28px] sm:min-h-[32px] md:min-h-[36px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 transition-colors group-hover:bg-indigo-700 flex-shrink-0">
                       {t("viewDetails")}
                     </span>
                   </div>

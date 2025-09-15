@@ -29,16 +29,16 @@ const CategoriesSectionComponent = ({
   categories,
   t,
 }: CategoriesSectionProps) => (
-  <section className="py-3 sm:py-10 bg-muted">
+  <section className="py-4 sm:py-6 md:py-8 lg:py-10 bg-muted">
     <div className="container mx-auto px-4 max-w-7xl">
-      <h2 className="text-sm xs:text-lg sm:text-4xl md:text-5xl font-bold mb-1 sm:mb-4 md:mb-6 text-center">
+      <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-2 sm:mb-3 md:mb-4 text-center leading-tight">
         {t("stemCategories")}
       </h2>
-      <p className="text-center text-muted-foreground mb-3 sm:mb-8 max-w-3xl mx-auto px-2 text-xs xs:text-sm sm:text-lg md:text-xl">
+      <p className="text-center text-muted-foreground mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto px-4 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed">
         {t("stemCategoriesDesc")}
       </p>
-      {/* Responsive grid: 1-col mobile, 2-col sm, 4-col md+ for perfect centering */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-y-2 sm:gap-y-6 gap-x-4 sm:gap-x-6 md:gap-x-8 justify-items-center">
+      {/* Responsive grid: 2-col mobile, 2-col sm, 3-col md, 4-col lg+ for compact mobile experience */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6 justify-items-center">
         {categories.map(category => {
           // Get translated category name and description based on slug
           const getCategoryName = (slug: string) => {
@@ -90,24 +90,26 @@ const CategoriesSectionComponent = ({
               data-conversion-action="explore_category"
               data-conversion-element={`category_${category.slug}`}
               data-conversion-metadata={`{"category":"${category.slug}","categoryName":"${translatedName}"}`}
-              className="bg-background rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-h-[24px] sm:min-h-[44px] flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="bg-background rounded-lg overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 w-full max-w-xs sm:max-w-sm"
             >
               {/* Category image, always object-cover and responsive */}
-              <div className="relative h-12 xs:h-16 sm:h-40 md:h-48 w-full">
+              <div className="relative h-12 sm:h-16 md:h-20 lg:h-24 w-full">
                 <Image
                   src={category.image}
                   alt={translatedName}
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw"
-                  className="object-cover w-full h-full rounded-t-xl"
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover w-full h-full rounded-t-lg"
+                  priority={false}
+                  loading="lazy"
                 />
               </div>
-              <div className="p-1.5 xs:p-2 sm:p-5 md:p-6 flex flex-col flex-grow">
-                <h3 className="text-xs xs:text-xs sm:text-lg md:text-xl font-bold mb-0.5 xs:mb-2 truncate">
+              <div className="p-2 sm:p-3 md:p-4 flex flex-col flex-grow">
+                <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-bold mb-1 sm:mb-2 text-gray-900 leading-tight truncate">
                   {translatedName}
                 </h3>
                 <p
-                  className="text-muted-foreground text-xs xs:text-xs md:text-base mb-1.5 sm:mb-3 md:mb-4 overflow-hidden"
+                  className="text-muted-foreground text-[10px] sm:text-xs md:text-sm mb-2 sm:mb-3 flex-grow overflow-hidden"
                   style={{
                     display: "-webkit-box",
                     WebkitLineClamp: 2,
@@ -117,8 +119,23 @@ const CategoriesSectionComponent = ({
                   {translatedDescription}
                 </p>
                 <div className="mt-auto">
-                  <span className="text-primary text-xs xs:text-xs font-medium inline-flex items-center">
-                    {t("exploreCategories").split(" ")[0]} {translatedName}
+                  <span className="text-primary text-[10px] sm:text-xs md:text-sm font-medium inline-flex items-center hover:text-primary/80 transition-colors">
+                    <span className="truncate">
+                      {t("exploreCategories").split(" ")[0]} {translatedName}
+                    </span>
+                    <svg
+                      className="ml-1 w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
                   </span>
                 </div>
               </div>
