@@ -554,6 +554,7 @@ export const ro = {
   // Filter and Sort UI
   filterOptions: "Opțiuni de Filtrare",
   filterBy: "Filtrează După:",
+  loadingProducts: "Se încarcă produsele...",
   filterBySTEM: "Filtrează după Categoria STEM",
   allCategories: "Toate Categoriile",
   tryAdjustingFilters:

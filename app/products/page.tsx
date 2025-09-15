@@ -56,51 +56,27 @@ export default async function ProductsPage({
     // Fetch all categories for sidebar (always show all categories)
     const allSidebarCategories = await getAllCategoriesForSidebar(locale);
 
-    // 🚀 PERFORMANCE & LOGIC FIX: Conditionally fetch books and products
-    if (!requestedCategory) {
-      // No category selected, fetch both with proper caching
-      const [booksResult, productsResult] = await Promise.allSettled([
-        getBooks(),
-        getProducts(),
-      ]);
+    // 🚀 PERFORMANCE & LOGIC FIX: Always fetch all products for client-side filtering
+    // This allows the client-side filtering to work properly with all available products
+    const [booksResult, productsResult] = await Promise.allSettled([
+      getBooks(),
+      getProducts(), // Always fetch all products for client-side filtering
+    ]);
 
-      if (booksResult.status === "fulfilled") {
-        booksData = booksResult.value;
-      } else {
-        fetchErrors.books =
-          booksResult.reason?.message || "Unknown error fetching books";
-        booksData = [];
-      }
-
-      if (productsResult.status === "fulfilled") {
-        productsData = productsResult.value;
-      } else {
-        fetchErrors.products =
-          productsResult.reason?.message || "Unknown error fetching products";
-        productsData = [];
-      }
-    } else if (requestedCategory === "educational-books") {
-      // Only fetch books for the "educational-books" category
-      try {
-        booksData = await getBooks();
-      } catch (error) {
-        fetchErrors.books =
-          error instanceof Error
-            ? error.message
-            : "Unknown error fetching books";
-        booksData = [];
-      }
+    if (booksResult.status === "fulfilled") {
+      booksData = booksResult.value;
     } else {
-      // Fetch STEM products for any other category
-      try {
-        productsData = await getProducts({ category: requestedCategory });
-      } catch (error) {
-        fetchErrors.products =
-          error instanceof Error
-            ? error.message
-            : "Unknown error fetching products";
-        productsData = [];
-      }
+      fetchErrors.books =
+        booksResult.reason?.message || "Unknown error fetching books";
+      booksData = [];
+    }
+
+    if (productsResult.status === "fulfilled") {
+      productsData = productsResult.value;
+    } else {
+      fetchErrors.products =
+        productsResult.reason?.message || "Unknown error fetching products";
+      productsData = [];
     }
 
     // Transform books to look like products

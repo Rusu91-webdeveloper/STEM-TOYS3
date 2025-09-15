@@ -532,6 +532,7 @@ export const en = {
   // Filter and Sort UI
   filterOptions: "Filter Options",
   filterBy: "Filter By:",
+  loadingProducts: "Loading products...",
   filterBySTEM: "Filter by STEM Category",
   allCategories: "All Categories",
   tryAdjustingFilters: "Try adjusting your filters or search criteria",

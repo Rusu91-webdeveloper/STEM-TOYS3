@@ -11,7 +11,13 @@ import {
   Brain,
   LucideIcon,
 } from "lucide-react";
-import React, { useState, useEffect, useMemo, Suspense } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  Suspense,
+} from "react";
 
 import { ProductVariantProvider } from "@/features/products";
 import { useTranslation } from "@/lib/i18n";
@@ -220,7 +226,7 @@ function ClientProductsPageContent({
   const [products] = useState<ProductData[]>(initialProducts);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Initialize from search params on mount
+  // Initialize from search params and set hydrated
   useEffect(() => {
     try {
       initFromSearchParams();
@@ -327,125 +333,94 @@ function ClientProductsPageContent({
     ];
   }, [allSidebarCategories, products, t]);
 
-  // Filter products based on current filters
+  // Client-side filtering based on selected categories and other filters
   const filteredProducts = useMemo(() => {
-    const filtered = products.filter(product => {
-      // Category filter
-      if (state.selectedCategories.length > 0) {
-        const productCategory =
-          product.category?.name ?? product.stemDiscipline ?? "";
-        const normalizedProductCategory = normalizeCategory(productCategory);
-        const matchesCategory = state.selectedCategories.some(
-          cat => normalizeCategory(cat) === normalizedProductCategory
-        );
-        if (!matchesCategory) return false;
-      }
+    let filtered = [...products];
 
-      // Price filter
-      if (!state.noPriceFilter && product.price) {
+    // Filter by selected categories
+    if (state.selectedCategories.length > 0) {
+      filtered = filtered.filter(product => {
+        const productCategory =
+          product.category?.name?.toLowerCase() ||
+          product.stemDiscipline?.toLowerCase() ||
+          "";
+        return state.selectedCategories.some(selectedCategory => {
+          const normalizedSelected = normalizeCategory(selectedCategory);
+          const normalizedProduct = normalizeCategory(productCategory);
+          return normalizedProduct === normalizedSelected;
+        });
+      });
+    }
+
+    // Filter by price range if price filter is enabled
+    if (!state.noPriceFilter) {
+      const [minPrice, maxPrice] = state.priceRangeFilter;
+      filtered = filtered.filter(product => {
         const price =
           typeof product.price === "string"
             ? parseFloat(product.price)
             : product.price;
+        return price >= minPrice && price <= maxPrice;
+      });
+    }
 
-        if (
-          price < state.priceRangeFilter[0] ||
-          price > state.priceRangeFilter[1]
-        ) {
-          return false;
-        }
-      }
+    // Filter by age group
+    if (state.selectedAgeGroup) {
+      filtered = filtered.filter(
+        product => product.ageGroup === state.selectedAgeGroup
+      );
+    }
 
-      // Search query
-      if (state.searchQuery) {
-        const query = state.searchQuery.toLowerCase();
-        const searchableText = [
-          product.name,
-          product.description,
-          product.category?.name,
-          product.stemDiscipline,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-
-        if (!searchableText.includes(query)) {
-          return false;
-        }
-      }
-
-      // Age group filter (dynamic filter)
-      if (
-        state.selectedFilters["ageGroup"] &&
-        state.selectedFilters["ageGroup"].length > 0 &&
-        product.ageGroup
-      ) {
-        if (!state.selectedFilters["ageGroup"].includes(product.ageGroup))
-          return false;
-      }
-
-      // Product type filter (dynamic filter)
-      if (
-        state.selectedFilters["productType"] &&
-        state.selectedFilters["productType"].length > 0 &&
-        product.productType
-      ) {
-        if (!state.selectedFilters["productType"].includes(product.productType))
-          return false;
-      }
-
-      // Learning outcomes filter
-      if (
-        state.selectedLearningOutcomes.length > 0 &&
-        product.learningOutcomes
-      ) {
-        const productLearningOutcomes = Array.isArray(product.learningOutcomes)
-          ? product.learningOutcomes
-          : [];
-        const hasMatchingOutcome = state.selectedLearningOutcomes.some(
-          selectedOutcome =>
-            productLearningOutcomes.includes(selectedOutcome as any)
+    // Filter by learning outcomes
+    if (state.selectedLearningOutcomes.length > 0) {
+      filtered = filtered.filter(product => {
+        if (!product.learningOutcomes) return false;
+        return state.selectedLearningOutcomes.some(outcome =>
+          product.learningOutcomes!.includes(outcome as any)
         );
-        if (!hasMatchingOutcome) return false;
-      }
+      });
+    }
 
-      // Special categories filter
-      if (state.selectedSpecialCategories.length > 0) {
-        const productSpecialCategories = Array.isArray(
-          product.specialCategories
-        )
-          ? product.specialCategories
-          : [];
+    // Filter by product type
+    if (state.selectedProductType) {
+      filtered = filtered.filter(
+        product => product.productType === state.selectedProductType
+      );
+    }
 
-        // Check if any selected special category matches
-        const hasMatchingSpecialCategory = state.selectedSpecialCategories.some(
-          selectedSpecialCategory => {
-            // For SALE_ITEMS, also check if product is actually on sale (compareAtPrice > price)
-            if (selectedSpecialCategory === "SALE_ITEMS") {
-              const isOnSale =
-                product.compareAtPrice &&
-                product.compareAtPrice > product.price;
-              return (
-                productSpecialCategories.includes(
-                  selectedSpecialCategory as any
-                ) || isOnSale
-              );
-            }
-            // For other special categories, only check the specialCategories array
-            return productSpecialCategories.includes(
-              selectedSpecialCategory as any
-            );
-          }
+    // Filter by special categories
+    if (state.selectedSpecialCategories.length > 0) {
+      filtered = filtered.filter(product => {
+        if (!product.specialCategories) return false;
+        return state.selectedSpecialCategories.some(category =>
+          product.specialCategories!.includes(category as any)
         );
+      });
+    }
 
-        if (!hasMatchingSpecialCategory) return false;
-      }
-
-      return true;
-    });
+    // Filter by search query
+    if (state.searchQuery) {
+      const query = state.searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        product =>
+          product.name?.toLowerCase().includes(query) ||
+          product.description?.toLowerCase().includes(query) ||
+          product.tags?.some(tag => tag.toLowerCase().includes(query))
+      );
+    }
 
     return filtered;
-  }, [products, state]);
+  }, [
+    products,
+    state.selectedCategories,
+    state.priceRangeFilter,
+    state.noPriceFilter,
+    state.selectedAgeGroup,
+    state.selectedLearningOutcomes,
+    state.selectedProductType,
+    state.selectedSpecialCategories,
+    state.searchQuery,
+  ]);
 
   // Get active category for hero section
   const activeCategory = useMemo(() => {

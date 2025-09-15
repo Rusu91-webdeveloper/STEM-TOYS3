@@ -35,8 +35,8 @@ export function ProductsCategoryNavigation({
       <div className="sticky top-14 sm:top-16 z-20 bg-white border-b border-gray-200 shadow-sm">
         <div className="container mx-auto px-2 sm:px-4 py-1.5 sm:py-4">
           {/* Top navigation buttons - Filter out duplicates by key */}
-          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-4">
-            <div className="flex flex-wrap gap-1 sm:gap-3 justify-center">
+          <div className="flex items-center justify-center">
+            <div className="flex gap-1 sm:gap-3 justify-center w-full max-w-5xl">
               {Object.entries(categoryInfo)
                 .filter(
                   ([key, _]) =>
@@ -52,7 +52,9 @@ export function ProductsCategoryNavigation({
                         ? "border-green-500 text-green-700 hover:bg-green-50"
                         : key === "engineering"
                           ? "border-orange-500 text-orange-700 hover:bg-orange-50"
-                          : "border-purple-500 text-purple-700 hover:bg-purple-50";
+                          : key === "mathematics"
+                            ? "border-purple-500 text-purple-700 hover:bg-purple-50"
+                            : "border-red-500 text-red-700 hover:bg-red-50";
 
                   const activeColor =
                     key === "science"
@@ -61,7 +63,9 @@ export function ProductsCategoryNavigation({
                         ? "bg-green-500 text-white"
                         : key === "engineering"
                           ? "bg-orange-500 text-white"
-                          : "bg-purple-500 text-white";
+                          : key === "mathematics"
+                            ? "bg-purple-500 text-white"
+                            : "bg-red-500 text-white";
 
                   // Convert both to lowercase for comparison
                   const isSelected = selectedCategories.some(
@@ -73,19 +77,21 @@ export function ProductsCategoryNavigation({
                       key={key}
                       variant="outline"
                       size="sm"
-                      className={`h-7 sm:h-12 px-1.5 sm:px-5 rounded-full text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 border-2 transition-all hover:scale-105 ${
+                      className={`flex-1 sm:flex-none h-6 sm:h-12 px-1 sm:px-5 rounded-full text-[10px] sm:text-sm font-medium flex items-center justify-center gap-0.5 sm:gap-2 border-2 transition-all hover:scale-105 ${
                         isSelected ? activeColor : categoryColor
                       }`}
                       onClick={() => handleCategoryChange(key)}
                     >
-                      <CategoryIcon className="h-3 w-3 sm:h-5 sm:w-5" />
-                      <span className="hidden xs:inline">
+                      <CategoryIcon className="h-2.5 w-2.5 sm:h-5 sm:w-5 flex-shrink-0" />
+                      <span className="hidden sm:inline truncate">
                         {t(
                           `${key}Category`,
                           key.charAt(0).toUpperCase() + key.slice(1)
                         )}
                       </span>
-                      <span className="xs:hidden">{category.letter}</span>
+                      <span className="sm:hidden text-[10px] font-bold">
+                        {category.letter}
+                      </span>
                     </Button>
                   );
                 })}

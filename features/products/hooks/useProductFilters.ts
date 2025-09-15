@@ -211,9 +211,11 @@ export function useProductFilters() {
     // Parse price range with safe integer parsing
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
+    console.log("Parsing price range from URL:", { minPrice, maxPrice });
     if (minPrice && maxPrice) {
       const parsedMin = parseInt(minPrice, 10);
       const parsedMax = parseInt(maxPrice, 10);
+      console.log("Parsed price range:", { parsedMin, parsedMax });
       // Only set if both values are valid numbers
       if (
         !isNaN(parsedMin) &&
@@ -222,9 +224,14 @@ export function useProductFilters() {
         parsedMax > parsedMin
       ) {
         urlState.priceRangeFilter = [parsedMin, parsedMax];
+        console.log("Set price range from URL:", [parsedMin, parsedMax]);
+      } else {
+        console.log("Invalid price range, using default");
+        urlState.priceRangeFilter = [0, 1000];
       }
     } else {
       // If no price range in URL, use default range
+      console.log("No price range in URL, using default");
       urlState.priceRangeFilter = [0, 1000];
     }
 
@@ -271,6 +278,7 @@ export function useProductFilters() {
       urlState.noPriceFilter = false;
     }
 
+    console.log("Dispatching URL state update:", urlState);
     dispatch({ type: "INIT_FROM_URL", payload: urlState });
   }, [searchParams]);
 

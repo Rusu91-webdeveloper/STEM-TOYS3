@@ -110,11 +110,11 @@ export function ProductCard({
     return (
       <div
         className={cn(
-          "flex flex-col xs:flex-row border rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-300",
+          "flex flex-col xs:flex-row border border-gray-200/60 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 hover:-translate-y-0.5",
           className
         )}
       >
-        <div className="relative w-full xs:w-1/3 h-48 xs:h-auto xs:max-w-[240px]">
+        <div className="relative w-full xs:w-1/3 h-48 xs:h-auto xs:max-w-[240px] bg-gradient-to-br from-gray-50 to-gray-100">
           <Link href={`/products/${product.slug}`}>
             <div
               className="relative h-full w-full group"
@@ -124,23 +124,23 @@ export function ProductCard({
                 src={imageUrl}
                 alt={product.name}
                 fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 240px"
                 priority={priority}
                 loading="eager"
-                quality={80}
+                quality={85}
                 placeholder="blur"
                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
               />
             </div>
             {isOnSale && (
-              <Badge className="absolute top-3 left-3 bg-red-500 text-xs px-2 py-1">
+              <Badge className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-2.5 py-1.5 shadow-lg font-semibold rounded-full border-0">
                 Sale
               </Badge>
             )}
             {product.stemDiscipline && (
               <Badge
-                className="absolute top-3 right-3 capitalize text-xs px-2 py-1"
+                className="absolute top-3 right-3 capitalize text-xs px-2.5 py-1.5 bg-white/95 text-gray-700 border-0 shadow-md rounded-full font-medium"
                 variant="outline"
               >
                 {product.stemDiscipline}
@@ -148,20 +148,22 @@ export function ProductCard({
             )}
           </Link>
         </div>
-        <div className="flex flex-col flex-1 p-4 justify-between">
-          <div className="space-y-2">
+        <div className="flex flex-col flex-1 p-4 sm:p-5 justify-between">
+          <div className="space-y-3">
             <Link href={`/products/${product.slug}`} className="block">
-              <h3 className="font-semibold text-base line-clamp-2 hover:text-primary transition-colors">
+              <h3 className="font-semibold text-base sm:text-lg line-clamp-2 hover:text-primary transition-colors leading-tight">
                 {product.name}
               </h3>
             </Link>
             {product.ageRange && (
-              <p className="text-sm text-muted-foreground">
-                Ages: {product.ageRange}
-              </p>
+              <div className="flex items-center">
+                <div className="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full font-medium">
+                  Ages: {product.ageRange}
+                </div>
+              </div>
             )}
             {renderRating()}
-            <p className="text-sm line-clamp-2 text-muted-foreground">
+            <p className="text-sm line-clamp-2 text-muted-foreground leading-relaxed">
               {product.description}
             </p>
           </div>
@@ -183,6 +185,7 @@ export function ProductCard({
               showQuantity={false}
               isBook={isBook}
               size="sm"
+              className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-semibold py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
             />
           </div>
         </div>
@@ -194,76 +197,82 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "group border rounded-xl overflow-hidden h-full flex flex-col bg-white shadow-sm hover:shadow-lg transition-all duration-300",
+        "group border border-gray-200/60 rounded-2xl overflow-hidden h-full flex flex-col bg-white shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 hover:-translate-y-1",
         className
       )}
     >
-      <div className="relative overflow-hidden aspect-square">
+      <div className="relative overflow-hidden aspect-square bg-gradient-to-br from-gray-50 to-gray-100">
         <Link href={`/products/${product.slug}`}>
           <OptimizedProductImage
             src={imageUrl}
             alt={product.name}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             priority={priority}
-            quality={85}
+            quality={90}
             placeholder="blur"
           />
           {isOnSale && (
-            <Badge className="absolute top-3 left-3 bg-red-500 text-xs px-2 py-1 shadow-md">
+            <Badge className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-2.5 py-1.5 shadow-lg font-semibold rounded-full border-0">
               Sale
             </Badge>
           )}
           {product.stemDiscipline && (
             <Badge
-              className="absolute top-3 right-3 capitalize text-xs px-2 py-1 bg-white/90 text-gray-700 border-0"
+              className="absolute top-3 right-3 capitalize text-xs px-2.5 py-1.5 bg-white/95 text-gray-700 border-0 shadow-md rounded-full font-medium"
               variant="outline"
             >
               {product.stemDiscipline}
             </Badge>
           )}
+          {/* Overlay gradient for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </Link>
       </div>
 
-      <div className="flex flex-col flex-1 p-3 sm:p-4 space-y-2 sm:space-y-3">
-        <div className="space-y-1.5 sm:space-y-2">
+      <div className="flex flex-col flex-1 p-4 sm:p-5 space-y-3 sm:space-y-4">
+        <div className="space-y-2 sm:space-y-2.5">
           <Link href={`/products/${product.slug}`} className="block">
-            <h3 className="font-semibold text-sm sm:text-base line-clamp-2 group-hover:text-primary transition-colors">
+            <h3 className="font-semibold text-sm sm:text-base line-clamp-2 group-hover:text-primary transition-colors leading-tight">
               {product.name}
             </h3>
           </Link>
 
           {product.ageRange && (
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Ages: {product.ageRange}
-            </p>
+            <div className="flex items-center">
+              <div className="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full font-medium">
+                Ages: {product.ageRange}
+              </div>
+            </div>
           )}
 
           {renderRating()}
         </div>
 
-        <div className="flex flex-col space-y-1 mt-auto pt-1.5 sm:pt-2">
-          <div className="flex items-center space-x-1.5 sm:space-x-2">
+        <div className="flex flex-col space-y-2 mt-auto pt-2 sm:pt-3">
+          <div className="flex items-baseline space-x-2">
             <div className="text-lg sm:text-xl font-bold text-primary">
               {formatPrice(product.price)}
             </div>
             {isOnSale && product.compareAtPrice && (
-              <div className="text-xs sm:text-sm text-muted-foreground line-through">
+              <div className="text-sm text-muted-foreground line-through">
                 {formatPrice(product.compareAtPrice)}
               </div>
             )}
           </div>
-          <div className="text-xs text-muted-foreground">inclusiv TVA</div>
+          <div className="text-xs text-muted-foreground font-medium">
+            inclusiv TVA
+          </div>
         </div>
 
-        <div className="mt-auto">
+        <div className="mt-auto pt-2">
           <ProductAddToCartButton
             product={productData}
             showQuantity={false}
             isBook={isBook}
             size="sm"
-            className="w-full"
+            className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-semibold py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
           />
         </div>
       </div>
