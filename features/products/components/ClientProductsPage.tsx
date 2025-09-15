@@ -222,8 +222,13 @@ function ClientProductsPageContent({
 
   // Initialize from search params on mount
   useEffect(() => {
-    initFromSearchParams();
-    setIsHydrated(true);
+    try {
+      initFromSearchParams();
+    } catch (error) {
+      console.error("Error initializing from search params:", error);
+    } finally {
+      setIsHydrated(true);
+    }
   }, [initFromSearchParams]);
 
   // Update URL when filters change (debounced)
@@ -323,127 +328,124 @@ function ClientProductsPageContent({
   }, [allSidebarCategories, products, t]);
 
   // Filter products based on current filters
-  const filteredProducts = useMemo(
-    () =>
-      products.filter(product => {
-        // Category filter
-        if (state.selectedCategories.length > 0) {
-          const productCategory =
-            product.category?.name ?? product.stemDiscipline ?? "";
-          const normalizedProductCategory = normalizeCategory(productCategory);
-          const matchesCategory = state.selectedCategories.some(
-            cat => normalizeCategory(cat) === normalizedProductCategory
-          );
-          if (!matchesCategory) return false;
-        }
+  const filteredProducts = useMemo(() => {
+    const filtered = products.filter(product => {
+      // Category filter
+      if (state.selectedCategories.length > 0) {
+        const productCategory =
+          product.category?.name ?? product.stemDiscipline ?? "";
+        const normalizedProductCategory = normalizeCategory(productCategory);
+        const matchesCategory = state.selectedCategories.some(
+          cat => normalizeCategory(cat) === normalizedProductCategory
+        );
+        if (!matchesCategory) return false;
+      }
 
-        // Price filter
-        if (!state.noPriceFilter && product.price) {
-          const price =
-            typeof product.price === "string"
-              ? parseFloat(product.price)
-              : product.price;
+      // Price filter
+      if (!state.noPriceFilter && product.price) {
+        const price =
+          typeof product.price === "string"
+            ? parseFloat(product.price)
+            : product.price;
 
-          if (
-            price < state.priceRangeFilter[0] ||
-            price > state.priceRangeFilter[1]
-          ) {
-            return false;
-          }
-        }
-
-        // Search query
-        if (state.searchQuery) {
-          const query = state.searchQuery.toLowerCase();
-          const searchableText = [
-            product.name,
-            product.description,
-            product.category?.name,
-            product.stemDiscipline,
-          ]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase();
-
-          if (!searchableText.includes(query)) {
-            return false;
-          }
-        }
-
-        // Age group filter (dynamic filter)
         if (
-          state.selectedFilters["ageGroup"] &&
-          state.selectedFilters["ageGroup"].length > 0 &&
-          product.ageGroup
+          price < state.priceRangeFilter[0] ||
+          price > state.priceRangeFilter[1]
         ) {
-          if (!state.selectedFilters["ageGroup"].includes(product.ageGroup))
-            return false;
+          return false;
         }
+      }
 
-        // Product type filter (dynamic filter)
-        if (
-          state.selectedFilters["productType"] &&
-          state.selectedFilters["productType"].length > 0 &&
-          product.productType
-        ) {
-          if (
-            !state.selectedFilters["productType"].includes(product.productType)
-          )
-            return false;
+      // Search query
+      if (state.searchQuery) {
+        const query = state.searchQuery.toLowerCase();
+        const searchableText = [
+          product.name,
+          product.description,
+          product.category?.name,
+          product.stemDiscipline,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        if (!searchableText.includes(query)) {
+          return false;
         }
+      }
 
-        // Learning outcomes filter
-        if (
-          state.selectedLearningOutcomes.length > 0 &&
-          product.learningOutcomes
-        ) {
-          const productLearningOutcomes = Array.isArray(
-            product.learningOutcomes
-          )
-            ? product.learningOutcomes
-            : [];
-          const hasMatchingOutcome = state.selectedLearningOutcomes.some(
-            selectedOutcome =>
-              productLearningOutcomes.includes(selectedOutcome as any)
-          );
-          if (!hasMatchingOutcome) return false;
-        }
+      // Age group filter (dynamic filter)
+      if (
+        state.selectedFilters["ageGroup"] &&
+        state.selectedFilters["ageGroup"].length > 0 &&
+        product.ageGroup
+      ) {
+        if (!state.selectedFilters["ageGroup"].includes(product.ageGroup))
+          return false;
+      }
 
-        // Special categories filter
-        if (state.selectedSpecialCategories.length > 0) {
-          const productSpecialCategories = Array.isArray(
-            product.specialCategories
-          )
-            ? product.specialCategories
-            : [];
+      // Product type filter (dynamic filter)
+      if (
+        state.selectedFilters["productType"] &&
+        state.selectedFilters["productType"].length > 0 &&
+        product.productType
+      ) {
+        if (!state.selectedFilters["productType"].includes(product.productType))
+          return false;
+      }
 
-          // Check if any selected special category matches
-          const hasMatchingSpecialCategory =
-            state.selectedSpecialCategories.some(selectedSpecialCategory => {
-              // For SALE_ITEMS, also check if product is actually on sale (compareAtPrice > price)
-              if (selectedSpecialCategory === "SALE_ITEMS") {
-                const isOnSale =
-                  product.compareAtPrice &&
-                  product.compareAtPrice > product.price;
-                return (
-                  productSpecialCategories.includes(
-                    selectedSpecialCategory as any
-                  ) || isOnSale
-                );
-              }
-              // For other special categories, only check the specialCategories array
-              return productSpecialCategories.includes(
-                selectedSpecialCategory as any
+      // Learning outcomes filter
+      if (
+        state.selectedLearningOutcomes.length > 0 &&
+        product.learningOutcomes
+      ) {
+        const productLearningOutcomes = Array.isArray(product.learningOutcomes)
+          ? product.learningOutcomes
+          : [];
+        const hasMatchingOutcome = state.selectedLearningOutcomes.some(
+          selectedOutcome =>
+            productLearningOutcomes.includes(selectedOutcome as any)
+        );
+        if (!hasMatchingOutcome) return false;
+      }
+
+      // Special categories filter
+      if (state.selectedSpecialCategories.length > 0) {
+        const productSpecialCategories = Array.isArray(
+          product.specialCategories
+        )
+          ? product.specialCategories
+          : [];
+
+        // Check if any selected special category matches
+        const hasMatchingSpecialCategory = state.selectedSpecialCategories.some(
+          selectedSpecialCategory => {
+            // For SALE_ITEMS, also check if product is actually on sale (compareAtPrice > price)
+            if (selectedSpecialCategory === "SALE_ITEMS") {
+              const isOnSale =
+                product.compareAtPrice &&
+                product.compareAtPrice > product.price;
+              return (
+                productSpecialCategories.includes(
+                  selectedSpecialCategory as any
+                ) || isOnSale
               );
-            });
+            }
+            // For other special categories, only check the specialCategories array
+            return productSpecialCategories.includes(
+              selectedSpecialCategory as any
+            );
+          }
+        );
 
-          if (!hasMatchingSpecialCategory) return false;
-        }
+        if (!hasMatchingSpecialCategory) return false;
+      }
 
-        return true;
-      }),
-    [products, state]
-  );
+      return true;
+    });
+
+    return filtered;
+  }, [products, state]);
 
   // Get active category for hero section
   const activeCategory = useMemo(() => {

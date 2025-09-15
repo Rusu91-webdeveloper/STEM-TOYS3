@@ -745,7 +745,6 @@ model Return {
 model Review {
   id          String    @id @default(cuid())
   userId      String?
-  guestEmail  String?
   productId   String
   orderItemId String
   rating      Int       @default(0)
@@ -758,9 +757,7 @@ model Review {
   user        User?     @relation(fields: [userId], references: [id])
 
   @@unique([userId, orderItemId])
-  @@unique([guestEmail, orderItemId])
   @@index([userId])
-  @@index([guestEmail])
   @@index([productId])
   @@index([orderItemId])
 }

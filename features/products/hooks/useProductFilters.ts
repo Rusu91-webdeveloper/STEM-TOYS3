@@ -88,7 +88,7 @@ const initialState: FilterState = {
   selectedCategories: [],
   selectedFilters: {},
   priceRangeFilter: [0, 1000],
-  noPriceFilter: true, // Price filter disabled by default
+  noPriceFilter: false, // Price filter enabled by default
   selectedAgeGroup: "",
   selectedLearningOutcomes: [],
   selectedProductType: "",
@@ -223,6 +223,9 @@ export function useProductFilters() {
       ) {
         urlState.priceRangeFilter = [parsedMin, parsedMax];
       }
+    } else {
+      // If no price range in URL, use default range
+      urlState.priceRangeFilter = [0, 1000];
     }
 
     // Parse search query
@@ -259,10 +262,13 @@ export function useProductFilters() {
         .filter(Boolean);
     }
 
-    // Parse noPriceFilter
+    // Parse noPriceFilter - default to false (enabled) if not specified
     const noPriceFilterParam = searchParams.get("noPriceFilter");
     if (noPriceFilterParam) {
       urlState.noPriceFilter = noPriceFilterParam === "true";
+    } else {
+      // If noPriceFilter is not in URL, default to false (price filter enabled)
+      urlState.noPriceFilter = false;
     }
 
     dispatch({ type: "INIT_FROM_URL", payload: urlState });
@@ -318,7 +324,7 @@ export function useProductFilters() {
       );
     }
 
-    // Add noPriceFilter to URL
+    // Add noPriceFilter to URL only when it's true (disabled)
     if (state.noPriceFilter) {
       params.set("noPriceFilter", "true");
     }

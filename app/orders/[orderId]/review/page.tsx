@@ -81,7 +81,9 @@ export default async function PublicReviewPage({
 
   // If user already submitted a review, redirect back to order details
   if (orderItem.reviews.length > 0) {
-    redirect(`/orders/${orderId}?email=${encodeURIComponent(email)}&alreadyReviewed=true`);
+    redirect(
+      `/orders/${orderId}?email=${encodeURIComponent(email)}&alreadyReviewed=true`
+    );
   }
 
   return (
@@ -118,8 +120,9 @@ export default async function PublicReviewPage({
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <p className="text-sm text-blue-800">
-            <strong>Note:</strong> You're writing this review as a guest. If you create an account later, 
-            your review will be associated with your account.
+            <strong>Note:</strong> You're writing this review as a guest. If you
+            create an account later, your review will be associated with your
+            account.
           </p>
         </div>
 
@@ -127,7 +130,6 @@ export default async function PublicReviewPage({
           productId={productId}
           orderItemId={itemId}
           orderId={orderId}
-          guestEmail={email}
         />
       </div>
     </div>

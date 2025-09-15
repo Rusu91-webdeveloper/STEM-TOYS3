@@ -536,6 +536,8 @@ export const en = {
   allCategories: "All Categories",
   tryAdjustingFilters: "Try adjusting your filters or search criteria",
   clearAllFilters: "Clear All Filters",
+  clearAll: "Clear All",
+  applyFilters: "Apply Filters",
   stemCategory: "STEM Category",
   productType: "Product Type",
   stemToy: "STEM Toy",
