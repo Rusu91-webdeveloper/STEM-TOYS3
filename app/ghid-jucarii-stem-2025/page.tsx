@@ -9,7 +9,7 @@ export default function StemGuide2025Page() {
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-3xl font-bold mb-6">{t("guide2025Title")}</h1>
+      <h1 className="text-3xl font-bold mb-6">{t("guide2025H1")}</h1>
       <p className="text-xs text-muted-foreground mb-6">
         {t("guide2025Byline")} {new Date().toLocaleDateString("ro-RO")}
       </p>
@@ -68,7 +68,9 @@ export default function StemGuide2025Page() {
       </nav>
 
       <section id="ce-sunt-stem" className="space-y-3 mb-10">
-        <h2 className="text-2xl font-semibold">{t("guide2025WhatAreStem")}</h2>
+        <h2 className="text-2xl font-semibold">
+          {t("guide2025WhatAreStemH2")}
+        </h2>
         <p className="text-muted-foreground">
           {t("guide2025WhatAreStemContent")}
         </p>
@@ -78,7 +80,7 @@ export default function StemGuide2025Page() {
       </section>
 
       <section id="categorii" className="space-y-6 mb-10">
-        <h2 className="text-2xl font-semibold">{t("guide2025Categories")}</h2>
+        <h2 className="text-2xl font-semibold">{t("guide2025CategoriesH2")}</h2>
         <div className="space-y-4">
           <div>
             <h3 className="text-xl font-semibold">
@@ -133,7 +135,7 @@ export default function StemGuide2025Page() {
 
       <section id="varsta" className="space-y-6 mb-10">
         <h2 className="text-2xl font-semibold">
-          {t("guide2025AgeRecommendations")}
+          {t("guide2025AgeRecommendationsH2")}
         </h2>
         <ul className="list-disc ml-6 text-muted-foreground space-y-2">
           <li>{t("guide2025AgeRecommendationsContent")}</li>
@@ -154,7 +156,9 @@ export default function StemGuide2025Page() {
       </section>
 
       <section id="alegere" className="space-y-3 mb-10">
-        <h2 className="text-2xl font-semibold">{t("guide2025HowToChoose")}</h2>
+        <h2 className="text-2xl font-semibold">
+          {t("guide2025HowToChooseH2")}
+        </h2>
         <ol className="list-decimal ml-6 text-muted-foreground space-y-2">
           <li>{t("guide2025HowToChooseContent1")}</li>
           <li>{t("guide2025HowToChooseContent2")}</li>
@@ -168,7 +172,7 @@ export default function StemGuide2025Page() {
 
       <section id="top" className="space-y-3 mb-10">
         <h2 className="text-2xl font-semibold">
-          {t("guide2025TopRecommendations")}
+          {t("guide2025TopRecommendationsH2")}
         </h2>
         <p className="text-muted-foreground">
           {t("guide2025TopRecommendationsContent")}{" "}

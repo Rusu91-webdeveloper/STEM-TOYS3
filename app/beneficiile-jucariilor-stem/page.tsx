@@ -9,7 +9,7 @@ export default function StemBenefitsPage() {
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-3xl font-bold mb-6">{t("benefitsTitle")}</h1>
+      <h1 className="text-3xl font-bold mb-6">{t("benefitsH1")}</h1>
       <p className="text-xs text-muted-foreground mb-6">
         {t("guide2025Byline")} {new Date().toLocaleDateString("ro-RO")}
       </p>
@@ -63,7 +63,7 @@ export default function StemBenefitsPage() {
 
       <section id="gandire" className="space-y-3 mb-10">
         <h2 className="text-2xl font-semibold">
-          {t("benefitsCriticalThinking")}
+          {t("benefitsCriticalThinkingH2")}
         </h2>
         <p className="text-muted-foreground">
           {t("benefitsCriticalThinkingContent1")}
@@ -74,7 +74,7 @@ export default function StemBenefitsPage() {
       </section>
 
       <section id="creativitate" className="space-y-3 mb-10">
-        <h2 className="text-2xl font-semibold">{t("benefitsCreativity")}</h2>
+        <h2 className="text-2xl font-semibold">{t("benefitsCreativityH2")}</h2>
         <p className="text-muted-foreground">
           {t("benefitsCreativityContent1")}
         </p>
@@ -84,7 +84,9 @@ export default function StemBenefitsPage() {
       </section>
 
       <section id="colaborare" className="space-y-3 mb-10">
-        <h2 className="text-2xl font-semibold">{t("benefitsCollaboration")}</h2>
+        <h2 className="text-2xl font-semibold">
+          {t("benefitsCollaborationH2")}
+        </h2>
         <p className="text-muted-foreground">
           {t("benefitsCollaborationContent1")}
         </p>

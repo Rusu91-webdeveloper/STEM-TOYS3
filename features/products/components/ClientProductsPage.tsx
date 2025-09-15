@@ -462,9 +462,9 @@ function ClientProductsPageContent({
 
   const getCategoryTitle = () => {
     if (!activeCategory) {
-      return t("stemToysForEveryAge");
+      return t("productsH1");
     }
-    return t(`${activeCategory.id}Title`, `${activeCategory.label} Products`);
+    return t(`${activeCategory.id}H1`, `${activeCategory.label} Products`);
   };
 
   const getCategoryDescription = () => {

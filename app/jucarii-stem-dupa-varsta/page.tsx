@@ -9,7 +9,7 @@ export default function StemByAgePage() {
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-3xl font-bold mb-6">{t("byAgeTitle")}</h1>
+      <h1 className="text-3xl font-bold mb-6">{t("stemByAgeH2")}</h1>
       <p className="text-xs text-muted-foreground mb-6">
         {t("guide2025Byline")} {new Date().toLocaleDateString("ro-RO")}
       </p>
@@ -62,7 +62,7 @@ export default function StemByAgePage() {
       </nav>
 
       <section id="3-5" className="space-y-3 mb-10">
-        <h2 className="text-2xl font-semibold">{t("byAge3to5")}</h2>
+        <h2 className="text-2xl font-semibold">{t("age3to5H2")}</h2>
         <ul className="list-disc ml-6 text-muted-foreground space-y-1">
           <li>{t("byAge3to5Content1")}</li>
           <li>{t("byAge3to5Content2")}</li>
@@ -83,7 +83,7 @@ export default function StemByAgePage() {
       </section>
 
       <section id="6-8" className="space-y-3 mb-10">
-        <h2 className="text-2xl font-semibold">{t("byAge6to8")}</h2>
+        <h2 className="text-2xl font-semibold">{t("age6to8H2")}</h2>
         <ul className="list-disc ml-6 text-muted-foreground space-y-1">
           <li>{t("byAge6to8Content1")}</li>
           <li>{t("byAge6to8Content2")}</li>
@@ -104,7 +104,7 @@ export default function StemByAgePage() {
       </section>
 
       <section id="9-12" className="space-y-3 mb-10">
-        <h2 className="text-2xl font-semibold">{t("byAge9to12")}</h2>
+        <h2 className="text-2xl font-semibold">{t("age9to12H2")}</h2>
         <ul className="list-disc ml-6 text-muted-foreground space-y-1">
           <li>{t("byAge9to12Content1")}</li>
           <li>{t("byAge9to12Content2")}</li>
@@ -125,7 +125,7 @@ export default function StemByAgePage() {
       </section>
 
       <section id="13plus" className="space-y-3 mb-10">
-        <h2 className="text-2xl font-semibold">{t("byAge13plus")}</h2>
+        <h2 className="text-2xl font-semibold">{t("age13plusH2")}</h2>
         <ul className="list-disc ml-6 text-muted-foreground space-y-1">
           <li>{t("byAge13plusContent1")}</li>
           <li>{t("byAge13plusContent2")}</li>

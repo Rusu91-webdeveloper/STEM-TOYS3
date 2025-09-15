@@ -44,8 +44,8 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => (
     </div>
     {/* Content is perfectly centered and responsive */}
     <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 max-w-3xl text-center">
-      <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-3 sm:mb-4 md:mb-6 drop-shadow-lg animate-fade-in text-white leading-tight">
-        {t("inspireMinds")}
+      <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 md:mb-6 drop-shadow-lg animate-fade-in text-white leading-tight">
+        {t("homepageH1")}
       </h1>
       <p className="text-base xs:text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8 md:mb-10 max-w-2xl mx-auto drop-shadow-md animate-fade-in text-white/90 leading-relaxed">
         {t("discoverCollection")}

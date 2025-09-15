@@ -445,6 +445,212 @@ export const en = {
   metaDescription:
     "Discover the best STEM toys for curious minds at TechTots. Educational toys that make learning fun.",
 
+  // Optimized SEO Headings
+  // Homepage H1
+  homepageH1: "Premium STEM Toys for Children - TechTots Romania",
+  homepageH1Ro: "Jucării STEM Premium pentru Copii - TechTots România",
+
+  // Products Page H1
+  productsH1: "STEM and Educational Toys - Complete Catalog",
+  productsH1Ro: "Jucării STEM și Educaționale - Catalog Complet",
+
+  // Categories Page H1
+  categoriesH1:
+    "STEM Toy Categories - Science, Technology, Engineering, Mathematics",
+  categoriesH1Ro:
+    "Categorii Jucării STEM - Știință, Tehnologie, Inginerie, Matematică",
+
+  // About Page H1
+  aboutH1: "About TechTots - Leader in Educational STEM Toys",
+  aboutH1Ro: "Despre TechTots - Lider în Jucării STEM Educaționale",
+
+  // Blog Page H1
+  blogH1: "Guides and Articles about Educational STEM Toys",
+  blogH1Ro: "Ghiduri și Articole despre Jucării STEM Educaționale",
+
+  // Science Category H1
+  scienceH1: "Science Toys for Children - Educational Experiment Sets",
+  scienceH1Ro: "Jucării Știință pentru Copii - Seturi Experimente Educaționale",
+
+  // Technology Category H1
+  technologyH1: "Technology Toys - Robotics and Programming for Children",
+  technologyH1Ro: "Jucării Tehnologie - Robotica și Programare pentru Copii",
+
+  // Engineering Category H1
+  engineeringH1: "Engineering Toys - Construction Sets and Mechanisms",
+  engineeringH1Ro: "Jucării Inginerie - Seturi Construcție și Mecanisme",
+
+  // Mathematics Category H1
+  mathematicsH1: "Mathematics Toys - Puzzles and Interactive Games",
+  mathematicsH1Ro: "Jucării Matematică - Puzzle-uri și Jocuri Interactive",
+
+  // Age-specific H1s
+  age3to5H1: "STEM Toys for Children 3-5 Years - Early Development",
+  age3to5H1Ro: "Jucării STEM pentru Copii 3-5 Ani - Dezvoltare Timpurie",
+
+  age6to8H1: "STEM Toys for Children 6-8 Years - Interactive Learning",
+  age6to8H1Ro: "Jucării STEM pentru Copii 6-8 Ani - Învățare Interactivă",
+
+  age9to12H1: "STEM Toys for Children 9-12 Years - Advanced Challenges",
+  age9to12H1Ro: "Jucării STEM pentru Copii 9-12 Ani - Provocări Avansate",
+
+  age13plusH1: "STEM Toys for Teens 13+ Years - Real Projects",
+  age13plusH1Ro: "Jucării STEM pentru Adolescenți 13+ Ani - Proiecte Reale",
+
+  // H2 Subheadings
+  whyChooseStemH2: "Why do we choose STEM toys for children?",
+  whyChooseStemH2Ro: "De ce alegem jucării STEM pentru copii?",
+
+  ourStemCollectionH2: "Our premium educational toys collection",
+  ourStemCollectionH2Ro: "Gama noastră de jucării educative premium",
+
+  stemByAgeH2: "Best STEM toys by age",
+  stemByAgeH2Ro: "Cele mai bune jucării STEM după vârstă",
+
+  howToChooseH2: "How to choose the right educational toys",
+  howToChooseH2Ro: "Cum alegem jucăriile educative potrivite",
+
+  scienceExperimentsH2: "Scientific experiment sets for all ages",
+  scienceExperimentsH2Ro:
+    "Seturi experimente științifice pentru toate vârstele",
+
+  microscopesInstrumentsH2:
+    "Microscopes and scientific instruments for children",
+  microscopesInstrumentsH2Ro:
+    "Microscopuri și instrumente științifice pentru copii",
+
+  educationalRoboticsH2: "Educational robotics sets",
+  educationalRoboticsH2Ro: "Seturi robotica educațională",
+
+  programmingGamesH2: "Programming games for beginners",
+  programmingGamesH2Ro: "Jocuri programare pentru începători",
+
+  constructionSetsH2: "Construction sets for ages 3-5",
+  constructionSetsH2Ro: "Seturi construcție pentru vârsta 3-5 ani",
+
+  mechanismsH2: "Simple mechanisms for learning",
+  mechanismsH2Ro: "Mecanisme simple pentru învățare",
+
+  logicPuzzlesH2: "Logic puzzles and strategy games",
+  logicPuzzlesH2Ro: "Puzzle-uri logice și jocuri strategice",
+
+  mathGamesH2: "Interactive math games",
+  mathGamesH2Ro: "Jocuri matematice interactive",
+
+  // H3 Subheadings
+  roboticsCreativityH3: "Robotics toys for creativity development",
+  roboticsCreativityH3Ro: "Jucării robotica pentru dezvoltarea creativității",
+
+  sensoryToysH3: "Sensory games, color/shape sorting",
+  sensoryToysH3Ro: "Jocuri senzoriale, sortare culori/forme",
+
+  visualProgrammingH3: "Visual programming, logic puzzles",
+  visualProgrammingH3Ro: "Programare vizuală, puzzle-uri logice",
+
+  entryLevelRoboticsH3: "Entry-level robotics, circuits and sensors",
+  entryLevelRoboticsH3Ro: "Robotică entry-level, circuite și senzori",
+
+  advancedRoboticsH3: "Advanced robotics, 3D printing",
+  advancedRoboticsH3Ro: "Robotică avansată, imprimare 3D",
+
+  // FAQ Page H1
+  faqH1: "Frequently Asked Questions about STEM Toys - Complete Guide 2025",
+  faqH1Ro: "Întrebări Frecvente despre Jucării STEM - Ghid Complet 2025",
+
+  // Guide 2025 Page H1
+  guide2025H1: "Complete Guide to STEM Toys for Children in 2025",
+  guide2025H1Ro: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2025",
+
+  // Benefits Page H1
+  benefitsH1: "Why STEM Toys Are Important for Child Development",
+  benefitsH1Ro:
+    "De ce Sunt Importante Jucăriile STEM pentru Dezvoltarea Copilului",
+
+  // Contact Page H1
+  contactH1: "Contact Us - Support for Educational STEM Toys",
+  contactH1Ro: "Contactează-ne - Suport pentru Jucării STEM Educaționale",
+
+  // Privacy Page H1
+  privacyH1: "Privacy Policy - TechTots Romania",
+  privacyH1Ro: "Politica de Confidențialitate - TechTots România",
+
+  // Terms Page H1
+  termsH1: "Terms and Conditions - TechTots Romania",
+  termsH1Ro: "Termeni și Condiții - TechTots România",
+
+  // Returns Page H1
+  returnsH1: "Return Policy - Educational STEM Toys",
+  returnsH1Ro: "Politica de Returnare - Jucării STEM Educaționale",
+
+  // Warranty Page H1
+  warrantyH1: "Warranty and Support - Premium STEM Toys",
+  warrantyH1Ro: "Garanție și Suport - Jucării STEM Premium",
+
+  // GDPR Page H1
+  gdprH1: "GDPR Compliance - Personal Data Protection",
+  gdprH1Ro: "Conformitate GDPR - Protecția Datelor Personale",
+
+  // FAQ H2 Subheadings
+  faqWhatAreStemH2: "What are STEM toys and why are they important?",
+  faqWhatAreStemH2Ro: "Ce sunt jucăriile STEM și de ce sunt importante?",
+
+  faqAgeAppropriateH2: "How do I choose toys appropriate for my child's age?",
+  faqAgeAppropriateH2Ro:
+    "Cum aleg jucăriile potrivite pentru vârsta copilului meu?",
+
+  faqSafetyH2: "Are STEM toys safe for children?",
+  faqSafetyH2Ro: "Sunt jucăriile STEM sigure pentru copii?",
+
+  faqEducationalH2: "How do STEM toys help with educational development?",
+  faqEducationalH2Ro: "Cum ajută jucăriile STEM la dezvoltarea educațională?",
+
+  faqPurchaseH2: "Questions about purchase and delivery",
+  faqPurchaseH2Ro: "Întrebări despre cumpărare și livrare",
+
+  // Guide 2025 H2 Subheadings
+  guide2025WhatAreStemH2: "What are STEM toys and how do they work?",
+  guide2025WhatAreStemH2Ro: "Ce sunt jucăriile STEM și cum funcționează?",
+
+  guide2025CategoriesH2:
+    "STEM Categories: Science, Technology, Engineering, Mathematics",
+  guide2025CategoriesH2Ro:
+    "Categorii STEM: Știință, Tehnologie, Inginerie, Matematică",
+
+  guide2025AgeRecommendationsH2: "Age recommendations for STEM toys",
+  guide2025AgeRecommendationsH2Ro: "Recomandări pe vârstă pentru jucării STEM",
+
+  guide2025HowToChooseH2: "How to choose the right STEM toy",
+  guide2025HowToChooseH2Ro: "Cum alegi corect jucăria STEM potrivită",
+
+  guide2025TopRecommendationsH2: "Top STEM toy recommendations for 2025",
+  guide2025TopRecommendationsH2Ro: "Top recomandări jucării STEM pentru 2025",
+
+  // Benefits H2 Subheadings
+  benefitsCriticalThinkingH2: "Critical thinking and logic through STEM toys",
+  benefitsCriticalThinkingH2Ro: "Gândire critică și logică prin jucării STEM",
+
+  benefitsCreativityH2: "Creativity and innovation in STEM play",
+  benefitsCreativityH2Ro: "Creativitate și inovație în jocul STEM",
+
+  benefitsCollaborationH2: "Collaboration and communication in STEM projects",
+  benefitsCollaborationH2Ro: "Colaborare și comunicare în proiecte STEM",
+
+  benefitsFutureSkillsH2: "Preparation for future careers",
+  benefitsFutureSkillsH2Ro: "Pregătirea pentru carierele viitorului",
+
+  // Age-specific H2 Subheadings
+  age3to5H2: "STEM toys for preschoolers (3-5 years)",
+  age3to5H2Ro: "Jucării STEM pentru preșcolari (3-5 ani)",
+
+  age6to8H2: "STEM toys for elementary school (6-8 years)",
+  age6to8H2Ro: "Jucării STEM pentru școlari mici (6-8 ani)",
+
+  age9to12H2: "STEM toys for middle school (9-12 years)",
+  age9to12H2Ro: "Jucării STEM pentru gimnaziu (9-12 ani)",
+
+  age13plusH2: "STEM toys for teenagers (13+ years)",
+  age13plusH2Ro: "Jucării STEM pentru adolescenți (13+ ani)",
+
   // ProductGrid component
   sortBy: "Sort by",
   featured: "Featured",

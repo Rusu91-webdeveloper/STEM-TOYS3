@@ -152,7 +152,7 @@ export default function AboutPage() {
         </div>
         <div className="container relative z-10 text-white px-3 sm:px-4 lg:px-8">
           <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-1 sm:mb-2 md:mb-3 drop-shadow-md">
-            {t("aboutTitle")}
+            {t("aboutH1")}
           </h1>
           <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl mb-2 sm:mb-3 md:mb-4 max-w-2xl leading-relaxed drop-shadow-sm">
             {t("aboutDescription")}
@@ -174,7 +174,7 @@ export default function AboutPage() {
                   className="mr-2 sm:mr-3 h-6 sm:h-8 md:h-10 w-auto"
                 />
                 <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-indigo-900">
-                  {t("ourStory")}
+                  {t("whyChooseStemH2")}
                 </h2>
               </div>
               {/* Collapsible text for mobile */}
@@ -256,7 +256,7 @@ export default function AboutPage() {
       <section className="py-6 sm:py-8 md:py-12 lg:py-16 bg-white">
         <div className="container px-3 sm:px-4 lg:px-8">
           <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 md:mb-8 text-center text-indigo-900">
-            {t("ourValues")}
+            {t("ourStemCollectionH2")}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto">
             <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow-md transition-all border border-indigo-100 transform hover:-translate-y-1 duration-300">

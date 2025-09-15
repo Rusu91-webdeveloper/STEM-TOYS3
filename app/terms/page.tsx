@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import {
@@ -29,6 +30,8 @@ const toc = [
 ];
 
 export default function TermsPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="bg-gray-50 min-h-screen pb-12">
       {/* Hero Section */}
@@ -42,7 +45,7 @@ export default function TermsPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/70 to-indigo-600/60 flex flex-col items-center justify-center text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
-            Termeni și Condiții
+            {t("termsH1")}
           </h1>
           <p className="mt-2 text-lg sm:text-xl text-indigo-100 max-w-2xl mx-auto">
             Reguli și condiții pentru utilizarea platformei TechTots și

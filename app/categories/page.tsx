@@ -31,7 +31,7 @@ async function CategoriesContent({ locale }: { locale: string }) {
   return (
     <div className="container mx-auto px-0 sm:px-4 py-8 sm:py-12">
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-6 text-center bg-gradient-to-r from-primary to-primary/70 text-transparent bg-clip-text">
-        {t("stemCategories")}
+        {t("categoriesH1")}
       </h1>
       <p className="text-muted-foreground text-center max-w-3xl mx-auto mb-8 sm:mb-16 text-sm sm:text-base md:text-lg">
         {t("stemCategoriesDesc")}

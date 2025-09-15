@@ -178,7 +178,7 @@ export default function BlogPage() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-indigo-900/80 z-10" />
       <Container className="relative z-20 flex flex-col items-center justify-center py-8 sm:py-12 md:py-16 lg:py-24 text-center text-white">
         <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight mb-2 sm:mb-4 drop-shadow-xl">
-          {t("blogTitle")}
+          {t("blogH1")}
         </h1>
         <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl max-w-2xl mb-4 sm:mb-6 drop-shadow-md">
           {t("blogDescription")}

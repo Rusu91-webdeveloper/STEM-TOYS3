@@ -75,9 +75,7 @@ export default function ContactPage() {
           style={{ objectFit: "cover" }}
         />
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-          <h1 className="text-4xl font-bold text-white">
-            {t("contactUs" as any, "Contact Us")}
-          </h1>
+          <h1 className="text-4xl font-bold text-white">{t("contactH1")}</h1>
         </div>
       </div>
 
