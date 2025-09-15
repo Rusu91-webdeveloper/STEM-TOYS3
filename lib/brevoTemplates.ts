@@ -337,7 +337,7 @@ export const sendEmailViaUnifiedSystem = {
       </div>
       
       <div style="text-align: center; margin: 32px 0;">
-        <a href="${baseUrl}/products/featured" 
+        <a href="${baseUrl}/products" 
            style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
           🎯 Descoperă Jucăriile STEM Recomandate
         </a>

@@ -504,8 +504,8 @@ export async function sendShippingNotificationEmail({
         url: `${baseUrl}/account/orders/${orderId}`,
       },
       {
-        text: "📱 Descarcă Aplicația",
-        url: `${baseUrl}/mobile-app`,
+        text: "📱 Vezi Site-ul",
+        url: `${baseUrl}/`,
       }
     )}
 
@@ -745,7 +745,7 @@ export async function sendOrderCompletedEmail({
       },
       {
         text: "📚 Vezi Cărți Digitale",
-        url: `${baseUrl}/digital-books`,
+        url: `${baseUrl}/account/digital-library`,
       }
     )}
 
@@ -953,7 +953,7 @@ export async function sendOrderDeliveredEmail({
       },
       {
         text: "📚 Vezi Cărți Digitale",
-        url: `${baseUrl}/digital-books`,
+        url: `${baseUrl}/account/digital-library`,
       }
     )}
 
@@ -1135,7 +1135,7 @@ export async function sendOrderCancellationEmail({
       },
       {
         text: "📚 Vezi Cărți Digitale",
-        url: `${baseUrl}/digital-books`,
+        url: `${baseUrl}/account/digital-library`,
       }
     )}
 

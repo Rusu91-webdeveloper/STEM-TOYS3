@@ -130,11 +130,11 @@ export async function sendWelcomeEmail({
       "Descoperă colecția noastră exclusivă de jucării educaționale și oferă copilului tău șansa să exploreze lumea științei într-un mod distractiv și interactiv.",
       {
         text: "🎯 Vezi Produsele Recomandate",
-        url: `${baseUrl}/products/featured`,
+        url: `${baseUrl}/products`,
       },
       {
         text: "📚 Ghidul Părinților",
-        url: `${baseUrl}/blog/stem-education-guide`,
+        url: `${baseUrl}/blog`,
       }
     )}
 
