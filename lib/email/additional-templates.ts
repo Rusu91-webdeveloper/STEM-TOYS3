@@ -10,7 +10,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
     id: "admin-new-order",
     name: "Admin New Order Notification",
     slug: "admin-new-order",
-    subject: "🛒 Comandă nouă #{{orderNumber}} - TechTots Admin",
+    subject: "🛒 Comandă nouă #{{order.number}} - TechTots Admin",
     content: `
 <!DOCTYPE html>
 <html lang="ro">
@@ -27,7 +27,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
                 🛒 Comandă nouă
             </h1>
             <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">
-                Comanda #{{orderNumber}}
+                Comanda #{{order.number}}
             </p>
         </div>
         
@@ -48,7 +48,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                     <div>
                         <strong style="color: #374151;">Număr comandă:</strong><br>
-                        <span style="color: #1f2937;">#{{orderNumber}}</span>
+                        <span style="color: #1f2937;">#{{order.number}}</span>
                     </div>
                     <div>
                         <strong style="color: #374151;">Client:</strong><br>
@@ -60,7 +60,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
                     </div>
                     <div>
                         <strong style="color: #374151;">Total:</strong><br>
-                        <span style="color: #1f2937; font-weight: 700;">{{orderTotal}} RON</span>
+                        <span style="color: #1f2937; font-weight: 700;">{{order.total}} RON</span>
                     </div>
                 </div>
             </div>
@@ -73,11 +73,11 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
                 <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <strong style="color: #1f2937;">{{name}}</strong><br>
-                            <span style="color: #6b7280; font-size: 14px;">Cantitate: {{quantity}}</span>
+                            <strong style="color: #1f2937;">{{this.name}}</strong><br>
+                            <span style="color: #6b7280; font-size: 14px;">Cantitate: {{this.quantity}}</span>
                         </div>
                         <div style="text-align: right;">
-                            <span style="color: #1f2937; font-weight: 600;">{{price}} RON</span>
+                            <span style="color: #1f2937; font-weight: 600;">{{this.price}} RON</span>
                         </div>
                     </div>
                 </div>
@@ -85,7 +85,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{{adminUrl}}/orders/{{orderNumber}}" 
+                <a href="{{adminUrl}}/orders/{{order.number}}" 
                    style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
                     📊 Vezi comanda în admin
                 </a>
@@ -103,10 +103,10 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
 </body>
 </html>`,
     variables: [
-      "orderNumber",
+      "order.number",
       "customerName",
       "customerEmail",
-      "orderTotal",
+      "order.total",
       "orderItems",
       "adminUrl",
     ],
@@ -125,7 +125,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
     id: "admin-high-value-order",
     name: "Admin High Value Order Notification",
     slug: "admin-high-value-order",
-    subject: "💰 Comandă de valoare mare #{{orderNumber}} - TechTots Admin",
+    subject: "💰 Comandă de valoare mare #{{order.number}} - TechTots Admin",
     content: `
 <!DOCTYPE html>
 <html lang="ro">
@@ -142,7 +142,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
                 💰 Comandă de valoare mare!
             </h1>
             <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">
-                Comanda #{{orderNumber}} - {{orderTotal}} RON
+                Comanda #{{order.number}} - {{order.total}} RON
             </p>
         </div>
         
@@ -175,7 +175,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                     <div>
                         <strong style="color: #374151;">Număr comandă:</strong><br>
-                        <span style="color: #1f2937;">#{{orderNumber}}</span>
+                        <span style="color: #1f2937;">#{{order.number}}</span>
                     </div>
                     <div>
                         <strong style="color: #374151;">Client:</strong><br>
@@ -187,13 +187,13 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
                     </div>
                     <div>
                         <strong style="color: #374151;">Total:</strong><br>
-                        <span style="color: #1f2937; font-weight: 700; font-size: 18px;">{{orderTotal}} RON</span>
+                        <span style="color: #1f2937; font-weight: 700; font-size: 18px;">{{order.total}} RON</span>
                     </div>
                 </div>
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{{adminUrl}}/orders/{{orderNumber}}" 
+                <a href="{{adminUrl}}/orders/{{order.number}}" 
                    style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
                     📊 Vezi comanda în admin
                 </a>
@@ -211,10 +211,10 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
 </body>
 </html>`,
     variables: [
-      "orderNumber",
+      "order.number",
       "customerName",
       "customerEmail",
-      "orderTotal",
+      "order.total",
       "adminUrl",
     ],
     category: "admin",
@@ -269,7 +269,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
                     📋 Detalii cerere
                 </h3>
                 <p style="color: #01579b; margin: 5px 0;"><strong>Număr cerere:</strong> #{{returnId}}</p>
-                <p style="color: #01579b; margin: 5px 0;"><strong>Comanda:</strong> #{{orderNumber}}</p>
+                <p style="color: #01579b; margin: 5px 0;"><strong>Comanda:</strong> #{{order.number}}</p>
                 <p style="color: #01579b; margin: 5px 0;"><strong>Motivul:</strong> {{reason}}</p>
                 <p style="color: #01579b; margin: 5px 0;"><strong>Data:</strong> {{requestDate}}</p>
             </div>
@@ -307,7 +307,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
     variables: [
       "customerName",
       "returnId",
-      "orderNumber",
+      "order.number",
       "reason",
       "requestDate",
       "siteUrl",

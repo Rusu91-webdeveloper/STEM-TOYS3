@@ -184,7 +184,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     id: "order-confirmation",
     name: "Order Confirmation",
     slug: "order-confirmation",
-    subject: "Confirmare comandă #{{orderNumber}} - TechTots",
+    subject: "Confirmare comandă #{{order.number}} - TechTots",
     content: `
 <!DOCTYPE html>
 <html lang="ro">
@@ -201,7 +201,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                 ✅ Comanda confirmată!
             </h1>
             <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">
-                Comanda #{{orderNumber}}
+                Comanda #{{order.number}}
             </p>
         </div>
         
@@ -224,7 +224,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                     <div>
                         <strong style="color: #374151;">Număr comandă:</strong><br>
-                        <span style="color: #1f2937;">#{{orderNumber}}</span>
+                        <span style="color: #1f2937;">#{{order.number}}</span>
                     </div>
                     <div>
                         <strong style="color: #374151;">Data:</strong><br>
@@ -234,7 +234,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                 <div style="border-top: 1px solid #e5e7eb; padding-top: 15px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <strong style="color: #1f2937; font-size: 18px;">Total:</strong>
-                        <span style="color: #1f2937; font-size: 20px; font-weight: 700;">{{orderTotal}} RON</span>
+                        <span style="color: #1f2937; font-size: 20px; font-weight: 700;">{{order.total}} RON</span>
                     </div>
                 </div>
             </div>
@@ -248,11 +248,11 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                 <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <strong style="color: #1f2937;">{{name}}</strong><br>
-                            <span style="color: #6b7280; font-size: 14px;">Cantitate: {{quantity}}</span>
+                            <strong style="color: #1f2937;">{{this.name}}</strong><br>
+                            <span style="color: #6b7280; font-size: 14px;">Cantitate: {{this.quantity}}</span>
                         </div>
                         <div style="text-align: right;">
-                            <span style="color: #1f2937; font-weight: 600;">{{price}} RON</span>
+                            <span style="color: #1f2937; font-weight: 600;">{{this.price}} RON</span>
                         </div>
                     </div>
                 </div>
@@ -260,7 +260,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{{siteUrl}}/account/orders/{{orderNumber}}" 
+                <a href="{{siteUrl}}/account/orders/{{order.number}}" 
                    style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
                     📋 Vezi comanda
                 </a>
@@ -279,9 +279,9 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
 </html>`,
     variables: [
       "customerName",
-      "orderNumber",
+      "order.number",
       "orderDate",
-      "orderTotal",
+      "order.total",
       "items",
       "siteUrl",
     ],
@@ -565,7 +565,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     id: "order-processing",
     name: "Order Processing",
     slug: "order-processing",
-    subject: "Comanda #{{orderNumber}} este în procesare - TechTots",
+    subject: "Comanda #{{order.number}} este în procesare - TechTots",
     content: `
 <!DOCTYPE html>
 <html lang="ro">
@@ -582,7 +582,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                 ⚙️ Comanda în procesare
             </h1>
             <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">
-                Comanda #{{orderNumber}}
+                Comanda #{{order.number}}
             </p>
         </div>
         
@@ -612,7 +612,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                     <div>
                         <strong style="color: #374151;">Număr comandă:</strong><br>
-                        <span style="color: #1f2937;">#{{orderNumber}}</span>
+                        <span style="color: #1f2937;">#{{order.number}}</span>
                     </div>
                     <div>
                         <strong style="color: #374151;">Data comenzii:</strong><br>
@@ -626,7 +626,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{{siteUrl}}/account/orders/{{orderNumber}}" 
+                <a href="{{siteUrl}}/account/orders/{{order.number}}" 
                    style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
                     📋 Urmărește comanda
                 </a>
@@ -665,7 +665,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     id: "order-shipped",
     name: "Order Shipped",
     slug: "order-shipped",
-    subject: "Comanda #{{orderNumber}} a fost expediată! 🚚",
+    subject: "Comanda #{{order.number}} a fost expediată! 🚚",
     content: `
 <!DOCTYPE html>
 <html lang="ro">
@@ -682,7 +682,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                 🚚 Comanda a fost expediată!
             </h1>
             <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">
-                Comanda #{{orderNumber}}
+                Comanda #{{order.number}}
             </p>
         </div>
         
@@ -756,7 +756,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     id: "order-delivered",
     name: "Order Delivered",
     slug: "order-delivered",
-    subject: "Comanda #{{orderNumber}} a fost livrată! 📦",
+    subject: "Comanda #{{order.number}} a fost livrată! 📦",
     content: `
 <!DOCTYPE html>
 <html lang="ro">
@@ -773,7 +773,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                 📦 Comanda a fost livrată!
             </h1>
             <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">
-                Comanda #{{orderNumber}}
+                Comanda #{{order.number}}
             </p>
         </div>
         
@@ -844,7 +844,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     id: "order-cancelled",
     name: "Order Cancelled",
     slug: "order-cancelled",
-    subject: "Comanda #{{orderNumber}} a fost anulată - TechTots",
+    subject: "Comanda #{{order.number}} a fost anulată - TechTots",
     content: `
 <!DOCTYPE html>
 <html lang="ro">
@@ -861,7 +861,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                 ❌ Comanda a fost anulată
             </h1>
             <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">
-                Comanda #{{orderNumber}}
+                Comanda #{{order.number}}
             </p>
         </div>
         
@@ -933,7 +933,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     id: "order-failed",
     name: "Order Failed",
     slug: "order-failed",
-    subject: "Probleme cu comanda #{{orderNumber}} - TechTots",
+    subject: "Probleme cu comanda #{{order.number}} - TechTots",
     content: `
 <!DOCTYPE html>
 <html lang="ro">
@@ -950,7 +950,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                 ⚠️ Problema cu comanda
             </h1>
             <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">
-                Comanda #{{orderNumber}}
+                Comanda #{{order.number}}
             </p>
         </div>
         

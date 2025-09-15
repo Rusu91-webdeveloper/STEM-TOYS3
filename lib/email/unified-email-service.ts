@@ -85,55 +85,47 @@ function replaceVariables(content: string, data: EmailData): string {
     result = result.replace(regex, String(value));
   });
 
-  // Handle special cases for arrays
+  // Handle special cases for arrays - use template engine approach
   if (data.items && Array.isArray(data.items)) {
-    const itemsHtml = data.items
-      .map(
-        item => `
-      <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h4 style="margin: 0 0 5px 0; color: #1f2937; font-size: 16px;">${item.name || "Product"}</h4>
-            <p style="margin: 0; color: #6b7280; font-size: 14px;">Cantitate: ${item.quantity || 1}</p>
-          </div>
-          <div style="text-align: right;">
-            <p style="margin: 0; font-weight: 600; color: #1f2937; font-size: 16px;">${item.price || "0"} RON</p>
-          </div>
-        </div>
-      </div>
-    `
-      )
-      .join("");
-
-    result = result.replace(
-      /\{\{#each items\}\}[\s\S]*?\{\{\/each\}\}/g,
-      itemsHtml
-    );
+    // Process each loop with proper template engine logic
+    const eachRegex = /\{\{#each\s+([\w.]+)\}\}([\s\S]*?)\{\{\/each\}\}/g;
+    result = result.replace(eachRegex, (match, path: string, block: string) => {
+      if (path === "items" && Array.isArray(data.items)) {
+        return data.items
+          .map((item: any) => {
+            // Replace {{this.property}} with item.property
+            let itemBlock = block;
+            Object.entries(item).forEach(([key, value]) => {
+              const regex = new RegExp(`\\{\\{this\\.${key}\\}\\}`, "g");
+              itemBlock = itemBlock.replace(regex, String(value || ""));
+            });
+            return itemBlock;
+          })
+          .join("");
+      }
+      return match; // Return original if not items array
+    });
   }
 
   if (data.downloadLinks && Array.isArray(data.downloadLinks)) {
-    const linksHtml = data.downloadLinks
-      .map(
-        link => `
-      <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h4 style="margin: 0 0 5px 0; color: #1f2937; font-size: 16px;">${link.format || "Download"}</h4>
-            <p style="margin: 0; color: #6b7280; font-size: 14px;">${link.language || "Română"}</p>
-          </div>
-          <div>
-            <a href="${link.url || "#"}" style="background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500;">Descarcă</a>
-          </div>
-        </div>
-      </div>
-    `
-      )
-      .join("");
-
-    result = result.replace(
-      /\{\{#each downloadLinks\}\}[\s\S]*?\{\{\/each\}\}/g,
-      linksHtml
-    );
+    // Process downloadLinks with template engine approach
+    const eachRegex = /\{\{#each\s+([\w.]+)\}\}([\s\S]*?)\{\{\/each\}\}/g;
+    result = result.replace(eachRegex, (match, path: string, block: string) => {
+      if (path === "downloadLinks" && Array.isArray(data.downloadLinks)) {
+        return data.downloadLinks
+          .map((link: any) => {
+            // Replace {{this.property}} with link.property
+            let linkBlock = block;
+            Object.entries(link).forEach(([key, value]) => {
+              const regex = new RegExp(`\\{\\{this\\.${key}\\}\\}`, "g");
+              linkBlock = linkBlock.replace(regex, String(value || ""));
+            });
+            return linkBlock;
+          })
+          .join("");
+      }
+      return match; // Return original if not downloadLinks array
+    });
   }
 
   return result;
