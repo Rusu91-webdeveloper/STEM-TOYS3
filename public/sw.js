@@ -51,6 +51,7 @@ const API_PATTERNS = [
   /^\/api\/cart/,
   /^\/api\/user/,
   /^\/api\/supplier/,
+  /^\/api\/uploadthing/,
 ];
 
 // Install event - cache critical assets
@@ -102,8 +103,8 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
   
-  // Skip non-GET requests
-  if (request.method !== 'GET') {
+  // Skip non-GET requests, except for UploadThing API calls
+  if (request.method !== 'GET' && !isUploadThingRequest(url.pathname)) {
     return;
   }
   
@@ -127,7 +128,9 @@ self.addEventListener('fetch', (event) => {
   }
   
   // Handle different types of requests
-  if (isStaticAsset(url.pathname)) {
+  if (isUploadThingRequest(url.pathname)) {
+    event.respondWith(handleUploadThingRequest(request));
+  } else if (isStaticAsset(url.pathname)) {
     event.respondWith(handleStaticAsset(request));
   } else if (isApiRequest(url.pathname)) {
     event.respondWith(handleApiRequest(request));
@@ -249,6 +252,34 @@ async function handleApiRequest(request) {
       },
     }
   );
+}
+
+// Handle UploadThing API requests - always go to network, never cache
+async function handleUploadThingRequest(request) {
+  try {
+    console.log('[SW] Handling UploadThing request:', request.url);
+    // Always fetch from network for UploadThing - never cache uploads
+    const networkResponse = await fetch(request);
+    return networkResponse;
+  } catch (error) {
+    console.error('[SW] UploadThing request failed:', error);
+    // Return a proper error response instead of offline page
+    return new Response(
+      JSON.stringify({
+        error: 'network_error',
+        message: 'Upload request failed. Please check your connection.',
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+      }
+    );
+  }
 }
 
 // Handle page requests
@@ -392,6 +423,10 @@ function isStaticAsset(pathname) {
 
 function isApiRequest(pathname) {
   return API_PATTERNS.some(pattern => pattern.test(pathname));
+}
+
+function isUploadThingRequest(pathname) {
+  return pathname.startsWith('/api/uploadthing');
 }
 
 function isPageRequest(pathname) {

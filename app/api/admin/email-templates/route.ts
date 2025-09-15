@@ -98,11 +98,13 @@ export async function GET(request: NextRequest) {
     // Development bypass for testing
     if (!isAdmin || !user) {
       if (process.env.NODE_ENV === "development") {
-        console.log("🔧 [EMAIL-TEMPLATES] Development mode: Bypassing authentication for testing");
+        console.log(
+          "🔧 [EMAIL-TEMPLATES] Development mode: Bypassing authentication for testing"
+        );
         // Continue without authentication in development
       } else {
         console.log("❌ [EMAIL-TEMPLATES] Unauthorized access attempt");
-        
+
         // Get session for debug info
         const session = await auth();
         return NextResponse.json(
@@ -245,7 +247,9 @@ export async function POST(request: NextRequest) {
     // Development bypass for testing
     if (!session?.user || session.user.role !== "ADMIN") {
       if (process.env.NODE_ENV === "development") {
-        console.log("🔧 [EMAIL-TEMPLATES] Development mode: Bypassing authentication for template creation");
+        console.log(
+          "🔧 [EMAIL-TEMPLATES] Development mode: Bypassing authentication for template creation"
+        );
         // Continue without authentication in development
       } else {
         return NextResponse.json(

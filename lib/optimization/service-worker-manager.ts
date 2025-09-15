@@ -15,7 +15,11 @@ interface ServiceWorkerConfig {
 interface CacheStrategy {
   name: string;
   pattern: string;
-  strategy: "cache-first" | "network-first" | "stale-while-revalidate" | "network-only";
+  strategy:
+    | "cache-first"
+    | "network-first"
+    | "stale-while-revalidate"
+    | "network-only";
   cacheTime: number;
   maxEntries: number;
 }
@@ -69,6 +73,13 @@ class ServiceWorkerManager {
         maxEntries: 50,
       },
       {
+        name: "uploadthing-api",
+        pattern: "/api/uploadthing.*",
+        strategy: "network-only", // Never cache upload API calls
+        cacheTime: 0,
+        maxEntries: 0,
+      },
+      {
         name: "pages",
         pattern: "/.*",
         strategy: "stale-while-revalidate",
@@ -90,7 +101,11 @@ class ServiceWorkerManager {
     this.config = { ...this.config, ...newConfig };
   }
 
-  async getCacheInfo(): Promise<{ totalSize: number; entries: number; strategies: CacheStrategy[] }> {
+  async getCacheInfo(): Promise<{
+    totalSize: number;
+    entries: number;
+    strategies: CacheStrategy[];
+  }> {
     return {
       totalSize: 1024 * 1024, // 1MB simulated
       entries: 25,
@@ -294,7 +309,9 @@ console.log('Service Worker loaded');
 `;
 }
 
-export async function updateCacheStrategy(strategies: CacheStrategy[]): Promise<void> {
+export async function updateCacheStrategy(
+  strategies: CacheStrategy[]
+): Promise<void> {
   // Simulate cache strategy update
   console.log("Cache strategies updated:", strategies);
 }
@@ -304,7 +321,10 @@ export async function clearOfflineCache(): Promise<void> {
   console.log("Offline cache cleared");
 }
 
-export async function getOfflineStatus(): Promise<{ available: boolean; lastCheck: Date }> {
+export async function getOfflineStatus(): Promise<{
+  available: boolean;
+  lastCheck: Date;
+}> {
   return {
     available: true,
     lastCheck: new Date(),
