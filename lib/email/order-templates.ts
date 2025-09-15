@@ -614,6 +614,8 @@ export async function sendOrderCompletedEmail({
   customerName: string;
   orderId: string;
   orderItems: Array<{
+    id: string;
+    productId: string;
     name: string;
     quantity: number;
     price: number;
@@ -685,7 +687,10 @@ export async function sendOrderCompletedEmail({
       "Ajută alți părinți să facă alegerea potrivită prin părerea ta valoroasă.",
       {
         text: "✍️ Lasă un Review",
-        url: `${baseUrl}/account/orders/${orderId}/review`,
+        url:
+          orderItems.length > 0
+            ? `${baseUrl}/account/orders/${orderId}/review?itemId=${orderItems[0].id}&productId=${orderItems[0].productId}`
+            : `${baseUrl}/account/orders/${orderId}`,
       },
       {
         text: "👁️ Vezi Comanda",
@@ -817,6 +822,8 @@ export async function sendOrderDeliveredEmail({
   customerName: string;
   orderId: string;
   orderItems: Array<{
+    id: string;
+    productId: string;
     name: string;
     quantity: number;
     price: number;
@@ -888,7 +895,10 @@ export async function sendOrderDeliveredEmail({
       "Ajută alți părinți să facă alegerea potrivită prin părerea ta valoroasă despre produsele primite.",
       {
         text: "✍️ Lasă un Review",
-        url: `${baseUrl}/account/orders/${orderId}/review`,
+        url:
+          orderItems.length > 0
+            ? `${baseUrl}/account/orders/${orderId}/review?itemId=${orderItems[0].id}&productId=${orderItems[0].productId}`
+            : `${baseUrl}/account/orders/${orderId}`,
       },
       {
         text: "👁️ Vezi Comanda",
