@@ -208,6 +208,8 @@ export async function POST(request: NextRequest) {
             ...(data.attributes ?? {}),
           },
           isActive: data.isActive,
+          // Admin-created products should be automatically approved
+          status: "APPROVED",
         },
         include: {
           category: true,

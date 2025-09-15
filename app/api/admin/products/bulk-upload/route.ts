@@ -650,6 +650,9 @@ export async function POST(request: NextRequest) {
               romanianParentGuides: product.romanianParentGuides || [],
               romanianTeacherResources: product.romanianTeacherResources || [],
 
+              // Admin bulk uploads should be automatically approved
+              status: "APPROVED",
+
               // Currency fields
               priceCurrency: "RON",
               compareAtPriceCurrency: "RON",
