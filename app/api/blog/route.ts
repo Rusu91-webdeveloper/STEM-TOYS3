@@ -61,31 +61,56 @@ export async function GET(request: NextRequest) {
     });
 
     // Filter blogs by language using the metadata field
-    // Show blogs that match the requested language OR have no language specified
-    // Also show English blogs as fallback for Romanian users
+    // Strict mode: only return posts whose metadata.language matches the requested language
+    // or explicitly marked as "both". Do not cross-show languages.
     const filteredBlogs = blogs.filter(blog => {
       // If requesting all blogs (admin dashboard), don't filter by language
       if (publishedParam === "all") return true;
 
-      if (!blog.metadata) return true;
+      const metadata = (blog.metadata || {}) as any;
+      const blogLang = metadata.language as string | undefined;
 
-      const metadata = blog.metadata as any;
-      // If no language specified in metadata, show the blog
-      if (!metadata.language) return true;
+      // Posts explicitly marked for both languages are included only if they
+      // actually contain localized content for the requested language
+      if (blogLang === "both") {
+        const multilingual = metadata?.multilingual || {};
+        const localized = multilingual?.[language as "en" | "ro"] || {};
+        const hasLocalizedContent = Boolean(
+          (localized.title && String(localized.title).trim().length > 0) ||
+            (localized.excerpt &&
+              String(localized.excerpt).trim().length > 0) ||
+            (localized.content && String(localized.content).trim().length > 0)
+        );
+        return hasLocalizedContent;
+      }
 
-      // Show blogs that match the requested language
-      if (metadata.language === language) return true;
-
-      // For Romanian users, also show English blogs as fallback
-      if (language === "ro" && metadata.language === "en") return true;
-
-      // For English users, also show Romanian blogs as fallback
-      if (language === "en" && metadata.language === "ro") return true;
-
-      return false;
+      // Require an explicit language match; posts without a language are excluded
+      return blogLang === language;
     });
 
-    return NextResponse.json(filteredBlogs);
+    // Map multilingual fields to requested language when available
+    const localizedBlogs = filteredBlogs.map(blog => {
+      try {
+        const meta: any = blog.metadata || {};
+        const multilingual = meta?.multilingual;
+        const supportsBoth = meta?.language === "both";
+        if (multilingual && supportsBoth) {
+          const lang = (language === "ro" ? "ro" : "en") as "en" | "ro";
+          const ml = multilingual[lang] || {};
+          return {
+            ...blog,
+            title: ml.title || blog.title,
+            excerpt: ml.excerpt || blog.excerpt,
+            content: ml.content || blog.content,
+          };
+        }
+      } catch (_) {
+        // noop - fall back to original blog fields on metadata parse issues
+      }
+      return blog;
+    });
+
+    return NextResponse.json(localizedBlogs);
   } catch (error) {
     console.error("Error fetching blog posts:", error);
     return NextResponse.json(
@@ -156,13 +181,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create default metadata if not provided
-    const metadata = {
+    // Create default metadata; enhance for multilingual when provided
+    const metadata: any = {
       language: data.language || "en",
       metaTitle: data.title,
       metaDescription: data.excerpt,
       keywords: tags,
     };
+
+    // If bilingual content provided, store multilingual payload and set language to "both"
+    if (data.multilingual && typeof data.multilingual === "object") {
+      const ml = data.multilingual as any;
+      metadata.language = "both";
+      metadata.multilingual = {
+        en: {
+          title: ml.en?.title || data.title,
+          excerpt: ml.en?.excerpt || data.excerpt,
+          content: ml.en?.content || data.content,
+        },
+        ro: {
+          title: ml.ro?.title || "",
+          excerpt: ml.ro?.excerpt || "",
+          content: ml.ro?.content || "",
+        },
+      };
+    }
 
     console.log("Creating blog post with data:", {
       title: data.title,
@@ -170,7 +213,7 @@ export async function POST(request: NextRequest) {
       authorId,
       categoryId: data.categoryId,
       tags,
-      language: data.language || "en",
+      language: metadata.language,
     });
 
     // For markdown content, we don't need to sanitize as it will be processed by ReactMarkdown

@@ -1,6 +1,7 @@
 import { Metadata, ResolvingMetadata } from "next";
 
 import { getBlogPost } from "@/lib/api/blog";
+import { SITE_URL } from "@/lib/site";
 
 type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
@@ -39,12 +40,39 @@ export async function generateMetadata(
       `${blogPost.stemCategory.toLowerCase()} for kids`,
     ].filter(Boolean);
 
+    // Determine language and alternates
+    const isRoSlug = slug.endsWith("-ro");
+    const isEnSlug = slug.endsWith("-en");
+    const baseSlug = isRoSlug || isEnSlug ? slug.slice(0, -3) : slug;
+    const roUrl = `${SITE_URL}/blog/${baseSlug}-ro`;
+    const enUrl = `${SITE_URL}/blog/${baseSlug}-en`;
+    const canonicalUrl = isRoSlug
+      ? roUrl
+      : isEnSlug
+        ? enUrl
+        : `${SITE_URL}/blog/${slug}`;
+
+    // Localize title/excerpt if multilingual metadata is present
+    let localizedTitle = blogPost.title;
+    let localizedExcerpt = blogPost.excerpt;
+    try {
+      const meta: any = (blogPost as any).metadata || {};
+      const multilingual = meta?.multilingual;
+      const supportsBoth = meta?.language === "both";
+      if (multilingual && supportsBoth) {
+        const lang = isRoSlug ? "ro" : isEnSlug ? "en" : "en";
+        const ml = multilingual[lang] || {};
+        localizedTitle = ml.title || localizedTitle;
+        localizedExcerpt = ml.excerpt || localizedExcerpt;
+      }
+    } catch (_e) {}
+
     // Create structured data for article rich results
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
-      headline: blogPost.title,
-      description: blogPost.excerpt,
+      headline: localizedTitle,
+      description: localizedExcerpt,
       image: blogPost.coverImage || "",
       datePublished: blogPost.publishedAt,
       dateModified: blogPost.updatedAt || blogPost.publishedAt,
@@ -62,18 +90,18 @@ export async function generateMetadata(
       },
       mainEntityOfPage: {
         "@type": "WebPage",
-        "@id": `https://techtots.com/blog/${slug}`,
+        "@id": canonicalUrl,
       },
       keywords: keywords.join(", "),
     };
 
     return {
-      title: `${blogPost.title} | TechTots Blog`,
-      description: blogPost.excerpt,
+      title: `${localizedTitle} | TechTots Blog`,
+      description: localizedExcerpt,
       keywords,
       openGraph: {
-        title: blogPost.title,
-        description: blogPost.excerpt,
+        title: localizedTitle,
+        description: localizedExcerpt,
         type: "article",
         authors: blogPost.author?.name
           ? [blogPost.author.name]
@@ -110,7 +138,11 @@ export async function generateMetadata(
         images: blogPost.coverImage ? [blogPost.coverImage] : [],
       },
       alternates: {
-        canonical: `https://techtots.com/blog/${slug}`,
+        canonical: canonicalUrl,
+        languages: {
+          en: enUrl,
+          ro: roUrl,
+        },
       },
       other: {
         structuredData: JSON.stringify(structuredData),

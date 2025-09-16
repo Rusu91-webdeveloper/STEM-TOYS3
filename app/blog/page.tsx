@@ -71,18 +71,13 @@ const getCategoryIcon = (name: string) => {
 };
 
 export default function BlogPage() {
-  const { t, language, setLanguage } = useTranslation();
+  const { t, language } = useTranslation();
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeCategoryId, setActiveCategoryId] = useState("all");
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Handle language switch
-  const _toggleLanguage = () => {
-    setLanguage(language === "ro" ? "en" : "ro");
-  };
 
   // Fetch categories
   useEffect(() => {

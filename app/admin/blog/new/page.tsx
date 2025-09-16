@@ -49,6 +49,10 @@ export default function NewBlogPage() {
     slug: "",
     excerpt: "",
     content: "",
+    multilingual: {
+      en: { title: "", excerpt: "", content: "" },
+      ro: { title: "", excerpt: "", content: "" },
+    },
     coverImage: "",
     categoryId: "",
     stemCategory: "GENERAL",
@@ -240,28 +244,81 @@ export default function NewBlogPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="content">Content</Label>
-                    <BlogContentTemplates
-                      onTemplateSelect={(content, tags) => {
-                        setBlogData(prev => ({
-                          ...prev,
-                          content,
-                          tags: tags.join(", "),
-                        }));
-                      }}
-                      stemCategory={blogData.stemCategory}
-                    />
-                  </div>
-                  <RichBlogEditor
-                    value={blogData.content}
-                    onChange={value =>
-                      setBlogData(prev => ({ ...prev, content: value }))
-                    }
-                    placeholder="Write your professional blog content here..."
-                  />
-                </div>
+                <Tabs defaultValue="en">
+                  <TabsList>
+                    <TabsTrigger value="en">English</TabsTrigger>
+                    <TabsTrigger value="ro">Romanian</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="en">
+                    <div className="space-y-2 mt-4">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="content-en">Content (EN)</Label>
+                        <BlogContentTemplates
+                          onTemplateSelect={(content, tags) => {
+                            setBlogData(prev => ({
+                              ...prev,
+                              multilingual: {
+                                ...prev.multilingual,
+                                en: {
+                                  title:
+                                    prev.multilingual.en.title || prev.title,
+                                  excerpt:
+                                    prev.multilingual.en.excerpt ||
+                                    prev.excerpt,
+                                  content,
+                                },
+                              },
+                              tags: tags.join(", "),
+                            }));
+                          }}
+                          stemCategory={blogData.stemCategory}
+                        />
+                      </div>
+                      <RichBlogEditor
+                        value={
+                          blogData.multilingual.en.content || blogData.content
+                        }
+                        onChange={value =>
+                          setBlogData(prev => ({
+                            ...prev,
+                            multilingual: {
+                              ...prev.multilingual,
+                              en: {
+                                title: prev.multilingual.en.title || prev.title,
+                                excerpt:
+                                  prev.multilingual.en.excerpt || prev.excerpt,
+                                content: value,
+                              },
+                            },
+                          }))
+                        }
+                        placeholder="Write English content..."
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="ro">
+                    <div className="space-y-2 mt-4">
+                      <Label htmlFor="content-ro">Content (RO)</Label>
+                      <RichBlogEditor
+                        value={blogData.multilingual.ro.content}
+                        onChange={value =>
+                          setBlogData(prev => ({
+                            ...prev,
+                            multilingual: {
+                              ...prev.multilingual,
+                              ro: {
+                                title: prev.multilingual.ro.title,
+                                excerpt: prev.multilingual.ro.excerpt,
+                                content: value,
+                              },
+                            },
+                          }))
+                        }
+                        placeholder="Scrie conținutul în română..."
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           </div>

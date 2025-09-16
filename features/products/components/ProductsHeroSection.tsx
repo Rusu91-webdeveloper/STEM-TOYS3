@@ -3,6 +3,9 @@
 import { LucideIcon } from "lucide-react";
 import Image from "next/image";
 import React from "react";
+import Link from "next/link";
+import { useEffect } from "react";
+import { useABTest, useConversionTracking } from "@/hooks/useABTest";
 
 interface CategoryIconInfo {
   icon: LucideIcon;
@@ -34,6 +37,27 @@ export function ProductsHeroSection({
   t,
 }: ProductsHeroSectionProps) {
   const IconComponent = activeCategoryInfo.icon;
+  const { variantName, isControl, trackConversion } = useABTest(
+    "products-hero-headline"
+  );
+  const { trackEvent } = useConversionTracking();
+
+  // Compute headline/subheadline based on AB variant (only for all-products view)
+  const headline =
+    !activeCategory && !isControl ? t("productsPageH1") : getCategoryTitle();
+  const subheadline =
+    !activeCategory && !isControl
+      ? t("productsPageSubtitle")
+      : getCategoryDescription();
+
+  // Impression tracking once on mount
+  useEffect(() => {
+    trackConversion("hero_headline_impression", "products", {
+      label: variantName,
+      element: "products-hero",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="relative">
@@ -68,11 +92,46 @@ export function ProductsHeroSection({
               </div>
 
               <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2 drop-shadow-lg">
-                {getCategoryTitle()}
+                {headline}
               </h1>
               <p className="text-xs sm:text-sm max-w-2xl text-white/90 drop-shadow-md hidden sm:block">
-                {getCategoryDescription()}
+                {subheadline}
               </p>
+
+              {/* CTAs and Social Proof */}
+              <div className="mt-2 sm:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <Link
+                  href="/contact"
+                  onClick={() =>
+                    trackEvent("cta_click", "products", {
+                      label: "get_personalized_recommendations",
+                      element: "products-hero-primary",
+                      variant: variantName,
+                    })
+                  }
+                  className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow hover:opacity-95"
+                >
+                  {t("getPersonalizedRecommendations")}
+                </Link>
+                <Link
+                  href="/blog"
+                  onClick={() =>
+                    trackEvent("cta_click", "products", {
+                      label: "see_success_stories",
+                      element: "products-hero-secondary",
+                      variant: variantName,
+                    })
+                  }
+                  className="inline-flex items-center justify-center rounded-md bg-white/10 backdrop-blur px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-white hover:bg-white/15"
+                >
+                  {t("seeSuccessStories")}
+                </Link>
+              </div>
+
+              <div className="mt-2 sm:mt-3 text-[10px] sm:text-xs text-white/90">
+                <span className="font-bold">{t("socialProofNumber")}</span>{" "}
+                {t("socialProofText")}
+              </div>
             </div>
           </div>
         </div>

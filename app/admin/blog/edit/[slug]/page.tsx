@@ -52,6 +52,10 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
     slug: "",
     excerpt: "",
     content: "",
+    multilingual: {
+      en: { title: "", excerpt: "", content: "" },
+      ro: { title: "", excerpt: "", content: "" },
+    },
     coverImage: "",
     categoryId: "",
     stemCategory: "GENERAL",
@@ -102,6 +106,18 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
           slug: blog.slug,
           excerpt: blog.excerpt,
           content: blog.content,
+          multilingual: {
+            en: blog.metadata?.multilingual?.en || {
+              title: blog.title,
+              excerpt: blog.excerpt,
+              content: blog.content,
+            },
+            ro: blog.metadata?.multilingual?.ro || {
+              title: "",
+              excerpt: "",
+              content: "",
+            },
+          },
           coverImage: blog.coverImage || "",
           categoryId: blog.categoryId || "",
           stemCategory: blog.stemCategory || "GENERAL",
@@ -281,18 +297,63 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="content">Content</Label>
-                  <Textarea
-                    id="content"
-                    name="content"
-                    value={blogData.content}
-                    onChange={handleChange}
-                    placeholder="Write your blog post content here..."
-                    rows={15}
-                    required
-                  />
-                </div>
+                <Tabs defaultValue="en">
+                  <TabsList>
+                    <TabsTrigger value="en">English</TabsTrigger>
+                    <TabsTrigger value="ro">Romanian</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="en">
+                    <div className="space-y-2 mt-4">
+                      <Label htmlFor="content-en">Content (EN)</Label>
+                      <Textarea
+                        id="content-en"
+                        name="content-en"
+                        value={
+                          blogData.multilingual.en.content || blogData.content
+                        }
+                        onChange={e =>
+                          setBlogData(prev => ({
+                            ...prev,
+                            multilingual: {
+                              ...prev.multilingual,
+                              en: {
+                                title: prev.multilingual.en.title || prev.title,
+                                excerpt:
+                                  prev.multilingual.en.excerpt || prev.excerpt,
+                                content: e.target.value,
+                              },
+                            },
+                          }))
+                        }
+                        rows={15}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="ro">
+                    <div className="space-y-2 mt-4">
+                      <Label htmlFor="content-ro">Content (RO)</Label>
+                      <Textarea
+                        id="content-ro"
+                        name="content-ro"
+                        value={blogData.multilingual.ro.content}
+                        onChange={e =>
+                          setBlogData(prev => ({
+                            ...prev,
+                            multilingual: {
+                              ...prev.multilingual,
+                              ro: {
+                                title: prev.multilingual.ro.title,
+                                excerpt: prev.multilingual.ro.excerpt,
+                                content: e.target.value,
+                              },
+                            },
+                          }))
+                        }
+                        rows={15}
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           </div>

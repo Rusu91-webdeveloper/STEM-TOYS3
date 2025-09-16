@@ -27,6 +27,21 @@ interface BlogPost {
     name: string;
     slug: string;
   };
+  metadata?: {
+    multilingual?: {
+      en: {
+        title: string;
+        excerpt: string;
+        content: string;
+      };
+      ro: {
+        title: string;
+        excerpt: string;
+        content: string;
+      };
+    };
+    language?: string;
+  };
 }
 
 export default function BlogPostPage() {

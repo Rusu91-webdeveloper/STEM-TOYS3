@@ -34,6 +34,7 @@ import {
   ProductGridErrorBoundary,
 } from "./ProductsErrorBoundary";
 import { ProductsHeroSection } from "./ProductsHeroSection";
+import AgeQuickFilters from "./AgeQuickFilters";
 import { ProductsMainDisplay } from "./ProductsMainDisplay";
 import { ProductsSidebar } from "./ProductsSidebar";
 import { StemBenefitsSection } from "./StemBenefitsSection";
@@ -537,6 +538,13 @@ function ClientProductsPageContent({
           normalizeCategory={normalizeCategory}
           handleCategoryChange={handleCategoryChange}
           setMobileFiltersOpen={actions.setMobileFiltersOpen}
+          t={t}
+        />
+
+        {/* Age Quick Filters Section */}
+        <AgeQuickFilters
+          selectedAgeGroup={state.selectedAgeGroup}
+          onSelectAgeGroup={age => actions.setAgeGroup(age)}
           t={t}
         />
 

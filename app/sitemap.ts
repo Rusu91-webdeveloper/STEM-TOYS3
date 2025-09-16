@@ -107,31 +107,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (blogResponse && blogResponse.ok) {
       const blogPosts = await blogResponse.json();
 
-      // Add blog post routes for each language
-      languages.forEach(lang => {
-        // Ensure blogPosts is an array before calling forEach
-        if (Array.isArray(blogPosts)) {
-          blogPosts.forEach(
-            (post: {
-              slug: string;
-              updatedAt?: string;
-              publishedAt: string;
-            }) => {
-              sitemapEntries.push({
-                url:
-                  lang === "ro"
-                    ? `${baseUrl}/blog/${post.slug}`
-                    : `${baseUrl}/${lang}/blog/${post.slug}`,
-                lastModified: post.updatedAt
-                  ? new Date(post.updatedAt)
-                  : new Date(post.publishedAt),
-                changeFrequency: "monthly",
-                priority: 0.7,
-              });
-            }
-          );
-        }
-      });
+      if (Array.isArray(blogPosts)) {
+        // Hybrid: ensure both -ro and -en variants are included for each base slug
+        blogPosts.forEach(
+          (post: { slug: string; updatedAt?: string; publishedAt: string }) => {
+            const hasRo = post.slug.endsWith("-ro");
+            const hasEn = post.slug.endsWith("-en");
+            const base = hasRo || hasEn ? post.slug.slice(0, -3) : post.slug;
+            const roSlug = `${base}-ro`;
+            const enSlug = `${base}-en`;
+
+            const lastMod = post.updatedAt
+              ? new Date(post.updatedAt)
+              : new Date(post.publishedAt);
+
+            // Romanian
+            sitemapEntries.push({
+              url: `${baseUrl}/blog/${roSlug}`,
+              lastModified: lastMod,
+              changeFrequency: "monthly",
+              priority: 0.7,
+            });
+            // English
+            sitemapEntries.push({
+              url: `${baseUrl}/blog/${enSlug}`,
+              lastModified: lastMod,
+              changeFrequency: "monthly",
+              priority: 0.7,
+            });
+          }
+        );
+      }
     }
   } catch (error) {
     console.error("Error fetching blog posts for sitemap:", error);

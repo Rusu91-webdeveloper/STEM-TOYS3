@@ -30,3 +30,35 @@
     - Implement `lib/email/unified-service.ts` with primary/fallback logic
     - Add provider adapters under `lib/email/providers` (resend, brevo, gmail)
     - Add unit tests for unified service with mocked providers
+
+## 2025-09-16
+
+- Phase 1 Conversion Optimization – Products Page Foundations
+  - Description: Implement Hormozi-style messaging foundations on products page.
+  - Estimated time: 3h
+  - Status: Completed
+  - Notes:
+    - Added Phase 1 translation keys (EN/RO) for products, categories, checkout.
+    - Implemented A/B-tested hero headline and subheadline on products page.
+    - Wired conversion tracking for hero impressions and CTA clicks.
+    - Added age-based quick filters section under hero with localized labels and
+      tracking.
+  - Discovered During Work:
+    - Consider adding category-specific A/B test variants next.
+    - Define success event for "Get Personalized Recommendations" flow.
+
+- Blog Language Support – /blog listing toggle and API verification
+  - Description: Ensure /blog supports EN/RO with an easy toggle and API
+    respects language.
+  - Estimated time: 1h
+  - Status: Completed
+  - Date: 2025-09-16
+  - Notes:
+    - Added `BlogLanguageToggle` to `app/blog/page.tsx` hero, wired to
+      `useTranslation`.
+    - `/api/blog` already filters by `language` query param with sensible
+      fallbacks.
+    - `/blog` list refetches on language change; post pages already support
+      language via slug/param.
+  - Follow-ups (Discovered During Work):
+    - Optionally add the same toggle to `app/blog/category/[slug]/page.tsx`.

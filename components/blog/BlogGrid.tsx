@@ -109,7 +109,7 @@ export function BlogGrid({
 
           {/* Content section - very compact */}
           <CardContent className="p-2 sm:p-3 flex flex-col flex-1">
-            <Link href={`/blog/post/${post.slug}`} className="flex-1 group">
+            <Link href={`/blog/${post.slug}`} className="flex-1 group">
               <h3 className="text-xs sm:text-sm font-bold mb-1 group-hover:text-indigo-700 transition-colors line-clamp-2 leading-tight">
                 {post.title}
               </h3>

@@ -381,9 +381,7 @@ export default function BlogCategoryPage() {
                       size="sm"
                       asChild
                     >
-                      <Link href={`/blog/post/${post.id}`}>
-                        {t("readMore")}
-                      </Link>
+                      <Link href={`/blog/${post.slug}`}>{t("readMore")}</Link>
                     </Button>
                   </div>
                 </div>

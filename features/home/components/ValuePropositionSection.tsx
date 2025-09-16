@@ -7,115 +7,146 @@ interface ValuePropositionSectionProps {
 }
 
 function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
+  // Hormozi Style: Transformation-focused cards instead of feature-focused
   const cards = [
     {
-      key: "cognitive",
-      title: t("cognitiveDevelopment"),
-      description: t("cognitiveDevelopmentDesc"),
+      key: "transformation1",
+      title: t("transformation1"),
+      description: t("transformation1Desc"),
       image: "/images/category_banner_science_01.png",
-      badge: t("features", "Features"),
+      badge: "Transformare",
+      icon: "📱➡️🧪", // Screen to Science
     },
     {
-      key: "quality",
-      title: t("qualitySafety", "Quality & Safety"),
-      description: t(
-        "qualitySafetyDesc",
-        "All our products meet or exceed safety standards and are built to last."
-      ),
+      key: "transformation2",
+      title: t("transformation2"),
+      description: t("transformation2Desc"),
       image: "/images/category_banner_engineering_01.png",
-      badge: t("features", "Features"),
+      badge: "Transformare",
+      icon: "😰➡️😍", // Struggles to Love
     },
     {
-      key: "future",
-      title: t("futureReady"),
-      description: t("futureReadyDesc"),
+      key: "transformation3",
+      title: t("transformation3"),
+      description: t("transformation3Desc"),
       image: "/images/category_banner_technology_01.png",
-      badge: t("features", "Features"),
+      badge: "Transformare",
+      icon: "😴➡️🚀", // Bored to Inventor
     },
     {
-      key: "b2b",
-      title: t("b2bSolutions", "B2B Programs"),
-      description: t(
-        "b2bSolutionsDesc",
-        "Wholesale pricing, bulk orders, and partnerships for schools and businesses."
-      ),
+      key: "social_proof",
+      title: t("socialProofNumber") + " " + t("socialProofText"),
+      description: t("successStory1"),
       image: "/images/blog_homepage_hero_01.png",
-      badge: t("programs", "Programs"),
+      badge: "Rezultat",
+      icon: "⭐", // Success
     },
   ];
 
   return (
-    <section className="py-4 sm:py-6 md:py-8 lg:py-12 bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 text-gray-900">
+    <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 text-gray-900">
       <div className="container mx-auto px-4 max-w-7xl">
-        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-3 sm:mb-4 md:mb-6 text-center leading-tight">
-          {t("whyChooseTechTots")}
-        </h2>
+        {/* Hormozi Style: Social proof in headline */}
+        <div className="text-center mb-8 sm:mb-12">
+          <span className="inline-block px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-semibold mb-4">
+            Rezultate Dovedite
+          </span>
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 leading-tight">
+            {t("whyChooseTechTots")}
+          </h2>
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+            De la copii care urăsc matematica la viitori inventatori - iată
+            transformările reale
+          </p>
+        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
-          {cards.map(card => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+          {cards.map((card, index) => (
             <div
               key={card.key}
-              className="group relative w-full overflow-hidden rounded-lg shadow-sm transition-all duration-300 hover:shadow-md focus-within:ring-2 focus-within:ring-white/80"
+              className="group relative w-full overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 bg-white border border-gray-100"
               aria-label={card.title}
               role="region"
             >
+              {/* Transformation Icon */}
+              <div className="absolute top-4 right-4 z-10">
+                <span className="text-2xl sm:text-3xl">{card.icon}</span>
+              </div>
+
+              {/* Background Image */}
               <div
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: `url(${card.image})` }}
                 aria-hidden="true"
               />
               <div
-                className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/50 to-black/80"
+                className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/70"
                 aria-hidden="true"
               />
 
-              <div className="relative flex min-h-[100px] sm:min-h-[120px] md:min-h-[140px] lg:min-h-[160px] flex-col justify-end p-2 sm:p-3 md:p-4">
-                <div className="mb-1 inline-flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_0_2px_rgba(16,185,129,0.35)]" />
-                  <span className="text-[8px] sm:text-[10px] tracking-wider uppercase text-white/90">
+              {/* Content */}
+              <div className="relative flex min-h-[200px] sm:min-h-[240px] flex-col justify-end p-4 sm:p-6">
+                {/* Badge */}
+                <div className="mb-3 inline-flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+                  <span className="text-xs sm:text-sm font-semibold text-white/90 bg-white/20 px-2 py-1 rounded-full">
                     {card.badge}
                   </span>
                 </div>
 
-                <div className="w-full max-w-[98%] backdrop-blur-sm bg-black/40 hover:bg-black/50 transition-colors rounded-lg px-2 py-2 sm:px-3 sm:py-3">
-                  <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-extrabold text-white drop-shadow-md truncate">
+                {/* Card Content */}
+                <div className="backdrop-blur-sm bg-white/10 hover:bg-white/20 transition-colors rounded-xl p-4 sm:p-5">
+                  <h3 className="text-sm sm:text-base md:text-lg font-bold text-white drop-shadow-lg mb-2 leading-tight">
                     {card.title}
                   </h3>
-                  <p className="mt-1 text-[9px] sm:text-[10px] md:text-xs lg:text-sm text-white/95 leading-tight line-clamp-2">
+                  <p className="text-xs sm:text-sm text-white/90 leading-relaxed line-clamp-3">
                     {card.description}
                   </p>
-                  <div className="mt-2 flex items-center gap-1 text-white/90">
-                    <div className="h-4 w-4 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center">
+
+                  {/* Success Indicator */}
+                  <div className="mt-3 flex items-center gap-2 text-white/80">
+                    <div className="h-5 w-5 rounded-full bg-green-400/20 backdrop-blur-sm flex items-center justify-center">
                       <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
+                        className="h-3 w-3 text-green-400"
                         fill="currentColor"
-                        className="h-2.5 w-2.5"
+                        viewBox="0 0 20 20"
                       >
                         <path
                           fillRule="evenodd"
-                          d="M12 2.25a.75.75 0 0 1 .75.75v8.19l5.03 2.9a.75.75 0 1 1-.75 1.3l-5.4-3.11a.75.75 0 0 1-.38-.65V3a.75.75 0 0 1 .75-.75Z"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                           clipRule="evenodd"
-                        />
-                        <path
-                          d="M3.375 12C3.375 6.753 7.753 2.375 13 2.375S22.625 6.753 22.625 12 18.247 21.625 13 21.625 3.375 17.247 3.375 12Z"
-                          opacity=".2"
                         />
                       </svg>
                     </div>
-                    <span className="text-[8px] sm:text-[10px] truncate">
-                      {t("inspiringMinds", "Inspiring young minds")}
+                    <span className="text-xs sm:text-sm font-medium">
+                      Rezultat Dovedit
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div
-                className="absolute inset-0 ring-1 ring-white/10 rounded-lg"
-                aria-hidden="true"
-              />
+              {/* Hover Effect Border */}
+              <div className="absolute inset-0 ring-2 ring-transparent group-hover:ring-green-400/50 rounded-2xl transition-all duration-300" />
             </div>
           ))}
+        </div>
+
+        {/* Additional Social Proof */}
+        <div className="mt-12 text-center">
+          <div className="inline-flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg">
+            <div className="flex -space-x-2">
+              <div className="w-8 h-8 bg-green-400 rounded-full border-2 border-white"></div>
+              <div className="w-8 h-8 bg-blue-400 rounded-full border-2 border-white"></div>
+              <div className="w-8 h-8 bg-purple-400 rounded-full border-2 border-white"></div>
+              <div className="w-8 h-8 bg-orange-400 rounded-full border-2 border-white"></div>
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-gray-900">
+                {t("socialProofNumber")} {t("socialProofText")}
+              </p>
+              <p className="text-xs text-gray-600">În ultimele 6 luni</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>

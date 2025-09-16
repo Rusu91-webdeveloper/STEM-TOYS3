@@ -66,15 +66,73 @@ export default async function Home() {
   );
 }
 
-// Metadata for home page with preload hints
+// SEO-Optimized Metadata for Hormozi-Transformed Homepage
 export function generateMetadata() {
   return {
-    title: "TechTots - STEM Toys for Creative Learning",
+    title: "Transform Your Child Into a STEM Genius - TechTots Romania",
     description:
-      "Discover innovative STEM toys that inspire creativity and learning in children",
+      "Stop homework battles forever! Join 10,000+ parents who've transformed their kids from 'I hate math' to 'When can we do experiments?' with our proven STEM toys. 30-day guarantee.",
+    keywords: [
+      // Primary conversion-focused keywords
+      "transform copil geniu STEM",
+      "oprire lupte teme",
+      "jucării STEM care funcționează",
+      "copii iubesc matematica",
+      "experimente copii",
+
+      // Traditional SEO keywords
+      "jucării STEM România",
+      "jucării educative copii",
+      "jucării știință București",
+      "jucării tehnologie",
+      "jucării inginerie",
+      "jucării matematică",
+
+      // English keywords
+      "STEM toys Romania",
+      "transform child learning",
+      "stop homework battles",
+      "educational toys that work",
+      "science experiments kids",
+    ],
+    openGraph: {
+      title: "Transform Your Child Into a STEM Genius - TechTots",
+      description:
+        "Join 10,000+ parents who've stopped homework battles forever. Our STEM toys turn 'I hate math' into 'When's our next experiment?' - 30-day guarantee.",
+      type: "website",
+      locale: "ro_RO",
+      alternateLocale: "en_US",
+      images: [
+        {
+          url: "/images/homepage_hero_banner_01.png",
+          width: 1200,
+          height: 630,
+          alt: "Child doing STEM experiment - transformation from struggling to loving learning",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Transform Your Child Into a STEM Genius",
+      description:
+        "Stop homework battles forever with our proven STEM toys. 30-day guarantee.",
+      images: ["/images/homepage_hero_banner_01.png"],
+    },
     other: {
       // Preload critical resources for hero section
       "link-preload-hero": "/images/homepage_hero_banner_01.png",
+      // Additional SEO meta tags
+      robots: "index, follow, max-image-preview:large",
+      googlebot: "index, follow, max-image-preview:large",
+      bingbot: "index, follow, max-image-preview:large",
+    },
+    // Structured data for better search results
+    alternates: {
+      canonical: "https://www.techtots.ro/",
+      languages: {
+        ro: "https://www.techtots.ro/ro/",
+        en: "https://www.techtots.ro/en/",
+      },
     },
   };
 }

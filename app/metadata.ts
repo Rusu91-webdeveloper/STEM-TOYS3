@@ -36,11 +36,11 @@ const mainKeywords = [
   "educational books",
 ];
 
-// Create rich structuredData for the homepage
+// Create rich structuredData for the homepage with transformation focus
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "TechTots - Jucării STEM pentru Minți Curioase",
+  name: "TechTots - Transformă Copilul Într-un Geniu STEM",
   url: "https://www.techtots.ro",
   potentialAction: {
     "@type": "SearchAction",
@@ -51,7 +51,7 @@ const structuredData = {
     "query-input": "required name=search_term_string",
   },
   description:
-    "Descoperă colecția noastră de jucării STEM care fac învățarea distractivă și captivantă pentru copii de toate vârstele.",
+    "Oprește luptele cu temele pentru totdeauna! Alătură-te celor 10,000+ părinți care și-au transformat copiii din 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
   publisher: {
     "@type": "Organization",
     name: "TechTots",
@@ -149,14 +149,14 @@ export const metadata = createMetadata({
   },
   translations: {
     ro: {
-      title: "TechTots | Jucării STEM pentru Minți Curioase",
+      title: "Transformă Copilul Într-un Geniu STEM - TechTots România",
       description:
-        "Magazin online de jucării educaționale STEM pentru copii din România. Descoperiți jucării de știință, tehnologie, inginerie și matematică.",
+        "Oprește luptele cu temele pentru totdeauna! Alătură-te celor 10,000+ părinți care și-au transformat copiii din 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite. Garanție 30 zile.",
     },
     en: {
-      title: "TechTots | STEM Toys for Curious Minds",
+      title: "Transform Your Child Into a STEM Genius - TechTots Romania",
       description:
-        "Online store for STEM educational toys for children in Romania. Discover science, technology, engineering, and mathematics toys.",
+        "Stop homework battles forever! Join 10,000+ parents who've transformed their kids from 'I hate math' to 'When can we do experiments?' with our proven STEM toys. 30-day guarantee.",
     },
   },
 });

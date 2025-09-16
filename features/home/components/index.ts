@@ -6,3 +6,6 @@ export { SupplierBanner } from "./SupplierBanner";
 export { default as ValuePropositionSection } from "./ValuePropositionSection";
 export { default as EducationalBooksSection } from "./EducationalBooksSection";
 export { default as PillarSection } from "./PillarSection";
+export { default as RiskReversalSection } from "./RiskReversalSection";
+export { default as MobileConversionOptimizer } from "./MobileConversionOptimizer";
+export { default as PerformanceOptimizer } from "./PerformanceOptimizer";

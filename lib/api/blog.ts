@@ -26,6 +26,7 @@ export interface BlogPost {
   createdAt: Date;
   updatedAt: Date;
   readingTime: number | null;
+  metadata: any;
   author: {
     id: string;
     name: string | null;

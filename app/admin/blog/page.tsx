@@ -195,7 +195,7 @@ export default function BlogManagementPage() {
         await fetchBlogs();
         setIsCreatingSample(false);
         alert(
-          "Sample professional blog post created successfully! You can now view it at /blog/post/quantum-biology-plants-photosynthesis-2025"
+          "Sample professional blog post created successfully! You can now view it at /blog/quantum-biology-plants-photosynthesis-2025"
         );
       } catch (err) {
         console.error("Error creating sample blog:", err);
@@ -233,7 +233,7 @@ export default function BlogManagementPage() {
         await fetchBlogs();
         setIsCreatingTest(false);
         alert(
-          "Test blog post created successfully! You can now view it at /blog/post/test-blog-simple-markdown"
+          "Test blog post created successfully! You can now view it at /blog/test-blog-simple-markdown"
         );
       } catch (err) {
         console.error("Error creating test blog:", err);
@@ -365,9 +365,7 @@ export default function BlogManagementPage() {
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() =>
-                              router.push(`/blog/post/${blog.slug}`)
-                            }
+                            onClick={() => router.push(`/blog/${blog.slug}`)}
                           >
                             <EyeIcon className="h-4 w-4 mr-2" />
                             View

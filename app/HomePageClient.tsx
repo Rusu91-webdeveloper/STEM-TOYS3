@@ -9,7 +9,10 @@ import {
   FeaturedProductsSection,
   FeaturedProductsSkeleton,
   HeroSection,
+  MobileConversionOptimizer,
+  PerformanceOptimizer,
   PillarSection,
+  RiskReversalSection,
   SupplierBanner,
   ValuePropositionSection,
 } from "@/features/home/components";
@@ -75,6 +78,9 @@ export default function HomePageClient({
 
   return (
     <div className="flex flex-col">
+      {/* Performance Optimizer - Loads first for optimal Core Web Vitals */}
+      <PerformanceOptimizer />
+
       {/* Hero Section with Hero Image - Load immediately */}
       <HeroSection t={t} />
 
@@ -86,6 +92,9 @@ export default function HomePageClient({
 
       {/* Value Proposition Section - Load immediately */}
       <ValuePropositionSection t={t} />
+
+      {/* Risk Reversal Section - Guarantees and Consultation */}
+      <RiskReversalSection t={t} />
 
       {/* Featured Products Section - Load with suspense for better performance */}
       <Suspense fallback={<FeaturedProductsLoader />}>
@@ -99,6 +108,9 @@ export default function HomePageClient({
 
       {/* Supplier Banner - Only visible on Home page */}
       <SupplierBanner t={t} />
+
+      {/* Mobile Conversion Optimizer - Sticky CTAs, trust indicators, etc. */}
+      <MobileConversionOptimizer t={t} />
     </div>
   );
 }

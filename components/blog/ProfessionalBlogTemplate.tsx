@@ -17,9 +17,10 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import EnhancedMarkdownRenderer from "@/components/blog/EnhancedMarkdownRenderer";
+import { BlogLanguageToggle } from "@/components/blog/BlogLanguageToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -43,6 +44,21 @@ interface BlogPost {
     name: string;
     slug: string;
   };
+  metadata?: {
+    multilingual?: {
+      en: {
+        title: string;
+        excerpt: string;
+        content: string;
+      };
+      ro: {
+        title: string;
+        excerpt: string;
+        content: string;
+      };
+    };
+    language?: string;
+  };
 }
 
 interface BlogPostTemplateProps {
@@ -55,6 +71,36 @@ export default function ProfessionalBlogTemplate({
   language = "ro",
 }: BlogPostTemplateProps) {
   const { t } = useTranslation();
+  const [currentLanguage, setCurrentLanguage] = useState<"en" | "ro">(
+    language as "en" | "ro"
+  );
+
+  // Check if post has multilingual content
+  const hasMultilingual =
+    post.metadata?.multilingual && post.metadata?.language === "both";
+
+  // Get current content based on selected language
+  const getCurrentContent = () => {
+    if (hasMultilingual && post.metadata?.multilingual) {
+      const multilingualContent = post.metadata.multilingual;
+      return {
+        title: multilingualContent[currentLanguage]?.title || post.title,
+        excerpt: multilingualContent[currentLanguage]?.excerpt || post.excerpt,
+        content: multilingualContent[currentLanguage]?.content || post.content,
+      };
+    }
+    return {
+      title: post.title,
+      excerpt: post.excerpt,
+      content: post.content,
+    };
+  };
+
+  const currentContent = getCurrentContent();
+
+  const handleLanguageChange = (lang: "en" | "ro") => {
+    setCurrentLanguage(lang);
+  };
 
   if (!post) {
     return (
@@ -173,12 +219,12 @@ export default function ProfessionalBlogTemplate({
 
             {/* Title */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight text-white drop-shadow-2xl">
-              {post.title}
+              {currentContent.title}
             </h1>
 
             {/* Excerpt */}
             <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed max-w-4xl mx-auto drop-shadow-lg">
-              {post.excerpt}
+              {currentContent.excerpt}
             </p>
 
             {/* Meta Information */}
@@ -214,13 +260,14 @@ export default function ProfessionalBlogTemplate({
                 {post.readingTime || 5} min read
               </div>
 
-              {/* Language Indicator */}
-              <div className="flex items-center text-sm">
-                <span className="mr-2">{language === "ro" ? "🇷🇴" : "🇬🇧"}</span>
-                <span className="text-xs font-medium">
-                  {language === "ro" ? "Română" : "English"}
-                </span>
-              </div>
+              {/* Language Toggle */}
+              {hasMultilingual && (
+                <BlogLanguageToggle
+                  onLanguageChange={handleLanguageChange}
+                  currentLanguage={currentLanguage}
+                  className="bg-white/20 backdrop-blur-sm border border-white/30"
+                />
+              )}
             </div>
           </div>
         </div>
@@ -261,32 +308,40 @@ export default function ProfessionalBlogTemplate({
                   </div>
                 </div>
 
-                {/* Share Button */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2 hover:bg-gray-50"
-                  onClick={() => {
-                    if (navigator.share) {
-                      navigator.share({
-                        title: post.title,
-                        text: post.excerpt,
-                        url: window.location.href,
-                      });
-                    } else {
-                      navigator.clipboard.writeText(window.location.href);
-                    }
-                  }}
-                >
-                  <Share2 className="h-4 w-4" />
-                  Share
-                </Button>
+                {/* Language Toggle and Share Button */}
+                <div className="flex items-center gap-3">
+                  {hasMultilingual && (
+                    <BlogLanguageToggle
+                      onLanguageChange={handleLanguageChange}
+                      currentLanguage={currentLanguage}
+                    />
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 hover:bg-gray-50"
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: currentContent.title,
+                          text: currentContent.excerpt,
+                          url: window.location.href,
+                        });
+                      } else {
+                        navigator.clipboard.writeText(window.location.href);
+                      }
+                    }}
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Share
+                  </Button>
+                </div>
               </div>
             </div>
 
             {/* Main Content */}
             <div className="prose prose-lg max-w-none">
-              <EnhancedMarkdownRenderer content={post.content} />
+              <EnhancedMarkdownRenderer content={currentContent.content} />
             </div>
           </div>
         </div>
