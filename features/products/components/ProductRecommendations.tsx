@@ -138,6 +138,10 @@ export function ProductRecommendations({
         if (response.ok) {
           const data = await response.json();
           setRecommendations(data.recommendations || {});
+        } else {
+          // Handle non-successful responses gracefully
+          console.warn(`Recommendations API returned ${response.status}`);
+          setRecommendations({});
         }
       } catch (error) {
         console.error("Failed to fetch recommendations:", error);

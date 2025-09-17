@@ -62,3 +62,23 @@
       language via slug/param.
   - Follow-ups (Discovered During Work):
     - Optionally add the same toggle to `app/blog/category/[slug]/page.tsx`.
+
+## 2025-09-17
+
+- Products Page – Fix price filtering end-to-end
+  - Description: Standardize price range shape across UI components and URL,
+    ensure correct handler usage, and verify API respects min/max.
+  - Estimated time: 1.0h
+  - Status: Completed
+  - Date: 2025-09-17
+  - Notes:
+    - Updated `EnhancedProductFilters` to accept `priceRange.current` as tuple
+      `[min,max]` and to call `onPriceChange([min,max])`.
+    - Updated `ProductsSidebar` to pass `{ min, max, current: [min,max] }`
+      computed from products.
+    - Verified `MobileFiltersModal` passes through the standardized shape.
+    - Client-side filtering in `ClientProductsPage` now applies range when
+      enabled; URL sync preserved.
+  - Discovered During Work:
+    - Consider server-side filtering by price as well when fetching a subset, if
+      we switch away from fetching all products.

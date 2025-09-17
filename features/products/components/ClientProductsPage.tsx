@@ -216,6 +216,28 @@ const normalizeCategory = (name: string): string => {
   return lower;
 };
 
+// Helper function to get category translation
+const getCategoryTranslation = (
+  categoryId: string,
+  t: (key: string, fallback?: string) => string
+): string => {
+  const categoryTranslationMap: Record<string, string> = {
+    science: "scienceCategory",
+    technology: "technologyCategory",
+    engineering: "engineeringCategory",
+    mathematics: "mathematicsCategory",
+    "educational-books": "educationalBooksCategory",
+  };
+
+  const translationKey = categoryTranslationMap[categoryId];
+  if (translationKey) {
+    return t(translationKey, categoryId);
+  }
+
+  // Fallback for any unmapped categories
+  return t(`${categoryId}Category`, categoryId);
+};
+
 function ClientProductsPageContent({
   initialProducts,
   searchParams: _searchParams,
@@ -253,40 +275,13 @@ function ClientProductsPageContent({
   }, [state, updateURL, isHydrated]);
 
   // Generate dynamic filters based on available product data
+  // Note: Product Type filter is now handled as a dropdown in EnhancedProductFilters
+  // to avoid duplication and provide better UX
   const dynamicFilters: FilterGroup[] = useMemo(() => {
     const filters: FilterGroup[] = [];
 
-    // Age Group filter
-    const ageGroups = Array.from(
-      new Set(products.map(p => p.ageGroup).filter(Boolean))
-    );
-    if (ageGroups.length > 0) {
-      filters.push({
-        id: "ageGroup",
-        name: t("ageGroup"),
-        options: ageGroups.map(age => ({
-          id: age!,
-          label: t(`ageGroup.${age}`),
-          count: products.filter(p => p.ageGroup === age).length,
-        })),
-      });
-    }
-
-    // Product Type filter
-    const productTypes = Array.from(
-      new Set(products.map(p => p.productType).filter(Boolean))
-    );
-    if (productTypes.length > 0) {
-      filters.push({
-        id: "productType",
-        name: t("productType"),
-        options: productTypes.map(type => ({
-          id: type!,
-          label: t(`productType.${type}`),
-          count: products.filter(p => p.productType === type).length,
-        })),
-      });
-    }
+    // Add other dynamic filters here if needed in the future
+    // Product Type is handled separately as a dropdown in EnhancedProductFilters
 
     return filters;
   }, [products, t]);
@@ -301,7 +296,7 @@ function ClientProductsPageContent({
           name: t("categories"),
           options: allSidebarCategories.map(cat => ({
             id: cat.id,
-            label: cat.label,
+            label: getCategoryTranslation(cat.id, t),
             count: cat.count,
           })),
         },
@@ -355,14 +350,37 @@ function ClientProductsPageContent({
 
     // Filter by price range if price filter is enabled
     if (!state.noPriceFilter) {
-      const [minPrice, maxPrice] = state.priceRangeFilter;
-      filtered = filtered.filter(product => {
-        const price =
-          typeof product.price === "string"
-            ? parseFloat(product.price)
-            : product.price;
-        return price >= minPrice && price <= maxPrice;
-      });
+      // Ensure priceRangeFilter is always an array with valid numbers
+      const priceRange = Array.isArray(state.priceRangeFilter)
+        ? state.priceRangeFilter
+        : [0, 1000];
+
+      const [minPrice, maxPrice] = priceRange;
+
+      // Apply price filter if we have valid numbers
+      // Remove the "meaningful range" check as it was preventing filtering
+      if (
+        typeof minPrice === "number" &&
+        typeof maxPrice === "number" &&
+        !isNaN(minPrice) &&
+        !isNaN(maxPrice) &&
+        minPrice >= 0 &&
+        maxPrice > minPrice
+      ) {
+        filtered = filtered.filter(product => {
+          const price =
+            typeof product.price === "string"
+              ? parseFloat(product.price)
+              : product.price;
+
+          // Skip products with invalid prices
+          if (isNaN(price) || price <= 0) {
+            return false;
+          }
+
+          return price >= minPrice && price <= maxPrice;
+        });
+      }
     }
 
     // Filter by age group

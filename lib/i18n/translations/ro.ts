@@ -519,6 +519,13 @@ export const ro = {
   mathCategoryDesc:
     "Transformă matematica într-o aventură captivantă! Jucăriile și jocurile noastre matematice fac algebra, geometria, aritmetica și logica distractivă și accesibilă. Prin puzzle-uri interactive, jocuri strategice și instrumente vizuale, copiii învață concepte matematice complexe într-un mod intuitiv și memorabil. Aceste produse dezvoltă gândirea logică, abilitățile de calcul mental, raționamentul spațial și încrederea în rezolvarea problemelor matematice. Perfecte pentru construirea unei baze matematice solide și pentru cultivarea dragostei pentru numere!",
 
+  // Additional category descriptions
+  technologyDescription:
+    "Descoperă jucării tehnologice de ultimă generație care pregătesc copilul pentru viitorul digital.",
+  mathCategory: "Matematică",
+  "educational-booksCategory": "Cărți Educaționale",
+  showingProducts: "Se afișează {count} produse",
+
   // Footer specific translations
   shop: "Magazin",
   company: "Companie",
@@ -868,6 +875,28 @@ export const ro = {
   "Filter by Category": "Filtrează după Categorie",
   stemCategory: "Categorie STEM",
   productType: "Tip Produs",
+
+  // Sorting options
+  relevance: "Relevanță",
+  price_asc: "Preț: De la Mic la Mare",
+  price_desc: "Preț: De la Mare la Mic",
+  newest: "Cele mai Noi",
+  rating: "Cele mai Bine Evaluate",
+  bestselling: "Cele mai Vândute",
+  priceLowToHigh: "Preț: De la Mic la Mare",
+  priceHighToLow: "Preț: De la Mare la Mic",
+
+  // Rating filters
+  "5 Stars & Up": "5 Stele și Mai Mult",
+  "4 Stars & Up": "4 Stele și Mai Mult",
+  "3 Stars & Up": "3 Stele și Mai Mult",
+  "2 Stars & Up": "2 Stele și Mai Mult",
+  "1 Star & Up": "1 Stea și Mai Mult",
+
+  // Price filter labels
+  "No price filter": "Fără filtru de preț",
+  "Price range": "Interval de preț",
+  "Enable price filter": "Activează filtrul de preț",
   stemToy: "Jucărie STEM",
   educationalBook: "Carte Educațională",
   diyKit: "Kit DIY",
@@ -1444,11 +1473,27 @@ export const ro = {
   "ageGroup.TEENS_13_PLUS": "Adolescenți (13+ ani)",
 
   // Product Type translations
+  allTypes: "Toate Tipurile",
   "productType.ROBOTICS": "Robotică",
   "productType.PUZZLES": "Puzzle-uri",
   "productType.CONSTRUCTION_SETS": "Seturi de Construcție",
   "productType.EXPERIMENT_KITS": "Kituri de Experimente",
   "productType.BOARD_GAMES": "Jocuri de Masă",
+
+  // Learning Outcome translations
+  learningOutcomes: "Rezultate de Învățare",
+  "learningOutcome.PROBLEM_SOLVING": "Rezolvarea Problemelor",
+  "learningOutcome.CREATIVITY": "Creativitate",
+  "learningOutcome.CRITICAL_THINKING": "Gândire Critică",
+  "learningOutcome.MOTOR_SKILLS": "Abilități Motorii",
+  "learningOutcome.LOGIC": "Logică",
+
+  // Special Category translations
+  specialCategories: "Categorii Speciale",
+  "specialCategory.NEW_ARRIVALS": "Noutăți",
+  "specialCategory.BEST_SELLERS": "Cele Mai Vândute",
+  "specialCategory.GIFT_IDEAS": "Idei de Cadouri",
+  "specialCategory.SALE_ITEMS": "Produse la Reducere",
 
   // Error messages
   error: {

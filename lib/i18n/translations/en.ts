@@ -501,6 +501,13 @@ export const en = {
   mathCategoryDesc:
     "Transform mathematics into a captivating adventure! Our mathematical toys and games make algebra, geometry, arithmetic, and logic fun and accessible. Through interactive puzzles, strategic games, and visual tools, children learn complex mathematical concepts in an intuitive and memorable way. These products develop logical thinking, mental calculation skills, spatial reasoning, and confidence in solving mathematical problems. Perfect for building a solid mathematical foundation and cultivating a love for numbers!",
 
+  // Additional category descriptions
+  technologyDescription:
+    "Discover cutting-edge technology toys that prepare your child for the digital future.",
+  mathCategory: "Mathematics",
+  "educational-booksCategory": "Educational Books",
+  showingProducts: "Showing {count} products",
+
   // Footer specific translations
   shop: "Shop",
   company: "Company",
@@ -841,6 +848,59 @@ export const en = {
   applyFilters: "Apply Filters",
   stemCategory: "STEM Category",
   productType: "Product Type",
+
+  // Age Group translations
+  ageGroup: "Age Group",
+  "ageGroup.TODDLERS_1_3": "Toddlers (1-3 years)",
+  "ageGroup.PRESCHOOL_3_5": "Preschool (3-5 years)",
+  "ageGroup.ELEMENTARY_6_8": "Elementary (6-8 years)",
+  "ageGroup.MIDDLE_SCHOOL_9_12": "Middle School (9-12 years)",
+  "ageGroup.TEENS_13_PLUS": "Teens (13+ years)",
+
+  // Product Type translations
+  allTypes: "All Types",
+  "productType.ROBOTICS": "Robotics",
+  "productType.PUZZLES": "Puzzles",
+  "productType.CONSTRUCTION_SETS": "Construction Sets",
+  "productType.EXPERIMENT_KITS": "Experiment Kits",
+  "productType.BOARD_GAMES": "Board Games",
+
+  // Learning Outcome translations
+  learningOutcomes: "Learning Outcomes",
+  "learningOutcome.PROBLEM_SOLVING": "Problem Solving",
+  "learningOutcome.CREATIVITY": "Creativity",
+  "learningOutcome.CRITICAL_THINKING": "Critical Thinking",
+  "learningOutcome.MOTOR_SKILLS": "Motor Skills",
+  "learningOutcome.LOGIC": "Logic",
+
+  // Special Category translations
+  specialCategories: "Special Categories",
+  "specialCategory.NEW_ARRIVALS": "New Arrivals",
+  "specialCategory.BEST_SELLERS": "Best Sellers",
+  "specialCategory.GIFT_IDEAS": "Gift Ideas",
+  "specialCategory.SALE_ITEMS": "Sale Items",
+
+  // Sorting options
+  relevance: "Relevance",
+  price_asc: "Price: Low to High",
+  price_desc: "Price: High to Low",
+  newest: "Newest First",
+  rating: "Highest Rated",
+  bestselling: "Bestselling",
+  priceLowToHigh: "Price: Low to High",
+  priceHighToLow: "Price: High to Low",
+
+  // Rating filters
+  "5 Stars & Up": "5 Stars & Up",
+  "4 Stars & Up": "4 Stars & Up",
+  "3 Stars & Up": "3 Stars & Up",
+  "2 Stars & Up": "2 Stars & Up",
+  "1 Star & Up": "1 Star & Up",
+
+  // Price filter labels
+  "No price filter": "No price filter",
+  "Price range": "Price range",
+  "Enable price filter": "Enable price filter",
   stemToy: "STEM Toy",
   educationalBook: "Educational Book",
   diyKit: "DIY Kit",

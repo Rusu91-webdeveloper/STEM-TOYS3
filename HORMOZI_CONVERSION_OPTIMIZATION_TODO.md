@@ -5,7 +5,7 @@
 Transform the entire STEM toys e-commerce website using Alex Hormozi's proven
 conversion optimization principles. This is a comprehensive conversion rate
 optimization project that will increase conversions by 80-120% across all
-critical pages.
+critical pages. pnpm run dev
 
 ## ✅ COMPLETED PHASE: Homepage Transformation
 

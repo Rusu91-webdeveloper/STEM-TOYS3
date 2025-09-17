@@ -93,6 +93,7 @@ export function MobileFiltersModal({
             onCloseMobile={undefined}
             className="block"
             isInsideModal={true}
+            t={t}
           />
         </div>
 

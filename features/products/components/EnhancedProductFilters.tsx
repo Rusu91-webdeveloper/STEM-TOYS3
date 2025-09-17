@@ -52,7 +52,7 @@ export interface EnhancedProductFiltersProps {
   priceRange?: {
     min: number;
     max: number;
-    current: PriceRange;
+    current: [number, number];
   };
   selectedCategories?: string[];
   selectedFilters?: Record<string, string[]>;
@@ -63,7 +63,7 @@ export interface EnhancedProductFiltersProps {
   selectedSpecialCategories?: string[];
   onCategoryChange?: (categoryId: string) => void;
   onFilterChange?: (filterId: string, optionId: string) => void;
-  onPriceChange?: (range: PriceRange) => void;
+  onPriceChange?: (range: [number, number]) => void;
   onNoPriceFilterChange?: (checked: boolean) => void;
   onClearFilters?: () => void;
   onCloseMobile?: () => void;
@@ -73,6 +73,7 @@ export interface EnhancedProductFiltersProps {
   onSpecialCategoriesChange?: (specialCategories: string[]) => void;
   className?: string;
   isInsideModal?: boolean; // New prop to indicate if component is inside a modal
+  t?: (key: string, fallback?: string) => string; // Translation function
 }
 
 export function EnhancedProductFilters({
@@ -96,6 +97,7 @@ export function EnhancedProductFilters({
   onSpecialCategoriesChange,
   className,
   isInsideModal = false,
+  t,
 }: EnhancedProductFiltersProps) {
   const [localPriceRange, setLocalPriceRange] = useState<PriceRange>(() => {
     // Safe initialization with NaN checks
@@ -141,8 +143,8 @@ export function EnhancedProductFilters({
       0
     ) +
     (!noPriceFilter &&
-    (priceRange?.current.min !== priceRange?.min ||
-      priceRange?.current.max !== priceRange?.max)
+    (priceRange?.current?.[0] !== priceRange?.min ||
+      priceRange?.current?.[1] !== priceRange?.max)
       ? 1
       : 0) +
     selectedLearningOutcomes.length +
@@ -158,7 +160,7 @@ export function EnhancedProductFilters({
   // Apply price range filter when done changing
   const handlePriceChangeComplete = () => {
     if (onPriceChange) {
-      onPriceChange(localPriceRange);
+      onPriceChange([localPriceRange.min, localPriceRange.max]);
     }
   };
 
@@ -285,7 +287,7 @@ export function EnhancedProductFilters({
             isInsideModal && "text-xs"
           )}
         >
-          Learning Outcomes
+          {t ? t("learningOutcomes", "Learning Outcomes") : "Learning Outcomes"}
         </h3>
         <div
           className={cn(
@@ -293,43 +295,50 @@ export function EnhancedProductFilters({
             isInsideModal && "space-y-1 sm:space-y-1.5"
           )}
         >
-          {Object.entries(LEARNING_OUTCOME_DISPLAY_NAMES).map(
-            ([key, label]) => (
-              <div key={key} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`learning-outcome-${key}`}
-                  checked={selectedLearningOutcomes.includes(key)}
-                  onCheckedChange={checked => {
-                    if (onLearningOutcomesChange) {
-                      if (checked) {
-                        onLearningOutcomesChange([
-                          ...selectedLearningOutcomes,
-                          key,
-                        ]);
-                      } else {
-                        onLearningOutcomesChange(
-                          selectedLearningOutcomes.filter(lo => lo !== key)
-                        );
-                      }
+          {Object.keys(LEARNING_OUTCOME_DISPLAY_NAMES).map(key => (
+            <div key={key} className="flex items-center space-x-2">
+              <Checkbox
+                id={`learning-outcome-${key}`}
+                checked={selectedLearningOutcomes.includes(key)}
+                onCheckedChange={checked => {
+                  if (onLearningOutcomesChange) {
+                    if (checked) {
+                      onLearningOutcomesChange([
+                        ...selectedLearningOutcomes,
+                        key,
+                      ]);
+                    } else {
+                      onLearningOutcomesChange(
+                        selectedLearningOutcomes.filter(lo => lo !== key)
+                      );
                     }
-                  }}
-                  className={cn(
-                    "h-3.5 w-3.5 sm:h-4 sm:w-4",
-                    isInsideModal && "h-3 w-3 sm:h-3.5 sm:w-3.5"
-                  )}
-                />
-                <Label
-                  htmlFor={`learning-outcome-${key}`}
-                  className={cn(
-                    "flex-grow text-xs sm:text-sm",
-                    isInsideModal && "text-xs"
-                  )}
-                >
-                  {label}
-                </Label>
-              </div>
-            )
-          )}
+                  }
+                }}
+                className={cn(
+                  "h-3.5 w-3.5 sm:h-4 sm:w-4",
+                  isInsideModal && "h-3 w-3 sm:h-3.5 sm:w-3.5"
+                )}
+              />
+              <Label
+                htmlFor={`learning-outcome-${key}`}
+                className={cn(
+                  "flex-grow text-xs sm:text-sm",
+                  isInsideModal && "text-xs"
+                )}
+              >
+                {t
+                  ? t(
+                      `learningOutcome.${key}`,
+                      LEARNING_OUTCOME_DISPLAY_NAMES[
+                        key as keyof typeof LEARNING_OUTCOME_DISPLAY_NAMES
+                      ]
+                    )
+                  : LEARNING_OUTCOME_DISPLAY_NAMES[
+                      key as keyof typeof LEARNING_OUTCOME_DISPLAY_NAMES
+                    ]}
+              </Label>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -346,7 +355,7 @@ export function EnhancedProductFilters({
             isInsideModal && "text-xs"
           )}
         >
-          Product Type
+          {t ? t("productType", "Product Type") : "Product Type"}
         </h3>
         <Select
           value={selectedProductType ?? "all"}
@@ -361,10 +370,21 @@ export function EnhancedProductFilters({
             <SelectValue placeholder="Select product type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            {Object.entries(PRODUCT_TYPE_DISPLAY_NAMES).map(([key, label]) => (
+            <SelectItem value="all">
+              {t ? t("allTypes", "All Types") : "All Types"}
+            </SelectItem>
+            {Object.keys(PRODUCT_TYPE_DISPLAY_NAMES).map(key => (
               <SelectItem key={key} value={key}>
-                {label}
+                {t
+                  ? t(
+                      `productType.${key}`,
+                      PRODUCT_TYPE_DISPLAY_NAMES[
+                        key as keyof typeof PRODUCT_TYPE_DISPLAY_NAMES
+                      ]
+                    )
+                  : PRODUCT_TYPE_DISPLAY_NAMES[
+                      key as keyof typeof PRODUCT_TYPE_DISPLAY_NAMES
+                    ]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -384,7 +404,9 @@ export function EnhancedProductFilters({
             isInsideModal && "text-xs"
           )}
         >
-          Special Categories
+          {t
+            ? t("specialCategories", "Special Categories")
+            : "Special Categories"}
         </h3>
         <div
           className={cn(
@@ -392,43 +414,50 @@ export function EnhancedProductFilters({
             isInsideModal && "space-y-1 sm:space-y-1.5"
           )}
         >
-          {Object.entries(SPECIAL_CATEGORY_DISPLAY_NAMES).map(
-            ([key, label]) => (
-              <div key={key} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`special-category-${key}`}
-                  checked={selectedSpecialCategories.includes(key)}
-                  onCheckedChange={checked => {
-                    if (onSpecialCategoriesChange) {
-                      if (checked) {
-                        onSpecialCategoriesChange([
-                          ...selectedSpecialCategories,
-                          key,
-                        ]);
-                      } else {
-                        onSpecialCategoriesChange(
-                          selectedSpecialCategories.filter(sc => sc !== key)
-                        );
-                      }
+          {Object.keys(SPECIAL_CATEGORY_DISPLAY_NAMES).map(key => (
+            <div key={key} className="flex items-center space-x-2">
+              <Checkbox
+                id={`special-category-${key}`}
+                checked={selectedSpecialCategories.includes(key)}
+                onCheckedChange={checked => {
+                  if (onSpecialCategoriesChange) {
+                    if (checked) {
+                      onSpecialCategoriesChange([
+                        ...selectedSpecialCategories,
+                        key,
+                      ]);
+                    } else {
+                      onSpecialCategoriesChange(
+                        selectedSpecialCategories.filter(sc => sc !== key)
+                      );
                     }
-                  }}
-                  className={cn(
-                    "h-3.5 w-3.5 sm:h-4 sm:w-4",
-                    isInsideModal && "h-3 w-3 sm:h-3.5 sm:w-3.5"
-                  )}
-                />
-                <Label
-                  htmlFor={`special-category-${key}`}
-                  className={cn(
-                    "flex-grow text-xs sm:text-sm",
-                    isInsideModal && "text-xs"
-                  )}
-                >
-                  {label}
-                </Label>
-              </div>
-            )
-          )}
+                  }
+                }}
+                className={cn(
+                  "h-3.5 w-3.5 sm:h-4 sm:w-4",
+                  isInsideModal && "h-3 w-3 sm:h-3.5 sm:w-3.5"
+                )}
+              />
+              <Label
+                htmlFor={`special-category-${key}`}
+                className={cn(
+                  "flex-grow text-xs sm:text-sm",
+                  isInsideModal && "text-xs"
+                )}
+              >
+                {t
+                  ? t(
+                      `specialCategory.${key}`,
+                      SPECIAL_CATEGORY_DISPLAY_NAMES[
+                        key as keyof typeof SPECIAL_CATEGORY_DISPLAY_NAMES
+                      ]
+                    )
+                  : SPECIAL_CATEGORY_DISPLAY_NAMES[
+                      key as keyof typeof SPECIAL_CATEGORY_DISPLAY_NAMES
+                    ]}
+              </Label>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -642,9 +671,16 @@ export function EnhancedProductFilters({
             variant="outline"
             className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6"
           >
-            {LEARNING_OUTCOME_DISPLAY_NAMES[
-              outcome as keyof typeof LEARNING_OUTCOME_DISPLAY_NAMES
-            ] || outcome}
+            {t
+              ? t(
+                  `learningOutcome.${outcome}`,
+                  LEARNING_OUTCOME_DISPLAY_NAMES[
+                    outcome as keyof typeof LEARNING_OUTCOME_DISPLAY_NAMES
+                  ] || outcome
+                )
+              : LEARNING_OUTCOME_DISPLAY_NAMES[
+                  outcome as keyof typeof LEARNING_OUTCOME_DISPLAY_NAMES
+                ] || outcome}
             <X
               className="h-2.5 w-2.5 sm:h-3 sm:w-3 cursor-pointer"
               onClick={() =>
@@ -661,9 +697,16 @@ export function EnhancedProductFilters({
             variant="outline"
             className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6"
           >
-            {PRODUCT_TYPE_DISPLAY_NAMES[
-              selectedProductType as keyof typeof PRODUCT_TYPE_DISPLAY_NAMES
-            ] || selectedProductType}
+            {t
+              ? t(
+                  `productType.${selectedProductType}`,
+                  PRODUCT_TYPE_DISPLAY_NAMES[
+                    selectedProductType as keyof typeof PRODUCT_TYPE_DISPLAY_NAMES
+                  ] || selectedProductType
+                )
+              : PRODUCT_TYPE_DISPLAY_NAMES[
+                  selectedProductType as keyof typeof PRODUCT_TYPE_DISPLAY_NAMES
+                ] || selectedProductType}
             <X
               className="h-2.5 w-2.5 sm:h-3 sm:w-3 cursor-pointer"
               onClick={() => onProductTypeChange?.("all")}
@@ -677,9 +720,16 @@ export function EnhancedProductFilters({
             variant="outline"
             className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6"
           >
-            {SPECIAL_CATEGORY_DISPLAY_NAMES[
-              category as keyof typeof SPECIAL_CATEGORY_DISPLAY_NAMES
-            ] || category}
+            {t
+              ? t(
+                  `specialCategory.${category}`,
+                  SPECIAL_CATEGORY_DISPLAY_NAMES[
+                    category as keyof typeof SPECIAL_CATEGORY_DISPLAY_NAMES
+                  ] || category
+                )
+              : SPECIAL_CATEGORY_DISPLAY_NAMES[
+                  category as keyof typeof SPECIAL_CATEGORY_DISPLAY_NAMES
+                ] || category}
             <X
               className="h-2.5 w-2.5 sm:h-3 sm:w-3 cursor-pointer"
               onClick={() =>
@@ -718,21 +768,18 @@ export function EnhancedProductFilters({
         )}
 
         {!noPriceFilter &&
-          (priceRange?.current.min !== priceRange?.min ||
-            priceRange?.current.max !== priceRange?.max) && (
+          (priceRange?.current?.[0] !== priceRange?.min ||
+            priceRange?.current?.[1] !== priceRange?.max) && (
             <Badge
               variant="outline"
               className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6"
             >
-              {formatPrice(priceRange!.current.min)} -{" "}
-              {formatPrice(priceRange!.current.max)}
+              {formatPrice(priceRange!.current[0])} -{" "}
+              {formatPrice(priceRange!.current[1])}
               <X
                 className="h-2.5 w-2.5 sm:h-3 sm:w-3 cursor-pointer"
                 onClick={() =>
-                  onPriceChange?.({
-                    min: priceRange!.min,
-                    max: priceRange!.max,
-                  })
+                  onPriceChange?.([priceRange!.min, priceRange!.max])
                 }
               />
             </Badge>

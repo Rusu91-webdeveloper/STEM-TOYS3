@@ -10,6 +10,11 @@ import {
   Boxes,
   LogIn,
   Building2,
+  Home,
+  Package,
+  Grid3X3,
+  BookOpen,
+  Info,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -25,12 +30,16 @@ import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation, TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-const navigation: { name: TranslationKey | string; href: string }[] = [
-  { name: "home", href: "/" },
-  { name: "products", href: "/products" },
-  { name: "categories", href: "/categories" },
-  { name: "blog", href: "/blog" },
-  { name: "about", href: "/about" },
+const navigation: {
+  name: TranslationKey | string;
+  href: string;
+  icon: typeof Home;
+}[] = [
+  { name: "home", href: "/", icon: Home },
+  { name: "products", href: "/products", icon: Package },
+  { name: "categories", href: "/categories", icon: Grid3X3 },
+  { name: "blog", href: "/blog", icon: BookOpen },
+  { name: "about", href: "/about", icon: Info },
 ];
 
 export default function Header() {
@@ -206,33 +215,45 @@ export default function Header() {
 
               {/* Navigation Links */}
               <nav className="flex items-center space-x-2 2xl:space-x-3">
-                {navigation.map(item => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "relative group px-3 2xl:px-4 py-2 text-sm 2xl:text-base font-medium transition-all duration-200 rounded-md cursor-pointer whitespace-nowrap",
-                      pathname === item.href
-                        ? "text-indigo-700 bg-indigo-50 shadow-sm"
-                        : "text-gray-700 hover:text-indigo-600 hover:bg-indigo-50/50"
-                    )}
-                    data-conversion="cta"
-                    data-conversion-type="click"
-                    data-conversion-category="nav"
-                    data-conversion-action="header_link_click"
-                    data-conversion-element={`header_${typeof item.name === "string" ? item.name : String(item.name)}`}
-                  >
-                    <span className="relative capitalize">
-                      {typeof item.name === "string" ? item.name : t(item.name)}
-                      <span
+                {navigation.map(item => {
+                  const IconComponent = item.icon;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={cn(
+                        "relative group px-3 2xl:px-4 py-2 text-sm 2xl:text-base font-medium transition-all duration-200 rounded-md cursor-pointer whitespace-nowrap flex items-center gap-2",
+                        pathname === item.href
+                          ? "text-indigo-700 bg-indigo-50 shadow-sm"
+                          : "text-gray-700 hover:text-indigo-600 hover:bg-indigo-50/50"
+                      )}
+                      data-conversion="cta"
+                      data-conversion-type="click"
+                      data-conversion-category="nav"
+                      data-conversion-action="header_link_click"
+                      data-conversion-element={`header_${typeof item.name === "string" ? item.name : String(item.name)}`}
+                    >
+                      {/* Icon - visible on big screens */}
+                      <IconComponent
                         className={cn(
-                          "absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-200 group-hover:w-full",
-                          pathname === item.href ? "w-full" : ""
+                          "w-4 h-4 2xl:w-5 2xl:h-5 transition-colors duration-200 hidden lg:block",
+                          pathname === item.href
+                            ? "text-indigo-700"
+                            : "text-gray-500 group-hover:text-indigo-600"
                         )}
-                      ></span>
-                    </span>
-                  </Link>
-                ))}
+                      />
+                      <span className="relative">
+                        {t(item.name)}
+                        <span
+                          className={cn(
+                            "absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-200 group-hover:w-full",
+                            pathname === item.href ? "w-full" : ""
+                          )}
+                        ></span>
+                      </span>
+                    </Link>
+                  );
+                })}
               </nav>
             </div>
 
@@ -333,24 +354,35 @@ export default function Header() {
                 <div className="space-y-0.5">
                   {navigation
                     .filter(item => item.href !== "/products")
-                    .map(item => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={cn(
-                          "flex rounded-md px-3 py-3 text-sm font-medium transition-all duration-200 cursor-pointer min-h-[44px] items-center group",
-                          pathname === item.href
-                            ? "bg-indigo-50 text-indigo-700 border-l-2 border-indigo-500"
-                            : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600 active:bg-gray-100"
-                        )}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <span className="capitalize">{t(item.name)}</span>
-                        {pathname === item.href && (
-                          <div className="ml-auto w-2 h-2 bg-indigo-500 rounded-full" />
-                        )}
-                      </Link>
-                    ))}
+                    .map(item => {
+                      const IconComponent = item.icon;
+                      return (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className={cn(
+                            "flex rounded-md px-3 py-3 text-sm font-medium transition-all duration-200 cursor-pointer min-h-[44px] items-center group gap-3",
+                            pathname === item.href
+                              ? "bg-indigo-50 text-indigo-700 border-l-2 border-indigo-500"
+                              : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600 active:bg-gray-100"
+                          )}
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <IconComponent
+                            className={cn(
+                              "w-5 h-5 transition-colors duration-200",
+                              pathname === item.href
+                                ? "text-indigo-700"
+                                : "text-gray-500 group-hover:text-indigo-600"
+                            )}
+                          />
+                          <span>{t(item.name)}</span>
+                          {pathname === item.href && (
+                            <div className="ml-auto w-2 h-2 bg-indigo-500 rounded-full" />
+                          )}
+                        </Link>
+                      );
+                    })}
                 </div>
 
                 {/* Admin Navigation in Mobile Menu */}

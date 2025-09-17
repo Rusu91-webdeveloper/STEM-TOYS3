@@ -88,7 +88,7 @@ const initialState: FilterState = {
   selectedCategories: [],
   selectedFilters: {},
   priceRangeFilter: [0, 1000],
-  noPriceFilter: false, // Price filter enabled by default
+  noPriceFilter: true, // Price filter disabled by default - users see all products initially
   selectedAgeGroup: "",
   selectedLearningOutcomes: [],
   selectedProductType: "",
@@ -212,6 +212,8 @@ export function useProductFilters() {
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
     console.log("Parsing price range from URL:", { minPrice, maxPrice });
+
+    let hasPriceParams = false;
     if (minPrice && maxPrice) {
       const parsedMin = parseInt(minPrice, 10);
       const parsedMax = parseInt(maxPrice, 10);
@@ -224,6 +226,7 @@ export function useProductFilters() {
         parsedMax > parsedMin
       ) {
         urlState.priceRangeFilter = [parsedMin, parsedMax];
+        hasPriceParams = true;
         console.log("Set price range from URL:", [parsedMin, parsedMax]);
       } else {
         console.log("Invalid price range, using default");
@@ -269,13 +272,15 @@ export function useProductFilters() {
         .filter(Boolean);
     }
 
-    // Parse noPriceFilter - default to false (enabled) if not specified
+    // Parse noPriceFilter - enable filter if price params exist, otherwise disable
     const noPriceFilterParam = searchParams.get("noPriceFilter");
     if (noPriceFilterParam) {
       urlState.noPriceFilter = noPriceFilterParam === "true";
     } else {
-      // If noPriceFilter is not in URL, default to false (price filter enabled)
-      urlState.noPriceFilter = false;
+      // If noPriceFilter is not in URL:
+      // - Enable filter if price parameters exist (user has set a price range)
+      // - Disable filter if no price parameters (show all products initially)
+      urlState.noPriceFilter = !hasPriceParams;
     }
 
     console.log("Dispatching URL state update:", urlState);
@@ -332,9 +337,13 @@ export function useProductFilters() {
       );
     }
 
-    // Add noPriceFilter to URL only when it's true (disabled)
-    if (state.noPriceFilter) {
-      params.set("noPriceFilter", "true");
+    // Add noPriceFilter to URL only when it's explicitly set to false (enabled)
+    // When true (disabled), we don't add it to keep URLs clean
+    if (
+      !state.noPriceFilter &&
+      (state.priceRangeFilter[0] > 0 || state.priceRangeFilter[1] < 1000)
+    ) {
+      params.set("noPriceFilter", "false");
     }
 
     const newURL = params.toString() ? `?${params.toString()}` : "";

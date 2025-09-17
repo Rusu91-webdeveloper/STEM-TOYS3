@@ -147,6 +147,7 @@ export function ProductsSidebar({
           onClearFilters={handleClearFilters}
           onCloseMobile={() => setMobileFiltersOpen(false)}
           isInsideModal={false}
+          t={t}
         />
       </div>
     </div>

@@ -116,6 +116,9 @@ export function EnhancedProductSearch({
         if (response.ok) {
           const data = await response.json();
           setTrendingSearches(data.trending || []);
+        } else {
+          // Handle non-successful responses gracefully
+          console.warn(`Trending searches API returned ${response.status}`);
         }
       } catch (error) {
         console.error("Failed to load trending searches:", error);
@@ -145,9 +148,14 @@ export function EnhancedProductSearch({
         if (response.ok) {
           const data = await response.json();
           setSuggestions(data.suggestions || []);
+        } else {
+          // Handle non-successful responses gracefully
+          console.warn(`Suggestions API returned ${response.status}`);
+          setSuggestions([]);
         }
       } catch (error) {
         console.error("Failed to fetch suggestions:", error);
+        setSuggestions([]);
       } finally {
         setIsLoading(false);
       }

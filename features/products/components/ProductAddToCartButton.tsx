@@ -65,7 +65,15 @@ export function ProductAddToCartButton({
     if (isBook && product.slug) {
       setLanguagesLoading(true);
       fetch(`/api/books/${product.slug}/languages`)
-        .then(response => response.json())
+        .then(response => {
+          // Only parse JSON if the response is successful
+          if (response.ok) {
+            return response.json();
+          } else {
+            // For non-successful responses, return null instead of trying to parse JSON
+            return Promise.resolve({ availableLanguages: [] });
+          }
+        })
         .then(data => {
           const languages = data.availableLanguages || [];
           setHasAvailableLanguages(languages.length > 0);
