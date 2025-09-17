@@ -77,19 +77,19 @@ export function ProductsCategoryNavigation({
                       key={key}
                       variant="outline"
                       size="sm"
-                      className={`flex-1 sm:flex-none h-6 sm:h-12 px-1 sm:px-5 rounded-full text-[10px] sm:text-sm font-medium flex items-center justify-center gap-0.5 sm:gap-2 border-2 transition-all hover:scale-105 ${
+                      className={`flex-1 sm:flex-none h-8 sm:h-12 px-1 sm:px-5 rounded-full text-[10px] sm:text-sm font-bold flex items-center justify-center gap-0.5 sm:gap-2 border-2 transition-all hover:scale-105 shadow-sm ${
                         isSelected ? activeColor : categoryColor
                       }`}
                       onClick={() => handleCategoryChange(key)}
                     >
-                      <CategoryIcon className="h-2.5 w-2.5 sm:h-5 sm:w-5 flex-shrink-0" />
+                      <CategoryIcon className="h-3 w-3 sm:h-5 sm:w-5 flex-shrink-0" />
                       <span className="hidden sm:inline truncate">
                         {t(
                           `${key}Category`,
                           key.charAt(0).toUpperCase() + key.slice(1)
                         )}
                       </span>
-                      <span className="sm:hidden text-[10px] font-bold">
+                      <span className="sm:hidden text-[10px] font-extrabold tracking-tight">
                         {category.letter}
                       </span>
                     </Button>
@@ -101,13 +101,13 @@ export function ProductsCategoryNavigation({
       </div>
 
       {/* After the category icon row, add a Filter button for mobile/tablet */}
-      <div className="md:hidden flex justify-center py-1.5 sm:py-2">
+      <div className="md:hidden flex justify-center py-2 sm:py-3 px-3">
         <Button
-          className="w-full max-w-xs rounded-full bg-primary text-white text-sm sm:text-base font-semibold py-2.5 sm:py-3 shadow-md"
+          className="w-full max-w-xs rounded-full bg-gradient-to-r from-primary to-primary/80 text-white text-sm font-semibold py-2.5 shadow-md hover:shadow-lg transition-all duration-300"
           onClick={() => setMobileFiltersOpen(true)}
           aria-label="Open filters"
         >
-          <SlidersHorizontal className="inline-block mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+          <SlidersHorizontal className="inline-block mr-2 h-4 w-4" />
           {t("filterOptions", "Filtrează")}
         </Button>
       </div>

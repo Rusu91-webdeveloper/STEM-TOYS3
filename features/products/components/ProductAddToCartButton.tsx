@@ -300,16 +300,7 @@ export function ProductAddToCartButton({
         </button>
       </div>
 
-      {stockQuantity > 0 && stockQuantity <= 10 && (
-        <div className="text-premium-sm text-red-600 font-semibold text-center bg-red-50 px-4 py-2 rounded-lg border border-red-200">
-          ⚠️ Only {stockQuantity} left in stock!
-        </div>
-      )}
-      {stockQuantity === 0 && (
-        <div className="text-premium-sm text-red-600 font-semibold text-center bg-red-50 px-4 py-2 rounded-lg border border-red-200">
-          ❌ Out of Stock
-        </div>
-      )}
+      {/* Removed duplicate stock displays as we've moved them to the ProductCard component */}
 
       {/* Helper text for disabled states */}
       {isDisabled && !isAdded && !isLoading && !isOutOfStock && (

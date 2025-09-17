@@ -135,43 +135,43 @@ export function ProductGrid({
   );
 
   return (
-    <div className={cn("space-y-3 sm:space-y-6", className)}>
+    <div className={cn("space-y-2 sm:space-y-6", className)}>
       {(showLayoutToggle || showSortOptions) && (
-        <div className="flex flex-col gap-2 sm:gap-4 sm:flex-row sm:justify-between sm:items-center">
+        <div className="flex flex-col gap-2 sm:gap-4 sm:flex-row sm:justify-between sm:items-center bg-white/80 backdrop-blur-sm p-2 sm:p-3 rounded-xl shadow-sm border border-gray-100/80 mb-2 sm:mb-4">
           {showSortOptions && (
             <div className="w-full sm:w-48">
               <Select value={sortOption} onValueChange={setSortOption}>
-                <SelectTrigger className="h-7 sm:h-10 text-xs sm:text-sm">
+                <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm bg-white border-gray-200 shadow-sm rounded-lg">
                   <SelectValue placeholder={t("sortBy")} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="border-gray-200 shadow-md">
                   <SelectItem
                     value="featured"
-                    className="text-xs sm:text-sm hover:bg-gray-100"
+                    className="text-xs sm:text-sm hover:bg-gray-50"
                   >
                     {t("featured")}
                   </SelectItem>
                   <SelectItem
                     value="price-low"
-                    className="text-xs sm:text-sm hover:bg-gray-100"
+                    className="text-xs sm:text-sm hover:bg-gray-50"
                   >
                     {t("priceLowToHigh")}
                   </SelectItem>
                   <SelectItem
                     value="price-high"
-                    className="text-xs sm:text-sm hover:bg-gray-100"
+                    className="text-xs sm:text-sm hover:bg-gray-50"
                   >
                     {t("priceHighToLow")}
                   </SelectItem>
                   <SelectItem
                     value="newest"
-                    className="text-xs sm:text-sm hover:bg-gray-100"
+                    className="text-xs sm:text-sm hover:bg-gray-50"
                   >
                     {t("newest")}
                   </SelectItem>
                   <SelectItem
                     value="rating"
-                    className="text-xs sm:text-sm hover:bg-gray-100"
+                    className="text-xs sm:text-sm hover:bg-gray-50"
                   >
                     {t("topRated")}
                   </SelectItem>
@@ -188,20 +188,30 @@ export function ProductGrid({
               <Button
                 variant={layout === "grid" ? "default" : "outline"}
                 size="sm"
-                className="px-1 sm:px-2 h-6 sm:h-8 shadow-md hover:shadow-lg transition-shadow duration-300"
+                className={cn(
+                  "px-2 sm:px-3 h-8 sm:h-10 transition-all duration-300",
+                  layout === "grid"
+                    ? "bg-primary text-white shadow-md hover:shadow-lg"
+                    : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                )}
                 onClick={() => setLayout("grid")}
                 aria-label={t("gridView")}
               >
-                <Grid2X2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Grid2X2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 variant={layout === "list" ? "default" : "outline"}
                 size="sm"
-                className="px-1 sm:px-2 h-6 sm:h-8 shadow-md hover:shadow-lg transition-shadow duration-300"
+                className={cn(
+                  "px-2 sm:px-3 h-8 sm:h-10 transition-all duration-300",
+                  layout === "list"
+                    ? "bg-primary text-white shadow-md hover:shadow-lg"
+                    : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                )}
                 onClick={() => setLayout("list")}
                 aria-label={t("listView")}
               >
-                <List className="h-3 w-3 sm:h-4 sm:w-4" />
+                <List className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
             </div>
           )}
@@ -209,24 +219,29 @@ export function ProductGrid({
       )}
 
       {sortedProducts.length === 0 ? (
-        <div className="text-center py-6 sm:py-12 text-muted-foreground text-xs sm:text-sm">
+        <div className="text-center py-6 sm:py-12 text-muted-foreground text-xs sm:text-sm bg-white rounded-xl shadow-sm border border-gray-100/80">
           {t("noProductsFound")}
         </div>
       ) : layout === "grid" ? (
-        <div className={`grid ${gridColsClass} gap-3 sm:gap-6`}>
+        <div className={`grid ${gridColsClass} gap-2 sm:gap-4 lg:gap-6`}>
           {sortedProducts.map((product, index) => (
-            <ProductCard
+            <div
               key={product.id}
-              product={product}
-              className="hover:shadow-lg transition-shadow duration-300"
-              imageHeight={index < aboveFoldItems ? 64 : 48}
-              layout="grid"
-              priority={index < aboveFoldItems}
-            />
+              className="animate-fadeIn"
+              style={{ animationDelay: `${Math.min(index * 0.1, 0.5)}s` }}
+            >
+              <ProductCard
+                product={product}
+                className="hover:shadow-lg transition-shadow duration-300"
+                imageHeight={index < aboveFoldItems ? 64 : 48}
+                layout="grid"
+                priority={index < aboveFoldItems}
+              />
+            </div>
           ))}
         </div>
       ) : (
-        <div className="flex flex-col space-y-2 sm:space-y-6">
+        <div className="flex flex-col space-y-2 sm:space-y-4 lg:space-y-6">
           {sortedProducts.map((product, index) => (
             <ProductCard
               key={product.id}

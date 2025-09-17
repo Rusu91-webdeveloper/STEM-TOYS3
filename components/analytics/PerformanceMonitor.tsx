@@ -19,10 +19,10 @@ export default function PerformanceMonitor({
     initPerformanceTracking({
       sendToGA4: true,
       sendToConsole: enableConsoleLogging,
-      sendToAPI: enableAPILogging,
-      apiEndpoint,
+      sendToAPI: true,
+      apiEndpoint: apiEndpoint || "/api/analytics/web-vitals",
     });
-  }, [enableConsoleLogging, enableAPILogging, apiEndpoint]);
+  }, [enableConsoleLogging, apiEndpoint]);
 
   // This component doesn't render anything
   return null;

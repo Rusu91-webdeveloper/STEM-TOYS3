@@ -82,3 +82,23 @@
   - Discovered During Work:
     - Consider server-side filtering by price as well when fetching a subset, if
       we switch away from fetching all products.
+
+- Homepage Conversion & SEO Optimization (Hormozi)
+  - Description: Improve hero clarity (copy clamp, spacing), code-split
+    below-the-fold sections, and add homepage JSON-LD. Prepare follow-up tasks
+    for trust badges, age quick-links, tests, and performance audits.
+  - Estimated time: 2.5h
+  - Status: In Progress
+  - Date: 2025-09-17
+  - Notes:
+    - Clamped hero headline and subheadline to 2 lines, hid long supporting copy
+      on small screens.
+    - Code-split Value/Risk/Supplier/Mobile optimizer sections with dynamic
+      imports.
+    - Added Organization & WebSite (SearchAction) JSON-LD via `SeoJsonLd`.
+  - Follow-ups (Discovered During Work):
+    - Add compact trust badges row under hero (security, reviews, guarantee).
+    - Add age quick-links row under hero for fast navigation.
+    - Optimize hero image preload/preconnect only if needed; LCP already
+      prioritized.
+    - Add Lighthouse CI and E2E tests for hero CTAs and LCP budget.

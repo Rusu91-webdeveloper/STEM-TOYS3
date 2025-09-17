@@ -9,3 +9,5 @@ export { default as PillarSection } from "./PillarSection";
 export { default as RiskReversalSection } from "./RiskReversalSection";
 export { default as MobileConversionOptimizer } from "./MobileConversionOptimizer";
 export { default as PerformanceOptimizer } from "./PerformanceOptimizer";
+export { default as TrustBadgesRow } from "./TrustBadgesRow";
+export { default as AgeQuickLinksRow } from "./AgeQuickLinksRow";

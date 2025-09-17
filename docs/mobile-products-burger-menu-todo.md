@@ -28,8 +28,8 @@
         MIDDLE_SCHOOL_9_12 → "10–12 ani" - TEENS_13_PLUS → "13+ ani" - On click:
         `router.push("/products?ageGroup=<VALUE>"); setMobileMenuOpen(false)`
   - [ ] Add collapsible "Category" sub-section (state: `categoryOpen`). - On
-        first expand, lazy-load categories from `/api/categories` (map to
-        `{ id: slug, label }`). Cache locally; avoid re-fetch on subsequent
+        first expand, lazy-load categories from `/api/categories` (map toi use
+        Alex `{ id: slug, label }`). Cache locally; avoid re-fetch on subsequent
         opens. - On click:
         `router.push("/products?category=<slug>"); setMobileMenuOpen(false)`.
   - [ ] Add a direct sub-item "Gift Ideas" →

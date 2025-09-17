@@ -5,6 +5,14 @@ import React, { useState } from "react";
 import { getApiUrl } from "@/lib/utils/api-url";
 
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { WebVitalsSnapshot } from "./WebVitalsSnapshot";
 
 interface SalesData {
   daily: number;
@@ -113,14 +121,18 @@ export function ClientAnalytics({
   };
 
   return (
-    <AnalyticsDashboard
-      salesData={salesData}
-      orderStats={orderStats}
-      topSellingProducts={topSellingProducts}
-      salesByCategory={salesByCategory}
-      salesChartData={salesChartData}
-      period={period}
-      onPeriodChange={handlePeriodChange}
-    />
+    <div className="space-y-6">
+      <AnalyticsDashboard
+        salesData={salesData}
+        orderStats={orderStats}
+        topSellingProducts={topSellingProducts}
+        salesByCategory={salesByCategory}
+        salesChartData={salesChartData}
+        period={period}
+        onPeriodChange={handlePeriodChange}
+      />
+
+      <WebVitalsSnapshot />
+    </div>
   );
 }

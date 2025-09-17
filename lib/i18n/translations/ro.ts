@@ -441,8 +441,12 @@ export const ro = {
   // Hormozi Formula Headlines - Outcome focused, not feature focused
   homepageH1:
     "Transformă Copilul Tău Într-un Geniu STEM Fără Luptele cu Temele",
+  // Short, UI-friendly variants
+  homepageH1Short: "Transformă Învățarea în Joacă STEM",
   homepageH1Subtitle:
     "De la 'Nu vreau să învăț!' la 'Mama, pot să fac experimente?' în doar 30 de zile cu jucăriile noastre STEM care fac matematica și știința irezistibile",
+  homepageH1SubtitleShort:
+    "Jucării STEM care fac învățarea irezistibilă, în doar 30 de zile",
 
   // Pain-focused subheadline addressing parent frustrations
   discoverCollection:

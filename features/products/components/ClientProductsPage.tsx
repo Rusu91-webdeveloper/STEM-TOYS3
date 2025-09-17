@@ -574,8 +574,11 @@ function ClientProductsPageContent({
           t={t}
         />
 
-        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-6 relative z-10">
-          <div className="flex flex-col md:flex-row gap-2 sm:gap-6">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6 relative z-10">
+          {/* Premium design element - top wave decoration */}
+          <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 rounded-full opacity-75 hidden sm:block"></div>
+
+          <div className="flex flex-col md:flex-row gap-3 sm:gap-6">
             <ProductFiltersErrorBoundary
               onError={() => {
                 // Fallback: clear filters and reload

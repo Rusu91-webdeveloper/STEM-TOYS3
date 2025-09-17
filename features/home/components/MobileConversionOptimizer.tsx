@@ -17,12 +17,22 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
     // Only run on client side
     if (typeof window === "undefined") return;
 
+    // Restore dismissed state
+    const dismissed = localStorage.getItem("home-sticky-cta-dismissed");
+    if (dismissed === "true") {
+      setIsVisible(false);
+    }
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setScrollY(currentScrollY);
 
       // Show sticky CTA after user scrolls past hero section (400px)
-      setIsVisible(currentScrollY > 400);
+      if (localStorage.getItem("home-sticky-cta-dismissed") === "true") {
+        setIsVisible(false);
+      } else {
+        setIsVisible(currentScrollY > 400);
+      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -75,7 +85,12 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
 
               {/* Close Button */}
               <button
-                onClick={() => setIsVisible(false)}
+                onClick={() => {
+                  setIsVisible(false);
+                  try {
+                    localStorage.setItem("home-sticky-cta-dismissed", "true");
+                  } catch {}
+                }}
                 className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
                 aria-label="Închide"
               >

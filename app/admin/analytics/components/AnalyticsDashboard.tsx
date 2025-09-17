@@ -10,6 +10,7 @@ import {
   Activity,
 } from "lucide-react";
 import React from "react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -113,6 +114,16 @@ export function AnalyticsDashboard({
               <SelectItem value="90">Last 90 days</SelectItem>
             </SelectContent>
           </Select>
+          <Link
+            href="/api/analytics/web-vitals"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open Web Vitals Snapshot in a new tab"
+          >
+            <Button variant="outline" size="sm">
+              Web Vitals Snapshot
+            </Button>
+          </Link>
         </div>
       </div>
 

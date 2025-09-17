@@ -87,10 +87,14 @@ function sendToAPI(metric: WebVitalsMetric, config: WebVitalsConfig) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      ...metric,
+      name: metric.name,
+      value: metric.value,
+      delta: metric.delta,
+      id: metric.id,
+      rating: metric.rating,
+      navigationType: metric.navigationType,
       url: window.location.href,
-      timestamp: Date.now(),
-      userAgent: navigator.userAgent,
+      ts: Date.now(),
     }),
   }).catch(console.error);
 }

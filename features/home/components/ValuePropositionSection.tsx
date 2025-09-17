@@ -44,107 +44,104 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
   ];
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 text-gray-900">
-      <div className="container mx-auto px-4 max-w-7xl">
-        {/* Hormozi Style: Social proof in headline */}
-        <div className="text-center mb-8 sm:mb-12">
-          <span className="inline-block px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-semibold mb-4">
-            Rezultate Dovedite
-          </span>
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 leading-tight">
+    <section className="py-6 sm:py-8 md:py-12 lg:py-16 bg-green-50 text-gray-900">
+      <div className="container mx-auto px-4 max-w-5xl">
+        {/* Simplified headline section */}
+        <div className="text-center mb-4 sm:mb-6 md:mb-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 leading-tight">
             {t("whyChooseTechTots")}
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
-            De la copii care urăsc matematica la viitori inventatori - iată
-            transformările reale
+          {/* Simple subheading */}
+          <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto">
+            {t("provenResults", "Proven Results")} •{" "}
+            {t("thirtyDayGuarantee", "30-Day Guarantee")} •{" "}
+            {t("parentsLoveThisBecause", "Parents Love This")}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-          {cards.map((card, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          {cards.slice(0, 3).map(card => (
             <div
               key={card.key}
-              className="group relative w-full overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 bg-white border border-gray-100"
+              className="group relative w-full overflow-hidden rounded-lg shadow-sm transition-all duration-300 hover:shadow-md bg-white border border-gray-100"
               aria-label={card.title}
               role="region"
             >
-              {/* Transformation Icon */}
-              <div className="absolute top-4 right-4 z-10">
-                <span className="text-2xl sm:text-3xl">{card.icon}</span>
+              {/* Card header with icon */}
+              <div className="px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
+                <span className="text-green-600 font-medium text-sm">
+                  {card.badge}
+                </span>
+                <span className="text-2xl">{card.icon}</span>
               </div>
 
-              {/* Background Image */}
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url(${card.image})` }}
-                aria-hidden="true"
-              />
-              <div
-                className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/70"
-                aria-hidden="true"
-              />
+              {/* Card content */}
+              <div className="p-3 sm:p-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                  {card.title}
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">{card.description}</p>
 
-              {/* Content */}
-              <div className="relative flex min-h-[200px] sm:min-h-[240px] flex-col justify-end p-4 sm:p-6">
-                {/* Badge */}
-                <div className="mb-3 inline-flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-xs sm:text-sm font-semibold text-white/90 bg-white/20 px-2 py-1 rounded-full">
-                    {card.badge}
-                  </span>
-                </div>
-
-                {/* Card Content */}
-                <div className="backdrop-blur-sm bg-white/10 hover:bg-white/20 transition-colors rounded-xl p-4 sm:p-5">
-                  <h3 className="text-sm sm:text-base md:text-lg font-bold text-white drop-shadow-lg mb-2 leading-tight">
-                    {card.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-white/90 leading-relaxed line-clamp-3">
-                    {card.description}
-                  </p>
-
-                  {/* Success Indicator */}
-                  <div className="mt-3 flex items-center gap-2 text-white/80">
-                    <div className="h-5 w-5 rounded-full bg-green-400/20 backdrop-blur-sm flex items-center justify-center">
-                      <svg
-                        className="h-3 w-3 text-green-400"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <span className="text-xs sm:text-sm font-medium">
-                      Rezultat Dovedit
-                    </span>
-                  </div>
+                {/* Simple checkmark */}
+                <div className="mt-auto pt-2 flex items-center gap-2 text-green-600">
+                  <svg
+                    className="h-4 w-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="text-xs font-medium">Rezultat Dovedit</span>
                 </div>
               </div>
-
-              {/* Hover Effect Border */}
-              <div className="absolute inset-0 ring-2 ring-transparent group-hover:ring-green-400/50 rounded-2xl transition-all duration-300" />
             </div>
           ))}
         </div>
 
-        {/* Additional Social Proof */}
-        <div className="mt-12 text-center">
-          <div className="inline-flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg">
-            <div className="flex -space-x-2">
-              <div className="w-8 h-8 bg-green-400 rounded-full border-2 border-white"></div>
-              <div className="w-8 h-8 bg-blue-400 rounded-full border-2 border-white"></div>
-              <div className="w-8 h-8 bg-purple-400 rounded-full border-2 border-white"></div>
-              <div className="w-8 h-8 bg-orange-400 rounded-full border-2 border-white"></div>
+        {/* Simplified Social Proof and SEO Category Links */}
+        <div className="mt-6 sm:mt-8 text-center">
+          <div className="inline-flex items-center gap-2 bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-100">
+            <div className="flex -space-x-1">
+              <div className="w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
+              <div className="w-5 h-5 bg-blue-400 rounded-full border-2 border-white"></div>
+              <div className="w-5 h-5 bg-purple-400 rounded-full border-2 border-white"></div>
             </div>
-            <div className="text-left">
-              <p className="text-sm font-semibold text-gray-900">
-                {t("socialProofNumber")} {t("socialProofText")}
-              </p>
-              <p className="text-xs text-gray-600">În ultimele 6 luni</p>
+            <p className="text-xs sm:text-sm font-medium text-gray-900">
+              {t("socialProofNumber")} {t("socialProofText")}
+            </p>
+          </div>
+
+          {/* Simplified category links */}
+          <div className="mt-4 sm:mt-6 text-center">
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm">
+              <a
+                href="/categories/science"
+                className="text-green-600 hover:underline"
+              >
+                {t("scienceCategory", "Science")}
+              </a>
+              <a
+                href="/categories/technology"
+                className="text-green-600 hover:underline"
+              >
+                {t("technologyCategory", "Technology")}
+              </a>
+              <a
+                href="/categories/engineering"
+                className="text-green-600 hover:underline"
+              >
+                {t("engineeringCategory", "Engineering")}
+              </a>
+              <a
+                href="/categories/mathematics"
+                className="text-green-600 hover:underline"
+              >
+                {t("mathematicsCategory", "Mathematics")}
+              </a>
             </div>
           </div>
         </div>

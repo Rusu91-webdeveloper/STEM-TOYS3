@@ -55,43 +55,50 @@ export function ProductsMainDisplay({
   return (
     <div className="flex-1">
       {/* Main product area with showing products count */}
-      <div className="mb-2 sm:mb-4 px-1 sm:px-2">
-        <p className="text-xs sm:text-sm text-muted-foreground">
+      <div className="mb-2.5 sm:mb-4 px-1 sm:px-2 flex justify-between items-center">
+        <p className="text-xs sm:text-sm text-gray-600 font-medium">
           {t("showingProducts")
             .replace("{0}", filteredProducts.length.toString())
             .replace("{1}", filteredProducts.length.toString())}
         </p>
+        <div className="text-xs sm:text-sm font-semibold text-primary">
+          {filteredProducts.length > 0 && (
+            <span className="bg-primary/10 px-2 py-1 rounded-full">
+              {filteredProducts.length} {t("items")}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Educational categories banner for additional context - only show when filtering */}
+      {/* Enhanced educational categories banner for additional context - only show when filtering */}
       {activeCategory && filteredProducts.length > 0 && (
         <div
-          className={`mb-2 sm:mb-4 p-2 sm:p-3 rounded-xl bg-gradient-to-r 
+          className={`mb-3 sm:mb-5 p-3 sm:p-4 rounded-xl bg-gradient-to-r 
           ${
             activeCategory.id === "science"
-              ? "from-blue-50 to-blue-100 border-blue-200"
+              ? "from-blue-50 to-blue-100 border-blue-100"
               : activeCategory.id === "technology"
-                ? "from-green-50 to-green-100 border-green-200"
+                ? "from-green-50 to-green-100 border-green-100"
                 : activeCategory.id === "engineering"
-                  ? "from-orange-50 to-orange-100 border-orange-200"
-                  : "from-purple-50 to-purple-100 border-purple-200"
+                  ? "from-orange-50 to-orange-100 border-orange-100"
+                  : "from-purple-50 to-purple-100 border-purple-100"
           } border shadow-sm`}
         >
-          <div className="flex flex-col xs:flex-row items-start xs:items-center gap-1.5 sm:gap-3">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div
-              className={`p-1.5 sm:p-3 rounded-full ${
+              className={`p-2 sm:p-3 rounded-full ${
                 activeCategory && categoryInfo[activeCategory.id]
                   ? categoryInfo[activeCategory.id].bgColor
                   : categoryInfo.science.bgColor
-              } flex-shrink-0`}
+              } flex-shrink-0 shadow-sm`}
             >
-              <IconComponent className="h-3 w-3 sm:h-5 sm:w-5 text-white" />
+              <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="text-xs sm:text-base font-semibold mb-0.5 sm:mb-1">
+              <h3 className="text-sm sm:text-base font-bold mb-1">
                 {getLearningTitle()}
               </h3>
-              <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
+              <p className="text-xs sm:text-sm text-gray-700 line-clamp-2">
                 {getLearningDescription()}
               </p>
             </div>
@@ -99,10 +106,10 @@ export function ProductsMainDisplay({
         </div>
       )}
 
-      {/* Products display */}
+      {/* Products display - Enhanced for mobile */}
       <div className={viewMode === "list" ? "space-y-2 sm:space-y-4" : ""}>
         {viewMode === "grid" ? (
-          <div className="bg-gray-50/50 rounded-xl p-1.5 sm:p-4">
+          <div className="rounded-xl">
             <ProductGrid
               products={displayedProducts.map(product => {
                 // If the product name or description contains raw translation keys,
@@ -122,11 +129,11 @@ export function ProductsMainDisplay({
 
                 return modifiedProduct as unknown as Product;
               })}
-              columns={{ sm: 1, md: 2, lg: 3, xl: 3 }}
+              columns={{ sm: 2, md: 2, lg: 3, xl: 3 }}
             />
           </div>
         ) : (
-          <div className="bg-gray-50/50 rounded-xl p-1.5 sm:p-4 space-y-1.5 sm:space-y-3">
+          <div className="space-y-2.5 sm:space-y-4">
             {displayedProducts.map(product => {
               // Get appropriate content for this product if it contains raw translation keys
               let displayName = product.name;
@@ -145,19 +152,27 @@ export function ProductsMainDisplay({
               return (
                 <div
                   key={product.id}
-                  className="flex flex-col xs:flex-row gap-2 sm:gap-4 bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-md transition-shadow relative group"
+                  className="flex flex-col xs:flex-row gap-2 sm:gap-4 bg-white rounded-xl overflow-hidden border border-gray-100/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 relative group animate-fadeIn"
+                  style={{ animationDelay: `${Math.min(index * 0.1, 0.5)}s` }}
                 >
-                  {/* Fun shape decoration - smaller size */}
-                  <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full opacity-80 animate-pulse"></div>
+                  {/* Ribbon for sale items */}
+                  {product.compareAtPrice &&
+                    product.compareAtPrice > product.price && (
+                      <div className="absolute top-0 left-0 w-14 h-14 overflow-hidden">
+                        <div className="absolute transform rotate-45 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold py-1 left-[-35px] top-[15px] w-[130px] text-center shadow-md">
+                          SALE
+                        </div>
+                      </div>
+                    )}
 
                   {/* Product image */}
-                  <div className="relative w-full xs:w-28 sm:w-40 h-28 xs:h-28 sm:h-40 flex-shrink-0 bg-gray-50 rounded-xl xs:rounded-none xs:rounded-l-xl overflow-hidden">
+                  <div className="relative w-full xs:w-32 sm:w-44 h-32 xs:h-32 sm:h-44 flex-shrink-0 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
                     {product.images && product.images.length > 0 ? (
                       <OptimizedProductImage
                         src={product.images[0]}
                         alt={displayName}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
                         priority={false}
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
@@ -171,27 +186,27 @@ export function ProductsMainDisplay({
                   </div>
 
                   {/* Product details */}
-                  <div className="flex-1 p-2 sm:p-4 flex flex-col justify-between">
-                    <div className="mb-1.5 sm:mb-3">
+                  <div className="flex-1 p-2.5 sm:p-4 flex flex-col justify-between relative">
+                    <div>
                       <div className="flex items-start justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-2">
                         <Link
                           href={`/products/${product.slug}`}
-                          className="font-bold text-xs sm:text-base text-gray-900 hover:text-primary transition-colors line-clamp-2 group-hover:underline"
+                          className="font-bold text-sm sm:text-base text-gray-900 hover:text-primary transition-colors line-clamp-2 group-hover:underline"
                         >
                           {displayName}
                         </Link>
                       </div>
 
-                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-1.5 sm:mb-3">
+                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-2 sm:mb-3">
                         {displayDescription}
                       </p>
 
                       {/* Product tags/badges */}
-                      <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-1.5 sm:mb-3">
+                      <div className="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
                         {product.category?.name && (
                           <Badge
                             variant="secondary"
-                            className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 border-blue-200"
+                            className="text-[10px] sm:text-xs px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 shadow-sm rounded-full"
                           >
                             {product.category.name}
                           </Badge>
@@ -199,7 +214,7 @@ export function ProductsMainDisplay({
                         {product.isBook && (
                           <Badge
                             variant="secondary"
-                            className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 border-green-200"
+                            className="text-[10px] sm:text-xs px-1.5 py-0.5 bg-green-50 text-green-700 border border-green-100 shadow-sm rounded-full"
                           >
                             {t("digitalBook")}
                           </Badge>
@@ -207,7 +222,7 @@ export function ProductsMainDisplay({
                         {product.featured && (
                           <Badge
                             variant="secondary"
-                            className="text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-700 border-yellow-200"
+                            className="text-[10px] sm:text-xs px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-100 shadow-sm rounded-full"
                           >
                             {t("featured")}
                           </Badge>
@@ -216,8 +231,8 @@ export function ProductsMainDisplay({
                     </div>
 
                     {/* Price and actions */}
-                    <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-1.5 sm:gap-3">
-                      <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 sm:gap-3 mt-auto">
+                      <div className="flex items-baseline gap-1.5 sm:gap-2">
                         <span className="text-base sm:text-xl font-bold text-primary">
                           {product.price
                             ? `${product.price} RON`
@@ -228,12 +243,24 @@ export function ProductsMainDisplay({
                             {product.compareAtPrice} RON
                           </span>
                         )}
+                        {product.compareAtPrice &&
+                          product.compareAtPrice > product.price && (
+                            <span className="text-xs text-red-500 font-semibold">
+                              -
+                              {Math.round(
+                                ((product.compareAtPrice - product.price) /
+                                  product.compareAtPrice) *
+                                  100
+                              )}
+                              %
+                            </span>
+                          )}
                       </div>
 
                       <div className="flex gap-1.5 sm:gap-2">
                         <Link
                           href={`/products/${product.slug}`}
-                          className="flex-1 xs:flex-initial bg-primary text-white px-2.5 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold hover:bg-primary/90 transition-colors text-center"
+                          className="flex-1 xs:flex-initial bg-gradient-to-br from-primary to-primary/80 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold hover:from-primary/80 hover:to-primary transition-all duration-300 shadow-sm hover:shadow-md"
                         >
                           {t("viewDetails")}
                         </Link>

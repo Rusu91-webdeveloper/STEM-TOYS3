@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect } from "react";
+import { trackEvent as gaTrackEvent } from "@/lib/analytics/ga4";
 import { useABTest, useConversionTracking } from "@/hooks/useABTest";
 
 interface HeroSectionProps {
@@ -30,6 +31,12 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
 
   // General conversion tracking
   const { trackEvent } = useConversionTracking();
+
+  // GA4: hero impression
+  useEffect(() => {
+    gaTrackEvent("hero_impression", { section: "hero" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Get headline based on A/B test variant
   const getHeadline = () => {
@@ -64,47 +71,47 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
       <div className="absolute inset-0 z-0">
         <Image
           src="/images/homepage_hero_banner_01.png"
-          alt={t("discoverCollection")}
+          alt={t("inspireMinds", "Inspire Curious Minds")}
           fill
           priority
-          className="object-cover object-center w-full h-full"
+          className="object-cover object-center w-full h-full brightness-[0.9] contrast-[1.05]"
           sizes="100vw"
           fetchPriority="high"
           placeholder="blur"
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Kcp"
         />
-        {/* Gradient overlay for text readability */}
+        {/* Simplified gradient overlay for text readability */}
         <div
-          className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/30"
+          className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-black/30"
           aria-hidden="true"
         />
       </div>
       {/* Content is perfectly centered and responsive */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 max-w-4xl text-center">
-        {/* Social Proof Badge */}
+        {/* Simplified Social Proof Badge */}
         <div className="mb-4 animate-fade-in">
-          <span className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-medium">
-            <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-green-600/90 text-white text-xs font-medium">
             {t("socialProofNumber")} {t("socialProofText")}
           </span>
         </div>
 
-        {/* Main Headline - A/B Tested */}
-        <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 md:mb-8 drop-shadow-lg animate-fade-in text-white leading-tight">
-          {getHeadline()}
+        {/* Main Headline - A/B Tested (clamped to 2 lines for clarity) */}
+        <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 md:mb-6 drop-shadow-lg animate-fade-in text-white leading-tight line-clamp-2">
+          {/* Prefer short UI headline if available */}
+          {t("homepageH1Short", getHeadline())}
         </h1>
 
-        {/* Subheadline - Transformation focused */}
-        <p className="text-base xs:text-lg sm:text-xl md:text-2xl mb-4 sm:mb-6 max-w-3xl mx-auto drop-shadow-md animate-fade-in text-white/90 leading-relaxed font-medium">
-          {t("homepageH1Subtitle")}
+        {/* Subheadline - Transformation focused (clamped to 2 lines) */}
+        <p className="text-base xs:text-lg sm:text-xl md:text-2xl mb-3 sm:mb-4 max-w-3xl mx-auto drop-shadow-md animate-fade-in text-white/90 leading-relaxed font-medium line-clamp-2">
+          {t("homepageH1SubtitleShort", t("homepageH1Subtitle"))}
         </p>
 
-        {/* Pain-focused description */}
-        <p className="text-sm xs:text-base sm:text-lg mb-8 sm:mb-10 max-w-2xl mx-auto drop-shadow-md animate-fade-in text-white/80 leading-relaxed">
+        {/* Pain-focused description (hidden on small screens, clamped) */}
+        <p className="hidden sm:block text-sm sm:text-base md:text-lg mb-8 sm:mb-10 max-w-2xl mx-auto drop-shadow-md animate-fade-in text-white/80 leading-relaxed line-clamp-2">
           {t("discoverCollection")}
         </p>
-        {/* Primary CTAs - Hormozi Style */}
-        <div className="flex flex-col xs:flex-row gap-3 sm:gap-4 w-full max-w-xs xs:max-w-none mx-auto items-center justify-center mb-6">
+        {/* Simplified Primary CTAs */}
+        <div className="flex flex-col xs:flex-row gap-3 sm:gap-4 w-full max-w-xs xs:max-w-md mx-auto items-center justify-center mb-6">
           {/* Primary CTA - Free Demo */}
           <Link
             href="/products"
@@ -119,27 +126,30 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
                 element: "primary_button",
                 variant: ctaVariant?.name,
               });
+              gaTrackEvent("hero_cta_click", {
+                element: "primary_button",
+                label: getCTAText(),
+                variant: ctaVariant?.name,
+              });
             }}
-            className="w-full xs:w-auto min-h-[48px] sm:min-h-[52px] px-6 sm:px-8 py-3 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-sm sm:text-base md:text-lg font-bold border-0 relative overflow-hidden group focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-green-700 text-center flex items-center justify-center"
+            className="w-full xs:w-auto min-h-[48px] px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all bg-green-600 hover:bg-green-700 text-white text-sm sm:text-base font-bold border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-green-700 text-center flex items-center justify-center"
           >
             {getCTAText()}
-            <span className="ml-1 sm:ml-2 transform transition-transform group-hover:translate-x-1 inline-block align-middle">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-3 h-3 sm:w-5 sm:h-5 inline-block align-middle"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                />
-              </svg>
-            </span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-4 h-4 ml-2"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+              />
+            </svg>
           </Link>
 
           {/* Secondary CTA - Personalized Recommendations */}
@@ -152,7 +162,13 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
             data-conversion-category="cta"
             data-conversion-action="personalized_recommendations"
             data-conversion-element="hero_secondary_button"
-            className="w-full xs:w-auto min-h-[48px] sm:min-h-[52px] px-6 sm:px-8 py-3 sm:py-4 bg-white/20 backdrop-blur-sm text-white border-2 border-white/30 hover:bg-white/30 hover:border-white/50 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 text-sm sm:text-base md:text-lg font-semibold mt-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent text-center flex items-center justify-center"
+            className="w-full xs:w-auto min-h-[48px] px-6 py-3 bg-white/20 text-white border border-white/30 hover:bg-white/30 rounded-lg text-sm sm:text-base font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent text-center flex items-center justify-center"
+            onClick={() =>
+              gaTrackEvent("hero_secondary_click", {
+                element: "secondary_button",
+                label: t("exploreCategories"),
+              })
+            }
           >
             {t("exploreCategories")}
           </Link>

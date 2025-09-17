@@ -2,6 +2,7 @@
 "use client";
 
 import React, { Suspense } from "react";
+import dynamic from "next/dynamic";
 
 // Import home page components
 import {
@@ -9,13 +10,34 @@ import {
   FeaturedProductsSection,
   FeaturedProductsSkeleton,
   HeroSection,
-  MobileConversionOptimizer,
   PerformanceOptimizer,
   PillarSection,
-  RiskReversalSection,
-  SupplierBanner,
-  ValuePropositionSection,
+  TrustBadgesRow,
+  AgeQuickLinksRow,
 } from "@/features/home/components";
+import SeoJsonLd from "@/components/seo/SeoJsonLd";
+import { getBaseUrl } from "@/lib/site";
+
+// Code-split below-the-fold sections
+const ValuePropositionSection = dynamic(
+  () => import("@/features/home/components/ValuePropositionSection"),
+  { loading: () => null }
+);
+const RiskReversalSection = dynamic(
+  () => import("@/features/home/components/RiskReversalSection"),
+  { loading: () => null }
+);
+const SupplierBanner = dynamic(
+  () =>
+    import("@/features/home/components/SupplierBanner").then(
+      m => m.SupplierBanner
+    ),
+  { loading: () => null }
+);
+const MobileConversionOptimizer = dynamic(
+  () => import("@/features/home/components/MobileConversionOptimizer"),
+  { ssr: false, loading: () => null }
+);
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import type { Product } from "@/types/product";
@@ -76,13 +98,53 @@ export default function HomePageClient({
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
 
+  // Page-scoped JSON-LD
+  const baseUrl = getBaseUrl();
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "TechTots",
+      url: baseUrl,
+      logo: `${baseUrl}/icon.png`,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "TechTots STEM Toys",
+      url: baseUrl,
+      potentialAction: {
+        "@type": "SearchAction",
+        target: `${baseUrl}/products?search={search_term_string}`,
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ];
+
   return (
     <div className="flex flex-col">
+      <SeoJsonLd data={jsonLd} />
       {/* Performance Optimizer - Loads first for optimal Core Web Vitals */}
       <PerformanceOptimizer />
 
       {/* Hero Section with Hero Image - Load immediately */}
       <HeroSection t={t} />
+
+      {/* Combined Quick Access Bar with trust badges and age links */}
+      <div className="-mt-4 sm:-mt-6 mb-4 sm:mb-6">
+        <div className="container mx-auto px-4">
+          <div className="mx-auto w-full max-w-5xl bg-white/95 backdrop-blur shadow-sm border border-gray-100 rounded-2xl p-4 sm:p-6">
+            {/* Trust badges row */}
+            <TrustBadgesRow t={t} />
+
+            {/* Subtle divider */}
+            <div className="my-3 sm:my-4 border-t border-gray-100"></div>
+
+            {/* Age quick links row */}
+            <AgeQuickLinksRow t={t} />
+          </div>
+        </div>
+      </div>
 
       {/* Pillar Section - Key content themes */}
       <PillarSection />

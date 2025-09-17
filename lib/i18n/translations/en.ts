@@ -423,8 +423,12 @@ export const en = {
   // Hormozi Formula Headlines - Outcome focused, not feature focused
   homepageH1:
     "Transform Your Child Into a STEM Genius Without Homework Battles",
+  // Short, UI-friendly variants
+  homepageH1Short: "Turn Learning Into Irresistible STEM",
   homepageH1Subtitle:
     "From 'I don't want to learn!' to 'Mom, can I do experiments?' in just 30 days with our STEM toys that make math and science irresistible",
+  homepageH1SubtitleShort:
+    "STEM toys that make learning irresistible in 30 days",
 
   // Pain-focused subheadline addressing parent frustrations
   discoverCollection:
