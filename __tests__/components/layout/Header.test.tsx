@@ -5,10 +5,12 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import Header from "@/components/layout/Header";
+import { useRouter } from "next/navigation";
 
 // Mock Next.js navigation
 jest.mock("next/navigation", () => ({
   usePathname: jest.fn(),
+  useRouter: jest.fn(() => ({ push: jest.fn() })),
 }));
 
 // Mock next-auth
@@ -137,7 +139,34 @@ describe("Header Component - Mobile Menu", () => {
 
       // Check for navigation links within the mobile menu
       const mobileMenuLinks = mobileMenu?.querySelectorAll("a[href]");
-      expect(mobileMenuLinks).toHaveLength(4); // home, categories, blog, about
+      // home, categories, blog, about (products now moved to collapsible)
+      expect(mobileMenuLinks).toHaveLength(4);
+    });
+  });
+  it("navigates when selecting age group from Products section", async () => {
+    const push = jest.fn();
+    (useRouter as unknown as jest.Mock).mockReturnValue({ push });
+
+    render(<Header />);
+
+    const menuButton = screen.getByRole("button", { name: /open main menu/i });
+    fireEvent.click(menuButton);
+
+    // open Products
+    const productsToggle = screen.getByRole("button", { name: /products/i });
+    fireEvent.click(productsToggle);
+
+    // open Age
+    const ageToggle = screen.getByRole("button", { name: /vârstă/i });
+    fireEvent.click(ageToggle);
+
+    const ageItem = await screen.findByRole("button", {
+      name: /4–6 ani|4-6 ani/i,
+    });
+    fireEvent.click(ageItem);
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalled();
     });
   });
 

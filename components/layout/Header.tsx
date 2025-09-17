@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 
@@ -29,6 +29,7 @@ import { CartButton } from "@/features/cart";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation, TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { buildProductsUrl } from "@/lib/utils/product-filters-url";
 
 const navigation: {
   name: TranslationKey | string;
@@ -44,8 +45,16 @@ const navigation: {
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [productsMenuOpen, setProductsMenuOpen] = useState(false);
+  const [ageOpen, setAgeOpen] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [categories, setCategories] = useState<
+    Array<{ id: string; label: string }>
+  >([]);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useTranslation();
   const { data: session, status } = useOptimizedSession();
 
@@ -93,6 +102,21 @@ export default function Header() {
       window.location.href = "/account/wishlist";
     } else {
       window.location.href = "/auth/login";
+    }
+  };
+
+  const loadCategories = async () => {
+    if (categoriesLoaded) return;
+    try {
+      const res = await fetch("/api/categories");
+      if (res.ok) {
+        const data: Array<{ slug: string; name: string }> = await res.json();
+        const mapped = data.map(c => ({ id: c.slug, label: c.name }));
+        setCategories(mapped);
+        setCategoriesLoaded(true);
+      }
+    } catch (e) {
+      // silently ignore
     }
   };
 
@@ -350,6 +374,162 @@ export default function Header() {
 
             <div className="flex flex-col h-full">
               <div className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+                {/* Products collapsible section for mobile filtering */}
+                <div className="space-y-0.5" aria-label={t("products")}>
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between rounded-md px-3 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    aria-expanded={productsMenuOpen}
+                    aria-controls="mobile-products-section"
+                    onClick={() => setProductsMenuOpen(v => !v)}
+                  >
+                    <span className="flex items-center gap-3">
+                      <Boxes className="w-5 h-5 text-gray-500" />
+                      {t("products")}
+                    </span>
+                    <span className="ml-auto text-gray-500">
+                      {productsMenuOpen ? "−" : "+"}
+                    </span>
+                  </button>
+
+                  {productsMenuOpen && (
+                    <div
+                      id="mobile-products-section"
+                      className="mt-1 space-y-1"
+                    >
+                      {/* All products */}
+                      <button
+                        type="button"
+                        className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
+                        onClick={() => {
+                          router.push(buildProductsUrl({}));
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        {t("allProducts", "Toate produsele")}
+                      </button>
+
+                      {/* Age (Varsta) subsection */}
+                      <div>
+                        <button
+                          type="button"
+                          className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                          aria-expanded={ageOpen}
+                          aria-controls="mobile-age-subsection"
+                          onClick={() => setAgeOpen(v => !v)}
+                        >
+                          <span>{t("age", "Vârstă")}</span>
+                          <span className="ml-auto text-gray-500">
+                            {ageOpen ? "−" : "+"}
+                          </span>
+                        </button>
+                        {ageOpen && (
+                          <div
+                            id="mobile-age-subsection"
+                            className="mt-1 space-y-0.5"
+                          >
+                            {[
+                              {
+                                id: "TODDLERS_1_3",
+                                label: t("age0to3", "0–3 ani"),
+                              },
+                              {
+                                id: "PRESCHOOL_3_5",
+                                label: t("age3to5", "4–6 ani"),
+                              },
+                              {
+                                id: "ELEMENTARY_6_8",
+                                label: t("age6to8", "7–9 ani"),
+                              },
+                              {
+                                id: "MIDDLE_SCHOOL_9_12",
+                                label: t("age9to12", "10–12 ani"),
+                              },
+                              {
+                                id: "TEENS_13_PLUS",
+                                label: t("age13plus", "13+ ani"),
+                              },
+                            ].map(opt => (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
+                                onClick={() => {
+                                  router.push(
+                                    buildProductsUrl({
+                                      ageGroup: opt.id as any,
+                                    })
+                                  );
+                                  setMobileMenuOpen(false);
+                                }}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Category subsection */}
+                      <div>
+                        <button
+                          type="button"
+                          className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                          aria-expanded={categoryOpen}
+                          aria-controls="mobile-category-subsection"
+                          onClick={async () => {
+                            const next = !categoryOpen;
+                            setCategoryOpen(next);
+                            if (next) await loadCategories();
+                          }}
+                        >
+                          <span>{t("categories")}</span>
+                          <span className="ml-auto text-gray-500">
+                            {categoryOpen ? "−" : "+"}
+                          </span>
+                        </button>
+                        {categoryOpen && (
+                          <div
+                            id="mobile-category-subsection"
+                            className="mt-1 space-y-0.5"
+                          >
+                            {categories.map(cat => (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
+                                onClick={() => {
+                                  router.push(
+                                    buildProductsUrl({ category: cat.id })
+                                  );
+                                  setMobileMenuOpen(false);
+                                }}
+                              >
+                                {cat.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Gift Ideas */}
+                      <button
+                        type="button"
+                        className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
+                        onClick={() => {
+                          router.push(
+                            buildProductsUrl({
+                              specialCategories: "GIFT_IDEAS",
+                            })
+                          );
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        {t("giftIdeas", "Idei de cadouri")}
+                      </button>
+                    </div>
+                  )}
+                </div>
                 {/* Navigation Links */}
                 <div className="space-y-0.5">
                   {navigation

@@ -244,6 +244,19 @@ export function useProductFilters() {
       urlState.searchQuery = search;
     }
 
+    // Parse ageGroup
+    const ageGroup = searchParams.get("ageGroup");
+    const allowedAgeGroups = new Set([
+      "TODDLERS_1_3",
+      "PRESCHOOL_3_5",
+      "ELEMENTARY_6_8",
+      "MIDDLE_SCHOOL_9_12",
+      "TEENS_13_PLUS",
+    ]);
+    if (ageGroup && allowedAgeGroups.has(ageGroup)) {
+      urlState.selectedAgeGroup = ageGroup;
+    }
+
     // Parse sort
     const sort = searchParams.get("sort");
     if (sort) {
@@ -316,6 +329,10 @@ export function useProductFilters() {
 
     if (state.searchQuery) {
       params.set("search", state.searchQuery);
+    }
+
+    if (state.selectedAgeGroup) {
+      params.set("ageGroup", state.selectedAgeGroup);
     }
 
     if (state.sortBy !== "relevance") {
