@@ -86,9 +86,34 @@ export class OpenAIService extends BaseAIService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          `OpenAI API error: ${response.status} ${response.statusText}. ${errorData.error?.message || ""}`
-        );
+        const errorMessage = errorData.error?.message || "";
+
+        // Handle specific error cases
+        if (response.status === 401) {
+          throw new Error(
+            `OpenAI API authentication error: Invalid API key or token. Please check your OPENAI_API_KEY.`
+          );
+        } else if (response.status === 429) {
+          throw new Error(
+            `OpenAI API rate limit exceeded: ${errorMessage}. Please try again later or upgrade your plan.`
+          );
+        } else if (response.status === 404) {
+          throw new Error(
+            `OpenAI API model not found: ${this.model} is not available. Please check your AI_MODEL setting.`
+          );
+        } else if (response.status === 400) {
+          throw new Error(
+            `OpenAI API bad request: ${errorMessage}. Possible issues: invalid parameters or content policy violation.`
+          );
+        } else if (response.status >= 500) {
+          throw new Error(
+            `OpenAI API server error: ${errorMessage}. The service may be experiencing issues.`
+          );
+        } else {
+          throw new Error(
+            `OpenAI API error (${response.status}): ${errorMessage || response.statusText}`
+          );
+        }
       }
 
       const data: OpenAIResponse = await response.json();
@@ -99,11 +124,41 @@ export class OpenAIService extends BaseAIService {
 
       const choice = data.choices[0];
 
+      // Calculate cost based on token usage
+      const inputTokens = data.usage.prompt_tokens;
+      const outputTokens = data.usage.completion_tokens;
+
+      // Pricing per 1K tokens (simplified rates, these may change)
+      let inputRate = 0.0005; // Default to gpt-3.5-turbo rate
+      let outputRate = 0.0015; // Default to gpt-3.5-turbo rate
+
+      // Adjust rates based on the model
+      if (data.model.includes("gpt-4")) {
+        inputRate = data.model.includes("turbo") ? 0.01 : 0.03;
+        outputRate = data.model.includes("turbo") ? 0.03 : 0.06;
+      }
+
+      // Calculate cost in USD
+      const cost =
+        (inputTokens / 1000) * inputRate + (outputTokens / 1000) * outputRate;
+
+      // Track the token usage and cost with monitoring service
+      await aiMonitoring.recordRequest(
+        this.provider,
+        true,
+        0, // Response time already tracked separately
+        data.usage.total_tokens,
+        cost
+      );
+
       return {
         content: choice.message.content,
         usage: data.usage,
         model: data.model,
         finishReason: choice.finish_reason,
+        cost: cost,
+        inputTokens: inputTokens,
+        outputTokens: outputTokens,
       };
     } catch (error) {
       if (error instanceof Error) {

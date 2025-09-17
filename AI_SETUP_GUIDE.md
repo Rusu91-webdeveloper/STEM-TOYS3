@@ -48,18 +48,41 @@ messages** - Better error handling with detailed setup instructions ✅
 
 Add the following to your `.env` file:
 
+### Option A: Single Provider (Gemini Only)
+
 ```bash
-# AI Configuration
-OPENAI_API_KEY=sk-your-openai-api-key-here
-# ANTHROPIC_API_KEY=sk-ant-your-anthropic-api-key-here
-# GEMINI_API_KEY=your-gemini-api-key-here
+# AI Configuration - Gemini Only
+GEMINI_API_KEY=AIzaSyDff9i1dRYfWAi0aDg1wCrjCp8zbmbTKbI
 
 # AI Settings
-AI_PROVIDER=openai
-AI_MODEL=gpt-4
+AI_PROVIDER=gemini
+AI_MODEL=gemini-1.5-pro
 AI_MAX_TOKENS=2000
 AI_TEMPERATURE=0.7
 AI_ENHANCEMENT_ENABLED=true
+
+# Required for authentication
+NEXTAUTH_SECRET=your-super-secret-key-here-minimum-32-characters
+NEXTAUTH_URL=http://localhost:3000
+
+# Database (required)
+DATABASE_URL=your-database-connection-string
+```
+
+### Option B: Dual Provider (Recommended)
+
+```bash
+# AI Configuration - Dual Provider
+GEMINI_API_KEY=AIzaSyDff9i1dRYfWAi0aDg1wCrjCp8zbmbTKbI
+OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# AI Settings
+AI_PROVIDER=gemini
+AI_MODEL=gemini-1.5-pro
+AI_MAX_TOKENS=2000
+AI_TEMPERATURE=0.7
+AI_ENHANCEMENT_ENABLED=true
+AI_DUAL_PROVIDER_ENABLED=true
 
 # Required for authentication
 NEXTAUTH_SECRET=your-super-secret-key-here-minimum-32-characters
@@ -139,6 +162,13 @@ You should see:
 - **Cause**: Incorrect or expired API key
 - **Solution**: Verify your API key is correct and active
 
+### Error: "You exceeded your current quota"
+
+- **Cause**: The provided Gemini API key has reached its quota limit
+- **Solution**: Create your own API key at
+  [Google AI Studio](https://makersuite.google.com/app/apikey) or upgrade the
+  existing key's quota limits
+
 ## Features
 
 ### AI Enhancement Options
@@ -149,6 +179,21 @@ You should see:
 - ✅ **Age Group Classification**: Appropriate age ranges
 - ✅ **STEM Discipline**: Science, Technology, Engineering, Math
 - ✅ **Product Type**: Robotics, Puzzles, Construction Sets, etc.
+- ✅ **Dual-Provider Mode**: Combine Gemini and OpenAI for optimal results
+
+### Dual-Provider Enhancement
+
+The system now supports a two-stage enhancement pipeline:
+
+1. **Initial Generation** with Gemini (free tier) for bulk content creation
+2. **Refinement & Validation** with OpenAI for quality assurance
+
+This approach offers:
+
+- **Cost Optimization**: Using Gemini's free quota for the heavy lifting
+- **Quality Control**: Using OpenAI to verify and improve the content
+- **Better Database Compatibility**: Ensuring content meets schema requirements
+- **Enhanced SEO**: Multiple models collaborating on better search optimization
 
 ### Supported File Formats
 
@@ -164,18 +209,53 @@ You should see:
 
 ## API Endpoints
 
-### GET `/api/admin/products/ai-enhance`
+### Standard AI Enhancement (Single Provider)
+
+#### GET `/api/admin/products/ai-enhance`
 
 - **Purpose**: Check AI service health and configuration
 - **Auth**: Admin required
 - **Response**: Service status and configuration
 
-### POST `/api/admin/products/ai-enhance`
+#### POST `/api/admin/products/ai-enhance`
 
-- **Purpose**: Enhance products with AI
+- **Purpose**: Enhance products with single AI provider
 - **Auth**: Admin required
 - **Body**: `{ products: BasicProduct[], options: EnhancementOptions }`
 - **Response**: Enhanced products with AI-generated content
+
+### Dual-Provider AI Enhancement
+
+#### GET `/api/admin/products/dual-enhance`
+
+- **Purpose**: Check dual-provider mode availability and configuration
+- **Auth**: Admin required
+- **Response**: Dual-mode status and configuration
+
+#### POST `/api/admin/products/dual-enhance`
+
+- **Purpose**: Enhance products using both Gemini and OpenAI in sequence
+- **Auth**: Admin required
+- **Body**:
+  ```
+  {
+    products: BasicProduct[],
+    options: EnhancementOptions,
+    config: {
+      primaryProvider: "gemini",
+      primaryModel: "gemini-1.5-pro",
+      secondaryProvider: "openai",
+      secondaryModel: "gpt-3.5-turbo",
+      refinementOptions: {
+        validateContent: true,
+        improveSEO: true,
+        fixGrammar: true,
+        ensureDbCompatibility: true
+      }
+    }
+  }
+  ```
+- **Response**: Enhanced products with dual AI processing and refinements
 
 ## Cost Considerations
 
@@ -184,13 +264,30 @@ You should see:
 - GPT-4: ~$0.03 per 1K input tokens, ~$0.06 per 1K output tokens
 - GPT-3.5-turbo: ~$0.001 per 1K input tokens, ~$0.002 per 1K output tokens
 
+### Gemini Pricing (as of 2024)
+
+- Gemini 1.5 Pro: ~$0.00025 per 1K input tokens, ~$0.0005 per 1K output tokens
+- **Free tier**: Limited quota available each month at no cost
+
 ### Estimated Costs
+
+#### Single Provider (OpenAI)
 
 - **Small batch (10 products)**: ~$0.50-1.00
 - **Medium batch (50 products)**: ~$2.50-5.00
 - **Large batch (100 products)**: ~$5.00-10.00
 
+#### Dual Provider (Gemini + OpenAI)
+
+- **Small batch (10 products)**: ~$0.25-0.50 (50% savings)
+- **Medium batch (50 products)**: ~$1.25-2.50 (50% savings)
+- **Large batch (100 products)**: ~$2.50-5.00 (50% savings)
+
 _Costs vary based on product description length and enhancement options_
+
+> **Cost Optimization Tip**: Using the dual provider approach with Gemini for
+> initial generation can reduce costs by up to 50-70% while maintaining high
+> quality output.
 
 ## Security Notes
 
@@ -218,6 +315,26 @@ Once configured, you can:
 - Let AI enhance descriptions, SEO metadata, and categorization
 - Review and edit AI-generated content before publishing
 - Export enhanced products back to your system
+- Monitor usage, costs, and performance through the AI dashboard
 
 The AI enhancement will significantly improve your product data quality and SEO
 performance!
+
+## Monitoring & Usage Tracking
+
+The system now includes comprehensive monitoring features:
+
+- **Usage Dashboard**: Access AI usage statistics at `/admin/ai-monitoring`
+- **Cost Tracking**: Monitor token usage and estimated costs
+- **Performance Metrics**: Track response times, error rates, and system health
+- **Export Data**: Download usage reports in CSV format
+- **Usage Alerts**: Get warnings when approaching budget thresholds
+
+Run the following command to verify AI configuration and test the connection:
+
+```bash
+node scripts/test-ai-config.js
+```
+
+This script will validate your environment variables, API keys, and run a simple
+enhancement test.

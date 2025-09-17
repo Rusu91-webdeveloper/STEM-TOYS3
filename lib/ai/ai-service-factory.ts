@@ -5,6 +5,7 @@
 
 import { BaseAIService } from "./base-ai-service";
 import { OpenAIService } from "./openai-service";
+import { GeminiService } from "./gemini-service";
 import { AIConfig, AIProvider } from "./config";
 import { ApiErrors } from "@/lib/api-error-handler";
 
@@ -41,8 +42,8 @@ export class AIServiceFactory {
         // TODO: Implement AnthropicService
         throw new Error("Anthropic service not yet implemented");
       case "gemini":
-        // TODO: Implement GeminiService
-        throw new Error("Gemini service not yet implemented");
+        service = new GeminiService();
+        break;
       default:
         throw new Error(`Unsupported AI provider: ${targetProvider}`);
     }

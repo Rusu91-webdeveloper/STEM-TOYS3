@@ -229,79 +229,83 @@ Pentru fiecare rezultat, consideră:
 // SIMPLE TEST PROMPTS - FOR TESTING IMPLEMENTATION
 export const STEM_TOYS_PROMPTS: EnhancementPrompts = {
   description: {
-    system: `You are a simple AI assistant. Create a basic product description in Romanian for a STEM toy. Keep it short and simple.`,
-    user: `Create a simple description for this product:
+    system: `You are an expert AI assistant specializing in STEM educational toys for the Romanian market. Create engaging product descriptions in Romanian for STEM toys. Focus on educational benefits and make it appeal to Romanian parents and educators.`,
+    user: `Creează o descriere pentru acest produs în limba română:
 
-Name: {name}
-Category: {category}
-Price: {price} RON
-Current description: {description}
+Nume: {name}
+Categorie: {category}
+Preț: {price} RON
+Descriere actuală: {description}
 
-Write a short description in Romanian (50-100 words).`,
+Scrie o descriere detaliată în limba română (150-300 de cuvinte). 
+Concentrează-te pe beneficiile educaționale și asigură-te că descrierea este optimizată pentru piața românească.`,
   },
 
   seoMetadata: {
-    system: `You are a simple SEO assistant. Create basic metadata for a product.`,
-    user: `Create basic metadata for this product:
+    system: `You are an expert SEO specialist for the Romanian e-commerce market. Create optimized metadata in Romanian language for STEM educational toys. Focus on relevant Romanian keywords and search patterns.`,
+    user: `Creează metadata SEO pentru acest produs în limba română:
 
-Name: {name}
-Category: {category}
-Description: {description}
+Nume: {name}
+Categorie: {category}
+Descriere: {description}
 
-Provide:
-1. Meta title (50 characters max)
-2. Meta description (150 characters max)
-3. 5 keywords (Romanian and English)
+Te rog să oferi:
+1. Titlu meta în română (max 60 caractere)
+2. Descriere meta în română (max 160 caractere)
+3. 5-10 cuvinte cheie (în română și engleză)
 
-Format: title|description|keyword1,keyword2,keyword3,keyword4,keyword5`,
+Format: titlu|descriere|cuvant1,cuvant2,cuvant3,keyword1,keyword2`,
   },
 
   romanianOptimization: {
-    system: `You are a simple assistant. Provide basic Romanian educational information.`,
-    user: `Provide basic information for this product:
+    system: `You are an expert in the Romanian education system. Provide comprehensive Romanian educational information for STEM toys, focusing on curriculum alignment and educational standards in Romania.`,
+    user: `Oferă informații educaționale pentru acest produs în contextul românesc:
 
-Name: {name}
-Category: {category}
-Description: {description}
-Age group: {ageGroup}
+Nume: {name}
+Categorie: {category}
+Descriere: {description}
+Grupă de vârstă: {ageGroup}
 
-Provide:
-1. 2 Romanian competencies
-2. Educational level (PRESCOLAR, PRIMAR, GIMNAZIAL, LICEAL)
-3. Ministry approval (true/false)
-4. 2 subject areas
+Te rog să oferi:
+1. 3-5 competențe românești relevante
+2. Nivel educațional (PRESCOLAR, PRIMAR, GIMNAZIAL, LICEAL)
+3. Aprobare Minister (true/false)
+4. 2-4 arii de subiect din curriculumul românesc
+5. Aliniere la curriculum (2-3 referințe specifice)
 
-Format: competency1,competency2|level|true/false|subject1,subject2`,
+Format: competența1,competența2,competența3|nivel|true/false|arie1,arie2|aliniere1,aliniere2`,
   },
 
   categorization: {
-    system: `You are a simple categorization assistant. Categorize products.`,
-    user: `Categorize this product:
+    system: `You are an expert in categorizing educational products for the Romanian market. Categorize STEM toys accurately for Romanian e-commerce based on age, discipline, and product type.`,
+    user: `Categorizează acest produs pentru piața românească:
 
-Name: {name}
-Category: {category}
-Description: {description}
+Nume: {name}
+Categorie: {category}
+Descriere: {description}
 
-Provide:
-1. Age group (TODDLERS_1_3, PRESCHOOL_3_5, ELEMENTARY_6_8, MIDDLE_SCHOOL_9_12, TEENS_13_PLUS)
-2. STEM discipline (SCIENCE, TECHNOLOGY, ENGINEERING, MATHEMATICS, GENERAL)
-3. Product type (ROBOTICS, PUZZLES, CONSTRUCTION_SETS, EXPERIMENT_KITS, BOARD_GAMES)
+Te rog să oferi:
+1. Grupă de vârstă (TODDLERS_1_3, PRESCHOOL_3_5, ELEMENTARY_6_8, MIDDLE_SCHOOL_9_12, TEENS_13_PLUS)
+2. Disciplină STEM (SCIENCE, TECHNOLOGY, ENGINEERING, MATHEMATICS, GENERAL)
+3. Tip de produs (ROBOTICS, PUZZLES, CONSTRUCTION_SETS, EXPERIMENT_KITS, BOARD_GAMES)
 
-Format: ageGroup|stemDiscipline|productType`,
+Format: grupăVârstă|disciplinăSTEM|tipProdus`,
   },
 
   learningOutcomes: {
-    system: `You are a simple assistant. Identify learning outcomes.`,
-    user: `Identify learning outcomes for this product:
+    system: `You are an expert in educational psychology with knowledge of the Romanian education system. Identify learning outcomes for STEM toys that are relevant to Romanian educational standards and curriculum.`,
+    user: `Identifică rezultatele învățării pentru acest produs în contextul educațional românesc:
 
-Name: {name}
-Category: {category}
-Description: {description}
-Age group: {ageGroup}
+Nume: {name}
+Categorie: {category}
+Descriere: {description}
+Grupă de vârstă: {ageGroup}
 
-Provide 3 learning outcomes from: PROBLEM_SOLVING, CREATIVITY, CRITICAL_THINKING, MOTOR_SKILLS, LOGIC, ANALYTICAL_THINKING, COLLABORATION, COMMUNICATION, DIGITAL_LITERACY, CODING_THINKING
+Alege 3-5 rezultate de învățare din: PROBLEM_SOLVING, CREATIVITY, CRITICAL_THINKING, MOTOR_SKILLS, LOGIC, ANALYTICAL_THINKING, COLLABORATION, COMMUNICATION, DIGITAL_LITERACY, CODING_THINKING
 
-Format: outcome1,outcome2,outcome3`,
+Explică pe scurt cum acest produs dezvoltă aceste competențe în contextul educațional românesc.
+
+Format: rezultat1,rezultat2,rezultat3,rezultat4`,
   },
 };
 

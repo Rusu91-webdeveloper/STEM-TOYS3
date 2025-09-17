@@ -16,12 +16,18 @@ export interface AIRequestOptions {
 export interface AIResponse {
   content: string;
   usage?: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
   };
   model?: string;
   finishReason?: string;
+  cost?: number;
+  inputTokens?: number;
+  outputTokens?: number;
 }
 
 export abstract class BaseAIService {
