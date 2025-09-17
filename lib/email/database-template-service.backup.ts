@@ -96,78 +96,16 @@ export class DatabaseTemplateService {
   }
 
   /**
-   * Replace variables in template content with enhanced support for:
-   * - Simple variables {{variable}}
-   * - Nested object properties {{object.property}}
-   * - Loops {{#each items}}...{{/each}}
-   * - Conditionals {{#if condition}}...{{/if}}
+   * Replace variables in template content
    */
   static replaceVariables(content: string, data: Record<string, any>): string {
     let processedContent = content;
 
-    // Step 1: Process simple variables in the format {{variableName}}
+    // Replace all variables in the format {{variableName}}
     Object.entries(data).forEach(([key, value]) => {
       const regex = new RegExp(`{{${key}}}`, "g");
       processedContent = processedContent.replace(regex, String(value || ""));
     });
-
-    // Step 2: Process nested object variables in the format {{object.property}}
-    for (const [key, value] of Object.entries(data)) {
-      if (value && typeof value === "object" && !Array.isArray(value)) {
-        for (const [nestedKey, nestedValue] of Object.entries(value)) {
-          const regex = new RegExp(`{{${key}\\.${nestedKey}}}`, "g");
-          processedContent = processedContent.replace(
-            regex,
-            String(nestedValue || "")
-          );
-        }
-      }
-    }
-
-    // Step 3: Process loops
-    const loopRegex = /{{#each\s+([^}]+)}}([\s\S]*?){{\/each}}/g;
-    let match;
-
-    // We need to use a while loop because the content may have multiple loops
-    let lastProcessedContent = "";
-    while (processedContent !== lastProcessedContent) {
-      lastProcessedContent = processedContent;
-
-      processedContent = processedContent.replace(
-        loopRegex,
-        (fullMatch, iteratorName, loopContent) => {
-          const items = data[iteratorName];
-
-          if (!Array.isArray(items) || items.length === 0) {
-            return ""; // Empty string if the array doesn't exist or is empty
-          }
-
-          return items
-            .map(item => {
-              let itemContent = loopContent;
-
-              // Replace item properties
-              for (const [key, value] of Object.entries(item)) {
-                const regex = new RegExp(`{{${key}}}`, "g");
-                itemContent = itemContent.replace(regex, String(value || ""));
-              }
-
-              return itemContent;
-            })
-            .join("");
-        }
-      );
-    }
-
-    // Step 4: Process conditionals
-    const conditionalRegex = /{{#if\s+([^}]+)}}([\s\S]*?){{\/if}}/g;
-    processedContent = processedContent.replace(
-      conditionalRegex,
-      (fullMatch, conditionName, conditionalContent) => {
-        const condition = data[conditionName];
-        return condition ? conditionalContent : "";
-      }
-    );
 
     return processedContent;
   }
@@ -214,7 +152,6 @@ export class DatabaseTemplateService {
         to: options.to,
         subject: finalSubject,
         html: processedContent,
-        priority: options.priority,
       });
 
       return {
@@ -262,10 +199,10 @@ export class DatabaseTemplateService {
       to,
       templateSlug: "email-verification",
       data: {
-        userName, // Use only userName instead of user.firstName
+        "user.firstName": userName,
+        userName, // Keep both for compatibility
         verificationLink,
         expiresIn: "24 ore", // Default expiration time
-        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
       },
     });
   }
@@ -285,7 +222,6 @@ export class DatabaseTemplateService {
         resetLink,
         userName: userName || "User",
         expiresIn: "1 oră", // Default expiration time
-        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
       },
     });
   }
@@ -307,16 +243,24 @@ export class DatabaseTemplateService {
       to,
       templateSlug: "order-confirmation",
       data: {
-        // Use simple variables instead of nested properties
-        orderNumber: orderData.orderNumber, // Instead of order.id
-        orderTotal: orderData.orderTotal.toFixed(2) + " RON",
+        // Map to the variables expected by the template
+        "order.id": orderData.orderNumber,
+        "order.total": orderData.orderTotal.toFixed(2) + " RON",
+        "order.items": orderData.items.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price.toFixed(2) + " RON",
+        })),
+        // Keep original variables for compatibility
+        customerName: orderData.customerName,
+        orderNumber: orderData.orderNumber,
+        orderDate: new Date().toLocaleDateString("ro-RO"),
+        orderTotal: orderData.orderTotal.toString(),
         items: orderData.items.map(item => ({
           name: item.name,
           quantity: item.quantity,
           price: item.price.toFixed(2) + " RON",
         })),
-        customerName: orderData.customerName,
-        orderDate: new Date().toLocaleDateString("ro-RO"),
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
       },
     });
@@ -357,12 +301,7 @@ export class DatabaseTemplateService {
       customerName: string;
       customerEmail: string;
       orderTotal: number;
-      orderItems: Array<{
-        name: string;
-        quantity: number;
-        price: number;
-        sku?: string;
-      }>;
+      orderItems: Array<{ name: string; quantity: number; price: number }>;
     }
   ): Promise<{ success: boolean; error?: string; messageId?: string }> {
     return this.sendEmailWithTemplate({
@@ -377,12 +316,10 @@ export class DatabaseTemplateService {
           name: item.name,
           quantity: item.quantity,
           price: item.price.toFixed(2) + " RON",
-          sku: item.sku || "N/A",
         })),
         adminUrl:
           (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000") +
           "/admin",
-        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
       },
     });
   }
