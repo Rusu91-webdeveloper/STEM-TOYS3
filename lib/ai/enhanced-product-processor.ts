@@ -285,11 +285,8 @@ export class EnhancedProductProcessor {
     product: ProcessedProduct
   ): Promise<ProcessedProduct> {
     try {
-      // For testing, skip AI enhancement to avoid memory issues
-      if (process.env.NODE_ENV === "development") {
-        console.log("Skipping AI enhancement in development mode");
-        return product;
-      }
+      // AI enhancement is enabled for all environments to ensure proper defaults
+      console.log("AI enhancement enabled - applying required defaults");
 
       console.log(
         `Using OpenAI-only enhancement for faster processing: ${product.name}`
@@ -308,12 +305,13 @@ export class EnhancedProductProcessor {
       // Parse AI response and merge with existing product
       const aiEnhancedData = this.parseAIResponse(aiResponse);
 
-      return {
+      // Apply AI enhancements but enforce critical defaults
+      const enhancedProduct = {
         ...product,
         ...aiEnhancedData,
-        // Ensure critical fields are not overridden
-        isActive: true, // Always true for AI-enhanced products
-        featured: false,
+        // Ensure critical fields are NEVER overridden by AI
+        isActive: true, // MANDATORY: Always true for AI-enhanced products
+        featured: false, // MANDATORY: Always false for bulk uploads
         reservedQuantity: 0,
         reviewCount: 0,
         totalSold: 0,
@@ -321,8 +319,29 @@ export class EnhancedProductProcessor {
         priceCurrency: "RON",
         compareAtPriceCurrency: "RON",
         specialCategories: ["NEW_ARRIVALS"],
-        romanianMinistryApproval: true, // Always true for AI-enhanced products
+        romanianMinistryApproval: true, // MANDATORY: Always true for AI-enhanced products
       };
+
+      // Ensure price has 20% markup if not already applied
+      if (enhancedProduct.price === product.price) {
+        console.log(
+          `Applying 20% markup to price: ${product.price} -> ${product.price * 1.2}`
+        );
+        enhancedProduct.price = Math.round(product.price * 1.2 * 100) / 100;
+      }
+
+      // Debug logging to verify critical fields
+      console.log(`AI Enhancement Debug for ${enhancedProduct.name}:`);
+      console.log(`  isActive: ${enhancedProduct.isActive}`);
+      console.log(
+        `  romanianMinistryApproval: ${enhancedProduct.romanianMinistryApproval}`
+      );
+      console.log(
+        `  price: ${enhancedProduct.price} (original: ${product.price})`
+      );
+      console.log(`  featured: ${enhancedProduct.featured}`);
+
+      return enhancedProduct;
     } catch (error) {
       console.error("AI enhancement failed:", error);
       return product;
@@ -441,7 +460,16 @@ export class EnhancedProductProcessor {
     try {
       // Try to parse as JSON first
       const parsed = JSON.parse(response);
-      return parsed;
+
+      // Remove any AI-provided values for critical fields to prevent override
+      if (parsed) {
+        delete parsed.isActive; // Will be enforced in calling function
+        delete parsed.romanianMinistryApproval; // Will be enforced in calling function
+        delete parsed.featured; // Will be enforced in calling function
+        delete parsed.status; // Will be enforced in calling function
+      }
+
+      return parsed || {};
     } catch {
       // If not JSON, try to extract key-value pairs
       const result: Partial<ProcessedProduct> = {};
@@ -460,6 +488,12 @@ export class EnhancedProductProcessor {
       if (descMatch) {
         result.description = descMatch[1];
       }
+
+      // Never allow AI to set these critical fields
+      delete result.isActive;
+      delete result.romanianMinistryApproval;
+      delete result.featured;
+      delete result.status;
 
       return result;
     }

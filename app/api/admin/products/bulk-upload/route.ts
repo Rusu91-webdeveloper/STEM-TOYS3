@@ -741,6 +741,13 @@ export async function POST(request: NextRequest) {
             continue;
           }
 
+          // Debug logging before database insertion
+          console.log(`Database Insert Debug for ${correctedProduct.name}:`);
+          console.log(`  isActive: ${true}`);
+          console.log(`  romanianMinistryApproval: ${true}`);
+          console.log(`  price: ${correctedProduct.price}`);
+          console.log(`  featured: ${false}`);
+
           // Create product with all enhanced fields
           const newProduct = await db.product.create({
             data: {
