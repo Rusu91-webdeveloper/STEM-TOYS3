@@ -94,7 +94,7 @@ export class EnhancedProductProcessor {
   private currencyService = CurrencyService.getInstance();
   private defaultMarkupPercentage = 20; // 20% markup as requested
 
-  // Force OpenAI-only for bulk uploads to improve performance
+  // Force OpenAI-only for all processing to avoid fallback issues
   private openAIService = AIServiceFactory.getService("openai");
 
   /**

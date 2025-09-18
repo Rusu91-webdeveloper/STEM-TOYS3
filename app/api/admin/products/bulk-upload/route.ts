@@ -8,10 +8,7 @@ import { db } from "@/lib/db";
 import { applyStandardHeaders } from "@/lib/response-headers";
 import { invalidateCachePattern } from "@/lib/cache";
 import {
-  BatchEnhancementService,
   AIConfig,
-  type BasicProduct,
-  type EnhancementOptions,
 } from "@/lib/ai";
 import { EnhancedProductProcessor } from "@/lib/ai/enhanced-product-processor";
 import { AISchemaValidator } from "@/lib/ai/schema-validator";
@@ -419,7 +416,11 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now();
 
-    // Enhanced Product Processing step - Optimized for OpenAI-only
+    // Force OpenAI-only configuration to avoid fallback issues
+    process.env.AI_PROVIDER = "openai";
+    console.log("Forcing AI_PROVIDER to 'openai' for reliable processing");
+
+    // Enhanced Product Processing step - OpenAI-only
     const productProcessor = new EnhancedProductProcessor();
     let productsToProcess = validatedData.products;
     let aiEnhancementResults = null;
@@ -457,115 +458,9 @@ export async function POST(request: NextRequest) {
       // Continue with original products if processing fails
     }
 
-    // Legacy AI Enhancement step (if enabled and not already processed)
-    if (
-      validatedData.aiEnhancement?.enabled &&
-      AIConfig.isEnhancementEnabled() &&
-      AIConfig.isConfigured() &&
-      !productsToProcess.some(p => p.romanianCompetencies?.length > 0)
-    ) {
-      try {
-        console.log("Starting AI enhancement for bulk upload...");
-
-        // Convert products to BasicProduct format for AI enhancement
-        const basicProducts: BasicProduct[] = validatedData.products.map(
-          product => ({
-            name: product.name,
-            price: product.price,
-            category: product.category,
-            images: product.images,
-            description: product.description,
-            sku: product.sku,
-            stockQuantity: product.stockQuantity,
-            weight: product.weight,
-            tags: product.tags,
-          })
-        );
-
-        // Enhance products with AI
-        const batchService = new BatchEnhancementService();
-        aiEnhancementResults = await batchService.enhanceProductsBatch(
-          basicProducts,
-          validatedData.aiEnhancement.options
-        );
-
-        // Merge AI-enhanced data with original products
-        productsToProcess = validatedData.products.map(
-          (originalProduct, index) => {
-            const enhancedResult = aiEnhancementResults.results[index];
-
-            if (enhancedResult.success && enhancedResult.enhancedProduct) {
-              const enhanced = enhancedResult.enhancedProduct;
-
-              return {
-                ...originalProduct,
-                // Use AI-enhanced description if available
-                description:
-                  enhanced.enhancedDescription || originalProduct.description,
-                // Merge AI-generated metadata
-                metaTitle: enhanced.metaTitle || originalProduct.metaTitle,
-                metaDescription:
-                  enhanced.metaDescription || originalProduct.metaDescription,
-                metaKeywords:
-                  enhanced.metaKeywords.length > 0
-                    ? enhanced.metaKeywords
-                    : originalProduct.metaKeywords,
-                // Merge AI-generated categorization
-                ageGroup: enhanced.ageGroup || originalProduct.ageGroup,
-                stemDiscipline:
-                  enhanced.stemDiscipline || originalProduct.stemDiscipline,
-                productType:
-                  enhanced.productType || originalProduct.productType,
-                learningOutcomes:
-                  enhanced.learningOutcomes.length > 0
-                    ? enhanced.learningOutcomes
-                    : originalProduct.learningOutcomes,
-                // Merge AI-generated Romanian content
-                romanianCompetencies:
-                  enhanced.romanianCompetencies.length > 0
-                    ? enhanced.romanianCompetencies
-                    : originalProduct.romanianCompetencies,
-                romanianCurriculumAlignment:
-                  enhanced.romanianCurriculumAlignment.length > 0
-                    ? enhanced.romanianCurriculumAlignment
-                    : originalProduct.romanianCurriculumAlignment,
-                romanianEducationalLevel:
-                  enhanced.romanianEducationalLevel ||
-                  originalProduct.romanianEducationalLevel,
-                romanianSubjectAreas:
-                  enhanced.romanianSubjectAreas.length > 0
-                    ? enhanced.romanianSubjectAreas
-                    : originalProduct.romanianSubjectAreas,
-                romanianMinistryApproval:
-                  enhanced.romanianMinistryApproval ||
-                  originalProduct.romanianMinistryApproval,
-                romanianEducationalCertification:
-                  enhanced.romanianEducationalCertification ||
-                  originalProduct.romanianEducationalCertification,
-                // Merge enhanced tags
-                tags:
-                  enhanced.tags.length > 0
-                    ? enhanced.tags
-                    : originalProduct.tags,
-              };
-            }
-
-            return originalProduct;
-          }
-        );
-
-        console.log(
-          `AI enhancement completed: ${aiEnhancementResults.summary.successful}/${aiEnhancementResults.summary.total} products enhanced successfully`
-        );
-      } catch (error) {
-        console.error(
-          "AI enhancement failed, proceeding with original products:",
-          error
-        );
-        // Continue with original products if AI enhancement fails
-        productsToProcess = validatedData.products;
-      }
-    }
+    // Legacy AI Enhancement step - DISABLED: Using EnhancedProductProcessor only
+    // The EnhancedProductProcessor above handles all AI enhancement with OpenAI-only
+    console.log("Legacy AI enhancement disabled - using EnhancedProductProcessor only");
 
     // Process products in batches for better performance
     const batchSize = 10;
