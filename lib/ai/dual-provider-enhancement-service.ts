@@ -506,40 +506,83 @@ ${JSON.stringify(product, null, 2)}
 RESEARCH CONTEXT:
 ${context}
 
+CRITICAL DATABASE SCHEMA REQUIREMENTS (MUST FOLLOW EXACTLY):
+- ageGroup: ONE OF: "TODDLERS_1_3", "PRESCHOOL_3_5", "ELEMENTARY_6_8", "MIDDLE_SCHOOL_9_12", "TEENS_13_PLUS"
+- stemDiscipline: ONE OF: "SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"
+- productType: ONE OF: "ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"
+- learningOutcomes: ARRAY FROM: "PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "MOTOR_SKILLS", "LOGIC"
+- romanianEducationalLevel: ONE OF: "GRADINITA", "PRIMAR", "GIMNAZIU", "LICEU", "UNIVERSITATE"
+
+AGE GROUP DETERMINATION RULES (ANALYZE ORIGINAL DESCRIPTION):
+- If description contains "ages 12+", "ages 12-16", "ages 13+", "adolescents", "teens", "teenagers" → "TEENS_13_PLUS"
+- If description contains "ages 9-12", "ages 10-14", "middle school", "ages 9+", "ages 10+" → "MIDDLE_SCHOOL_9_12"
+- If description contains "ages 6-8", "ages 6-12", "elementary", "ages 6+", "primary school" → "ELEMENTARY_6_8"
+- If description contains "ages 3-5", "preschool", "ages 3-6" → "PRESCHOOL_3_5"
+- If description contains "ages 1-3", "toddlers", "ages 1-4" → "TODDLERS_1_3"
+- DEFAULT: "ELEMENTARY_6_8" (most common for STEM toys)
+
+STEM DISCIPLINE CLASSIFICATION RULES:
+- SCIENCE: Chemistry, biology, physics, geology, astronomy, fossils, experiments, nature study, scientific methods
+- TECHNOLOGY: Programming, coding, electronics, circuits, computers, digital, software, apps, robotics
+- ENGINEERING: Building, construction, design, mechanics, structures, problem-solving, invention
+- MATHEMATICS: Numbers, patterns, logic puzzles, geometry, calculations, mathematical thinking
+- GENERAL: Mixed disciplines or unclear from description
+
+PRODUCT TYPE CLASSIFICATION RULES:
+- ROBOTICS: Robots, programmable robots, robot kits, robot building
+- PUZZLES: Logic puzzles, brain teasers, problem-solving puzzles
+- CONSTRUCTION_SETS: Building sets, construction toys, building blocks, model kits
+- EXPERIMENT_KITS: Science experiments, chemistry sets, electronic kits, discovery kits
+- BOARD_GAMES: Strategy games, educational games, learning games on boards
+
+CONTENT LENGTH GUIDELINES BY PRODUCT TYPE:
+- ROBOTICS: 500-700 words (complex programming and building concepts need detailed explanation)
+- CONSTRUCTION_SETS: 400-600 words (building instructions and design concepts)
+- EXPERIMENT_KITS: 450-650 words (safety instructions, experimental procedures, scientific concepts)
+- PUZZLES: 350-500 words (shorter, focused on problem-solving strategies)
+- BOARD_GAMES: 350-500 words (rules, gameplay mechanics, educational objectives)
+
 REQUIREMENTS:
 ${useRomanian ? "- ALL content must be in ROMANIAN language (descriptions, titles, keywords, etc.)" : "- Content should be in English unless specified otherwise"}
-- Create a detailed, engaging product description (400-600 words) highlighting educational benefits
+- Create a detailed, engaging product description using CONTENT LENGTH GUIDELINES above highlighting educational benefits
 - Generate comprehensive SEO metadata (title, description, keywords)
 - Identify specific learning outcomes and educational benefits
-- Suggest appropriate age groups and STEM disciplines
+- Apply the exact AGE GROUP DETERMINATION RULES above based on original description
+- Apply the exact STEM DISCIPLINE CLASSIFICATION RULES above based on product content
+- Apply the exact PRODUCT TYPE CLASSIFICATION RULES above based on product nature
 - Include Romanian curriculum alignment if applicable
 - Create relevant product tags and categories
 
-DATABASE SCHEMA CONSTRAINTS (CRITICAL - Must use exact values):
-- ageGroup: Must be one of: "TODDLERS_1_3", "PRESCHOOL_3_5", "ELEMENTARY_6_8", "MIDDLE_SCHOOL_9_12", "TEENS_13_PLUS"
-- stemDiscipline: Must be one of: "SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"
-- productType: Must be one of: "ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"
-- learningOutcomes: Must be array containing only: "PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "MOTOR_SKILLS", "LOGIC"
-- romanianEducationalLevel: Must be one of: "GRADINITA", "PRIMAR", "GIMNAZIU", "LICEU", "UNIVERSITATE"
+ANALYSIS STEPS (FOLLOW EXACTLY):
+1. Read the original product description carefully
+2. Apply age group determination rules to select EXACT enum value
+3. Apply STEM discipline classification rules to select EXACT enum value
+4. Apply product type classification rules to select EXACT enum value
+5. Select 2-4 learning outcomes from the allowed list
+6. Determine content length based on PRODUCT TYPE GUIDELINES above
+7. Generate content based on these determined values and length guidelines
 
 RETURN FORMAT: Valid JSON object with these fields:
 {
   "enhancedDescription": "Detailed product description in ${useRomanian ? "Romanian" : "English"}",
   "metaTitle": "SEO-optimized title (60-70 characters)",
-  "metaDescription": "SEO description (150-160 characters)", 
+  "metaDescription": "SEO description (150-160 characters)",
   "metaKeywords": ["keyword1", "keyword2", "keyword3", ...],
   "tags": ["tag1", "tag2", "tag3", ...],
   "learningOutcomes": ["PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "MOTOR_SKILLS", "LOGIC"],
-  "ageGroup": "ELEMENTARY_6_8",
-  "stemDiscipline": "TECHNOLOGY",
-  "productType": "EXPERIMENT_KITS",
+  "ageGroup": "DETERMINE_FROM_RULES_ABOVE",
+  "stemDiscipline": "DETERMINE_FROM_RULES_ABOVE",
+  "productType": "DETERMINE_FROM_RULES_ABOVE",
   "romanianCompetencies": ["competency1", ...],
   "romanianCurriculumAlignment": ["alignment1", ...],
-  "romanianEducationalLevel": "PRIMAR",
+  "romanianEducationalLevel": "DETERMINE_FROM_AGE_GROUP",
   "romanianSubjectAreas": ["area1", ...]
 }
 
-CRITICAL: Use ONLY the exact enum values specified above. Invalid values will cause database errors.
+CRITICAL VALIDATION:
+- Double-check that ageGroup, stemDiscipline, productType use ONLY the exact enum values listed
+- Ensure learningOutcomes contains ONLY valid enum values
+- Invalid values will cause database insertion failures - this is your highest priority
 
 Generate comprehensive, educational content that would help parents and educators understand the value of this STEM toy.`;
   }
@@ -715,6 +758,44 @@ Your task is to generate COMPLETE enhanced product information based on basic da
 
 ${useRomanian ? "IMPORTANT: All product descriptions, titles, and metadata should be generated in Romanian language. Only the JSON field names should remain in English." : ""}
 
+CRITICAL DATABASE SCHEMA REQUIREMENTS (MUST FOLLOW EXACTLY):
+- ageGroup: ONE OF: "TODDLERS_1_3", "PRESCHOOL_3_5", "ELEMENTARY_6_8", "MIDDLE_SCHOOL_9_12", "TEENS_13_PLUS"
+- stemDiscipline: ONE OF: "SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"
+- productType: ONE OF: "ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"
+- learningOutcomes: ARRAY FROM: "PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "MOTOR_SKILLS", "LOGIC"
+- romanianEducationalLevel: ONE OF: "GRADINITA", "PRIMAR", "GIMNAZIU", "LICEU", "UNIVERSITATE"
+
+AGE GROUP DETERMINATION RULES (ANALYZE ORIGINAL DESCRIPTION):
+- If description contains "ages 12+", "ages 12-16", "ages 13+", "adolescents", "teens", "teenagers" → "TEENS_13_PLUS"
+- If description contains "ages 9-12", "ages 10-14", "middle school", "ages 9+", "ages 10+" → "MIDDLE_SCHOOL_9_12"
+- If description contains "ages 6-8", "ages 6-12", "elementary", "ages 6+", "primary school" → "ELEMENTARY_6_8"
+- If description contains "ages 3-5", "preschool", "ages 3-6" → "PRESCHOOL_3_5"
+- If description contains "ages 1-3", "toddlers", "ages 1-4" → "TODDLERS_1_3"
+- DEFAULT: "ELEMENTARY_6_8" (most common for STEM toys)
+
+STEM DISCIPLINE CLASSIFICATION RULES:
+- SCIENCE: Chemistry, biology, physics, geology, astronomy, fossils, experiments, nature study, scientific methods
+- TECHNOLOGY: Programming, coding, electronics, circuits, computers, digital, software, apps, robotics
+- ENGINEERING: Building, construction, design, mechanics, structures, problem-solving, invention
+- MATHEMATICS: Numbers, patterns, logic puzzles, geometry, calculations, mathematical thinking
+- GENERAL: Mixed disciplines or unclear from description
+
+PRODUCT TYPE CLASSIFICATION RULES:
+- ROBOTICS: Robots, programmable robots, robot kits, robot building
+- PUZZLES: Logic puzzles, brain teasers, problem-solving puzzles
+- CONSTRUCTION_SETS: Building sets, construction toys, building blocks, model kits
+- EXPERIMENT_KITS: Science experiments, chemistry sets, electronic kits, discovery kits
+- BOARD_GAMES: Strategy games, educational games, learning games on boards
+
+ANALYSIS STEPS (FOLLOW EXACTLY):
+1. Read the original product description carefully
+2. Apply age group determination rules to select EXACT enum value
+3. Apply STEM discipline classification rules to select EXACT enum value
+4. Apply product type classification rules to select EXACT enum value
+5. Select 2-4 learning outcomes from the allowed list
+6. Determine content length based on PRODUCT TYPE GUIDELINES above
+7. Generate content based on these determined values and length guidelines
+
 Please follow these comprehensive guidelines:
 
 1. Create a detailed, engaging product description (400-600 words) that:
@@ -731,23 +812,23 @@ Please follow these comprehensive guidelines:
    - Keywords (8-12 relevant terms)
    ${useRomanian ? "- All in Romanian language" : ""}
 
-3. Identify and categorize using EXACT database values:
-   - Appropriate tags and categories
-   - Learning outcomes: ONLY "PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "MOTOR_SKILLS", "LOGIC"
-   - Age groups: ONLY "TODDLERS_1_3", "PRESCHOOL_3_5", "ELEMENTARY_6_8", "MIDDLE_SCHOOL_9_12", "TEENS_13_PLUS"
-   - STEM disciplines: ONLY "SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"
-   - Product types: ONLY "ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"
+3. Apply the exact classification rules above:
+   - Age groups using AGE GROUP DETERMINATION RULES
+   - STEM disciplines using STEM DISCIPLINE CLASSIFICATION RULES
+   - Product types using PRODUCT TYPE CLASSIFICATION RULES
+   - Learning outcomes from the allowed list
 
 4. ${useRomanian ? "Romanian market optimization:" : "If applicable, include Romanian market optimization:"}
    - Curriculum alignment with Romanian education system
    - Key competencies developed
-   - Educational level: ONLY "GRADINITA", "PRIMAR", "GIMNAZIU", "LICEU", "UNIVERSITATE"
+   - Educational level determined from age group
    - Subject area connections
 
 DATABASE SCHEMA CONSTRAINTS (CRITICAL):
 - Use ONLY the exact enum values listed above
 - Invalid values will cause database insertion failures
 - All enum fields must use the specified values exactly
+- Double-check all enum values before finalizing response
 
 Return your response as a complete JSON object with all required fields properly formatted.
 Ensure the content is engaging, educational, and market-appropriate.`;
@@ -768,21 +849,54 @@ Your task is to generate enhanced product information based on basic data provid
 
 ${useRomanian ? "IMPORTANT: All product descriptions, titles, and metadata should be generated in Romanian language. Only the JSON field names should remain in English." : ""}
 
+CRITICAL DATABASE SCHEMA REQUIREMENTS (MUST FOLLOW EXACTLY):
+- ageGroup: ONE OF: "TODDLERS_1_3", "PRESCHOOL_3_5", "ELEMENTARY_6_8", "MIDDLE_SCHOOL_9_12", "TEENS_13_PLUS"
+- stemDiscipline: ONE OF: "SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"
+- productType: ONE OF: "ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"
+- learningOutcomes: ARRAY FROM: "PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "MOTOR_SKILLS", "LOGIC"
+- romanianEducationalLevel: ONE OF: "GRADINITA", "PRIMAR", "GIMNAZIU", "LICEU", "UNIVERSITATE"
+
+AGE GROUP DETERMINATION RULES (ANALYZE ORIGINAL DESCRIPTION):
+- If description contains "ages 12+", "ages 12-16", "ages 13+", "adolescents", "teens", "teenagers" → "TEENS_13_PLUS"
+- If description contains "ages 9-12", "ages 10-14", "middle school", "ages 9+", "ages 10+" → "MIDDLE_SCHOOL_9_12"
+- If description contains "ages 6-8", "ages 6-12", "elementary", "ages 6+", "primary school" → "ELEMENTARY_6_8"
+- If description contains "ages 3-5", "preschool", "ages 3-6" → "PRESCHOOL_3_5"
+- If description contains "ages 1-3", "toddlers", "ages 1-4" → "TODDLERS_1_3"
+- DEFAULT: "ELEMENTARY_6_8" (most common for STEM toys)
+
+STEM DISCIPLINE CLASSIFICATION RULES:
+- SCIENCE: Chemistry, biology, physics, geology, astronomy, fossils, experiments, nature study, scientific methods
+- TECHNOLOGY: Programming, coding, electronics, circuits, computers, digital, software, apps, robotics
+- ENGINEERING: Building, construction, design, mechanics, structures, problem-solving, invention
+- MATHEMATICS: Numbers, patterns, logic puzzles, geometry, calculations, mathematical thinking
+- GENERAL: Mixed disciplines or unclear from description
+
+PRODUCT TYPE CLASSIFICATION RULES:
+- ROBOTICS: Robots, programmable robots, robot kits, robot building
+- PUZZLES: Logic puzzles, brain teasers, problem-solving puzzles
+- CONSTRUCTION_SETS: Building sets, construction toys, building blocks, model kits
+- EXPERIMENT_KITS: Science experiments, chemistry sets, electronic kits, discovery kits
+- BOARD_GAMES: Strategy games, educational games, learning games on boards
+
+ANALYSIS STEPS (FOLLOW EXACTLY):
+1. Read the original product description carefully
+2. Apply age group determination rules to select EXACT enum value
+3. Apply STEM discipline classification rules to select EXACT enum value
+4. Apply product type classification rules to select EXACT enum value
+5. Select 2-4 learning outcomes from the allowed list
+6. Determine content length based on PRODUCT TYPE GUIDELINES above
+7. Generate content based on these determined values and length guidelines
+
 Please follow these guidelines:
 
 1. Create a detailed, engaging product description (300-500 words) ${useRomanian ? "in Romanian language" : ""}
 2. Generate SEO metadata (title, description, keywords) ${useRomanian ? "in Romanian language" : ""}
 3. Identify appropriate tags and categories ${useRomanian ? "in Romanian language" : ""}
-4. Determine learning outcomes and educational benefits
-5. ${useRomanian ? "Ensure full optimization for Romanian market and curriculum alignment" : "If needed, optimize for Romanian market and curriculum alignment"}
-6. Suggest appropriate age groups and STEM disciplines
-
-DATABASE SCHEMA CONSTRAINTS (CRITICAL - Must use exact values):
-- ageGroup: Must be one of: "TODDLERS_1_3", "PRESCHOOL_3_5", "ELEMENTARY_6_8", "MIDDLE_SCHOOL_9_12", "TEENS_13_PLUS"
-- stemDiscipline: Must be one of: "SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"
-- productType: Must be one of: "ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"
-- learningOutcomes: Must be array containing only: "PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "MOTOR_SKILLS", "LOGIC"
-- romanianEducationalLevel: Must be one of: "GRADINITA", "PRIMAR", "GIMNAZIU", "LICEU", "UNIVERSITATE"
+4. Apply the exact AGE GROUP DETERMINATION RULES above
+5. Apply the exact STEM DISCIPLINE CLASSIFICATION RULES above
+6. Apply the exact PRODUCT TYPE CLASSIFICATION RULES above
+7. Select appropriate learning outcomes from the allowed list
+8. ${useRomanian ? "Ensure full optimization for Romanian market and curriculum alignment" : "If needed, optimize for Romanian market and curriculum alignment"}
 
 Return your response as a JSON object with the following structure:
 {
@@ -793,14 +907,19 @@ Return your response as a JSON object with the following structure:
   "metaKeywords": ["keyword1", "keyword2", ...],
   "tags": ["tag1", "tag2", ...],
   "learningOutcomes": ["PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "MOTOR_SKILLS", "LOGIC"],
-  "ageGroup": "ELEMENTARY_6_8",
-  "stemDiscipline": "TECHNOLOGY", 
-  "productType": "EXPERIMENT_KITS",
+  "ageGroup": "DETERMINE_FROM_RULES_ABOVE",
+  "stemDiscipline": "DETERMINE_FROM_RULES_ABOVE",
+  "productType": "DETERMINE_FROM_RULES_ABOVE",
   "romanianCompetencies": ["competency1", ...],
   "romanianCurriculumAlignment": ["alignment1", ...],
-  "romanianEducationalLevel": "PRIMAR",
+  "romanianEducationalLevel": "DETERMINE_FROM_AGE_GROUP",
   "romanianSubjectAreas": ["area1", ...]
 }
+
+CRITICAL VALIDATION:
+- Double-check that ageGroup, stemDiscipline, productType use ONLY the exact enum values listed
+- Ensure learningOutcomes contains ONLY valid enum values
+- Invalid values will cause database insertion failures - this is your highest priority
 
 Use valid JSON format and ensure all fields are properly formatted.`;
   }
@@ -821,6 +940,43 @@ You'll review both the original product data and the initially enhanced version 
 
 ${useRomanian ? "IMPORTANT: All content is in Romanian language and must remain in Romanian. Your improvements should also be in Romanian language. Only the JSON field names should remain in English." : ""}
 
+CRITICAL DATABASE SCHEMA REQUIREMENTS (MUST FOLLOW EXACTLY):
+- ageGroup: ONE OF: "TODDLERS_1_3", "PRESCHOOL_3_5", "ELEMENTARY_6_8", "MIDDLE_SCHOOL_9_12", "TEENS_13_PLUS"
+- stemDiscipline: ONE OF: "SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"
+- productType: ONE OF: "ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"
+- learningOutcomes: ARRAY FROM: "PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "MOTOR_SKILLS", "LOGIC"
+- romanianEducationalLevel: ONE OF: "GRADINITA", "PRIMAR", "GIMNAZIU", "LICEU", "UNIVERSITATE"
+
+AGE GROUP DETERMINATION RULES (VERIFY AGAINST ORIGINAL DESCRIPTION):
+- If original description contains "ages 12+", "ages 12-16", "ages 13+", "adolescents", "teens", "teenagers" → MUST BE "TEENS_13_PLUS"
+- If original description contains "ages 9-12", "ages 10-14", "middle school", "ages 9+", "ages 10+" → MUST BE "MIDDLE_SCHOOL_9_12"
+- If original description contains "ages 6-8", "ages 6-12", "elementary", "ages 6+", "primary school" → MUST BE "ELEMENTARY_6_8"
+- If original description contains "ages 3-5", "preschool", "ages 3-6" → MUST BE "PRESCHOOL_3_5"
+- If original description contains "ages 1-3", "toddlers", "ages 1-4" → MUST BE "TODDLERS_1_3"
+- DEFAULT: "ELEMENTARY_6_8" (most common for STEM toys)
+
+STEM DISCIPLINE CLASSIFICATION RULES (VERIFY AGAINST PRODUCT CONTENT):
+- SCIENCE: Chemistry, biology, physics, geology, astronomy, fossils, experiments, nature study, scientific methods
+- TECHNOLOGY: Programming, coding, electronics, circuits, computers, digital, software, apps, robotics
+- ENGINEERING: Building, construction, design, mechanics, structures, problem-solving, invention
+- MATHEMATICS: Numbers, patterns, logic puzzles, geometry, calculations, mathematical thinking
+- GENERAL: Mixed disciplines or unclear from description
+
+PRODUCT TYPE CLASSIFICATION RULES (VERIFY AGAINST PRODUCT NATURE):
+- ROBOTICS: Robots, programmable robots, robot kits, robot building
+- PUZZLES: Logic puzzles, brain teasers, problem-solving puzzles
+- CONSTRUCTION_SETS: Building sets, construction toys, building blocks, model kits
+- EXPERIMENT_KITS: Science experiments, chemistry sets, electronic kits, discovery kits
+- BOARD_GAMES: Strategy games, educational games, learning games on boards
+
+VALIDATION STEPS (FOLLOW EXACTLY):
+1. Review original product description and current AI output
+2. Verify ageGroup matches AGE GROUP DETERMINATION RULES - CORRECT if wrong
+3. Verify stemDiscipline matches STEM DISCIPLINE CLASSIFICATION RULES - CORRECT if wrong
+4. Verify productType matches PRODUCT TYPE CLASSIFICATION RULES - CORRECT if wrong
+5. Verify learningOutcomes contain only valid enum values - CORRECT if wrong
+6. Verify romanianEducationalLevel is valid - CORRECT if wrong
+
 Focus on these key areas:
 ${
   this.config!.refinementOptions.validateContent
@@ -839,7 +995,7 @@ ${
 }
 ${
   this.config!.refinementOptions.ensureDbCompatibility
-    ? "- DATABASE COMPATIBILITY: Ensure all field formats match required database schema (correct data types, valid enum values, etc.)."
+    ? "- DATABASE COMPATIBILITY: Ensure all field formats match required database schema (correct data types, valid enum values, etc.). PRIORITY: Fix any invalid enum values."
     : ""
 }
 
@@ -849,12 +1005,14 @@ Return your improved version as a valid JSON object with the same structure as t
 {
   [all product fields with improvements],
   "refinements": [
-    "Description: Improved readability and added specific educational benefits",
+    "Database Schema: Corrected ageGroup from invalid value to TEENS_13_PLUS based on 'ages 12+' in description",
+    "Database Schema: Corrected stemDiscipline from TECHNOLOGY to SCIENCE for fossil dig kit",
     "SEO: Enhanced keywords for better search visibility",
     etc.
   ]
 }
 
+CRITICAL: If you find any invalid enum values, list the correction as the FIRST item in refinements array.
 Focus on substantial improvements rather than minor stylistic changes. Be especially careful with technical details and educational claims.`;
   }
 
