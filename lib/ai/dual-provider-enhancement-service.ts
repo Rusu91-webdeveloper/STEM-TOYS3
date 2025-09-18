@@ -14,13 +14,17 @@ import { BaseAIService } from "./base-ai-service";
 import { AIServiceFactory } from "./ai-service-factory";
 import { AIConfig } from "./config";
 import { ApiErrors } from "@/lib/api-error-handler";
-import { aiMonitoring } from "./monitoring";
 import {
   BasicProduct,
   EnhancedProduct,
   EnhancementOptions,
   EnhancementProgress,
 } from "./types";
+
+// Use simplified monitoring to avoid dependency issues
+import { simpleAIMonitoring } from "./monitoring-simple";
+
+const aiMonitoring = simpleAIMonitoring;
 
 /**
  * Configuration for the dual-provider pipeline
@@ -68,26 +72,34 @@ export class DualProviderEnhancementService {
    * Initialize the services for both providers
    */
   private initServices() {
+    console.log(`Initializing dual-provider services: primary=${this.config!.primaryProvider}, secondary=${this.config!.secondaryProvider}`);
+    
     if (!this.primaryService) {
       try {
+        console.log(`Creating primary service: ${this.config!.primaryProvider}`);
         this.primaryService = AIServiceFactory.getService(
           this.config!.primaryProvider
         );
+        console.log(`Primary service created successfully: ${this.config!.primaryProvider}`);
       } catch (error) {
+        console.error(`Failed to create primary service (${this.config!.primaryProvider}):`, error);
         throw new Error(
-          `Failed to initialize primary AI service: ${error instanceof Error ? error.message : String(error)}`
+          `Failed to initialize primary AI service (${this.config!.primaryProvider}): ${error instanceof Error ? error.message : String(error)}`
         );
       }
     }
 
     if (!this.secondaryService) {
       try {
+        console.log(`Creating secondary service: ${this.config!.secondaryProvider}`);
         this.secondaryService = AIServiceFactory.getService(
           this.config!.secondaryProvider
         );
+        console.log(`Secondary service created successfully: ${this.config!.secondaryProvider}`);
       } catch (error) {
+        console.error(`Failed to create secondary service (${this.config!.secondaryProvider}):`, error);
         throw new Error(
-          `Failed to initialize secondary AI service: ${error instanceof Error ? error.message : String(error)}`
+          `Failed to initialize secondary AI service (${this.config!.secondaryProvider}): ${error instanceof Error ? error.message : String(error)}`
         );
       }
     }
