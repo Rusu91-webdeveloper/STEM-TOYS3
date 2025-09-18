@@ -651,9 +651,12 @@ export async function POST(request: NextRequest) {
               romanianTeacherResources: product.romanianTeacherResources || [],
 
               // Status logic: AI-enhanced products need approval, manual uploads are auto-approved
-              status: product.generatedByFallback || product.fallbackUsed || product.dualProviderEnhancement 
-                ? "PENDING_APPROVAL" 
-                : "APPROVED",
+              status:
+                product.generatedByFallback ||
+                product.fallbackUsed ||
+                product.dualProviderEnhancement
+                  ? "PENDING_APPROVAL"
+                  : "APPROVED",
 
               // Currency fields
               priceCurrency: "RON",

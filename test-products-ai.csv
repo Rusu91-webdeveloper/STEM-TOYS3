@@ -1,4 +1,4 @@
-name,price,category,description,stock,sku
+name,price,category,description,stockQuantity,sku
 "LEGO Mindstorms Robot Inventor",359.99,"Robotics","Build and program robots with this advanced LEGO robotics kit featuring sensors, motors and programmable hub","25","LEGO-51515"
 "Snap Circuits SC-300",54.99,"Electronics","Electronic discovery kit with 300+ experiments using snap-together components to learn about electricity and circuits","40","SNAP-SC300"
 "Thames & Kosmos Chemistry C3000",199.95,"Science Kits","Professional-grade chemistry set with 333 experiments covering organic, inorganic and analytical chemistry for ages 12+","15","TK-640132"

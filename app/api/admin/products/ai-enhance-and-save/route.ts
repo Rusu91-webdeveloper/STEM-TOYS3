@@ -61,7 +61,7 @@ function generateSlug(name: string): string {
 // Helper function to find or create category
 async function findOrCreateCategory(categoryName: string) {
   const slug = generateSlug(categoryName);
-  
+
   // Try to find existing category
   let category = await db.category.findFirst({
     where: {
@@ -147,11 +147,15 @@ export async function POST(request: NextRequest) {
         );
 
         // Step 2: Schema Validation
-        const validation = AISchemaValidator.validateEnhancedProduct(enhancedProduct);
-        
+        const validation =
+          AISchemaValidator.validateEnhancedProduct(enhancedProduct);
+
         if (!validation.isValid) {
-          console.warn(`Schema validation issues for ${productData.name}:`, validation.errors);
-          
+          console.warn(
+            `Schema validation issues for ${productData.name}:`,
+            validation.errors
+          );
+
           // Add warnings for validation issues
           validation.warnings.forEach(warning => {
             results.warnings.push({
@@ -165,7 +169,9 @@ export async function POST(request: NextRequest) {
             console.log(`Using corrected product data for ${productData.name}`);
             enhancedProduct = validation.correctedProduct;
           } else {
-            throw new Error(`Schema validation failed: ${validation.errors.join(", ")}`);
+            throw new Error(
+              `Schema validation failed: ${validation.errors.join(", ")}`
+            );
           }
         }
 
@@ -176,21 +182,23 @@ export async function POST(request: NextRequest) {
         if (validatedData.saveToDatabase) {
           try {
             // Find or create category
-            const category = await findOrCreateCategory(enhancedProduct.category);
+            const category = await findOrCreateCategory(
+              enhancedProduct.category
+            );
 
             // Generate unique slug
             const baseSlug = generateSlug(enhancedProduct.name);
             let slug = baseSlug;
             let counter = 1;
-            
+
             while (await db.product.findUnique({ where: { slug } })) {
               slug = `${baseSlug}-${counter}`;
               counter++;
             }
 
             // Determine status: AI-enhanced products need approval unless auto-approved
-            const status = validatedData.autoApprove 
-              ? "APPROVED" 
+            const status = validatedData.autoApprove
+              ? "APPROVED"
               : "PENDING_APPROVAL";
 
             // Create product in database
@@ -199,7 +207,9 @@ export async function POST(request: NextRequest) {
                 // Core fields
                 name: enhancedProduct.name,
                 slug: slug,
-                description: enhancedProduct.enhancedDescription || enhancedProduct.description,
+                description:
+                  enhancedProduct.enhancedDescription ||
+                  enhancedProduct.description,
                 price: enhancedProduct.price,
                 sku: enhancedProduct.sku,
                 images: enhancedProduct.images || [],
@@ -209,20 +219,27 @@ export async function POST(request: NextRequest) {
                 weight: enhancedProduct.weight || 0.8,
                 isActive: false, // Inactive until approved
                 featured: false,
-                
+
                 // Enhanced categorization fields
                 ageGroup: enhancedProduct.ageGroup as any,
-                stemDiscipline: (enhancedProduct.stemDiscipline || "GENERAL") as any,
-                learningOutcomes: (enhancedProduct.learningOutcomes || []) as any,
+                stemDiscipline: (enhancedProduct.stemDiscipline ||
+                  "GENERAL") as any,
+                learningOutcomes: (enhancedProduct.learningOutcomes ||
+                  []) as any,
                 productType: enhancedProduct.productType as any,
                 specialCategories: ["NEW_ARRIVALS"],
 
                 // Romanian educational fields
-                romanianCompetencies: enhancedProduct.romanianCompetencies || [],
-                romanianCurriculumAlignment: enhancedProduct.romanianCurriculumAlignment || [],
-                romanianEducationalLevel: enhancedProduct.romanianEducationalLevel as any,
-                romanianSubjectAreas: enhancedProduct.romanianSubjectAreas || [],
-                romanianMinistryApproval: enhancedProduct.romanianMinistryApproval || false,
+                romanianCompetencies:
+                  enhancedProduct.romanianCompetencies || [],
+                romanianCurriculumAlignment:
+                  enhancedProduct.romanianCurriculumAlignment || [],
+                romanianEducationalLevel:
+                  enhancedProduct.romanianEducationalLevel as any,
+                romanianSubjectAreas:
+                  enhancedProduct.romanianSubjectAreas || [],
+                romanianMinistryApproval:
+                  enhancedProduct.romanianMinistryApproval || false,
 
                 // Status - AI-enhanced products need approval
                 status: status,
@@ -234,14 +251,20 @@ export async function POST(request: NextRequest) {
                 // SEO metadata in attributes
                 attributes: {
                   metaTitle: enhancedProduct.metaTitle || enhancedProduct.name,
-                  metaDescription: enhancedProduct.metaDescription || 
-                    (enhancedProduct.enhancedDescription || enhancedProduct.description || "").substring(0, 160),
+                  metaDescription:
+                    enhancedProduct.metaDescription ||
+                    (
+                      enhancedProduct.enhancedDescription ||
+                      enhancedProduct.description ||
+                      ""
+                    ).substring(0, 160),
                   metaKeywords: enhancedProduct.metaKeywords || [],
                   // AI enhancement tracking
                   aiEnhanced: true,
                   enhancedBy: "dual-provider",
                   fallbackUsed: enhancedProduct.fallbackUsed || false,
-                  generatedByFallback: enhancedProduct.generatedByFallback || false,
+                  generatedByFallback:
+                    enhancedProduct.generatedByFallback || false,
                   enhancementTimestamp: new Date().toISOString(),
                 },
               },
@@ -262,9 +285,11 @@ export async function POST(request: NextRequest) {
             console.log(
               `✅ Successfully saved product: ${savedProduct.name} (Status: ${status})`
             );
-
           } catch (saveError) {
-            console.error(`Failed to save product ${productData.name}:`, saveError);
+            console.error(
+              `Failed to save product ${productData.name}:`,
+              saveError
+            );
             results.errors.push({
               product: productData.name,
               error: `Database save failed: ${saveError instanceof Error ? saveError.message : String(saveError)}`,
@@ -273,9 +298,11 @@ export async function POST(request: NextRequest) {
             results.failed++;
           }
         }
-
       } catch (enhanceError) {
-        console.error(`Failed to enhance product ${productData.name}:`, enhanceError);
+        console.error(
+          `Failed to enhance product ${productData.name}:`,
+          enhanceError
+        );
         results.errors.push({
           product: productData.name,
           error: `AI enhancement failed: ${enhanceError instanceof Error ? enhanceError.message : String(enhanceError)}`,
@@ -309,8 +336,11 @@ export async function POST(request: NextRequest) {
         savedProducts: savedProducts,
         saveResults: {
           saved: results.saved,
-          pending_approval: savedProducts.filter(p => p.status === "PENDING_APPROVAL").length,
-          auto_approved: savedProducts.filter(p => p.status === "APPROVED").length,
+          pending_approval: savedProducts.filter(
+            p => p.status === "PENDING_APPROVAL"
+          ).length,
+          auto_approved: savedProducts.filter(p => p.status === "APPROVED")
+            .length,
           warnings: results.warnings,
         },
       }),
@@ -320,9 +350,11 @@ export async function POST(request: NextRequest) {
     if (validatedData.saveToDatabase && results.saved > 0) {
       revalidateTag("products");
       revalidatePath("/admin/products");
-      
+
       // Revalidate categories
-      const uniqueCategories = [...new Set(savedProducts.map(p => p.categoryId))];
+      const uniqueCategories = [
+        ...new Set(savedProducts.map(p => p.categoryId)),
+      ];
       uniqueCategories.forEach(categoryId => {
         if (categoryId) revalidateTag(`category-${categoryId}`);
       });
@@ -335,7 +367,6 @@ export async function POST(request: NextRequest) {
     return applyStandardHeaders(NextResponse.json(response), {
       cache: "private",
     });
-
   } catch (error) {
     console.error("AI Enhancement and Save API error:", error);
     return handleApiError(error, "Failed to enhance and save products");
