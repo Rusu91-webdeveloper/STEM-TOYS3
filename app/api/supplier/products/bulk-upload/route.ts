@@ -394,6 +394,18 @@ export async function POST(request: NextRequest) {
               supplierId: supplier.id,
               isActive: true,
               featured: false,
+
+              // Romanian educational fields with defaults
+              romanianMinistryApproval: true,
+
+              // Metadata field for tracking
+              metadata: {
+                createdViaSupplierBulkUpload: true,
+                supplierBulkUploadTimestamp: new Date().toISOString(),
+                supplierId: supplier.id,
+                ministryApproved: true,
+                isActive: true,
+              },
             },
           });
 

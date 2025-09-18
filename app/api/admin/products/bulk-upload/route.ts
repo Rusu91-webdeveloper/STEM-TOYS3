@@ -623,7 +623,7 @@ export async function POST(request: NextRequest) {
               reorderPoint: product.reorderPoint,
               weight: product.weight || 0.8,
               dimensions: product.dimensions,
-              isActive: product.isActive,
+              isActive: true, // Always active by default
               featured: false, // ALWAYS false for bulk uploads
               reviewCount: 0, // Default as requested
               totalSold: 0, // Default as requested
@@ -643,8 +643,7 @@ export async function POST(request: NextRequest) {
                 product.romanianCurriculumAlignment || [],
               romanianEducationalLevel: product.romanianEducationalLevel,
               romanianSubjectAreas: product.romanianSubjectAreas || [],
-              romanianMinistryApproval:
-                product.romanianMinistryApproval || false,
+              romanianMinistryApproval: true, // Always true by default
               romanianEducationalCertification:
                 product.romanianEducationalCertification,
               romanianParentGuides: product.romanianParentGuides || [],
@@ -674,6 +673,15 @@ export async function POST(request: NextRequest) {
 
               // Image metadata
               imageMetadata: product.imageMetadata || [],
+
+              // Metadata field for tracking
+              metadata: {
+                createdViaBulkUpload: true,
+                bulkUploadTimestamp: new Date().toISOString(),
+                enhancementMethod: product.fallbackUsed ? "fallback" : product.dualProviderEnhancement ? "dual-provider" : "standard",
+                ministryApproved: true,
+                isActive: true,
+              },
             },
           });
 
