@@ -650,8 +650,10 @@ export async function POST(request: NextRequest) {
               romanianParentGuides: product.romanianParentGuides || [],
               romanianTeacherResources: product.romanianTeacherResources || [],
 
-              // Admin bulk uploads should be automatically approved
-              status: "APPROVED",
+              // Status logic: AI-enhanced products need approval, manual uploads are auto-approved
+              status: product.generatedByFallback || product.fallbackUsed || product.dualProviderEnhancement 
+                ? "PENDING_APPROVAL" 
+                : "APPROVED",
 
               // Currency fields
               priceCurrency: "RON",
@@ -669,9 +671,6 @@ export async function POST(request: NextRequest) {
 
               // Image metadata
               imageMetadata: product.imageMetadata || [],
-
-              // Status - Admin products are automatically approved
-              status: "APPROVED",
             },
           });
 

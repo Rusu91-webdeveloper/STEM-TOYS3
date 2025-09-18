@@ -212,6 +212,16 @@ export class DualProviderEnhancementService {
             fallbackReason:
               finalEnhancement.fallbackReason ||
               "Schema validation corrections applied",
+            // Mark as AI-enhanced for status handling
+            aiEnhanced: true,
+            requiresApproval: true,
+          };
+        } else {
+          // Mark as AI-enhanced for status handling
+          finalEnhancement = {
+            ...finalEnhancement,
+            aiEnhanced: true,
+            requiresApproval: true,
           };
         }
       }

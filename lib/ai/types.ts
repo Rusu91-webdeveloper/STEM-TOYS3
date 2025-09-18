@@ -58,6 +58,10 @@ export interface EnhancedProduct extends BasicProduct {
   error?: boolean;
   errorMessage?: string;
   parseError?: boolean;
+
+  // Status tracking for database operations
+  aiEnhanced?: boolean;
+  requiresApproval?: boolean;
 }
 
 export interface EnhancementOptions {
