@@ -326,9 +326,10 @@ export default function HomePageClient({
 
       {/* Featured Products Accordion - Load with suspense for better performance */}
       <Suspense fallback={<FeaturedProductsLoader />}>
-        {console.log(
-          `[CLIENT] Rendering accordion with ${initialFeaturedProducts.length} products`
-        )}
+        {process.env.NODE_ENV === "development" &&
+          console.log(
+            `[CLIENT] Rendering accordion with ${initialFeaturedProducts.length} products`
+          )}
         <FeaturedProductsAccordion
           products={initialFeaturedProducts}
           formatPrice={formatPrice}

@@ -40,6 +40,7 @@ const CRITICAL_ASSETS = [
 const STATIC_PATTERNS = [
   /\.(js|css|png|jpg|jpeg|gif|svg|webp|avif|woff|woff2|ttf|otf)$/,
   /^\/_next\/static\//,
+  /^\/_next\/.*\.js$/,
   /^\/images\//,
   /^\/fonts\//,
 ];
@@ -124,6 +125,12 @@ self.addEventListener('fetch', (event) => {
   // FIXED: Skip authentication endpoints to prevent PKCE code verifier issues
   if (isAuthRequest(url.pathname)) {
     console.log('[SW] Skipping auth request:', url.pathname);
+    return;
+  }
+  
+  // CRITICAL: Never intercept Next.js JavaScript chunks to prevent syntax errors
+  if (isNextJSAsset(url.pathname)) {
+    console.log('[SW] Skipping Next.js asset:', url.pathname);
     return;
   }
   
@@ -430,7 +437,7 @@ function isUploadThingRequest(pathname) {
 }
 
 function isPageRequest(pathname) {
-  return !isStaticAsset(pathname) && !isApiRequest(pathname) && !pathname.includes('.');
+  return !isStaticAsset(pathname) && !isApiRequest(pathname) && !pathname.includes('.') && !pathname.startsWith('/_next/');
 }
 
 function isExternalDomain(hostname) {
@@ -465,6 +472,14 @@ function isAuthRequest(pathname) {
          pathname.includes('/signout') ||
          pathname.includes('/session') ||
          pathname.startsWith('/api/admin/');       // Skip admin API routes
+}
+
+function isNextJSAsset(pathname) {
+  // Never intercept Next.js JavaScript chunks and build assets to prevent syntax errors
+  return pathname.startsWith('/_next/') || 
+         /^\/[a-f0-9-]+\.js$/.test(pathname) ||  // Next.js chunk files like page-47ba60c269e72b06.js
+         pathname.includes('chunks/') ||
+         pathname.includes('static/');
 }
 
 // IndexedDB operations for offline actions
@@ -544,10 +559,19 @@ self.addEventListener('message', (event) => {
         // Only post back if a MessagePort was provided
         if (event.ports && event.ports[0]) {
           event.ports[0].postMessage(stats);
+        } else if (event.source) {
+          // Try to post back to the source client
+          try {
+            event.source.postMessage({ type: 'CACHE_STATS', data: stats });
+          } catch (error) {
+            console.log('[SW] Could not post cache stats back to client:', error);
+          }
         } else {
-          // No reply port; just log to avoid runtime errors
-          console.log('[SW] Cache stats (no reply port):', stats);
+          // No reply mechanism available; just log
+          console.log('[SW] Cache stats (no reply mechanism):', stats);
         }
+      }).catch(error => {
+        console.error('[SW] Error getting cache stats:', error);
       });
       break;
     default:

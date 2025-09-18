@@ -77,11 +77,13 @@ export const FeaturedProductsAccordion = ({
   const handleMouseEnter = () => setIsPaused(true);
   const handleMouseLeave = () => setIsPaused(false);
 
-  // Debug log to verify we're receiving all products
-  console.log(
-    `[ACCORDION] Received ${products.length} products:`,
-    products.map(p => p.name)
-  );
+  // Debug log to verify we're receiving all products (development only)
+  if (process.env.NODE_ENV === "development") {
+    console.log(
+      `[ACCORDION] Received ${products.length} products:`,
+      products.map(p => p.name)
+    );
+  }
 
   if (isLoading || products.length === 0) {
     return (

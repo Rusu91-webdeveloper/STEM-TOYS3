@@ -56,7 +56,8 @@ export default function ServiceWorkerRegistration() {
           console.log("[SW] Message from service worker:", event.data);
         }
 
-        if (event.data.type === "CACHE_UPDATED") {
+        // Ensure event.data exists before accessing properties
+        if (event.data && event.data.type === "CACHE_UPDATED") {
           if (process.env.NODE_ENV === "development") {
             console.log("[SW] Cache updated, reloading page...");
           }
