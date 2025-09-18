@@ -55,7 +55,7 @@ export class DualProviderEnhancementService {
     primaryProvider: "gemini",
     primaryModel: "gemini-1.5-pro",
     secondaryProvider: "openai",
-    secondaryModel: "gpt-3.5-turbo",
+    secondaryModel: "gpt-4o-mini", // Upgraded from gpt-3.5-turbo for better performance
     refinementOptions: {
       validateContent: true,
       improveSEO: true,

@@ -51,7 +51,7 @@ const dualEnhancementSchema = z.object({
       secondaryProvider: z
         .enum(["openai", "gemini", "anthropic"])
         .default("openai"),
-      secondaryModel: z.string().default("gpt-3.5-turbo"),
+      secondaryModel: z.string().default("gpt-4o-mini"),
       refinementOptions: z
         .object({
           validateContent: z.boolean().default(true),
