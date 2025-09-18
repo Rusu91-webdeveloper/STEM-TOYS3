@@ -119,231 +119,265 @@ export function MobileFiltersModal({
           "animate-in slide-in-from-bottom duration-500"
         )}
       >
-        {/* Premium Header with Glass Effect */}
-        <SheetHeader className="relative px-5 py-5 sm:px-6 sm:py-6 flex-shrink-0 bg-gradient-to-b from-white via-gray-50/50 to-transparent">
+        {/* Premium Header with Enhanced Glass Effect */}
+        <SheetHeader className="relative px-5 py-6 sm:px-6 sm:py-7 flex-shrink-0 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/20 backdrop-blur-xl border-b border-white/40">
           {/* Drag Handle - Premium style */}
-          <div className="absolute top-3 left-1/2 transform -translate-x-1/2">
-            <div className="w-12 h-1.5 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors cursor-grab active:cursor-grabbing" />
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+            <div className="w-16 h-2 bg-gradient-to-r from-gray-300 to-gray-400 rounded-full hover:from-gray-400 hover:to-gray-500 transition-all duration-300 cursor-grab active:cursor-grabbing shadow-sm" />
           </div>
 
           {/* Header Content */}
-          <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center justify-between mt-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg">
-                <SlidersHorizontal className="w-5 h-5 text-white" />
+              <div className="p-3 bg-gradient-to-br from-indigo-500 via-purple-600 to-indigo-700 rounded-2xl shadow-xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
+                <SlidersHorizontal className="w-6 h-6 text-white relative z-10" />
               </div>
               <div>
-                <SheetTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                  {t("filterOptions", "Filtrează")}
+                <SheetTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 via-indigo-800 to-purple-800 bg-clip-text text-transparent">
+                  {t("advancedFilters", "Filtre Avansate")}
                 </SheetTitle>
-                {activeFiltersCount > 0 && (
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {activeFiltersCount} {t("activeFilters", "filtre active")}
-                  </p>
-                )}
+                <p className="text-sm text-gray-600 mt-1">
+                  {t("refineYourSearch", "Rafinează căutarea")}
+                </p>
               </div>
             </div>
 
             {/* Premium Close Button */}
             <button
               onClick={onClose}
-              className="p-2.5 hover:bg-gray-100 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95"
+              className="p-3 hover:bg-white/60 rounded-2xl transition-all duration-300 hover:scale-110 active:scale-95 backdrop-blur-sm"
             >
-              <X className="w-5 h-5 text-gray-600" />
+              <X className="w-6 h-6 text-gray-700" />
             </button>
           </div>
 
-          {/* Quick Stats Bar */}
+          {/* Active Filters Summary */}
           {activeFiltersCount > 0 && (
-            <div className="mt-3 flex items-center gap-2 flex-wrap">
-              {selectedCategories.map(cat => (
-                <span
-                  key={cat}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium"
+            <div className="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100/50">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-gray-800">
+                  {t("activeFilters", "Filtre Active")} ({activeFiltersCount})
+                </span>
+                <button
+                  onClick={handleClearAll}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium hover:underline transition-colors"
                 >
-                  <Check className="w-3 h-3" />
-                  {cat}
-                </span>
-              ))}
-              {selectedProductType && (
-                <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                  <Check className="w-3 h-3" />
-                  {selectedProductType}
-                </span>
-              )}
-              {!noPriceFilter && (
-                <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                  <Check className="w-3 h-3" />
-                  {t("priceRange", "Interval preț")}
-                </span>
-              )}
+                  {t("clearAll", "Șterge toate")}
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {selectedCategories.map(cat => (
+                  <span
+                    key={cat}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium shadow-sm"
+                  >
+                    <Check className="w-3 h-3" />
+                    {cat}
+                  </span>
+                ))}
+                {selectedProductType && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-800 rounded-full text-xs font-medium shadow-sm">
+                    <Check className="w-3 h-3" />
+                    {selectedProductType}
+                  </span>
+                )}
+                {!noPriceFilter && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium shadow-sm">
+                    <Check className="w-3 h-3" />
+                    {t("price", "Preț")}
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </SheetHeader>
 
-        {/* Filters Content with Premium Scrollbar */}
+        {/* Enhanced Filters Content with Better Mobile UX */}
         <div
-          className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-6 bg-gray-50/30"
+          className="flex-1 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5 bg-gradient-to-b from-gray-50/50 to-white"
           style={{
             scrollbarWidth: "thin",
             scrollbarColor: "#CBD5E1 transparent",
           }}
         >
-          {/* Premium Filter Sections */}
-          <div className="space-y-6">
-            {/* Featured Section - Special Offers */}
-            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-4 border border-yellow-200/50">
+          {/* Filter Sections with Improved Spacing */}
+          <div className="space-y-5">
+            {/* Quick Actions Section */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-200/50">
               <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-4 h-4 text-yellow-600" />
-                <h3 className="font-semibold text-gray-900 text-sm">
+                <ShoppingBag className="w-5 h-5 text-blue-600" />
+                <h3 className="font-semibold text-gray-900 text-base">
+                  {t("quickActions", "Acțiuni Rapide")}
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    onClearFilters();
+                    setTimeout(() => onClose(), 300);
+                  }}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 border border-gray-200 transition-all duration-300 hover:scale-105 active:scale-95"
+                >
+                  <X className="w-4 h-4" />
+                  {t("reset", "Resetează")}
+                </button>
+                <button
+                  onClick={() => {
+                    handleApplyFilters();
+                  }}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 active:scale-95 shadow-md"
+                >
+                  <Check className="w-4 h-4" />
+                  {t("apply", "Aplică")}
+                </button>
+              </div>
+            </div>
+
+            {/* Special Categories with Enhanced Touch Targets */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-5 h-5 text-amber-600" />
+                <h3 className="font-semibold text-gray-900 text-base">
                   {t("specialOffers", "Oferte Speciale")}
                 </h3>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 {[
-                  "BEST_SELLERS",
-                  "NEW_ARRIVALS",
-                  "GIFT_IDEAS",
-                  "SALE_ITEMS",
+                  { id: "BEST_SELLERS", label: "Bestsellers", icon: "🔥" },
+                  { id: "NEW_ARRIVALS", label: "Noutăți", icon: "✨" },
+                  { id: "GIFT_IDEAS", label: "Cadouri", icon: "🎁" },
+                  { id: "SALE_ITEMS", label: "Reduceri", icon: "🏷️" },
                 ].map(item => {
-                  const isSelected = selectedSpecialCategories.includes(item);
+                  const isSelected = selectedSpecialCategories.includes(
+                    item.id as any
+                  );
                   return (
                     <button
-                      key={item}
+                      key={item.id}
                       onClick={() => {
                         const newCategories = isSelected
-                          ? selectedSpecialCategories.filter(c => c !== item)
-                          : [...selectedSpecialCategories, item];
+                          ? selectedSpecialCategories.filter(c => c !== item.id)
+                          : [...selectedSpecialCategories, item.id as any];
                         onSpecialCategoriesChange(newCategories);
                       }}
                       className={cn(
-                        "px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-300",
-                        "border-2",
+                        "flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 min-h-[48px]",
+                        "border-2 active:scale-95",
                         isSelected
-                          ? "bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-transparent shadow-md scale-105"
-                          : "bg-white border-gray-200 text-gray-700 hover:border-yellow-400 hover:bg-yellow-50"
+                          ? "bg-gradient-to-r from-amber-400 to-orange-400 text-white border-transparent shadow-md"
+                          : "bg-gray-50 border-gray-200 text-gray-700 hover:border-amber-400 hover:bg-amber-50"
                       )}
                     >
-                      {t(
-                        item.toLowerCase().replace("_", ""),
-                        item.replace("_", " ")
-                      )}
+                      <span className="text-lg">{item.icon}</span>
+                      {item.label}
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Main Filters with Premium Card Design */}
+            {/* Main Filters with Improved Mobile Layout */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <EnhancedProductFilters
-                categories={categories}
-                filters={filters}
-                priceRange={priceRange}
-                selectedCategories={selectedCategories}
-                selectedFilters={selectedFilters}
-                noPriceFilter={noPriceFilter}
-                selectedLearningOutcomes={selectedLearningOutcomes}
-                selectedProductType={selectedProductType}
-                selectedSpecialCategories={selectedSpecialCategories}
-                onCategoryChange={onCategoryChange}
-                onFilterChange={onFilterChange}
-                onPriceChange={onPriceChange}
-                onNoPriceFilterChange={onNoPriceFilterChange}
-                onLearningOutcomesChange={onLearningOutcomesChange}
-                onProductTypeChange={onProductTypeChange}
-                onSpecialCategoriesChange={onSpecialCategoriesChange}
-                onClearFilters={onClearFilters}
-                onCloseMobile={undefined}
-                className="p-4"
-                isInsideModal={true}
-                t={t}
-              />
+              <div className="p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <SlidersHorizontal className="w-5 h-5 text-indigo-600" />
+                  <h3 className="font-semibold text-gray-900 text-base">
+                    {t("detailedFilters", "Filtre Detaliate")}
+                  </h3>
+                </div>
+                <EnhancedProductFilters
+                  categories={categories}
+                  filters={filters}
+                  priceRange={priceRange}
+                  selectedCategories={selectedCategories}
+                  selectedFilters={selectedFilters}
+                  noPriceFilter={noPriceFilter}
+                  selectedLearningOutcomes={selectedLearningOutcomes}
+                  selectedProductType={selectedProductType}
+                  selectedSpecialCategories={selectedSpecialCategories}
+                  onCategoryChange={onCategoryChange}
+                  onFilterChange={onFilterChange}
+                  onPriceChange={onPriceChange}
+                  onNoPriceFilterChange={onNoPriceFilterChange}
+                  onLearningOutcomesChange={onLearningOutcomesChange}
+                  onProductTypeChange={onProductTypeChange}
+                  onSpecialCategoriesChange={onSpecialCategoriesChange}
+                  onClearFilters={onClearFilters}
+                  onCloseMobile={undefined}
+                  className="space-y-4"
+                  isInsideModal={true}
+                  t={t}
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Premium Fixed Bottom Actions */}
-        <div className="border-t border-gray-200 bg-white flex-shrink-0">
-          <div className="px-5 py-4 sm:px-6 sm:py-5">
-            {/* Results Preview */}
-            <div className="mb-4 text-center">
-              <p className="text-sm text-gray-600">
-                {t("showingProducts", "Afișare produse")}
-              </p>
-              <p className="text-2xl font-bold text-gray-900 flex items-center justify-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-indigo-600" />
-                <span>234</span>
-                <span className="text-sm font-normal text-gray-500">
-                  {t("products", "produse")}
-                </span>
-              </p>
+        {/* Premium Bottom Actions with Enhanced Design */}
+        <div className="border-t border-gray-200/60 bg-gradient-to-t from-white to-gray-50/50 flex-shrink-0 backdrop-blur-sm">
+          <div className="px-5 py-5 sm:px-6 sm:py-6">
+            {/* Results Summary with Enhanced Design */}
+            <div className="text-center mb-5">
+              <div className="inline-flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-full border border-indigo-100/50">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-semibold text-gray-800">
+                    {activeFiltersCount} {t("activeFilters", "filtre active")}
+                  </span>
+                </div>
+                <div className="w-px h-4 bg-gray-300"></div>
+                <div className="flex items-center gap-1.5">
+                  <ShoppingBag className="w-4 h-4 text-indigo-600" />
+                  <span className="text-sm font-medium text-gray-700">
+                    {t("liveResults", "Rezultate live")}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Action Buttons with Premium Style */}
-            <div className="flex gap-3">
+            {/* Action Buttons with Premium Design */}
+            <div className="flex gap-4">
               {/* Clear All Button */}
-              <Button
-                variant="outline"
+              <button
                 onClick={handleClearAll}
                 disabled={activeFiltersCount === 0}
-                className={cn(
-                  "flex-1 h-14 rounded-2xl text-sm font-semibold transition-all duration-300",
-                  "border-2",
+                className={`flex-1 h-12 rounded-2xl text-sm font-semibold transition-all duration-300 transform ${
                   activeFiltersCount > 0
-                    ? "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:scale-[0.98] active:scale-95"
-                    : "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
-                )}
+                    ? "bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 hover:scale-105 active:scale-95 shadow-md"
+                    : "bg-gray-100 border-2 border-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
               >
-                {t("clearAll", "Șterge tot")}
-                {activeFiltersCount > 0 && (
-                  <span className="ml-2 bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">
-                    {activeFiltersCount}
-                  </span>
-                )}
-              </Button>
+                <div className="flex items-center justify-center gap-2">
+                  <X className="w-4 h-4" />
+                  {t("reset", "Resetează")}
+                </div>
+              </button>
 
               {/* Apply Filters Button with Premium Gradient */}
-              <Button
+              <button
                 onClick={handleApplyFilters}
-                disabled={showConfirmation}
-                className={cn(
-                  "flex-[2] h-14 rounded-2xl text-sm font-bold transition-all duration-500",
-                  "shadow-lg hover:shadow-xl",
-                  "transform hover:scale-[1.02] active:scale-[0.98]",
-                  showConfirmation
-                    ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
-                    : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white",
-                  "relative overflow-hidden"
-                )}
+                className="flex-[1.5] h-12 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800 text-white text-sm font-bold transition-all duration-500 transform hover:scale-105 active:scale-95 shadow-xl hover:shadow-2xl relative overflow-hidden group"
               >
-                {/* Animated Background Effect */}
-                <span className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full hover:translate-x-full transition-transform duration-1000" />
+                {/* Animated background effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
 
-                {/* Button Content */}
-                <span className="relative flex items-center justify-center gap-2">
-                  {showConfirmation ? (
-                    <>
-                      <Check className="w-5 h-5 animate-in zoom-in duration-300" />
-                      <span className="animate-in fade-in duration-300">
-                        {t("filtersApplied", "Aplicat!")}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span>{t("applyFilters", "Aplică Filtrele")}</span>
-                      <ChevronRight className="w-5 h-5 animate-pulse" />
-                    </>
-                  )}
-                </span>
+                {/* Button content */}
+                <div className="relative flex items-center justify-center gap-2">
+                  <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
+                  <span>{t("applyFilters", "Aplică Filtre")}</span>
+                  <Check className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                </div>
 
-                {/* Active Filters Badge */}
-                {activeFiltersCount > 0 && !showConfirmation && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg animate-bounce">
-                    {activeFiltersCount}
-                  </span>
+                {/* Active filters indicator */}
+                {activeFiltersCount > 0 && (
+                  <div className="absolute -top-1 -right-1 h-5 w-5 bg-white rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-xs font-bold text-indigo-600">
+                      {activeFiltersCount}
+                    </span>
+                  </div>
                 )}
-              </Button>
+              </button>
             </div>
 
             {/* Premium Bottom Safe Area for iPhone */}

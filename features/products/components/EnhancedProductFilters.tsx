@@ -217,12 +217,18 @@ export function EnhancedProductFilters({
           </h3>
           <div
             className={cn(
-              "space-y-1.5 sm:space-y-2",
-              isInsideModal && "space-y-1 sm:space-y-1.5"
+              "space-y-2 sm:space-y-3",
+              isInsideModal && "space-y-2.5 sm:space-y-3"
             )}
           >
             {categories.options.map(category => (
-              <div key={category.id} className="flex items-center space-x-2">
+              <div
+                key={category.id}
+                className={cn(
+                  "flex items-center space-x-3 py-1",
+                  isInsideModal && "py-2"
+                )}
+              >
                 <Checkbox
                   id={`category-${category.id}`}
                   checked={selectedCategories.some(selectedCat => {
@@ -245,8 +251,8 @@ export function EnhancedProductFilters({
                   })}
                   onCheckedChange={() => onCategoryChange?.(category.id)}
                   className={cn(
-                    "h-3.5 w-3.5 sm:h-4 sm:w-4",
-                    isInsideModal && "h-3 w-3 sm:h-3.5 sm:w-3.5"
+                    "h-4 w-4 sm:h-5 sm:w-5",
+                    isInsideModal && "h-4 w-4 sm:h-4.5 sm:w-4.5"
                   )}
                 />
                 <Label
@@ -296,7 +302,13 @@ export function EnhancedProductFilters({
           )}
         >
           {Object.keys(LEARNING_OUTCOME_DISPLAY_NAMES).map(key => (
-            <div key={key} className="flex items-center space-x-2">
+            <div
+              key={key}
+              className={cn(
+                "flex items-center space-x-3 py-1",
+                isInsideModal && "py-2"
+              )}
+            >
               <Checkbox
                 id={`learning-outcome-${key}`}
                 checked={selectedLearningOutcomes.includes(key)}
@@ -315,8 +327,8 @@ export function EnhancedProductFilters({
                   }
                 }}
                 className={cn(
-                  "h-3.5 w-3.5 sm:h-4 sm:w-4",
-                  isInsideModal && "h-3 w-3 sm:h-3.5 sm:w-3.5"
+                  "h-4 w-4 sm:h-5 sm:w-5",
+                  isInsideModal && "h-4 w-4 sm:h-4.5 sm:w-4.5"
                 )}
               />
               <Label
@@ -363,8 +375,8 @@ export function EnhancedProductFilters({
         >
           <SelectTrigger
             className={cn(
-              "h-8 sm:h-10 text-xs sm:text-sm",
-              isInsideModal && "h-7 sm:h-9 text-xs"
+              "h-10 sm:h-11 text-sm sm:text-base",
+              isInsideModal && "h-11 sm:h-12 text-sm"
             )}
           >
             <SelectValue placeholder="Select product type" />
@@ -415,7 +427,13 @@ export function EnhancedProductFilters({
           )}
         >
           {Object.keys(SPECIAL_CATEGORY_DISPLAY_NAMES).map(key => (
-            <div key={key} className="flex items-center space-x-2">
+            <div
+              key={key}
+              className={cn(
+                "flex items-center space-x-3 py-1",
+                isInsideModal && "py-2"
+              )}
+            >
               <Checkbox
                 id={`special-category-${key}`}
                 checked={selectedSpecialCategories.includes(key)}
@@ -434,8 +452,8 @@ export function EnhancedProductFilters({
                   }
                 }}
                 className={cn(
-                  "h-3.5 w-3.5 sm:h-4 sm:w-4",
-                  isInsideModal && "h-3 w-3 sm:h-3.5 sm:w-3.5"
+                  "h-4 w-4 sm:h-5 sm:w-5",
+                  isInsideModal && "h-4 w-4 sm:h-4.5 sm:w-4.5"
                 )}
               />
               <Label
@@ -532,7 +550,10 @@ export function EnhancedProductFilters({
                         handlePriceChangeComplete();
                       }
                     }}
-                    className="w-full pl-9 pr-1 py-1 text-xs border rounded-md h-7"
+                    className={cn(
+                      "w-full pl-9 pr-1 py-2 text-sm border rounded-lg",
+                      isInsideModal ? "h-10" : "h-8"
+                    )}
                   />
                   <span className="absolute right-2 text-xs">lei</span>
                 </div>
@@ -560,7 +581,10 @@ export function EnhancedProductFilters({
                         handlePriceChangeComplete();
                       }
                     }}
-                    className="w-full pl-9 pr-1 py-1 text-xs border rounded-md h-7"
+                    className={cn(
+                      "w-full pl-9 pr-1 py-2 text-sm border rounded-lg",
+                      isInsideModal ? "h-10" : "h-8"
+                    )}
                   />
                   <span className="absolute right-2 text-xs">lei</span>
                 </div>
@@ -605,7 +629,10 @@ export function EnhancedProductFilters({
                   {filter.options.map(option => (
                     <div
                       key={option.id}
-                      className="flex items-center space-x-2"
+                      className={cn(
+                        "flex items-center space-x-3 py-1",
+                        isInsideModal && "py-2"
+                      )}
                     >
                       <Checkbox
                         id={`${filter.id}-${option.id}`}

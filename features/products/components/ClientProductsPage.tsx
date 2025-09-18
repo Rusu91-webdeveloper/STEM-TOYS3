@@ -35,6 +35,7 @@ import {
 } from "./ProductsErrorBoundary";
 import { ProductsHeroSection } from "./ProductsHeroSection";
 import AgeQuickFilters from "./AgeQuickFilters";
+import { MobileFilterBar } from "./MobileFilterBar";
 import { ProductsMainDisplay } from "./ProductsMainDisplay";
 import { ProductsSidebar } from "./ProductsSidebar";
 import { StemBenefitsSection } from "./StemBenefitsSection";
@@ -535,6 +536,55 @@ function ClientProductsPageContent({
     actions.clearFilters();
   };
 
+  // Quick filter handlers for mobile
+  const handleCategoryQuickSelect = (categoryId: string) => {
+    // Handle special categories
+    if (
+      ["BEST_SELLERS", "NEW_ARRIVALS", "GIFT_IDEAS", "SALE_ITEMS"].includes(
+        categoryId
+      )
+    ) {
+      const currentSpecialCategories = state.selectedSpecialCategories;
+      const isSelected = currentSpecialCategories.includes(categoryId as any);
+
+      if (isSelected) {
+        actions.setSpecialCategories(
+          currentSpecialCategories.filter(cat => cat !== categoryId)
+        );
+      } else {
+        actions.setSpecialCategories([
+          ...currentSpecialCategories,
+          categoryId as any,
+        ]);
+      }
+    } else {
+      // Handle regular categories
+      actions.toggleCategory(categoryId);
+    }
+  };
+
+  const handlePriceQuickSelect = (rangeId: string) => {
+    if (rangeId === "clear") {
+      // Clear price filter
+      actions.setPriceRange([0, 1000]);
+      actions.setNoPriceFilter(true);
+      return;
+    }
+
+    const priceRanges: Record<string, [number, number]> = {
+      "under-50": [0, 50],
+      "50-100": [50, 100],
+      "100-200": [100, 200],
+      "over-200": [200, 1000],
+    };
+
+    const range = priceRanges[rangeId];
+    if (range) {
+      actions.setPriceRange(range);
+      actions.setNoPriceFilter(false);
+    }
+  };
+
   // Render content conditionally to avoid hooks rule violation
   const content = !isHydrated ? (
     <ClientProductsPageFallback />
@@ -556,6 +606,29 @@ function ClientProductsPageContent({
           normalizeCategory={normalizeCategory}
           handleCategoryChange={handleCategoryChange}
           setMobileFiltersOpen={actions.setMobileFiltersOpen}
+          t={t}
+        />
+
+        {/* Premium Mobile Filter Bar - New Quick Access Filters */}
+        <MobileFilterBar
+          activeFilterCount={
+            state.selectedCategories.length +
+            Object.values(state.selectedFilters).flat().length +
+            state.selectedLearningOutcomes.length +
+            (state.selectedProductType ? 1 : 0) +
+            state.selectedSpecialCategories.length +
+            (!state.noPriceFilter &&
+            (state.priceRangeFilter[0] !== 0 ||
+              state.priceRangeFilter[1] !== 1000)
+              ? 1
+              : 0)
+          }
+          selectedCategories={state.selectedCategories}
+          selectedPriceRange={state.priceRangeFilter}
+          onCategoryQuickSelect={handleCategoryQuickSelect}
+          onPriceQuickSelect={handlePriceQuickSelect}
+          onOpenFilters={() => actions.setMobileFiltersOpen(true)}
+          onClearFilters={handleClearFilters}
           t={t}
         />
 
