@@ -335,8 +335,8 @@ export function EnhancedAdminBulkUpload() {
         tags: product.tags ? product.tags.split(",") : [],
       }));
 
-      // Call AI enhancement API (dual-provider)
-      const response = await fetch("/api/admin/products/dual-enhance", {
+      // Call AI enhancement and save API (enhance AND save in one call)
+      const response = await fetch("/api/admin/products/ai-enhance-and-save", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -344,18 +344,8 @@ export function EnhancedAdminBulkUpload() {
         body: JSON.stringify({
           products: basicProducts,
           options: aiEnhancementOptions,
-          config: {
-            primaryProvider: "gemini",
-            primaryModel: "gemini-1.5-pro",
-            secondaryProvider: "openai",
-            secondaryModel: "gpt-3.5-turbo",
-            refinementOptions: {
-              validateContent: true,
-              improveSEO: true,
-              fixGrammar: true,
-              ensureDbCompatibility: true,
-            },
-          },
+          saveToDatabase: true,        // Save to database
+          autoApprove: false,          // Require admin approval
         }),
       });
 
@@ -373,6 +363,8 @@ export function EnhancedAdminBulkUpload() {
       }
 
       const result = await response.json();
+
+      // Handle the ai-enhance-and-save response format
       setEnhancedProducts(result.enhancedProducts);
 
       // Update final progress
@@ -390,12 +382,12 @@ export function EnhancedAdminBulkUpload() {
       );
 
       toast({
-        title: "AI Enhancement Complete",
-        description: `Successfully enhanced ${result.summary.successful} out of ${result.summary.total} products.`,
+        title: "AI Enhancement & Save Complete",
+        description: `Successfully enhanced and saved ${result.saveResults?.saved || 0} products. ${result.saveResults?.pending_approval || 0} pending approval.`,
       });
 
-      setCurrentStep("preview");
-      setShowEnhancementPreview(true);
+      // Since products are already saved, show completion
+      setCurrentStep("complete");
     } catch (error) {
       // Update progress with error
       setEnhancementProgress(prev =>
@@ -881,12 +873,12 @@ export function EnhancedAdminBulkUpload() {
                     {isEnhancing ? (
                       <>
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Enhancing...
+                        Enhancing & Saving...
                       </>
                     ) : (
                       <>
                         <Sparkles className="h-4 w-4 mr-2" />
-                        Enhance with AI
+                        Enhance & Save Products
                       </>
                     )}
                   </Button>
