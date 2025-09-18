@@ -1227,6 +1227,14 @@ export const ro = {
     "Explorează colecția noastră de jucării STEM alese cu grijă.",
   guide2025SeeProducts: "Vezi produsele",
 
+  // Missing translations mentioned in terminal
+  trustBadgesHeading: "De ce să alegi TechTots",
+  exploreAllCategoriesLabel: "Explorează toate categoriile",
+  exploreAllCategories: "Explorează toate categoriile",
+  categoriesCardDescription:
+    "Descoperă categoriile noastre STEM organizate pentru învățare optimă",
+  viewAllCategories: "Vezi toate categoriile",
+
   // By Age Page translations
   byAgeTitle: "Jucării STEM Perfecte pentru Fiecare Vârstă",
   byAgeDescription:

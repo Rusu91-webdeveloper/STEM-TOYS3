@@ -1,5 +1,6 @@
 export { CategoriesSection } from "./CategoriesSection";
 export { FeaturedProductsSection } from "./FeaturedProductsSection";
+export { FeaturedProductsAccordion } from "./FeaturedProductsAccordion";
 export { FeaturedProductsSkeleton } from "./FeaturedProductsSkeleton";
 export { HeroSection } from "./HeroSection";
 export { SupplierBanner } from "./SupplierBanner";

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { ProductGrid } from "@/features/products";
@@ -47,10 +47,48 @@ export function ProductsMainDisplay({
   getProductCardContent,
   t,
 }: ProductsMainDisplayProps) {
+  const [loading, setLoading] = useState(false);
+  const [displayProducts, setDisplayProducts] = useState(displayedProducts);
+
+  // Track previous products count to detect changes requiring loading animation
+  const [prevProductCount, setPrevProductCount] = useState(
+    displayedProducts.length
+  );
+
   const IconComponent =
     activeCategory && categoryInfo[activeCategory.id]
       ? categoryInfo[activeCategory.id].icon
       : categoryInfo.science.icon;
+
+  // Show loading animation when filters change
+  useEffect(() => {
+    if (displayedProducts.length !== prevProductCount) {
+      // Show loading state
+      setLoading(true);
+
+      // Store current products to compare in next render
+      setPrevProductCount(displayedProducts.length);
+
+      // Show loading state for a reasonable time (min 600ms, max 1200ms)
+      const loadTime = Math.max(
+        600,
+        Math.min(displayedProducts.length * 50, 1200)
+      );
+
+      // After delay, update the displayed products
+      const timer = setTimeout(() => {
+        setDisplayProducts(displayedProducts);
+        setLoading(false);
+      }, loadTime);
+
+      return () => clearTimeout(timer);
+    } else if (
+      JSON.stringify(displayedProducts) !== JSON.stringify(displayProducts)
+    ) {
+      // Products have changed but count hasn't - update without animation
+      setDisplayProducts(displayedProducts);
+    }
+  }, [displayedProducts]);
 
   return (
     <div className="flex-1">
@@ -106,12 +144,29 @@ export function ProductsMainDisplay({
         </div>
       )}
 
+      {/* Loading overlay */}
+      <div
+        className={`fixed inset-0 bg-white/80 backdrop-blur-sm z-50 transition-all duration-300 flex items-center justify-center ${
+          loading ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="relative flex flex-col items-center">
+          <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin"></div>
+          <p className="mt-4 text-sm font-medium text-gray-700">
+            {t("filtering", "Filtering products...")}
+          </p>
+          <div className="mt-2 bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-1 rounded-full">
+            {filteredProducts.length} {t("results", "results")}
+          </div>
+        </div>
+      </div>
+
       {/* Products display - Enhanced for mobile */}
       <div className={viewMode === "list" ? "space-y-2 sm:space-y-4" : ""}>
         {viewMode === "grid" ? (
           <div className="rounded-xl">
             <ProductGrid
-              products={displayedProducts.map(product => {
+              products={displayProducts.map((product, index) => {
                 // If the product name or description contains raw translation keys,
                 // replace them with properly translated content
                 const modifiedProduct = { ...product };
@@ -127,6 +182,9 @@ export function ProductsMainDisplay({
                   modifiedProduct.description = content.description;
                 }
 
+                // Add animation delay for staggered appearance
+                modifiedProduct.animationDelay = `${Math.min(index * 0.1, 0.5)}s`;
+
                 return modifiedProduct as unknown as Product;
               })}
               columns={{ sm: 2, md: 2, lg: 3, xl: 3 }}
@@ -134,7 +192,7 @@ export function ProductsMainDisplay({
           </div>
         ) : (
           <div className="space-y-2.5 sm:space-y-4">
-            {displayedProducts.map(product => {
+            {displayProducts.map((product, index) => {
               // Get appropriate content for this product if it contains raw translation keys
               let displayName = product.name;
               let displayDescription = product.description;

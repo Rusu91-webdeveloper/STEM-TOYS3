@@ -37,15 +37,31 @@ async function getFeaturedProducts(): Promise<Product[]> {
       (process.env.NODE_ENV === "production" ? "https" : "http");
     const baseUrl = `${proto}://${host}`;
 
-    const res = await fetch(`${baseUrl}/api/products?featured=true&limit=3`, {
-      next: { revalidate: 120 }, // Increased cache time to 2 minutes for better performance
-    });
+    // Add cache busting parameter to force a fresh request
+    const res = await fetch(
+      `${baseUrl}/api/products?featured=true&limit=6&_cache=${Date.now()}`,
+      {
+        next: { revalidate: 0 }, // Disable cache to force fresh data
+      }
+    );
 
     if (!res.ok) {
       throw new Error("Failed to fetch featured products");
     }
     const data = await res.json();
-    return data.products?.slice(0, 3) ?? []; // Reduced from 4 to 3
+
+    // Debug logging
+    console.log(
+      `[DEBUG] Featured products fetched: ${data.products?.length || 0}`
+    );
+    if (data.products?.length) {
+      console.log(
+        `[DEBUG] Featured product ids: ${data.products.map(p => p.id).join(", ")}`
+      );
+    }
+
+    // Return all products, ensuring we don't filter any out
+    return data.products ?? [];
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error fetching featured products in Home page:", error);
