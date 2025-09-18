@@ -120,7 +120,7 @@ model Product {
   tags                             String[]
   attributes                       Json?
   metadata                         Json?
-  isActive                         Boolean                   @default(true)
+  isActive                         Boolean                   @default(true) // ALWAYS true by default for all products
   featured                         Boolean                   @default(false)
   stockQuantity                    Int                       @default(0)
   reservedQuantity                 Int                       @default(0)

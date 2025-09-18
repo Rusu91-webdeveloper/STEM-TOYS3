@@ -562,27 +562,51 @@ ANALYSIS STEPS (FOLLOW EXACTLY):
 6. Determine content length based on PRODUCT TYPE GUIDELINES above
 7. Generate content based on these determined values and length guidelines
 
-RETURN FORMAT: Valid JSON object with these fields:
+CRITICAL DATA STRUCTURE REQUIREMENTS:
+The JSON response will be saved in specific database fields. Follow these rules EXACTLY:
+
+DATABASE FIELD MAPPING:
+- enhancedDescription → saves to Product.description field
+- metaTitle → saves to Product.attributes.metaTitle (for SEO)
+- metaDescription → saves to Product.attributes.metaDescription (for SEO)
+- metaKeywords → saves to Product.attributes.metaKeywords (for SEO)
+- ageGroup → saves to Product.ageGroup field (MUST be valid enum)
+- stemDiscipline → saves to Product.stemDiscipline field (MUST be valid enum)
+- productType → saves to Product.productType field (MUST be valid enum)
+- learningOutcomes → saves to Product.learningOutcomes field (array of valid enums)
+- romanianCompetencies → saves to Product.romanianCompetencies field
+- romanianCurriculumAlignment → saves to Product.romanianCurriculumAlignment field
+- romanianEducationalLevel → saves to Product.romanianEducationalLevel field
+- romanianSubjectAreas → saves to Product.romanianSubjectAreas field
+
+DO NOT include fields that don't exist in the database schema.
+DO NOT create nested objects unless specified.
+DO NOT save operational data (timestamps, tracking) - that's handled by the system.
+
+REQUIRED OUTPUT FORMAT:
 {
   "enhancedDescription": "Detailed product description in ${useRomanian ? "Romanian" : "English"}",
-  "metaTitle": "SEO-optimized title (60-70 characters)",
-  "metaDescription": "SEO description (150-160 characters)",
-  "metaKeywords": ["keyword1", "keyword2", "keyword3", ...],
+  "metaTitle": "SEO-optimized title (60-70 characters) - goes to attributes.metaTitle",
+  "metaDescription": "SEO description (150-160 characters) - goes to attributes.metaDescription",
+  "metaKeywords": ["keyword1", "keyword2", "keyword3", ...] - goes to attributes.metaKeywords,
   "tags": ["tag1", "tag2", "tag3", ...],
   "learningOutcomes": ["PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "MOTOR_SKILLS", "LOGIC"],
-  "ageGroup": "DETERMINE_FROM_RULES_ABOVE",
-  "stemDiscipline": "DETERMINE_FROM_RULES_ABOVE",
-  "productType": "DETERMINE_FROM_RULES_ABOVE",
+  "ageGroup": "DETERMINE_FROM_RULES_ABOVE - saves to ageGroup field",
+  "stemDiscipline": "DETERMINE_FROM_RULES_ABOVE - saves to stemDiscipline field",
+  "productType": "DETERMINE_FROM_RULES_ABOVE - saves to productType field",
   "romanianCompetencies": ["competency1", ...],
   "romanianCurriculumAlignment": ["alignment1", ...],
   "romanianEducationalLevel": "DETERMINE_FROM_AGE_GROUP",
   "romanianSubjectAreas": ["area1", ...]
 }
 
-CRITICAL VALIDATION:
-- Double-check that ageGroup, stemDiscipline, productType use ONLY the exact enum values listed
-- Ensure learningOutcomes contains ONLY valid enum values
-- Invalid values will cause database insertion failures - this is your highest priority
+VALIDATION CHECKLIST:
+- [ ] ageGroup is one of: "TODDLERS_1_3", "PRESCHOOL_3_5", "ELEMENTARY_6_8", "MIDDLE_SCHOOL_9_12", "TEENS_13_PLUS"
+- [ ] stemDiscipline is one of: "SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"
+- [ ] productType is one of: "ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"
+- [ ] learningOutcomes contains only valid enum values
+- [ ] No extra fields that don't exist in database schema
+- [ ] SEO fields (metaTitle, metaDescription, metaKeywords) are properly formatted
 
 Generate comprehensive, educational content that would help parents and educators understand the value of this STEM toy.`;
   }
@@ -830,6 +854,27 @@ DATABASE SCHEMA CONSTRAINTS (CRITICAL):
 - All enum fields must use the specified values exactly
 - Double-check all enum values before finalizing response
 
+CRITICAL DATA STRUCTURE REQUIREMENTS:
+The JSON response will be saved in specific database fields. Follow these rules EXACTLY:
+
+DATABASE FIELD MAPPING:
+- enhancedDescription → saves to Product.description field
+- metaTitle → saves to Product.attributes.metaTitle (for SEO)
+- metaDescription → saves to Product.attributes.metaDescription (for SEO)
+- metaKeywords → saves to Product.attributes.metaKeywords (for SEO)
+- ageGroup → saves to Product.ageGroup field (MUST be valid enum)
+- stemDiscipline → saves to Product.stemDiscipline field (MUST be valid enum)
+- productType → saves to Product.productType field (MUST be valid enum)
+- learningOutcomes → saves to Product.learningOutcomes field (array of valid enums)
+- romanianCompetencies → saves to Product.romanianCompetencies field
+- romanianCurriculumAlignment → saves to Product.romanianCurriculumAlignment field
+- romanianEducationalLevel → saves to Product.romanianEducationalLevel field
+- romanianSubjectAreas → saves to Product.romanianSubjectAreas field
+
+DO NOT include fields that don't exist in the database schema.
+DO NOT create nested objects unless specified.
+DO NOT save operational data (timestamps, tracking) - that's handled by the system.
+
 Return your response as a complete JSON object with all required fields properly formatted.
 Ensure the content is engaging, educational, and market-appropriate.`;
   }
@@ -898,28 +943,52 @@ Please follow these guidelines:
 7. Select appropriate learning outcomes from the allowed list
 8. ${useRomanian ? "Ensure full optimization for Romanian market and curriculum alignment" : "If needed, optimize for Romanian market and curriculum alignment"}
 
-Return your response as a JSON object with the following structure:
+CRITICAL DATA STRUCTURE REQUIREMENTS:
+The JSON response will be saved in specific database fields. Follow these rules EXACTLY:
+
+DATABASE FIELD MAPPING:
+- enhancedDescription → saves to Product.description field
+- metaTitle → saves to Product.attributes.metaTitle (for SEO)
+- metaDescription → saves to Product.attributes.metaDescription (for SEO)
+- metaKeywords → saves to Product.attributes.metaKeywords (for SEO)
+- ageGroup → saves to Product.ageGroup field (MUST be valid enum)
+- stemDiscipline → saves to Product.stemDiscipline field (MUST be valid enum)
+- productType → saves to Product.productType field (MUST be valid enum)
+- learningOutcomes → saves to Product.learningOutcomes field (array of valid enums)
+- romanianCompetencies → saves to Product.romanianCompetencies field
+- romanianCurriculumAlignment → saves to Product.romanianCurriculumAlignment field
+- romanianEducationalLevel → saves to Product.romanianEducationalLevel field
+- romanianSubjectAreas → saves to Product.romanianSubjectAreas field
+
+DO NOT include fields that don't exist in the database schema.
+DO NOT create nested objects unless specified.
+DO NOT save operational data (timestamps, tracking) - that's handled by the system.
+
+REQUIRED OUTPUT FORMAT:
 {
   "name": "Product Name",
   "enhancedDescription": "Detailed product description...",
-  "metaTitle": "SEO-optimized title (60-70 characters)",
-  "metaDescription": "SEO-optimized description (150-160 characters)",
-  "metaKeywords": ["keyword1", "keyword2", ...],
+  "metaTitle": "SEO-optimized title (60-70 characters) - goes to attributes.metaTitle",
+  "metaDescription": "SEO-optimized description (150-160 characters) - goes to attributes.metaDescription",
+  "metaKeywords": ["keyword1", "keyword2", ...] - goes to attributes.metaKeywords,
   "tags": ["tag1", "tag2", ...],
   "learningOutcomes": ["PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "MOTOR_SKILLS", "LOGIC"],
-  "ageGroup": "DETERMINE_FROM_RULES_ABOVE",
-  "stemDiscipline": "DETERMINE_FROM_RULES_ABOVE",
-  "productType": "DETERMINE_FROM_RULES_ABOVE",
+  "ageGroup": "DETERMINE_FROM_RULES_ABOVE - saves to ageGroup field",
+  "stemDiscipline": "DETERMINE_FROM_RULES_ABOVE - saves to stemDiscipline field",
+  "productType": "DETERMINE_FROM_RULES_ABOVE - saves to productType field",
   "romanianCompetencies": ["competency1", ...],
   "romanianCurriculumAlignment": ["alignment1", ...],
   "romanianEducationalLevel": "DETERMINE_FROM_AGE_GROUP",
   "romanianSubjectAreas": ["area1", ...]
 }
 
-CRITICAL VALIDATION:
-- Double-check that ageGroup, stemDiscipline, productType use ONLY the exact enum values listed
-- Ensure learningOutcomes contains ONLY valid enum values
-- Invalid values will cause database insertion failures - this is your highest priority
+VALIDATION CHECKLIST:
+- [ ] ageGroup is one of: "TODDLERS_1_3", "PRESCHOOL_3_5", "ELEMENTARY_6_8", "MIDDLE_SCHOOL_9_12", "TEENS_13_PLUS"
+- [ ] stemDiscipline is one of: "SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"
+- [ ] productType is one of: "ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"
+- [ ] learningOutcomes contains only valid enum values
+- [ ] No extra fields that don't exist in database schema
+- [ ] SEO fields (metaTitle, metaDescription, metaKeywords) are properly formatted
 
 Use valid JSON format and ensure all fields are properly formatted.`;
   }
@@ -1012,7 +1081,16 @@ Return your improved version as a valid JSON object with the same structure as t
   ]
 }
 
-CRITICAL: If you find any invalid enum values, list the correction as the FIRST item in refinements array.
+CRITICAL FIELD MAPPING REMINDER:
+When making corrections, remember the database field mapping:
+- metaTitle, metaDescription, metaKeywords → Product.attributes (SEO fields)
+- ageGroup, stemDiscipline, productType → Individual Product fields (enums)
+- enhancedDescription → Product.description field
+- learningOutcomes → Product.learningOutcomes field (array)
+- Romanian fields → Individual Product fields
+
+DO NOT change the field structure - only correct invalid enum values and improve content quality.
+If you find any invalid enum values, list the correction as the FIRST item in refinements array.
 Focus on substantial improvements rather than minor stylistic changes. Be especially careful with technical details and educational claims.`;
   }
 
