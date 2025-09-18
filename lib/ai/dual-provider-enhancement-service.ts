@@ -645,6 +645,9 @@ Generate comprehensive, educational content that would help parents and educator
     aiResponse: any,
     options?: Partial<EnhancementOptions>
   ): EnhancedProduct {
+    // Validate enum values before creating enhanced product
+    const validatedResponse = this.validateEnumValues(aiResponse);
+
     return {
       ...product,
       // CRITICAL: Explicitly preserve original data that should not be changed by AI
@@ -654,31 +657,34 @@ Generate comprehensive, educational content that would help parents and educator
       images: product.images || [],
       // AI-enhanced fields
       enhancedDescription:
-        aiResponse.enhancedDescription ||
-        aiResponse.description ||
+        validatedResponse.enhancedDescription ||
+        validatedResponse.description ||
         product.description ||
         "",
-      metaTitle: aiResponse.metaTitle || product.name,
+      metaTitle: validatedResponse.metaTitle || product.name,
       metaDescription:
-        aiResponse.metaDescription ||
-        aiResponse.enhancedDescription?.substring(0, 160) ||
+        validatedResponse.metaDescription ||
+        validatedResponse.enhancedDescription?.substring(0, 160) ||
         "",
-      metaKeywords: aiResponse.metaKeywords || aiResponse.keywords || [],
-      tags: aiResponse.tags || product.tags || [],
-      learningOutcomes: aiResponse.learningOutcomes || [
+      metaKeywords:
+        validatedResponse.metaKeywords || validatedResponse.keywords || [],
+      tags: validatedResponse.tags || product.tags || [],
+      learningOutcomes: validatedResponse.learningOutcomes || [
         "PROBLEM_SOLVING",
         "CREATIVITY",
       ],
-      ageGroup: aiResponse.ageGroup,
-      stemDiscipline: aiResponse.stemDiscipline,
-      productType: aiResponse.productType,
-      romanianCompetencies: aiResponse.romanianCompetencies || [],
-      romanianCurriculumAlignment: aiResponse.romanianCurriculumAlignment || [],
-      romanianEducationalLevel: aiResponse.romanianEducationalLevel,
-      romanianSubjectAreas: aiResponse.romanianSubjectAreas || [],
-      romanianMinistryApproval: aiResponse.romanianMinistryApproval || false,
+      ageGroup: validatedResponse.ageGroup,
+      stemDiscipline: validatedResponse.stemDiscipline,
+      productType: validatedResponse.productType,
+      romanianCompetencies: validatedResponse.romanianCompetencies || [],
+      romanianCurriculumAlignment:
+        validatedResponse.romanianCurriculumAlignment || [],
+      romanianEducationalLevel: validatedResponse.romanianEducationalLevel,
+      romanianSubjectAreas: validatedResponse.romanianSubjectAreas || [],
+      romanianMinistryApproval:
+        validatedResponse.romanianMinistryApproval || false,
       romanianEducationalCertification:
-        aiResponse.romanianEducationalCertification,
+        validatedResponse.romanianEducationalCertification,
     };
   }
 
@@ -718,14 +724,8 @@ Generate comprehensive, educational content that would help parents and educator
     // Generate basic Romanian content if requested
     const useRomanian = options?.includeRomanianOptimization === true;
 
-    return {
-      ...product,
-      // CRITICAL: Explicitly preserve original data that should not be changed by AI
-      stockQuantity: product.stockQuantity || 0,
-      price: product.price,
-      sku: product.sku,
-      images: product.images || [],
-      // AI-enhanced fields with fallback values
+    // Create basic enhancement with validated enum values
+    const basicEnhancement = {
       enhancedDescription: enhancedDescription,
       metaTitle: useRomanian
         ? `${product.name} - Kit Educational STEM`
@@ -763,6 +763,33 @@ Generate comprehensive, educational content that would help parents and educator
       romanianSubjectAreas: useRomanian
         ? ["Tehnologia informației", "Matematică", "Științe"]
         : [],
+    };
+
+    // Validate the enhancement
+    const validatedEnhancement = this.validateEnumValues(basicEnhancement);
+
+    return {
+      ...product,
+      // CRITICAL: Explicitly preserve original data that should not be changed by AI
+      stockQuantity: product.stockQuantity || 0,
+      price: product.price,
+      sku: product.sku,
+      images: product.images || [],
+      // AI-enhanced fields with validated values
+      enhancedDescription: validatedEnhancement.enhancedDescription,
+      metaTitle: validatedEnhancement.metaTitle,
+      metaDescription: validatedEnhancement.metaDescription,
+      metaKeywords: validatedEnhancement.metaKeywords,
+      tags: validatedEnhancement.tags,
+      learningOutcomes: validatedEnhancement.learningOutcomes,
+      ageGroup: validatedEnhancement.ageGroup,
+      stemDiscipline: validatedEnhancement.stemDiscipline,
+      productType: validatedEnhancement.productType,
+      romanianCompetencies: validatedEnhancement.romanianCompetencies,
+      romanianCurriculumAlignment:
+        validatedEnhancement.romanianCurriculumAlignment,
+      romanianEducationalLevel: validatedEnhancement.romanianEducationalLevel,
+      romanianSubjectAreas: validatedEnhancement.romanianSubjectAreas,
       generatedByFallback: true,
       parseError: true,
     };
@@ -1095,12 +1122,122 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
   }
 
   /**
-   * Normalize response to EnhancedProduct format
+   * Validate and filter enum values to ensure database compatibility
+   */
+  private validateEnumValues(enhancement: any): any {
+    const validated = { ...enhancement };
+
+    // Validate ageGroup
+    const validAgeGroups = [
+      "TODDLERS_1_3",
+      "PRESCHOOL_3_5",
+      "ELEMENTARY_6_8",
+      "MIDDLE_SCHOOL_9_12",
+      "TEENS_13_PLUS",
+    ];
+    if (validated.ageGroup && !validAgeGroups.includes(validated.ageGroup)) {
+      console.warn(
+        `Invalid ageGroup "${validated.ageGroup}", removing from enhancement`
+      );
+      delete validated.ageGroup;
+    }
+
+    // Validate stemDiscipline
+    const validStemDisciplines = [
+      "SCIENCE",
+      "TECHNOLOGY",
+      "ENGINEERING",
+      "MATHEMATICS",
+      "GENERAL",
+    ];
+    if (
+      validated.stemDiscipline &&
+      !validStemDisciplines.includes(validated.stemDiscipline)
+    ) {
+      console.warn(
+        `Invalid stemDiscipline "${validated.stemDiscipline}", removing from enhancement`
+      );
+      delete validated.stemDiscipline;
+    }
+
+    // Validate productType
+    const validProductTypes = [
+      "ROBOTICS",
+      "PUZZLES",
+      "CONSTRUCTION_SETS",
+      "EXPERIMENT_KITS",
+      "BOARD_GAMES",
+    ];
+    if (
+      validated.productType &&
+      !validProductTypes.includes(validated.productType)
+    ) {
+      console.warn(
+        `Invalid productType "${validated.productType}", removing from enhancement`
+      );
+      delete validated.productType;
+    }
+
+    // Validate learningOutcomes
+    const validLearningOutcomes = [
+      "PROBLEM_SOLVING",
+      "CREATIVITY",
+      "CRITICAL_THINKING",
+      "MOTOR_SKILLS",
+      "LOGIC",
+    ];
+    if (
+      validated.learningOutcomes &&
+      Array.isArray(validated.learningOutcomes)
+    ) {
+      validated.learningOutcomes = validated.learningOutcomes.filter(
+        (outcome: string) => {
+          if (!validLearningOutcomes.includes(outcome)) {
+            console.warn(`Invalid learningOutcome "${outcome}", filtering out`);
+            return false;
+          }
+          return true;
+        }
+      );
+      // Ensure at least one valid learning outcome
+      if (validated.learningOutcomes.length === 0) {
+        validated.learningOutcomes = ["PROBLEM_SOLVING"];
+      }
+    } else {
+      validated.learningOutcomes = ["PROBLEM_SOLVING"];
+    }
+
+    // Validate romanianEducationalLevel
+    const validEducationalLevels = [
+      "GRADINITA",
+      "PRIMAR",
+      "GIMNAZIU",
+      "LICEU",
+      "UNIVERSITATE",
+    ];
+    if (
+      validated.romanianEducationalLevel &&
+      !validEducationalLevels.includes(validated.romanianEducationalLevel)
+    ) {
+      console.warn(
+        `Invalid romanianEducationalLevel "${validated.romanianEducationalLevel}", removing from enhancement`
+      );
+      delete validated.romanianEducationalLevel;
+    }
+
+    return validated;
+  }
+
+  /**
+   * Normalize response to EnhancedProduct format with validation
    */
   private normalizeToEnhancedProduct(
     originalProduct: BasicProduct,
     enhancement: any
   ): EnhancedProduct {
+    // Validate enum values before processing
+    const validatedEnhancement = this.validateEnumValues(enhancement);
+
     // Create base enhanced product
     const enhancedProduct: EnhancedProduct = {
       ...originalProduct,
@@ -1111,44 +1248,49 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
       images: originalProduct.images || [],
       // AI-enhanced fields
       enhancedDescription:
-        enhancement.enhancedDescription ||
-        enhancement.description ||
+        validatedEnhancement.enhancedDescription ||
+        validatedEnhancement.description ||
         originalProduct.description ||
         "",
-      metaTitle: enhancement.metaTitle || originalProduct.name,
+      metaTitle: validatedEnhancement.metaTitle || originalProduct.name,
       metaDescription:
-        enhancement.metaDescription ||
+        validatedEnhancement.metaDescription ||
         originalProduct.description?.substring(0, 160) ||
         "",
-      metaKeywords: enhancement.metaKeywords || [],
-      tags: enhancement.tags || originalProduct.tags || [],
-      learningOutcomes: enhancement.learningOutcomes || [],
+      metaKeywords: validatedEnhancement.metaKeywords || [],
+      tags: validatedEnhancement.tags || originalProduct.tags || [],
+      learningOutcomes: validatedEnhancement.learningOutcomes || [
+        "PROBLEM_SOLVING",
+      ],
     };
 
-    // Add optional fields if present in enhancement
-    if (enhancement.ageGroup) enhancedProduct.ageGroup = enhancement.ageGroup;
-    if (enhancement.stemDiscipline)
-      enhancedProduct.stemDiscipline = enhancement.stemDiscipline;
-    if (enhancement.productType)
-      enhancedProduct.productType = enhancement.productType;
+    // Add optional fields if present and valid in enhancement
+    if (validatedEnhancement.ageGroup)
+      enhancedProduct.ageGroup = validatedEnhancement.ageGroup;
+    if (validatedEnhancement.stemDiscipline)
+      enhancedProduct.stemDiscipline = validatedEnhancement.stemDiscipline;
+    if (validatedEnhancement.productType)
+      enhancedProduct.productType = validatedEnhancement.productType;
 
     // Romanian-specific fields
-    if (enhancement.romanianCompetencies)
-      enhancedProduct.romanianCompetencies = enhancement.romanianCompetencies;
-    if (enhancement.romanianCurriculumAlignment)
+    if (validatedEnhancement.romanianCompetencies)
+      enhancedProduct.romanianCompetencies =
+        validatedEnhancement.romanianCompetencies;
+    if (validatedEnhancement.romanianCurriculumAlignment)
       enhancedProduct.romanianCurriculumAlignment =
-        enhancement.romanianCurriculumAlignment;
-    if (enhancement.romanianEducationalLevel)
+        validatedEnhancement.romanianCurriculumAlignment;
+    if (validatedEnhancement.romanianEducationalLevel)
       enhancedProduct.romanianEducationalLevel =
-        enhancement.romanianEducationalLevel;
-    if (enhancement.romanianSubjectAreas)
-      enhancedProduct.romanianSubjectAreas = enhancement.romanianSubjectAreas;
-    if (enhancement.romanianMinistryApproval !== undefined)
+        validatedEnhancement.romanianEducationalLevel;
+    if (validatedEnhancement.romanianSubjectAreas)
+      enhancedProduct.romanianSubjectAreas =
+        validatedEnhancement.romanianSubjectAreas;
+    if (validatedEnhancement.romanianMinistryApproval !== undefined)
       enhancedProduct.romanianMinistryApproval =
-        enhancement.romanianMinistryApproval;
-    if (enhancement.romanianEducationalCertification)
+        validatedEnhancement.romanianMinistryApproval;
+    if (validatedEnhancement.romanianEducationalCertification)
       enhancedProduct.romanianEducationalCertification =
-        enhancement.romanianEducationalCertification;
+        validatedEnhancement.romanianEducationalCertification;
 
     return enhancedProduct;
   }

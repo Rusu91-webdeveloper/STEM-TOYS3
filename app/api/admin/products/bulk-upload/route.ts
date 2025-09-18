@@ -678,20 +678,63 @@ export async function POST(request: NextRequest) {
               metadata: {
                 createdViaBulkUpload: true,
                 bulkUploadTimestamp: new Date().toISOString(),
-                enhancementMethod: product.fallbackUsed ? "fallback" : product.dualProviderEnhancement ? "dual-provider" : "standard",
+                enhancementMethod: product.fallbackUsed
+                  ? "fallback"
+                  : product.dualProviderEnhancement
+                    ? "dual-provider"
+                    : "standard",
                 ministryApproved: true,
                 isActive: true,
               },
+
+              // Ensure isActive is ALWAYS true for bulk uploads
+              isActive: true,
             },
           });
 
           results.success++;
         } catch (error) {
-          console.error(`Error processing product at row ${rowNumber}:`, error);
+          console.error(`Error processing product at row ${rowNumber}:`, {
+            product: product.name,
+            sku: product.sku,
+            error: error instanceof Error ? error.message : "Unknown error",
+            stack: error instanceof Error ? error.stack : undefined,
+            productData: {
+              name: product.name,
+              sku: product.sku,
+              price: product.price,
+              category: product.category,
+              learningOutcomes: product.learningOutcomes,
+              ageGroup: product.ageGroup,
+              stemDiscipline: product.stemDiscipline,
+              productType: product.productType,
+            },
+          });
+
+          // Provide more specific error messages for common issues
+          let errorMessage = "Failed to create product";
+          if (error instanceof Error) {
+            if (error.message.includes("learningOutcomes")) {
+              errorMessage =
+                "Invalid learning outcome values - product skipped";
+            } else if (error.message.includes("ageGroup")) {
+              errorMessage = "Invalid age group value - product skipped";
+            } else if (error.message.includes("stemDiscipline")) {
+              errorMessage = "Invalid STEM discipline value - product skipped";
+            } else if (error.message.includes("productType")) {
+              errorMessage = "Invalid product type value - product skipped";
+            } else if (error.message.includes("unique constraint")) {
+              errorMessage = "Duplicate SKU or unique constraint violation";
+            } else {
+              errorMessage = `Database error: ${error.message}`;
+            }
+          }
+
           results.errors.push({
             row: rowNumber,
             field: "general",
-            message: `Failed to create product: ${error instanceof Error ? error.message : "Unknown error"}`,
+            message: errorMessage,
+            value: product.name,
           });
           results.failed++;
         }
