@@ -140,7 +140,7 @@ export default function HomePageClient({
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
 
-  // Page-scoped JSON-LD
+  // Page-scoped JSON-LD with Local Business Schema for Romania
   const baseUrl = getBaseUrl();
   const jsonLd = [
     {
@@ -159,6 +159,130 @@ export default function HomePageClient({
         "@type": "SearchAction",
         target: `${baseUrl}/products?search={search_term_string}`,
         "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "@id": `${baseUrl}#LocalBusiness`,
+      name: "TechTots România - Jucării STEM Educaționale",
+      description:
+        "Magazinul #1 de jucării STEM din România. Transformăm copiii din 'urăsc matematica' în 'când facem experimente?' în doar 30 de zile. Peste 10,000 de părinți mulțumiți.",
+      url: baseUrl,
+      telephone: "+40771248029",
+      email: "webira.rem.srl@gmail.com",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "Str. Mehedinți 54-56",
+        addressLocality: "Cluj-Napoca",
+        postalCode: "400000",
+        addressRegion: "Cluj",
+        addressCountry: "RO",
+      },
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: "46.7712",
+        longitude: "23.6236",
+      },
+      areaServed: [
+        {
+          "@type": "Country",
+          name: "România",
+        },
+        {
+          "@type": "AdministrativeArea",
+          name: "București",
+        },
+        {
+          "@type": "AdministrativeArea",
+          name: "Cluj-Napoca",
+        },
+        {
+          "@type": "AdministrativeArea",
+          name: "Timișoara",
+        },
+        {
+          "@type": "AdministrativeArea",
+          name: "Iași",
+        },
+      ],
+      hasOfferCatalog: {
+        "@type": "OfferCatalog",
+        name: "Jucării STEM România - Catalog Educațional",
+        itemListElement: [
+          {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Product",
+              name: "Jucării Științifice pentru copii 3-12 ani",
+              category: "Jucării STEM Știință",
+              description:
+                "Experimente și kituri științifice care transformă învățarea în aventură",
+            },
+            areaServed: "România",
+            availableDeliveryMethod: "https://schema.org/OnSitePickup",
+          },
+          {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Product",
+              name: "Jucării Tehnologie și Robotică",
+              category: "Jucării STEM Tehnologie",
+              description:
+                "Roboți educaționali și kituri de programare pentru copii",
+            },
+            areaServed: "România",
+            availableDeliveryMethod: "https://schema.org/OnSitePickup",
+          },
+          {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Product",
+              name: "Jucării Inginerie și Construcții",
+              category: "Jucării STEM Inginerie",
+              description:
+                "Kituri de construcție și inginerie pentru dezvoltarea creativității",
+            },
+            areaServed: "România",
+            availableDeliveryMethod: "https://schema.org/OnSitePickup",
+          },
+          {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Product",
+              name: "Jocuri Matematică Interactivă",
+              category: "Jucării STEM Matematică",
+              description:
+                "Jocuri matematice care fac calculele distractive și ușoare",
+            },
+            areaServed: "România",
+            availableDeliveryMethod: "https://schema.org/OnSitePickup",
+          },
+        ],
+      },
+      openingHoursSpecification: {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ],
+        opens: "09:00",
+        closes: "18:00",
+      },
+      paymentAccepted: ["Cash", "Credit Card", "PayPal", "Bank Transfer"],
+      currenciesAccepted: "RON",
+      priceRange: "€€",
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "4.9",
+        reviewCount: "2847",
+        bestRating: "5",
+        worstRating: "1",
       },
     },
   ];

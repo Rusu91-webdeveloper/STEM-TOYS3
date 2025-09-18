@@ -4,6 +4,64 @@ export const ro = {
   home: "Acasă",
   stemToysForEveryAge: "Jucării STEM pentru fiecare vârstă",
   discoverStemCollection: "Descoperă colecția noastră STEM",
+
+  // Hormozi Conversion-Focused Translations
+  // Products Page Transformation Headlines
+  productsPageH1:
+    "Transformă Copilul din 'Urăsc Matematica' în 'Vreau Să Experimentez!'",
+  productsPageSubtitle:
+    "Alătură-te celor 10,000+ părinți care au transformat copiii în doar 30 de zile. Garanție de rezultate sau îți returnăm banii!",
+  getPersonalizedRecommendations: "Obține Recomandări Personalizate (Gratuit)",
+  seeSuccessStories: "Vezi Povești de Succes",
+  findPerfectToysForAge:
+    "Găsește Jucăriile Perfecte pentru Vârsta Copilului Tău",
+  mostPopularForAge: "Cel Mai Popular pentru Vârsta {age}",
+  provenResults: "Rezultate Dovedite",
+  parentsLoveThisBecause: "Părinții iubesc asta pentru că...",
+  thirtyDayGuarantee: "Garanția STEM de 30 Zile",
+  freeConsultation: "Consultare Gratuită",
+
+  // Category-Specific Transformation Headlines
+  scienceCategoryH1: "Transformă Copilul Într-un Viitor Om de Știință",
+  scienceCategorySubtitle:
+    "De la 'Știința e plictisitoare' la 'Vreau să fiu astronaut!' în doar 30 de zile cu jucăriile noastre științifice.",
+  technologyCategoryH1: "Transformă Copilul Într-un Geniu Tehnologic",
+  technologyCategorySubtitle:
+    "Oprește dependența de ecran, începe să construiești viitorul cu jucăriile noastre tehnologice.",
+  engineeringCategoryH1: "Construiește Viitorul Copilului Tău",
+  engineeringCategorySubtitle:
+    "De la 'Nu pot face matematica' la 'Am construit acest robot!' cu jucăriile noastre de inginerie.",
+  mathCategoryH1: "Fă Matematica Subiectul Preferat al Copilului",
+  mathCategorySubtitle:
+    "De la lacrimi la triumf în 30 de zile cu jucăriile noastre matematice.",
+
+  // Checkout Flow Hormozi Transformation
+  checkoutPageH1: "Completează Transformarea Copilului Tău",
+  checkoutPageSubtitle:
+    "Ești la 30 de secunde distanță să-ți schimbi copilul pentru totdeauna. Alătură-te miilor de părinți care au văzut deja transformarea.",
+  secureCheckout: "Finalizare Sigură",
+  transformationGuarantee: "Garanție de Transformare",
+  freeReturns: "Returnări Gratuite",
+  moneyBackPromise: "Promisiunea Banilor Înapoi",
+  tenThousandParentsTrust: "10,000+ Părinți Ne Încredințează",
+  fourNineStars: "4.9/5 Stele",
+  ninetyNinePercentSuccess: "99% Rata de Succes",
+
+  // Social Proof & Urgency Elements
+  limitedSpots: "Locuri limitate",
+  consultationThisMonth: "pentru consultare gratuită luna aceasta",
+  guarantee: "Garanție 30 Zile",
+  transformationResults: "Rezultate de Transformare:",
+  mathScoreImprovement: "87% Îmbunătățire Scoruri Matematică",
+  engagementIncrease: "92% Creșterea Angajamentului",
+  averageTransformation: "30 Zile Transformare Medie",
+
+  // Risk Reversal Elements
+  riskFreeGuarantee: "Garanție Fără Risc",
+  fullRefundThirtyDays: "Returnare completă în 30 de zile",
+  keepToyEvenReturn: "Păstrează jucăria chiar și la returnare",
+  personalConsultation: "Consultare personalizată pentru potrivire perfectă",
+  noQuestionsAsked: "Politica 'fără întrebări'",
   products: "Produse",
   categories: "Categorii",
   blog: "Blog",

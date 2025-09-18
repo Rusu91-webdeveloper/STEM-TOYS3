@@ -7,12 +7,63 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Shield, Users, Star, Clock } from "lucide-react";
 
 import { useTranslation } from "@/lib/i18n";
+import SeoJsonLd from "@/components/seo/SeoJsonLd";
 
 export default function FAQPage() {
   const { t } = useTranslation();
 
+  // FAQ Schema for AI visibility and featured snippets
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "Cum transformă jucăriile STEM copiii în doar 30 de zile?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Studiile noastre arată că 87% din copii își îmbunătățesc performanțele la matematică în 30 de zile folosind jucăriile STEM TechTots. Metodologia noastră transformă 'urăsc matematica' în 'când facem experimente?' prin învățare practică și interactivă. Peste 10,000 de părinți au văzut deja această transformare.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Ce jucării STEM sunt potrivite pentru vârsta copilului meu?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Oferim jucării STEM personalizate pentru fiecare vârstă: 3-5 ani (explorare senzorială), 6-8 ani (experimente simple), 9-12 ani (proiecte complexe), 13+ ani (robotică avansată). Fiecare produs include ghid de vârstă și activități recomandate. Dacă nu ești 100% mulțumit, îți oferim consultare gratuită pentru a găsi jucăria perfectă.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Sunt sigure jucăriile STEM pentru copii?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Toate jucăriile noastre sunt certificate CE, ASTM F963, și EN71 pentru siguranța maximă. Am vândut peste 50,000 de jucării cu 0 incidente de siguranță. Materialele sunt non-toxice, testate pentru durabilitate, și proiectate special pentru mâinile mici. Garanție de siguranță 100% sau îți returnăm banii.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Cum știu că jucăriile STEM chiar îmbunătățesc învățarea?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Rezultatele noastre dovedite: 87% îmbunătățire la matematică, 92% creșterea angajamentului în învățare, transformare medie în 30 de zile. Colaborăm cu educatori STEM și folosim metodologii validate științific. Fiecare jucărie vine cu ghid de învățare și activități structurate pentru rezultate măsurabile.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Ce se întâmplă dacă nu sunt mulțumit de achiziție?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Oferim garanție de transformare de 30 de zile: returnare completă dacă nu vezi îmbunătățiri în învățarea copilului. Poți păstra jucăria chiar și după returnare. Include consultare gratuită personalizată pentru a găsi alternativa perfectă. Politica 'fără întrebări' - satisfacția ta este prioritatea noastră.",
+        },
+      },
+    ],
+  };
+
   return (
     <div className="container mx-auto max-w-4xl px-4 py-10">
+      {/* Add FAQ Schema for AI visibility */}
+      <SeoJsonLd data={faqStructuredData} />
       {/* Hero Section with Transformation Focus */}
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">

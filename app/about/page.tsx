@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { ArrowRight } from "lucide-react";
 
 import { BookCarousel } from "@/components/ui/book-carousel";
 import { Button } from "@/components/ui/button";
@@ -137,26 +138,113 @@ export default function AboutPage() {
 
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative h-[200px] sm:h-[250px] md:h-[300px] lg:h-[350px] flex items-center">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/category_banner_science_01.png"
-            alt="About us banner showing children engaging with STEM toys"
-            fill
-            sizes="100vw"
-            style={{ objectFit: "cover" }}
-            priority
+      {/* Hormozi-Style Hero Section */}
+      <section className="relative bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 py-16 sm:py-20 md:py-24">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000' fill-opacity='0.1'%3E%3Ccircle cx='7' cy='7' r='7'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/70 via-purple-900/60 to-pink-900/70" />
         </div>
-        <div className="container relative z-10 text-white px-3 sm:px-4 lg:px-8">
-          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-1 sm:mb-2 md:mb-3 drop-shadow-md">
-            {t("aboutH1")}
-          </h1>
-          <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl mb-2 sm:mb-3 md:mb-4 max-w-2xl leading-relaxed drop-shadow-sm">
-            {t("aboutDescription")}
-          </p>
+
+        <div className="container relative z-10 px-3 sm:px-4 lg:px-8">
+          <div className="max-w-5xl mx-auto text-center">
+            {/* Social Proof Badge */}
+            <div className="mb-6">
+              <span className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 text-green-800 text-sm font-medium">
+                <Image
+                  src="/TechTots_LOGO.png"
+                  alt="TechTots Logo"
+                  width={24}
+                  height={24}
+                  className="mr-2"
+                />
+                10,000+ Părinți Transformați
+              </span>
+            </div>
+
+            {/* Hormozi-Style Headline */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gray-900 leading-tight">
+              Am Ajutat 10,000+ Părinți Să-și Transforme Copiii din{" "}
+              <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+                Elevi cu Dificultăți
+              </span>{" "}
+              în{" "}
+              <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                Viitori Inovatori
+              </span>
+            </h1>
+
+            {/* Transformation-Focused Subheadline */}
+            <p className="text-lg sm:text-xl md:text-2xl mb-8 text-gray-700 max-w-4xl mx-auto leading-relaxed">
+              Misiunea noastră este simplă: transformăm "urăsc matematica" în
+              "când facem experimente?" în doar 30 de zile. Am dovedit că cu
+              jucăriile STEM potrivite, orice copil poate trece de la frustrare
+              la fascinație.
+            </p>
+
+            {/* Results Proof */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+              <div className="bg-white/80 backdrop-blur rounded-xl p-6 shadow-lg">
+                <div className="text-4xl font-bold text-green-600 mb-2">
+                  87%
+                </div>
+                <div className="text-sm text-gray-600">
+                  Îmbunătățire Matematică
+                </div>
+              </div>
+
+              <div className="bg-white/80 backdrop-blur rounded-xl p-6 shadow-lg">
+                <div className="text-4xl font-bold text-blue-600 mb-2">30</div>
+                <div className="text-sm text-gray-600">
+                  Zile Transformare Medie
+                </div>
+              </div>
+
+              <div className="bg-white/80 backdrop-blur rounded-xl p-6 shadow-lg">
+                <div className="text-4xl font-bold text-purple-600 mb-2">
+                  99%
+                </div>
+                <div className="text-sm text-gray-600">Părinți Mulțumiți</div>
+              </div>
+            </div>
+
+            {/* CTA Section */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                asChild
+                size="lg"
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+              >
+                <Link href="/contact">
+                  Obține Consultare Gratuită Acum
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Link>
+              </Button>
+
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg font-semibold"
+              >
+                <Link href="/products">Vezi Jucăriile Care Transformă</Link>
+              </Button>
+            </div>
+
+            {/* Guarantee */}
+            <div className="mt-8 text-center">
+              <p className="text-sm text-gray-600 mb-2">
+                🛡️ Garanție de Transformare 30 Zile sau Îți Returnăm Banii
+              </p>
+              <p className="text-xs text-gray-500">
+                Peste 10,000 de părinți au încredere în noi. Alătură-te și tu!
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

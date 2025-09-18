@@ -63,6 +63,39 @@ export const AB_TESTS: Record<string, ABTest> = {
     isActive: true,
     startDate: new Date(),
   },
+  // Products Page Hormozi A/B Tests
+  products_hero_headline: {
+    id: "products_hero_headline",
+    name: "Products Page Hero Headline",
+    variants: [
+      {
+        id: "control",
+        name: "Transform Child Headline",
+        weight: 0.34,
+        isControl: true,
+      },
+      { id: "variant_a", name: "Stop Homework Battles", weight: 0.33 },
+      { id: "variant_b", name: "From Can't Do to Want More", weight: 0.33 },
+    ],
+    isActive: true,
+    startDate: new Date(),
+  },
+  products_cta_button: {
+    id: "products_cta_button",
+    name: "Products Page Primary CTA",
+    variants: [
+      {
+        id: "control",
+        name: "Get Personalized Recommendations",
+        weight: 0.34,
+        isControl: true,
+      },
+      { id: "variant_a", name: "Free Consultation Now", weight: 0.33 },
+      { id: "variant_b", name: "Start Transformation", weight: 0.33 },
+    ],
+    isActive: true,
+    startDate: new Date(),
+  },
   value_proposition: {
     id: "value_proposition",
     name: "Value Proposition Layout",
