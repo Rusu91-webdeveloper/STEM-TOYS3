@@ -148,72 +148,15 @@ const EnvironmentSchema = z.object({
 
 // Environment configuration class
 class EnvironmentConfig {
-  private static configInstance: EnvironmentConfig;
   private config: z.infer<typeof EnvironmentSchema>;
   private validated = false;
 
-  private constructor() {
+  constructor() {
     this.config = this.loadEnvironment();
   }
 
-  static getInstance(): EnvironmentConfig {
-    if (!EnvironmentConfig.configInstance) {
-      EnvironmentConfig.configInstance = new EnvironmentConfig();
-    }
-    return EnvironmentConfig.configInstance;
-  }
-
   private loadEnvironment(): z.infer<typeof EnvironmentSchema> {
-    const env = {
-      NODE_ENV: process.env.NODE_ENV,
-      DATABASE_URL: process.env.DATABASE_URL,
-      DIRECT_URL: process.env.DIRECT_URL,
-      DATABASE_POOL_SIZE: process.env.DATABASE_POOL_SIZE,
-      DATABASE_CONNECTION_TIMEOUT: process.env.DATABASE_CONNECTION_TIMEOUT,
-      DATABASE_IDLE_TIMEOUT: process.env.DATABASE_IDLE_TIMEOUT,
-      REDIS_URL: process.env.REDIS_URL,
-      REDIS_TOKEN: process.env.REDIS_TOKEN,
-      REDIS_TIMEOUT: process.env.REDIS_TIMEOUT,
-      REDIS_MAX_RETRIES: process.env.REDIS_MAX_RETRIES,
-      REDIS_RETRY_DELAY: process.env.REDIS_RETRY_DELAY,
-      RESEND_API_KEY: process.env.RESEND_API_KEY,
-      BREVO_API_KEY: process.env.BREVO_API_KEY,
-      EMAIL_FROM: process.env.EMAIL_FROM,
-      EMAIL_REPLY_TO: process.env.EMAIL_REPLY_TO,
-      PERFORMANCE_MONITORING: process.env.PERFORMANCE_MONITORING,
-      PERFORMANCE_SAMPLE_RATE: process.env.PERFORMANCE_SAMPLE_RATE,
-      PERFORMANCE_MAX_METRICS: process.env.PERFORMANCE_MAX_METRICS,
-      PERFORMANCE_RETENTION_DAYS: process.env.PERFORMANCE_RETENTION_DAYS,
-      SLOW_QUERY_THRESHOLD: process.env.SLOW_QUERY_THRESHOLD,
-      CRITICAL_QUERY_THRESHOLD: process.env.CRITICAL_QUERY_THRESHOLD,
-      API_CACHING: process.env.API_CACHING,
-      API_CACHE_TTL: process.env.API_CACHE_TTL,
-      API_CACHE_MAX_TTL: process.env.API_CACHE_MAX_TTL,
-      API_CACHE_STALE_WHILE_REVALIDATE:
-        process.env.API_CACHE_STALE_WHILE_REVALIDATE,
-      API_CACHE_COMPRESSION: process.env.API_CACHE_COMPRESSION,
-      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-      NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-      GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-      STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
-      STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-      SENTRY_DSN: process.env.SENTRY_DSN,
-      SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
-      LOG_LEVEL: process.env.LOG_LEVEL,
-      ENABLE_ANALYTICS: process.env.ENABLE_ANALYTICS,
-      // AI Configuration
-      OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
-      GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-      AI_PROVIDER: process.env.AI_PROVIDER,
-      AI_MODEL: process.env.AI_MODEL,
-      AI_MAX_TOKENS: process.env.AI_MAX_TOKENS,
-      AI_TEMPERATURE: process.env.AI_TEMPERATURE,
-      AI_ENHANCEMENT_ENABLED: process.env.AI_ENHANCEMENT_ENABLED,
-    };
-
-    return env as z.infer<typeof EnvironmentSchema>;
+    return process.env as unknown as z.infer<typeof EnvironmentSchema>;
   }
 
   validate(): void {
@@ -384,7 +327,7 @@ class EnvironmentConfig {
 }
 
 // Export singleton instance
-export const envConfig = EnvironmentConfig.getInstance();
+export const envConfig = new EnvironmentConfig();
 
 // Convenience exports
 export const getEnv = (key: keyof z.infer<typeof EnvironmentSchema>) =>
