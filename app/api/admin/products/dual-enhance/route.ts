@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
       successful: 0,
       failed: 0,
       errors: [],
+      fallbackUsed: 0,
     };
 
     // Process products
@@ -150,12 +151,15 @@ export async function POST(request: NextRequest) {
         console.log(
           `Dual-Provider Enhancement Progress: ${progress.processed}/${progress.total} (${Math.round(
             (progress.processed / progress.total) * 100
-          )}%)`
+          )}%)${progress.fallbackUsed ? ` - Fallback used: ${progress.fallbackUsed}` : ""}`
         );
       }
     );
 
     const processingTime = Date.now() - startTime;
+
+    // Count products that used fallback
+    const fallbackCount = enhancedProducts.filter(p => p.fallbackUsed || p.generatedByFallback).length;
 
     // Prepare response
     const response: AIEnhancementResponse = {
@@ -168,11 +172,14 @@ export async function POST(request: NextRequest) {
         successful: progress.successful,
         failed: progress.failed,
         successRate: `${((progress.successful / progress.total) * 100).toFixed(1)}%`,
+        fallbackUsed: fallbackCount,
       },
       dualProviderInfo: {
         primaryProvider: dualService.getConfig().primaryProvider,
         secondaryProvider: dualService.getConfig().secondaryProvider,
-        refinementApplied: progress.successful > 0,
+        refinementApplied: progress.successful > 0 && fallbackCount === 0,
+        fallbackToSecondary: fallbackCount > 0,
+        fallbackCount: fallbackCount,
       },
     };
 

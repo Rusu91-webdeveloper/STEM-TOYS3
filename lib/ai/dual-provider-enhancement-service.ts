@@ -109,36 +109,64 @@ export class DualProviderEnhancementService {
       // Initialize services
       this.initServices();
 
-      // STEP 1: Initial generation with primary provider (e.g., Gemini)
-      console.log(
-        `Stage 1: Generating initial content with ${this.config!.primaryProvider}`
-      );
-      const initialEnhancement = await this.generateInitialContent(
-        product,
-        options
-      );
+      let finalEnhancement: EnhancedProduct;
+      let usedFallback = false;
 
-      // STEP 2: Refinement with secondary provider (e.g., OpenAI)
-      console.log(
-        `Stage 2: Refining content with ${this.config!.secondaryProvider}`
-      );
-      const finalEnhancement = await this.refineContent(
-        product,
-        initialEnhancement,
-        options
-      );
+      try {
+        // STEP 1: Initial generation with primary provider (e.g., Gemini)
+        console.log(
+          `Stage 1: Generating initial content with ${this.config!.primaryProvider}`
+        );
+        const initialEnhancement = await this.generateInitialContent(
+          product,
+          options
+        );
+
+        // STEP 2: Refinement with secondary provider (e.g., OpenAI)
+        console.log(
+          `Stage 2: Refining content with ${this.config!.secondaryProvider}`
+        );
+        finalEnhancement = await this.refineContent(
+          product,
+          initialEnhancement,
+          options
+        );
+      } catch (primaryError) {
+        // Check if this is a rate limit/quota error from primary provider
+        if (this.isQuotaError(primaryError)) {
+          console.log(
+            `Primary provider (${this.config!.primaryProvider}) quota exceeded, falling back to ${this.config!.secondaryProvider} for full enhancement`
+          );
+          usedFallback = true;
+
+          // Use secondary provider for full enhancement
+          finalEnhancement = await this.generateWithSecondaryProvider(
+            product,
+            options
+          );
+          
+          // Mark that fallback was used
+          finalEnhancement.fallbackUsed = true;
+          finalEnhancement.fallbackReason = `Primary provider quota exceeded: ${this.getErrorMessage(primaryError)}`;
+        } else {
+          // Re-throw if not a quota error
+          throw primaryError;
+        }
+      }
 
       // Record metrics
       const totalTime = Date.now() - startTime;
       await aiMonitoring.recordRequest(
-        "dual-provider",
+        usedFallback ? "dual-provider-fallback" : "dual-provider",
         true,
         totalTime,
         undefined,
         undefined
       );
 
-      console.log(`Dual-provider enhancement completed in ${totalTime}ms`);
+      console.log(
+        `Dual-provider enhancement completed in ${totalTime}ms${usedFallback ? " (used fallback)" : ""}`
+      );
       return finalEnhancement;
     } catch (error) {
       console.error(
@@ -282,6 +310,140 @@ Please review the enhanced data, check for any issues, and provide an improved v
         refinements: ["Error parsing refinement response"],
       };
     }
+  }
+
+  /**
+   * Check if error is a quota/rate limit error
+   */
+  private isQuotaError(error: any): boolean {
+    const errorMessage = this.getErrorMessage(error).toLowerCase();
+    return (
+      errorMessage.includes('quota') ||
+      errorMessage.includes('rate limit') ||
+      errorMessage.includes('429') ||
+      errorMessage.includes('limit exceeded') ||
+      errorMessage.includes('billing') ||
+      errorMessage.includes('free tier')
+    );
+  }
+
+  /**
+   * Get error message safely
+   */
+  private getErrorMessage(error: any): string {
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'string') return error;
+    if (error?.message) return error.message;
+    return String(error);
+  }
+
+  /**
+   * Generate content using secondary provider for full enhancement
+   */
+  private async generateWithSecondaryProvider(
+    product: BasicProduct,
+    options?: Partial<EnhancementOptions>
+  ): Promise<EnhancedProduct> {
+    // Create system prompt for full generation
+    const systemPrompt = this.createFullGenerationPrompt(options);
+
+    // Convert product to JSON for the prompt
+    const productJson = JSON.stringify(product, null, 2);
+
+    // Build user prompt
+    const userPrompt = `Generate complete enhanced product data for the following STEM toy product:
+    
+${productJson}
+
+Please provide all required fields including detailed descriptions, SEO metadata, educational outcomes, and Romanian market optimization.`;
+
+    // Generate content with secondary provider
+    const response = await this.secondaryService!.generateWithSystemPrompt(
+      systemPrompt,
+      userPrompt,
+      { model: this.config!.secondaryModel }
+    );
+
+    // Parse the response
+    try {
+      // Try to extract JSON from response
+      const jsonMatch =
+        response.match(/```json\n([\s\S]*?)\n```/) ||
+        response.match(/```\n([\s\S]*?)\n```/) ||
+        response.match(/\{[\s\S]*\}/);
+
+      const jsonContent = jsonMatch ? jsonMatch[1] || jsonMatch[0] : response;
+      const parsedResponse = JSON.parse(jsonContent);
+
+      // Convert to EnhancedProduct format
+      return {
+        ...this.normalizeToEnhancedProduct(product, parsedResponse),
+        generatedByFallback: true,
+      };
+    } catch (error) {
+      console.error("Failed to parse secondary provider response:", error);
+      console.log("Raw response:", response);
+
+      // Fallback: Return basic product with minimal enhancements
+      return {
+        ...product,
+        enhancedDescription: response.substring(0, 1000),
+        metaTitle: product.name,
+        metaDescription: response.substring(0, 160),
+        metaKeywords: [],
+        tags: product.tags || [],
+        learningOutcomes: [],
+        generatedByFallback: true,
+        parseError: true,
+      };
+    }
+  }
+
+  /**
+   * Create system prompt for full generation (used when primary provider fails)
+   */
+  private createFullGenerationPrompt(
+    options?: Partial<EnhancementOptions>
+  ): string {
+    const useRomanian = options?.includeRomanianOptimization === true;
+
+    return `You are an AI specialized in enhancing STEM toy product data for an e-commerce platform${useRomanian ? " in Romania" : ""}.
+
+Your task is to generate COMPLETE enhanced product information based on basic data provided.
+
+${useRomanian ? "IMPORTANT: All product descriptions, titles, and metadata should be generated in Romanian language. Only the JSON field names should remain in English." : ""}
+
+Please follow these comprehensive guidelines:
+
+1. Create a detailed, engaging product description (400-600 words) that:
+   - Highlights educational benefits
+   - Explains how the product works
+   - Describes learning outcomes
+   - Mentions age appropriateness
+   - Includes usage scenarios
+   ${useRomanian ? "- Written in fluent Romanian" : ""}
+
+2. Generate comprehensive SEO metadata:
+   - Title (60-70 characters, keyword-rich)
+   - Description (150-160 characters, compelling)
+   - Keywords (8-12 relevant terms)
+   ${useRomanian ? "- All in Romanian language" : ""}
+
+3. Identify and categorize:
+   - Appropriate tags and categories
+   - Learning outcomes (PROBLEM_SOLVING, CREATIVITY, CRITICAL_THINKING, etc.)
+   - Age groups (3_TO_5, 6_TO_8, 9_TO_12, 13_PLUS)
+   - STEM disciplines (TECHNOLOGY, ENGINEERING, SCIENCE, MATHEMATICS)
+   - Product types (BUILDING_TOY, EDUCATIONAL_GAME, EXPERIMENT_KIT, etc.)
+
+4. ${useRomanian ? "Romanian market optimization:" : "If applicable, include Romanian market optimization:"}
+   - Curriculum alignment with Romanian education system
+   - Key competencies developed
+   - Educational level appropriateness
+   - Subject area connections
+
+Return your response as a complete JSON object with all required fields properly formatted.
+Ensure the content is engaging, educational, and market-appropriate.`;
   }
 
   /**
@@ -449,6 +611,7 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
     let processed = 0;
     let successful = 0;
     let failed = 0;
+    let fallbackUsed = 0;
 
     // Process products sequentially to avoid rate limiting
     for (const product of products) {
@@ -457,6 +620,11 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
         results.push(enhancedProduct);
         processed++;
         successful++;
+        
+        // Track if fallback was used
+        if (enhancedProduct.fallbackUsed || enhancedProduct.generatedByFallback) {
+          fallbackUsed++;
+        }
 
         // Report progress
         if (onProgress) {
@@ -472,13 +640,14 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
               processed,
               products.length
             ),
+            fallbackUsed,
           });
         }
       } catch (error) {
         console.error(`Failed to enhance product ${product.name}:`, error);
 
         // Add to errors array
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage = this.getErrorMessage(error);
         errors.push({
           product: product.name,
           error: errorMessage,
@@ -514,6 +683,7 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
               processed,
               products.length
             ),
+            fallbackUsed,
           });
         }
       }

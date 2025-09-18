@@ -40,12 +40,24 @@ export interface EnhancedProduct extends BasicProduct {
   stemDiscipline?: string;
   productType?: string;
   learningOutcomes: string[];
-  romanianCompetencies: string[];
-  romanianCurriculumAlignment: string[];
+  romanianCompetencies?: string[];
+  romanianCurriculumAlignment?: string[];
   romanianEducationalLevel?: string;
-  romanianSubjectAreas: string[];
-  romanianMinistryApproval: boolean;
+  romanianSubjectAreas?: string[];
+  romanianMinistryApproval?: boolean;
   romanianEducationalCertification?: string;
+  
+  // Fallback tracking
+  fallbackUsed?: boolean;
+  fallbackReason?: string;
+  generatedByFallback?: boolean;
+  dualProviderEnhancement?: boolean;
+  refinements?: string[];
+  
+  // Error tracking
+  error?: boolean;
+  errorMessage?: string;
+  parseError?: boolean;
 }
 
 export interface EnhancementOptions {
@@ -66,6 +78,7 @@ export interface EnhancementProgress {
   errors: Array<{ product: string; error: string }>;
   startTime: number;
   estimatedTimeRemaining?: number;
+  fallbackUsed?: number;
 }
 
 export interface EnhancementResult {
@@ -103,6 +116,14 @@ export interface AIEnhancementResponse {
     successful: number;
     failed: number;
     successRate: string;
+    fallbackUsed?: number;
+  };
+  dualProviderInfo?: {
+    primaryProvider: string;
+    secondaryProvider: string;
+    refinementApplied: boolean;
+    fallbackToSecondary?: boolean;
+    fallbackCount?: number;
   };
 }
 
