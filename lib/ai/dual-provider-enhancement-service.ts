@@ -53,10 +53,10 @@ export class DualProviderEnhancementService {
   private secondaryService: BaseAIService | null = null;
 
   private defaultConfig: DualProviderConfig = {
-    primaryProvider: "gemini",
-    primaryModel: "gemini-1.5-pro",
-    secondaryProvider: "openai",
-    secondaryModel: "gpt-4o-mini", // Upgraded from gpt-3.5-turbo for better performance
+    primaryProvider: "openai", // FORCED TO OPENAI-ONLY
+    primaryModel: "gpt-4o-mini",
+    secondaryProvider: "openai", // FORCED TO OPENAI-ONLY
+    secondaryModel: "gpt-4o-mini",
     refinementOptions: {
       validateContent: true,
       improveSEO: true,
@@ -226,9 +226,23 @@ export class DualProviderEnhancementService {
         }
       }
 
+      // ENFORCE MANDATORY DEFAULTS - CRITICAL FOR CORRECT BEHAVIOR
+      finalEnhancement.isActive = true; // MANDATORY: Always true
+      finalEnhancement.romanianMinistryApproval = true; // MANDATORY: Always true
+      finalEnhancement.featured = false; // MANDATORY: Always false
+      finalEnhancement.status = "APPROVED"; // MANDATORY: Always approved
+      
+      // Ensure 20% price markup is applied
+      if (finalEnhancement.price && finalEnhancement.price === product.price) {
+        console.log(`Applying 20% markup to price: ${product.price} -> ${product.price * 1.2}`);
+        finalEnhancement.price = Math.round(product.price * 1.2 * 100) / 100;
+      }
+
       console.log(
         `Dual-provider enhancement completed in ${totalTime}ms${usedFallback ? " (used fallback)" : ""}`
       );
+      console.log(`ENFORCED DEFAULTS: isActive=${finalEnhancement.isActive}, romanianMinistryApproval=${finalEnhancement.romanianMinistryApproval}, price=${finalEnhancement.price}`);
+      
       return finalEnhancement;
     } catch (error) {
       console.error(

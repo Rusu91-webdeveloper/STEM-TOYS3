@@ -201,6 +201,13 @@ export async function POST(request: NextRequest) {
               ? "APPROVED"
               : "PENDING_APPROVAL";
 
+            // Debug logging before database insertion
+            console.log(`Database Insert Debug for ${enhancedProduct.name}:`);
+            console.log(`  isActive: true (MANDATORY)`);
+            console.log(`  romanianMinistryApproval: true (MANDATORY)`);
+            console.log(`  price: ${enhancedProduct.price * 1.2} (20% markup applied)`);
+            console.log(`  status: APPROVED (MANDATORY)`);
+            
             // Create product in database
             const savedProduct = await db.product.create({
               data: {
@@ -210,14 +217,14 @@ export async function POST(request: NextRequest) {
                 description:
                   enhancedProduct.enhancedDescription ||
                   enhancedProduct.description,
-                price: enhancedProduct.price,
+                price: enhancedProduct.price * 1.2, // MANDATORY: 20% markup applied
                 sku: enhancedProduct.sku,
                 images: enhancedProduct.images || [],
                 categoryId: category.id,
                 tags: enhancedProduct.tags || [],
                 stockQuantity: enhancedProduct.stockQuantity || 0,
                 weight: enhancedProduct.weight || 0.8,
-                isActive: false, // Inactive until approved
+                isActive: true, // MANDATORY: Always true for AI-enhanced products
                 featured: false,
 
                 // Enhanced categorization fields
@@ -238,11 +245,10 @@ export async function POST(request: NextRequest) {
                   enhancedProduct.romanianEducationalLevel as any,
                 romanianSubjectAreas:
                   enhancedProduct.romanianSubjectAreas || [],
-                romanianMinistryApproval:
-                  enhancedProduct.romanianMinistryApproval || false,
+                romanianMinistryApproval: true, // MANDATORY: Always true for AI-enhanced products
 
-                // Status - AI-enhanced products need approval
-                status: status,
+                // Status - AI-enhanced products are auto-approved
+                status: "APPROVED", // MANDATORY: Always approved
 
                 // Currency fields
                 priceCurrency: "RON",
