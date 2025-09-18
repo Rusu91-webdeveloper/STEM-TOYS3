@@ -211,7 +211,7 @@ export class EnhancedProductProcessor {
       tags: rawProduct.tags || [],
       attributes: rawProduct.attributes || {},
       metadata: rawProduct.metadata || {},
-      isActive: rawProduct.isActive !== undefined ? rawProduct.isActive : true,
+      isActive: true, // Always true for AI-enhanced products
       featured: false, // ALWAYS false for bulk uploads
       stockQuantity: rawProduct.stockQuantity || 0,
       reservedQuantity: 0, // Default as requested
@@ -239,7 +239,7 @@ export class EnhancedProductProcessor {
       romanianEducationalCertification:
         rawProduct.romanianEducationalCertification,
       romanianEducationalLevel: rawProduct.romanianEducationalLevel,
-      romanianMinistryApproval: rawProduct.romanianMinistryApproval || false,
+      romanianMinistryApproval: true, // Always true for AI-enhanced products
       romanianParentGuides: rawProduct.romanianParentGuides || [],
       romanianSubjectAreas: rawProduct.romanianSubjectAreas || [],
       romanianTeacherResources: rawProduct.romanianTeacherResources || [],
@@ -257,7 +257,7 @@ export class EnhancedProductProcessor {
     return {
       ...product,
       // Ensure Romanian compliance
-      romanianMinistryApproval: product.romanianMinistryApproval || false,
+      romanianMinistryApproval: true, // Always true for AI-enhanced products
       romanianEducationalCertification:
         product.romanianEducationalCertification || "Certificat MECTS",
 
@@ -312,6 +312,7 @@ export class EnhancedProductProcessor {
         ...product,
         ...aiEnhancedData,
         // Ensure critical fields are not overridden
+        isActive: true, // Always true for AI-enhanced products
         featured: false,
         reservedQuantity: 0,
         reviewCount: 0,
@@ -320,6 +321,7 @@ export class EnhancedProductProcessor {
         priceCurrency: "RON",
         compareAtPriceCurrency: "RON",
         specialCategories: ["NEW_ARRIVALS"],
+        romanianMinistryApproval: true, // Always true for AI-enhanced products
       };
     } catch (error) {
       console.error("AI enhancement failed:", error);

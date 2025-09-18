@@ -191,7 +191,7 @@ const adminBulkUploadSchema = z.object({
               .map(area => area.trim())
               .filter(area => area.length > 0);
           }),
-        romanianMinistryApproval: z.boolean().default(false),
+        romanianMinistryApproval: z.boolean().default(true),
         romanianEducationalCertification: z.string().optional(),
       })
     )
@@ -759,7 +759,7 @@ export async function POST(request: NextRequest) {
               reorderPoint: correctedProduct.reorderPoint,
               weight: correctedProduct.weight || 0.8,
               dimensions: correctedProduct.dimensions,
-              isActive: true, // Always active by default
+              isActive: true, // Always active by default for AI-enhanced products
               featured: false, // ALWAYS false for bulk uploads
               reviewCount: 0, // Default as requested
               totalSold: 0, // Default as requested
@@ -782,7 +782,7 @@ export async function POST(request: NextRequest) {
               romanianEducationalLevel:
                 correctedProduct.romanianEducationalLevel,
               romanianSubjectAreas: correctedProduct.romanianSubjectAreas || [],
-              romanianMinistryApproval: true, // Always true by default
+              romanianMinistryApproval: true, // Always true by default for AI-enhanced products
               romanianEducationalCertification:
                 correctedProduct.romanianEducationalCertification,
               romanianParentGuides: correctedProduct.romanianParentGuides || [],
@@ -824,10 +824,10 @@ export async function POST(request: NextRequest) {
                     ? "dual-provider"
                     : "standard",
                 ministryApproved: true,
-                isActive: true,
+                isActive: true, // Always true for AI-enhanced products
               },
 
-              // Ensure isActive is ALWAYS true for bulk uploads
+              // Ensure isActive is ALWAYS true for AI-enhanced bulk uploads
               isActive: true,
             },
           });
