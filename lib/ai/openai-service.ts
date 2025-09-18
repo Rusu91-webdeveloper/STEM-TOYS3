@@ -6,6 +6,9 @@
 import { BaseAIService, AIRequestOptions, AIResponse } from "./base-ai-service";
 import { AIConfig } from "./config";
 import { ApiErrors } from "@/lib/api-error-handler";
+import { simpleAIMonitoring } from "./monitoring-simple";
+
+const aiMonitoring = simpleAIMonitoring;
 
 interface OpenAIRequest {
   model: string;

@@ -15,10 +15,12 @@ import {
   BatchEnhancementResult,
 } from "./types";
 import { aiRateLimiter } from "./rate-limiter";
-import { aiMonitoring } from "./monitoring";
+import { simpleAIMonitoring } from "./monitoring-simple";
 import { aiErrorRecovery } from "./error-recovery";
 import { aiMemoryOptimizer } from "./memory-optimizer";
 import { aiCache } from "./cache";
+
+const aiMonitoring = simpleAIMonitoring;
 
 export class BatchEnhancementService {
   private enhancementService = new ProductEnhancementService();

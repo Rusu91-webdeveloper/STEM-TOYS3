@@ -23,9 +23,11 @@ import {
 import { STEM_TOYS_PROMPTS, formatPrompt } from "./prompts/stem-toys-prompts";
 import { aiCache, getCachedProductEnhancement } from "./cache";
 import { aiRateLimiter } from "./rate-limiter";
-import { aiMonitoring } from "./monitoring";
+import { simpleAIMonitoring } from "./monitoring-simple";
 import { aiErrorRecovery } from "./error-recovery";
 import { aiMemoryOptimizer } from "./memory-optimizer";
+
+const aiMonitoring = simpleAIMonitoring;
 
 export class ProductEnhancementService {
   private aiService: any = null; // Lazy initialization to save memory

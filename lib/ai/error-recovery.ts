@@ -3,8 +3,10 @@
  * Handles retries, circuit breakers, and error recovery for AI services
  */
 
-import { aiMonitoring } from "./monitoring";
+import { simpleAIMonitoring } from "./monitoring-simple";
 import { aiCache } from "./cache";
+
+const aiMonitoring = simpleAIMonitoring;
 
 export interface RetryConfig {
   maxRetries: number;
