@@ -11,13 +11,7 @@ import {
   Brain,
   LucideIcon,
 } from "lucide-react";
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  Suspense,
-} from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
 
 import { ProductVariantProvider } from "@/features/products";
 import { useTranslation } from "@/lib/i18n";
@@ -609,28 +603,30 @@ function ClientProductsPageContent({
           t={t}
         />
 
-        {/* Premium Mobile Filter Bar - New Quick Access Filters */}
-        <MobileFilterBar
-          activeFilterCount={
-            state.selectedCategories.length +
-            Object.values(state.selectedFilters).flat().length +
-            state.selectedLearningOutcomes.length +
-            (state.selectedProductType ? 1 : 0) +
-            state.selectedSpecialCategories.length +
-            (!state.noPriceFilter &&
-            (state.priceRangeFilter[0] !== 0 ||
-              state.priceRangeFilter[1] !== 1000)
-              ? 1
-              : 0)
-          }
-          selectedCategories={state.selectedCategories}
-          selectedPriceRange={state.priceRangeFilter}
-          onCategoryQuickSelect={handleCategoryQuickSelect}
-          onPriceQuickSelect={handlePriceQuickSelect}
-          onOpenFilters={() => actions.setMobileFiltersOpen(true)}
-          onClearFilters={handleClearFilters}
-          t={t}
-        />
+        {/* Premium Mobile Filter Bar - Optimized for Performance */}
+        <div className="md:hidden">
+          <MobileFilterBar
+            activeFilterCount={
+              state.selectedCategories.length +
+              Object.values(state.selectedFilters).flat().length +
+              state.selectedLearningOutcomes.length +
+              (state.selectedProductType ? 1 : 0) +
+              state.selectedSpecialCategories.length +
+              (!state.noPriceFilter &&
+              (state.priceRangeFilter[0] !== 0 ||
+                state.priceRangeFilter[1] !== 1000)
+                ? 1
+                : 0)
+            }
+            selectedCategories={state.selectedCategories}
+            selectedPriceRange={state.priceRangeFilter}
+            onCategoryQuickSelect={handleCategoryQuickSelect}
+            onPriceQuickSelect={handlePriceQuickSelect}
+            onOpenFilters={() => actions.setMobileFiltersOpen(true)}
+            onClearFilters={handleClearFilters}
+            t={t}
+          />
+        </div>
 
         {/* Age Quick Filters Section - hide on mobile */}
         <div className="hidden md:block">
@@ -647,60 +643,62 @@ function ClientProductsPageContent({
           t={t}
         />
 
-        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-6 relative z-10">
-          {/* Premium design element - top wave decoration */}
-          <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 rounded-full opacity-75 hidden sm:block"></div>
+        <div className="w-full max-w-full overflow-x-hidden bg-gradient-to-b from-gray-50/30 via-white to-gray-50/20">
+          <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8 relative z-10">
+            {/* Premium design element - top wave decoration */}
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500/20 via-purple-500/30 to-indigo-500/20 rounded-full opacity-75 hidden sm:block"></div>
 
-          <div className="flex flex-col md:flex-row gap-2 sm:gap-6">
-            <ProductFiltersErrorBoundary
-              onError={() => {
-                // Fallback: clear filters and reload
-                handleClearFilters();
-              }}
-            >
-              <ProductsSidebar
-                categoryFilter={categoryFilter}
-                dynamicFilters={dynamicFilters}
-                priceRangeFilter={state.priceRangeFilter}
-                products={products}
-                selectedCategories={state.selectedCategories}
-                selectedFilters={state.selectedFilters}
-                noPriceFilter={state.noPriceFilter}
-                selectedLearningOutcomes={state.selectedLearningOutcomes}
-                selectedProductType={state.selectedProductType}
-                selectedSpecialCategories={state.selectedSpecialCategories}
-                handleCategoryChange={handleCategoryChange}
-                handleFilterChange={handleFilterChange}
-                handlePriceChange={handlePriceChange}
-                handleNoPriceFilterChange={handleNoPriceFilterChange}
-                setSelectedLearningOutcomes={actions.setLearningOutcomes}
-                setSelectedProductType={actions.setProductType}
-                setSelectedSpecialCategories={actions.setSpecialCategories}
-                handleClearFilters={handleClearFilters}
-                setMobileFiltersOpen={actions.setMobileFiltersOpen}
-                t={t}
-              />
-            </ProductFiltersErrorBoundary>
+            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
+              <ProductFiltersErrorBoundary
+                onError={() => {
+                  // Fallback: clear filters and reload
+                  handleClearFilters();
+                }}
+              >
+                <ProductsSidebar
+                  categoryFilter={categoryFilter}
+                  dynamicFilters={dynamicFilters}
+                  priceRangeFilter={state.priceRangeFilter}
+                  products={products}
+                  selectedCategories={state.selectedCategories}
+                  selectedFilters={state.selectedFilters}
+                  noPriceFilter={state.noPriceFilter}
+                  selectedLearningOutcomes={state.selectedLearningOutcomes}
+                  selectedProductType={state.selectedProductType}
+                  selectedSpecialCategories={state.selectedSpecialCategories}
+                  handleCategoryChange={handleCategoryChange}
+                  handleFilterChange={handleFilterChange}
+                  handlePriceChange={handlePriceChange}
+                  handleNoPriceFilterChange={handleNoPriceFilterChange}
+                  setSelectedLearningOutcomes={actions.setLearningOutcomes}
+                  setSelectedProductType={actions.setProductType}
+                  setSelectedSpecialCategories={actions.setSpecialCategories}
+                  handleClearFilters={handleClearFilters}
+                  setMobileFiltersOpen={actions.setMobileFiltersOpen}
+                  t={t}
+                />
+              </ProductFiltersErrorBoundary>
 
-            <ProductGridErrorBoundary
-              onRetry={() => {
-                // Retry by clearing filters and resetting state
-                handleClearFilters();
-                window.location.reload();
-              }}
-            >
-              <ProductsMainDisplay
-                activeCategory={activeCategory}
-                categoryInfo={categoryInfo}
-                filteredProducts={filteredProducts}
-                displayedProducts={filteredProducts}
-                viewMode={state.viewMode}
-                getLearningTitle={getLearningTitle}
-                getLearningDescription={getLearningDescription}
-                getProductCardContent={getProductCardContent}
-                t={t}
-              />
-            </ProductGridErrorBoundary>
+              <ProductGridErrorBoundary
+                onRetry={() => {
+                  // Retry by clearing filters and resetting state
+                  handleClearFilters();
+                  window.location.reload();
+                }}
+              >
+                <ProductsMainDisplay
+                  activeCategory={activeCategory}
+                  categoryInfo={categoryInfo}
+                  filteredProducts={filteredProducts}
+                  displayedProducts={filteredProducts}
+                  viewMode={state.viewMode}
+                  getLearningTitle={getLearningTitle}
+                  getLearningDescription={getLearningDescription}
+                  getProductCardContent={getProductCardContent}
+                  t={t}
+                />
+              </ProductGridErrorBoundary>
+            </div>
           </div>
         </div>
 

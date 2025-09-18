@@ -106,26 +106,28 @@ export function ProductsSidebar({
   };
 
   return (
-    <div className="w-full md:w-64 shrink-0 hidden md:block">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2.5 sm:p-4 sticky top-20 sm:top-24">
-        <h3 className="text-xs sm:text-base font-bold mb-1.5 sm:mb-3 flex items-center gap-1 sm:gap-2">
-          <div className="p-0.5 sm:p-1.5 rounded-full bg-primary/10">
+    <div className="w-full md:w-72 lg:w-80 shrink-0 hidden md:block max-w-full overflow-hidden">
+      <div className="bg-gradient-to-br from-white via-gray-50/30 to-white rounded-2xl shadow-xl border border-gray-200/50 p-4 sm:p-6 sticky top-20 sm:top-24 max-w-full backdrop-blur-sm">
+        <h3 className="text-base sm:text-lg font-black mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
+          <div className="p-2 sm:p-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 shadow-lg">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="10"
-              height="10"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-primary sm:w-3 sm:h-3"
+              className="text-white sm:w-4 sm:h-4"
             >
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
             </svg>
           </div>
-          {t("filterOptions")}
+          <span className="bg-gradient-to-r from-gray-900 to-gray-700 text-transparent bg-clip-text">
+            {t("filterOptions", "Filter Options")}
+          </span>
         </h3>
         <EnhancedProductFilters
           categories={categoryFilter[0]}

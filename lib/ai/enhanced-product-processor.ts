@@ -94,6 +94,9 @@ export class EnhancedProductProcessor {
   private currencyService = CurrencyService.getInstance();
   private defaultMarkupPercentage = 20; // 20% markup as requested
 
+  // Force OpenAI-only for bulk uploads to improve performance
+  private openAIService = AIServiceFactory.getService("openai");
+
   /**
    * Process a single product with all requirements
    */
@@ -288,11 +291,16 @@ export class EnhancedProductProcessor {
         return product;
       }
 
+      console.log(
+        `Using OpenAI-only enhancement for faster processing: ${product.name}`
+      );
+
       const prompt = formatPrompt(PRODUCT_STRUCTURE_PROMPT.user, {
         productData: JSON.stringify(product, null, 2),
       });
 
-      const aiResponse = await this.aiService.generateWithSystemPrompt(
+      // Use OpenAI directly for faster single-provider processing
+      const aiResponse = await this.openAIService.generateWithSystemPrompt(
         PRODUCT_STRUCTURE_PROMPT.system,
         prompt
       );
@@ -456,31 +464,81 @@ export class EnhancedProductProcessor {
   }
 
   /**
-   * Process multiple products in batch
+   * Process multiple products in batch with OpenAI-only optimization
    */
   async processProductsBatch(
     products: any[],
     options: ProductProcessingOptions = {}
   ): Promise<ProcessedProduct[]> {
     const results: ProcessedProduct[] = [];
+    const startTime = Date.now();
 
-    for (const product of products) {
-      try {
-        const processed = await this.processProduct(product, options);
-        results.push(processed);
-      } catch (error) {
-        console.error(`Failed to process product ${product.name}:`, error);
-        // Add a basic processed version as fallback
-        results.push(
-          await this.applyBasicProcessing(product, {
-            addMarkup: options.addMarkup ?? true,
-            markupPercentage:
-              options.markupPercentage ?? this.defaultMarkupPercentage,
-            processImages: options.processImages ?? true,
-          })
-        );
+    console.log(
+      `Starting OpenAI-only batch processing for ${products.length} products`
+    );
+
+    // Optimize batch size for AI enhancement - smaller batches for better timeout management
+    const batchSize = options.includeAIEnhancement ? 3 : 8; // 3 for AI, 8 for basic processing
+    const batches = [];
+    for (let i = 0; i < products.length; i += batchSize) {
+      batches.push(products.slice(i, i + batchSize));
+    }
+
+    console.log(
+      `Processing ${products.length} products in ${batches.length} batches of ${batchSize} each`
+    );
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      const batchStartTime = Date.now();
+      console.log(
+        `Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} products)`
+      );
+
+      // Process products sequentially within batch to avoid overwhelming OpenAI API
+      for (let productIndex = 0; productIndex < batch.length; productIndex++) {
+        const product = batch[productIndex];
+        try {
+          console.log(
+            `  Processing product ${productIndex + 1}/${batch.length}: ${product.name}`
+          );
+          const processed = await this.processProduct(product, options);
+          results.push(processed);
+          console.log(`  ✓ Enhanced product: ${product.name}`);
+        } catch (error) {
+          console.error(
+            `  ✗ Failed to process product ${product.name}:`,
+            error
+          );
+          // Add a basic processed version as fallback
+          results.push(
+            await this.applyBasicProcessing(product, {
+              addMarkup: options.addMarkup ?? true,
+              markupPercentage:
+                options.markupPercentage ?? this.defaultMarkupPercentage,
+              processImages: options.processImages ?? true,
+            })
+          );
+        }
+      }
+
+      const batchTime = Date.now() - batchStartTime;
+      console.log(
+        `Completed batch ${batchIndex + 1}/${batches.length} in ${(batchTime / 1000).toFixed(2)}s`
+      );
+
+      // Longer delay between batches when using AI to respect rate limits and prevent timeout
+      if (batchIndex < batches.length - 1) {
+        const delay = options.includeAIEnhancement ? 1000 : 300; // 1s for AI, 300ms for basic
+        console.log(`  Waiting ${delay}ms before next batch...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
+
+    const totalTime = Date.now() - startTime;
+    console.log(
+      `Completed OpenAI-only batch processing in ${(totalTime / 1000).toFixed(2)}s`
+    );
 
     return results;
   }

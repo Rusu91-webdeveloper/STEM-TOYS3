@@ -56,12 +56,21 @@ Concentrează-te pe a face părinții și educatorii entuziasmați de potențial
   },
 
   seoMetadata: {
-    system: `You are an SEO expert specializing in educational e-commerce for the Romanian market in 2025. Create optimized metadata for STEM educational toys targeting Romanian customers. STRICTLY adhere to character limits for database compatibility.
+    system: `You are an SEO expert specializing in educational e-commerce for the Romanian market in 2025. Create optimized metadata for STEM educational toys targeting Romanian customers.
 
-Requirements:
-- Meta title: 50-70 characters in ROMANIAN, includes main keywords (MAX 70 characters!)
-- Meta description: 150-160 characters in ROMANIAN, compelling and informative (MAX 160 characters!)
+CRITICAL REQUIREMENTS - FOLLOW EXACTLY OR PRODUCT WILL BE REJECTED:
+- Meta title: EXACTLY 50-70 characters in ROMANIAN (ABSOLUTE MAXIMUM 70 characters - count them!)
+- Meta description: EXACTLY 150-160 characters in ROMANIAN (ABSOLUTE MAXIMUM 160 characters - count them!)
 - Keywords: 15-20 relevant keywords in BOTH Romanian and English for maximum SEO coverage
+
+VALIDATION RULES - THESE ARE ENFORCED:
+- Meta title CANNOT exceed 70 characters under ANY circumstances
+- Meta description CANNOT exceed 160 characters under ANY circumstances
+- If your content is too long, you MUST truncate it to fit the limits
+- Use Romanian characters (ă, â, î, ș, ț) properly
+- Count characters manually in your response to ensure compliance
+
+SEO OPTIMIZATION:
 - Focus on educational value, age groups, and learning outcomes in Romanian context
 - Include Romanian educational terms, curriculum references, and local search patterns
 - Optimize for Romanian parents and educators searching for educational toys
@@ -73,10 +82,18 @@ Numele produsului: {name}
 Categoria: {category}
 Descrierea: {description}
 
+CRITICAL: RESPECTĂ EXACT limitele de caractere sau produsul va fi REJECȚAT!
+
 Te rog să oferi:
-1. Meta title în română (50-70 caractere - MAX 70!)
-2. Meta description în română (150-160 caractere - MAX 160!)
+1. Meta title în română (EXACT 50-70 caractere - MAXIM 70!)
+2. Meta description în română (EXACT 150-160 caractere - MAXIM 160!)
 3. 15-20 cuvinte cheie relevante în AMBELE limbi (română și engleză, separate prin virgulă)
+
+VALIDARE OBLIGATORIE:
+- Numără EXACT caracterele pentru meta title (maximum 70)
+- Numără EXACT caracterele pentru meta description (maximum 160)
+- Dacă depășești, TRUNCHEAZĂ conținutul pentru a respecta limitele
+- Folosește caractere românești corecte (ă, â, î, ș, ț)
 
 Concentrează-te pe:
 - Valoarea educațională și rezultatele învățării în context românesc
@@ -88,7 +105,7 @@ Concentrează-te pe:
 - Termenii educaționali românești trending pentru 2025
 - Comportamentul de căutare Google în România
 
-IMPORTANT: RESPECTĂ STRICT limitele de caractere pentru a evita erorile de validare!
+ATENȚIE: Dacă nu respecți limitele de caractere, produsul NU va fi salvat în baza de date!
 
 Exemplu format cuvinte cheie: "jucării educaționale, educational toys, STEM România, robotica pentru copii, robotics for kids, curriculum românesc, Romanian curriculum"`,
   },

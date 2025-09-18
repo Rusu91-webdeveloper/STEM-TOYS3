@@ -155,17 +155,22 @@ export class AISchemaValidator {
     };
 
     try {
+      // First, apply automatic corrections for common issues
+      const correctedProduct = this.applyAutomaticCorrections(product);
+
       // Validate with Zod schema
-      enhancedProductSchema.parse(product);
+      enhancedProductSchema.parse(correctedProduct);
 
       // Additional custom validations
-      this.validateEnumValues(product, result);
-      this.validateBusinessRules(product, result);
+      this.validateEnumValues(correctedProduct, result);
+      this.validateBusinessRules(correctedProduct, result);
 
-      // If there are errors, try to create a corrected version
+      // Set the corrected product
+      result.correctedProduct = correctedProduct;
+
+      // If there are still errors after corrections, mark as invalid
       if (result.errors.length > 0) {
         result.isValid = false;
-        result.correctedProduct = this.correctEnumValues(product);
       }
     } catch (error) {
       result.isValid = false;
@@ -179,6 +184,49 @@ export class AISchemaValidator {
     }
 
     return result;
+  }
+
+  /**
+   * Apply automatic corrections to common schema violations
+   */
+  private static applyAutomaticCorrections(
+    product: EnhancedProduct
+  ): EnhancedProduct {
+    const corrected = { ...product };
+
+    // Fix metaDescription length (truncate to 160 chars)
+    if (corrected.metaDescription && corrected.metaDescription.length > 160) {
+      console.warn(
+        `Auto-correcting metaDescription for ${product.name}: truncating from ${corrected.metaDescription.length} to 160 characters`
+      );
+      corrected.metaDescription =
+        corrected.metaDescription.substring(0, 157) + "...";
+    }
+
+    // Fix metaTitle length (truncate to 70 chars)
+    if (corrected.metaTitle && corrected.metaTitle.length > 70) {
+      console.warn(
+        `Auto-correcting metaTitle for ${product.name}: truncating from ${corrected.metaTitle.length} to 70 characters`
+      );
+      corrected.metaTitle = corrected.metaTitle.substring(0, 67) + "...";
+    }
+
+    // Ensure metaDescription exists
+    if (
+      !corrected.metaDescription ||
+      corrected.metaDescription.trim().length === 0
+    ) {
+      corrected.metaDescription = (
+        corrected.description || corrected.name
+      ).substring(0, 160);
+    }
+
+    // Ensure metaTitle exists
+    if (!corrected.metaTitle || corrected.metaTitle.trim().length === 0) {
+      corrected.metaTitle = corrected.name.substring(0, 70);
+    }
+
+    return corrected;
   }
 
   /**

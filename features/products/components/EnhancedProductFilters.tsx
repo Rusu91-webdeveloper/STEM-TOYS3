@@ -522,7 +522,7 @@ export function EnhancedProductFilters({
           {!noPriceFilter && (
             <div className="space-y-4 sm:space-y-5 px-1 sm:px-2">
               {/* Direct input fields for price range */}
-              <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="flex items-center justify-between gap-1 sm:gap-2 mb-1">
                 <div className="relative flex items-center w-full">
                   <span className="absolute left-2 text-xs text-muted-foreground">
                     MIN
@@ -551,7 +551,7 @@ export function EnhancedProductFilters({
                       }
                     }}
                     className={cn(
-                      "w-full pl-9 pr-1 py-2 text-sm border rounded-lg",
+                      "w-full pl-9 pr-6 py-2 text-sm border rounded-lg flex-shrink-0",
                       isInsideModal ? "h-10" : "h-8"
                     )}
                   />
@@ -582,7 +582,7 @@ export function EnhancedProductFilters({
                       }
                     }}
                     className={cn(
-                      "w-full pl-9 pr-1 py-2 text-sm border rounded-lg",
+                      "w-full pl-9 pr-6 py-2 text-sm border rounded-lg flex-shrink-0",
                       isInsideModal ? "h-10" : "h-8"
                     )}
                   />

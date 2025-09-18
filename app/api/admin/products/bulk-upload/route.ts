@@ -419,18 +419,30 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now();
 
-    // Enhanced Product Processing step
+    // Enhanced Product Processing step - Optimized for OpenAI-only
     const productProcessor = new EnhancedProductProcessor();
     let productsToProcess = validatedData.products;
     let aiEnhancementResults = null;
 
+    // Always use AI enhancement when requested - OpenAI-only optimization handles performance
+    const shouldUseAIEnhancement =
+      validatedData.aiEnhancement?.enabled || false;
+
+    if (shouldUseAIEnhancement) {
+      console.log(
+        `Using OpenAI-only enhancement for ${validatedData.products.length} products - optimized for performance`
+      );
+    } else {
+      console.log(`AI enhancement disabled - using basic processing only`);
+    }
+
     // Process all products with enhanced processor
     try {
-      console.log("Starting enhanced product processing...");
+      console.log("Starting OpenAI-only enhanced product processing...");
       productsToProcess = await productProcessor.processProductsBatch(
         validatedData.products,
         {
-          includeAIEnhancement: validatedData.aiEnhancement?.enabled || false,
+          includeAIEnhancement: shouldUseAIEnhancement,
           applyRomanianDefaults: true,
           processImages: true,
           addMarkup: true,
@@ -438,7 +450,7 @@ export async function POST(request: NextRequest) {
         }
       );
       console.log(
-        `Enhanced processing completed for ${productsToProcess.length} products`
+        `OpenAI-only enhanced processing completed for ${productsToProcess.length} products`
       );
     } catch (error) {
       console.error("Enhanced product processing failed:", error);
