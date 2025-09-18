@@ -335,8 +335,8 @@ export function EnhancedAdminBulkUpload() {
         tags: product.tags ? product.tags.split(",") : [],
       }));
 
-      // Call AI enhancement API
-      const response = await fetch("/api/admin/products/ai-enhance", {
+      // Call AI enhancement API (dual-provider)
+      const response = await fetch("/api/admin/products/dual-enhance", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -344,6 +344,18 @@ export function EnhancedAdminBulkUpload() {
         body: JSON.stringify({
           products: basicProducts,
           options: aiEnhancementOptions,
+          config: {
+            primaryProvider: "gemini",
+            primaryModel: "gemini-1.5-pro",
+            secondaryProvider: "openai",
+            secondaryModel: "gpt-3.5-turbo",
+            refinementOptions: {
+              validateContent: true,
+              improveSEO: true,
+              fixGrammar: true,
+              ensureDbCompatibility: true,
+            },
+          },
         }),
       });
 
