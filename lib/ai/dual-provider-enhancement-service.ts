@@ -725,11 +725,13 @@ Generate comprehensive, educational content that would help parents and educator
     const useRomanian = options?.includeRomanianOptimization === true;
 
     // Create basic enhancement with validated enum values
+    const metaTitleBase = useRomanian
+      ? `${product.name} - Kit Educational STEM`
+      : `${product.name} - Educational STEM Kit`;
+
     const basicEnhancement = {
       enhancedDescription: enhancedDescription,
-      metaTitle: useRomanian
-        ? `${product.name} - Kit Educational STEM`
-        : `${product.name} - Educational STEM Kit`,
+      metaTitle: metaTitleBase.substring(0, 70),
       metaDescription: enhancedDescription.substring(0, 160),
       metaKeywords: useRomanian
         ? ["stem", "educativ", "kit", "arduino", "electronică", "programare"]
@@ -1358,7 +1360,7 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
         results.push({
           ...product,
           enhancedDescription: product.description || "",
-          metaTitle: product.name,
+          metaTitle: product.name.substring(0, 70),
           metaDescription: product.description?.substring(0, 160) || "",
           metaKeywords: [],
           tags: product.tags || [],

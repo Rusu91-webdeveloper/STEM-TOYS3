@@ -93,7 +93,7 @@ export function ProductsMainDisplay({
   return (
     <div className="flex-1">
       {/* Main product area with showing products count */}
-      <div className="mb-2.5 sm:mb-4 px-1 sm:px-2 flex justify-between items-center">
+      <div className="mb-2 sm:mb-4 px-1 sm:px-2 flex justify-between items-center">
         <p className="text-xs sm:text-sm text-gray-600 font-medium">
           {t("showingProducts")
             .replace("{0}", filteredProducts.length.toString())
@@ -288,37 +288,46 @@ export function ProductsMainDisplay({
                       </div>
                     </div>
 
-                    {/* Price and actions */}
-                    <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 sm:gap-3 mt-auto">
-                      <div className="flex items-baseline gap-1.5 sm:gap-2">
-                        <span className="text-base sm:text-xl font-bold text-primary">
-                          {product.price
-                            ? `${product.price} RON`
-                            : t("freeDownload")}
-                        </span>
-                        {product.compareAtPrice && (
-                          <span className="text-xs sm:text-sm text-gray-500 line-through">
-                            {product.compareAtPrice} RON
+                    {/* Price and actions - Enhanced mobile layout */}
+                    <div className="flex flex-col gap-3 mt-auto">
+                      {/* Price Section - Prominent on mobile */}
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-lg sm:text-xl font-bold text-primary">
+                            {product.price
+                              ? `${product.price} RON`
+                              : t("freeDownload")}
                           </span>
-                        )}
-                        {product.compareAtPrice &&
-                          product.compareAtPrice > product.price && (
-                            <span className="text-xs text-red-500 font-semibold">
-                              -
-                              {Math.round(
-                                ((product.compareAtPrice - product.price) /
-                                  product.compareAtPrice) *
-                                  100
-                              )}
-                              %
+                          {product.compareAtPrice &&
+                            product.compareAtPrice > product.price && (
+                              <span className="text-sm text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded-full">
+                                -
+                                {Math.round(
+                                  ((product.compareAtPrice - product.price) /
+                                    product.compareAtPrice) *
+                                    100
+                                )}
+                                %
+                              </span>
+                            )}
+                        </div>
+                        {product.compareAtPrice && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500 line-through">
+                              {product.compareAtPrice} RON
                             </span>
-                          )}
+                            <span className="text-xs text-gray-400">
+                              {t("was", "era")}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex gap-1.5 sm:gap-2">
+                      {/* Action Button */}
+                      <div className="flex gap-2">
                         <Link
                           href={`/products/${product.slug}`}
-                          className="flex-1 xs:flex-initial bg-gradient-to-br from-primary to-primary/80 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold hover:from-primary/80 hover:to-primary transition-all duration-300 shadow-sm hover:shadow-md"
+                          className="flex-1 bg-gradient-to-br from-primary to-primary/80 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:from-primary/80 hover:to-primary transition-all duration-300 shadow-sm hover:shadow-md text-center"
                         >
                           {t("viewDetails")}
                         </Link>

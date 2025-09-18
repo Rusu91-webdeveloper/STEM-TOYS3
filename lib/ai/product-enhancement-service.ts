@@ -240,7 +240,7 @@ export class ProductEnhancementService {
       : [];
 
     return {
-      metaTitle: metaTitle.substring(0, 60),
+      metaTitle: metaTitle.substring(0, 70),
       metaDescription: metaDescription.substring(0, 160),
       metaKeywords: metaKeywords.slice(0, 15),
     };

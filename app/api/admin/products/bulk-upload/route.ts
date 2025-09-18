@@ -14,6 +14,7 @@ import {
   type EnhancementOptions,
 } from "@/lib/ai";
 import { EnhancedProductProcessor } from "@/lib/ai/enhanced-product-processor";
+import { AISchemaValidator } from "@/lib/ai/schema-validator";
 
 // Enhanced bulk upload schema for admin products
 const adminBulkUploadSchema = z.object({
@@ -271,6 +272,118 @@ const validateSpecialCategories = (categories: string[]): boolean => {
   ];
   return categories.every(cat => validCategories.includes(cat));
 };
+
+// Function to validate and correct product data before saving
+function validateAndCorrectProduct(
+  product: any,
+  rowNumber: number,
+  results: any
+) {
+  try {
+    // Validate meta title and description lengths
+    if (product.metaTitle && product.metaTitle.length > 70) {
+      console.warn(
+        `Row ${rowNumber}: metaTitle too long (${product.metaTitle.length} chars), truncating`
+      );
+      product.metaTitle = product.metaTitle.substring(0, 70);
+      results.warnings.push({
+        row: rowNumber,
+        field: "metaTitle",
+        message: `Meta title truncated to 70 characters (was ${product.metaTitle.length})`,
+      });
+    }
+
+    if (product.metaDescription && product.metaDescription.length > 160) {
+      console.warn(
+        `Row ${rowNumber}: metaDescription too long (${product.metaDescription.length} chars), truncating`
+      );
+      product.metaDescription = product.metaDescription.substring(0, 160);
+      results.warnings.push({
+        row: rowNumber,
+        field: "metaDescription",
+        message: `Meta description truncated to 160 characters (was ${product.metaDescription.length})`,
+      });
+    }
+
+    // Ensure metaTitle exists and is not empty
+    if (!product.metaTitle || product.metaTitle.trim().length === 0) {
+      product.metaTitle = product.name.substring(0, 70);
+      results.warnings.push({
+        row: rowNumber,
+        field: "metaTitle",
+        message: "Meta title was empty, using product name",
+      });
+    }
+
+    // Ensure metaDescription exists and is not empty
+    if (
+      !product.metaDescription ||
+      product.metaDescription.trim().length === 0
+    ) {
+      product.metaDescription = (product.description || product.name).substring(
+        0,
+        160
+      );
+      results.warnings.push({
+        row: rowNumber,
+        field: "metaDescription",
+        message: "Meta description was empty, using product description",
+      });
+    }
+
+    // Validate and fix array fields
+    if (!Array.isArray(product.metaKeywords)) {
+      product.metaKeywords = [];
+    }
+
+    if (!Array.isArray(product.tags)) {
+      product.tags = product.tags ? [product.tags] : [];
+    }
+
+    if (!Array.isArray(product.learningOutcomes)) {
+      product.learningOutcomes = [];
+    }
+
+    // Limit array sizes
+    if (product.metaKeywords.length > 15) {
+      product.metaKeywords = product.metaKeywords.slice(0, 15);
+      results.warnings.push({
+        row: rowNumber,
+        field: "metaKeywords",
+        message: "Meta keywords limited to 15 items",
+      });
+    }
+
+    if (product.tags.length > 20) {
+      product.tags = product.tags.slice(0, 20);
+      results.warnings.push({
+        row: rowNumber,
+        field: "tags",
+        message: "Tags limited to 20 items",
+      });
+    }
+
+    if (product.learningOutcomes.length > 5) {
+      product.learningOutcomes = product.learningOutcomes.slice(0, 5);
+      results.warnings.push({
+        row: rowNumber,
+        field: "learningOutcomes",
+        message: "Learning outcomes limited to 5 items",
+      });
+    }
+
+    return product;
+  } catch (error) {
+    console.error(`Error validating product at row ${rowNumber}:`, error);
+    results.errors.push({
+      row: rowNumber,
+      field: "validation",
+      message: `Validation error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      value: product.name,
+    });
+    return null;
+  }
+}
 
 // POST - Admin bulk upload products
 export async function POST(request: NextRequest) {
@@ -605,55 +718,70 @@ export async function POST(request: NextRequest) {
             }
           }
 
+          // Validate and correct product data before saving
+          const correctedProduct = validateAndCorrectProduct(
+            product,
+            rowNumber,
+            results
+          );
+          if (!correctedProduct) {
+            results.failed++;
+            continue;
+          }
+
           // Create product with all enhanced fields
           const newProduct = await db.product.create({
             data: {
               // Core fields
-              name: product.name,
-              slug: product.slug || slug,
-              description: product.description,
-              price: product.price,
-              compareAtPrice: product.compareAtPrice,
-              sku: product.sku,
-              images: product.images,
+              name: correctedProduct.name,
+              slug: correctedProduct.slug || slug,
+              description: correctedProduct.description,
+              price: correctedProduct.price,
+              compareAtPrice: correctedProduct.compareAtPrice,
+              sku: correctedProduct.sku,
+              images: correctedProduct.images,
               categoryId: category.id,
-              tags: product.tags,
-              stockQuantity: product.stockQuantity,
-              reservedQuantity: product.reservedQuantity || 0,
-              reorderPoint: product.reorderPoint,
-              weight: product.weight || 0.8,
-              dimensions: product.dimensions,
+              tags: correctedProduct.tags,
+              stockQuantity: correctedProduct.stockQuantity,
+              reservedQuantity: correctedProduct.reservedQuantity || 0,
+              reorderPoint: correctedProduct.reorderPoint,
+              weight: correctedProduct.weight || 0.8,
+              dimensions: correctedProduct.dimensions,
               isActive: true, // Always active by default
               featured: false, // ALWAYS false for bulk uploads
               reviewCount: 0, // Default as requested
               totalSold: 0, // Default as requested
-              barcode: product.barcode || null,
+              barcode: correctedProduct.barcode || null,
 
               // Enhanced categorization fields
-              ageGroup: product.ageGroup,
-              stemDiscipline: product.stemDiscipline || "GENERAL",
-              learningOutcomes: product.learningOutcomes || [],
-              productType: product.productType,
-              specialCategories: product.specialCategories || ["NEW_ARRIVALS"],
-              supplierId: product.supplierId || null,
+              ageGroup: correctedProduct.ageGroup,
+              stemDiscipline: correctedProduct.stemDiscipline || "GENERAL",
+              learningOutcomes: correctedProduct.learningOutcomes || [],
+              productType: correctedProduct.productType,
+              specialCategories: correctedProduct.specialCategories || [
+                "NEW_ARRIVALS",
+              ],
+              supplierId: correctedProduct.supplierId || null,
 
               // Romanian educational fields
-              romanianCompetencies: product.romanianCompetencies || [],
+              romanianCompetencies: correctedProduct.romanianCompetencies || [],
               romanianCurriculumAlignment:
-                product.romanianCurriculumAlignment || [],
-              romanianEducationalLevel: product.romanianEducationalLevel,
-              romanianSubjectAreas: product.romanianSubjectAreas || [],
+                correctedProduct.romanianCurriculumAlignment || [],
+              romanianEducationalLevel:
+                correctedProduct.romanianEducationalLevel,
+              romanianSubjectAreas: correctedProduct.romanianSubjectAreas || [],
               romanianMinistryApproval: true, // Always true by default
               romanianEducationalCertification:
-                product.romanianEducationalCertification,
-              romanianParentGuides: product.romanianParentGuides || [],
-              romanianTeacherResources: product.romanianTeacherResources || [],
+                correctedProduct.romanianEducationalCertification,
+              romanianParentGuides: correctedProduct.romanianParentGuides || [],
+              romanianTeacherResources:
+                correctedProduct.romanianTeacherResources || [],
 
               // Status logic: AI-enhanced products need approval, manual uploads are auto-approved
               status:
-                product.generatedByFallback ||
-                product.fallbackUsed ||
-                product.dualProviderEnhancement
+                correctedProduct.generatedByFallback ||
+                correctedProduct.fallbackUsed ||
+                correctedProduct.dualProviderEnhancement
                   ? "PENDING_APPROVAL"
                   : "APPROVED",
 
@@ -663,24 +791,24 @@ export async function POST(request: NextRequest) {
 
               // SEO metadata in attributes
               attributes: {
-                metaTitle: product.metaTitle || product.name,
+                metaTitle: correctedProduct.metaTitle || correctedProduct.name,
                 metaDescription:
-                  product.metaDescription ||
-                  product.description.substring(0, 160),
-                metaKeywords: product.metaKeywords || [],
-                ...product.attributes,
+                  correctedProduct.metaDescription ||
+                  correctedProduct.description.substring(0, 160),
+                metaKeywords: correctedProduct.metaKeywords || [],
+                ...correctedProduct.attributes,
               },
 
               // Image metadata
-              imageMetadata: product.imageMetadata || [],
+              imageMetadata: correctedProduct.imageMetadata || [],
 
               // Metadata field for tracking
               metadata: {
                 createdViaBulkUpload: true,
                 bulkUploadTimestamp: new Date().toISOString(),
-                enhancementMethod: product.fallbackUsed
+                enhancementMethod: correctedProduct.fallbackUsed
                   ? "fallback"
-                  : product.dualProviderEnhancement
+                  : correctedProduct.dualProviderEnhancement
                     ? "dual-provider"
                     : "standard",
                 ministryApproved: true,
@@ -695,19 +823,21 @@ export async function POST(request: NextRequest) {
           results.success++;
         } catch (error) {
           console.error(`Error processing product at row ${rowNumber}:`, {
-            product: product.name,
-            sku: product.sku,
+            product: correctedProduct?.name || product.name,
+            sku: correctedProduct?.sku || product.sku,
             error: error instanceof Error ? error.message : "Unknown error",
             stack: error instanceof Error ? error.stack : undefined,
             productData: {
-              name: product.name,
-              sku: product.sku,
-              price: product.price,
-              category: product.category,
-              learningOutcomes: product.learningOutcomes,
-              ageGroup: product.ageGroup,
-              stemDiscipline: product.stemDiscipline,
-              productType: product.productType,
+              name: correctedProduct?.name || product.name,
+              sku: correctedProduct?.sku || product.sku,
+              price: correctedProduct?.price || product.price,
+              category: correctedProduct?.category || product.category,
+              learningOutcomes:
+                correctedProduct?.learningOutcomes || product.learningOutcomes,
+              ageGroup: correctedProduct?.ageGroup || product.ageGroup,
+              stemDiscipline:
+                correctedProduct?.stemDiscipline || product.stemDiscipline,
+              productType: correctedProduct?.productType || product.productType,
             },
           });
 
@@ -734,7 +864,7 @@ export async function POST(request: NextRequest) {
             row: rowNumber,
             field: "general",
             message: errorMessage,
-            value: product.name,
+            value: correctedProduct?.name || product.name,
           });
           results.failed++;
         }

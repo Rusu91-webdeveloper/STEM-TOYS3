@@ -56,11 +56,11 @@ Concentrează-te pe a face părinții și educatorii entuziasmați de potențial
   },
 
   seoMetadata: {
-    system: `You are an SEO expert specializing in educational e-commerce for the Romanian market in 2025. Create optimized metadata for STEM educational toys targeting Romanian customers.
+    system: `You are an SEO expert specializing in educational e-commerce for the Romanian market in 2025. Create optimized metadata for STEM educational toys targeting Romanian customers. STRICTLY adhere to character limits for database compatibility.
 
 Requirements:
-- Meta title: 50-60 characters in ROMANIAN, includes main keywords
-- Meta description: 150-160 characters in ROMANIAN, compelling and informative
+- Meta title: 50-70 characters in ROMANIAN, includes main keywords (MAX 70 characters!)
+- Meta description: 150-160 characters in ROMANIAN, compelling and informative (MAX 160 characters!)
 - Keywords: 15-20 relevant keywords in BOTH Romanian and English for maximum SEO coverage
 - Focus on educational value, age groups, and learning outcomes in Romanian context
 - Include Romanian educational terms, curriculum references, and local search patterns
@@ -74,8 +74,8 @@ Categoria: {category}
 Descrierea: {description}
 
 Te rog să oferi:
-1. Meta title în română (50-60 caractere)
-2. Meta description în română (150-160 caractere)
+1. Meta title în română (50-70 caractere - MAX 70!)
+2. Meta description în română (150-160 caractere - MAX 160!)
 3. 15-20 cuvinte cheie relevante în AMBELE limbi (română și engleză, separate prin virgulă)
 
 Concentrează-te pe:
@@ -87,6 +87,8 @@ Concentrează-te pe:
 - Cuvintele cheie competitive pentru jucăriile educaționale în România
 - Termenii educaționali românești trending pentru 2025
 - Comportamentul de căutare Google în România
+
+IMPORTANT: RESPECTĂ STRICT limitele de caractere pentru a evita erorile de validare!
 
 Exemplu format cuvinte cheie: "jucării educaționale, educational toys, STEM România, robotica pentru copii, robotics for kids, curriculum românesc, Romanian curriculum"`,
   },
@@ -242,7 +244,7 @@ Concentrează-te pe beneficiile educaționale și asigură-te că descrierea est
   },
 
   seoMetadata: {
-    system: `You are an expert SEO specialist for the Romanian e-commerce market. Create optimized metadata in Romanian language for STEM educational toys. Focus on relevant Romanian keywords and search patterns.`,
+    system: `You are an expert SEO specialist for the Romanian e-commerce market. Create optimized metadata in Romanian language for STEM educational toys. Focus on relevant Romanian keywords and search patterns. STRICTLY adhere to character limits to ensure database compatibility.`,
     user: `Creează metadata SEO pentru acest produs în limba română:
 
 Nume: {name}
@@ -250,11 +252,13 @@ Categorie: {category}
 Descriere: {description}
 
 Te rog să oferi:
-1. Titlu meta în română (max 60 caractere)
-2. Descriere meta în română (max 160 caractere)
+1. Titlu meta în română (max 70 caractere - IMPORTANT: nu depăși această limită!)
+2. Descriere meta în română (max 160 caractere - IMPORTANT: nu depăși această limită!)
 3. 5-10 cuvinte cheie (în română și engleză)
 
-Format: titlu|descriere|cuvant1,cuvant2,cuvant3,keyword1,keyword2`,
+Format: titlu|descriere|cuvant1,cuvant2,cuvant3,keyword1,keyword2
+
+ATENȚIE: Respectă STRICT limitele de caractere pentru a evita erorile de validare!`,
   },
 
   romanianOptimization: {
