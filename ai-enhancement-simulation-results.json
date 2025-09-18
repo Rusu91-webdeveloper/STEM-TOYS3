@@ -1,0 +1,412 @@
+{
+  "simulationTimestamp": "2025-09-18T08:29:07.985Z",
+  "simulationDuration": 4839,
+  "originalProducts": [
+    {
+      "name": "LEGO Mindstorms Robot Inventor",
+      "price": 359.99,
+      "category": "Robotics",
+      "description": "Build and program robots with this advanced LEGO robotics kit featuring sensors, motors and programmable hub",
+      "sku": "LEGO-51515",
+      "stockQuantity": 25,
+      "tags": []
+    },
+    {
+      "name": "Snap Circuits SC-300",
+      "price": 54.99,
+      "category": "Electronics",
+      "description": "Electronic discovery kit with 300+ experiments using snap-together components to learn about electricity and circuits",
+      "sku": "SNAP-SC300",
+      "stockQuantity": 40,
+      "tags": []
+    },
+    {
+      "name": "Thames & Kosmos Chemistry C3000",
+      "price": 199.95,
+      "category": "Science Kits",
+      "description": "Professional-grade chemistry set with 333 experiments covering organic, inorganic and analytical chemistry for ages 12+",
+      "sku": "TK-640132",
+      "stockQuantity": 15,
+      "tags": []
+    },
+    {
+      "name": "Kano Computer Kit Touch",
+      "price": 279.99,
+      "category": "Computing",
+      "description": "Build your own tablet computer while learning coding, electronics and how computers work with this hands-on STEM kit",
+      "sku": "KANO-1013",
+      "stockQuantity": 30,
+      "tags": []
+    },
+    {
+      "name": "National Geographic Mega Fossil Dig Kit",
+      "price": 24.95,
+      "category": "Archaeology",
+      "description": "Excavate 15 real fossils including shark teeth, mosasaur and ammonite specimens with professional paleontology tools",
+      "sku": "NG-FOSSIL15",
+      "stockQuantity": 60,
+      "tags": []
+    }
+  ],
+  "enhancedProducts": [
+    {
+      "name": "LEGO Mindstorms Robot Inventor",
+      "price": 359.99,
+      "category": "Robotics",
+      "description": "Build and program robots with this advanced LEGO robotics kit featuring sensors, motors and programmable hub",
+      "sku": "LEGO-51515",
+      "stockQuantity": 25,
+      "tags": [
+        "Robotică",
+        "Programare",
+        "LEGO",
+        "STEM Avansat",
+        "Inteligență Artificială",
+        "Senzori"
+      ],
+      "enhancedDescription": "Kit-ul LEGO Mindstorms Robot Inventor este o platformă educațională avansată care combină construcția creativă cu programarea intuitivă pentru a crea o experiență de învățare STEM completă. Acest set premium include peste 949 de piese LEGO Technic, un hub inteligent programabil cu 5 porturi de intrare/ieșire, 4 motori de medie dimensiune, senzori de distanță, culoare și forță, precum și o matrice LED 5x5 pentru afișare.\n\nCopiii și adolescenții pot construi și programa 5 modele diferite de roboți: Charlie (robotul umanoid), Tricky (cățelușul jucăuș), Gelo (vehiculul cu 4 roți), Blast (lansatorul de proiectile) și MVP (vehiculul multifuncțional). Fiecare model vine cu provocări de programare progresive, de la comenzi simple la algoritmi complecși de inteligență artificială.\n\nAplicația LEGO Mindstorms Robot Inventor utilizează un limbaj de programare vizual bazat pe Scratch, perfect pentru începători, dar oferă și opțiuni avansate pentru utilizatorii experimentați. Copiii învață concepte fundamentale de inginerie, programare, matematică și fizică prin joc și experimentare practică.\n\nAcest kit dezvoltă gândirea computațională, rezolvarea creativă a problemelor, lucrul în echipă și perseverența. Este ideal pentru proiecte școlare, competiții de robotică și explorarea independentă a tehnologiei. Compatibil cu sistemul LEGO Technic, oferă posibilități nelimitate de extindere și personalizare.",
+      "metaTitle": "LEGO Mindstorms Robot Inventor - Kit Robotică Educațional Premium",
+      "metaDescription": "Construiește și programează 5 roboți diferiți cu LEGO Mindstorms! Set STEM complet cu senzori, motoare și programare vizuală. Perfect pentru învățarea roboticii.",
+      "metaKeywords": [
+        "lego mindstorms",
+        "robotică educațională",
+        "programare copii",
+        "STEM",
+        "robot inventor",
+        "kit robotică",
+        "educație tehnologică",
+        "senzori robot",
+        "programare vizuală",
+        "proiecte școlare"
+      ],
+      "learningOutcomes": [
+        "PROBLEM_SOLVING",
+        "CREATIVITY",
+        "CRITICAL_THINKING",
+        "CODING_THINKING",
+        "DIGITAL_LITERACY",
+        "ANALYTICAL_THINKING",
+        "COLLABORATION"
+      ],
+      "ageGroup": "MIDDLE_SCHOOL_9_12",
+      "stemDiscipline": "TECHNOLOGY",
+      "productType": "ROBOTICS",
+      "romanianCompetencies": [
+        "Gândire computațională",
+        "Rezolvarea problemelor complexe",
+        "Creativitate tehnologică",
+        "Lucru în echipă",
+        "Comunicare tehnică"
+      ],
+      "romanianCurriculumAlignment": [
+        "Tehnologia informației și a comunicațiilor",
+        "Matematică aplicată",
+        "Fizică",
+        "Științe tehnice"
+      ],
+      "romanianEducationalLevel": "GIMNAZIAL",
+      "romanianSubjectAreas": [
+        "TIC",
+        "Matematică",
+        "Fizică",
+        "Științe"
+      ],
+      "dualProviderEnhancement": true,
+      "refinements": [
+        "Description: Enhanced with comprehensive Romanian educational context",
+        "SEO: Optimized keywords for Romanian market",
+        "Content: Added detailed learning outcomes and curriculum alignment",
+        "Grammar: Improved readability and professional tone"
+      ]
+    },
+    {
+      "name": "Snap Circuits SC-300",
+      "price": 54.99,
+      "category": "Electronics",
+      "description": "Electronic discovery kit with 300+ experiments using snap-together components to learn about electricity and circuits",
+      "sku": "SNAP-SC300",
+      "stockQuantity": 40,
+      "tags": [
+        "Electronică",
+        "Experimente",
+        "Circuite",
+        "Fizică",
+        "STEM",
+        "Învățare Practică"
+      ],
+      "enhancedDescription": "Snap Circuits SC-300 este un kit educațional de electronică care face învățarea circuitelor electrice accesibilă și distractivă pentru copii. Acest set inovator conține peste 60 de componente electronice reale care se conectează prin simpla apăsare, eliminând necesitatea lipiturii sau a uneltelor complexe.\n\nCu peste 300 de experimente incluse în manualul ilustrat pas cu pas, copiii pot construi de la circuite simple cu LED-uri și întrerupătoare până la proiecte complexe precum radio FM, alarmă sonoră, detector de minciuni și chiar un osciloscop rudimentar. Fiecare experiment este explicat cu diagrame clare și include principiile științifice de bază.\n\nComponentele includ rezistențe, condensatori, tranzistori, circuite integrate, motoare, difuzoare, microfoane, senzori de lumină și multe altele. Toate sunt montate pe module colorate cu codificare pentru identificare ușoară. Baza de lucru transparentă permite copiilor să vadă conexiunile și să înțeleagă fluxul curentului electric.\n\nAcest kit dezvoltă înțelegerea fundamentală a electricității, electronicii și principiilor fizicii, pregătind copiii pentru studii avansate în inginerie electrică și tehnologie. Este perfect pentru experimente acasă, proiecte școlare și explorarea independentă a lumii electronicii.",
+      "metaTitle": "Snap Circuits SC-300 - Kit Electronică 300 Experimente Educaționale",
+      "metaDescription": "Descoperă electronica cu 300+ experimente! Kit Snap Circuits cu componente reale pentru învățarea circuitelor electrice. Fără lipituri, doar învățare pură!",
+      "metaKeywords": [
+        "snap circuits",
+        "electronică copii",
+        "experimente electricitate",
+        "kit STEM",
+        "circuite electrice",
+        "învățare practică",
+        "fizică aplicată",
+        "componente electronice",
+        "educație științifică"
+      ],
+      "learningOutcomes": [
+        "PROBLEM_SOLVING",
+        "ANALYTICAL_THINKING",
+        "CRITICAL_THINKING",
+        "TECHNICAL_SKILLS",
+        "CREATIVITY"
+      ],
+      "ageGroup": "ELEMENTARY_6_8",
+      "stemDiscipline": "TECHNOLOGY",
+      "productType": "EXPERIMENT_KITS",
+      "romanianCompetencies": [
+        "Gândire științifică",
+        "Observarea fenomenelor fizice",
+        "Manipularea instrumentelor",
+        "Înțelegerea cauzalității"
+      ],
+      "romanianCurriculumAlignment": [
+        "Științe ale naturii",
+        "Fizică",
+        "Educație tehnologică"
+      ],
+      "romanianEducationalLevel": "PRIMAR",
+      "romanianSubjectAreas": [
+        "Științe",
+        "Fizică",
+        "Tehnologie"
+      ],
+      "dualProviderEnhancement": true,
+      "refinements": [
+        "Description: Enhanced with comprehensive Romanian educational context",
+        "SEO: Optimized keywords for Romanian market",
+        "Content: Added detailed learning outcomes and curriculum alignment",
+        "Grammar: Improved readability and professional tone"
+      ]
+    },
+    {
+      "name": "Thames & Kosmos Chemistry C3000",
+      "price": 199.95,
+      "category": "Science Kits",
+      "description": "Professional-grade chemistry set with 333 experiments covering organic, inorganic and analytical chemistry for ages 12+",
+      "sku": "TK-640132",
+      "stockQuantity": 15,
+      "tags": [
+        "Chimie",
+        "Laborator",
+        "Experimente Științifice",
+        "Reacții Chimice",
+        "STEM Avansat",
+        "Cercetare"
+      ],
+      "enhancedDescription": "Thames & Kosmos Chemistry C3000 este un laborator de chimie profesional conceput pentru tinerii cercetători pasionați de științe. Acest set cuprinzător oferă 333 de experimente autentice de chimie, de la reacții simple până la sinteze organice complexe, toate realizate cu echipamente și reactivi de calitate de laborator.\n\nSetul include un spectru complet de aparatură de laborator: eprubete, pahare Berzelius, cilindri gradați, pâlnii de separare, condensatoare, spirtiere, suporturi, cleme și multe altele. Reactivii chimici includ acizi, baze, săruri, indicatori, catalizatori și compuși organici, toți fiind siguri pentru utilizarea educațională dar autentici ca proprietăți chimice.\n\nExperimentele acoperă toate domeniile majore ale chimiei: chimia anorganică (reacții acido-bazice, precipitări, oxidări-reduceri), chimia organică (sinteză, purificare, analiză), chimia analitică (titrări, teste calitative) și electrochimia (pile galvanice, electroliză). Manualul de 192 de pagini oferă explicații teoretice detaliate și proceduri experimentale precise.\n\nAcest kit dezvoltă înțelegerea profundă a principiilor chimice, tehnici de laborator profesionale și gândirea științifică riguroasă. Este ideal pentru pregătirea olimpiadelor de chimie, proiecte de cercetare și explorarea unei posibile cariere în științe chimice.",
+      "metaTitle": "Thames & Kosmos Chemistry C3000 - Laborator Chimie 333 Experimente",
+      "metaDescription": "Laborator chimie complet cu 333 experimente! Kit profesional Thames & Kosmos cu echipamente reale și reactivi pentru tinerii oameni de știință.",
+      "metaKeywords": [
+        "chimie educațională",
+        "experimente chimie",
+        "laborator chimie",
+        "thames kosmos",
+        "kit științific",
+        "reacții chimice",
+        "aparatură laborator",
+        "educație științifică",
+        "chimie organică"
+      ],
+      "learningOutcomes": [
+        "ANALYTICAL_THINKING",
+        "CRITICAL_THINKING",
+        "PROBLEM_SOLVING",
+        "TECHNICAL_SKILLS",
+        "COLLABORATION"
+      ],
+      "ageGroup": "TEENS_13_PLUS",
+      "stemDiscipline": "SCIENCE",
+      "productType": "EXPERIMENT_KITS",
+      "romanianCompetencies": [
+        "Investigarea științifică",
+        "Gândirea analitică",
+        "Manipularea în siguranță",
+        "Interpretarea datelor"
+      ],
+      "romanianCurriculumAlignment": [
+        "Chimie",
+        "Științe ale naturii",
+        "Metodologia cercetării"
+      ],
+      "romanianEducationalLevel": "LICEAL",
+      "romanianSubjectAreas": [
+        "Chimie",
+        "Științe",
+        "Biologie"
+      ],
+      "dualProviderEnhancement": true,
+      "refinements": [
+        "Description: Enhanced with comprehensive Romanian educational context",
+        "SEO: Optimized keywords for Romanian market",
+        "Content: Added detailed learning outcomes and curriculum alignment",
+        "Grammar: Improved readability and professional tone"
+      ]
+    },
+    {
+      "name": "Kano Computer Kit Touch",
+      "price": 279.99,
+      "category": "Computing",
+      "description": "Build your own tablet computer while learning coding, electronics and how computers work with this hands-on STEM kit",
+      "sku": "KANO-1013",
+      "stockQuantity": 30,
+      "tags": [
+        "Computing",
+        "Programare",
+        "Hardware",
+        "Tabletă",
+        "Raspberry Pi",
+        "Tehnologie Creativă"
+      ],
+      "enhancedDescription": "Kano Computer Kit Touch este o platformă educațională revoluționară care permite copiilor să-și construiască propria tabletă funcțională în timp ce învață principiile fundamentale ale informaticii și programării. Acest kit unic combină asamblarea hardware cu programarea software într-o experiență de învățare integrată și captivantă.\n\nKitul include toate componentele necesare pentru construirea unei tablete cu ecran tactil de 10.1 inch: placa de bază Raspberry Pi, ecranul HD, bateria reîncărcabilă, difuzoarele stereo, camera, carcasa transparentă și toate cablurile necesare. Procesul de asamblare este ghidat pas cu pas, învățând copiii despre componentele unui computer și modul în which acestea lucrează împreună.\n\nSistemul de operare Kano OS este optimizat pentru învățare și oferă aplicații interactive pentru programare în Scratch, Python și JavaScript. Copiii pot crea jocuri, aplicații, muzică și artă digitală, apoi să le partajeze cu comunitatea globală Kano. Provocările progresive îi ghidează de la concepte de bază până la proiecte complexe de programare.\n\nTableta funcționează ca un dispozitiv complet, cu acces la internet, navigare web, aplicații educaționale și chiar Netflix pentru relaxare. Acest kit dezvoltă înțelegerea hardware-ului, competențe de programare, gândirea computațională și încrederea în tehnologie, pregătind copiii pentru era digitală.",
+      "metaTitle": "Kano Computer Kit Touch - Construiește-ți Propria Tabletă și Învață Programarea",
+      "metaDescription": "Construiește o tabletă funcțională și învață programarea! Kit Kano cu ecran tactil, Raspberry Pi și aplicații interactive pentru copii creativi.",
+      "metaKeywords": [
+        "kano computer",
+        "construire tabletă",
+        "programare copii",
+        "raspberry pi",
+        "kit computing",
+        "învățare tehnologie",
+        "scratch programming",
+        "python copii",
+        "STEM tehnologic"
+      ],
+      "learningOutcomes": [
+        "CODING_THINKING",
+        "DIGITAL_LITERACY",
+        "PROBLEM_SOLVING",
+        "CREATIVITY",
+        "TECHNICAL_SKILLS",
+        "CRITICAL_THINKING"
+      ],
+      "ageGroup": "MIDDLE_SCHOOL_9_12",
+      "stemDiscipline": "TECHNOLOGY",
+      "productType": "CONSTRUCTION_SETS",
+      "romanianCompetencies": [
+        "Gândire computațională",
+        "Rezolvarea problemelor tehnologice",
+        "Creativitate digitală",
+        "Comunicare prin tehnologie"
+      ],
+      "romanianCurriculumAlignment": [
+        "Tehnologia informației și a comunicațiilor",
+        "Informatică",
+        "Educație tehnologică"
+      ],
+      "romanianEducationalLevel": "GIMNAZIAL",
+      "romanianSubjectAreas": [
+        "TIC",
+        "Informatică",
+        "Matematică",
+        "Tehnologie"
+      ],
+      "dualProviderEnhancement": true,
+      "refinements": [
+        "Description: Enhanced with comprehensive Romanian educational context",
+        "SEO: Optimized keywords for Romanian market",
+        "Content: Added detailed learning outcomes and curriculum alignment",
+        "Grammar: Improved readability and professional tone"
+      ]
+    },
+    {
+      "name": "National Geographic Mega Fossil Dig Kit",
+      "price": 24.95,
+      "category": "Archaeology",
+      "description": "Excavate 15 real fossils including shark teeth, mosasaur and ammonite specimens with professional paleontology tools",
+      "sku": "NG-FOSSIL15",
+      "stockQuantity": 60,
+      "tags": [
+        "Paleontologie",
+        "Fosile",
+        "Excavare",
+        "Științe Naturale",
+        "Geologie",
+        "Explorare"
+      ],
+      "enhancedDescription": "National Geographic Mega Fossil Dig Kit oferă o experiență autentică de paleontologie pentru tinerii exploratori pasionați de istorie naturală și științele Pământului. Acest kit educațional conține 15 fosile reale îngropate într-un bloc de „rocă\" special creat, pe care copiii le pot excava folosind unelte profesionale de paleontologie.\n\nFosilele incluse reprezintă o varietate fascinantă de specii preistorice: dinți de rechini fosili (incluzând specii de Otodus și Carcharodon), amonite spiralate perfect conservate, mosasaur (șopârla marină gigantică), corali fosili, brachiopode și alte comori paleontologice vechi de milioane de ani. Fiecare fosilă este autentică și provine din situri paleontologice recunoscute la nivel mondial.\n\nKitul include unelte profesionale de excavare: dălțile de paleontolog, pensule fine, lupa de mărire și un poster educațional detaliat care explică fiecare fosilă găsită. Procesul de excavare dezvoltă răbdarea, atenția la detalii și tehnicile științifice de cercetare în teren.\n\nManualul însoțitor oferă informații fascinante despre fiecare specimen: vârsta geologică, habitatul original, importanța evolutivă și locul în istoria Pământului. Acest kit inspiră pasiunea pentru paleontologie, geologie și științele naturale, oferind o fereastră către trecutul îndepărtat al planetei noastre.",
+      "metaTitle": "National Geographic Mega Fossil Dig Kit - Excavează 15 Fosile Reale",
+      "metaDescription": "Descoperă 15 fosile reale cu kitul de excavare National Geographic! Dinți de rechini, amonite și alte comori paleontologice pentru tinerii exploratori.",
+      "metaKeywords": [
+        "fosile reale",
+        "kit excavare",
+        "national geographic",
+        "paleontologie copii",
+        "dinți rechini fosili",
+        "amonite",
+        "geologie educațională",
+        "științe naturale",
+        "arheologie"
+      ],
+      "learningOutcomes": [
+        "ANALYTICAL_THINKING",
+        "PROBLEM_SOLVING",
+        "MOTOR_SKILLS",
+        "CRITICAL_THINKING",
+        "COLLABORATION"
+      ],
+      "ageGroup": "ELEMENTARY_6_8",
+      "stemDiscipline": "SCIENCE",
+      "productType": "EXPERIMENT_KITS",
+      "romanianCompetencies": [
+        "Observarea științifică",
+        "Investigarea naturii",
+        "Gândirea cronologică",
+        "Înțelegerea evoluției"
+      ],
+      "romanianCurriculumAlignment": [
+        "Științe ale naturii",
+        "Geografie",
+        "Istorie naturală"
+      ],
+      "romanianEducationalLevel": "PRIMAR",
+      "romanianSubjectAreas": [
+        "Științe",
+        "Geografie",
+        "Biologie"
+      ],
+      "dualProviderEnhancement": true,
+      "refinements": [
+        "Description: Enhanced with comprehensive Romanian educational context",
+        "SEO: Optimized keywords for Romanian market",
+        "Content: Added detailed learning outcomes and curriculum alignment",
+        "Grammar: Improved readability and professional tone"
+      ]
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "successful": 5,
+    "failed": 0,
+    "successRate": "100%",
+    "dualProviderUsed": 5
+  },
+  "dualProviderInfo": {
+    "primaryProvider": "gemini",
+    "secondaryProvider": "openai",
+    "refinementApplied": true,
+    "fallbackToSecondary": false,
+    "fallbackCount": 0
+  },
+  "efficiency": {
+    "avgTimePerProduct": 967.8,
+    "totalWords": 879,
+    "avgWordsPerProduct": 176,
+    "totalKeywords": 46,
+    "totalTags": 30,
+    "totalLearningOutcomes": 28,
+    "romanianOptimizedCount": 5,
+    "totalRomanianCompetencies": 21,
+    "totalCurriculumAlignments": 16
+  },
+  "qualityMetrics": {
+    "avgDescriptionLength": 175.8,
+    "seoOptimizationRate": 60,
+    "stemCategorizationRate": 100,
+    "romanianOptimizationRate": 100
+  }
+}
