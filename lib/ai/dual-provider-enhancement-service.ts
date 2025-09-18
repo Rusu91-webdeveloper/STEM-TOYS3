@@ -356,19 +356,19 @@ Please review the enhanced data, check for any issues, and provide an improved v
     product: BasicProduct,
     options?: Partial<EnhancementOptions>
   ): Promise<EnhancedProduct> {
+    console.log(`Generating full enhancement with secondary provider for: ${product.name}`);
+    
+    // First, try to research the product online for better context
+    const productContext = await this.researchProductOnline(product);
+    
     // Create system prompt for full generation
     const systemPrompt = this.createFullGenerationPrompt(options);
 
-    // Convert product to JSON for the prompt
-    const productJson = JSON.stringify(product, null, 2);
+    // Build comprehensive user prompt with research context
+    const userPrompt = this.buildEnhancedUserPrompt(product, productContext, options);
 
-    // Build user prompt
-    const userPrompt = `Generate complete enhanced product data for the following STEM toy product:
+    console.log("Sending request to OpenAI with enhanced context...");
     
-${productJson}
-
-Please provide all required fields including detailed descriptions, SEO metadata, educational outcomes, and Romanian market optimization.`;
-
     // Generate content with secondary provider
     const response = await this.secondaryService!.generateWithSystemPrompt(
       systemPrompt,
@@ -376,39 +376,209 @@ Please provide all required fields including detailed descriptions, SEO metadata
       { model: this.config!.secondaryModel }
     );
 
-    // Parse the response
+    console.log("Received response from OpenAI, parsing...");
+    console.log("Raw response length:", response.length);
+    console.log("Raw response preview:", response.substring(0, 200) + "...");
+
+    // Parse the response with improved error handling
     try {
-      // Try to extract JSON from response
-      const jsonMatch =
-        response.match(/```json\n([\s\S]*?)\n```/) ||
-        response.match(/```\n([\s\S]*?)\n```/) ||
-        response.match(/\{[\s\S]*\}/);
+      const parsedResponse = this.parseAIResponse(response);
+      console.log("Successfully parsed AI response");
 
-      const jsonContent = jsonMatch ? jsonMatch[1] || jsonMatch[0] : response;
-      const parsedResponse = JSON.parse(jsonContent);
-
-      // Convert to EnhancedProduct format
+      // Convert to EnhancedProduct format with rich content
+      const enhancedProduct = this.createRichEnhancedProduct(product, parsedResponse, options);
+      
       return {
-        ...this.normalizeToEnhancedProduct(product, parsedResponse),
+        ...enhancedProduct,
         generatedByFallback: true,
       };
     } catch (error) {
       console.error("Failed to parse secondary provider response:", error);
-      console.log("Raw response:", response);
+      console.log("Attempting to create enhanced product from raw response...");
 
-      // Fallback: Return basic product with minimal enhancements
-      return {
-        ...product,
-        enhancedDescription: response.substring(0, 1000),
-        metaTitle: product.name,
-        metaDescription: response.substring(0, 160),
-        metaKeywords: [],
-        tags: product.tags || [],
-        learningOutcomes: [],
-        generatedByFallback: true,
-        parseError: true,
-      };
+      // Enhanced fallback: Try to extract useful information from raw response
+      return this.createEnhancedProductFromRawResponse(product, response, options);
     }
+  }
+
+  /**
+   * Research product online for better context
+   */
+  private async researchProductOnline(product: BasicProduct): Promise<string> {
+    try {
+      // Simple product research - in a real implementation, you might use web scraping
+      // For now, we'll create context based on the product name and category
+      const searchTerms = `${product.name} ${product.category} STEM educational toy specifications features`;
+      
+      return `Product Research Context:
+- Product Name: ${product.name}
+- Category: ${product.category}
+- Price: $${product.price}
+- Description: ${product.description || 'Basic educational kit for learning'}
+
+Based on similar products in this category, this appears to be an educational STEM toy designed for hands-on learning. 
+It likely includes components for building, programming, or experimenting, suitable for developing technical skills.`;
+    } catch (error) {
+      console.log("Product research failed, using basic context:", error);
+      return `Basic product information: ${product.name} - ${product.category} educational kit.`;
+    }
+  }
+
+  /**
+   * Build enhanced user prompt with research context
+   */
+  private buildEnhancedUserPrompt(
+    product: BasicProduct,
+    context: string,
+    options?: Partial<EnhancementOptions>
+  ): string {
+    const useRomanian = options?.includeRomanianOptimization === true;
+    
+    return `Generate complete enhanced product data for this STEM educational toy.
+
+PRODUCT INFORMATION:
+${JSON.stringify(product, null, 2)}
+
+RESEARCH CONTEXT:
+${context}
+
+REQUIREMENTS:
+${useRomanian ? '- ALL content must be in ROMANIAN language (descriptions, titles, keywords, etc.)' : '- Content should be in English unless specified otherwise'}
+- Create a detailed, engaging product description (400-600 words) highlighting educational benefits
+- Generate comprehensive SEO metadata (title, description, keywords)
+- Identify specific learning outcomes and educational benefits
+- Suggest appropriate age groups and STEM disciplines
+- Include Romanian curriculum alignment if applicable
+- Create relevant product tags and categories
+
+RETURN FORMAT: Valid JSON object with these fields:
+{
+  "enhancedDescription": "Detailed product description in ${useRomanian ? 'Romanian' : 'English'}",
+  "metaTitle": "SEO-optimized title (60-70 characters)",
+  "metaDescription": "SEO description (150-160 characters)", 
+  "metaKeywords": ["keyword1", "keyword2", "keyword3", ...],
+  "tags": ["tag1", "tag2", "tag3", ...],
+  "learningOutcomes": ["PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", ...],
+  "ageGroup": "AGE_GROUP_CODE",
+  "stemDiscipline": "STEM_DISCIPLINE_CODE",
+  "productType": "PRODUCT_TYPE_CODE",
+  "romanianCompetencies": ["competency1", ...],
+  "romanianCurriculumAlignment": ["alignment1", ...],
+  "romanianEducationalLevel": "EDUCATIONAL_LEVEL_CODE",
+  "romanianSubjectAreas": ["area1", ...]
+}
+
+Generate comprehensive, educational content that would help parents and educators understand the value of this STEM toy.`;
+  }
+
+  /**
+   * Parse AI response with multiple fallback strategies
+   */
+  private parseAIResponse(response: string): any {
+    // Strategy 1: Try to find JSON in code blocks
+    let jsonMatch = response.match(/```json\n([\s\S]*?)\n```/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[1]);
+    }
+
+    // Strategy 2: Try to find JSON in any code blocks
+    jsonMatch = response.match(/```\n([\s\S]*?)\n```/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[1]);
+    }
+
+    // Strategy 3: Try to find JSON object in the response
+    jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+
+    // Strategy 4: Try to parse the entire response as JSON
+    return JSON.parse(response);
+  }
+
+  /**
+   * Create rich enhanced product from parsed AI response
+   */
+  private createRichEnhancedProduct(
+    product: BasicProduct,
+    aiResponse: any,
+    options?: Partial<EnhancementOptions>
+  ): EnhancedProduct {
+    return {
+      ...product,
+      enhancedDescription: aiResponse.enhancedDescription || aiResponse.description || product.description || "",
+      metaTitle: aiResponse.metaTitle || product.name,
+      metaDescription: aiResponse.metaDescription || aiResponse.enhancedDescription?.substring(0, 160) || "",
+      metaKeywords: aiResponse.metaKeywords || aiResponse.keywords || [],
+      tags: aiResponse.tags || product.tags || [],
+      learningOutcomes: aiResponse.learningOutcomes || ["PROBLEM_SOLVING", "CREATIVITY"],
+      ageGroup: aiResponse.ageGroup,
+      stemDiscipline: aiResponse.stemDiscipline,
+      productType: aiResponse.productType,
+      romanianCompetencies: aiResponse.romanianCompetencies || [],
+      romanianCurriculumAlignment: aiResponse.romanianCurriculumAlignment || [],
+      romanianEducationalLevel: aiResponse.romanianEducationalLevel,
+      romanianSubjectAreas: aiResponse.romanianSubjectAreas || [],
+      romanianMinistryApproval: aiResponse.romanianMinistryApproval || false,
+      romanianEducationalCertification: aiResponse.romanianEducationalCertification,
+    };
+  }
+
+  /**
+   * Create enhanced product from raw response when JSON parsing fails
+   */
+  private createEnhancedProductFromRawResponse(
+    product: BasicProduct,
+    rawResponse: string,
+    options?: Partial<EnhancementOptions>
+  ): EnhancedProduct {
+    console.log("Creating enhanced product from raw response");
+    
+    // Extract useful information from the raw response
+    const lines = rawResponse.split('\n').filter(line => line.trim());
+    
+    // Try to find a description
+    let enhancedDescription = product.description || "";
+    const descriptionLines = lines.filter(line => 
+      line.length > 50 && 
+      !line.includes('{') && 
+      !line.includes('}') &&
+      !line.includes('JSON') &&
+      !line.includes('```')
+    );
+    
+    if (descriptionLines.length > 0) {
+      enhancedDescription = descriptionLines.slice(0, 3).join(' ').substring(0, 1000);
+    } else if (rawResponse.length > 100) {
+      enhancedDescription = rawResponse.substring(0, 1000);
+    }
+
+    // Generate basic Romanian content if requested
+    const useRomanian = options?.includeRomanianOptimization === true;
+    
+    return {
+      ...product,
+      enhancedDescription: enhancedDescription,
+      metaTitle: useRomanian ? `${product.name} - Kit Educational STEM` : `${product.name} - Educational STEM Kit`,
+      metaDescription: enhancedDescription.substring(0, 160),
+      metaKeywords: useRomanian ? 
+        ["stem", "educativ", "kit", "arduino", "electronică", "programare"] :
+        ["stem", "educational", "kit", "arduino", "electronics", "programming"],
+      tags: useRomanian ?
+        ["STEM", "Educativ", "Electronică", "Programare"] :
+        ["STEM", "Educational", "Electronics", "Programming"],
+      learningOutcomes: ["PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "TECHNICAL_SKILLS"],
+      ageGroup: "ELEMENTARY_6_8",
+      stemDiscipline: "TECHNOLOGY",
+      productType: "EDUCATIONAL_KIT",
+      romanianCompetencies: useRomanian ? ["Gândire computațională", "Rezolvarea problemelor"] : [],
+      romanianCurriculumAlignment: useRomanian ? ["Tehnologia informației", "Științe"] : [],
+      romanianEducationalLevel: "ELEMENTARY",
+      romanianSubjectAreas: useRomanian ? ["Tehnologia informației", "Matematică", "Științe"] : [],
+      generatedByFallback: true,
+      parseError: true,
+    };
   }
 
   /**
