@@ -75,7 +75,7 @@ export class DualProviderEnhancementService {
         );
       } catch (error) {
         throw new Error(
-          `Failed to initialize primary AI service: ${error.message}`
+          `Failed to initialize primary AI service: ${error instanceof Error ? error.message : String(error)}`
         );
       }
     }
@@ -87,7 +87,7 @@ export class DualProviderEnhancementService {
         );
       } catch (error) {
         throw new Error(
-          `Failed to initialize secondary AI service: ${error.message}`
+          `Failed to initialize secondary AI service: ${error instanceof Error ? error.message : String(error)}`
         );
       }
     }
@@ -445,6 +445,7 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
   ): Promise<EnhancedProduct[]> {
     const startTime = Date.now();
     const results: EnhancedProduct[] = [];
+    const errors: Array<{ product: string; error: string }> = [];
     let processed = 0;
     let successful = 0;
     let failed = 0;
@@ -464,7 +465,7 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
             processed,
             successful,
             failed,
-            errors: [],
+            errors: errors,
             startTime,
             estimatedTimeRemaining: this.calculateEstimatedTime(
               startTime,
@@ -476,6 +477,13 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
       } catch (error) {
         console.error(`Failed to enhance product ${product.name}:`, error);
 
+        // Add to errors array
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        errors.push({
+          product: product.name,
+          error: errorMessage,
+        });
+
         // Add basic product with error flag
         results.push({
           ...product,
@@ -486,7 +494,7 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
           tags: product.tags || [],
           learningOutcomes: [],
           error: true,
-          errorMessage: error instanceof Error ? error.message : String(error),
+          errorMessage: errorMessage,
         });
 
         processed++;
@@ -499,12 +507,7 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
             processed,
             successful,
             failed,
-            errors: [
-              {
-                product: product.name,
-                error: error instanceof Error ? error.message : String(error),
-              },
-            ],
+            errors: errors,
             startTime,
             estimatedTimeRemaining: this.calculateEstimatedTime(
               startTime,

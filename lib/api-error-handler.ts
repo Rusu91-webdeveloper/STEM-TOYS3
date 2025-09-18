@@ -139,6 +139,15 @@ export const ApiErrors = {
       503,
       true
     ),
+
+  externalServiceError: (service: string, details?: string) =>
+    new ApiError(
+      ApiErrorCode.EXTERNAL_SERVICE_ERROR,
+      `External service error: ${service}${details ? ` - ${details}` : ""}`,
+      502,
+      true,
+      { service, details }
+    ),
 };
 
 /**
