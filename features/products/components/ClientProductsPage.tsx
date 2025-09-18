@@ -631,57 +631,55 @@ function ClientProductsPageContent({
           </div>
         </div>
 
-        {/* Mobile Filters Modal hidden on small screens per new mobile flow */}
-        <div className="hidden md:block">
-          <MobileFiltersModal
-            isOpen={state.mobileFiltersOpen}
-            onClose={() => actions.setMobileFiltersOpen(false)}
-            categories={categoryFilter[0]}
-            filters={dynamicFilters}
-            priceRange={(() => {
-              // Calculate actual price range from products (same logic as ProductsSidebar)
-              if (!products || products.length === 0) {
-                return { min: 0, max: 1000, current: state.priceRangeFilter };
-              }
+        {/* Premium Mobile Filters Modal - Always accessible on all screens */}
+        <MobileFiltersModal
+          isOpen={state.mobileFiltersOpen}
+          onClose={() => actions.setMobileFiltersOpen(false)}
+          categories={categoryFilter[0]}
+          filters={dynamicFilters}
+          priceRange={(() => {
+            // Calculate actual price range from products (same logic as ProductsSidebar)
+            if (!products || products.length === 0) {
+              return { min: 0, max: 1000, current: state.priceRangeFilter };
+            }
 
-              const prices = products
-                .map(p => {
-                  const price =
-                    typeof p.price === "string" ? parseFloat(p.price) : p.price;
-                  return isNaN(price) ? 0 : price;
-                })
-                .filter(price => price > 0);
+            const prices = products
+              .map(p => {
+                const price =
+                  typeof p.price === "string" ? parseFloat(p.price) : p.price;
+                return isNaN(price) ? 0 : price;
+              })
+              .filter(price => price > 0);
 
-              if (prices.length === 0) {
-                return { min: 0, max: 1000, current: state.priceRangeFilter };
-              }
+            if (prices.length === 0) {
+              return { min: 0, max: 1000, current: state.priceRangeFilter };
+            }
 
-              const min = Math.floor(Math.min(...prices));
-              const max = Math.ceil(Math.max(...prices));
+            const min = Math.floor(Math.min(...prices));
+            const max = Math.ceil(Math.max(...prices));
 
-              return {
-                min,
-                max,
-                current: state.priceRangeFilter,
-              };
-            })()}
-            selectedCategories={state.selectedCategories}
-            selectedFilters={state.selectedFilters}
-            noPriceFilter={state.noPriceFilter}
-            selectedLearningOutcomes={state.selectedLearningOutcomes}
-            selectedProductType={state.selectedProductType}
-            selectedSpecialCategories={state.selectedSpecialCategories}
-            onCategoryChange={handleCategoryChange}
-            onFilterChange={handleFilterChange}
-            onPriceChange={handlePriceChange}
-            onNoPriceFilterChange={handleNoPriceFilterChange}
-            onLearningOutcomesChange={actions.setLearningOutcomes}
-            onProductTypeChange={actions.setProductType}
-            onSpecialCategoriesChange={actions.setSpecialCategories}
-            onClearFilters={handleClearFilters}
-            t={t}
-          />
-        </div>
+            return {
+              min,
+              max,
+              current: state.priceRangeFilter,
+            };
+          })()}
+          selectedCategories={state.selectedCategories}
+          selectedFilters={state.selectedFilters}
+          noPriceFilter={state.noPriceFilter}
+          selectedLearningOutcomes={state.selectedLearningOutcomes}
+          selectedProductType={state.selectedProductType}
+          selectedSpecialCategories={state.selectedSpecialCategories}
+          onCategoryChange={handleCategoryChange}
+          onFilterChange={handleFilterChange}
+          onPriceChange={handlePriceChange}
+          onNoPriceFilterChange={handleNoPriceFilterChange}
+          onLearningOutcomesChange={actions.setLearningOutcomes}
+          onProductTypeChange={actions.setProductType}
+          onSpecialCategoriesChange={actions.setSpecialCategories}
+          onClearFilters={handleClearFilters}
+          t={t}
+        />
       </ProductVariantProvider>
     </ProductsErrorBoundary>
   );

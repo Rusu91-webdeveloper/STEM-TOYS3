@@ -144,7 +144,7 @@ export class DualProviderEnhancementService {
             product,
             options
           );
-          
+
           // Mark that fallback was used
           finalEnhancement.fallbackUsed = true;
           finalEnhancement.fallbackReason = `Primary provider quota exceeded: ${this.getErrorMessage(primaryError)}`;
@@ -318,12 +318,12 @@ Please review the enhanced data, check for any issues, and provide an improved v
   private isQuotaError(error: any): boolean {
     const errorMessage = this.getErrorMessage(error).toLowerCase();
     return (
-      errorMessage.includes('quota') ||
-      errorMessage.includes('rate limit') ||
-      errorMessage.includes('429') ||
-      errorMessage.includes('limit exceeded') ||
-      errorMessage.includes('billing') ||
-      errorMessage.includes('free tier')
+      errorMessage.includes("quota") ||
+      errorMessage.includes("rate limit") ||
+      errorMessage.includes("429") ||
+      errorMessage.includes("limit exceeded") ||
+      errorMessage.includes("billing") ||
+      errorMessage.includes("free tier")
     );
   }
 
@@ -332,7 +332,7 @@ Please review the enhanced data, check for any issues, and provide an improved v
    */
   private getErrorMessage(error: any): string {
     if (error instanceof Error) return error.message;
-    if (typeof error === 'string') return error;
+    if (typeof error === "string") return error;
     if (error?.message) return error.message;
     return String(error);
   }
@@ -620,9 +620,12 @@ Focus on substantial improvements rather than minor stylistic changes. Be especi
         results.push(enhancedProduct);
         processed++;
         successful++;
-        
+
         // Track if fallback was used
-        if (enhancedProduct.fallbackUsed || enhancedProduct.generatedByFallback) {
+        if (
+          enhancedProduct.fallbackUsed ||
+          enhancedProduct.generatedByFallback
+        ) {
           fallbackUsed++;
         }
 

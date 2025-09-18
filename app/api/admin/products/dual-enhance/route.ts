@@ -159,7 +159,9 @@ export async function POST(request: NextRequest) {
     const processingTime = Date.now() - startTime;
 
     // Count products that used fallback
-    const fallbackCount = enhancedProducts.filter(p => p.fallbackUsed || p.generatedByFallback).length;
+    const fallbackCount = enhancedProducts.filter(
+      p => p.fallbackUsed || p.generatedByFallback
+    ).length;
 
     // Prepare response
     const response: AIEnhancementResponse = {

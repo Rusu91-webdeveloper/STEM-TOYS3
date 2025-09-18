@@ -46,14 +46,14 @@ export interface EnhancedProduct extends BasicProduct {
   romanianSubjectAreas?: string[];
   romanianMinistryApproval?: boolean;
   romanianEducationalCertification?: string;
-  
+
   // Fallback tracking
   fallbackUsed?: boolean;
   fallbackReason?: string;
   generatedByFallback?: boolean;
   dualProviderEnhancement?: boolean;
   refinements?: string[];
-  
+
   // Error tracking
   error?: boolean;
   errorMessage?: string;
