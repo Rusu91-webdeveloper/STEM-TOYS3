@@ -63,6 +63,23 @@
   - Follow-ups (Discovered During Work):
     - Optionally add the same toggle to `app/blog/category/[slug]/page.tsx`.
 
+## 2025-09-18
+
+- Fix AI Enhancement Production Error
+  - Description: Fix the "d.wT.externalServiceError is not a function" error in production AI enhancement
+  - Estimated time: 1h
+  - Status: Completed
+  - Date: 2025-09-18
+  - Notes:
+    - Added missing `externalServiceError` method to ApiErrors object in api-error-handler.ts
+    - Fixed error.message access without proper type checking in dual-provider-enhancement-service.ts
+    - Fixed error accumulation in enhanceProducts to properly track all failures
+    - Issue was caused by missing method in production minified build
+    - Successfully committed and pushed to production
+  - Discovered During Work:
+    - Consider adding comprehensive unit tests for error handling in AI services
+    - May need to review other API error handling patterns for similar issues
+
 ## 2025-09-17
 
 - Products Page – Fix price filtering end-to-end
