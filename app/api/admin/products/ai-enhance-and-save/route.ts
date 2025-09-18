@@ -205,9 +205,11 @@ export async function POST(request: NextRequest) {
             console.log(`Database Insert Debug for ${enhancedProduct.name}:`);
             console.log(`  isActive: true (MANDATORY)`);
             console.log(`  romanianMinistryApproval: true (MANDATORY)`);
-            console.log(`  price: ${enhancedProduct.price * 1.2} (20% markup applied)`);
+            console.log(
+              `  price: ${enhancedProduct.price * 1.2} (20% markup applied)`
+            );
             console.log(`  status: APPROVED (MANDATORY)`);
-            
+
             // Create product in database
             const savedProduct = await db.product.create({
               data: {

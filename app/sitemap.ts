@@ -39,6 +39,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
         changeFreq: "monthly",
       },
+      // NEW SEO LANDING PAGES - HIGH PRIORITY
+      {
+        path: "ghid-educatie-stem-romania",
+        priority: 0.9,
+        changeFreq: "weekly",
+      },
+      {
+        path: "jucarii-stem-copii-6-8-ani", 
+        priority: 0.8,
+        changeFreq: "weekly",
+      },
+      {
+        path: "blog/beneficiile-educatiei-stem-pentru-copiii-romani",
+        priority: 0.8,
+        changeFreq: "monthly",
+      },
     ];
 
     mainSections.forEach(section => {

@@ -231,18 +231,22 @@ export class DualProviderEnhancementService {
       finalEnhancement.romanianMinistryApproval = true; // MANDATORY: Always true
       finalEnhancement.featured = false; // MANDATORY: Always false
       finalEnhancement.status = "APPROVED"; // MANDATORY: Always approved
-      
+
       // Ensure 20% price markup is applied
       if (finalEnhancement.price && finalEnhancement.price === product.price) {
-        console.log(`Applying 20% markup to price: ${product.price} -> ${product.price * 1.2}`);
+        console.log(
+          `Applying 20% markup to price: ${product.price} -> ${product.price * 1.2}`
+        );
         finalEnhancement.price = Math.round(product.price * 1.2 * 100) / 100;
       }
 
       console.log(
         `Dual-provider enhancement completed in ${totalTime}ms${usedFallback ? " (used fallback)" : ""}`
       );
-      console.log(`ENFORCED DEFAULTS: isActive=${finalEnhancement.isActive}, romanianMinistryApproval=${finalEnhancement.romanianMinistryApproval}, price=${finalEnhancement.price}`);
-      
+      console.log(
+        `ENFORCED DEFAULTS: isActive=${finalEnhancement.isActive}, romanianMinistryApproval=${finalEnhancement.romanianMinistryApproval}, price=${finalEnhancement.price}`
+      );
+
       return finalEnhancement;
     } catch (error) {
       console.error(

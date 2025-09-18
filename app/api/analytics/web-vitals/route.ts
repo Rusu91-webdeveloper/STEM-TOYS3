@@ -1,67 +1,161 @@
-import { NextResponse } from "next/server";
-import { redisCache, isRedisConfigured } from "@/lib/redis-enhanced";
+/**
+ * Web Vitals Analytics API
+ * Tracks Core Web Vitals for SEO performance monitoring
+ */
 
-type Metric = {
-  name: string; // LCP, INP, CLS, FCP, TTFB
-  value: number;
-  delta?: number;
-  id?: string;
-  rating?: "good" | "needs-improvement" | "poor";
-  navigationType?: string;
-  url?: string;
-  ts?: number;
-};
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { db } from "@/lib/db";
 
-const KEY_PREFIX = "wv:home:";
-const MAX_ENTRIES = 200; // cap stored samples
+const webVitalsSchema = z.object({
+  name: z.enum(["CLS", "FID", "FCP", "LCP", "TTFB"]),
+  value: z.number(),
+  id: z.string(),
+  url: z.string().url(),
+  timestamp: z.number(),
+  userAgent: z.string().optional(),
+  connectionType: z.string().optional(),
+});
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = (await req.json()) as Metric | Metric[];
-    const now = Date.now();
-    const metrics = Array.isArray(body) ? body : [body];
+    const body = await request.json();
+    const validatedData = webVitalsSchema.parse(body);
 
-    const entries = metrics.map(m => ({ ...m, ts: m.ts ?? now }));
+    // Store in database for analysis
+    await db.performanceMetric.create({
+      data: {
+        metricName: validatedData.name,
+        metricValue: validatedData.value,
+        url: validatedData.url,
+        timestamp: new Date(validatedData.timestamp),
+        userAgent: validatedData.userAgent || request.headers.get("user-agent") || "",
+        sessionId: validatedData.id,
+        metadata: {
+          connectionType: validatedData.connectionType,
+          referrer: request.headers.get("referer"),
+          country: request.geo?.country || "RO",
+        },
+      },
+    });
 
-    // Store per metric name as a simple rolling list
-    await Promise.all(
-      entries.map(async entry => {
-        const key = `${KEY_PREFIX}${entry.name.toUpperCase()}`;
-        const existing = ((await redisCache.get<any[]>(key)) || []) as any[];
-        const updated = [entry, ...existing].slice(0, MAX_ENTRIES);
-        await redisCache.set(key, updated, 60 * 60 * 24); // 24h TTL
-      })
-    );
+    // Check if metrics exceed thresholds and alert
+    const thresholds = {
+      LCP: 2500, // 2.5 seconds
+      FID: 100,  // 100ms
+      CLS: 0.1,  // 0.1
+      FCP: 1800, // 1.8 seconds
+      TTFB: 800, // 800ms
+    };
 
-    return NextResponse.json({ ok: true });
-  } catch (e) {
+    const threshold = thresholds[validatedData.name as keyof typeof thresholds];
+    if (validatedData.value > threshold) {
+      console.warn(`⚠️  Poor ${validatedData.name} detected: ${validatedData.value} (threshold: ${threshold})`);
+      
+      // Log for performance optimization
+      await db.performanceAlert.create({
+        data: {
+          metricName: validatedData.name,
+          metricValue: validatedData.value,
+          threshold: threshold,
+          url: validatedData.url,
+          severity: validatedData.value > threshold * 1.5 ? "HIGH" : "MEDIUM",
+          createdAt: new Date(),
+        },
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Web Vitals tracking error:", error);
     return NextResponse.json(
-      { ok: false, error: (e as Error).message },
-      { status: 400 }
+      { error: "Failed to track web vitals" },
+      { status: 500 }
     );
   }
 }
 
-export async function GET() {
-  // Return a compact snapshot for quick review
-  const names = ["LCP", "INP", "CLS", "FCP", "TTFB"];
-  const data: Record<string, any> = {};
-  for (const n of names) {
-    const key = `${KEY_PREFIX}${n}`;
-    const list = ((await redisCache.get<any[]>(key)) || []) as any[];
-    const values = list.map(x => Number(x.value)).filter(v => !Number.isNaN(v));
-    const avg = values.length
-      ? values.reduce((a, b) => a + b, 0) / values.length
-      : 0;
-    const p75 = values.length
-      ? values.slice().sort((a, b) => a - b)[Math.floor(values.length * 0.75)]
-      : 0;
-    data[n] = {
-      count: values.length,
-      avg,
-      p75,
-      last: list[0] || null,
+// GET - Web Vitals Dashboard Data
+export async function GET(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const days = parseInt(searchParams.get("days") || "7");
+    const url = searchParams.get("url");
+
+    const whereClause = {
+      timestamp: {
+        gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000),
+      },
+      ...(url && { url: { contains: url } }),
     };
+
+    // Get average metrics
+    const metrics = await db.performanceMetric.groupBy({
+      by: ["metricName"],
+      where: whereClause,
+      _avg: {
+        metricValue: true,
+      },
+      _count: {
+        metricValue: true,
+      },
+    });
+
+    // Get recent alerts
+    const alerts = await db.performanceAlert.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000),
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 10,
+    });
+
+    // Calculate performance scores
+    const performanceScores = metrics.map(metric => {
+      const avgValue = metric._avg.metricValue || 0;
+      const thresholds = {
+        LCP: { good: 2500, needsImprovement: 4000 },
+        FID: { good: 100, needsImprovement: 300 },
+        CLS: { good: 0.1, needsImprovement: 0.25 },
+        FCP: { good: 1800, needsImprovement: 3000 },
+        TTFB: { good: 800, needsImprovement: 1800 },
+      };
+
+      const threshold = thresholds[metric.metricName as keyof typeof thresholds];
+      let score = "good";
+      if (avgValue > threshold.needsImprovement) {
+        score = "poor";
+      } else if (avgValue > threshold.good) {
+        score = "needs-improvement";
+      }
+
+      return {
+        metric: metric.metricName,
+        averageValue: avgValue,
+        sampleCount: metric._count.metricValue,
+        score,
+        threshold: threshold.good,
+      };
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        performanceScores,
+        alerts: alerts.length,
+        timeRange: `${days} days`,
+        lastUpdated: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("Web Vitals dashboard error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch web vitals data" },
+      { status: 500 }
+    );
   }
-  return NextResponse.json({ redis: isRedisConfigured, data });
 }
