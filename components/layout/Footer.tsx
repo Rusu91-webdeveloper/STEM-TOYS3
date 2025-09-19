@@ -20,13 +20,19 @@ interface StoreSettings {
   returnThreshold: string;
 }
 
-export default function Footer() {
+export default function Footer({
+  initialStoreSettings,
+}: {
+  initialStoreSettings?: StoreSettings | null;
+}) {
   const { t } = useTranslation();
   const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(
-    null
+    initialStoreSettings ?? null
   );
 
   useEffect(() => {
+    if (storeSettings) return; // Already have settings from SSR
+
     async function fetchStoreSettings() {
       try {
         const response = await fetch("/api/store-settings");
@@ -40,7 +46,7 @@ export default function Footer() {
     }
 
     fetchStoreSettings();
-  }, []);
+  }, [storeSettings]);
 
   const storeName = storeSettings?.storeName || "TechTots";
   const storeDescription =
@@ -96,7 +102,9 @@ export default function Footer() {
                   src="/TechTots_LOGO.png"
                   alt={`${storeName} Logo`}
                   fill
+                  sizes="(max-width: 640px) 6rem, (max-width: 768px) 7rem, (max-width: 1024px) 9rem, 9rem"
                   className="object-contain"
+                  priority={false}
                 />
               </div>
             </div>

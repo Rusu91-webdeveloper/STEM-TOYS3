@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
+import { normalizeCategory } from "@/lib/utils/product-filters-url";
 
 export interface FilterOption {
   id: string;
@@ -134,24 +135,11 @@ export function ProductFilters({
               <div key={category.id} className="flex items-center space-x-2">
                 <Checkbox
                   id={`category-${category.id}`}
-                  checked={selectedCategories.some(selectedCat => {
-                    // Normalize both the selected category and the checkbox category for comparison
-                    const normalizeCategory = (name: string): string => {
-                      const lower = name.toLowerCase().trim();
-                      if (lower === "mathematics" || lower === "math")
-                        return "mathematics";
-                      if (
-                        lower === "educational books" ||
-                        lower === "educational-books"
-                      )
-                        return "educational-books";
-                      return lower;
-                    };
-                    return (
+                  checked={selectedCategories.some(
+                    selectedCat =>
                       normalizeCategory(selectedCat) ===
                       normalizeCategory(category.id)
-                    );
-                  })}
+                  )}
                   onCheckedChange={() => onCategoryChange?.(category.id)}
                   className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                 />
@@ -458,26 +446,11 @@ export function ProductFilters({
                       >
                         <Checkbox
                           id={`category-${category.id}`}
-                          checked={selectedCategories.some(selectedCat => {
-                            // Normalize both the selected category and the checkbox category for comparison
-                            const normalizeCategory = (
-                              name: string
-                            ): string => {
-                              const lower = name.toLowerCase().trim();
-                              if (lower === "mathematics" || lower === "math")
-                                return "mathematics";
-                              if (
-                                lower === "educational books" ||
-                                lower === "educational-books"
-                              )
-                                return "educational-books";
-                              return lower;
-                            };
-                            return (
+                          checked={selectedCategories.some(
+                            selectedCat =>
                               normalizeCategory(selectedCat) ===
                               normalizeCategory(category.id)
-                            );
-                          })}
+                          )}
                           onCheckedChange={() =>
                             onCategoryChange?.(category.id)
                           }

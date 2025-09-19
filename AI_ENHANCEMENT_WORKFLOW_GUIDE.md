@@ -124,9 +124,9 @@ Admin reviews:
 
 **Endpoint**: `POST /api/admin/products/bulk-upload`
 
-- AI-enhanced products automatically get `PENDING_APPROVAL` status
-- Manual uploads get `APPROVED` status
-- Status determined by AI enhancement tracking flags
+- All bulk uploads get `PENDING_APPROVAL` status by default
+- Products require admin approval before going live
+- Ensures quality control for all uploaded products
 
 ### Product Management
 

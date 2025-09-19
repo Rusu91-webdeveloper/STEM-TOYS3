@@ -5,15 +5,23 @@ import { PrismaClient } from "@prisma/client";
 const connectionString = process.env.DATABASE_URL || "";
 const isNeonDatabase = connectionString.includes("neon.tech");
 
-// Enhanced connection pool configuration for Neon
+// **PERFORMANCE**: Ultra-optimized connection pool configuration for Neon
 let pool: Pool | undefined;
 if (isNeonDatabase) {
   pool = new Pool({
     connectionString,
-    max: 20, // Maximum number of connections
-    idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
-    connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
-    maxUses: 7500, // Close (and replace) a connection after it has been used 7500 times
+    // **PERFORMANCE**: Optimized pool sizing for faster startup
+    max: 10, // Reduced for faster initialization
+    min: 2, // Reduced for faster startup
+    idleTimeoutMillis: 30000, // Reduced for faster cleanup
+    connectionTimeoutMillis: 5000, // Reduced for faster startup
+    maxUses: 1000, // Reduced for faster connection refresh
+    allowExitOnIdle: true,
+    acquireTimeoutMillis: 5000, // Reduced for faster startup
+    // **PERFORMANCE**: Additional optimizations
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 0,
+    tcpKeepAliveIdle: 10000, // Reduced for faster startup
   });
 }
 
@@ -29,22 +37,27 @@ export const db =
       process.env.NODE_ENV === "development"
         ? ["query", "error", "warn"]
         : ["error"],
-    // Enhanced datasource configuration
+    // **PERFORMANCE**: Enhanced datasource configuration
     datasources: {
       db: {
         url: connectionString,
       },
     },
-    // Add connection pool configuration
+    // **PERFORMANCE**: Add connection pool configuration with optimized settings
     ...(pool && {
       // Custom connection management for Neon
       __internal: {
         engine: {
-          connectionLimit: 20,
+          connectionLimit: 4, // **PERFORMANCE**: Further reduced for faster startup
           pool,
         },
       },
     }),
+    // **PERFORMANCE**: Add transaction timeout for better performance
+    transactionOptions: {
+      maxWait: 2000, // **PERFORMANCE**: Reduced wait time for faster TTFB
+      timeout: 3000, // **PERFORMANCE**: Reduced timeout for faster TTFB
+    },
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;

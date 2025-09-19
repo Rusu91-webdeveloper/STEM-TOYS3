@@ -1,26 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import React from "react";
 
-const EnhancedProductFilters = dynamic(
-  () =>
-    import("./EnhancedProductFilters").then(mod => ({
-      default: mod.EnhancedProductFilters,
-    })),
-  {
-    loading: () => (
-      <div className="animate-pulse space-y-3">
-        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-        <div className="h-8 bg-gray-200 rounded"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-        <div className="h-8 bg-gray-200 rounded"></div>
-        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-      </div>
-    ),
-    ssr: false, // Disable SSR for better performance
-  }
-);
+// Import directly instead of dynamic to prevent CLS
+import { EnhancedProductFilters } from "./EnhancedProductFilters";
 
 import type { FilterGroup } from "./EnhancedProductFilters";
 
@@ -106,7 +89,7 @@ export function ProductsSidebar({
   };
 
   return (
-    <div className="w-full md:w-72 lg:w-80 shrink-0 hidden md:block max-w-full overflow-hidden">
+    <div className="sidebar-container hidden md:block max-w-full overflow-hidden">
       <div className="bg-gradient-to-br from-white via-gray-50/30 to-white rounded-2xl shadow-xl border border-gray-200/50 p-4 sm:p-6 sticky top-20 sm:top-24 max-w-full backdrop-blur-sm">
         <h3 className="text-base sm:text-lg font-black mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
           <div className="p-2 sm:p-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 shadow-lg">

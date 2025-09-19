@@ -7,9 +7,7 @@ import { isAdmin } from "@/lib/auth/admin";
 import { db } from "@/lib/db";
 import { applyStandardHeaders } from "@/lib/response-headers";
 import { invalidateCachePattern } from "@/lib/cache";
-import {
-  AIConfig,
-} from "@/lib/ai";
+import { AIConfig } from "@/lib/ai";
 import { EnhancedProductProcessor } from "@/lib/ai/enhanced-product-processor";
 import { AISchemaValidator } from "@/lib/ai/schema-validator";
 
@@ -460,7 +458,9 @@ export async function POST(request: NextRequest) {
 
     // Legacy AI Enhancement step - DISABLED: Using EnhancedProductProcessor only
     // The EnhancedProductProcessor above handles all AI enhancement with OpenAI-only
-    console.log("Legacy AI enhancement disabled - using EnhancedProductProcessor only");
+    console.log(
+      "Legacy AI enhancement disabled - using EnhancedProductProcessor only"
+    );
 
     // Process products in batches for better performance
     const batchSize = 10;
@@ -691,13 +691,8 @@ export async function POST(request: NextRequest) {
               romanianTeacherResources:
                 correctedProduct.romanianTeacherResources || [],
 
-              // Status logic: AI-enhanced products need approval, manual uploads are auto-approved
-              status:
-                correctedProduct.generatedByFallback ||
-                correctedProduct.fallbackUsed ||
-                correctedProduct.dualProviderEnhancement
-                  ? "PENDING_APPROVAL"
-                  : "APPROVED",
+              // Status logic: All bulk uploads require approval by default
+              status: "PENDING_APPROVAL",
 
               // Currency fields
               priceCurrency: "RON",

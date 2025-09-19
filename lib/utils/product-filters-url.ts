@@ -22,10 +22,15 @@ export interface BuildProductsUrlInput {
   noPriceFilter?: boolean;
 }
 
-// Keep category normalization aligned with UI logic
+// Centralized category normalization function - USE THIS EVERYWHERE
 export function normalizeCategory(name: string): string {
-  const lower = name.toLowerCase();
+  if (!name || typeof name !== "string") {
+    return "";
+  }
 
+  const lower = name.toLowerCase().trim();
+
+  // Handle educational books variations
   if (
     lower === "educational-books" ||
     lower === "educational books" ||
@@ -38,10 +43,12 @@ export function normalizeCategory(name: string): string {
     return "educational-books";
   }
 
+  // Handle engineering variations
   if (lower === "inginerie" || lower.includes("engineer")) {
     return "engineering";
   }
 
+  // Handle mathematics variations
   if (
     lower === "mathematics" ||
     lower === "matematica" ||
@@ -52,6 +59,7 @@ export function normalizeCategory(name: string): string {
     return "mathematics";
   }
 
+  // Handle engineering learning variations
   if (
     lower === "engineeringlearning" ||
     lower === "engineering learning" ||

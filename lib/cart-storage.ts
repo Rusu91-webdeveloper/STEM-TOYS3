@@ -190,31 +190,50 @@ export function getSessionId(request: Request): string {
 
 // Helper function to get the cart ID (either user email or session ID)
 export async function getCartId(request: Request): Promise<string> {
-  try {
-    // Dynamic import to avoid import cycles
-    const { auth } = await import("@/lib/auth");
-    const session = await auth();
+  // **PERFORMANCE**: Skip auth check entirely for cart operations to improve speed
+  // Use session ID directly - auth can be checked later when needed
+  const sessionId = getSessionId(request);
 
-    if (session?.user?.email) {
-      // User is logged in, use their email as cart ID
-      const email = session.user.email;
-      const sessionId = getSessionId(request);
+  // **PERFORMANCE**: Only try auth for logged-in users (check cookies first)
+  // Check specific NextAuth cookie names to avoid false positives
+  const cookieHeader = request.headers.get("cookie") || "";
+  const hasAuthCookie =
+    /(?:^|;\s*)(?:next-auth\.session-token|__Secure-next-auth\.session-token)=/.test(
+      cookieHeader
+    );
 
-      console.log(`🔑 [CART ID] Authenticated user: ${email}`);
-      console.log(`🔑 [CART ID] Session fingerprint: ${sessionId}`);
+  if (hasAuthCookie) {
+    try {
+      // **PERFORMANCE**: Quick session check with very short timeout
+      const authPromise = import("@/lib/auth").then(({ auth }) => auth());
+      const timeoutPromise = new Promise<any>(resolve => {
+        setTimeout(() => resolve(null), 25); // 25ms timeout for faster response
+      });
 
-      // Check if we need to migrate cart from session ID to email
-      migrateCart(sessionId, email);
+      const session = await Promise.race([authPromise, timeoutPromise]);
 
-      return email;
+      if (session?.user?.email) {
+        // User is logged in, use their email as cart ID
+        const email = session.user.email;
+
+        console.log(`🔑 [CART ID] Authenticated user: ${email}`);
+        console.log(`🔑 [CART ID] Session fingerprint: ${sessionId}`);
+
+        // Check if we need to migrate cart from session ID to email
+        migrateCart(sessionId, email);
+
+        return email;
+      }
+    } catch (error) {
+      // Auth failed, fall back to session ID
+      console.log(
+        `⚠️ [CART ID] Auth failed, using session ID fallback:`,
+        error
+      );
     }
-  } catch (error) {
-    // Auth failed, fall back to session ID
-    console.log(`⚠️ [CART ID] Auth failed, using session ID fallback:`, error);
   }
 
   // Anonymous user or auth unavailable, use ephemeral session ID
-  const sessionId = getSessionId(request);
   console.log(`🔑 [CART ID] Using session ID: ${sessionId}`);
 
   // Log current storage state

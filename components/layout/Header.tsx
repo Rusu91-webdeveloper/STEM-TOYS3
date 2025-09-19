@@ -23,6 +23,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,7 @@ export default function Header() {
   >([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
+  const [isClient, setIsClient] = useState(false);
 
   // Performance optimization for animation (reduce re-renders)
   const [accordionAnimation, setAccordionAnimation] = useState({
@@ -146,6 +148,36 @@ export default function Header() {
   useEffect(() => {
     setAccordionAnimation(prev => ({ ...prev, category: categoryOpen }));
   }, [categoryOpen]);
+
+  // Ensure portals render only on client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      try {
+        const previous = document.body.style.overflow;
+        document.body.setAttribute("data-prev-overflow", previous || "");
+        document.body.style.overflow = "hidden";
+      } catch {}
+    } else {
+      try {
+        const previous = document.body.getAttribute("data-prev-overflow") || "";
+        document.body.style.overflow = previous;
+        document.body.removeAttribute("data-prev-overflow");
+      } catch {}
+    }
+
+    return () => {
+      try {
+        const previous = document.body.getAttribute("data-prev-overflow") || "";
+        document.body.style.overflow = previous;
+        document.body.removeAttribute("data-prev-overflow");
+      } catch {}
+    };
+  }, [mobileMenuOpen]);
 
   const fetchWishlistCount = async () => {
     try {
@@ -248,7 +280,7 @@ export default function Header() {
                 alt="TechTots Logo"
                 priority
                 fill
-                sizes="(max-width: 768px) 7rem, (max-width: 1024px) 8rem, 9rem"
+                sizes="(max-width: 640px) 7rem, (max-width: 768px) 8rem, (max-width: 1024px) 9rem, 9rem"
               />
             </div>
           </Link>
@@ -345,7 +377,7 @@ export default function Header() {
                       alt="TechTots Logo"
                       priority
                       fill
-                      sizes="(max-width: 1536px) 8rem, 9rem"
+                      sizes="(max-width: 1280px) 8rem, (max-width: 1536px) 9rem, 9rem"
                     />
                   </div>
                 </Link>
@@ -467,553 +499,558 @@ export default function Header() {
       </div>
 
       {/* Mobile & Tablet menu */}
-      {mobileMenuOpen && (
-        <div className="xl:hidden fixed inset-0 z-50">
-          <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          <div className="fixed top-16 right-0 bottom-0 w-[85vw] xs:w-[80vw] sm:w-[70vw] md:w-[60vw] max-w-[400px] bg-white shadow-2xl border-l border-gray-100 flex flex-col">
-            <div className="flex items-center justify-between h-16 px-5 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50">
-              <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                <span className="w-1 h-5 bg-indigo-500 rounded-sm"></span>
-                {t("menu", "Meniu")}
-              </h2>
-              <button
-                type="button"
-                className="rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200 min-h-[40px] min-w-[40px] flex items-center justify-center group"
-                onClick={() => setMobileMenuOpen(false)}
-                aria-label="Close navigation menu"
-              >
-                <X
-                  className="h-5 w-5 group-hover:rotate-90 transition-transform duration-300"
-                  aria-hidden="true"
-                />
-              </button>
-            </div>
+      {isClient &&
+        mobileMenuOpen &&
+        createPortal(
+          <div className="xl:hidden fixed inset-0 z-[10000]">
+            <div
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[10000]"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <div className="fixed top-16 right-0 bottom-0 w-[85vw] xs:w-[80vw] sm:w-[70vw] md:w-[60vw] max-w-[400px] bg-white shadow-2xl border-l border-gray-100 flex flex-col z-[10001] pointer-events-auto">
+              <div className="flex items-center justify-between h-16 px-5 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50">
+                <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <span className="w-1 h-5 bg-indigo-500 rounded-sm"></span>
+                  {t("menu", "Meniu")}
+                </h2>
+                <button
+                  type="button"
+                  className="rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200 min-h-[40px] min-w-[40px] flex items-center justify-center group"
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label="Close navigation menu"
+                >
+                  <X
+                    className="h-5 w-5 group-hover:rotate-90 transition-transform duration-300"
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
 
-            <div className="flex flex-col h-full">
-              <div className="flex-1 px-4 py-3 space-y-1 overflow-y-auto">
-                {/* Products collapsible section for mobile filtering - High-end design */}
-                <div className="mb-2" aria-label={t("products")}>
-                  <button
-                    type="button"
-                    className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium text-gray-800 hover:bg-gray-50 transition-all duration-300 border shadow-sm ${activeFilters.hasActiveFilters ? "bg-indigo-50 border-indigo-100" : "bg-white border-gray-100"}`}
-                    aria-expanded={productsMenuOpen}
-                    aria-controls="mobile-products-section"
-                    onClick={() => {
-                      // Use optimized animation state
-                      const newState = !productsMenuOpen;
-                      setProductsMenuOpen(newState);
-                      // Delay animation state update slightly for smoother transitions
-                      setTimeout(() => {
-                        setAccordionAnimation(prev => ({
-                          ...prev,
-                          products: newState,
-                        }));
-                      }, 50);
-                    }}
-                  >
-                    <span className="flex items-center gap-3">
-                      <div
-                        className={`${activeFilters.hasActiveFilters ? "bg-indigo-100" : "bg-indigo-50"} p-1.5 rounded-md`}
-                      >
-                        {activeFilters.hasActiveFilters ? (
-                          <Filter className="w-4 h-4 text-indigo-600" />
-                        ) : (
-                          <Boxes className="w-4 h-4 text-indigo-600" />
-                        )}
-                      </div>
-                      <span className="font-medium">{t("products")}</span>
-                      {activeFilters.hasActiveFilters && (
-                        <span className="ml-1 bg-indigo-600 text-white text-xs px-2 py-0.5 rounded-full">
-                          {activeFilters.category.length +
-                            (activeFilters.ageGroup ? 1 : 0) +
-                            activeFilters.specialCategories.length}
-                        </span>
-                      )}
-                    </span>
-                    <span
-                      className={`ml-auto rounded-md h-6 w-6 flex items-center justify-center text-gray-600 transition-transform duration-300 ${activeFilters.hasActiveFilters ? "bg-indigo-100" : "bg-gray-100"}`}
-                      style={{
-                        transform: productsMenuOpen
-                          ? "rotate(180deg)"
-                          : "rotate(0deg)",
+              <div className="flex flex-col h-full">
+                <div className="flex-1 px-4 py-3 space-y-1 overflow-y-auto">
+                  {/* Products collapsible section for mobile filtering - High-end design */}
+                  <div className="mb-2" aria-label={t("products")}>
+                    <button
+                      type="button"
+                      className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium text-gray-800 hover:bg-gray-50 transition-all duration-300 border shadow-sm ${activeFilters.hasActiveFilters ? "bg-indigo-50 border-indigo-100" : "bg-white border-gray-100"}`}
+                      aria-expanded={productsMenuOpen}
+                      aria-controls="mobile-products-section"
+                      onClick={() => {
+                        // Use optimized animation state
+                        const newState = !productsMenuOpen;
+                        setProductsMenuOpen(newState);
+                        // Delay animation state update slightly for smoother transitions
+                        setTimeout(() => {
+                          setAccordionAnimation(prev => ({
+                            ...prev,
+                            products: newState,
+                          }));
+                        }, 50);
                       }}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </span>
-                  </button>
-
-                  {productsMenuOpen && (
-                    <div
-                      id="mobile-products-section"
-                      className="mt-2 space-y-1 rounded-lg overflow-hidden border border-gray-100 bg-white shadow-sm"
-                    >
-                      {/* All products */}
-                      <button
-                        type="button"
-                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50/50 hover:text-indigo-700 w-full text-left transition-colors duration-200"
-                        onClick={() => {
-                          router.push(buildProductsUrl({}));
-                          setMobileMenuOpen(false);
+                      <span className="flex items-center gap-3">
+                        <div
+                          className={`${activeFilters.hasActiveFilters ? "bg-indigo-100" : "bg-indigo-50"} p-1.5 rounded-md`}
+                        >
+                          {activeFilters.hasActiveFilters ? (
+                            <Filter className="w-4 h-4 text-indigo-600" />
+                          ) : (
+                            <Boxes className="w-4 h-4 text-indigo-600" />
+                          )}
+                        </div>
+                        <span className="font-medium">{t("products")}</span>
+                        {activeFilters.hasActiveFilters && (
+                          <span className="ml-1 bg-indigo-600 text-white text-xs px-2 py-0.5 rounded-full">
+                            {activeFilters.category.length +
+                              (activeFilters.ageGroup ? 1 : 0) +
+                              activeFilters.specialCategories.length}
+                          </span>
+                        )}
+                      </span>
+                      <span
+                        className={`ml-auto rounded-md h-6 w-6 flex items-center justify-center text-gray-600 transition-transform duration-300 ${activeFilters.hasActiveFilters ? "bg-indigo-100" : "bg-gray-100"}`}
+                        style={{
+                          transform: productsMenuOpen
+                            ? "rotate(180deg)"
+                            : "rotate(0deg)",
                         }}
                       >
-                        <div className="ml-1 mr-2 w-1.5 h-1.5 rounded-full bg-gray-300"></div>
-                        <span>{t("allProducts", "Toate produsele")}</span>
-                        <span className="ml-auto text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                          {t("all", "Toate")}
-                        </span>
-                      </button>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </span>
+                    </button>
 
-                      {/* Age (Varsta) subsection */}
-                      <div className="border-t border-gray-100">
+                    {productsMenuOpen && (
+                      <div
+                        id="mobile-products-section"
+                        className="mt-2 space-y-1 rounded-lg overflow-hidden border border-gray-100 bg-white shadow-sm"
+                      >
+                        {/* All products */}
                         <button
                           type="button"
-                          className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50/80 transition-colors duration-200"
-                          aria-expanded={ageOpen}
-                          aria-controls="mobile-age-subsection"
+                          className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50/50 hover:text-indigo-700 w-full text-left transition-colors duration-200"
                           onClick={() => {
-                            // Use optimized animation state
-                            const newState = !ageOpen;
-                            setAgeOpen(newState);
-                            // Delay animation state update slightly for smoother transitions
-                            setTimeout(() => {
-                              setAccordionAnimation(prev => ({
-                                ...prev,
-                                age: newState,
-                              }));
-                            }, 50);
+                            router.push(buildProductsUrl({}));
+                            setMobileMenuOpen(false);
                           }}
                         >
-                          <span className="flex items-center">
-                            <span className="w-1 h-4 bg-blue-500 rounded-sm mr-3"></span>
-                            {t("age", "Vârstă")}
-                          </span>
-                          <span
-                            className="ml-auto text-gray-500 transition-transform duration-300"
-                            style={{
-                              transform: ageOpen
-                                ? "rotate(180deg)"
-                                : "rotate(0deg)",
-                            }}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="12"
-                              height="12"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
+                          <div className="ml-1 mr-2 w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+                          <span>{t("allProducts", "Toate produsele")}</span>
+                          <span className="ml-auto text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                            {t("all", "Toate")}
                           </span>
                         </button>
-                        {ageOpen && (
-                          <div
-                            id="mobile-age-subsection"
-                            className="bg-gray-50/80 border-t border-b border-gray-100"
-                          >
-                            {[
-                              {
-                                id: "TODDLERS_1_3",
-                                label: t("age0to3", "0–3 ani"),
-                                color: "bg-yellow-400",
-                              },
-                              {
-                                id: "PRESCHOOL_3_5",
-                                label: t("age3to5", "4–6 ani"),
-                                color: "bg-green-500",
-                              },
-                              {
-                                id: "ELEMENTARY_6_8",
-                                label: t("age6to8", "7–9 ani"),
-                                color: "bg-blue-500",
-                              },
-                              {
-                                id: "MIDDLE_SCHOOL_9_12",
-                                label: t("age9to12", "10–12 ani"),
-                                color: "bg-purple-500",
-                              },
-                              {
-                                id: "TEENS_13_PLUS",
-                                label: t("age13plus", "13+ ani"),
-                                color: "bg-red-500",
-                              },
-                            ].map(opt => (
-                              <button
-                                key={opt.id}
-                                type="button"
-                                className={`flex items-center px-4 py-2.5 text-sm w-full text-left group transition-all duration-200 ${
-                                  activeFilters.ageGroup === opt.id
-                                    ? "bg-indigo-50 text-indigo-700 font-medium"
-                                    : "text-gray-700 hover:bg-white"
-                                }`}
-                                onClick={() => {
-                                  router.push(
-                                    buildProductsUrl({
-                                      ageGroup: opt.id as any,
-                                    })
-                                  );
-                                  setMobileMenuOpen(false);
-                                }}
-                              >
-                                <div
-                                  className={`ml-4 mr-3 w-1.5 h-1.5 rounded-full ${opt.color}`}
-                                ></div>
-                                <span className="group-hover:text-indigo-700">
-                                  {opt.label}
-                                </span>
-                                {activeFilters.ageGroup === opt.id && (
-                                  <div className="ml-auto bg-indigo-100 p-0.5 rounded-full">
-                                    <Check className="w-3 h-3 text-indigo-600" />
-                                  </div>
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
 
-                      {/* Category subsection */}
-                      <div className="border-t border-gray-100">
-                        <button
-                          type="button"
-                          className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50/80 transition-colors duration-200"
-                          aria-expanded={categoryOpen}
-                          aria-controls="mobile-category-subsection"
-                          onClick={async () => {
-                            const next = !categoryOpen;
-                            setCategoryOpen(next);
-
-                            if (next) {
-                              // Load categories if opening the accordion
-                              await loadCategories();
-
-                              // Delay animation state update for smoother transitions
+                        {/* Age (Varsta) subsection */}
+                        <div className="border-t border-gray-100">
+                          <button
+                            type="button"
+                            className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50/80 transition-colors duration-200"
+                            aria-expanded={ageOpen}
+                            aria-controls="mobile-age-subsection"
+                            onClick={() => {
+                              // Use optimized animation state
+                              const newState = !ageOpen;
+                              setAgeOpen(newState);
+                              // Delay animation state update slightly for smoother transitions
                               setTimeout(() => {
                                 setAccordionAnimation(prev => ({
                                   ...prev,
-                                  category: true,
+                                  age: newState,
                                 }));
                               }, 50);
-                            } else {
-                              // Immediate animation state update for closing
-                              setAccordionAnimation(prev => ({
-                                ...prev,
-                                category: false,
-                              }));
-                            }
-                          }}
-                        >
-                          <span className="flex items-center">
-                            <span className="w-1 h-4 bg-indigo-500 rounded-sm mr-3"></span>
-                            {t("categories", "Categorii")}
-                          </span>
-                          <span
-                            className="ml-auto text-gray-500 transition-transform duration-300"
-                            style={{
-                              transform: categoryOpen
-                                ? "rotate(180deg)"
-                                : "rotate(0deg)",
                             }}
                           >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="12"
-                              height="12"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
+                            <span className="flex items-center">
+                              <span className="w-1 h-4 bg-blue-500 rounded-sm mr-3"></span>
+                              {t("age", "Vârstă")}
+                            </span>
+                            <span
+                              className="ml-auto text-gray-500 transition-transform duration-300"
+                              style={{
+                                transform: ageOpen
+                                  ? "rotate(180deg)"
+                                  : "rotate(0deg)",
+                              }}
                             >
-                              <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                          </span>
-                        </button>
-                        {categoryOpen && (
-                          <div
-                            id="mobile-category-subsection"
-                            className="bg-gray-50/80 border-t border-b border-gray-100"
-                          >
-                            {categories.map(cat => (
-                              <button
-                                key={cat.id}
-                                type="button"
-                                className={`flex items-center px-4 py-2.5 text-sm w-full text-left group transition-all duration-200 ${
-                                  activeFilters.category.includes(cat.id)
-                                    ? "bg-indigo-50 text-indigo-700 font-medium"
-                                    : "text-gray-700 hover:bg-white"
-                                }`}
-                                onClick={() => {
-                                  router.push(
-                                    buildProductsUrl({ category: cat.id })
-                                  );
-                                  setMobileMenuOpen(false);
-                                }}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
                               >
-                                <div className="ml-4 mr-3 w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                                <span className="group-hover:text-indigo-700">
-                                  {getCategoryTranslation(cat.id, t)}
-                                </span>
-                                {activeFilters.category.includes(cat.id) && (
-                                  <div className="ml-auto bg-indigo-100 p-0.5 rounded-full">
-                                    <Check className="w-3 h-3 text-indigo-600" />
-                                  </div>
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                              </svg>
+                            </span>
+                          </button>
+                          {ageOpen && (
+                            <div
+                              id="mobile-age-subsection"
+                              className="bg-gray-50/80 border-t border-b border-gray-100"
+                            >
+                              {[
+                                {
+                                  id: "TODDLERS_1_3",
+                                  label: t("age0to3", "0–3 ani"),
+                                  color: "bg-yellow-400",
+                                },
+                                {
+                                  id: "PRESCHOOL_3_5",
+                                  label: t("age3to5", "4–6 ani"),
+                                  color: "bg-green-500",
+                                },
+                                {
+                                  id: "ELEMENTARY_6_8",
+                                  label: t("age6to8", "7–9 ani"),
+                                  color: "bg-blue-500",
+                                },
+                                {
+                                  id: "MIDDLE_SCHOOL_9_12",
+                                  label: t("age9to12", "10–12 ani"),
+                                  color: "bg-purple-500",
+                                },
+                                {
+                                  id: "TEENS_13_PLUS",
+                                  label: t("age13plus", "13+ ani"),
+                                  color: "bg-red-500",
+                                },
+                              ].map(opt => (
+                                <button
+                                  key={opt.id}
+                                  type="button"
+                                  className={`flex items-center px-4 py-2.5 text-sm w-full text-left group transition-all duration-200 ${
+                                    activeFilters.ageGroup === opt.id
+                                      ? "bg-indigo-50 text-indigo-700 font-medium"
+                                      : "text-gray-700 hover:bg-white"
+                                  }`}
+                                  onClick={() => {
+                                    router.push(
+                                      buildProductsUrl({
+                                        ageGroup: opt.id as any,
+                                      })
+                                    );
+                                    setMobileMenuOpen(false);
+                                  }}
+                                >
+                                  <div
+                                    className={`ml-4 mr-3 w-1.5 h-1.5 rounded-full ${opt.color}`}
+                                  ></div>
+                                  <span className="group-hover:text-indigo-700">
+                                    {opt.label}
+                                  </span>
+                                  {activeFilters.ageGroup === opt.id && (
+                                    <div className="ml-auto bg-indigo-100 p-0.5 rounded-full">
+                                      <Check className="w-3 h-3 text-indigo-600" />
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
 
-                      {/* Gift Ideas */}
+                        {/* Category subsection */}
+                        <div className="border-t border-gray-100">
+                          <button
+                            type="button"
+                            className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50/80 transition-colors duration-200"
+                            aria-expanded={categoryOpen}
+                            aria-controls="mobile-category-subsection"
+                            onClick={async () => {
+                              const next = !categoryOpen;
+                              setCategoryOpen(next);
+
+                              if (next) {
+                                // Load categories if opening the accordion
+                                await loadCategories();
+
+                                // Delay animation state update for smoother transitions
+                                setTimeout(() => {
+                                  setAccordionAnimation(prev => ({
+                                    ...prev,
+                                    category: true,
+                                  }));
+                                }, 50);
+                              } else {
+                                // Immediate animation state update for closing
+                                setAccordionAnimation(prev => ({
+                                  ...prev,
+                                  category: false,
+                                }));
+                              }
+                            }}
+                          >
+                            <span className="flex items-center">
+                              <span className="w-1 h-4 bg-indigo-500 rounded-sm mr-3"></span>
+                              {t("categories", "Categorii")}
+                            </span>
+                            <span
+                              className="ml-auto text-gray-500 transition-transform duration-300"
+                              style={{
+                                transform: categoryOpen
+                                  ? "rotate(180deg)"
+                                  : "rotate(0deg)",
+                              }}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                              </svg>
+                            </span>
+                          </button>
+                          {categoryOpen && (
+                            <div
+                              id="mobile-category-subsection"
+                              className="bg-gray-50/80 border-t border-b border-gray-100"
+                            >
+                              {categories.map(cat => (
+                                <button
+                                  key={cat.id}
+                                  type="button"
+                                  className={`flex items-center px-4 py-2.5 text-sm w-full text-left group transition-all duration-200 ${
+                                    activeFilters.category.includes(cat.id)
+                                      ? "bg-indigo-50 text-indigo-700 font-medium"
+                                      : "text-gray-700 hover:bg-white"
+                                  }`}
+                                  onClick={() => {
+                                    router.push(
+                                      buildProductsUrl({ category: cat.id })
+                                    );
+                                    setMobileMenuOpen(false);
+                                  }}
+                                >
+                                  <div className="ml-4 mr-3 w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                  <span className="group-hover:text-indigo-700">
+                                    {getCategoryTranslation(cat.id, t)}
+                                  </span>
+                                  {activeFilters.category.includes(cat.id) && (
+                                    <div className="ml-auto bg-indigo-100 p-0.5 rounded-full">
+                                      <Check className="w-3 h-3 text-indigo-600" />
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Gift Ideas */}
+                        <button
+                          type="button"
+                          className={`flex items-center px-4 py-2.5 text-sm w-full text-left border-t border-gray-100 transition-all duration-200 ${
+                            activeFilters.specialCategories.includes(
+                              "GIFT_IDEAS"
+                            )
+                              ? "bg-pink-50 text-pink-700 font-medium"
+                              : "text-gray-700 hover:bg-indigo-50/50 hover:text-indigo-700"
+                          }`}
+                          onClick={() => {
+                            router.push(
+                              buildProductsUrl({
+                                specialCategories: "GIFT_IDEAS",
+                              })
+                            );
+                            setMobileMenuOpen(false);
+                          }}
+                        >
+                          <div className="ml-1 mr-2 w-1.5 h-1.5 rounded-full bg-pink-500"></div>
+                          <span>{t("giftIdeas", "Idei de cadouri")}</span>
+                          {activeFilters.specialCategories.includes(
+                            "GIFT_IDEAS"
+                          ) ? (
+                            <div className="ml-auto bg-pink-100 p-0.5 rounded-full">
+                              <Check className="w-3 h-3 text-pink-600" />
+                            </div>
+                          ) : (
+                            <span className="ml-auto text-xs text-pink-700 bg-pink-100 px-2 py-0.5 rounded-full">
+                              {t("gift", "Cadou")}
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Navigation Links - Enhanced design */}
+                  <div className="space-y-1.5 mt-3">
+                    {navigation
+                      .filter(item => item.href !== "/products")
+                      .map(item => {
+                        const IconComponent = item.icon;
+                        const isActive = pathname === item.href;
+                        return (
+                          <Link
+                            key={item.name}
+                            href={item.href}
+                            className={cn(
+                              "flex rounded-lg px-4 py-3 text-sm transition-all duration-200 cursor-pointer min-h-[50px] items-center group border shadow-sm",
+                              isActive
+                                ? "bg-indigo-50/70 text-indigo-700 border-indigo-100"
+                                : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600 active:bg-gray-100 bg-white border-gray-100"
+                            )}
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <div
+                              className={cn(
+                                "p-1.5 rounded-md mr-3",
+                                isActive ? "bg-indigo-100" : "bg-gray-100"
+                              )}
+                            >
+                              <IconComponent
+                                className={cn(
+                                  "w-4 h-4 transition-colors duration-200",
+                                  isActive
+                                    ? "text-indigo-700"
+                                    : "text-gray-500 group-hover:text-indigo-600"
+                                )}
+                              />
+                            </div>
+                            <span className="font-medium">{t(item.name)}</span>
+                            {isActive && (
+                              <div className="ml-auto bg-indigo-500 text-white text-xs font-medium px-2 py-0.5 rounded-md">
+                                Active
+                              </div>
+                            )}
+                          </Link>
+                        );
+                      })}
+                  </div>
+
+                  {/* Admin Navigation in Mobile Menu - Premium design */}
+                  {isAdmin && (
+                    <div className="mt-4 mb-3">
+                      <Link
+                        href="/admin"
+                        className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg transform hover:translate-y-[-1px]"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <div className="bg-white/20 p-1.5 rounded-md">
+                          <Settings className="h-4 w-4" />
+                        </div>
+                        <span className="font-semibold">{t("admin")}</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="ml-auto"
+                        >
+                          <path d="M5 12h14"></path>
+                          <path d="m12 5 7 7-7 7"></path>
+                        </svg>
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* Supplier Navigation in Mobile Menu - Premium design */}
+                  {isSupplier && (
+                    <div className="mt-4 mb-3">
+                      <Link
+                        href="/supplier/dashboard"
+                        className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium bg-gradient-to-r from-green-500 to-teal-600 text-white hover:from-green-600 hover:to-teal-700 transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg transform hover:translate-y-[-1px]"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <div className="bg-white/20 p-1.5 rounded-md">
+                          <Building2 className="h-4 w-4" />
+                        </div>
+                        <span className="font-semibold">{t("supplier")}</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="ml-auto"
+                        >
+                          <path d="M5 12h14"></path>
+                          <path d="m12 5 7 7-7 7"></path>
+                        </svg>
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* Utilities Section - Premium design */}
+                  <div className="py-4 border-t border-gray-100 mt-3">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center justify-between px-3">
+                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t("preferences", "Preferințe")}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 px-3">
+                        <CurrencySwitcher allowedCodes={["RON", "EUR"]} />
+                        <LanguageSwitcher />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* User Actions in Mobile Menu - Premium design */}
+                  {shouldShowAuthenticatedUI && (
+                    <div className="border-t border-gray-100 py-4 space-y-2">
+                      <div className="flex items-center justify-between px-3 mb-2">
+                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t("account", "Cont")}
+                        </span>
+                      </div>
+                      <Link
+                        href="/account"
+                        className="flex items-center justify-between px-4 py-2.5 rounded-md text-sm text-gray-800 hover:bg-gray-50 transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <span className="flex items-center gap-3">
+                          <div className="bg-indigo-50 p-1.5 rounded-md">
+                            <User className="h-4 w-4 text-indigo-600" />
+                          </div>
+                          <span className="font-medium">{t("account")}</span>
+                        </span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="text-gray-400"
+                        >
+                          <path d="m9 18 6-6-6-6"></path>
+                        </svg>
+                      </Link>
+
                       <button
-                        type="button"
-                        className={`flex items-center px-4 py-2.5 text-sm w-full text-left border-t border-gray-100 transition-all duration-200 ${
-                          activeFilters.specialCategories.includes("GIFT_IDEAS")
-                            ? "bg-pink-50 text-pink-700 font-medium"
-                            : "text-gray-700 hover:bg-indigo-50/50 hover:text-indigo-700"
-                        }`}
                         onClick={() => {
-                          router.push(
-                            buildProductsUrl({
-                              specialCategories: "GIFT_IDEAS",
-                            })
-                          );
+                          handleSignOut();
                           setMobileMenuOpen(false);
                         }}
+                        className="w-full flex items-center justify-between px-4 py-2.5 rounded-md text-sm text-gray-800 hover:bg-red-50 transition-colors"
                       >
-                        <div className="ml-1 mr-2 w-1.5 h-1.5 rounded-full bg-pink-500"></div>
-                        <span>{t("giftIdeas", "Idei de cadouri")}</span>
-                        {activeFilters.specialCategories.includes(
-                          "GIFT_IDEAS"
-                        ) ? (
-                          <div className="ml-auto bg-pink-100 p-0.5 rounded-full">
-                            <Check className="w-3 h-3 text-pink-600" />
+                        <span className="flex items-center gap-3">
+                          <div className="bg-red-50 p-1.5 rounded-md">
+                            <LogOut className="h-4 w-4 text-red-600" />
                           </div>
-                        ) : (
-                          <span className="ml-auto text-xs text-pink-700 bg-pink-100 px-2 py-0.5 rounded-full">
-                            {t("gift", "Cadou")}
+                          <span className="font-medium text-red-600">
+                            {t("logout")}
                           </span>
-                        )}
+                        </span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="text-red-400"
+                        >
+                          <path d="m9 18 6-6-6-6"></path>
+                        </svg>
                       </button>
                     </div>
                   )}
                 </div>
-
-                {/* Navigation Links - Enhanced design */}
-                <div className="space-y-1.5 mt-3">
-                  {navigation
-                    .filter(item => item.href !== "/products")
-                    .map(item => {
-                      const IconComponent = item.icon;
-                      const isActive = pathname === item.href;
-                      return (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          className={cn(
-                            "flex rounded-lg px-4 py-3 text-sm transition-all duration-200 cursor-pointer min-h-[50px] items-center group border shadow-sm",
-                            isActive
-                              ? "bg-indigo-50/70 text-indigo-700 border-indigo-100"
-                              : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600 active:bg-gray-100 bg-white border-gray-100"
-                          )}
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <div
-                            className={cn(
-                              "p-1.5 rounded-md mr-3",
-                              isActive ? "bg-indigo-100" : "bg-gray-100"
-                            )}
-                          >
-                            <IconComponent
-                              className={cn(
-                                "w-4 h-4 transition-colors duration-200",
-                                isActive
-                                  ? "text-indigo-700"
-                                  : "text-gray-500 group-hover:text-indigo-600"
-                              )}
-                            />
-                          </div>
-                          <span className="font-medium">{t(item.name)}</span>
-                          {isActive && (
-                            <div className="ml-auto bg-indigo-500 text-white text-xs font-medium px-2 py-0.5 rounded-md">
-                              Active
-                            </div>
-                          )}
-                        </Link>
-                      );
-                    })}
-                </div>
-
-                {/* Admin Navigation in Mobile Menu - Premium design */}
-                {isAdmin && (
-                  <div className="mt-4 mb-3">
-                    <Link
-                      href="/admin"
-                      className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg transform hover:translate-y-[-1px]"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <div className="bg-white/20 p-1.5 rounded-md">
-                        <Settings className="h-4 w-4" />
-                      </div>
-                      <span className="font-semibold">{t("admin")}</span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="ml-auto"
-                      >
-                        <path d="M5 12h14"></path>
-                        <path d="m12 5 7 7-7 7"></path>
-                      </svg>
-                    </Link>
-                  </div>
-                )}
-
-                {/* Supplier Navigation in Mobile Menu - Premium design */}
-                {isSupplier && (
-                  <div className="mt-4 mb-3">
-                    <Link
-                      href="/supplier/dashboard"
-                      className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium bg-gradient-to-r from-green-500 to-teal-600 text-white hover:from-green-600 hover:to-teal-700 transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg transform hover:translate-y-[-1px]"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <div className="bg-white/20 p-1.5 rounded-md">
-                        <Building2 className="h-4 w-4" />
-                      </div>
-                      <span className="font-semibold">{t("supplier")}</span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="ml-auto"
-                      >
-                        <path d="M5 12h14"></path>
-                        <path d="m12 5 7 7-7 7"></path>
-                      </svg>
-                    </Link>
-                  </div>
-                )}
-
-                {/* Utilities Section - Premium design */}
-                <div className="py-4 border-t border-gray-100 mt-3">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between px-3">
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t("preferences", "Preferințe")}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2 px-3">
-                      <CurrencySwitcher allowedCodes={["RON", "EUR"]} />
-                      <LanguageSwitcher />
-                    </div>
-                  </div>
-                </div>
-
-                {/* User Actions in Mobile Menu - Premium design */}
-                {shouldShowAuthenticatedUI && (
-                  <div className="border-t border-gray-100 py-4 space-y-2">
-                    <div className="flex items-center justify-between px-3 mb-2">
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t("account", "Cont")}
-                      </span>
-                    </div>
-                    <Link
-                      href="/account"
-                      className="flex items-center justify-between px-4 py-2.5 rounded-md text-sm text-gray-800 hover:bg-gray-50 transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <span className="flex items-center gap-3">
-                        <div className="bg-indigo-50 p-1.5 rounded-md">
-                          <User className="h-4 w-4 text-indigo-600" />
-                        </div>
-                        <span className="font-medium">{t("account")}</span>
-                      </span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-gray-400"
-                      >
-                        <path d="m9 18 6-6-6-6"></path>
-                      </svg>
-                    </Link>
-
-                    <button
-                      onClick={() => {
-                        handleSignOut();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between px-4 py-2.5 rounded-md text-sm text-gray-800 hover:bg-red-50 transition-colors"
-                    >
-                      <span className="flex items-center gap-3">
-                        <div className="bg-red-50 p-1.5 rounded-md">
-                          <LogOut className="h-4 w-4 text-red-600" />
-                        </div>
-                        <span className="font-medium text-red-600">
-                          {t("logout")}
-                        </span>
-                      </span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-red-400"
-                      >
-                        <path d="m9 18 6-6-6-6"></path>
-                      </svg>
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </header>
   );
 }

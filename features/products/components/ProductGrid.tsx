@@ -51,50 +51,44 @@ export function ProductGrid({
   const [layout, setLayout] = useState<"grid" | "list">(defaultLayout);
   const [sortOption, setSortOption] = useState<string>(defaultSort);
   const { t } = useTranslation();
-  const [_visibleColumns, setVisibleColumns] = useState(1);
-  const [aboveFoldItems, setAboveFoldItems] = useState(priorityItemsCount);
 
-  // Calculate visible columns on the client side only
+  // Use static calculation to prevent CLS - assume medium screen initially
+  const [visibleColumns, setVisibleColumns] = useState(columns.md || 3);
+  const [aboveFoldItems, setAboveFoldItems] = useState(
+    Math.min(priorityItemsCount, (columns.md || 3) * 2)
+  );
+
+  // Calculate visible columns with debouncing to prevent CLS
   useEffect(() => {
-    // Calculate the visible columns in the current layout
-    let cols = 1;
-    const width = window.innerWidth;
-    if (width >= 1280 && columns.xl) cols = columns.xl;
-    else if (width >= 1024 && columns.lg) cols = columns.lg;
-    else if (width >= 768 && columns.md) cols = columns.md;
-    else if (width >= 640 && columns.sm) cols = columns.sm;
+    let timeoutId: NodeJS.Timeout;
 
-    setVisibleColumns(cols);
-
-    // Determine the number of above-the-fold items based on visible columns
-    setAboveFoldItems(
-      Math.min(
-        priorityItemsCount,
-        cols * 2 // Prioritize first two rows
-      )
-    );
-
-    // Add event listener for resize
     const handleResize = () => {
-      let cols = 1;
-      const width = window.innerWidth;
-      if (width >= 1280 && columns.xl) cols = columns.xl;
-      else if (width >= 1024 && columns.lg) cols = columns.lg;
-      else if (width >= 768 && columns.md) cols = columns.md;
-      else if (width >= 640 && columns.sm) cols = columns.sm;
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        let cols = 1;
+        const width = window.innerWidth;
+        if (width >= 1280 && columns.xl) cols = columns.xl;
+        else if (width >= 1024 && columns.lg) cols = columns.lg;
+        else if (width >= 768 && columns.md) cols = columns.md;
+        else if (width >= 640 && columns.sm) cols = columns.sm;
 
-      setVisibleColumns(cols);
-      setAboveFoldItems(
-        Math.min(
-          priorityItemsCount,
-          cols * 2 // Prioritize first two rows
-        )
-      );
+        // Only update if significantly different to prevent micro-adjustments
+        if (Math.abs(cols - visibleColumns) > 0) {
+          setVisibleColumns(cols);
+          setAboveFoldItems(Math.min(priorityItemsCount, cols * 2));
+        }
+      }, 150); // Debounce to prevent rapid updates
     };
 
+    // Initial calculation
+    handleResize();
+
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [columns, priorityItemsCount]);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timeoutId);
+    };
+  }, [columns, priorityItemsCount, visibleColumns]);
 
   const sortProducts = (products: Product[], option: string) => {
     const sortedProducts = [...products];
@@ -233,7 +227,6 @@ export function ProductGrid({
               <ProductCard
                 product={product}
                 className="hover:shadow-lg transition-shadow duration-300"
-                imageHeight={index < aboveFoldItems ? 64 : 48}
                 layout="grid"
                 priority={index < aboveFoldItems}
               />

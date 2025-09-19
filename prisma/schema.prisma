@@ -120,7 +120,7 @@ model Product {
   tags                             String[]
   attributes                       Json?
   metadata                         Json?
-  isActive                         Boolean                   @default(true) // ALWAYS true by default for all products
+  isActive                         Boolean                   @default(true)
   featured                         Boolean                   @default(false)
   stockQuantity                    Int                       @default(0)
   reservedQuantity                 Int                       @default(0)
@@ -160,27 +160,24 @@ model Product {
 
   @@unique([sku, supplierId])
   @@index([categoryId])
+  @@index([supplierId])
+  @@index([slug])
   @@index([status])
   @@index([isActive])
-  @@index([slug])
-  @@index([name])
-  @@index([price])
-  @@index([createdAt])
-  @@index([stockQuantity])
-  @@index([averageRating])
-  @@index([isActive, featured])
-  @@index([categoryId, isActive])
-  @@index([price, isActive])
-  @@index([stockQuantity, isActive])
-  @@index([featured, createdAt(sort: Desc)])
   @@index([featured])
   @@index([ageGroup])
   @@index([stemDiscipline])
   @@index([productType])
-  @@index([learningOutcomes])
-  @@index([specialCategories])
-  @@index([romanianEducationalLevel])
-  @@index([romanianMinistryApproval])
+  @@index([isActive, status, featured, createdAt(sort: Desc)], map: "idx_product_active_status_featured_created")
+  @@index([isActive, status, featured, createdAt(sort: Desc)], map: "idx_homepage_featured_products")
+  @@index([isActive, status, categoryId, featured], map: "idx_product_active_status_category_featured")
+  @@index([isActive, status, price], map: "idx_product_active_status_price")
+  @@index([isActive, status, name], map: "idx_product_search_name")
+  @@index([isActive, status, stemDiscipline, featured], map: "idx_product_active_status_stem_featured")
+  @@index([isActive, status, ageGroup, featured], map: "idx_product_active_status_age_featured")
+  @@index([status, createdAt(sort: Desc)], map: "idx_product_status_created")
+  @@index([name], map: "idx_product_name_search")
+  @@index([description], map: "idx_product_description_search")
   @@map("Product")
 }
 

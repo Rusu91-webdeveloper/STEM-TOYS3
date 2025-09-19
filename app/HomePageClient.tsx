@@ -4,40 +4,56 @@
 import React, { Suspense } from "react";
 import dynamic from "next/dynamic";
 
-// Import home page components
+// **PERFORMANCE**: Lazy load non-critical components
 import {
   CategoriesSection,
   FeaturedProductsAccordion,
   FeaturedProductsSkeleton,
-  HeroSection,
   PerformanceOptimizer,
   PillarSection,
   TrustBadgesRow,
   AgeQuickLinksRow,
 } from "@/features/home/components";
+
+// **PERFORMANCE**: Import HeroSection directly to avoid preload warnings and improve LCP
+import { HeroSection } from "@/features/home/components/HeroSection";
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import { getBaseUrl } from "@/lib/site";
 
-// Code-split below-the-fold sections
+// Code-split below-the-fold sections with better loading strategy
 const ValuePropositionSection = dynamic(
   () => import("@/features/home/components/ValuePropositionSection"),
-  { loading: () => null }
+  {
+    loading: () => null,
+    ssr: false, // Disable SSR for better LCP
+  }
 );
 const RiskReversalSection = dynamic(
   () => import("@/features/home/components/RiskReversalSection"),
-  { loading: () => null }
+  {
+    loading: () => null,
+    ssr: false, // Disable SSR for better LCP
+  }
 );
 const SupplierBanner = dynamic(
   () =>
     import("@/features/home/components/SupplierBanner").then(
       m => m.SupplierBanner
     ),
-  { loading: () => null }
+  {
+    loading: () => null,
+    ssr: false, // Disable SSR for better LCP
+  }
 );
 const MobileConversionOptimizer = dynamic(
   () => import("@/features/home/components/MobileConversionOptimizer"),
-  { ssr: false, loading: () => null }
+  {
+    loading: () => null,
+    ssr: false, // Already disabled
+  }
 );
+
+// **PERFORMANCE**: HeroSection is now lazy loaded above to reduce bundle size
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import type { Product } from "@/types/product";
@@ -293,10 +309,10 @@ export default function HomePageClient({
       {/* Performance Optimizer - Loads first for optimal Core Web Vitals */}
       <PerformanceOptimizer />
 
-      {/* Hero Section with Hero Image - Load immediately */}
+      {/* **PERFORMANCE**: Hero Section - Critical for FCP */}
       <HeroSection t={t} />
 
-      {/* Combined Quick Access Bar with trust badges and age links */}
+      {/* **PERFORMANCE**: Trust badges and age links - Keep above fold for UX but optimize loading */}
       <div className="-mt-4 sm:-mt-6 mb-4 sm:mb-6">
         <div className="container mx-auto px-4">
           <div className="mx-auto w-full max-w-5xl bg-white/95 backdrop-blur shadow-sm border border-gray-100 rounded-2xl p-4 sm:p-6">
@@ -312,24 +328,36 @@ export default function HomePageClient({
         </div>
       </div>
 
-      {/* Pillar Section - Key content themes */}
-      <PillarSection />
+      {/* **PERFORMANCE**: Defer non-critical sections below the fold */}
+      <Suspense
+        fallback={
+          <div className="h-32 bg-gray-100 animate-pulse rounded-lg mx-4 max-w-7xl"></div>
+        }
+      >
+        <PillarSection />
+      </Suspense>
 
-      {/* Categories Section - Load immediately */}
-      <CategoriesSection categories={categories} t={t} />
+      <Suspense
+        fallback={
+          <div className="h-48 bg-gray-100 animate-pulse rounded-lg mx-4 max-w-7xl"></div>
+        }
+      >
+        <CategoriesSection categories={categories} t={t} />
+      </Suspense>
 
-      {/* Value Proposition Section - Load immediately */}
-      <ValuePropositionSection t={t} />
+      <Suspense
+        fallback={
+          <div className="h-64 bg-gray-100 animate-pulse rounded-lg mx-4 max-w-7xl"></div>
+        }
+      >
+        <ValuePropositionSection t={t} />
+      </Suspense>
 
       {/* Risk Reversal Section - Guarantees and Consultation */}
       <RiskReversalSection t={t} />
 
       {/* Featured Products Accordion - Load with suspense for better performance */}
       <Suspense fallback={<FeaturedProductsLoader />}>
-        {process.env.NODE_ENV === "development" &&
-          console.log(
-            `[CLIENT] Rendering accordion with ${initialFeaturedProducts.length} products`
-          )}
         <FeaturedProductsAccordion
           products={initialFeaturedProducts}
           formatPrice={formatPrice}

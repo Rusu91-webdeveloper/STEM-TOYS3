@@ -8,12 +8,14 @@ import ConversionTrackingProvider from "@/components/conversion-tracking/Convers
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import PerformanceMonitor from "@/components/analytics/PerformanceMonitor";
 import ClientLayout from "@/components/layout/ClientLayout";
+import { getStoreSettings } from "@/lib/utils/store-settings";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { Toaster } from "@/components/ui/toaster";
 import CartProviderWrapper from "@/features/cart/components/CartProviderWrapper.client";
 import { CentralizedSessionProvider } from "@/lib/auth/SessionContext";
 import { CurrencyProvider } from "@/lib/currency";
 import { I18nProvider } from "@/lib/i18n";
+import { CriticalCSS } from "@/components/CriticalCSS";
 
 import "./globals.css";
 import { metadata as appMetadata } from "./metadata";
@@ -34,6 +36,9 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const initialLanguage = cookieStore.get("language")?.value ?? "ro";
 
+  // SSR store settings to avoid client fetch on first paint
+  const initialStoreSettings = await getStoreSettings();
+
   return (
     <html
       lang={initialLanguage}
@@ -48,14 +53,21 @@ export default async function RootLayout({
         />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        {/* Removed manual hero image preload; Next/Image with priority handles this */}
-        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+
+        {/* Critical CSS for LCP optimization */}
+        <CriticalCSS />
+
+        {/* **PERFORMANCE**: Font preconnect for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+
+        {/* **PERFORMANCE**: Removed hero image preload to fix unused preload warnings */}
+        {/* **PERFORMANCE**: Removed unused responsive image variants to fix preload warnings */}
+
         {/* Google Analytics 4 */}
         <GoogleAnalytics />
         {/* Performance Monitoring */}
@@ -70,7 +82,7 @@ export default async function RootLayout({
             <I18nProvider initialLanguage={initialLanguage}>
               <CurrencyProvider>
                 <CartProviderWrapper>
-                  <ClientLayout>
+                  <ClientLayout initialStoreSettings={initialStoreSettings}>
                     {children}
                     <SpeedInsights />
                   </ClientLayout>

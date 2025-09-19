@@ -1,39 +1,7 @@
 import { getCached } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { getCacheKey } from "@/lib/utils/cache-key";
-
-// Normalize category function - matches the one used in ClientProductsPage
-function normalizeCategory(category: string): string {
-  const lower = category.toLowerCase().trim();
-
-  // Handle "mathematics" -> "mathematics" (keep as is)
-  if (lower === "mathematics" || lower === "math") {
-    return "mathematics";
-  }
-
-  // Handle "science" variations
-  if (lower === "science") {
-    return "science";
-  }
-
-  // Handle "technology" variations
-  if (lower === "technology") {
-    return "technology";
-  }
-
-  // Handle "engineering" variations
-  if (lower === "engineering") {
-    return "engineering";
-  }
-
-  // Handle "educational books" -> "educational-books"
-  if (lower === "educational books" || lower === "educational-books") {
-    return "educational-books";
-  }
-
-  // Default normalization - just return lowercase
-  return lower;
-}
+import { normalizeCategory } from "@/lib/utils/product-filters-url";
 
 interface ServerCategoryData {
   id: string;

@@ -5,6 +5,17 @@
 
 import { Redis } from "@upstash/redis";
 
+// **PERFORMANCE**: Time constants for consistent caching
+export const TIME = {
+  CACHE_DURATION: {
+    SHORT: 2 * 60 * 1000, // 2 minutes
+    MEDIUM: 30 * 60 * 1000, // 30 minutes
+    LONG: 60 * 60 * 1000, // 1 hour
+    DAY: 24 * 60 * 60 * 1000, // 24 hours
+    WEEK: 7 * 24 * 60 * 60 * 1000, // 7 days
+  },
+};
+
 // Redis client instance
 let redis: Redis | null = null;
 
@@ -422,8 +433,50 @@ export class RedisCache implements Cache {
 // Export singleton cache instance
 export const cache = new RedisCache();
 
+// In-memory cache for when Redis is not configured
+class InMemoryCache {
+  private cache = new Map<string, { data: any; expires: number }>();
+
+  async get<T>(key: string): Promise<T | null> {
+    const item = this.cache.get(key);
+    if (!item) return null;
+
+    if (Date.now() > item.expires) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return item.data;
+  }
+
+  async set<T>(key: string, data: T, ttlSeconds: number): Promise<void> {
+    const expires = Date.now() + ttlSeconds * 1000;
+    this.cache.set(key, { data, expires });
+  }
+
+  async del(key: string): Promise<void> {
+    this.cache.delete(key);
+  }
+
+  // Cleanup expired items periodically
+  cleanup(): void {
+    const now = Date.now();
+    for (const [key, item] of this.cache.entries()) {
+      if (now > item.expires) {
+        this.cache.delete(key);
+      }
+    }
+  }
+}
+
+const memoryCache = new InMemoryCache();
+
+// Cleanup expired cache items every 5 minutes
+setInterval(() => memoryCache.cleanup(), 5 * 60 * 1000);
+
 /**
  * Generic caching function that wraps async operations with Redis caching
+ * Falls back to in-memory cache when Redis is not configured
  * @param key - Cache key
  * @param fetchFn - Async function that fetches the data
  * @param ttl - Time to live in milliseconds
@@ -440,23 +493,66 @@ export async function getCached<T>(
       process.env.REDIS_URL && process.env.REDIS_TOKEN
     );
 
-    if (!isRedisConfigured) {
-      // Redis not configured, just fetch fresh data
-      console.warn(`Redis not configured, skipping cache for key: ${key}`);
-      return await fetchFn();
+    if (isRedisConfigured) {
+      // Use Redis cache
+      try {
+        // Try to get from Redis cache first
+        const cached = await cache.get<T>(key);
+        if (cached !== null) {
+          if (process.env.NODE_ENV === "development") {
+            console.log(`🔴 Redis cache HIT for key: ${key}`);
+          }
+          return cached;
+        }
+
+        // **PERFORMANCE**: Log cache miss for monitoring
+        if (process.env.NODE_ENV === "development") {
+          console.log(`🔴 Redis cache MISS for key: ${key}`);
+        }
+
+        // If not in cache, fetch fresh data
+        const freshData = await fetchFn();
+
+        // **PERFORMANCE**: Use different TTL for different data types
+        const cacheTTL = getOptimizedTTL(key, ttl);
+
+        // Store in Redis cache
+        await cache.set(key, freshData, Math.floor(cacheTTL / 1000)); // Convert ms to seconds
+
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `🔴 Redis cache MISS, stored fresh data for key: ${key} (TTL: ${cacheTTL}ms)`
+          );
+        }
+
+        return freshData;
+      } catch (redisError) {
+        console.warn(
+          `Redis cache error for key ${key}, falling back to memory cache:`,
+          redisError
+        );
+        // Fall through to memory cache
+      }
     }
 
-    // Try to get from cache first
-    const cached = await cache.get<T>(key);
+    // Use in-memory cache as fallback
+    const cached = await memoryCache.get<T>(key);
     if (cached !== null) {
+      if (process.env.NODE_ENV === "development") {
+        console.log(`💾 Memory cache HIT for key: ${key}`);
+      }
       return cached;
     }
 
     // If not in cache, fetch fresh data
     const freshData = await fetchFn();
 
-    // Store in cache
-    await cache.set(key, freshData, Math.floor(ttl / 1000)); // Convert ms to seconds
+    // Store in memory cache
+    await memoryCache.set(key, freshData, Math.floor(ttl / 1000));
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`💾 Memory cache MISS, stored fresh data for key: ${key}`);
+    }
 
     return freshData;
   } catch (error) {
@@ -472,18 +568,69 @@ export async function getCached<T>(
   }
 }
 
+// **PERFORMANCE**: Ultra-optimized TTL based on data type and usage patterns
+function getOptimizedTTL(key: string, defaultTTL: number): number {
+  // **CRITICAL**: Homepage featured products - cache very long
+  if (key.includes("homepage_featured_products")) {
+    return TIME.CACHE_DURATION.LONG; // 1 hour for homepage performance
+  }
+
+  // Products data - cache longer
+  if (key.includes("products") || key.includes("categories")) {
+    return TIME.CACHE_DURATION.LONG; // 1 hour
+  }
+
+  // User-specific data - cache shorter
+  if (
+    key.includes("user") ||
+    key.includes("cart") ||
+    key.includes("wishlist")
+  ) {
+    return TIME.CACHE_DURATION.SHORT; // 2 minutes
+  }
+
+  // Analytics data - cache medium
+  if (key.includes("analytics")) {
+    return TIME.CACHE_DURATION.MEDIUM; // 30 minutes
+  }
+
+  // Static content - cache very long
+  if (key.includes("static") || key.includes("config")) {
+    return TIME.CACHE_DURATION.DAY; // 24 hours
+  }
+
+  return defaultTTL;
+}
+
+// **PERFORMANCE**: Pre-warm critical cache entries on startup
+export async function prewarmCriticalCache(): Promise<void> {
+  try {
+    console.log("🔥 Starting critical cache pre-warming...");
+
+    // **PERFORMANCE**: Skip pre-warming homepage featured products to avoid duplication
+    // The homepage will handle its own caching via getFeaturedProducts()
+    console.log(
+      "✅ Skipping homepage featured products pre-warming (handled by homepage)"
+    );
+
+    console.log("🔥 Critical cache pre-warming completed");
+  } catch (error) {
+    console.error("❌ Error during cache pre-warming:", error);
+  }
+}
+
 /**
  * Cache key functions for consistent naming
  */
 export const CacheKeys = {
   // Basic key generators
-  product: (id?: string) => id ? `product:${id}` : "product",
-  category: (id?: string) => id ? `category:${id}` : "category",
-  user: (id?: string) => id ? `user:${id}` : "user",
-  order: (id?: string) => id ? `order:${id}` : "order",
-  cart: (id?: string) => id ? `cart:${id}` : "cart",
-  book: (id?: string) => id ? `book:${id}` : "book",
-  
+  product: (id?: string) => (id ? `product:${id}` : "product"),
+  category: (id?: string) => (id ? `category:${id}` : "category"),
+  user: (id?: string) => (id ? `user:${id}` : "user"),
+  order: (id?: string) => (id ? `order:${id}` : "order"),
+  cart: (id?: string) => (id ? `cart:${id}` : "cart"),
+  book: (id?: string) => (id ? `book:${id}` : "book"),
+
   // List keys
   products: (params?: Record<string, any>) => {
     if (!params || Object.keys(params).length === 0) return "products";
@@ -533,11 +680,11 @@ export const CacheKeys = {
       .join("&");
     return `books:${paramString}`;
   },
-  
+
   // Special keys
   health: () => "health",
-  analytics: (type?: string) => type ? `analytics:${type}` : "analytics",
-  dashboard: (type?: string) => type ? `dashboard:${type}` : "dashboard",
+  analytics: (type?: string) => (type ? `analytics:${type}` : "analytics"),
+  dashboard: (type?: string) => (type ? `dashboard:${type}` : "dashboard"),
   customers: (params?: Record<string, any>) => {
     if (!params || Object.keys(params).length === 0) return "customers";
     const sortedKeys = Object.keys(params).sort();
@@ -546,14 +693,14 @@ export const CacheKeys = {
       .join("&");
     return `customers:${paramString}`;
   },
-  blog: (id?: string) => id ? `blog:${id}` : "blog",
-  comments: (id?: string) => id ? `comments:${id}` : "comments",
-  reviews: (id?: string) => id ? `reviews:${id}` : "reviews",
-  coupons: (id?: string) => id ? `coupons:${id}` : "coupons",
-  settings: (type?: string) => type ? `settings:${type}` : "settings",
-  tax: (type?: string) => type ? `tax:${type}` : "tax",
-  shipping: (type?: string) => type ? `shipping:${type}` : "shipping",
-  
+  blog: (id?: string) => (id ? `blog:${id}` : "blog"),
+  comments: (id?: string) => (id ? `comments:${id}` : "comments"),
+  reviews: (id?: string) => (id ? `reviews:${id}` : "reviews"),
+  coupons: (id?: string) => (id ? `coupons:${id}` : "coupons"),
+  settings: (type?: string) => (type ? `settings:${type}` : "settings"),
+  tax: (type?: string) => (type ? `tax:${type}` : "tax"),
+  shipping: (type?: string) => (type ? `shipping:${type}` : "shipping"),
+
   // Legacy constants for backward compatibility
   PRODUCTS: "products",
   PRODUCT: "product",
@@ -615,37 +762,44 @@ export const cacheUtils = {
   /**
    * Generate cache key with prefix
    */
-  key: (prefix: string, ...parts: (string | number)[]): string => `${prefix}:${parts.join(":")}`,
+  key: (prefix: string, ...parts: (string | number)[]): string =>
+    `${prefix}:${parts.join(":")}`,
 
   /**
    * Generate cache key for user data
    */
-  userKey: (userId: string, type: string): string => cacheUtils.key("user", userId, type),
+  userKey: (userId: string, type: string): string =>
+    cacheUtils.key("user", userId, type),
 
   /**
    * Generate cache key for email data
    */
-  emailKey: (emailId: string, type: string): string => cacheUtils.key("email", emailId, type),
+  emailKey: (emailId: string, type: string): string =>
+    cacheUtils.key("email", emailId, type),
 
   /**
    * Generate cache key for campaign data
    */
-  campaignKey: (campaignId: string, type: string): string => cacheUtils.key("campaign", campaignId, type),
+  campaignKey: (campaignId: string, type: string): string =>
+    cacheUtils.key("campaign", campaignId, type),
 
   /**
    * Generate cache key for sequence data
    */
-  sequenceKey: (sequenceId: string, type: string): string => cacheUtils.key("sequence", sequenceId, type),
+  sequenceKey: (sequenceId: string, type: string): string =>
+    cacheUtils.key("sequence", sequenceId, type),
 
   /**
    * Generate cache key for template data
    */
-  templateKey: (templateId: string, type: string): string => cacheUtils.key("template", templateId, type),
+  templateKey: (templateId: string, type: string): string =>
+    cacheUtils.key("template", templateId, type),
 
   /**
    * Generate cache key for analytics data
    */
-  analyticsKey: (type: string, ...parts: (string | number)[]): string => cacheUtils.key("analytics", type, ...parts),
+  analyticsKey: (type: string, ...parts: (string | number)[]): string =>
+    cacheUtils.key("analytics", type, ...parts),
 
   /**
    * Default TTL values

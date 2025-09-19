@@ -3,51 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useReducer, useCallback, useMemo } from "react";
 
-// Helper function to normalize category names for consistent comparison
-const normalizeCategory = (name: string): string => {
-  const lower = name.toLowerCase();
-
-  // Handle various forms of "educational books" category
-  if (
-    lower === "educational-books" ||
-    lower === "educational books" ||
-    lower === "books" ||
-    lower === "carti" ||
-    lower === "carti educationale" ||
-    lower.includes("book") ||
-    lower.includes("carte")
-  ) {
-    return "educational-books";
-  }
-
-  // Handle various forms of engineering category
-  if (lower === "inginerie" || lower.includes("engineer")) {
-    return "engineering";
-  }
-
-  // Handle various forms of mathematics category
-  if (
-    lower === "mathematics" ||
-    lower === "matematica" ||
-    lower === "matematică" ||
-    lower.includes("math") ||
-    lower.includes("mate")
-  ) {
-    return "mathematics";
-  }
-
-  // Handle engineeringLearning category
-  if (
-    lower === "engineeringlearning" ||
-    lower === "engineering learning" ||
-    lower === "inginerie si invatare" ||
-    lower === "inginerie și învățare"
-  ) {
-    return "engineering";
-  }
-
-  return lower;
-};
+import { normalizeCategory } from "@/lib/utils/product-filters-url";
 
 // Types
 interface FilterState {
@@ -91,7 +47,7 @@ const initialState: FilterState = {
   noPriceFilter: true, // Price filter disabled by default - users see all products initially
   selectedAgeGroup: "",
   selectedLearningOutcomes: [],
-  selectedProductType: "",
+  selectedProductType: "all",
   selectedSpecialCategories: [],
   searchQuery: "",
   sortBy: "relevance",
@@ -112,6 +68,7 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
       const isSelected = state.selectedCategories.some(
         c => normalizeCategory(c) === normalizedCategory
       );
+
       const newCategories = isSelected
         ? state.selectedCategories.filter(
             c => normalizeCategory(c) !== normalizedCategory
@@ -133,12 +90,16 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
         ? currentOptions.filter(id => id !== optionId)
         : [...currentOptions, optionId];
 
+      const updatedFilters = { ...state.selectedFilters };
+      if (newOptions.length > 0) {
+        updatedFilters[filterId] = newOptions;
+      } else {
+        delete updatedFilters[filterId];
+      }
+
       return {
         ...state,
-        selectedFilters: {
-          ...state.selectedFilters,
-          [filterId]: newOptions.length > 0 ? newOptions : undefined,
-        },
+        selectedFilters: updatedFilters,
       };
     }
 
@@ -296,8 +257,24 @@ export function useProductFilters() {
       urlState.noPriceFilter = !hasPriceParams;
     }
 
-    console.log("Dispatching URL state update:", urlState);
-    dispatch({ type: "INIT_FROM_URL", payload: urlState });
+    // Only dispatch if there are actual changes to prevent unnecessary re-renders
+    const hasChanges = Object.keys(urlState).some(key => {
+      const currentValue = (state as any)[key];
+      const newValue = (urlState as any)[key];
+
+      if (Array.isArray(currentValue) && Array.isArray(newValue)) {
+        return (
+          JSON.stringify(currentValue.sort()) !==
+          JSON.stringify(newValue.sort())
+        );
+      }
+
+      return JSON.stringify(currentValue) !== JSON.stringify(newValue);
+    });
+
+    if (hasChanges) {
+      dispatch({ type: "INIT_FROM_URL", payload: urlState });
+    }
   }, [searchParams]);
 
   // Update URL when filters change
@@ -307,7 +284,7 @@ export function useProductFilters() {
     if (state.selectedCategories.length > 0) {
       // Remove duplicates and ensure clean category list
       const uniqueCategories = Array.from(
-        new Set(state.selectedCategories)
+        new Set(state.selectedCategories.map(cat => normalizeCategory(cat)))
       ).filter(Boolean);
       if (uniqueCategories.length > 0) {
         params.set("category", uniqueCategories.join(","));
@@ -364,6 +341,14 @@ export function useProductFilters() {
     }
 
     const newURL = params.toString() ? `?${params.toString()}` : "";
+
+    // Prevent infinite loop by comparing current URL with new URL
+    const currentSearch = window.location.search;
+    if (currentSearch === newURL) {
+      // URL is already correct, no need to update
+      return;
+    }
+
     router.push(newURL, { scroll: false });
   }, [state, router]);
 

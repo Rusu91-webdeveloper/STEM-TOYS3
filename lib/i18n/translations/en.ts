@@ -1700,4 +1700,46 @@ export const en = {
   required: "Required",
   requirements: "Requirements:",
   details: "Details:",
+
+  // Missing translations for products page filters
+  filters: "Filters",
+  active: "Active",
+  clear: "Clear",
+  best: "Best Sellers",
+  new: "New Arrivals",
+  gifts: "Gift Ideas",
+  sale: "Sale Items",
+  advancedFilters: "Advanced Filters",
+  findYourPerfectMatch: "Find Your Perfect Match",
+  filtering: "Filtering",
+  results: "Results",
+  refineYourSearch: "Refine Your Search",
+  activeFilters: "Active Filters",
+  quickActions: "Quick Actions",
+  reset: "Reset",
+  apply: "Apply",
+  specialOffers: "Special Offers",
+  detailedFilters: "Detailed Filters",
+  liveResults: "Live Results",
+  discoverStemCollection: "Discover Our STEM Collection",
+  scienceDescription:
+    "Explore our collection of science toys and experiments that make learning fun and engaging for curious minds.",
+
+  // Missing translation keys identified from console logs
+  trustBadgesHeading: "Why Parents Trust TechTots",
+  exploreAllCategoriesLabel: "Explore All Categories",
+  exploreAllCategories: "Explore All Categories",
+  categoriesCardDescription:
+    "Discover STEM toys organized by learning category",
+  viewAllCategories: "View All Categories",
+
+  // Category descriptions
+  technologyDescription:
+    "Discover cutting-edge technology toys that introduce programming, robotics, and digital skills.",
+  engineeringDescription:
+    "Build, create, and innovate with engineering toys that develop problem-solving and construction skills.",
+  mathematicsDescription:
+    "Make math fun with interactive toys and games that build numerical and logical thinking skills.",
+  generalDescription:
+    "Explore our complete STEM collection designed to inspire curiosity and learning across all disciplines.",
 };

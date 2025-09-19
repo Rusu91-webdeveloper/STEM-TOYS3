@@ -1,12 +1,18 @@
 import { prisma } from "@/lib/prisma";
+import { getCached } from "@/lib/cache";
 
 /**
- * Get store settings from the database
+ * Get store settings from the database with caching
  * @returns Store settings object with all business information
  */
 export async function getStoreSettings() {
   try {
-    const settings = await prisma.storeSettings.findFirst();
+    // **PERFORMANCE**: Use caching to avoid repeated database queries
+    const settings = await getCached(
+      "store_settings_v1",
+      () => prisma.storeSettings.findFirst(),
+      30 * 60 * 1000 // Cache for 30 minutes
+    );
 
     if (!settings) {
       // Return default settings if none exist

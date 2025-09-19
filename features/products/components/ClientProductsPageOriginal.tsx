@@ -27,6 +27,7 @@ import {
 } from "@/features/products";
 import { EnhancedProductFilters } from "@/features/products/components/EnhancedProductFilters";
 import { useTranslation } from "@/lib/i18n";
+import { normalizeCategory } from "@/lib/utils/product-filters-url";
 import type { Product } from "@/types/product";
 
 interface CategoryIconInfo {
@@ -157,53 +158,6 @@ interface ClientProductsPageProps {
   initialProducts: ProductData[];
   searchParams: { [key: string]: string | string[] | undefined };
 }
-
-// Helper function to standardize category names to avoid duplicates
-const normalizeCategory = (name: string): string => {
-  // Convert to lowercase for consistency
-  const lower = name.toLowerCase();
-
-  // Handle various forms of "educational books" category
-  if (
-    lower === "educational-books" ||
-    lower === "educational books" ||
-    lower === "books" ||
-    lower === "carti" ||
-    lower === "carti educationale" ||
-    lower.includes("book") ||
-    lower.includes("carte")
-  ) {
-    return "educational-books";
-  }
-
-  // Handle various forms of engineering category
-  if (lower === "inginerie" || lower.includes("engineer")) {
-    return "engineering";
-  }
-
-  // Handle various forms of mathematics category
-  if (
-    lower === "mathematics" ||
-    lower === "matematica" ||
-    lower === "matematică" ||
-    lower.includes("math") ||
-    lower.includes("mate")
-  ) {
-    return "mathematics";
-  }
-
-  // Handle engineeringLearning category
-  if (
-    lower === "engineeringlearning" ||
-    lower === "engineering learning" ||
-    lower === "inginerie si invatare" ||
-    lower === "inginerie și învățare"
-  ) {
-    return "engineeringlearning";
-  }
-
-  return lower;
-};
 
 // Internal component that uses useSearchParams
 function ClientProductsPageContent({

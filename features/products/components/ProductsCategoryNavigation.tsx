@@ -4,6 +4,7 @@ import { SlidersHorizontal, LucideIcon } from "lucide-react";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
+import { normalizeCategory } from "@/lib/utils/product-filters-url";
 
 interface CategoryIconInfo {
   icon: LucideIcon;
@@ -15,7 +16,6 @@ interface CategoryIconInfo {
 interface ProductsCategoryNavigationProps {
   categoryInfo: Record<string, CategoryIconInfo>;
   selectedCategories: string[];
-  normalizeCategory: (name: string) => string;
   handleCategoryChange: (key: string) => void;
   setMobileFiltersOpen: (open: boolean) => void;
   t: (key: string, fallback?: string) => string;
@@ -24,7 +24,6 @@ interface ProductsCategoryNavigationProps {
 export function ProductsCategoryNavigation({
   categoryInfo,
   selectedCategories,
-  normalizeCategory,
   handleCategoryChange,
   setMobileFiltersOpen,
   t,

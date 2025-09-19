@@ -1886,4 +1886,28 @@ export const ro = {
   required: "Obligatoriu",
   requirements: "Cerințe:",
   details: "Detalii:",
+
+  // Missing translations for products page filters
+  filters: "Filtre",
+  active: "Activ",
+  clear: "Șterge",
+  best: "Cele mai vândute",
+  new: "Noutăți",
+  gifts: "Idei de cadouri",
+  sale: "Oferte",
+  advancedFilters: "Filtre avansate",
+  findYourPerfectMatch: "Găsește produsul perfect",
+  filtering: "Filtrare",
+  results: "Rezultate",
+  refineYourSearch: "Rafinează căutarea",
+  activeFilters: "Filtre active",
+  quickActions: "Acțiuni rapide",
+  reset: "Resetează",
+  apply: "Aplică",
+  specialOffers: "Oferte speciale",
+  detailedFilters: "Filtre detaliate",
+  liveResults: "Rezultate în timp real",
+  discoverStemCollection: "Descoperă colecția noastră STEM",
+  scienceDescription:
+    "Explorează colecția noastră de jucării și experimente științifice care fac învățarea distractivă și captivantă pentru mințile curioase.",
 };

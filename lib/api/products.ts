@@ -85,6 +85,10 @@ export async function getProducts(
     if (sort) params.append("sort", sort);
     if (limit) params.append("limit", limit.toString());
 
+    // IMPORTANT: Don't set featured=true by default to avoid the optimized query path
+    // that might not include all fields
+    params.append("featured", "false");
+
     const queryString = params.toString() ? `?${params.toString()}` : "";
 
     // Use the utility function to build the URL

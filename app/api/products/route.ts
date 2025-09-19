@@ -19,8 +19,13 @@ import { getPaginationParams } from "@/lib/utils/pagination";
 //   "educational-books": string[];
 // };
 
-// **PERFORMANCE**: Cache duration for product queries
-const CACHE_DURATION = TIME.CACHE_DURATION.SHORT; // 2 minutes cache
+// **PERFORMANCE**: Optimized cache durations for different query types
+const CACHE_DURATIONS = {
+  FEATURED_PRODUCTS: TIME.CACHE_DURATION.LONG, // 1 hour for featured products
+  CATEGORY_PRODUCTS: TIME.CACHE_DURATION.MEDIUM, // 30 minutes for category products
+  SEARCH_RESULTS: TIME.CACHE_DURATION.SHORT, // 2 minutes for search results
+  GENERAL_LISTING: TIME.CACHE_DURATION.MEDIUM, // 30 minutes for general listings
+};
 
 // **PERFORMANCE**: Optimized includes to prevent over-fetching
 const optimizedIncludes = {
@@ -78,25 +83,74 @@ export async function GET(request: NextRequest) {
       ? String(filters.specialCategories).split(",")
       : undefined;
 
-    // Use shared cache key utility
+    // **PERFORMANCE**: Optimized cache key generation with reduced fragmentation
     const cacheKey = getCacheKey("products", {
-      category,
-      featured,
-      minPrice,
-      maxPrice,
-      search,
-      sort,
+      // Only include non-null values to reduce cache fragmentation
+      ...(category && { category }),
+      ...(featured && { featured }),
+      ...(minPrice !== undefined && { minPrice }),
+      ...(maxPrice !== undefined && { maxPrice }),
+      ...(search && { search: search.slice(0, 50) }), // Limit search term length
+      ...(sort && { sort }),
       page,
       limit,
-      // Include new filters in cache key
-      ageGroup,
-      stemDiscipline,
-      learningOutcomes,
-      productType,
-      specialCategories,
+      // Include new filters only if they have values
+      ...(ageGroup && { ageGroup }),
+      ...(stemDiscipline && { stemDiscipline }),
+      ...(learningOutcomes?.length && {
+        learningOutcomes: learningOutcomes.slice(0, 3).join(","), // Limit to 3 outcomes
+      }),
+      ...(productType && { productType }),
+      ...(specialCategories?.length && {
+        specialCategories: specialCategories.slice(0, 3).join(","), // Limit to 3 categories
+      }),
     });
 
-    // **PERFORMANCE**: Check cache first with distributed caching
+    // **PERFORMANCE**: Determine cache duration based on query type
+    let cacheDuration = CACHE_DURATIONS.GENERAL_LISTING;
+
+    if (featured === "true" && !category && !search) {
+      cacheDuration = CACHE_DURATIONS.FEATURED_PRODUCTS;
+    } else if (category && !search) {
+      cacheDuration = CACHE_DURATIONS.CATEGORY_PRODUCTS;
+    } else if (search) {
+      cacheDuration = CACHE_DURATIONS.SEARCH_RESULTS;
+    }
+
+    // **PERFORMANCE**: Ultra-fast cache check for featured products (highest priority)
+    if (
+      featured === "true" &&
+      !category &&
+      !search &&
+      !ageGroup &&
+      !stemDiscipline
+    ) {
+      // **PERFORMANCE**: For simple featured products query, use optimized fast path
+      try {
+        const cachedResult = await getCached(
+          `featured_products_${limit}_${page}`,
+          () => fetchFeaturedProductsFast({ limit, page }),
+          cacheDuration
+        );
+
+        if (cachedResult && cachedResult.products?.length > 0) {
+          const response = NextResponse.json(cachedResult);
+          response.headers.set("X-Cache", "HIT-FAST");
+          response.headers.set(
+            "Cache-Control",
+            "public, max-age=3600, s-maxage=3600, stale-while-revalidate=7200"
+          );
+          return response;
+        }
+      } catch (cacheError) {
+        console.warn(
+          "Fast cache failed, falling back to normal query:",
+          cacheError
+        );
+      }
+    }
+
+    // **PERFORMANCE**: Check cache first with distributed caching and optimized duration
     try {
       const cachedResult = await getCached(
         cacheKey,
@@ -118,14 +172,18 @@ export async function GET(request: NextRequest) {
             productType,
             specialCategories,
           }),
-        CACHE_DURATION
+        cacheDuration
       );
 
       const response = NextResponse.json(cachedResult);
       response.headers.set("X-Cache", "HIT");
+
+      // **PERFORMANCE**: Dynamic cache headers based on content type
+      const cacheSeconds = Math.floor(cacheDuration / 1000);
+      const staleWhileRevalidate = cacheSeconds * 2;
       response.headers.set(
         "Cache-Control",
-        "public, max-age=120, s-maxage=120, stale-while-revalidate=300"
+        `public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds}, stale-while-revalidate=${staleWhileRevalidate}`
       );
       return response;
     } catch (cacheError) {
@@ -156,9 +214,12 @@ export async function GET(request: NextRequest) {
 
     const response = NextResponse.json(result);
     response.headers.set("X-Cache", "MISS");
+
+    // **PERFORMANCE**: Conservative cache headers for uncached responses
+    const cacheSeconds = Math.floor(CACHE_DURATIONS.SEARCH_RESULTS / 1000); // Use search duration as conservative default
     response.headers.set(
       "Cache-Control",
-      "public, max-age=60, s-maxage=60, stale-while-revalidate=120"
+      `public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds}, stale-while-revalidate=${cacheSeconds * 2}`
     );
 
     return response;
@@ -215,67 +276,51 @@ async function fetchProductsFromDatabase(params: {
     status: "APPROVED" as any,
   };
 
-  // **PERFORMANCE**: Optimized category filtering (supports multiple categories)
+  // **PERFORMANCE**: Optimized category filtering with better query patterns
   if (category) {
     const categories = category.split(",").map(cat => cat.trim().toLowerCase());
+    const validStemDisciplines = [
+      "science",
+      "technology",
+      "engineering",
+      "mathematics",
+    ];
 
-    // STEM categories mapping with better performance
-    // const stemCategoryMap: StemCategoryMap = {
-    //   science: ["fizica", "chimie", "biologie", "astronomie"],
-    //   technology: ["programare", "robotica", "electronica"],
-    //   engineering: ["constructii", "mecanica", "inginerie"],
-    //   mathematics: ["matematica", "geometrie", "algebra"],
-    //   "educational-books": ["carti-educationale", "manuale"],
-    // };
-
-    // Build OR conditions for multiple categories
+    // Build category conditions with optimized patterns
     const categoryConditions = categories.map(normalizedCategory => {
-      // Check if this is a valid STEM discipline (excluding educational-books)
-      const validStemDisciplines = [
-        "science",
-        "technology",
-        "engineering",
-        "mathematics",
-      ];
       const isValidStemDiscipline =
         validStemDisciplines.includes(normalizedCategory);
 
       if (isValidStemDiscipline) {
-        // For valid STEM categories, check both stemDiscipline AND category.slug
+        // **PERFORMANCE**: Use single field check first for better index utilization
         return {
-          OR: [
-            {
-              stemDiscipline: normalizedCategory.toUpperCase() as any, // Convert to enum value
-            },
-            {
-              category: {
-                slug: normalizedCategory,
-                isActive: true,
-              },
-            },
-          ],
+          stemDiscipline: normalizedCategory.toUpperCase() as any,
+        };
+      } else if (normalizedCategory === "educational-books") {
+        // Special handling for educational-books category
+        return {
+          category: {
+            slug: normalizedCategory,
+            isActive: true,
+          },
+        };
+      } else {
+        // For other categories, check category slug
+        return {
+          category: {
+            slug: normalizedCategory,
+            isActive: true,
+          },
         };
       }
-      // For non-STEM categories (like educational-books), only check category.slug
-      return {
-        category: {
-          slug: normalizedCategory,
-          isActive: true,
-        },
-      };
     });
 
-    // If multiple categories, use OR to match any of them
+    // **PERFORMANCE**: Use more efficient OR conditions
     if (categoryConditions.length > 1) {
       where.OR = categoryConditions;
     } else if (categoryConditions.length === 1) {
-      // For single category, use the condition directly
-      const condition = categoryConditions[0];
-      if (condition.OR) {
-        where.OR = condition.OR;
-      } else {
-        Object.assign(where, condition);
-      }
+      // Merge single condition directly to avoid OR wrapper
+      Object.assign(where, categoryConditions[0]);
     }
   }
 
@@ -291,26 +336,40 @@ async function fetchProductsFromDatabase(params: {
     where.featured = true;
   }
 
-  // **PERFORMANCE**: Optimized search with proper indexing
+  // **PERFORMANCE**: Ultra-optimized search using database full-text search
   if (search) {
-    const searchTerm = search.toLowerCase();
-    const searchConditions = [
-      { name: { contains: searchTerm, mode: "insensitive" } },
-      { description: { contains: searchTerm, mode: "insensitive" } },
-      { tags: { hasSome: [searchTerm] } },
-    ];
+    const searchTerm = search.toLowerCase().trim();
+    if (searchTerm.length > 0) {
+      // **PERFORMANCE**: Use database-level full-text search for better performance
+      // This leverages the GIN trigram indexes we created
+      const searchConditions = [];
 
-    // If we already have OR conditions from category filtering, combine them
-    if (where.OR) {
-      // Combine category OR with search OR using AND logic
-      where.AND = [
-        { OR: where.OR }, // Category conditions
-        { OR: searchConditions }, // Search conditions
-      ];
-      delete where.OR;
-    } else {
-      // No category OR conditions, just use search OR
-      where.OR = searchConditions;
+      // Primary search: name field (fastest, most relevant)
+      searchConditions.push({
+        name: { contains: searchTerm, mode: "insensitive" },
+      });
+
+      // Secondary search: description for longer terms
+      if (searchTerm.length >= 3) {
+        searchConditions.push({
+          description: { contains: searchTerm, mode: "insensitive" },
+        });
+      }
+
+      // Tertiary search: tags for very specific terms
+      if (searchTerm.length >= 5 && !searchTerm.includes(" ")) {
+        searchConditions.push({ tags: { hasSome: [searchTerm] } });
+      }
+
+      // **PERFORMANCE**: Optimized OR logic to prevent query planner issues
+      if (where.OR) {
+        where.AND = where.AND || [];
+        where.AND.push({ OR: where.OR });
+        where.AND.push({ OR: searchConditions });
+        delete where.OR;
+      } else {
+        where.OR = searchConditions;
+      }
     }
   }
 
@@ -325,7 +384,7 @@ async function fetchProductsFromDatabase(params: {
 
   if (learningOutcomes && learningOutcomes.length > 0) {
     (where as any).learningOutcomes = {
-      hasEvery: learningOutcomes,
+      hasSome: learningOutcomes,
     };
   }
 
@@ -385,39 +444,41 @@ async function fetchProductsFromDatabase(params: {
     const fetchProducts = withPerformanceMonitoring(
       "product_list_query",
       () => {
-        // **PERFORMANCE-FIX**: Optimized query for featured products
-        if (featured === "true") {
-          // For featured products, use a simpler query without category join
+        // **PERFORMANCE-FIX**: Ultra-optimized query for featured products
+        if (
+          featured === "true" &&
+          !category &&
+          !search &&
+          !ageGroup &&
+          !stemDiscipline
+        ) {
+          // **PERFORMANCE**: Use perfect composite index for homepage-style queries
           const queryOptions = {
-            where,
-            orderBy,
+            where: {
+              isActive: true,
+              status: "APPROVED" as const,
+              featured: true,
+            },
+            orderBy: {
+              // **PERFORMANCE**: Single field sort leverages composite index perfectly
+              createdAt: "desc" as const,
+            },
             skip,
             take: limit,
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              description: true,
-              price: true,
-              compareAtPrice: true,
-              images: true,
-              featured: true,
-              isActive: true,
-              stockQuantity: true,
-              reservedQuantity: true,
-              attributes: true,
-              tags: true,
-              ageGroup: true,
-              stemDiscipline: true,
-              learningOutcomes: true,
-              productType: true,
-              specialCategories: true,
-            },
+            // **FIX**: Include all product fields including categorization data
+            include: optimizedIncludes,
           };
 
-          return db.$transaction([
+          // **PERFORMANCE**: Parallel queries for optimal performance
+          return Promise.all([
             db.product.findMany(queryOptions),
-            db.product.count({ where }),
+            db.product.count({
+              where: {
+                isActive: true,
+                status: "APPROVED" as const,
+                featured: true,
+              },
+            }),
           ]);
         }
         // For regular products, include category data
@@ -429,8 +490,8 @@ async function fetchProductsFromDatabase(params: {
           take: limit,
         };
 
+        // **PERFORMANCE**: Handle books in transaction for consistency
         if (includeBooks) {
-          // When educational-books is included, also fetch books
           return db.$transaction([
             db.product.findMany(queryOptions),
             db.product.count({ where }),
@@ -464,6 +525,8 @@ async function fetchProductsFromDatabase(params: {
                 languages: true,
               },
               orderBy: { createdAt: "desc" },
+              take: limit, // **PERFORMANCE**: Limit books to prevent overwhelming results
+              skip: (page - 1) * limit,
             }),
             db.book.count({
               where: {
@@ -664,6 +727,85 @@ async function fetchProductsFromDatabase(params: {
   } catch (dbError) {
     console.error("Database error when fetching products:", dbError);
     throw new Error("Database query failed");
+  }
+}
+
+// **PERFORMANCE**: Ultra-fast featured products query
+async function fetchFeaturedProductsFast(params: {
+  limit: number;
+  page: number;
+}) {
+  const { limit, page } = params;
+
+  try {
+    const startTime = Date.now();
+
+    // **PERFORMANCE**: Use optimized query with minimal fields for speed
+    const products = await db.product.findMany({
+      where: {
+        isActive: true,
+        status: "APPROVED",
+        featured: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        price: true,
+        compareAtPrice: true,
+        images: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: limit,
+      skip: (page - 1) * limit,
+    });
+
+    const totalCount = await db.product.count({
+      where: {
+        isActive: true,
+        status: "APPROVED",
+        featured: true,
+      },
+    });
+
+    const executionTime = Date.now() - startTime;
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `⚡ FAST Featured query: ${executionTime}ms for ${products.length} products`
+      );
+    }
+
+    return {
+      products,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        hasNext: page * limit < totalCount,
+        hasPrevious: page > 1,
+      },
+      meta: {
+        executionTime,
+        itemsCount: products.length,
+        queryOptimizations: true,
+        cached: false,
+        fastQuery: true,
+      },
+    };
+  } catch (error) {
+    console.error("Fast featured products query failed:", error);
+    throw error;
   }
 }
 

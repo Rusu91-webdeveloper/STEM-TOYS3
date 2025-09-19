@@ -82,7 +82,7 @@ setInterval(
 );
 
 /**
- * Performance monitoring decorator for database operations
+ * **PERFORMANCE**: Enhanced performance monitoring decorator for database operations
  */
 export function withPerformanceMonitoring<
   T extends (...args: any[]) => Promise<any>,
@@ -98,12 +98,30 @@ export function withPerformanceMonitoring<
         resultSize: Array.isArray(result) ? result.length : 1,
       });
 
-      // Log slow queries
-      if (duration > 1000) {
-        logger.warn(`Slow database operation detected`, {
+      // **PERFORMANCE**: Enhanced slow query detection with different thresholds
+      const thresholds = {
+        product_list_query: 500, // Products should be very fast (reduced from 800)
+        user_query: 300, // User operations should be instant (reduced from 500)
+        cart_query: 200, // Cart operations should be instant (reduced from 300)
+        analytics_query: 800, // Analytics can be slower
+        default: 800, // General threshold (reduced from 1000)
+      };
+
+      const threshold =
+        thresholds[operation as keyof typeof thresholds] || thresholds.default;
+
+      if (duration > threshold) {
+        logger.warn(`🚨 SLOW OPERATION DETECTED`, {
           operation,
           duration,
+          threshold,
           args: JSON.stringify(args).slice(0, 200), // Limit log size
+          timestamp: new Date().toISOString(),
+        });
+      } else if (process.env.NODE_ENV === "development" && duration > 100) {
+        logger.info(`⚡ Fast operation: ${operation}`, {
+          duration,
+          resultSize: Array.isArray(result) ? result.length : 1,
         });
       }
 
@@ -114,6 +132,13 @@ export function withPerformanceMonitoring<
         success: false,
         error: (error as Error).message,
       });
+
+      logger.error(`💥 Operation failed: ${operation}`, {
+        duration,
+        error: (error as Error).message,
+        args: JSON.stringify(args).slice(0, 200),
+      });
+
       throw error;
     }
   }) as T;

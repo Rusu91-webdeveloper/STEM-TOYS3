@@ -1,11 +1,11 @@
 // Service Worker for STEM TOYS E-commerce Platform
-// Version: 1.0.0
+// Version: 1.0.1
 // Cache Strategy: Network First with Cache Fallback
 
-const CACHE_NAME = 'stem-toys-v1.0.0';
-const STATIC_CACHE = 'static-v1.0.0';
-const DYNAMIC_CACHE = 'dynamic-v1.0.0';
-const API_CACHE = 'api-v1.0.0';
+const CACHE_NAME = 'stem-toys-v1.0.1';
+const STATIC_CACHE = 'static-v1.0.1';
+const DYNAMIC_CACHE = 'dynamic-v1.0.1';
+const API_CACHE = 'api-v1.0.1';
 
 // Cache configurations
 const CACHE_CONFIGS = {
@@ -60,18 +60,29 @@ self.addEventListener('install', (event) => {
   console.log('[SW] Installing service worker...');
   
   event.waitUntil(
-    caches.open(CACHE_CONFIGS.static.name)
-      .then((cache) => {
+    (async () => {
+      try {
+        const cache = await caches.open(CACHE_CONFIGS.static.name);
         console.log('[SW] Caching critical assets');
-        return cache.addAll(CRITICAL_ASSETS);
-      })
-      .then(() => {
+        for (const asset of CRITICAL_ASSETS) {
+          try {
+            const request = new Request(asset, { cache: 'reload' });
+            const response = await fetch(request);
+            if (response && response.ok) {
+              await cache.put(request, response);
+            } else {
+              console.warn('[SW] Skipped caching asset (non-OK):', asset);
+            }
+          } catch (e) {
+            console.warn('[SW] Skipped caching asset (fetch failed):', asset, e);
+          }
+        }
         console.log('[SW] Service worker installed successfully');
         return self.skipWaiting();
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error('[SW] Failed to cache critical assets:', error);
-      })
+      }
+    })()
   );
 });
 
@@ -130,7 +141,8 @@ self.addEventListener('fetch', (event) => {
   
   // CRITICAL: Never intercept Next.js JavaScript chunks to prevent syntax errors
   if (isNextJSAsset(url.pathname)) {
-    console.log('[SW] Skipping Next.js asset:', url.pathname);
+    // **PERFORMANCE**: Skip logging in service worker to avoid process.env issues
+    // Service workers run in browser context where process.env is not available
     return;
   }
   
@@ -586,19 +598,38 @@ async function clearAllCaches() {
 }
 
 async function getCacheStats() {
-  const cacheNames = await caches.keys();
-  const stats = {};
-  
-  for (const cacheName of cacheNames) {
-    const cache = await caches.open(cacheName);
-    const requests = await cache.keys();
-    stats[cacheName] = {
-      size: requests.length,
-      requests: requests.map(req => req.url),
-    };
+  try {
+    const cacheNames = await caches.keys();
+    const stats = {};
+    
+    for (const cacheName of cacheNames) {
+      try {
+        const cache = await caches.open(cacheName);
+        const requests = await cache.keys();
+        
+        // **PERFORMANCE**: Limit the number of requests to prevent "Operation too large" error
+        const limitedRequests = requests.slice(0, 5); // Only get first 5 requests to avoid cache errors
+        
+        stats[cacheName] = {
+          size: requests.length,
+          requests: limitedRequests.map(req => req.url),
+          totalRequests: requests.length, // Keep track of total without storing all URLs
+        };
+      } catch (cacheError) {
+        console.warn(`[SW] Error accessing cache ${cacheName}:`, cacheError);
+        stats[cacheName] = {
+          size: 0,
+          requests: [],
+          error: 'Cache access failed'
+        };
+      }
+    }
+    
+    return stats;
+  } catch (error) {
+    console.error('[SW] Error in getCacheStats:', error);
+    return { error: 'Failed to get cache stats' };
   }
-  
-  return stats;
 }
 
 console.log('[SW] Service worker loaded successfully'); 

@@ -144,3 +144,87 @@
     - Optimize hero image preload/preconnect only if needed; LCP already
       prioritized.
     - Add Lighthouse CI and E2E tests for hero CTAs and LCP budget.
+
+## 2025-09-19
+
+- Set Default Status to PENDING_APPROVAL for Bulk Product Uploads
+  - Description: Update admin bulk upload functionality to always set product
+    status to PENDING_APPROVAL instead of conditional approval based on AI
+    enhancement
+  - Estimated time: 0.5h
+  - Status: Completed
+  - Date: 2025-09-19
+  - Notes:
+    - Updated `/api/admin/products/bulk-upload/route.ts` to always set status to
+      "PENDING_APPROVAL"
+    - Updated `/api/admin/products/ai-enhance-and-save/route.ts` to use
+      "PENDING_APPROVAL" instead of "APPROVED"
+    - Updated console logs and response tracking to reflect new behavior
+    - Updated AI_ENHANCEMENT_WORKFLOW_GUIDE.md documentation
+    - Verified Prisma schema already has PENDING_APPROVAL as default for
+      Product.status
+    - All bulk uploaded products now require admin approval before going live
+
+- Fix Web Vitals API Errors
+  - Description: Resolve recurring Web Vitals tracking errors in terminal (INP
+    metric not supported, missing timestamps)
+  - Estimated time: 0.5h
+  - Status: Completed
+  - Date: 2025-09-19
+  - Notes:
+    - Added INP (Interaction to Next Paint) metric support to web-vitals schema
+    - Made timestamp field optional with default value to prevent validation
+      errors
+    - Added INP thresholds (200ms good, 500ms needs improvement)
+    - Improved error handling with better Zod validation error messages
+    - Enhanced client-side error handling to be silent in production
+    - Added userAgent to client requests for better tracking
+    - Errors should now be resolved and not spam the terminal
+
+- Fix Cart API Startup Error (Duplicate variable declaration)
+  - Description: Resolve dev startup/runtime 500s caused by a duplicate
+    `sessionId` declaration in `getCartId` fallback path.
+  - Estimated time: 0.2h
+  - Status: Completed
+  - Date: 2025-09-19
+  - Notes:
+    - Removed the second `const sessionId = getSessionId(request)` inside the
+      anonymous-user fallback in `lib/cart-storage.ts` and reused the initial
+      `sessionId`.
+    - Verified `GET /api/cart` and `POST /api/cart` return 200 locally.
+    - Root cause matched Next.js build error: "Identifier 'sessionId' has
+      already been declared (151:10)".
+
+- Products Page – Professional UI/UX Refactor (Hero, Filters, Cards)
+  - Description: Refactor `/products` page visuals for professional, consistent
+    UI/UX without changing data fetching or filtering logic. Fixed hero CTA
+    clickability, simplified visuals, polished mobile filter bar, and cleaned
+    product card design (grid/list).
+  - Estimated time: 2.5h
+  - Status: Completed
+  - Date: 2025-09-19
+  - Notes:
+    - Hero: set pointer-events:none on decorative overlays, raised content
+      z-index so CTAs are clickable; refined heights and transitions.
+    - MobileFilterBar: simplified to neutral, professional styling, reduced
+      gradients/animations, improved readability.
+    - ProductCard: replaced ribbon/banners with subtle sale and low-stock
+      badges; unified button style; preserved logic.
+    - Added tests: hero CTA click tracking mock; basic ProductGrid rendering and
+      layout toggle.
+  - Discovered During Work:
+    - Consider adding compact trust badges row under hero for social proof.
+
+- Fix Products Sidebar – "All Types" shows no results
+  - Description: Ensure selecting "All Types" in the Product Type dropdown
+    applies no type filter and shows all products.
+  - Estimated time: 0.2h
+  - Status: Completed
+  - Date: 2025-09-19
+  - Notes:
+    - Updated `ClientProductsPage.tsx` to skip type filter when value is
+      `"all"`.
+    - Set default `selectedProductType` to `"all"` in `useProductFilters`
+      initial state.
+    - Aligned active filter counts and badges in `EnhancedProductFilters` and
+      `MobileFiltersModal` to ignore `"all"`.

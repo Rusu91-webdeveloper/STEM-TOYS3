@@ -76,7 +76,7 @@ export function MobileFiltersModal({
     let count = selectedCategories.length;
     count += Object.values(selectedFilters).flat().length;
     count += selectedLearningOutcomes.length;
-    count += selectedProductType ? 1 : 0;
+    count += selectedProductType && selectedProductType !== "all" ? 1 : 0;
     count += selectedSpecialCategories.length;
     count += !noPriceFilter ? 1 : 0;
     setActiveFiltersCount(count);
@@ -196,7 +196,7 @@ export function MobileFiltersModal({
                       {cat}
                     </span>
                   ))}
-                  {selectedProductType && (
+                  {selectedProductType && selectedProductType !== "all" && (
                     <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl text-sm font-black shadow-lg border border-white/20">
                       <Check className="w-4 h-4" />
                       {selectedProductType}

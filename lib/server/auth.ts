@@ -130,35 +130,42 @@ const createDevAdminFromEnv = async (
   return null;
 };
 
+// **PERFORMANCE**: Flag to prevent redundant logging
+let authConfigLogged = false;
+
 // Function to create auth options with dynamic environment loading
 const createAuthOptions = (): NextAuthConfig => {
   const env = getEnv();
   const serviceConfig = getServiceConfig(env);
 
-  // Validate Google OAuth configuration
-  if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
-    console.log("✅ Google OAuth configured successfully");
-    console.log(
-      "🔧 Google Client ID:",
-      `${env.GOOGLE_CLIENT_ID.substring(0, 20)  }...`
-    );
-    console.log(
-      "🔧 Google Client Secret:",
-      `${env.GOOGLE_CLIENT_SECRET.substring(0, 10)  }...`
-    );
-  } else {
-    console.log(
-      "⚠️ Google OAuth not configured - authentication will work with credentials only"
-    );
-    console.log("🔍 Available env vars:", {
-      AUTH_GOOGLE_ID: !!process.env.AUTH_GOOGLE_ID,
-      AUTH_GOOGLE_SECRET: !!process.env.AUTH_GOOGLE_SECRET,
-      GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
-      GOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET,
-    });
-    console.log(
-      "💡 To enable Google OAuth, add AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET to your environment variables"
-    );
+  // **PERFORMANCE**: Only log Google OAuth configuration once
+  if (!authConfigLogged) {
+    // Validate Google OAuth configuration
+    if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
+      console.log("✅ Google OAuth configured successfully");
+      console.log(
+        "🔧 Google Client ID:",
+        `${env.GOOGLE_CLIENT_ID.substring(0, 20)}...`
+      );
+      console.log(
+        "🔧 Google Client Secret:",
+        `${env.GOOGLE_CLIENT_SECRET.substring(0, 10)}...`
+      );
+    } else {
+      console.log(
+        "⚠️ Google OAuth not configured - authentication will work with credentials only"
+      );
+      console.log("🔍 Available env vars:", {
+        AUTH_GOOGLE_ID: !!process.env.AUTH_GOOGLE_ID,
+        AUTH_GOOGLE_SECRET: !!process.env.AUTH_GOOGLE_SECRET,
+        GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
+        GOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET,
+      });
+      console.log(
+        "💡 To enable Google OAuth, add AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET to your environment variables"
+      );
+    }
+    authConfigLogged = true;
   }
 
   return {
@@ -556,7 +563,7 @@ const createAuthOptions = (): NextAuthConfig => {
         return token;
       },
     },
-    debug: process.env.NODE_ENV === "development",
+    debug: false, // **PERFORMANCE**: Disabled debug mode to reduce console noise
     pages: {
       signIn: "/auth/login",
       error: "/auth/error",

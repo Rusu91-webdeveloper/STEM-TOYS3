@@ -23,6 +23,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
+import { normalizeCategory } from "@/lib/utils/product-filters-url";
 import {
   LEARNING_OUTCOME_DISPLAY_NAMES,
   PRODUCT_TYPE_DISPLAY_NAMES,
@@ -148,7 +149,7 @@ export function EnhancedProductFilters({
       ? 1
       : 0) +
     selectedLearningOutcomes.length +
-    (selectedProductType ? 1 : 0) +
+    (selectedProductType && selectedProductType !== "all" ? 1 : 0) +
     selectedSpecialCategories.length;
 
   // Handle price slider change
@@ -231,24 +232,11 @@ export function EnhancedProductFilters({
               >
                 <Checkbox
                   id={`category-${category.id}`}
-                  checked={selectedCategories.some(selectedCat => {
-                    // Normalize both the selected category and the checkbox category for comparison
-                    const normalizeCategory = (name: string): string => {
-                      const lower = name.toLowerCase().trim();
-                      if (lower === "mathematics" || lower === "math")
-                        return "mathematics";
-                      if (
-                        lower === "educational books" ||
-                        lower === "educational-books"
-                      )
-                        return "educational-books";
-                      return lower;
-                    };
-                    return (
+                  checked={selectedCategories.some(
+                    selectedCat =>
                       normalizeCategory(selectedCat) ===
                       normalizeCategory(category.id)
-                    );
-                  })}
+                  )}
                   onCheckedChange={() => onCategoryChange?.(category.id)}
                   className={cn(
                     "h-4 w-4 sm:h-5 sm:w-5",

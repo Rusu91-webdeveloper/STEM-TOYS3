@@ -15,13 +15,13 @@ import React, { useState, useEffect, useMemo, Suspense } from "react";
 
 import { ProductVariantProvider } from "@/features/products";
 import { useTranslation } from "@/lib/i18n";
+import { normalizeCategory } from "@/lib/utils/product-filters-url";
 import type { Product } from "@/types/product";
 
 import { useProductFilters } from "../hooks/useProductFilters";
 
 import type { FilterGroup } from "./EnhancedProductFilters";
 import { MobileFiltersModal } from "./MobileFiltersModal";
-import { ProductsCategoryNavigation } from "./ProductsCategoryNavigation";
 import {
   ProductsErrorBoundary,
   ProductFiltersErrorBoundary,
@@ -163,54 +163,6 @@ interface ClientProductsPageProps {
   allSidebarCategories?: Array<{ id: string; label: string; count: number }>;
 }
 
-// Helper function to standardize category names to avoid duplicates
-const normalizeCategory = (name: string): string => {
-  // Convert to lowercase for consistency
-  const lower = name.toLowerCase();
-
-  // Handle various forms of "educational books" category
-  if (
-    lower === "educational-books" ||
-    lower === "educational books" ||
-    lower === "books" ||
-    lower === "carti" ||
-    lower === "carti educationale" ||
-    lower.includes("book") ||
-    lower.includes("carte")
-  ) {
-    return "educational-books";
-  }
-
-  // Handle various forms of engineering category
-  if (lower === "inginerie" || lower.includes("engineer")) {
-    return "engineering";
-  }
-
-  // Handle various forms of mathematics category
-  if (
-    lower === "mathematics" ||
-    lower === "matematica" ||
-    lower === "matematică" ||
-    lower.includes("math") ||
-    lower.includes("mate")
-  ) {
-    return "mathematics";
-  }
-
-  // Handle engineeringLearning category
-  if (
-    lower === "engineeringlearning" ||
-    lower === "engineering learning" ||
-    lower === "inginerie si invatare" ||
-    lower === "inginerie și învățare"
-  ) {
-    return "engineering";
-  }
-
-  // Default normalization - just return lowercase
-  return lower;
-};
-
 // Helper function to get category translation
 const getCategoryTranslation = (
   categoryId: string,
@@ -242,32 +194,29 @@ function ClientProductsPageContent({
   const { state, actions, initFromSearchParams, updateURL } =
     useProductFilters();
   const [products] = useState<ProductData[]>(initialProducts);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(true); // Start as hydrated to prevent CLS
 
-  // Initialize from search params and set hydrated
+  // Initialize from search params on mount
   useEffect(() => {
     try {
       initFromSearchParams();
     } catch (error) {
-      console.error("Error initializing from search params:", error);
-    } finally {
-      setIsHydrated(true);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error initializing from search params:", error);
+      }
     }
   }, [initFromSearchParams]);
 
   // Update URL when filters change (debounced)
   useEffect(() => {
-    if (!isHydrated) return;
-
     const timeoutId = setTimeout(() => {
       updateURL();
     }, 300);
 
-    // eslint-disable-next-line consistent-return
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [state, updateURL, isHydrated]);
+  }, [state, updateURL]);
 
   // Generate dynamic filters based on available product data
   // Note: Product Type filter is now handled as a dropdown in EnhancedProductFilters
@@ -328,6 +277,23 @@ function ClientProductsPageContent({
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
+    // DEBUG: Log filtering process
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        "🐛 [CLIENT FILTERING] Starting with",
+        products.length,
+        "products"
+      );
+      console.log(
+        "🐛 [CLIENT FILTERING] Selected learning outcomes:",
+        state.selectedLearningOutcomes
+      );
+      console.log(
+        "🐛 [CLIENT FILTERING] First product learning outcomes:",
+        products[0]?.learningOutcomes
+      );
+    }
+
     // Filter by selected categories
     if (state.selectedCategories.length > 0) {
       filtered = filtered.filter(product => {
@@ -335,6 +301,7 @@ function ClientProductsPageContent({
           product.category?.name?.toLowerCase() ||
           product.stemDiscipline?.toLowerCase() ||
           "";
+
         return state.selectedCategories.some(selectedCategory => {
           const normalizedSelected = normalizeCategory(selectedCategory);
           const normalizedProduct = normalizeCategory(productCategory);
@@ -386,17 +353,72 @@ function ClientProductsPageContent({
     }
 
     // Filter by learning outcomes
-    if (state.selectedLearningOutcomes.length > 0) {
+    if (
+      process.env.NODE_ENV === "development" &&
+      state.selectedLearningOutcomes.length > 0
+    ) {
+      console.log(
+        "🐛 [LEARNING OUTCOMES FILTER] Filtering by:",
+        state.selectedLearningOutcomes
+      );
+      console.log(
+        "🐛 [LEARNING OUTCOMES FILTER] Products before filter:",
+        filtered.length
+      );
+
       filtered = filtered.filter(product => {
-        if (!product.learningOutcomes) return false;
-        return state.selectedLearningOutcomes.some(outcome =>
-          product.learningOutcomes!.includes(outcome as any)
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            "🐛 [LEARNING OUTCOMES FILTER] Checking product:",
+            product.name
+          );
+          console.log(
+            "🐛 [LEARNING OUTCOMES FILTER] Product learning outcomes:",
+            product.learningOutcomes
+          );
+          console.log(
+            "🐛 [LEARNING OUTCOMES FILTER] Is array?",
+            Array.isArray(product.learningOutcomes)
+          );
+        }
+
+        if (
+          !product.learningOutcomes ||
+          !Array.isArray(product.learningOutcomes)
+        ) {
+          if (process.env.NODE_ENV === "development") {
+            console.log(
+              "🐛 [LEARNING OUTCOMES FILTER] Product filtered out - no learning outcomes"
+            );
+          }
+          return false;
+        }
+
+        const matches = state.selectedLearningOutcomes.some(outcome =>
+          product.learningOutcomes.some(
+            productOutcome => productOutcome === outcome
+          )
         );
+
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            "🐛 [LEARNING OUTCOMES FILTER] Product matches?",
+            matches
+          );
+        }
+        return matches;
       });
+
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          "🐛 [LEARNING OUTCOMES FILTER] Products after filter:",
+          filtered.length
+        );
+      }
     }
 
-    // Filter by product type
-    if (state.selectedProductType) {
+    // Filter by product type (treat "all" as no filter)
+    if (state.selectedProductType && state.selectedProductType !== "all") {
       filtered = filtered.filter(
         product => product.productType === state.selectedProductType
       );
@@ -579,10 +601,8 @@ function ClientProductsPageContent({
     }
   };
 
-  // Render content conditionally to avoid hooks rule violation
-  const content = !isHydrated ? (
-    <ClientProductsPageFallback />
-  ) : (
+  // Always render the main content to prevent CLS
+  const content = (
     <ProductsErrorBoundary>
       <ProductVariantProvider>
         <ProductsHeroSection
@@ -594,14 +614,7 @@ function ClientProductsPageContent({
           t={t}
         />
 
-        <ProductsCategoryNavigation
-          categoryInfo={categoryInfo}
-          selectedCategories={state.selectedCategories}
-          normalizeCategory={normalizeCategory}
-          handleCategoryChange={handleCategoryChange}
-          setMobileFiltersOpen={actions.setMobileFiltersOpen}
-          t={t}
-        />
+        {/* Removed redundant category quick buttons to avoid duplication with sidebar and mobile filters */}
 
         {/* Premium Mobile Filter Bar - Optimized for Performance */}
         <div className="md:hidden">
@@ -610,7 +623,9 @@ function ClientProductsPageContent({
               state.selectedCategories.length +
               Object.values(state.selectedFilters).flat().length +
               state.selectedLearningOutcomes.length +
-              (state.selectedProductType ? 1 : 0) +
+              (state.selectedProductType && state.selectedProductType !== "all"
+                ? 1
+                : 0) +
               state.selectedSpecialCategories.length +
               (!state.noPriceFilter &&
               (state.priceRangeFilter[0] !== 0 ||

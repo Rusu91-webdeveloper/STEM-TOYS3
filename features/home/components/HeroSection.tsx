@@ -67,18 +67,19 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
       className="relative flex items-center justify-center min-h-[75vh] sm:min-h-[80vh] md:min-h-[85vh] max-h-[900px] overflow-hidden"
       aria-label={t("heroSection", "Homepage Hero Section")}
     >
-      {/* Background Image with object-center for perfect cropping/focal point */}
+      {/* **PERFORMANCE**: Ultra-optimized hero image for LCP - aggressive loading */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/images/homepage_hero_banner_01.png"
+          src="/images/optimized/homepage_hero_banner_01_fallback.jpg"
           alt={t("inspireMinds", "Inspire Curious Minds")}
           fill
-          priority
+          priority // **PERFORMANCE**: Critical for LCP - loads immediately
+          sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1024px) 100vw, 100vw"
           className="object-cover object-center w-full h-full brightness-[0.9] contrast-[1.05]"
-          sizes="100vw"
           fetchPriority="high"
+          quality={85}
           placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Kcp"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
         />
         {/* Simplified gradient overlay for text readability */}
         <div

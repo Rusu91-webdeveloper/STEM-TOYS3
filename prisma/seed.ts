@@ -1,7 +1,14 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { PrismaClient } from "@prisma/client";
+import {
+  PrismaClient,
+  AgeGroup,
+  StemCategory,
+  LearningOutcome,
+  ProductType,
+  SpecialCategory,
+} from "@prisma/client";
 import { hash } from "bcrypt";
 import * as dotenv from "dotenv";
 
@@ -166,6 +173,15 @@ async function main() {
         difficulty: "Intermediate",
         safetyRating: "Non-toxic materials",
       },
+      // Filter fields
+      ageGroup: AgeGroup.ELEMENTARY_6_8,
+      stemDiscipline: StemCategory.SCIENCE,
+      learningOutcomes: [
+        LearningOutcome.CRITICAL_THINKING,
+        LearningOutcome.PROBLEM_SOLVING,
+      ],
+      productType: ProductType.EXPERIMENT_KITS,
+      specialCategories: [SpecialCategory.BEST_SELLERS],
       metadata: {
         title: "Chemistry Lab Kit for Kids - STEM Educational Science Set",
         description:
@@ -216,6 +232,15 @@ async function main() {
         batteryLife: "4 hours",
         connectivity: "Bluetooth",
       },
+      // Filter fields
+      ageGroup: AgeGroup.ELEMENTARY_6_8,
+      stemDiscipline: StemCategory.TECHNOLOGY,
+      learningOutcomes: [
+        LearningOutcome.PROBLEM_SOLVING,
+        LearningOutcome.LOGIC,
+      ],
+      productType: ProductType.ROBOTICS,
+      specialCategories: [SpecialCategory.NEW_ARRIVALS],
       metadata: {
         title:
           "Kids Coding Robot for Beginners - Learn Programming Through Play",
@@ -267,6 +292,15 @@ async function main() {
         difficulty: "Intermediate",
         materialType: "High-quality plastic and wood",
       },
+      // Filter fields
+      ageGroup: AgeGroup.ELEMENTARY_6_8,
+      stemDiscipline: StemCategory.ENGINEERING,
+      learningOutcomes: [
+        LearningOutcome.PROBLEM_SOLVING,
+        LearningOutcome.CRITICAL_THINKING,
+      ],
+      productType: ProductType.CONSTRUCTION_SETS,
+      specialCategories: [SpecialCategory.BEST_SELLERS],
       metadata: {
         title: "Bridge Builder Engineering Kit - STEM Construction Toy Set",
         description:
@@ -323,6 +357,15 @@ async function main() {
         difficulty: "Multiple levels",
         materialType: "High-quality ABS plastic",
       },
+      // Filter fields
+      ageGroup: AgeGroup.ELEMENTARY_6_8,
+      stemDiscipline: StemCategory.MATHEMATICS,
+      learningOutcomes: [
+        LearningOutcome.LOGIC,
+        LearningOutcome.CRITICAL_THINKING,
+      ],
+      productType: ProductType.PUZZLES,
+      specialCategories: [SpecialCategory.GIFT_IDEAS],
       metadata: {
         title:
           "Mathematical Puzzle Cube Set - Brain Teasers for Kids and Adults",
@@ -374,6 +417,15 @@ async function main() {
         features: "Motorized rotation, LED lights",
         batteries: "3 AA (included)",
       },
+      // Filter fields
+      ageGroup: AgeGroup.ELEMENTARY_6_8,
+      stemDiscipline: StemCategory.SCIENCE,
+      learningOutcomes: [
+        LearningOutcome.CRITICAL_THINKING,
+        LearningOutcome.PROBLEM_SOLVING,
+      ],
+      productType: ProductType.EXPERIMENT_KITS,
+      specialCategories: [SpecialCategory.NEW_ARRIVALS],
       metadata: {
         title:
           "Solar System Planetarium Model - Astronomical Science Kit for Kids",
@@ -430,6 +482,15 @@ async function main() {
         components: "Solar panels, wind turbine, water wheel",
         difficulty: "Intermediate to Advanced",
       },
+      // Filter fields
+      ageGroup: AgeGroup.MIDDLE_SCHOOL_9_12,
+      stemDiscipline: StemCategory.SCIENCE,
+      learningOutcomes: [
+        LearningOutcome.CRITICAL_THINKING,
+        LearningOutcome.PROBLEM_SOLVING,
+      ],
+      productType: ProductType.EXPERIMENT_KITS,
+      specialCategories: [SpecialCategory.BEST_SELLERS],
       metadata: {
         title:
           "Renewable Energy Science Kit - Learn About Sustainable Power Sources",
@@ -471,12 +532,26 @@ async function main() {
       where: { slug: product.slug },
     });
 
-    // Extract categorySlug and build the relation connect object
-    const { categorySlug, ...productData } = product;
+    // Extract categorySlug and filter fields, build the relation connect object
+    const {
+      categorySlug,
+      ageGroup,
+      stemDiscipline,
+      learningOutcomes,
+      productType,
+      specialCategories,
+      ...productData
+    } = product;
     const categoryId = categoryMap.get(categorySlug);
     const dataWithCategory = {
       ...productData,
       category: { connect: { id: categoryId } },
+      // Add filter fields
+      ageGroup: ageGroup || null,
+      stemDiscipline: stemDiscipline || StemCategory.GENERAL,
+      learningOutcomes: learningOutcomes || [],
+      productType: productType || null,
+      specialCategories: specialCategories || [],
     };
 
     if (!existingProduct) {

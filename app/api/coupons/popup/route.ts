@@ -1,74 +1,99 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
+import { getCached } from "@/lib/cache";
 
 // GET /api/coupons/popup - Get active promotional coupons for popup display
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
     const searchParams = new URL(request.url).searchParams;
     const excludeViewed = searchParams.get("excludeViewed");
 
     const now = new Date();
 
-    console.log("🔍 [COUPON POPUP] Searching for popup coupons...");
-    console.log("🕐 [COUPON POPUP] Current time:", now.toISOString());
+    // **PERFORMANCE**: Reduce logging in production
+    if (process.env.NODE_ENV === "development") {
+      console.log("🔍 [COUPON POPUP] Searching for popup coupons...");
+      console.log("🕐 [COUPON POPUP] Current time:", now.toISOString());
+    }
 
-    // Find active coupons that should be shown as popup
-    const promotionalCoupons = await db.coupon.findMany({
-      where: {
-        isActive: true,
-        showAsPopup: true,
-        AND: [
-          {
-            OR: [{ startsAt: null }, { startsAt: { lte: now } }],
+    // **PERFORMANCE**: Use caching to avoid repeated database queries
+    const cacheKey = "popup_coupons_active";
+    const promotionalCoupons = await getCached(
+      cacheKey,
+      () =>
+        db.coupon.findMany({
+          where: {
+            isActive: true,
+            showAsPopup: true,
+            AND: [
+              {
+                OR: [{ startsAt: null }, { startsAt: { lte: now } }],
+              },
+              {
+                OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+              },
+            ],
           },
-          {
-            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+          orderBy: [{ popupPriority: "desc" }, { createdAt: "desc" }],
+          take: 1, // Only return the highest priority coupon
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            description: true,
+            type: true,
+            value: true,
+            image: true,
+            minimumOrderValue: true,
+            maxDiscountAmount: true,
+            expiresAt: true,
+            isInfluencer: true,
+            influencerName: true,
+            popupPriority: true,
           },
-        ],
-      },
-      orderBy: [{ popupPriority: "desc" }, { createdAt: "desc" }],
-      take: 1, // Only return the highest priority coupon
-      select: {
-        id: true,
-        code: true,
-        name: true,
-        description: true,
-        type: true,
-        value: true,
-        image: true,
-        minimumOrderValue: true,
-        maxDiscountAmount: true,
-        expiresAt: true,
-        isInfluencer: true,
-        influencerName: true,
-        popupPriority: true,
-      },
-    });
-
-    console.log(
-      "✅ [COUPON POPUP] Found popup coupons:",
-      promotionalCoupons.length
+        }),
+      5 * 60 * 1000 // Cache for 5 minutes
     );
 
-    if (promotionalCoupons.length === 0) {
+    // **PERFORMANCE**: Reduce logging in production
+    if (process.env.NODE_ENV === "development") {
       console.log(
-        "❌ [COUPON POPUP] No promotional coupons found that meet criteria"
+        "✅ [COUPON POPUP] Found popup coupons:",
+        promotionalCoupons.length
       );
-      console.log("🔍 [COUPON POPUP] Required criteria:");
-      console.log("   - isActive: true");
-      console.log("   - showAsPopup: true");
-      console.log("   - startsAt: null OR <= now");
-      console.log("   - expiresAt: null OR > now");
-      return NextResponse.json({ coupon: null });
+    }
+
+    if (promotionalCoupons.length === 0) {
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          "❌ [COUPON POPUP] No promotional coupons found that meet criteria"
+        );
+        console.log("🔍 [COUPON POPUP] Required criteria:");
+        console.log("   - isActive: true");
+        console.log("   - showAsPopup: true");
+        console.log("   - startsAt: null OR <= now");
+        console.log("   - expiresAt: null OR > now");
+      }
+
+      // **PERFORMANCE**: Add performance headers
+      const response = NextResponse.json({ coupon: null });
+      response.headers.set("X-Response-Time", `${Date.now() - startTime}ms`);
+      return response;
     }
 
     const coupon = promotionalCoupons[0];
-    console.log(
-      "🎉 [COUPON POPUP] Selected coupon:",
-      coupon.name,
-      `(${coupon.code})`
-    );
+
+    // **PERFORMANCE**: Reduce logging in production
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        "🎉 [COUPON POPUP] Selected coupon:",
+        coupon.name,
+        `(${coupon.code})`
+      );
+    }
 
     // Format the response with bilingual text keys
     const formattedCoupon = {
@@ -118,11 +143,19 @@ export async function GET(request: NextRequest) {
         : null,
     };
 
-    console.log(
-      "📤 [COUPON POPUP] Returning formatted coupon:",
-      formattedCoupon.discountText
-    );
-    return NextResponse.json({ coupon: formattedCoupon });
+    // **PERFORMANCE**: Reduce logging in production
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        "📤 [COUPON POPUP] Returning formatted coupon:",
+        formattedCoupon.discountText
+      );
+    }
+
+    // **PERFORMANCE**: Add performance headers and cache control
+    const response = NextResponse.json({ coupon: formattedCoupon });
+    response.headers.set("X-Response-Time", `${Date.now() - startTime}ms`);
+    response.headers.set("Cache-Control", "public, max-age=300, s-maxage=300"); // Cache for 5 minutes
+    return response;
   } catch (error) {
     console.error(
       "❌ [COUPON POPUP] Error fetching promotional coupon:",

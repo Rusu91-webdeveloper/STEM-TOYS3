@@ -275,9 +275,14 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
   }, []);
 
-  // Load cart when session changes
+  // **PERFORMANCE**: Defer cart loading to after hydration for better TTFB
   useEffect(() => {
-    loadCart();
+    // Only load cart after hydration to avoid blocking TTFB
+    const timer = setTimeout(() => {
+      loadCart();
+    }, 100); // Small delay to prioritize critical rendering
+
+    return () => clearTimeout(timer);
   }, [loadCart]);
 
   const addToCart = (itemToAdd: Omit<CartItem, "id">, quantity: number = 1) => {

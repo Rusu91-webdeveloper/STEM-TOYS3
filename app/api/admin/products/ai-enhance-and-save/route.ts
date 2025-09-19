@@ -208,7 +208,9 @@ export async function POST(request: NextRequest) {
             console.log(
               `  price: ${enhancedProduct.price * 1.2} (20% markup applied)`
             );
-            console.log(`  status: APPROVED (MANDATORY)`);
+            console.log(
+              `  status: PENDING_APPROVAL (default for bulk uploads)`
+            );
 
             // Create product in database
             const savedProduct = await db.product.create({
@@ -249,8 +251,8 @@ export async function POST(request: NextRequest) {
                   enhancedProduct.romanianSubjectAreas || [],
                 romanianMinistryApproval: true, // MANDATORY: Always true for AI-enhanced products
 
-                // Status - AI-enhanced products are auto-approved
-                status: "APPROVED", // MANDATORY: Always approved
+                // Status - All products require approval by default
+                status: "PENDING_APPROVAL",
 
                 // Currency fields
                 priceCurrency: "RON",
@@ -347,8 +349,7 @@ export async function POST(request: NextRequest) {
           pending_approval: savedProducts.filter(
             p => p.status === "PENDING_APPROVAL"
           ).length,
-          auto_approved: savedProducts.filter(p => p.status === "APPROVED")
-            .length,
+          auto_approved: 0, // No auto-approval for bulk uploads
           warnings: results.warnings,
         },
       }),

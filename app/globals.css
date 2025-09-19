@@ -39,7 +39,10 @@
   }
 }
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap");
+/* **PERFORMANCE**: Optimized font loading for FCP */
+/* Preload critical fonts and use font-display: swap for better performance */
+/* **PERFORMANCE**: Optimized font loading for LCP */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 @layer base {
   :root {
@@ -1155,5 +1158,75 @@
 
   .blog-content p {
     @apply text-base;
+  }
+}
+
+/* CLS Prevention Optimizations */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent layout shifts during hydration */
+body {
+  overflow-x: hidden;
+}
+
+/* Optimize images for CLS prevention */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Prevent layout shifts in grids */
+.grid-container {
+  contain: layout style;
+}
+
+/* Optimize accordion/collapsible content */
+[data-radix-accordion-content] {
+  overflow: hidden;
+}
+
+/* Prevent shifts in sticky elements */
+.sticky {
+  contain: layout style;
+}
+
+/* Optimize transforms for better performance */
+.transform {
+  will-change: transform;
+}
+
+/* Prevent layout shifts in loading states */
+.loading-placeholder {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Optimize filter animations */
+.filter-transition {
+  transition: all 0.2s ease-out;
+  contain: layout style;
+}
+
+/* Prevent layout shifts in product cards */
+.product-card {
+  contain: layout style paint;
+  aspect-ratio: 3/4;
+}
+
+/* Optimize sidebar for CLS */
+.sidebar-container {
+  contain: layout style;
+  width: 320px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .sidebar-container {
+    width: 100%;
   }
 }

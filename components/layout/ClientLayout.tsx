@@ -10,8 +10,10 @@ import { usePathname } from "next/navigation";
 
 export default function ClientLayout({
   children,
+  initialStoreSettings,
 }: {
   children: React.ReactNode;
+  initialStoreSettings?: any;
 }) {
   const pathname = usePathname();
   const isAdminPage = pathname?.startsWith("/admin");
@@ -24,7 +26,9 @@ export default function ClientLayout({
       <DatabaseConfigNotice />
       <Header />
       <main className="flex-grow">{children}</main>
-      {!isAdminPage && !isSupplierPage && <Footer />}
+      {!isAdminPage && !isSupplierPage && (
+        <Footer initialStoreSettings={initialStoreSettings} />
+      )}
       <PromotionalPopup />
     </>
   );

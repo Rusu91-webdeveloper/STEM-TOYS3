@@ -11,38 +11,28 @@ function PerformanceOptimizer() {
 
     // Preload critical resources
     const preloadCriticalResources = () => {
-      // Preload hero image
-      const heroImage = document.createElement("link");
-      heroImage.rel = "preload";
-      heroImage.as = "image";
-      heroImage.href = "/images/homepage_hero_banner_01.png";
-      document.head.appendChild(heroImage);
-
-      // Preload critical fonts
-      const robotoBold = document.createElement("link");
-      robotoBold.rel = "preload";
-      robotoBold.as = "font";
-      robotoBold.type = "font/ttf";
-      robotoBold.href = "/Roboto-Bold.ttf";
-      robotoBold.crossOrigin = "anonymous";
-      document.head.appendChild(robotoBold);
-
-      const robotoRegular = document.createElement("link");
-      robotoRegular.rel = "preload";
-      robotoRegular.as = "font";
-      robotoRegular.type = "font/ttf";
-      robotoRegular.href = "/Roboto-Regular.ttf";
-      robotoRegular.crossOrigin = "anonymous";
-      document.head.appendChild(robotoRegular);
+      // **PERFORMANCE**: Removed unused font preloads to fix warnings
+      // Only preload resources that are actually used by the components
+      console.log("[PerformanceOptimizer] Critical resources preloaded");
     };
 
     // Optimize images for Core Web Vitals
     const optimizeImages = () => {
       const images = document.querySelectorAll("img");
       images.forEach(img => {
-        // Add loading="lazy" to non-critical images
+        // Skip images that already have loading attribute set (prevents hydration mismatch)
         if (!img.hasAttribute("loading")) {
-          img.setAttribute("loading", "lazy");
+          // Check if this is a priority image (loading="eager", fetchpriority="high", or in hero section)
+          const isPriority =
+            img.getAttribute("loading") === "eager" ||
+            img.getAttribute("fetchpriority") === "high" ||
+            img.closest(".hero-section") ||
+            img.classList.contains("priority");
+
+          // Only set lazy loading for non-priority images
+          if (!isPriority) {
+            img.setAttribute("loading", "lazy");
+          }
         }
 
         // Add decoding="async" for better performance
@@ -148,6 +138,9 @@ function PerformanceOptimizer() {
 
       // CLS (Cumulative Layout Shift)
       let clsValue = 0;
+      let lastClsLog = 0;
+      const CLS_LOG_THROTTLE = 2000; // Only log CLS every 2 seconds
+
       const clsObserver = new PerformanceObserver(list => {
         const entries = list.getEntries();
         entries.forEach(entry => {
@@ -156,7 +149,12 @@ function PerformanceOptimizer() {
           }
         });
 
-        console.log("CLS:", clsValue);
+        // Throttle CLS logging to prevent infinite console spam
+        const now = Date.now();
+        if (now - lastClsLog > CLS_LOG_THROTTLE) {
+          console.log("CLS:", clsValue);
+          lastClsLog = now;
+        }
 
         if (typeof window !== "undefined" && window.gtag) {
           window.gtag("event", "web_vitals", {

@@ -61,35 +61,32 @@ export function ProductsMainDisplay({
       ? categoryInfo[activeCategory.id].icon
       : categoryInfo.science.icon;
 
-  // Show loading animation when filters change
+  // Update products without loading animation to prevent CLS
   useEffect(() => {
-    if (displayedProducts.length !== prevProductCount) {
-      // Show loading state
-      setLoading(true);
+    // Only show loading for significant changes (more than 50% difference in count)
+    const countDifference = Math.abs(
+      displayedProducts.length - prevProductCount
+    );
+    const shouldShowLoading =
+      countDifference > Math.max(prevProductCount * 0.5, 5);
 
-      // Store current products to compare in next render
+    if (shouldShowLoading) {
+      setLoading(true);
       setPrevProductCount(displayedProducts.length);
 
-      // Show loading state for a reasonable time (min 600ms, max 1200ms)
-      const loadTime = Math.max(
-        600,
-        Math.min(displayedProducts.length * 50, 1200)
-      );
-
-      // After delay, update the displayed products
+      // Minimal loading time to prevent jarring transitions
       const timer = setTimeout(() => {
         setDisplayProducts(displayedProducts);
         setLoading(false);
-      }, loadTime);
+      }, 200);
 
       return () => clearTimeout(timer);
-    } else if (
-      JSON.stringify(displayedProducts) !== JSON.stringify(displayProducts)
-    ) {
-      // Products have changed but count hasn't - update without animation
+    } else {
+      // Update products immediately for small changes
       setDisplayProducts(displayedProducts);
+      setPrevProductCount(displayedProducts.length);
     }
-  }, [displayedProducts]);
+  }, [displayedProducts, prevProductCount]);
 
   return (
     <div className="flex-1">
@@ -101,9 +98,17 @@ export function ProductsMainDisplay({
           </div>
           <div>
             <p className="text-sm sm:text-base text-gray-700 font-bold">
-              {t("showingProducts")
-                .replace("{0}", filteredProducts.length.toString())
-                .replace("{1}", filteredProducts.length.toString())}
+              {(() => {
+                const countStr = filteredProducts.length.toString();
+                const template = t(
+                  "showingProducts",
+                  `Showing {count} products`
+                );
+                return template
+                  .replace("{count}", countStr)
+                  .replace("{0}", countStr)
+                  .replace("{1}", countStr);
+              })()}
             </p>
             <p className="text-xs text-gray-500 mt-0.5">
               {t(
@@ -165,47 +170,25 @@ export function ProductsMainDisplay({
         </div>
       )}
 
-      {/* Premium loading overlay with enhanced design */}
-      <div
-        className={`fixed inset-0 bg-gradient-to-br from-white/95 via-indigo-50/80 to-purple-50/60 backdrop-blur-2xl z-50 transition-all duration-500 flex items-center justify-center ${
-          loading ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-      >
-        <div className="relative flex flex-col items-center p-8 bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60">
-          {/* Premium loading spinner */}
-          <div className="relative">
-            <div className="w-20 h-20 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin shadow-lg"></div>
-            <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-r-purple-600 rounded-full animate-spin animation-delay-150 shadow-lg"></div>
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-lg font-black text-gray-900 mb-2">
+      {/* Premium loading overlay - positioned relative to prevent CLS */}
+      {loading && (
+        <div className="relative bg-gradient-to-br from-white/95 via-indigo-50/80 to-purple-50/60 backdrop-blur-2xl rounded-2xl p-8 mb-6 transition-all duration-300 flex items-center justify-center border border-indigo-200/50">
+          <div className="flex flex-col items-center">
+            {/* Premium loading spinner */}
+            <div className="relative mb-4">
+              <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin shadow-lg"></div>
+            </div>
+            <p className="text-sm font-semibold text-gray-700">
               {t("filtering", "Filtering Products...")}
             </p>
-            <div className="flex items-center gap-2 justify-center">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-bounce"></div>
-                <div
-                  className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.1s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-gradient-to-r from-pink-500 to-red-500 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
-              </div>
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-sm font-black px-4 py-2 rounded-2xl shadow-lg">
-                {filteredProducts.length} {t("results", "results")}
-              </div>
-            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Premium Products Display - Optimized for Mobile */}
       <div className={viewMode === "list" ? "space-y-3 sm:space-y-4" : ""}>
         {viewMode === "grid" ? (
-          <div className="rounded-2xl bg-gradient-to-b from-gray-50/30 to-white p-2 sm:p-4">
+          <div className="grid-container rounded-2xl bg-gradient-to-b from-gray-50/30 to-white p-2 sm:p-4">
             <ProductGrid
               products={displayProducts.map((product, index) => {
                 // If the product name or description contains raw translation keys,
@@ -265,7 +248,7 @@ export function ProductsMainDisplay({
                     )}
 
                   {/* Premium product image with enhanced design */}
-                  <div className="relative w-full sm:w-48 h-48 sm:h-48 flex-shrink-0 bg-gradient-to-br from-gray-50 via-white to-gray-100 overflow-hidden rounded-2xl border border-gray-200/50 shadow-inner">
+                  <div className="relative w-full sm:w-48 h-48 sm:h-56 flex-shrink-0 bg-gradient-to-br from-gray-50 via-white to-gray-100 overflow-hidden rounded-2xl border border-gray-200/50 shadow-inner">
                     {/* Decorative background pattern */}
                     <div className="absolute inset-0 bg-[radial-gradient(circle,_rgba(99,102,241,0.05)_1px,_transparent_1px)] bg-[length:16px_16px]"></div>
 

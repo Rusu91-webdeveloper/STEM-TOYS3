@@ -110,11 +110,11 @@ export function ProductCard({
     return (
       <div
         className={cn(
-          "flex flex-col xs:flex-row border border-gray-200/60 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 hover:-translate-y-0.5",
+          "flex flex-col xs:flex-row border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-300",
           className
         )}
       >
-        <div className="relative w-full xs:w-1/3 h-48 xs:h-auto xs:max-w-[240px] bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="relative w-full xs:w-1/3 h-48 xs:h-48 sm:h-56 xs:max-w-[240px] bg-gradient-to-br from-gray-50 to-gray-100">
           <Link href={`/products/${product.slug}`}>
             <div
               className="relative h-full w-full group"
@@ -127,22 +127,16 @@ export function ProductCard({
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 240px"
                 priority={priority}
-                loading="eager"
+                loading={priority ? "eager" : "lazy"}
                 quality={85}
                 placeholder="blur"
                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
               />
             </div>
             {isOnSale && (
-              <>
-                <div className="absolute top-0 left-0 w-16 h-16 overflow-hidden z-10">
-                  <div className="absolute transform rotate-45 bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-extrabold py-1 left-[-35px] top-[15px] w-[130px] text-center shadow-lg">
-                    SALE
-                  </div>
-                </div>
-
-                {/* Discount percentage indicator */}
-                <div className="absolute bottom-3 right-3 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-md shadow-md">
+              <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-md bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 text-xs font-semibold">
+                <span>Sale</span>
+                <span className="font-bold">
                   -
                   {Math.round(
                     ((product.compareAtPrice - product.price) /
@@ -150,8 +144,8 @@ export function ProductCard({
                       100
                   )}
                   %
-                </div>
-              </>
+                </span>
+              </div>
             )}
             {product.stemDiscipline && (
               <Badge
@@ -164,47 +158,6 @@ export function ProductCard({
           </Link>
         </div>
         <div className="flex flex-col flex-1 p-4 sm:p-5 justify-between">
-          {/* Elegant professional low stock banner in list view */}
-          {product.stockQuantity !== undefined &&
-            product.stockQuantity > 0 &&
-            product.stockQuantity <= 5 && (
-              <div className="relative mb-3 overflow-hidden rounded-md">
-                {/* Elegant gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50"></div>
-
-                {/* Subtle animated pattern */}
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute inset-0 bg-[radial-gradient(#DCA14E_1px,transparent_1px)] [background-size:8px_8px]"></div>
-                </div>
-
-                {/* Main content with refined typography */}
-                <div className="relative px-3 py-2.5 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-1 h-8 bg-amber-400 rounded-full"></div>
-                    <div>
-                      <div className="text-xs text-amber-800 uppercase tracking-wider font-medium">
-                        Limited Availability
-                      </div>
-                      <div className="text-amber-900 font-medium">
-                        Only{" "}
-                        <span className="font-bold">
-                          {product.stockQuantity}
-                        </span>{" "}
-                        {product.stockQuantity === 1 ? "item" : "items"}{" "}
-                        remaining
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-2xs sm:text-xs text-amber-800 bg-amber-200/60 px-2 py-1 rounded-full border border-amber-300/30">
-                    Low Stock
-                  </div>
-                </div>
-
-                {/* Elegant bottom border */}
-                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-amber-300/70 to-transparent"></div>
-              </div>
-            )}
-
           <div className="space-y-2.5">
             <Link href={`/products/${product.slug}`} className="block">
               <h3 className="font-bold text-base sm:text-lg line-clamp-2 hover:text-primary transition-colors leading-tight tracking-tight">
@@ -227,6 +180,14 @@ export function ProductCard({
                   </div>
                 )}
 
+              {product.stockQuantity !== undefined &&
+                product.stockQuantity > 0 &&
+                product.stockQuantity <= 10 && (
+                  <div className="bg-amber-50 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium border border-amber-200 shadow-sm">
+                    Only {product.stockQuantity} left
+                  </div>
+                )}
+
               {renderRating()}
             </div>
 
@@ -237,15 +198,22 @@ export function ProductCard({
           <div className="mt-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-baseline space-x-2">
-                <div className="text-xl font-bold text-primary">
+                <div className="text-xl font-bold text-gray-900">
                   {formatPrice(product.price)}
                 </div>
                 {isOnSale && product.compareAtPrice && (
-                  <div className="text-sm text-muted-foreground line-through">
+                  <div className="text-sm text-gray-500 line-through">
                     {formatPrice(product.compareAtPrice)}
                   </div>
                 )}
               </div>
+              {product.stockQuantity !== undefined &&
+                product.stockQuantity > 0 &&
+                product.stockQuantity < 10 && (
+                  <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md font-medium">
+                    Only {product.stockQuantity} left
+                  </div>
+                )}
             </div>
             <div className="relative">
               <ProductAddToCartButton
@@ -253,11 +221,7 @@ export function ProductCard({
                 showQuantity={false}
                 isBook={isBook}
                 size="sm"
-                className="w-full bg-primary hover:bg-primary/95 text-white font-medium text-xs sm:text-sm py-2 sm:py-2.5 rounded-lg shadow-sm hover:shadow transition-all duration-200 border border-primary/5"
               />
-
-              {/* Subtle elegant accent line */}
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/4 h-0.5 bg-white/10 rounded-full"></div>
             </div>
           </div>
         </div>
@@ -269,9 +233,7 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "group border border-gray-100/80 rounded-2xl overflow-hidden h-full flex flex-col bg-white shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-1",
-        // Enhanced mobile styling
-        "backdrop-blur-sm bg-white/95 sm:bg-white",
+        "group border border-gray-200 rounded-xl overflow-hidden h-full flex flex-col bg-white shadow-sm hover:shadow-md transition-all duration-300",
         className
       )}
     >
@@ -288,43 +250,18 @@ export function ProductCard({
             placeholder="blur"
           />
           {isOnSale && (
-            <>
-              {/* Enhanced sale badge - corner ribbon style */}
-              <div className="absolute top-0 left-0 w-20 h-20 overflow-hidden z-10">
-                <div className="absolute transform rotate-45 bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-extrabold py-1.5 left-[-38px] top-[20px] w-[140px] text-center shadow-lg">
-                  SALE
-                </div>
-              </div>
-
-              {/* Enhanced mobile optimized sale indicator with prominent banner design */}
-              <div className="absolute top-0 right-0 xs:hidden">
-                <div className="bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-extrabold px-3 py-2 rounded-bl-xl shadow-lg flex items-center gap-1.5 border-b-2 border-l-2 border-red-700">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <span>
-                    -
-                    {Math.round(
-                      ((product.compareAtPrice - product.price) /
-                        product.compareAtPrice) *
-                        100
-                    )}
-                    %
-                  </span>
-                </div>
-              </div>
-            </>
+            <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-md bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 text-xs font-semibold">
+              <span>Sale</span>
+              <span className="font-bold">
+                -
+                {Math.round(
+                  ((product.compareAtPrice - product.price) /
+                    product.compareAtPrice) *
+                    100
+                )}
+                %
+              </span>
+            </div>
           )}
           {product.stemDiscipline && (
             <Badge
@@ -334,47 +271,20 @@ export function ProductCard({
               {product.stemDiscipline}
             </Badge>
           )}
-          {/* Enhanced overlay gradient for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          {/* Overlay for readability on hover */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </Link>
       </div>
 
       <div className="flex flex-col flex-1 p-3 sm:p-5 space-y-2 sm:space-y-4">
-        {/* Elegant professional low stock banner */}
+        {/* Low stock banner (<= 10) */}
         {product.stockQuantity !== undefined &&
           product.stockQuantity > 0 &&
-          product.stockQuantity <= 5 && (
-            <div className="relative mb-3 overflow-hidden rounded-md">
-              {/* Elegant gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50"></div>
-
-              {/* Subtle animated pattern */}
-              <div className="absolute inset-0 opacity-5">
-                <div className="absolute inset-0 bg-[radial-gradient(#DCA14E_1px,transparent_1px)] [background-size:8px_8px]"></div>
-              </div>
-
-              {/* Main content with refined typography */}
-              <div className="relative px-3 py-2.5 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-1 h-8 bg-amber-400 rounded-full"></div>
-                  <div>
-                    <div className="text-xs text-amber-800 uppercase tracking-wider font-medium">
-                      Limited Availability
-                    </div>
-                    <div className="text-amber-900 font-medium">
-                      Only{" "}
-                      <span className="font-bold">{product.stockQuantity}</span>{" "}
-                      {product.stockQuantity === 1 ? "item" : "items"} remaining
-                    </div>
-                  </div>
-                </div>
-                <div className="text-2xs sm:text-xs text-amber-800 bg-amber-200/60 px-2 py-1 rounded-full border border-amber-300/30">
-                  Low Stock
-                </div>
-              </div>
-
-              {/* Elegant bottom border */}
-              <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-amber-300/70 to-transparent"></div>
+          product.stockQuantity <= 10 && (
+            <div className="mb-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900 text-xs sm:text-sm">
+              Only{" "}
+              <span className="font-semibold">{product.stockQuantity}</span>{" "}
+              {product.stockQuantity === 1 ? "item" : "items"} left
             </div>
           )}
 
@@ -410,7 +320,7 @@ export function ProductCard({
         <div className="flex flex-col mt-auto pt-2 sm:pt-3">
           <div className="flex items-baseline justify-between">
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="text-base sm:text-xl font-extrabold text-primary tracking-tight">
+              <div className="text-base sm:text-xl font-extrabold text-gray-900 tracking-tight">
                 {formatPrice(product.price)}
               </div>
               {isOnSale && product.compareAtPrice && (
@@ -419,7 +329,7 @@ export function ProductCard({
                 </div>
               )}
               {isOnSale && (
-                <div className="text-xs text-red-500 font-bold bg-red-50 px-1.5 py-0.5 rounded-md border border-red-100">
+                <div className="text-[10px] sm:text-xs text-red-600 font-semibold bg-red-50 px-1.5 py-0.5 rounded border border-red-100">
                   -
                   {Math.round(
                     ((product.compareAtPrice - product.price) /
@@ -430,6 +340,13 @@ export function ProductCard({
                 </div>
               )}
             </div>
+            {product.stockQuantity !== undefined &&
+              product.stockQuantity > 5 &&
+              product.stockQuantity <= 10 && (
+                <div className="text-[10px] sm:text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md font-medium">
+                  Only {product.stockQuantity} left
+                </div>
+              )}
           </div>
           <div className="text-[10px] sm:text-xs text-gray-500 font-medium mt-0.5">
             inclusiv TVA
@@ -444,11 +361,7 @@ export function ProductCard({
               showQuantity={false}
               isBook={isBook}
               size="sm"
-              className="w-full bg-primary hover:bg-primary/95 text-white font-medium text-xs sm:text-sm py-2 sm:py-2.5 rounded-lg shadow-sm hover:shadow transition-all duration-200 border border-primary/5"
             />
-
-            {/* Subtle elegant accent line */}
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/4 h-0.5 bg-white/10 rounded-full"></div>
           </div>
         </div>
       </div>
