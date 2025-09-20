@@ -10,6 +10,74 @@ import { withRateLimit } from "@/lib/rate-limit";
 import { applyStandardHeaders } from "@/lib/response-headers";
 import { productSchema as baseProductSchema } from "@/lib/validations";
 
+// Helper: Extract SEO fields and normalize into metadata.seo
+function extractSeoFields(input: any): {
+  seo: {
+    metaTitle?: string;
+    metaDescription?: string;
+    metaKeywords?: string[];
+    ogImage?: string;
+  };
+  legacy: Record<string, unknown>;
+} {
+  const seo: any = {};
+  const legacy: Record<string, unknown> = {};
+  const fromTop = input ?? {};
+  const fromAttributes = (input?.attributes as any) ?? {};
+  const fromSeo = (input?.seo as any) ?? {};
+  const metaTitle =
+    fromSeo.metaTitle ||
+    fromTop.metaTitle ||
+    fromAttributes.metaTitle ||
+    fromTop.title;
+  const metaDescription =
+    fromSeo.metaDescription ||
+    fromTop.metaDescription ||
+    fromAttributes.metaDescription ||
+    fromTop.description;
+  const metaKeywords =
+    fromSeo.metaKeywords ||
+    fromTop.metaKeywords ||
+    fromAttributes.metaKeywords ||
+    fromTop.keywords;
+  const ogImage = fromSeo.ogImage || fromTop.ogImage || fromAttributes.ogImage;
+  if (metaTitle) seo.metaTitle = String(metaTitle);
+  if (metaDescription) seo.metaDescription = String(metaDescription);
+  if (Array.isArray(metaKeywords)) seo.metaKeywords = metaKeywords as string[];
+  if (ogImage) seo.ogImage = String(ogImage);
+  if (seo.metaTitle) {
+    legacy.metaTitle = seo.metaTitle;
+    legacy.title = seo.metaTitle;
+  }
+  if (seo.metaDescription) {
+    legacy.metaDescription = seo.metaDescription;
+    legacy.description = seo.metaDescription;
+  }
+  if (seo.metaKeywords) {
+    legacy.metaKeywords = seo.metaKeywords;
+    legacy.keywords = seo.metaKeywords;
+  }
+  if (seo.ogImage) legacy.ogImage = seo.ogImage;
+  return { seo, legacy };
+}
+
+// Helper: remove SEO-related keys from attributes object
+function stripSeoFromAttributes(attributes: any): any {
+  if (!attributes || typeof attributes !== "object") return attributes;
+  const {
+    metaTitle,
+    metaDescription,
+    metaKeywords,
+    ogImage,
+    title,
+    description,
+    keywords,
+    seo,
+    ...rest
+  } = attributes;
+  return rest;
+}
+
 // Extend the base product schema with additional fields specific to this API
 const productSchema = baseProductSchema
   .omit({
@@ -179,13 +247,20 @@ export async function POST(request: NextRequest) {
     // Create product in database
     try {
       console.warn("Attempting to create product in database");
+      const { seo, legacy } = extractSeoFields(data);
+      const cleanedAttributes = stripSeoFromAttributes(data.attributes);
+      const metadata: Record<string, unknown> = {
+        ...(legacy || {}),
+        seo,
+      };
+
       const product = await db.product.create({
         data: {
           name: data.name,
           slug: data.slug,
           description: data.description,
           price: data.price,
-          compareAtPrice: data.compareAtPrice,
+          compareAtPrice: data.compareAtPrice ?? null,
           images: data.images,
           categoryId: data.categoryId,
           tags: data.tags ?? [],
@@ -196,17 +271,12 @@ export async function POST(request: NextRequest) {
           learningOutcomes: data.learningOutcomes ?? [],
           productType: data.productType,
           specialCategories: data.specialCategories ?? [],
+          // Specs only
           attributes: {
-            // Include SEO metadata in attributes
-            metaTitle: data.metaTitle ?? data.name,
-            metaDescription:
-              data.metaDescription ?? data.description.substring(0, 160),
-            metaKeywords: data.metaKeywords ?? data.tags ?? [],
-            // Additional non-categorization attributes
             difficultyLevel: data.difficultyLevel,
-            // Any other custom attributes
-            ...(data.attributes ?? {}),
+            ...(cleanedAttributes ?? {}),
           },
+          metadata,
           isActive: data.isActive,
           // Admin-created products should be automatically approved
           status: "APPROVED",

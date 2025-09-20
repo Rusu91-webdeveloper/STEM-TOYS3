@@ -994,48 +994,67 @@ CRITICAL DATA STRUCTURE REQUIREMENTS:
 The JSON response will be saved in specific database fields. Follow these rules EXACTLY:
 
 DATABASE FIELD MAPPING:
-- enhancedDescription → saves to Product.description field
-- metaTitle → saves to Product.attributes.metaTitle (for SEO)
-- metaDescription → saves to Product.attributes.metaDescription (for SEO)
-- metaKeywords → saves to Product.attributes.metaKeywords (for SEO)
-- ageGroup → saves to Product.ageGroup field (MUST be valid enum)
-- stemDiscipline → saves to Product.stemDiscipline field (MUST be valid enum)
-- productType → saves to Product.productType field (MUST be valid enum)
-- learningOutcomes → saves to Product.learningOutcomes field (array of valid enums)
-- romanianCompetencies → saves to Product.romanianCompetencies field
-- romanianCurriculumAlignment → saves to Product.romanianCurriculumAlignment field
-- romanianEducationalLevel → saves to Product.romanianEducationalLevel field
-- romanianSubjectAreas → saves to Product.romanianSubjectAreas field
+- enhancedDescription → Product.description
+- seo.metaTitle → Product.metadata.seo.metaTitle
+- seo.metaDescription → Product.metadata.seo.metaDescription
+- seo.metaKeywords → Product.metadata.seo.metaKeywords
+- seo.ogImage → Product.metadata.seo.ogImage (if missing, use first image URL)
+- attributes → Product.attributes (PRODUCT SPECS ONLY, no SEO fields)
+- ageGroup → Product.ageGroup (enum)
+- stemDiscipline → Product.stemDiscipline (enum)
+- productType → Product.productType (enum)
+- learningOutcomes → Product.learningOutcomes (enum[])
+- romanianCompetencies → Product.romanianCompetencies
+- romanianCurriculumAlignment → Product.romanianCurriculumAlignment
+- romanianEducationalLevel → Product.romanianEducationalLevel
+- romanianSubjectAreas → Product.romanianSubjectAreas
 
 DO NOT include fields that don't exist in the database schema.
-DO NOT create nested objects unless specified.
-DO NOT save operational data (timestamps, tracking) - that's handled by the system.
+NESTED OBJECTS ALLOWED: "seo" and "attributes" ONLY.
+Do NOT include operational fields (timestamps, tracking); system sets those.
 
 REQUIRED OUTPUT FORMAT:
 {
   "name": "Product Name",
   "enhancedDescription": "Detailed product description...",
-  "metaTitle": "SEO-optimized title (60-70 characters) - goes to attributes.metaTitle",
-  "metaDescription": "SEO-optimized description (150-160 characters) - goes to attributes.metaDescription",
-  "metaKeywords": ["keyword1", "keyword2", ...] - goes to attributes.metaKeywords,
+  "seo": {
+    "metaTitle": "SEO-optimized title (50-65 chars)",
+    "metaDescription": "SEO-optimized description (130-160 chars)",
+    "metaKeywords": ["keyword1", "keyword2", ...],
+    "ogImage": "https://... (prefer first product image URL)"
+  },
+  "attributes": {
+    "specs": {
+      "motors": 2,
+      "sensors": ["gyro", "distance"],
+      "programming": ["Scratch", "Python"],
+      "connectivity": ["Bluetooth"],
+      "batteryLifeHours": 4,
+      "materials": "ABS plastic",
+      "dimensionsMm": { "width": 120, "height": 80, "depth": 60 },
+      "weightKg": 1.2,
+      "boxContents": ["hub", "motors", "sensors", "cables"],
+      "compatibility": ["iOS", "Android", "Windows", "macOS"]
+    }
+  },
   "tags": ["tag1", "tag2", ...],
-  "learningOutcomes": ["PROBLEM_SOLVING", "CREATIVITY", "CRITICAL_THINKING", "MOTOR_SKILLS", "LOGIC"],
-  "ageGroup": "DETERMINE_FROM_RULES_ABOVE - saves to ageGroup field",
-  "stemDiscipline": "DETERMINE_FROM_RULES_ABOVE - saves to stemDiscipline field",
-  "productType": "DETERMINE_FROM_RULES_ABOVE - saves to productType field",
-  "romanianCompetencies": ["competency1", ...],
-  "romanianCurriculumAlignment": ["alignment1", ...],
+  "learningOutcomes": ["PROBLEM_SOLVING", "CREATIVITY"],
+  "ageGroup": "DETERMINE_FROM_RULES_ABOVE",
+  "stemDiscipline": "DETERMINE_FROM_RULES_ABOVE",
+  "productType": "DETERMINE_FROM_RULES_ABOVE",
+  "romanianCompetencies": ["competency1"],
+  "romanianCurriculumAlignment": ["alignment1"],
   "romanianEducationalLevel": "DETERMINE_FROM_AGE_GROUP",
-  "romanianSubjectAreas": ["area1", ...]
+  "romanianSubjectAreas": ["area1"]
 }
 
 VALIDATION CHECKLIST:
-- [ ] ageGroup is one of: "TODDLERS_1_3", "PRESCHOOL_3_5", "ELEMENTARY_6_8", "MIDDLE_SCHOOL_9_12", "TEENS_13_PLUS"
-- [ ] stemDiscipline is one of: "SCIENCE", "TECHNOLOGY", "ENGINEERING", "MATHEMATICS", "GENERAL"
-- [ ] productType is one of: "ROBOTICS", "PUZZLES", "CONSTRUCTION_SETS", "EXPERIMENT_KITS", "BOARD_GAMES"
+- [ ] ageGroup ∈ {TODDLERS_1_3, PRESCHOOL_3_5, ELEMENTARY_6_8, MIDDLE_SCHOOL_9_12, TEENS_13_PLUS}
+- [ ] stemDiscipline ∈ {SCIENCE, TECHNOLOGY, ENGINEERING, MATHEMATICS, GENERAL}
+- [ ] productType ∈ {ROBOTICS, PUZZLES, CONSTRUCTION_SETS, EXPERIMENT_KITS, BOARD_GAMES}
 - [ ] learningOutcomes contains only valid enum values
-- [ ] No extra fields that don't exist in database schema
-- [ ] SEO fields (metaTitle, metaDescription, metaKeywords) are properly formatted
+- [ ] SEO present in seo.* and NOT in attributes
+- [ ] ogImage provided (use first image when available)
 
 Use valid JSON format and ensure all fields are properly formatted.`;
   }

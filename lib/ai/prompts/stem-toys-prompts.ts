@@ -359,9 +359,9 @@ export const PRODUCT_STRUCTURE_PROMPT = {
 CRITICAL REQUIREMENTS:
 1. PRICE CONVERSION: Convert all prices to RON and add 20% markup (MANDATORY)
 2. IMAGE INTEGRATION: Process images for UploadThing integration
-3. METADATA COMPLETENESS: Ensure all metadata fields are populated
-4. TAGS OPTIMIZATION: Generate comprehensive bilingual tags
-5. DEFAULTS: Apply all required default values (MANDATORY)
+3. SEO METADATA: Populate SEO under a nested object "seo" (NOT inside attributes). Include: metaTitle (50-65 chars), metaDescription (130-160 chars), metaKeywords (array), ogImage (use first image URL if not provided)
+4. PRODUCT SPECS: Populate product specifications under "attributes.specs" (e.g., motors, sensors, programming, connectivity, batteryLifeHours, materials, dimensionsMm {width,height,depth}, weightKg, boxContents[], compatibility[]). DO NOT put SEO inside attributes.
+5. TAGS OPTIMIZATION: Generate comprehensive bilingual tags
 6. ROMANIAN COMPLIANCE: Ensure Romanian market compliance
 
 MANDATORY DEFAULT VALUES (MUST BE APPLIED):
@@ -369,7 +369,6 @@ MANDATORY DEFAULT VALUES (MUST BE APPLIED):
 - romanianMinistryApproval: ALWAYS true
 - price: MUST be increased by 20% from original
 - featured: ALWAYS false
-- status: "APPROVED"
 
 DATABASE SCHEMA REQUIREMENTS:
 - featured: ALWAYS false for bulk uploads
@@ -384,7 +383,6 @@ DATABASE SCHEMA REQUIREMENTS:
 - supplierId: null if not available
 - priceCurrency: "RON"
 - compareAtPriceCurrency: "RON"
-- status: "APPROVED" for admin uploads
 
 UPLOADTHING INTEGRATION:
 - Process image URLs for UploadThing compatibility
@@ -405,17 +403,17 @@ Please provide the final product structure with:
 1. Price converted to RON with 20% markup (MANDATORY - MUST INCREASE PRICE BY 20%)
 2. All required default values applied (isActive: true, romanianMinistryApproval: true)
 3. Image URLs processed for UploadThing
-4. Complete metadata structure
-5. Bilingual tags optimized for SEO
-6. Romanian market compliance
-7. All database schema requirements met
+4. SEO under nested object "seo" (metaTitle, metaDescription, metaKeywords[], ogImage ← use first image URL if missing)
+5. Product specifications under "attributes.specs" (DO NOT include SEO inside attributes)
+6. Bilingual tags optimized for SEO
+7. Romanian market compliance
+8. All database schema requirements met
 
 CRITICAL: Ensure these fields are ALWAYS set correctly:
 - isActive: true
 - romanianMinistryApproval: true
 - price: original_price * 1.20 (20% increase)
 - featured: false
-- status: "APPROVED"
 
 Return the complete product object ready for database insertion.`,
 };

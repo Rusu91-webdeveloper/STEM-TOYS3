@@ -315,7 +315,7 @@ export class EnhancedProductProcessor {
         reservedQuantity: 0,
         reviewCount: 0,
         totalSold: 0,
-        status: "APPROVED",
+        status: "PENDING_APPROVAL",
         priceCurrency: "RON",
         compareAtPriceCurrency: "RON",
         specialCategories: ["NEW_ARRIVALS"],

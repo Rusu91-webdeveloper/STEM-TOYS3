@@ -16,6 +16,153 @@ import {
   type AIEnhancementResponse,
 } from "@/lib/ai";
 
+// Helper: Extract SEO fields from various shapes and normalize into metadata.seo
+function extractSeoFields(input: any): {
+  seo: {
+    metaTitle?: string;
+    metaDescription?: string;
+    metaKeywords?: string[];
+    ogImage?: string;
+  };
+  legacy: Record<string, unknown>;
+} {
+  const seo: any = {};
+  const legacy: Record<string, unknown> = {};
+
+  const fromTop = input ?? {};
+  const fromAttributes = (input?.attributes as any) ?? {};
+  const fromSeo = (input?.seo as any) ?? {};
+
+  const metaTitle =
+    fromSeo.metaTitle ||
+    fromTop.metaTitle ||
+    fromAttributes.metaTitle ||
+    fromTop.title;
+  const metaDescription =
+    fromSeo.metaDescription ||
+    fromTop.metaDescription ||
+    fromAttributes.metaDescription ||
+    fromTop.description;
+  const metaKeywords =
+    fromSeo.metaKeywords ||
+    fromTop.metaKeywords ||
+    fromAttributes.metaKeywords ||
+    fromTop.keywords;
+  const ogImage = fromSeo.ogImage || fromTop.ogImage || fromAttributes.ogImage;
+
+  if (metaTitle) seo.metaTitle = String(metaTitle);
+  if (metaDescription) seo.metaDescription = String(metaDescription);
+  if (Array.isArray(metaKeywords)) seo.metaKeywords = metaKeywords as string[];
+  if (ogImage) seo.ogImage = String(ogImage);
+
+  if (seo.metaTitle) {
+    legacy.metaTitle = seo.metaTitle;
+    legacy.title = seo.metaTitle;
+  }
+  if (seo.metaDescription) {
+    legacy.metaDescription = seo.metaDescription;
+    legacy.description = seo.metaDescription;
+  }
+  if (seo.metaKeywords) {
+    legacy.metaKeywords = seo.metaKeywords;
+    legacy.keywords = seo.metaKeywords;
+  }
+  if (seo.ogImage) legacy.ogImage = seo.ogImage;
+
+  return { seo, legacy };
+}
+
+// Helper: remove SEO-related keys from attributes object
+function stripSeoFromAttributes(attributes: any): any {
+  if (!attributes || typeof attributes !== "object") return attributes;
+  const {
+    metaTitle,
+    metaDescription,
+    metaKeywords,
+    ogImage,
+    title,
+    description,
+    keywords,
+    seo,
+    ...rest
+  } = attributes;
+  return rest;
+}
+
+// Helper: build default specs from product data (fallback when AI omits attributes.specs)
+function buildDefaultSpecsFromProduct(product: any): Record<string, unknown> {
+  const tags: string[] = Array.isArray(product?.tags) ? product.tags : [];
+  const lowerTags = tags.map((t: string) => t.toLowerCase());
+
+  const programmingCandidates = [
+    "scratch",
+    "python",
+    "block",
+    "blockly",
+    "c++",
+    "c#",
+    "java",
+    "swift",
+    "arduino",
+    "vexcode",
+    "micro:bit",
+  ];
+  const connectivityCandidates = [
+    "bluetooth",
+    "wi-fi",
+    "wifi",
+    "usb",
+    "serial",
+    "ble",
+  ];
+  const compatibilityCandidatesMap: Record<string, string> = {
+    ios: "iOS",
+    android: "Android",
+    windows: "Windows",
+    macos: "macOS",
+    mac: "macOS",
+    chromebook: "Chromebook",
+  };
+
+  const programming = programmingCandidates.filter(c =>
+    lowerTags.some(t => t.includes(c))
+  );
+  const connectivity = connectivityCandidates.filter(c =>
+    lowerTags.some(t => t.includes(c))
+  );
+  const compatibility = Object.keys(compatibilityCandidatesMap)
+    .filter(k => lowerTags.some(t => t.includes(k)))
+    .map(k => compatibilityCandidatesMap[k]);
+
+  const dim =
+    product?.dimensions && typeof product.dimensions === "object"
+      ? product.dimensions
+      : undefined;
+  const width = Number(dim?.width ?? dim?.w ?? dim?.latime);
+  const height = Number(dim?.height ?? dim?.h ?? dim?.inaltime);
+  const depth = Number(dim?.depth ?? dim?.d ?? dim?.adancime);
+
+  const dimensionsMm: Record<string, number> = {};
+  if (!Number.isNaN(width)) dimensionsMm.width = width;
+  if (!Number.isNaN(height)) dimensionsMm.height = height;
+  if (!Number.isNaN(depth)) dimensionsMm.depth = depth;
+
+  const specs: Record<string, unknown> = {
+    motors: null,
+    sensors: [],
+    programming,
+    connectivity,
+    batteryLifeHours: null,
+    materials: null,
+    dimensionsMm: Object.keys(dimensionsMm).length ? dimensionsMm : undefined,
+    weightKg: typeof product?.weight === "number" ? product.weight : undefined,
+    boxContents: [],
+    compatibility,
+  };
+
+  return specs;
+}
+
 // Input validation schema for AI enhancement and save
 const aiEnhanceAndSaveSchema = z.object({
   products: z
@@ -212,6 +359,48 @@ export async function POST(request: NextRequest) {
               `  status: PENDING_APPROVAL (default for bulk uploads)`
             );
 
+            // Normalize SEO and attributes
+            const { seo: rawSeo, legacy } = extractSeoFields(enhancedProduct);
+            let cleanedAttributes = stripSeoFromAttributes(
+              (enhancedProduct as any).attributes
+            );
+
+            // Build metadata with namespaced sections and legacy fallbacks
+            const metadata: Record<string, unknown> = {
+              ...(enhancedProduct.metadata || {}),
+              ...legacy,
+              seo: ((): any => {
+                const s: any = { ...(rawSeo || {}) };
+                if (!s.ogImage) {
+                  const firstImage = Array.isArray(enhancedProduct.images)
+                    ? enhancedProduct.images[0]
+                    : undefined;
+                  if (firstImage) s.ogImage = String(firstImage);
+                }
+                return s;
+              })(),
+              ai: {
+                aiEnhanced: true,
+                enhancedBy: "dual-provider",
+                fallbackUsed: Boolean(enhancedProduct.fallbackUsed),
+                enhancementTimestamp: new Date().toISOString(),
+              },
+            };
+
+            // Ensure attributes.specs exists with sensible defaults
+            if (!cleanedAttributes || typeof cleanedAttributes !== "object") {
+              cleanedAttributes = {} as any;
+            }
+            const hasSpecs =
+              cleanedAttributes &&
+              typeof cleanedAttributes === "object" &&
+              (cleanedAttributes as any).specs &&
+              Object.keys((cleanedAttributes as any).specs || {}).length > 0;
+            if (!hasSpecs) {
+              (cleanedAttributes as any).specs =
+                buildDefaultSpecsFromProduct(enhancedProduct);
+            }
+
             // Create product in database
             const savedProduct = await db.product.create({
               data: {
@@ -221,14 +410,14 @@ export async function POST(request: NextRequest) {
                 description:
                   enhancedProduct.enhancedDescription ||
                   enhancedProduct.description,
-                price: enhancedProduct.price * 1.2, // MANDATORY: 20% markup applied
+                price: enhancedProduct.price * 1.2,
                 sku: enhancedProduct.sku,
                 images: enhancedProduct.images || [],
                 categoryId: category.id,
                 tags: enhancedProduct.tags || [],
                 stockQuantity: enhancedProduct.stockQuantity || 0,
                 weight: enhancedProduct.weight || 0.8,
-                isActive: true, // MANDATORY: Always true for AI-enhanced products
+                isActive: true,
                 featured: false,
 
                 // Enhanced categorization fields
@@ -249,7 +438,7 @@ export async function POST(request: NextRequest) {
                   enhancedProduct.romanianEducationalLevel as any,
                 romanianSubjectAreas:
                   enhancedProduct.romanianSubjectAreas || [],
-                romanianMinistryApproval: true, // MANDATORY: Always true for AI-enhanced products
+                romanianMinistryApproval: true,
 
                 // Status - All products require approval by default
                 status: "PENDING_APPROVAL",
@@ -258,25 +447,11 @@ export async function POST(request: NextRequest) {
                 priceCurrency: "RON",
                 compareAtPriceCurrency: "RON",
 
-                // SEO metadata in attributes
-                attributes: {
-                  metaTitle: enhancedProduct.metaTitle || enhancedProduct.name,
-                  metaDescription:
-                    enhancedProduct.metaDescription ||
-                    (
-                      enhancedProduct.enhancedDescription ||
-                      enhancedProduct.description ||
-                      ""
-                    ).substring(0, 160),
-                  metaKeywords: enhancedProduct.metaKeywords || [],
-                  // AI enhancement tracking
-                  aiEnhanced: true,
-                  enhancedBy: "dual-provider",
-                  fallbackUsed: enhancedProduct.fallbackUsed || false,
-                  generatedByFallback:
-                    enhancedProduct.generatedByFallback || false,
-                  enhancementTimestamp: new Date().toISOString(),
-                },
+                // Product specs only
+                attributes: cleanedAttributes || {},
+
+                // Structured metadata
+                metadata,
               },
               include: {
                 category: {

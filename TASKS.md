@@ -228,3 +228,24 @@
       initial state.
     - Aligned active filter counts and badges in `EnhancedProductFilters` and
       `MobileFiltersModal` to ignore `"all"`.
+
+- Normalize SEO and AI metadata storage for Products
+  - Description: Ensure bulk upload, AI enhance-and-save, and admin create store
+    SEO in `metadata.seo`, AI provenance in `metadata.ai`, and keep product
+    specs only in `attributes`. Strip any SEO keys from `attributes` on save for
+    consistency.
+  - Estimated time: 0.8h
+  - Status: Completed
+  - Date: 2025-09-20
+  - Notes:
+    - Updated `/api/admin/products/bulk-upload/route.ts` to extract SEO (from
+      top-level/attributes/seo) into `metadata.seo`, add `metadata.ai` and
+      `metadata.ingestion`, and strip SEO from `attributes`.
+    - Updated `/api/admin/products/ai-enhance-and-save/route.ts` to the same
+      normalization, moving AI tracking to `metadata.ai`.
+    - Updated `/api/admin/products/route.ts` (POST create) to write SEO to
+      `metadata.seo` and keep specs in `attributes`.
+    - Added legacy keys (`metaTitle`, `metaDescription`, `metaKeywords`,
+      `ogImage`) into `metadata` for backward compatibility where readers expect
+      them.
+    - Ran linter: no errors.

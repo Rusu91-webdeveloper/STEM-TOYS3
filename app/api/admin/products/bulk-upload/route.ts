@@ -268,6 +268,154 @@ const validateSpecialCategories = (categories: string[]): boolean => {
   return categories.every(cat => validCategories.includes(cat));
 };
 
+// Helper: Extract SEO fields from various shapes and normalize into metadata.seo
+function extractSeoFields(input: any): {
+  seo: {
+    metaTitle?: string;
+    metaDescription?: string;
+    metaKeywords?: string[];
+    ogImage?: string;
+  };
+  legacy: Record<string, unknown>;
+} {
+  const seo: any = {};
+  const legacy: Record<string, unknown> = {};
+
+  const fromTop = input ?? {};
+  const fromAttributes = (input?.attributes as any) ?? {};
+  const fromSeo = (input?.seo as any) ?? {};
+
+  const metaTitle =
+    fromSeo.metaTitle ||
+    fromTop.metaTitle ||
+    fromAttributes.metaTitle ||
+    fromTop.title;
+  const metaDescription =
+    fromSeo.metaDescription ||
+    fromTop.metaDescription ||
+    fromAttributes.metaDescription ||
+    fromTop.description;
+  const metaKeywords =
+    fromSeo.metaKeywords ||
+    fromTop.metaKeywords ||
+    fromAttributes.metaKeywords ||
+    fromTop.keywords;
+  const ogImage = fromSeo.ogImage || fromTop.ogImage || fromAttributes.ogImage;
+
+  if (metaTitle) seo.metaTitle = String(metaTitle);
+  if (metaDescription) seo.metaDescription = String(metaDescription);
+  if (Array.isArray(metaKeywords)) seo.metaKeywords = metaKeywords as string[];
+  if (ogImage) seo.ogImage = String(ogImage);
+
+  // Legacy top-level support to avoid breaking existing readers
+  if (seo.metaTitle) {
+    legacy.metaTitle = seo.metaTitle;
+    legacy.title = seo.metaTitle;
+  }
+  if (seo.metaDescription) {
+    legacy.metaDescription = seo.metaDescription;
+    legacy.description = seo.metaDescription;
+  }
+  if (seo.metaKeywords) {
+    legacy.metaKeywords = seo.metaKeywords;
+    legacy.keywords = seo.metaKeywords;
+  }
+  if (seo.ogImage) legacy.ogImage = seo.ogImage;
+
+  return { seo, legacy };
+}
+
+// Helper: remove SEO-related keys from attributes object
+function stripSeoFromAttributes(attributes: any): any {
+  if (!attributes || typeof attributes !== "object") return attributes;
+  const {
+    metaTitle,
+    metaDescription,
+    metaKeywords,
+    ogImage,
+    title,
+    description,
+    keywords,
+    seo,
+    ...rest
+  } = attributes;
+  return rest;
+}
+
+// Helper: build default specs from product data (fallback when AI omits attributes.specs)
+function buildDefaultSpecsFromProduct(product: any): Record<string, unknown> {
+  const tags: string[] = Array.isArray(product?.tags) ? product.tags : [];
+  const lowerTags = tags.map((t: string) => t.toLowerCase());
+
+  const programmingCandidates = [
+    "scratch",
+    "python",
+    "block",
+    "blockly",
+    "c++",
+    "c#",
+    "java",
+    "swift",
+    "arduino",
+    "vexcode",
+    "micro:bit",
+  ];
+  const connectivityCandidates = [
+    "bluetooth",
+    "wi-fi",
+    "wifi",
+    "usb",
+    "serial",
+    "ble",
+  ];
+  const compatibilityCandidatesMap: Record<string, string> = {
+    ios: "iOS",
+    android: "Android",
+    windows: "Windows",
+    macos: "macOS",
+    mac: "macOS",
+    chromebook: "Chromebook",
+  };
+
+  const programming = programmingCandidates.filter(c =>
+    lowerTags.some(t => t.includes(c))
+  );
+  const connectivity = connectivityCandidates.filter(c =>
+    lowerTags.some(t => t.includes(c))
+  );
+  const compatibility = Object.keys(compatibilityCandidatesMap)
+    .filter(k => lowerTags.some(t => t.includes(k)))
+    .map(k => compatibilityCandidatesMap[k]);
+
+  const dim =
+    product?.dimensions && typeof product.dimensions === "object"
+      ? product.dimensions
+      : undefined;
+  const width = Number(dim?.width ?? dim?.w ?? dim?.latime);
+  const height = Number(dim?.height ?? dim?.h ?? dim?.inaltime);
+  const depth = Number(dim?.depth ?? dim?.d ?? dim?.adancime);
+
+  const dimensionsMm: Record<string, number> = {};
+  if (!Number.isNaN(width)) dimensionsMm.width = width;
+  if (!Number.isNaN(height)) dimensionsMm.height = height;
+  if (!Number.isNaN(depth)) dimensionsMm.depth = depth;
+
+  const specs: Record<string, unknown> = {
+    motors: null,
+    sensors: [],
+    programming,
+    connectivity,
+    batteryLifeHours: null,
+    materials: null,
+    dimensionsMm: Object.keys(dimensionsMm).length ? dimensionsMm : undefined,
+    weightKg: typeof product?.weight === "number" ? product.weight : undefined,
+    boxContents: [],
+    compatibility,
+  };
+
+  return specs;
+}
+
 // Function to validate and correct product data before saving
 function validateAndCorrectProduct(
   product: any,
@@ -643,6 +791,64 @@ export async function POST(request: NextRequest) {
           console.log(`  price: ${correctedProduct.price}`);
           console.log(`  featured: ${false}`);
 
+          // Normalize SEO and attributes
+          const { seo: rawSeo, legacy } = extractSeoFields(correctedProduct);
+          let cleanedAttributes = stripSeoFromAttributes(
+            correctedProduct.attributes
+          );
+          // Ensure attributes.specs exists with sensible defaults
+          if (!cleanedAttributes || typeof cleanedAttributes !== "object") {
+            cleanedAttributes = {} as any;
+          }
+          const hasSpecs =
+            cleanedAttributes &&
+            typeof cleanedAttributes === "object" &&
+            (cleanedAttributes as any).specs &&
+            Object.keys((cleanedAttributes as any).specs || {}).length > 0;
+          if (!hasSpecs) {
+            (cleanedAttributes as any).specs =
+              buildDefaultSpecsFromProduct(correctedProduct);
+          }
+
+          // Ensure ogImage fallback from first image if missing
+          const seo = { ...rawSeo } as any;
+          if (!seo.ogImage) {
+            const firstImage = Array.isArray(correctedProduct.images)
+              ? correctedProduct.images[0]
+              : undefined;
+            if (firstImage) seo.ogImage = String(firstImage);
+          }
+
+          // Build metadata with namespaced sections and legacy fallbacks
+          const metadata: Record<string, unknown> = {
+            ...(correctedProduct.metadata || {}),
+            ...legacy, // legacy keys for backward compatibility
+            seo, // canonical SEO location
+            ai: {
+              aiEnhanced: Boolean(correctedProduct.aiEnhanced ?? true),
+              enhancedBy:
+                correctedProduct.enhancedBy ||
+                (correctedProduct.dualProviderEnhancement
+                  ? "dual-provider"
+                  : correctedProduct.fallbackUsed
+                    ? "fallback"
+                    : "standard"),
+              fallbackUsed: Boolean(correctedProduct.fallbackUsed),
+              enhancementTimestamp: new Date().toISOString(),
+            },
+            ingestion: {
+              createdViaBulkUpload: true,
+              bulkUploadTimestamp: new Date().toISOString(),
+              enhancementMethod: correctedProduct.fallbackUsed
+                ? "fallback"
+                : correctedProduct.dualProviderEnhancement
+                  ? "dual-provider"
+                  : "standard",
+            },
+            ministryApproved: true,
+            isActive: true,
+          };
+
           // Create product with all enhanced fields
           const newProduct = await db.product.create({
             data: {
@@ -661,10 +867,10 @@ export async function POST(request: NextRequest) {
               reorderPoint: correctedProduct.reorderPoint,
               weight: correctedProduct.weight || 0.8,
               dimensions: correctedProduct.dimensions,
-              isActive: true, // Always active by default for AI-enhanced products
-              featured: false, // ALWAYS false for bulk uploads
-              reviewCount: 0, // Default as requested
-              totalSold: 0, // Default as requested
+              isActive: true,
+              featured: false,
+              reviewCount: 0,
+              totalSold: 0,
               barcode: correctedProduct.barcode || null,
 
               // Enhanced categorization fields
@@ -684,7 +890,7 @@ export async function POST(request: NextRequest) {
               romanianEducationalLevel:
                 correctedProduct.romanianEducationalLevel,
               romanianSubjectAreas: correctedProduct.romanianSubjectAreas || [],
-              romanianMinistryApproval: true, // Always true by default for AI-enhanced products
+              romanianMinistryApproval: true,
               romanianEducationalCertification:
                 correctedProduct.romanianEducationalCertification,
               romanianParentGuides: correctedProduct.romanianParentGuides || [],
@@ -698,31 +904,14 @@ export async function POST(request: NextRequest) {
               priceCurrency: "RON",
               compareAtPriceCurrency: "RON",
 
-              // SEO metadata in attributes
-              attributes: {
-                metaTitle: correctedProduct.metaTitle || correctedProduct.name,
-                metaDescription:
-                  correctedProduct.metaDescription ||
-                  correctedProduct.description.substring(0, 160),
-                metaKeywords: correctedProduct.metaKeywords || [],
-                ...correctedProduct.attributes,
-              },
+              // Product specs only
+              attributes: cleanedAttributes || {},
 
               // Image metadata
               imageMetadata: correctedProduct.imageMetadata || [],
 
-              // Metadata field for tracking
-              metadata: {
-                createdViaBulkUpload: true,
-                bulkUploadTimestamp: new Date().toISOString(),
-                enhancementMethod: correctedProduct.fallbackUsed
-                  ? "fallback"
-                  : correctedProduct.dualProviderEnhancement
-                    ? "dual-provider"
-                    : "standard",
-                ministryApproved: true,
-                isActive: true, // Always true for AI-enhanced products
-              },
+              // Structured metadata
+              metadata,
 
               // Ensure isActive is ALWAYS true for AI-enhanced bulk uploads
               isActive: true,
