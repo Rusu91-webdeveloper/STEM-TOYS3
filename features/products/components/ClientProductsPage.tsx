@@ -250,7 +250,7 @@ function ClientProductsPageContent({
     // Fallback to dynamic generation if server categories are not available
     const categories = Array.from(
       new Set(
-        products.map(p => p.category?.name ?? p.stemDiscipline).filter(Boolean)
+        products.map(p => p.stemDiscipline ?? p.category?.name).filter(Boolean)
       )
     );
 
@@ -261,13 +261,15 @@ function ClientProductsPageContent({
         options: categories.map(cat => ({
           id: normalizeCategory(cat!),
           label: cat!,
-          count: products.filter(
-            p =>
-              normalizeCategory(p.category?.name ?? "") ===
-                normalizeCategory(cat!) ||
-              normalizeCategory(p.stemDiscipline ?? "") ===
-                normalizeCategory(cat!)
-          ).length,
+          count: products.filter(p => {
+            // For STEM categories, prioritize stemDiscipline over category.name
+            const productCategory = p.stemDiscipline
+              ? p.stemDiscipline.toLowerCase()
+              : p.category?.name?.toLowerCase() || "";
+            return (
+              normalizeCategory(productCategory) === normalizeCategory(cat!)
+            );
+          }).length,
         })),
       },
     ];
@@ -297,10 +299,11 @@ function ClientProductsPageContent({
     // Filter by selected categories
     if (state.selectedCategories.length > 0) {
       filtered = filtered.filter(product => {
-        const productCategory =
-          product.category?.name?.toLowerCase() ||
-          product.stemDiscipline?.toLowerCase() ||
-          "";
+        // For STEM categories, prioritize stemDiscipline over category.name
+        // This ensures products with stemDiscipline values are properly categorized
+        const productCategory = product.stemDiscipline
+          ? product.stemDiscipline.toLowerCase()
+          : product.category?.name?.toLowerCase() || "";
 
         return state.selectedCategories.some(selectedCategory => {
           const normalizedSelected = normalizeCategory(selectedCategory);

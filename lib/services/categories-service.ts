@@ -227,8 +227,12 @@ export async function getAllCategoriesForSidebar(
             // Count products the same way the frontend filters them
             // This matches the logic in ClientProductsPage.tsx lines 330-338
             const matchingProducts = allProducts.filter(product => {
-              const productCategory =
-                product.category?.name ?? product.stemDiscipline ?? "";
+              // For STEM categories, prioritize stemDiscipline over category.name
+              // This ensures products with stemDiscipline values are properly categorized
+              const productCategory = product.stemDiscipline
+                ? product.stemDiscipline.toLowerCase()
+                : (product.category?.name ?? "").toLowerCase();
+
               const normalizedProductCategory =
                 normalizeCategory(productCategory);
               const normalizedStaticCategory = normalizeCategory(
