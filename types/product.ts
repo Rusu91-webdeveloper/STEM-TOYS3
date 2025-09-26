@@ -22,7 +22,10 @@ export interface Product {
   priceCurrency?: string; // Currency of the price (EUR or RON)
   compareAtPrice?: number;
   compareAtPriceCurrency?: string; // Currency of compare price
+  sku?: string;
+  barcode?: string; // GTIN-compatible identifier
   images: string[];
+  metadata?: Record<string, any> | string;
   category?: {
     id: string;
     name: string;
@@ -38,6 +41,25 @@ export interface Product {
   reservedQuantity: number;
   featured: boolean;
   isBook?: boolean;
+  // Logistics / physical specs
+  weight?: number;
+  dimensions?: Record<string, any>;
+  // Ratings
+  averageRating?: number;
+  reviewCount?: number;
+  totalSold?: number;
+  // Supplier / brand
+  supplier?: {
+    id?: string;
+    companyName: string;
+    companySlug: string;
+  };
+  // Media metadata
+  imageMetadata?: Array<{
+    originalUrl?: string;
+    alt?: string;
+    tags?: string[];
+  }>;
   // stemCategory?: string; // DEPRECATED: Use stemDiscipline instead
   ageRange?: string;
   // Enhanced categorization fields
@@ -72,4 +94,18 @@ export interface Product {
     | "GIFT_IDEAS"
     | "SALE_ITEMS"
   )[];
+  // Romanian education context
+  romanianCompetencies?: string[];
+  romanianCurriculumAlignment?: string[];
+  romanianEducationalCertification?: string;
+  romanianEducationalLevel?:
+    | "GRADINITA"
+    | "PRIMAR"
+    | "GIMNAZIU"
+    | "LICEU"
+    | "UNIVERSITATE";
+  romanianMinistryApproval?: boolean;
+  romanianParentGuides?: string[];
+  romanianSubjectAreas?: string[];
+  romanianTeacherResources?: string[];
 }

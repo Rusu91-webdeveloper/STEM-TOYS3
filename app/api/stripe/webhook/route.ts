@@ -116,29 +116,41 @@ async function handleSuccessfulPayment(paymentIntent: Stripe.PaymentIntent) {
         // Process digital book delivery
         await processDigitalBookOrder(orderId);
       } else {
-        // For physical products, send regular order confirmation
+        // For physical products, send regular order confirmation using migration helper
         if (userEmail) {
           try {
-            // Send regular order confirmation email via Brevo
-            await fetch(
-              `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/email/brevo`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  type: "orderConfirmation",
-                  data: {
-                    to: userEmail,
-                    order: updatedOrder,
-                    user: updatedOrder.user,
-                  },
-                }),
-              }
+            const { DatabaseTemplateService } = await import(
+              "@/lib/email/database-template-service"
             );
 
-            // Order confirmation email sent
+            const orderNumberForEmail =
+              updatedOrder.orderNumber || updatedOrder.id;
+
+            const sendResult =
+              await DatabaseTemplateService.sendOrderConfirmationEmail(
+                userEmail,
+                {
+                  customerName:
+                    updatedOrder?.shippingAddress?.fullName ||
+                    updatedOrder?.user?.name ||
+                    "Client",
+                  orderNumber: String(orderNumberForEmail),
+                  orderTotal: updatedOrder.total,
+                  items: (updatedOrder.items || []).map((item: any) => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                  })),
+                  shippingAddress: updatedOrder.shippingAddress || null,
+                }
+              );
+
+            if (!sendResult.success) {
+              console.error(
+                `Failed to send order confirmation email via template service:`,
+                sendResult.error
+              );
+            }
           } catch (emailError) {
             console.error(
               `Failed to send order confirmation email:`,

@@ -52,52 +52,30 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
   return (
     <>
       <SeoJsonLd
-        data={[
-          {
-            "@context": "https://schema.org",
-            "@type": "Product",
-            name: product.name,
-            description: product.description,
-            image: product.images?.[0] || "",
-            sku: product.sku || product.id,
-            mpn: product.id,
-            brand: { "@type": "Brand", name: "TechTots" },
-            offers: {
-              "@type": "Offer",
-              url: `/products/${product.slug}`,
-              priceCurrency: "RON",
-              price: product.price,
-              availability: product.isActive
-                ? "https://schema.org/InStock"
-                : "https://schema.org/OutOfStock",
-              seller: { "@type": "Organization", name: "TechTots" },
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: "/",
             },
-          },
-          {
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              {
-                "@type": "ListItem",
-                position: 1,
-                name: "Home",
-                item: "/",
-              },
-              {
-                "@type": "ListItem",
-                position: 2,
-                name: "Products",
-                item: "/products",
-              },
-              {
-                "@type": "ListItem",
-                position: 3,
-                name: product.name,
-                item: `/products/${product.slug}`,
-              },
-            ],
-          },
-        ]}
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Products",
+              item: "/products",
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: product.name,
+              item: `/products/${product.slug}`,
+            },
+          ],
+        }}
       />
       <ProductDetailClient
         product={product}

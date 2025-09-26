@@ -16,6 +16,9 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/email/base";
 import { ProductImageGallery } from "./ProductImageGallery";
+import ProductSpecs from "./ProductSpecs";
+import ProductEducation from "./ProductEducation";
+import ProductFAQ from "./ProductFAQ";
 
 interface ProductDetailClientProps {
   product: any;
@@ -109,6 +112,10 @@ export default function ProductDetailClient({
                 images={product.images || []}
                 alt={product.name}
                 className="w-full"
+                metadata={product.imageMetadata?.map((m: any) => ({
+                  alt: m?.alt,
+                  tags: m?.tags,
+                }))}
               />
             </div>
 
@@ -224,6 +231,10 @@ export default function ProductDetailClient({
                 images={product.images || []}
                 alt={product.name}
                 className="w-full"
+                metadata={product.imageMetadata?.map((m: any) => ({
+                  alt: m?.alt,
+                  tags: m?.tags,
+                }))}
               />
             </div>
 
@@ -326,6 +337,12 @@ export default function ProductDetailClient({
 
         {/* Secondary Information - Below the Fold */}
         <div className="space-y-8 sm:space-y-12">
+          {/* Specifications / Taxonomy / Brand / Tags */}
+          <ProductSpecs product={product} />
+
+          {/* Education (RO fields) */}
+          <ProductEducation product={product} />
+
           {/* Product Features - Single Row */}
           <div className="bg-white rounded-lg border p-3 sm:p-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
@@ -468,6 +485,9 @@ export default function ProductDetailClient({
               </a>
             </div>
           </div>
+
+          {/* FAQ */}
+          <ProductFAQ faq={(product?.metadata?.seo?.faq as any) || undefined} />
         </div>
       </div>
     </div>

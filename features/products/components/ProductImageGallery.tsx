@@ -11,12 +11,15 @@ interface ProductImageGalleryProps {
   images: string[];
   alt: string;
   className?: string;
+  // Optional metadata parallel array for alt/tags per image
+  metadata?: Array<{ alt?: string; tags?: string[] }>;
 }
 
 export function ProductImageGallery({
   images,
   alt,
   className,
+  metadata,
 }: ProductImageGalleryProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -45,13 +48,19 @@ export function ProductImageGallery({
     );
   }
 
+  const getAlt = (index: number) => {
+    const metaAlt = metadata?.[index]?.alt;
+    if (metaAlt && metaAlt.trim().length > 0) return metaAlt;
+    return `${alt} - Image ${index + 1}`;
+  };
+
   return (
     <div className={cn("space-y-3 sm:space-y-4", className)}>
       {/* Main image */}
       <div className="relative aspect-square w-full overflow-hidden rounded-lg sm:rounded-xl border">
         <Image
           src={images[currentImageIndex] || "/placeholder-product.png"}
-          alt={`${alt} - Image ${currentImageIndex + 1}`}
+          alt={getAlt(currentImageIndex)}
           fill
           priority={currentImageIndex === 0}
           className="object-cover transition-opacity"
@@ -105,7 +114,7 @@ export function ProductImageGallery({
             >
               <Image
                 src={image}
-                alt={`${alt} - Thumbnail ${index + 1}`}
+                alt={getAlt(index)}
                 fill
                 className="object-cover"
                 sizes="(max-width: 640px) 48px, 64px"

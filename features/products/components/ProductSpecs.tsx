@@ -1,0 +1,156 @@
+"use client";
+
+import React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useTranslation } from "@/lib/i18n";
+
+type ProductSpecsProps = {
+  product: any;
+};
+
+function humanizeAgeGroup(
+  t: (key: string) => string,
+  value?: string
+): string | undefined {
+  if (!value) return undefined;
+  const key = `ageGroup.${value}`;
+  const translated = (t as any)(key);
+  return translated || value;
+}
+
+function humanizeStemDiscipline(value?: string): string | undefined {
+  switch (value) {
+    case "SCIENCE":
+      return "Science";
+    case "TECHNOLOGY":
+      return "Technology";
+    case "ENGINEERING":
+      return "Engineering";
+    case "MATHEMATICS":
+      return "Mathematics";
+    case "GENERAL":
+      return "General";
+    default:
+      return undefined;
+  }
+}
+
+function humanizeProductType(
+  t: (key: string) => string,
+  value?: string
+): string | undefined {
+  if (!value) return undefined;
+  const key = `productType.${value}`;
+  const translated = (t as any)(key);
+  return translated || value;
+}
+
+function humanizeLearningOutcome(
+  t: (key: string) => string,
+  value?: string
+): string | undefined {
+  if (!value) return undefined;
+  const key = `learningOutcome.${value}`;
+  const translated = (t as any)(key);
+  return translated || value;
+}
+
+function humanizeSpecialCategory(
+  t: (key: string) => string,
+  value?: string
+): string | undefined {
+  if (!value) return undefined;
+  const key = `specialCategory.${value}`;
+  const translated = (t as any)(key);
+  return translated || value;
+}
+
+export default function ProductSpecs({ product }: ProductSpecsProps) {
+  const { t } = useTranslation();
+  const entries: Array<{ label: string; value?: React.ReactNode }> = [
+    // Removed SKU/GTIN/Dimensions/Weight from UI as requested
+    {
+      label: t("ageGroup"),
+      value: humanizeAgeGroup(t as any, product.ageGroup),
+    },
+    {
+      label: t("learningOutcomes"),
+      value: Array.isArray(product.learningOutcomes)
+        ? product.learningOutcomes
+            .map((v: string) => humanizeLearningOutcome(t as any, v) || v)
+            .join(", ")
+        : undefined,
+    },
+    {
+      label: t("productType"),
+      value: humanizeProductType(t as any, product.productType),
+    },
+    {
+      label: t("specialCategories"),
+      value: Array.isArray(product.specialCategories)
+        ? product.specialCategories
+            .map((v: string) => humanizeSpecialCategory(t as any, v) || v)
+            .join(", ")
+        : undefined,
+    },
+    {
+      label: "STEM Discipline",
+      value: humanizeStemDiscipline(product.stemDiscipline),
+    },
+  ];
+
+  const brand = product?.supplier?.companyName;
+  const tags: string[] = Array.isArray(product.tags) ? product.tags : [];
+
+  const visible = entries.filter(e => !!e.value);
+
+  if (visible.length === 0 && !brand && tags.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="bg-white rounded-lg border p-3 sm:p-4">
+      <h3 className="text-sm font-semibold text-gray-900 mb-3">
+        {t("features") || "Specifications"}
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+        {visible.map((e, idx) => (
+          <div key={idx} className="flex items-start justify-between">
+            <span className="text-xs sm:text-sm text-gray-600 mr-3">
+              {e.label}
+            </span>
+            <span className="text-xs sm:text-sm text-gray-900 text-right break-words">
+              {e.value as any}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {(brand || tags.length > 0) && <Separator className="my-3" />}
+
+      {brand && (
+        <div className="mb-2">
+          <span className="text-xs sm:text-sm text-gray-600 mr-2">Brand</span>
+          <a
+            href={`/supplier/${product?.supplier?.companySlug ?? ""}`}
+            className="text-xs sm:text-sm text-blue-600 hover:underline"
+          >
+            {brand}
+          </a>
+        </div>
+      )}
+
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {tags.map((tag: string) => (
+            <Badge key={tag} variant="secondary" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

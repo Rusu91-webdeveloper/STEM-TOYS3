@@ -92,8 +92,57 @@ export function generateProductMetadata(product: any): Metadata {
     `educational ${categoryName.toLowerCase()} toys`,
   ];
 
+  // Determine brand from supplier when available, fallback to site brand
+  const brandName = product?.supplier?.companyName || "TechTots";
+
+  // Map DB ratings fields
+  const ratingValue = product.averageRating || product.rating;
+  const reviewCount = product.reviewCount || 0;
+
+  // Determine GTIN key from barcode length
+  const barcode: string | undefined = product.barcode || undefined;
+  const gtinKey =
+    typeof barcode === "string"
+      ? barcode.length === 8
+        ? "gtin8"
+        : barcode.length === 12
+          ? "gtin12"
+          : barcode.length === 13
+            ? "gtin13"
+            : barcode.length === 14
+              ? "gtin14"
+              : "gtin"
+      : undefined;
+
+  // Convert attributes/specs to additionalProperty array
+  const additionalProperty: any[] = [];
+  if (product.attributes && typeof product.attributes === "object") {
+    for (const [key, value] of Object.entries(product.attributes)) {
+      if (value == null) continue;
+      additionalProperty.push({
+        "@type": "PropertyValue",
+        name: key,
+        value: Array.isArray(value) ? value.join(", ") : String(value),
+      });
+    }
+  }
+  if (product.weight != null) {
+    additionalProperty.push({
+      "@type": "PropertyValue",
+      name: "weight",
+      value: String(product.weight),
+    });
+  }
+  if (product.dimensions && typeof product.dimensions === "object") {
+    additionalProperty.push({
+      "@type": "PropertyValue",
+      name: "dimensions",
+      value: JSON.stringify(product.dimensions),
+    });
+  }
+
   // Create structured data for the product
-  const productData = seoData.structuredData || {
+  const productData: Record<string, any> = seoData.structuredData || {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
@@ -101,10 +150,7 @@ export function generateProductMetadata(product: any): Metadata {
     image: product.images?.[0] || "",
     sku: product.sku || product.id,
     mpn: product.id,
-    brand: {
-      "@type": "Brand",
-      name: "TechTots",
-    },
+    brand: { "@type": "Brand", name: brandName },
     offers: {
       "@type": "Offer",
       url: `${SITE_URL}/products/${product.slug}`,
@@ -130,14 +176,24 @@ export function generateProductMetadata(product: any): Metadata {
   };
 
   // Add review information if available
-  if (product.rating) {
+  if (ratingValue) {
     (productData as any).aggregateRating = {
       "@type": "AggregateRating",
-      ratingValue: product.rating,
-      reviewCount: product.reviewCount || 0,
+      ratingValue,
+      reviewCount,
       bestRating: 5,
       worstRating: 1,
     };
+  }
+
+  // Add GTIN when available
+  if (gtinKey && barcode) {
+    (productData as any)[gtinKey] = barcode;
+  }
+
+  // Attach additionalProperty if any
+  if (additionalProperty.length > 0) {
+    (productData as any).additionalProperty = additionalProperty;
   }
 
   // Add BreadcrumbList JSON-LD for product detail page
@@ -165,6 +221,26 @@ export function generateProductMetadata(product: any): Metadata {
       },
     ],
   };
+
+  // Optional FAQ schema when metadata.seo.faq exists
+  let faqData: Record<string, any> | undefined;
+  const faq = (seoData as any)?.faq;
+  if (Array.isArray(faq) && faq.length > 0) {
+    faqData = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faq
+        .filter((q: any) => q?.question && q?.answer)
+        .map((q: any) => ({
+          "@type": "Question",
+          name: q.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: q.answer,
+          },
+        })),
+    };
+  }
 
   // Create translations for this product
   const safeDescription = product.description || "";
@@ -196,7 +272,9 @@ export function generateProductMetadata(product: any): Metadata {
     title: "metaTitle" as any,
     description: "metaDescription" as any,
     keywords,
-    structuredData: [productData, breadcrumbData],
+    structuredData: faqData
+      ? [productData, breadcrumbData, faqData]
+      : [productData, breadcrumbData],
     canonicalUrl: seoData.canonical || `${SITE_URL}/products/${product.slug}`,
     ogImage: product.images?.[0] || "/opengraph-image.png",
     pathWithoutLocale: `/products/${product.slug}`,

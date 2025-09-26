@@ -103,69 +103,95 @@ export class DatabaseTemplateService {
    * - Conditionals {{#if condition}}...{{/if}}
    */
   static replaceVariables(content: string, data: Record<string, any>): string {
-    let processedContent = content;
+    // Helper to deeply resolve a path like "order.number" or "this.name"
+    const resolvePath = (
+      path: string,
+      context: Record<string, any> | undefined,
+      root: Record<string, any>
+    ): any => {
+      const trimmed = path.trim();
+      const segments = trimmed.split(".");
+      let current: any;
 
-    // Step 1: Process simple variables in the format {{variableName}}
-    Object.entries(data).forEach(([key, value]) => {
-      const regex = new RegExp(`{{${key}}}`, "g");
-      processedContent = processedContent.replace(regex, String(value || ""));
-    });
-
-    // Step 2: Process nested object variables in the format {{object.property}}
-    for (const [key, value] of Object.entries(data)) {
-      if (value && typeof value === "object" && !Array.isArray(value)) {
-        for (const [nestedKey, nestedValue] of Object.entries(value)) {
-          const regex = new RegExp(`{{${key}\\.${nestedKey}}}`, "g");
-          processedContent = processedContent.replace(
-            regex,
-            String(nestedValue || "")
-          );
-        }
+      if (segments[0] === "this") {
+        current = context ?? {};
+        segments.shift();
+      } else {
+        current =
+          context && context[segments[0]] !== undefined ? context : root;
       }
+
+      for (const segment of segments) {
+        if (segment === "") continue;
+        if (current == null) return "";
+        current = current[segment];
+      }
+      return current ?? "";
+    };
+
+    // Normalize data to add common aliases (supports templates using nested notation)
+    const normalizedData: Record<string, any> = { ...data };
+    if (
+      !normalizedData.order &&
+      (normalizedData.orderNumber || normalizedData.orderTotal)
+    ) {
+      normalizedData.order = {
+        number: normalizedData.orderNumber ?? normalizedData.order?.number,
+        total: normalizedData.orderTotal ?? normalizedData.order?.total,
+        date: normalizedData.orderDate ?? normalizedData.order?.date,
+      };
+    } else if (normalizedData.order) {
+      normalizedData.order = {
+        ...normalizedData.order,
+        number: normalizedData.order.number ?? normalizedData.orderNumber,
+        total: normalizedData.order.total ?? normalizedData.orderTotal,
+        date: normalizedData.order.date ?? normalizedData.orderDate,
+      };
     }
 
-    // Step 3: Process loops
+    // Process loops first to set correct context
     const loopRegex = /{{#each\s+([^}]+)}}([\s\S]*?){{\/each}}/g;
-    let match;
+    let processedContent = content.replace(
+      loopRegex,
+      (full, iteratorName, inner) => {
+        const items = normalizedData[iteratorName.trim()];
+        if (!Array.isArray(items) || items.length === 0) return "";
 
-    // We need to use a while loop because the content may have multiple loops
-    let lastProcessedContent = "";
-    while (processedContent !== lastProcessedContent) {
-      lastProcessedContent = processedContent;
+        return items
+          .map(item => {
+            // Replace placeholders within loop with item as context
+            return inner.replace(/{{\s*([^}]+?)\s*}}/g, (_m, token) => {
+              const t = String(token).trim();
+              if (t.startsWith("#") || t.startsWith("/")) return _m; // leave helpers
+              const value = resolvePath(t, item, normalizedData);
+              return value != null ? String(value) : "";
+            });
+          })
+          .join("");
+      }
+    );
 
-      processedContent = processedContent.replace(
-        loopRegex,
-        (fullMatch, iteratorName, loopContent) => {
-          const items = data[iteratorName];
-
-          if (!Array.isArray(items) || items.length === 0) {
-            return ""; // Empty string if the array doesn't exist or is empty
-          }
-
-          return items
-            .map(item => {
-              let itemContent = loopContent;
-
-              // Replace item properties
-              for (const [key, value] of Object.entries(item)) {
-                const regex = new RegExp(`{{${key}}}`, "g");
-                itemContent = itemContent.replace(regex, String(value || ""));
-              }
-
-              return itemContent;
-            })
-            .join("");
-        }
-      );
-    }
-
-    // Step 4: Process conditionals
+    // Process conditionals (supports nested paths and whitespace)
     const conditionalRegex = /{{#if\s+([^}]+)}}([\s\S]*?){{\/if}}/g;
     processedContent = processedContent.replace(
       conditionalRegex,
-      (fullMatch, conditionName, conditionalContent) => {
-        const condition = data[conditionName];
-        return condition ? conditionalContent : "";
+      (_full, cond, inner) => {
+        const conditionValue = resolvePath(
+          String(cond).trim(),
+          undefined,
+          normalizedData
+        );
+        return conditionValue ? inner : "";
+      }
+    );
+
+    // Replace remaining simple/nested variables with whitespace tolerance
+    processedContent = processedContent.replace(
+      /{{\s*([^}#\/][^}]*)\s*}}/g,
+      (_m, token) => {
+        const t = String(token).trim();
+        const value = resolvePath(t, undefined, normalizedData);
+        return value != null ? String(value) : "";
       }
     );
 
@@ -310,6 +336,11 @@ export class DatabaseTemplateService {
         // Use simple variables instead of nested properties
         orderNumber: orderData.orderNumber, // Instead of order.id
         orderTotal: orderData.orderTotal.toFixed(2) + " RON",
+        // Also provide nested structure for templates using dot-notation
+        order: {
+          number: orderData.orderNumber,
+          total: orderData.orderTotal.toFixed(2) + " RON",
+        },
         items: orderData.items.map(item => ({
           name: item.name,
           quantity: item.quantity,
@@ -340,6 +371,9 @@ export class DatabaseTemplateService {
         customerName: "Client",
         returnId: returnData.returnId,
         orderNumber: returnData.orderNumber,
+        order: {
+          number: returnData.orderNumber,
+        },
         reason: returnData.reason || "Return requested",
         requestDate: new Date().toLocaleDateString("ro-RO"),
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",

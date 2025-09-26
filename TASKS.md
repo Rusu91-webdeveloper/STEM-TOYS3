@@ -215,6 +215,28 @@
   - Discovered During Work:
     - Consider adding compact trust badges row under hero for social proof.
 
+## 2025-09-20
+
+- Product Detail Page – Complete Content & SEO Overhaul
+  - Description: Expand `/products/[slug]` to render all key product details
+    from the DB (identifiers, specs, taxonomy, education fields, supplier/brand,
+    tags, image metadata), upgrade JSON-LD (Product, Breadcrumb, FAQ), and align
+    with metadata normalization. Maintain ISR/performance and add comprehensive
+    tests.
+  - Estimated time: 6h
+  - Status: In Progress
+  - Date: 2025-09-20
+  - Notes:
+    - See `docs/PRODUCT_DETAIL_PAGE_SEO_PLAN.md` for the full step-by-step plan
+      and goals.
+  - Subtasks (high-level):
+    - Extend product types to cover DB fields used by UI/SEO
+    - Enhance combined product API shape and normalization
+    - Upgrade SEO generation and page-scoped JSON-LD
+    - Implement UI sections for specs, taxonomy, education fields, brand, tags
+    - Render FAQ + FAQ schema when available
+    - Add unit, integration, and E2E tests
+
 - Fix Products Sidebar – "All Types" shows no results
   - Description: Ensure selecting "All Types" in the Product Type dropdown
     applies no type filter and shows all products.

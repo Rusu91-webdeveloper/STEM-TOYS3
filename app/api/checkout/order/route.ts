@@ -5,7 +5,7 @@ import type { CartItem } from "@/features/cart/context/CartContext";
 import { auth } from "@/lib/auth";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
-import { sendEmail } from "@/lib/email";
+import { DatabaseTemplateService } from "@/lib/email/database-template-service";
 import {
   getShippingSettings,
   getTaxSettings,
@@ -824,37 +824,43 @@ export async function POST(request: Request) {
 
     // Send order confirmation email
     try {
-      const orderDetails = {
-        id: dbOrder?.id || orderId,
-        items: items.map(item => ({
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        subtotal,
-        tax,
-        shippingCost: finalShippingCost,
-        discountAmount,
-        couponCode: appliedCoupon?.code || null,
-        total: orderTotal,
-        shippingAddress: orderData.shippingAddress,
-        shippingMethod: orderData.shippingMethod,
-        orderDate: orderData.orderDate || new Date().toISOString(),
-        taxRatePercentage,
-        isFreeShippingActive,
-        freeShippingThreshold,
-      };
+      const recipientEmail =
+        (user?.email as string) || orderData?.guestInformation?.email;
 
-      await sendEmail({
-        to: user.email as string,
-        subject: `Confirmare comandă TeechTots #${dbOrder?.id || orderId}`,
-        template: "order-confirmation",
-        data: {
-          order: orderDetails,
-        },
-      });
+      if (!recipientEmail) {
+        console.warn(
+          `Order ${dbOrder?.id || orderId}: no recipient email found (user or guest). Skipping confirmation email.`
+        );
+      } else {
+        const orderNumberForEmail =
+          dbOrder?.orderNumber || dbOrder?.id || orderId;
 
-      console.log(`Order confirmation email sent to ${user.email}`);
+        const sendResult =
+          await DatabaseTemplateService.sendOrderConfirmationEmail(
+            recipientEmail,
+            {
+              customerName:
+                orderData?.shippingAddress?.fullName || user?.name || "Client",
+              orderNumber: String(orderNumberForEmail),
+              orderTotal: orderTotal,
+              items: items.map(item => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+              })),
+              shippingAddress: orderData.shippingAddress,
+            }
+          );
+
+        if (sendResult.success) {
+          console.log(`✅ Order confirmation email sent to ${recipientEmail}`);
+        } else {
+          console.error(
+            `❌ Failed to send order confirmation email for order ${orderNumberForEmail}:`,
+            sendResult.error
+          );
+        }
+      }
     } catch (emailError) {
       // Log error but don't fail the order process
       console.error("Failed to send order confirmation email:", emailError);
