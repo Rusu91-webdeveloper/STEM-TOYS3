@@ -23,6 +23,7 @@ import { metadata as appMetadata } from "./metadata";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = appMetadata;
@@ -57,6 +58,14 @@ export default async function RootLayout({
         {/* Critical CSS for LCP optimization */}
         <CriticalCSS />
 
+        {/* **PERFORMANCE**: Aggressive hero image preloading for LCP optimization */}
+        <link
+          rel="preload"
+          href="/images/optimized/homepage_hero_banner_01_fallback.jpg"
+          as="image"
+          fetchPriority="high"
+        />
+
         {/* **PERFORMANCE**: Font preconnect for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -64,9 +73,6 @@ export default async function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-
-        {/* **PERFORMANCE**: Removed hero image preload to fix unused preload warnings */}
-        {/* **PERFORMANCE**: Removed unused responsive image variants to fix preload warnings */}
 
         {/* Google Analytics 4 */}
         <GoogleAnalytics />

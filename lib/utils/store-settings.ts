@@ -1,22 +1,37 @@
 import { prisma } from "@/lib/prisma";
 import { getCached } from "@/lib/cache";
 
+// **PERFORMANCE**: Cache store settings at module level to avoid repeated database calls
+let cachedStoreSettings: any = null;
+let settingsLastFetched = 0;
+const SETTINGS_CACHE_DURATION = 60 * 60 * 1000; // 1 hour cache for store settings
+
 /**
- * Get store settings from the database with caching
+ * Get store settings from the database with aggressive caching
  * @returns Store settings object with all business information
  */
 export async function getStoreSettings() {
+  const now = Date.now();
+
+  // **PERFORMANCE**: Return cached settings if still fresh (no database call needed)
+  if (
+    cachedStoreSettings &&
+    now - settingsLastFetched < SETTINGS_CACHE_DURATION
+  ) {
+    return cachedStoreSettings;
+  }
+
   try {
-    // **PERFORMANCE**: Use caching to avoid repeated database queries
+    // **PERFORMANCE**: Use Redis cache with longer TTL for store settings
     const settings = await getCached(
       "store_settings_v1",
       () => prisma.storeSettings.findFirst(),
-      30 * 60 * 1000 // Cache for 30 minutes
+      SETTINGS_CACHE_DURATION // Cache for 1 hour
     );
 
     if (!settings) {
       // Return default settings if none exist
-      return {
+      const defaultSettings = {
         storeName: "TechTots",
         storeUrl: "https://techtots.com",
         storeDescription:
@@ -48,13 +63,27 @@ export async function getStoreSettings() {
           includeInPrice: true,
         },
       };
+
+      // Cache default settings to avoid repeated database calls
+      cachedStoreSettings = defaultSettings;
+      settingsLastFetched = now;
+      return defaultSettings;
     }
 
+    // Cache successful database result
+    cachedStoreSettings = settings;
+    settingsLastFetched = now;
     return settings;
   } catch (error) {
     console.error("Error fetching store settings:", error);
+
+    // **PERFORMANCE**: Return cached settings even on error to avoid repeated failures
+    if (cachedStoreSettings) {
+      return cachedStoreSettings;
+    }
+
     // Return default settings on error
-    return {
+    const defaultSettings = {
       storeName: "TechTots",
       storeUrl: "https://techtots.com",
       storeDescription:
@@ -86,6 +115,11 @@ export async function getStoreSettings() {
         includeInPrice: true,
       },
     };
+
+    // Cache default settings to avoid repeated database calls
+    cachedStoreSettings = defaultSettings;
+    settingsLastFetched = now;
+    return defaultSettings;
   }
 }
 

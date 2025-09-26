@@ -5,7 +5,7 @@
 
 const puppeteer = require("puppeteer");
 
-const BASE_URL = "http://localhost:3004";
+const BASE_URL = "http://localhost:3000";
 
 async function measureFCP() {
   console.log(
@@ -96,7 +96,7 @@ async function measureFCP() {
     console.log(`Page load time: ${loadTime}ms\n`);
 
     // Wait for Core Web Vitals to be measured
-    await page.waitForTimeout(3000);
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     // Get the measured values
     const results = await page.evaluate(() => ({

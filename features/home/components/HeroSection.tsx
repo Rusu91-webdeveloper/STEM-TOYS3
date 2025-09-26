@@ -67,7 +67,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
       className="relative flex items-center justify-center min-h-[75vh] sm:min-h-[80vh] md:min-h-[85vh] max-h-[900px] overflow-hidden"
       aria-label={t("heroSection", "Homepage Hero Section")}
     >
-      {/* **PERFORMANCE**: Ultra-optimized hero image for LCP - aggressive loading */}
+      {/* **PERFORMANCE**: Ultra-optimized hero image for LCP - uses preloaded image */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/images/optimized/homepage_hero_banner_01_fallback.jpg"

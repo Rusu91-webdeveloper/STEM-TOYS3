@@ -26,10 +26,10 @@ interface RateLimitConfig {
 const RATE_LIMIT_PROVIDER = (
   process.env.RATE_LIMIT_PROVIDER || "auto"
 ).toLowerCase();
-// Default to faster timeouts in production, slightly looser in dev
+// **PERFORMANCE**: Increase Redis timeout to reduce cache misses and improve TTFB
 const REDIS_TIMEOUT = parseInt(
   process.env.REDIS_TIMEOUT ??
-    (process.env.NODE_ENV === "production" ? "150" : "1000"),
+    (process.env.NODE_ENV === "production" ? "1000" : "2000"),
   10
 );
 

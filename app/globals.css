@@ -39,10 +39,7 @@
   }
 }
 
-/* **PERFORMANCE**: Optimized font loading for FCP */
-/* Preload critical fonts and use font-display: swap for better performance */
-/* **PERFORMANCE**: Optimized font loading for LCP */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+/* **PERFORMANCE**: Font loading optimized via Next.js Inter font with display: swap */
 
 @layer base {
   :root {
