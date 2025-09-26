@@ -166,7 +166,7 @@ export async function getAllCategoriesForSidebar(
   language = "en"
 ): Promise<Array<{ id: string; label: string; count: number }>> {
   try {
-    const cacheKey = getCacheKey("sidebar-categories", { language });
+    const cacheKey = getCacheKey("sidebar-categories-v2", { language }); // v2 to force cache miss
     const CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache
 
     return await getCached(
