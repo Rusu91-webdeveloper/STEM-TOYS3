@@ -10,10 +10,6 @@ const nextConfig = {
     },
     // Enable optimized package imports
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
-    // **PERFORMANCE**: Enable WebP and AVIF image optimization
-    optimizeCss: true,
-    // **PERFORMANCE**: Optimize server components for better TTFB
-    serverComponentsExternalPackages: [],
     // **PERFORMANCE**: Enable faster builds
     webpackBuildWorker: true,
   },
