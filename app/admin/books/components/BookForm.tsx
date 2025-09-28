@@ -111,7 +111,7 @@ export function BookForm({ initialData, isEditing }: Props) {
         ? `/api/admin/books/${initialData?.id}`
         : "/api/admin/books";
 
-      const method = isEditing ? "PATCH" : "POST";
+      const method = isEditing ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,

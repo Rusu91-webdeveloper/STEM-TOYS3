@@ -6,6 +6,7 @@ import {
   DollarSign,
   Users,
   FileText,
+  Edit,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -95,12 +96,21 @@ export default async function AdminBookDetailsPage({ params }: Props) {
           <p className="text-muted-foreground">de {book.author}</p>
         </div>
 
-        <Button asChild>
-          <Link href={`/admin/books/${book.id}/digital-files`}>
-            <Upload className="h-4 w-4 mr-2" />
-            Gestionează Fișiere Digitale
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link href={`/admin/books/${book.id}/edit`}>
+              <Edit className="h-4 w-4 mr-2" />
+              Editează Carte
+            </Link>
+          </Button>
+
+          <Button asChild>
+            <Link href={`/admin/books/${book.id}/digital-files`}>
+              <Upload className="h-4 w-4 mr-2" />
+              Gestionează Fișiere Digitale
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
