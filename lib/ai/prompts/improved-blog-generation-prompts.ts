@@ -76,12 +76,12 @@ Te rog să creezi un articol care să EXPLODE pe rețelele sociale și să DOMIN
    - Conectează cu Programa Națională dar cu twist modern
    - Povestește succes stories care se pot identifica
 
-4. **Recomandări PRODUSE cu PROOF** (300-400 cuvinte)
-   - Integrează produse naturale dar cu dovezi puternice
-   - Include prețuri REALISTE pentru piața românească
+4. **Descoperă colecția noastră STEM** (300-400 cuvinte)
+   - Îndrumă către www.techtots.ro/products pentru descoperirea produselor
+   - Prezintă beneficiile generale ale jucăriilor STEM
    - Compară cu alternative tradiționale (cursuri, meditații)
-   - Adaugă testimonial român pentru fiecare produs
-   - Link-uri către produse cu CTA-uri diferite
+   - Explică cum să aleagă jucăriile potrivite pentru copil
+   - Încurajează vizitarea catalogului complet
 
 5. **Întrebări Frecvente OPTIMIZATE** (200-250 cuvinte)
    - Adresează întrebările reale ale părinților români
@@ -383,7 +383,7 @@ Te rog să îmbunătățești pentru VIRALITATE MAXIMĂ și CONVERSIE OPTIMĂ:
 
 5. **Optimizare CONVERSIE pentru VÂNZĂRI MAXIME**
    - Întărește elemente de încredere cu dovezi românești
-   - Optimizează plasarea produselor pentru flow natural
+   - Optimizează îndrumarea către www.techtots.ro/products pentru flow natural
    - Îmbunătățește CTA-urile cu urgență și beneficii
    - Adaugă social proof românesc puternic
    - Include garanții adaptate pieței românești

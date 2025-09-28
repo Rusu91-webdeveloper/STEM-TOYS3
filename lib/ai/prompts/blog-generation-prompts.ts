@@ -15,7 +15,7 @@ Key requirements for 2025 Romanian STEM blog content:
 - Include practical examples and real-world applications relevant to Romanian context
 - Use Romanian educational terminology and curriculum references
 - Optimize for Romanian Google search patterns and local competition
-- Include calls-to-action directing to product purchases
+- Include calls-to-action directing to www.techtots.ro/products
 - Structure content for readability: H1, H2, H3, bullet points, short paragraphs
 - Target Romanian parents, teachers, and educators
 - Include Romanian cultural context and examples
@@ -33,8 +33,8 @@ Content Structure Requirements:
 - Engaging introduction that hooks Romanian readers
 - Educational content with practical examples
 - Romanian curriculum connections and competency development
-- Product recommendations integrated naturally
-- Calls-to-action throughout the content
+- Direct readers to explore STEM toy collection at www.techtots.ro/products
+- Calls-to-action throughout the content encouraging product discovery
 - FAQ sections addressing Romanian parent questions
 - Conclusion with strong conversion elements
 - Internal linking suggestions to other blog posts and products`,
@@ -53,11 +53,11 @@ Te rog să creezi un articol detaliat care să:
    - Conectează cu curriculumul național românesc
    - Menționează competențe cheie dezvoltate
 
-3. **Recomandări de jucării STEM** (200-300 cuvinte)
-   - Integrează natural produse din catalog
-   - Explică beneficiile fiecărui produs
-   - Include prețuri și specificații cheie
-   - Adaugă link-uri către produse
+3. **Descoperă colecția noastră de jucării STEM** (200-300 cuvinte)
+   - Îndrumă cititorii către www.techtots.ro/products
+   - Prezintă beneficiile generale ale jucăriilor STEM
+   - Explică cum să aleagă jucăriile potrivite pentru copil
+   - Încurajează vizitarea catalogului complet de produse
 
 4. **Întrebări frecvente** (150-200 cuvinte)
    - Adresează întrebările comune ale părinților români
@@ -351,8 +351,8 @@ Te rog să îmbunătățești următoarele aspecte:
 
 5. **Optimizare Conversie**
    - Întărește elementele de încredere
-   - Optimizează plasarea produselor
-   - Îmbunătățește CTA-urile
+   - Îndrumă către www.techtots.ro/products pentru descoperirea produselor
+   - Îmbunătățește CTA-urile către pagina de produse
    - Adaugă proof points românești
 
 6. **Context Educațional Românește**
