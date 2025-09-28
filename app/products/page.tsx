@@ -108,7 +108,7 @@ export default async function ProductsPage({
       reservedQuantity: 0, // Digital books don't have reserved quantity
       featured: true,
       isBook: true, // Mark as book for proper cart handling
-      stemDiscipline: "GENERAL", // Educational books fall under general STEM
+      // Books use their category instead of stemDiscipline for filtering
     })) as ProductData[];
 
     // Transform STEM products to match the expected type
