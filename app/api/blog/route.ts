@@ -61,8 +61,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Filter blogs by language using the metadata field
-    // Strict mode: only return posts whose metadata.language matches the requested language
-    // or explicitly marked as "both". Do not cross-show languages.
+    // Blogs without explicit language metadata are treated as available in Romanian (default)
     const filteredBlogs = blogs.filter(blog => {
       // If requesting all blogs (admin dashboard), don't filter by language
       if (publishedParam === "all") return true;
@@ -84,8 +83,14 @@ export async function GET(request: NextRequest) {
         return hasLocalizedContent;
       }
 
-      // Require an explicit language match; posts without a language are excluded
-      return blogLang === language;
+      // If blog has explicit language set, require exact match
+      if (blogLang) {
+        return blogLang === language;
+      }
+
+      // Blogs without language metadata are treated as Romanian (default language)
+      // This ensures backward compatibility for existing blogs
+      return language === "ro";
     });
 
     // Map multilingual fields to requested language when available
