@@ -71,7 +71,7 @@ const getCategoryIcon = (name: string) => {
 };
 
 export default function BlogPage() {
-  const { t, language } = useTranslation();
+  const { t, language, setLanguage } = useTranslation();
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeCategoryId, setActiveCategoryId] = useState("all");
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -158,6 +158,11 @@ export default function BlogPage() {
     setActiveCategoryId("all");
   };
 
+  // Language switch handler
+  const switchLanguage = (newLanguage: string) => {
+    setLanguage(newLanguage);
+  };
+
   // --- HERO SECTION ---
   const Hero = () => (
     <section className="relative w-full min-h-[200px] sm:min-h-[280px] lg:min-h-[320px] flex items-center justify-center bg-black">
@@ -178,6 +183,44 @@ export default function BlogPage() {
         <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl max-w-2xl mb-4 sm:mb-6 drop-shadow-md">
           {t("blogDescription")}
         </p>
+
+        {/* Prominent Language Switch Button */}
+        <div className="mt-4 sm:mt-6 flex items-center justify-center">
+          <div className="bg-white/20 backdrop-blur-md rounded-full p-2 border border-white/30 shadow-2xl">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => switchLanguage(language === "ro" ? "en" : "ro")}
+                className="relative flex items-center justify-center w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 border border-white/20 hover:border-white/40 group overflow-hidden"
+                aria-label={`Switch to ${language === "ro" ? "English" : "Română"}`}
+              >
+                {/* Background animation */}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-r ${language === "ro" ? "from-blue-600/30 to-blue-700/30" : "from-red-600/30 to-red-700/30"} transition-all duration-500`}
+                />
+
+                {/* Flag */}
+                <span className="text-2xl relative z-10 group-hover:scale-110 transition-transform duration-200">
+                  {language === "ro" ? "🇬🇧" : "🇷🇴"}
+                </span>
+
+                {/* Tooltip */}
+                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                  {language === "ro" ? "Switch to English" : "Comută la Română"}
+                </div>
+              </button>
+
+              {/* Language indicator */}
+              <div className="flex flex-col items-center ml-2 mr-1">
+                <span className="text-xs font-medium text-white/90 uppercase tracking-wider">
+                  {language === "ro" ? "EN" : "RO"}
+                </span>
+                <div
+                  className={`w-6 h-0.5 rounded-full mt-0.5 ${language === "ro" ? "bg-blue-400" : "bg-red-400"} transition-colors duration-300`}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </Container>
     </section>
   );
