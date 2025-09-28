@@ -31,6 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import AIBlogGenerator from "@/components/admin/AIBlogGenerator";
 
 interface Blog {
   id: string;
@@ -247,7 +248,7 @@ export default function BlogManagementPage() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Blog Management</h1>
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
           {blogs.length === 0 && (
             <Button
               variant="outline"
@@ -273,6 +274,13 @@ export default function BlogManagementPage() {
           >
             {isCreatingTest ? "Creating..." : "Create Test Blog"}
           </Button>
+          <AIBlogGenerator
+            onBlogGenerated={blog => {
+              console.log("Blog generated:", blog.title);
+              // Optionally refresh the blog list
+              fetchBlogs();
+            }}
+          />
           <Button asChild>
             <Link href="/admin/blog/new">
               <PlusCircle className="h-4 w-4 mr-2" />

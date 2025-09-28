@@ -13,6 +13,14 @@ export interface AIRequestOptions {
   userPrompt?: string;
 }
 
+export interface AIResponseOptions {
+  systemPrompt: string;
+  userPrompt: string;
+  temperature?: number;
+  maxTokens?: number;
+  model?: string;
+}
+
 export interface AIResponse {
   content: string;
   usage?: {
@@ -52,6 +60,36 @@ export abstract class BaseAIService {
     try {
       const response = await this.makeRequest(prompt, options);
       return response.content;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  /**
+   * Generate response with structured options (system prompt + user prompt)
+   */
+  async generateResponse(options: AIResponseOptions): Promise<string> {
+    try {
+      const requestOptions: AIRequestOptions = {
+        maxTokens: options.maxTokens || 2000,
+        temperature: options.temperature || 0.7,
+        model: options.model || this.model,
+        systemPrompt: options.systemPrompt,
+        userPrompt: options.userPrompt,
+      };
+
+      // If the service has generateWithSystemPrompt method (like OpenAI), use it
+      if (typeof (this as any).generateWithSystemPrompt === "function") {
+        return await (this as any).generateWithSystemPrompt(
+          options.systemPrompt,
+          options.userPrompt,
+          requestOptions
+        );
+      }
+
+      // Fallback: combine prompts and use standard generateContent
+      const combinedPrompt = `${options.systemPrompt}\n\n${options.userPrompt}`;
+      return await this.generateContent(combinedPrompt, requestOptions);
     } catch (error) {
       this.handleError(error);
     }
