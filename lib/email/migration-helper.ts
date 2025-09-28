@@ -25,6 +25,7 @@ export async function sendEmailViaUnifiedSystem(
     tracking?: boolean;
     userId?: string;
     personalization?: boolean;
+    forceDirect?: boolean; // Force direct sending, skip queue
   }
 ): Promise<{ success: boolean; jobId?: string; error?: string }> {
   try {
@@ -74,8 +75,12 @@ export async function sendEmailViaUnifiedSystem(
       }
     }
 
-    // Try to use the queue system first
-    if (process.env.REDIS_URL && process.env.NODE_ENV === "production") {
+    // Try to use the queue system first (unless forceDirect is true)
+    if (
+      process.env.REDIS_URL &&
+      process.env.NODE_ENV === "production" &&
+      !options?.forceDirect
+    ) {
       try {
         const { addEmailJob } = await import("./queue-system");
         const job = await addEmailJob({
