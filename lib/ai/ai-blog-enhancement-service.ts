@@ -41,7 +41,7 @@ export class AIBlogEnhancementService {
 
   private defaultConfig: BlogEnhancementConfig = {
     provider: AIConfig.getProvider(), // Use global AI provider configuration
-    model: "gpt-4o",
+    model: AIConfig.getModel(),
     romanianOptimization: true,
     seoOptimization: true,
     contentQualityChecks: true,

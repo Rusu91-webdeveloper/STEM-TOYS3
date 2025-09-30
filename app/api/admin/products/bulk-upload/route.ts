@@ -9,6 +9,7 @@ import { applyStandardHeaders } from "@/lib/response-headers";
 import { invalidateCachePattern } from "@/lib/cache";
 import { AIConfig } from "@/lib/ai";
 import { EnhancedProductProcessor } from "@/lib/ai/enhanced-product-processor";
+import { DualProviderProductEnhancementService } from "@/lib/ai/dual-provider-product-enhancement-service";
 import { AISchemaValidator } from "@/lib/ai/schema-validator";
 
 // Enhanced bulk upload schema for admin products
@@ -174,7 +175,7 @@ const adminBulkUploadSchema = z.object({
               .filter(align => align.length > 0);
           }),
         romanianEducationalLevel: z
-          .enum(["PRESCOLAR", "PRIMAR", "GIMNAZIAL", "LICEAL", "UNIVERSITAR"])
+          .enum(["GRADINITA", "PRIMAR", "GIMNAZIU", "LICEU", "UNIVERSITATE"])
           .optional(),
         romanianSubjectAreas: z
           .string()
@@ -562,34 +563,99 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now();
 
-    // Force OpenAI-only configuration to avoid fallback issues
-    process.env.AI_PROVIDER = "openai";
-    console.log("Forcing AI_PROVIDER to 'openai' for reliable processing");
-
-    // Enhanced Product Processing step - OpenAI-only
+    // Initialize dual-provider product enhancement service (GPT-5-mini → GPT-4o fallback)
+    const dualProviderEnhancement = new DualProviderProductEnhancementService();
     const productProcessor = new EnhancedProductProcessor();
     let productsToProcess = validatedData.products;
     let aiEnhancementResults = null;
 
-    // Always use AI enhancement when requested - OpenAI-only optimization handles performance
+    // Always use AI enhancement when requested - dual-provider approach handles reliability
     const shouldUseAIEnhancement =
       validatedData.aiEnhancement?.enabled || false;
 
     if (shouldUseAIEnhancement) {
       console.log(
-        `Using OpenAI-only enhancement for ${validatedData.products.length} products - optimized for performance`
+        `Using dual-provider AI enhancement (GPT-5-mini → GPT-4o fallback) for ${validatedData.products.length} products`
       );
+
+      // Use dual-provider enhancement for better reliability
+      try {
+        console.log("Starting dual-provider enhanced product processing...");
+        const enhancementResults =
+          await dualProviderEnhancement.enhanceProductsBatch(
+            validatedData.products,
+            {
+              includeCategorization: true,
+              includeRomanianOptimization:
+                validatedData.aiEnhancement?.options
+                  ?.includeRomanianOptimization ?? true,
+              includeLearningOutcomes:
+                validatedData.aiEnhancement?.options?.includeLearningOutcomes ??
+                true,
+              includeStemDiscipline:
+                validatedData.aiEnhancement?.options?.includeStemDiscipline ??
+                true,
+              includeAgeGroup:
+                validatedData.aiEnhancement?.options?.includeAgeGroup ?? true,
+              includeProductType:
+                validatedData.aiEnhancement?.options?.includeProductType ??
+                true,
+            }
+          );
+
+        // Merge enhanced data back into products
+        productsToProcess = validatedData.products.map(
+          (originalProduct, index) => {
+            const enhancement = enhancementResults[index];
+            if (
+              enhancement &&
+              enhancement.success &&
+              enhancement.enhancedProduct
+            ) {
+              return { ...originalProduct, ...enhancement.enhancedProduct };
+            }
+            return originalProduct; // Fallback to original if enhancement failed
+          }
+        );
+
+        console.log(
+          `Dual-provider enhanced processing completed for ${productsToProcess.length} products`
+        );
+
+        aiEnhancementResults = {
+          summary: {
+            total: enhancementResults.length,
+            successful: enhancementResults.filter(r => r.success).length,
+            failed: enhancementResults.filter(r => !r.success).length,
+            successRate:
+              (enhancementResults.filter(r => r.success).length /
+                enhancementResults.length) *
+              100,
+            totalProcessingTime: enhancementResults.reduce(
+              (sum, r) => sum + r.processingTime,
+              0
+            ),
+          },
+          results: enhancementResults,
+        };
+      } catch (error) {
+        console.error(
+          "Dual-provider enhancement failed, falling back to basic processing:",
+          error
+        );
+        // Continue with original products if enhancement fails
+      }
     } else {
       console.log(`AI enhancement disabled - using basic processing only`);
     }
 
-    // Process all products with enhanced processor
+    // Apply basic product processing (currency conversion, markup, etc.)
     try {
-      console.log("Starting OpenAI-only enhanced product processing...");
+      console.log("Starting basic product processing...");
       productsToProcess = await productProcessor.processProductsBatch(
-        validatedData.products,
+        productsToProcess,
         {
-          includeAIEnhancement: shouldUseAIEnhancement,
+          includeAIEnhancement: false, // Already enhanced above if needed
           applyRomanianDefaults: true,
           processImages: true,
           addMarkup: true,
@@ -597,18 +663,12 @@ export async function POST(request: NextRequest) {
         }
       );
       console.log(
-        `OpenAI-only enhanced processing completed for ${productsToProcess.length} products`
+        `Basic product processing completed for ${productsToProcess.length} products`
       );
     } catch (error) {
-      console.error("Enhanced product processing failed:", error);
-      // Continue with original products if processing fails
+      console.error("Basic product processing failed:", error);
+      // Continue with current productsToProcess if processing fails
     }
-
-    // Legacy AI Enhancement step - DISABLED: Using EnhancedProductProcessor only
-    // The EnhancedProductProcessor above handles all AI enhancement with OpenAI-only
-    console.log(
-      "Legacy AI enhancement disabled - using EnhancedProductProcessor only"
-    );
 
     // Process products in batches for better performance
     const batchSize = 10;

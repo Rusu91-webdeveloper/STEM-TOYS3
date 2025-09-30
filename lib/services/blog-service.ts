@@ -15,6 +15,11 @@ export interface CreateBlogInput {
   tags: string[];
   isPublished: boolean;
   publishedAt?: Date;
+  // Viral content metrics for Romanian market domination
+  viralScore?: number;
+  socialShares?: number;
+  competitorRank?: number;
+  romanianMarketFit?: number;
 }
 
 export interface UpdateBlogInput {
@@ -28,6 +33,11 @@ export interface UpdateBlogInput {
   stemCategory?: StemCategory;
   tags?: string[];
   isPublished?: boolean;
+  // Viral content metrics for Romanian market domination
+  viralScore?: number;
+  socialShares?: number;
+  competitorRank?: number;
+  romanianMarketFit?: number;
   publishedAt?: Date;
 }
 

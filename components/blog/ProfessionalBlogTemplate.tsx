@@ -58,16 +58,25 @@ interface BlogPost {
       };
     };
     language?: string;
+    ai?: {
+      socialOptimization?: {
+        facebook?: { title?: string };
+        instagram?: { title?: string };
+        tiktok?: { hook?: string; description?: string };
+      };
+    };
   };
 }
 
 interface BlogPostTemplateProps {
   post: BlogPost;
+  relatedPosts?: BlogPost[];
   language?: string;
 }
 
 export default function ProfessionalBlogTemplate({
   post,
+  relatedPosts,
   language = "ro",
 }: BlogPostTemplateProps) {
   const { t } = useTranslation();
@@ -341,7 +350,11 @@ export default function ProfessionalBlogTemplate({
 
             {/* Main Content */}
             <div className="prose prose-lg max-w-none">
-              <EnhancedMarkdownRenderer content={currentContent.content} />
+              <EnhancedMarkdownRenderer
+                content={currentContent.content}
+                socialOptimization={post.metadata?.ai?.socialOptimization}
+                blogTitle={currentContent.title}
+              />
             </div>
           </div>
         </div>
@@ -364,6 +377,104 @@ export default function ProfessionalBlogTemplate({
                     {tag}
                   </Badge>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Related Posts Section */}
+        {relatedPosts && relatedPosts.length > 0 && (
+          <div className="max-w-6xl mx-auto mt-12">
+            <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                  Articole Similare
+                </h2>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                  Descoperă mai multe articole interesante din aceeași categorie
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {relatedPosts.map(relatedPost => (
+                  <Link
+                    key={relatedPost.id}
+                    href={`/blog/${relatedPost.slug}`}
+                    className="group block bg-gray-50 rounded-2xl p-6 hover:bg-gray-100 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                  >
+                    <div className="aspect-video rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                      {relatedPost.coverImage ? (
+                        <Image
+                          src={relatedPost.coverImage}
+                          alt={relatedPost.title}
+                          width={300}
+                          height={200}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="text-4xl font-bold text-blue-600">
+                          {relatedPost.title.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className="text-xs bg-white/80 border-blue-200 text-blue-800"
+                        >
+                          {relatedPost.stemCategory}
+                        </Badge>
+                        {relatedPost.category && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs bg-white/80 border-green-200 text-green-800"
+                          >
+                            {relatedPost.category.name}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2 leading-tight">
+                        {relatedPost.title}
+                      </h3>
+
+                      <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                        {relatedPost.excerpt}
+                      </p>
+
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>
+                          {relatedPost.publishedAt
+                            ? format(
+                                new Date(relatedPost.publishedAt),
+                                "d MMM yyyy"
+                              )
+                            : format(new Date(), "d MMM yyyy")}
+                        </span>
+                        {relatedPost.readingTime && (
+                          <span>{relatedPost.readingTime} min read</span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="text-center mt-8">
+                <Link
+                  href={
+                    post.category
+                      ? `/blog/category/${post.category.slug}`
+                      : "/blog"
+                  }
+                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full font-medium hover:bg-blue-700 transition-colors duration-200"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Vezi toate articolele din{" "}
+                  {post.category?.name || "categoria aceasta"}
+                </Link>
               </div>
             </div>
           </div>

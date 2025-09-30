@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react";
 
 import ConversionTrackingProvider from "@/components/conversion-tracking/ConversionTrackingProvider";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import FacebookPixel from "@/components/analytics/FacebookPixel";
 import PerformanceMonitor from "@/components/analytics/PerformanceMonitor";
 import ClientLayout from "@/components/layout/ClientLayout";
 import { getStoreSettings } from "@/lib/utils/store-settings";
@@ -76,8 +77,45 @@ export default async function RootLayout({
 
         {/* Google Analytics 4 */}
         <GoogleAnalytics />
+        {/* Facebook Pixel for Romanian Viral Tracking */}
+        <FacebookPixel />
         {/* Performance Monitoring */}
         <PerformanceMonitor />
+        {/* Organization Schema for Site-wide SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "TechTots România",
+              url: "https://techtots.ro",
+              logo: "https://techtots.ro/images/logo.png",
+              description:
+                "Jucării STEM și resurse educaționale pentru copii români",
+              foundingDate: "2024",
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: "Strada Mehedinți 54-56",
+                addressLocality: "Cluj-Napoca",
+                addressRegion: "Cluj",
+                postalCode: "400000",
+                addressCountry: "RO",
+              },
+              contactPoint: {
+                "@type": "ContactPoint",
+                telephone: "+40-xxx-xxx-xxx",
+                contactType: "customer service",
+                availableLanguage: "Romanian",
+              },
+              sameAs: [
+                "https://www.facebook.com/techtotsromania",
+                "https://www.instagram.com/techtotsro",
+                "https://www.linkedin.com/company/techtots-romania",
+              ],
+            }),
+          }}
+        />
         {/* Page-scoped JSON-LD only; global injection removed */}
       </head>
       <body

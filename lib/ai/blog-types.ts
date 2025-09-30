@@ -46,6 +46,12 @@ export interface GeneratedBlogContent {
     refinementApplied: boolean;
     fallbackUsed?: boolean;
     modelVersion?: string;
+    keywordOptimization?: any;
+    contentAnalysis?: any;
+    socialOptimization?: any;
+    conversionOptimization?: any;
+    buyerPsychologyOptimization?: any;
+    viralOptimizationApplied?: boolean;
   };
 }
 

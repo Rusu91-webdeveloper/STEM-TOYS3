@@ -103,7 +103,7 @@ export default function AIBlogGenerator({
         options: {
           includeSEO,
           includeCoverImage,
-          targetStemCategory: stemCategory ?? undefined,
+          targetStemCategory: stemCategory ? stemCategory : undefined,
           targetAudience: targetAudience ?? undefined,
           tone,
           includeCallToAction,

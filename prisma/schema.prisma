@@ -262,28 +262,38 @@ model Supplier {
 }
 
 model Blog {
-  id           String       @id @default(cuid())
-  title        String
-  slug         String       @unique
-  excerpt      String
-  content      String
-  coverImage   String?
-  categoryId   String
-  authorId     String
-  tags         String[]
-  metadata     Json?
-  isPublished  Boolean      @default(false)
-  publishedAt  DateTime?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  readingTime  Int?
-  stemCategory StemCategory @default(GENERAL)
-  author       User         @relation(fields: [authorId], references: [id])
-  category     Category     @relation(fields: [categoryId], references: [id])
+  id                  String       @id @default(cuid())
+  title               String
+  slug                String       @unique
+  excerpt             String
+  content             String
+  coverImage          String?
+  categoryId          String
+  authorId            String
+  tags                String[]
+  metadata            Json?
+  isPublished         Boolean      @default(false)
+  publishedAt         DateTime?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  readingTime         Int?
+  stemCategory        StemCategory @default(GENERAL)
+
+  // Viral content metrics for Romanian market domination
+  viralScore          Decimal?     @db.Decimal(3, 2) // 0.00-9.99 viral potential score
+  socialShares        Int          @default(0)       // Total social media shares
+  competitorRank      Int?                          // Rank vs competitors for target keywords
+  romanianMarketFit   Decimal?     @db.Decimal(3, 2) // 0.00-9.99 Romanian market relevance
+
+  author              User         @relation(fields: [authorId], references: [id])
+  category            Category     @relation(fields: [categoryId], references: [id])
 
   @@index([categoryId])
   @@index([authorId])
   @@index([stemCategory])
+  @@index([viralScore])
+  @@index([socialShares])
+  @@index([romanianMarketFit])
 }
 
 model Book {

@@ -11,7 +11,28 @@
 import { AIServiceFactory } from "./ai-service-factory";
 import { BaseAIService } from "./base-ai-service";
 import { AIConfig } from "./config";
+import { getAIConfig } from "@/lib/config/environment";
 import { simpleAIMonitoring } from "./monitoring-simple";
+import {
+  RomanianKeywordService,
+  KeywordOptimization,
+} from "./keywords/romanian-keyword-service";
+import {
+  getStatisticsForTopic,
+  getHighImpactStatistics,
+} from "./viral-content/romanian-shocking-statistics";
+import {
+  getStoriesForTopic,
+  getHighImpactStories,
+} from "./viral-content/romanian-success-stories";
+import {
+  getTestimonialsForTopic,
+  getHighImpactTestimonials,
+  getAllTrustBadges,
+} from "./viral-content/romanian-social-proof";
+import { RomanianOpenGraphOptimizer } from "./social-media/romanian-open-graph-optimizer";
+import { RomanianUrgencyScarcityOptimizer } from "./conversion-optimization/romanian-urgency-scarcity";
+import { RomanianBuyerPsychologyOptimizer } from "./conversion-optimization/romanian-buyer-psychology";
 
 import {
   BlogGenerationPrompt,
@@ -50,13 +71,18 @@ export class DualProviderBlogEnhancementService {
     const globalProvider = AIConfig.getProvider();
     const globalModel = AIConfig.getModel();
 
-    // Use global provider as primary, with OpenAI as fallback secondary
+    // Dynamic configuration from environment variables
     const dynamicDefaults: BlogEnhancementConfig = {
-      primaryProvider: globalProvider as "openai" | "gemini" | "anthropic",
-      primaryModel: globalModel,
-      secondaryProvider: globalProvider === "openai" ? "gemini" : "openai",
-      secondaryModel:
-        globalProvider === "openai" ? "gemini-1.5-pro" : "gpt-4o-mini",
+      primaryProvider: getAIConfig().primaryProvider as
+        | "openai"
+        | "gemini"
+        | "anthropic",
+      primaryModel: getAIConfig().primaryModel,
+      secondaryProvider: getAIConfig().secondaryProvider as
+        | "openai"
+        | "gemini"
+        | "anthropic",
+      secondaryModel: getAIConfig().secondaryModel,
       romanianOptimization: true,
       seoOptimization: true,
       contentQualityChecks: true,
@@ -79,6 +105,15 @@ export class DualProviderBlogEnhancementService {
           throw new Error("Primary provider not configured");
         }
         this.primaryService = AIServiceFactory.getService(primaryProvider);
+
+        // Set the model on the primary service
+        if (this.primaryService && "model" in this.primaryService) {
+          (this.primaryService as any).model = this.config!.primaryModel;
+          console.log(
+            "🔧 Primary service model set to:",
+            this.config!.primaryModel
+          );
+        }
       } catch (error) {
         console.error(
           `Failed to create primary service (${this.config!.primaryProvider}):`,
@@ -97,6 +132,15 @@ export class DualProviderBlogEnhancementService {
           throw new Error("Secondary provider not configured");
         }
         this.secondaryService = AIServiceFactory.getService(secondaryProvider);
+
+        // Set the model on the secondary service
+        if (this.secondaryService && "model" in this.secondaryService) {
+          (this.secondaryService as any).model = this.config!.secondaryModel;
+          console.log(
+            "🔧 Secondary service model set to:",
+            this.config!.secondaryModel
+          );
+        }
       } catch (error) {
         console.error(
           `Failed to create secondary service (${this.config!.secondaryProvider}):`,
@@ -127,14 +171,78 @@ export class DualProviderBlogEnhancementService {
       onProgress?.({
         stage: "analyzing_prompt",
         progress: 10,
-        currentStep: "Analyzing prompt and preparing content structure",
+        currentStep: "Analyzing prompt and selecting optimal Romanian keywords",
         estimatedTimeRemaining: 30000,
       });
 
+      // Select optimal keywords for this prompt
+      const keywordOptimization =
+        RomanianKeywordService.selectKeywordsForPrompt(prompt);
+
+      // Get shocking statistics for viral content
+      const topicStats = getStatisticsForTopic(prompt.prompt);
+      const shockingStatistics =
+        topicStats.length > 0
+          ? topicStats
+              .slice(0, 3)
+              .map(stat => stat.statistic)
+              .join("; ")
+          : getHighImpactStatistics()
+              .slice(0, 3)
+              .map(stat => stat.statistic)
+              .join("; ");
+
+      // Get success stories for emotional storytelling
+      const topicStories = getStoriesForTopic(prompt.prompt);
+      const successStories =
+        topicStories.length > 0
+          ? topicStories
+              .slice(0, 2)
+              .map(
+                story => `${story.hero}: ${story.challenge} → ${story.results}`
+              )
+              .join("; ")
+          : getHighImpactStories()
+              .slice(0, 2)
+              .map(
+                story => `${story.hero}: ${story.challenge} → ${story.results}`
+              )
+              .join("; ");
+
+      // Get social proof testimonials and trust badges
+      const topicTestimonials = getTestimonialsForTopic(prompt.prompt);
+      const socialProof =
+        topicTestimonials.length > 0
+          ? topicTestimonials
+              .slice(0, 2)
+              .map(
+                t =>
+                  `${t.name} (${t.location}): "${t.testimonial.substring(0, 100)}..."`
+              )
+              .join("; ")
+          : getHighImpactTestimonials()
+              .slice(0, 2)
+              .map(
+                t =>
+                  `${t.name} (${t.location}): "${t.testimonial.substring(0, 100)}..."`
+              )
+              .join("; ");
+
+      const trustBadges = getAllTrustBadges()
+        .slice(0, 3)
+        .map(badge => badge.displayText)
+        .join("; ");
+
       // Step 1: Generate title
       const titleResult = await this.generateTitle(prompt);
-      if (!titleResult.success) {
-        throw new Error(`Title generation failed: ${titleResult.error}`);
+      if (
+        !titleResult.success ||
+        !titleResult.title ||
+        titleResult.title.trim().length === 0
+      ) {
+        throw new Error(
+          `Title generation failed: ${titleResult.error || "Empty title returned"}`
+        );
       }
 
       onProgress?.({
@@ -144,10 +252,15 @@ export class DualProviderBlogEnhancementService {
         estimatedTimeRemaining: 60000,
       });
 
-      // Step 2: Generate main content
+      // Step 2: Generate main content with keyword optimization
       const contentResult = await this.generateContent(
         prompt,
-        titleResult.title!
+        titleResult.title,
+        keywordOptimization,
+        shockingStatistics,
+        successStories,
+        socialProof,
+        trustBadges
       );
       if (!contentResult.success) {
         throw new Error(`Content generation failed: ${contentResult.error}`);
@@ -187,51 +300,105 @@ export class DualProviderBlogEnhancementService {
         seoResult.metadata ?? null
       );
 
-      // Step 5: Calculate reading time and final metrics
-      const wordCount = this.calculateWordCount(refinedContent);
+      // Step 5: Analyze and optimize keywords in the final content
+      const contentAnalysis = RomanianKeywordService.analyzeContentKeywords(
+        refinedContent,
+        keywordOptimization
+      );
+
+      // Optimize content with missing keywords if needed
+      let finalContent = refinedContent;
+      if (contentAnalysis.missingKeywords.length > 0) {
+        finalContent = RomanianKeywordService.optimizeContentKeywords(
+          refinedContent,
+          contentAnalysis,
+          keywordOptimization
+        );
+      }
+
+      // Step 6: Calculate reading time and final metrics
+      const wordCount = this.calculateWordCount(finalContent);
       const readingTime = Math.ceil(wordCount / 200); // Average reading speed
       const slug = this.generateSlug(titleResult.title!);
 
-      // Step 6: Generate excerpt if not provided
+      // Step 7: Generate excerpt if not provided
       const excerpt = await this.generateExcerpt(
         prompt,
         titleResult.title!,
-        refinedContent
+        finalContent
       );
+
+      // Step 8: Generate social media optimization
+      const socialMediaUrl = `https://techtots.ro/blog/${slug}`;
+      const publishedDate = new Date().toISOString();
+      const socialOptimization =
+        RomanianOpenGraphOptimizer.generateCompleteSocialOptimization(
+          titleResult.title!,
+          excerpt || finalContent.substring(0, 200),
+          keywordOptimization.secondaryKeywords.slice(0, 5),
+          socialMediaUrl,
+          publishedDate
+        );
+
+      // Step 9: Generate urgency and scarcity optimization for conversion
+      const contentLength =
+        wordCount > 2000 ? "long" : wordCount > 1000 ? "medium" : "short";
+      const audienceType = this.determineAudienceType(prompt.prompt);
+      const conversionOptimization =
+        RomanianUrgencyScarcityOptimizer.generateConversionOptimization(
+          contentLength,
+          prompt.prompt.split(" ")[0], // Use first word as topic
+          audienceType,
+          "high" // High intensity for viral content
+        );
+
+      // Step 10: Generate buyer psychology optimization
+      const buyerPsychologyOptimization =
+        RomanianBuyerPsychologyOptimizer.generateConversionPsychology(
+          audienceType,
+          prompt.prompt.split(" ")[0], // Use first word as topic
+          ["prea_scap", "nu_stiu_daca_merge"] // Common Romanian objections
+        );
 
       onProgress?.({
         stage: "finalizing",
         progress: 95,
-        currentStep: "Finalizing blog post",
+        currentStep: "Finalizing blog post with conversion optimization",
         estimatedTimeRemaining: 5000,
       });
 
       // Assemble final blog
       const generatedBlog: GeneratedBlogContent = {
-        title: titleResult.title!,
+        title: titleResult.title,
         slug,
-        excerpt: excerpt ?? refinedContent.substring(0, 200) + "...",
-        content: refinedContent,
+        excerpt: excerpt ?? finalContent.substring(0, 200) + "...",
+        content: finalContent,
         coverImage: await this.generateCoverImageSuggestion(prompt),
-        tags: this.extractTags(prompt, refinedContent),
+        tags: this.extractTags(prompt, finalContent),
         stemCategory: prompt.targetStemCategory ?? "GENERAL",
         readingTime,
         language: "ro",
         wordCount,
         seoMetadata: seoResult.metadata ?? {
-          metaTitle: titleResult.title!.substring(0, 70),
+          metaTitle: titleResult.title.substring(0, 70),
           metaDescription:
             excerpt?.substring(0, 160) ?? refinedContent.substring(0, 160),
           metaKeywords: this.extractKeywords(refinedContent),
         },
         aiMetadata: {
           aiGenerated: true,
-          generatedBy: "dual-provider-blog",
+          generatedBy: "dual-provider-blog-viral",
           generationTimestamp: new Date().toISOString(),
           originalPrompt: prompt.prompt,
           processingTime: Date.now() - startTime,
           refinementApplied: true,
-          modelVersion: `${this.config!.primaryModel}/${this.config!.secondaryModel}`,
+          modelVersion: `gpt-5-mini/gpt-5-mini`,
+          keywordOptimization: keywordOptimization,
+          contentAnalysis: contentAnalysis,
+          socialOptimization: socialOptimization,
+          conversionOptimization: conversionOptimization,
+          buyerPsychologyOptimization: buyerPsychologyOptimization,
+          viralOptimizationApplied: true,
         },
       };
 
@@ -282,16 +449,93 @@ export class DualProviderBlogEnhancementService {
         prompt: prompt.prompt,
       });
 
-      const response = await this.primaryService!.generateResponse({
-        systemPrompt: template.system,
-        userPrompt,
-        temperature: 0.7,
-        maxTokens: 100,
-      });
+      let response;
+      try {
+        response = await this.primaryService!.generateResponse({
+          systemPrompt: template.system,
+          userPrompt,
+          temperature: 0.7,
+          maxTokens: 100,
+          model: this.config!.primaryModel,
+        });
 
-      const title = response.trim();
+        // Check if GPT-5-mini returned empty content (expected behavior for reasoning models)
+        if (!response || response.trim().length === 0) {
+          console.warn(
+            "⚠️ GPT-5 returned empty content - this will trigger fallback logic in blog service"
+          );
+
+          // Create a fresh OpenAI service instance for fallback with GPT-4o
+          const { OpenAIService } = await import("./openai-service");
+          const fallbackService = new OpenAIService(
+            getAIConfig().fallbackModel
+          );
+
+          response = await fallbackService.generateResponse({
+            systemPrompt: template.system,
+            userPrompt,
+            temperature: 0.7,
+            maxTokens: 100,
+            model: getAIConfig().fallbackModel,
+          });
+        }
+      } catch (primaryError) {
+        // If primary service throws an error (not just empty content), try GPT-4o as fallback
+        console.warn(
+          "⚠️ Primary model threw error, trying GPT-4o fallback:",
+          primaryError instanceof Error
+            ? primaryError.message
+            : String(primaryError)
+        );
+
+        // Create a fresh OpenAI service instance for fallback with GPT-4o
+        const { OpenAIService } = await import("./openai-service");
+        const fallbackService = new OpenAIService(getAIConfig().fallbackModel);
+
+        response = await fallbackService.generateResponse({
+          systemPrompt: template.system,
+          userPrompt,
+          temperature: 0.7,
+          maxTokens: 100,
+          model: getAIConfig().fallbackModel,
+        });
+      }
+
+      // Debug title generation (only on fallback)
+      if (this.config!.primaryModel !== "gpt-4o") {
+        console.log("🔍 Title Generation Debug (fallback used):");
+        console.log("- Response content length:", response?.length || 0);
+      }
+
+      let title = response?.trim() || "";
+
+      // Validate title generation - if empty after fallback, this is critical
+      if (!title || title.length === 0) {
+        console.error(
+          "❌ CRITICAL: Title generation failed even with GPT-4o fallback"
+        );
+        return {
+          success: false,
+          error:
+            "Title generation failed completely - GPT-5-mini and GPT-4o fallback both returned empty content",
+        };
+      }
+
+      // If title is too long, truncate it intelligently
       if (title.length > 70) {
-        return { success: false, error: "Generated title too long" };
+        console.warn(
+          `Title too long (${title.length} chars), truncating to 70 characters: "${title}"`
+        );
+        // Try to truncate at word boundary if possible
+        const truncatedAtWord = title.substring(0, 67);
+        const lastSpaceIndex = truncatedAtWord.lastIndexOf(" ");
+        if (lastSpaceIndex > 50) {
+          // Only truncate at word boundary if we have a reasonable word
+          title = truncatedAtWord.substring(0, lastSpaceIndex) + "...";
+        } else {
+          title = title.substring(0, 67) + "...";
+        }
+        console.log(`Truncated title: "${title}" (${title.length} chars)`);
       }
 
       return { success: true, title };
@@ -308,23 +552,94 @@ export class DualProviderBlogEnhancementService {
    */
   private async generateContent(
     prompt: BlogGenerationPrompt,
-    title: string
+    title: string,
+    keywordOptimization: KeywordOptimization,
+    shockingStatistics: string,
+    successStories: string,
+    socialProof: string,
+    trustBadges: string
   ): Promise<{ success: boolean; content?: string; error?: string }> {
     try {
       const template = getBlogPromptTemplates().content;
-      const userPrompt = formatBlogPrompt(template.user, {
+
+      // Enhance the user prompt with selected keywords, shocking statistics, and success stories for viral SEO optimization
+      const enhancedPromptData = {
         prompt: prompt.prompt,
         title,
-      });
+        primaryKeyword: keywordOptimization.primaryKeyword,
+        secondaryKeywords: keywordOptimization.secondaryKeywords.join(", "),
+        longTailKeywords: keywordOptimization.longTailKeywords
+          .slice(0, 5)
+          .join(", "),
+        painPointKeywords: keywordOptimization.painPointKeywords.join(", "),
+        commercialKeywords: keywordOptimization.commercialKeywords.join(", "),
+        shockingStatistics,
+        successStories,
+        socialProof,
+        trustBadges,
+      };
 
-      const response = await this.primaryService!.generateResponse({
-        systemPrompt: template.system,
-        userPrompt,
-        temperature: 0.8,
-        maxTokens: 3000,
-      });
+      const userPrompt = formatBlogPrompt(template.user, enhancedPromptData);
 
-      return { success: true, content: response };
+      let response;
+      try {
+        response = await this.primaryService!.generateResponse({
+          systemPrompt: template.system,
+          userPrompt,
+          temperature: 0.8,
+          maxTokens: 3000,
+          model: this.config!.primaryModel,
+        });
+
+        // Check if GPT-5-mini returned empty content (expected behavior for reasoning models)
+        if (!response || response.trim().length === 0) {
+          console.warn(
+            "⚠️ GPT-5 returned empty content - triggering fallback for content generation"
+          );
+
+          // Create a fresh OpenAI service instance for fallback with GPT-4o
+          const { OpenAIService } = await import("./openai-service");
+          const fallbackService = new OpenAIService(
+            getAIConfig().fallbackModel
+          );
+
+          response = await fallbackService.generateResponse({
+            systemPrompt: template.system,
+            userPrompt,
+            temperature: 0.8,
+            maxTokens: 3000,
+            model: getAIConfig().fallbackModel,
+          });
+        }
+      } catch (primaryError) {
+        // If primary service throws an error (not just empty content), try GPT-4o as fallback
+        console.warn(
+          "⚠️ Primary model threw error, trying GPT-4o fallback:",
+          primaryError instanceof Error
+            ? primaryError.message
+            : String(primaryError)
+        );
+
+        // Create a fresh OpenAI service instance for fallback with GPT-4o
+        const { OpenAIService } = await import("./openai-service");
+        const fallbackService = new OpenAIService(getAIConfig().fallbackModel);
+
+        response = await fallbackService.generateResponse({
+          systemPrompt: template.system,
+          userPrompt,
+          temperature: 0.8,
+          maxTokens: 3000,
+          model: getAIConfig().fallbackModel,
+        });
+      }
+
+      // Debug content generation (only on fallback)
+      if (this.config!.primaryModel !== "gpt-4o") {
+        console.log("🔍 Content Generation Debug (fallback used):");
+        console.log("- Response content length:", response?.length || 0);
+      }
+
+      return { success: true, content: response || "" };
     } catch (error) {
       return {
         success: false,
@@ -349,12 +664,57 @@ export class DualProviderBlogEnhancementService {
         content: content.substring(0, 500), // Limit content for SEO generation
       });
 
-      const response = await this.secondaryService!.generateResponse({
-        systemPrompt: template.system,
-        userPrompt,
-        temperature: 0.3,
-        maxTokens: 800,
-      });
+      let response;
+      try {
+        response = await this.secondaryService!.generateResponse({
+          systemPrompt: template.system,
+          userPrompt,
+          temperature: 0.3,
+          maxTokens: 800,
+          model: this.config!.secondaryModel,
+        });
+
+        // Check if GPT-5-mini returned empty content (expected behavior for reasoning models)
+        if (!response || response.trim().length === 0) {
+          console.warn(
+            "⚠️ GPT-5 returned empty content - triggering fallback for SEO metadata"
+          );
+
+          // Create a fresh OpenAI service instance for fallback with GPT-4o
+          const { OpenAIService } = await import("./openai-service");
+          const fallbackService = new OpenAIService(
+            getAIConfig().fallbackModel
+          );
+
+          response = await fallbackService.generateResponse({
+            systemPrompt: template.system,
+            userPrompt,
+            temperature: 0.3,
+            maxTokens: 800,
+            model: getAIConfig().fallbackModel,
+          });
+        }
+      } catch (secondaryError) {
+        // If secondary service throws an error (not just empty content), try GPT-4o as fallback
+        console.warn(
+          "⚠️ Secondary model threw error, trying GPT-4o fallback:",
+          secondaryError instanceof Error
+            ? secondaryError.message
+            : String(secondaryError)
+        );
+
+        // Create a fresh OpenAI service instance for fallback with GPT-4o
+        const { OpenAIService } = await import("./openai-service");
+        const fallbackService = new OpenAIService(getAIConfig().fallbackModel);
+
+        response = await fallbackService.generateResponse({
+          systemPrompt: template.system,
+          userPrompt,
+          temperature: 0.3,
+          maxTokens: 800,
+          model: getAIConfig().fallbackModel,
+        });
+      }
 
       // Parse the SEO response
       const metadata = this.parseSEOResponse(response);
@@ -383,12 +743,57 @@ export class DualProviderBlogEnhancementService {
         focusKeywords: seoMetadata?.focusKeyword ?? "",
       });
 
-      const response = await this.secondaryService!.generateResponse({
-        systemPrompt: template.system,
-        userPrompt,
-        temperature: 0.6,
-        maxTokens: 2500,
-      });
+      let response;
+      try {
+        response = await this.secondaryService!.generateResponse({
+          systemPrompt: template.system,
+          userPrompt,
+          temperature: 0.6,
+          maxTokens: 2500,
+          model: this.config!.secondaryModel,
+        });
+
+        // Check if GPT-5-mini returned empty content (expected behavior for reasoning models)
+        if (!response || response.trim().length === 0) {
+          console.warn(
+            "⚠️ GPT-5 returned empty content - triggering fallback for content refinement"
+          );
+
+          // Create a fresh OpenAI service instance for fallback with GPT-4o
+          const { OpenAIService } = await import("./openai-service");
+          const fallbackService = new OpenAIService(
+            getAIConfig().fallbackModel
+          );
+
+          response = await fallbackService.generateResponse({
+            systemPrompt: template.system,
+            userPrompt,
+            temperature: 0.6,
+            maxTokens: 2500,
+            model: getAIConfig().fallbackModel,
+          });
+        }
+      } catch (secondaryError) {
+        // If secondary service throws an error (not just empty content), try GPT-4o as fallback
+        console.warn(
+          "⚠️ Secondary model threw error, trying GPT-4o fallback:",
+          secondaryError instanceof Error
+            ? secondaryError.message
+            : String(secondaryError)
+        );
+
+        // Create a fresh OpenAI service instance for fallback with GPT-4o
+        const { OpenAIService } = await import("./openai-service");
+        const fallbackService = new OpenAIService(getAIConfig().fallbackModel);
+
+        response = await fallbackService.generateResponse({
+          systemPrompt: template.system,
+          userPrompt,
+          temperature: 0.6,
+          maxTokens: 2500,
+          model: getAIConfig().fallbackModel,
+        });
+      }
 
       return response;
     } catch (error) {
@@ -412,12 +817,57 @@ export class DualProviderBlogEnhancementService {
         title,
       });
 
-      const response = await this.secondaryService!.generateResponse({
-        systemPrompt: template.system,
-        userPrompt,
-        temperature: 0.7,
-        maxTokens: 200,
-      });
+      let response;
+      try {
+        response = await this.secondaryService!.generateResponse({
+          systemPrompt: template.system,
+          userPrompt,
+          temperature: 0.7,
+          maxTokens: 200,
+          model: this.config!.secondaryModel,
+        });
+
+        // Check if GPT-5-mini returned empty content (expected behavior for reasoning models)
+        if (!response || response.trim().length === 0) {
+          console.warn(
+            "⚠️ GPT-5 returned empty content - triggering fallback for excerpt generation"
+          );
+
+          // Create a fresh OpenAI service instance for fallback with GPT-4o
+          const { OpenAIService } = await import("./openai-service");
+          const fallbackService = new OpenAIService(
+            getAIConfig().fallbackModel
+          );
+
+          response = await fallbackService.generateResponse({
+            systemPrompt: template.system,
+            userPrompt,
+            temperature: 0.7,
+            maxTokens: 200,
+            model: getAIConfig().fallbackModel,
+          });
+        }
+      } catch (secondaryError) {
+        // If secondary service throws an error (not just empty content), try GPT-4o as fallback
+        console.warn(
+          "⚠️ Secondary model threw error, trying GPT-4o fallback:",
+          secondaryError instanceof Error
+            ? secondaryError.message
+            : String(secondaryError)
+        );
+
+        // Create a fresh OpenAI service instance for fallback with GPT-4o
+        const { OpenAIService } = await import("./openai-service");
+        const fallbackService = new OpenAIService(getAIConfig().fallbackModel);
+
+        response = await fallbackService.generateResponse({
+          systemPrompt: template.system,
+          userPrompt,
+          temperature: 0.7,
+          maxTokens: 200,
+          model: getAIConfig().fallbackModel,
+        });
+      }
 
       return response;
     } catch (error) {
@@ -445,6 +895,11 @@ export class DualProviderBlogEnhancementService {
   }
 
   private generateSlug(title: string): string {
+    if (!title || title.trim().length === 0) {
+      console.error("❌ Cannot generate slug for empty title");
+      return "untitled-blog-" + Date.now();
+    }
+
     return title
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, "")
@@ -607,5 +1062,61 @@ export class DualProviderBlogEnhancementService {
     }
 
     return Math.min(100, score);
+  }
+
+  /**
+   * Determine audience type based on prompt content for conversion optimization
+   */
+  private determineAudienceType(
+    prompt: string
+  ):
+    | "anxious_parents"
+    | "practical_parents"
+    | "status_conscious"
+    | "social_comparers" {
+    const promptLower = prompt.toLowerCase();
+
+    // Anxious parents: fear-based keywords
+    if (
+      promptLower.includes("îngrijorat") ||
+      promptLower.includes("teamă") ||
+      promptLower.includes("în urmă") ||
+      promptLower.includes("urgent")
+    ) {
+      return "anxious_parents";
+    }
+
+    // Practical parents: economic keywords
+    if (
+      promptLower.includes("preț") ||
+      promptLower.includes("economic") ||
+      promptLower.includes("investiție") ||
+      promptLower.includes("valoare")
+    ) {
+      return "practical_parents";
+    }
+
+    // Status conscious: social keywords
+    if (
+      promptLower.includes("statut") ||
+      promptLower.includes("succes") ||
+      promptLower.includes("prestigiu") ||
+      promptLower.includes("educație")
+    ) {
+      return "status_conscious";
+    }
+
+    // Social comparers: comparison keywords
+    if (
+      promptLower.includes("ceilalți") ||
+      promptLower.includes("comparație") ||
+      promptLower.includes("vecini") ||
+      promptLower.includes("familie")
+    ) {
+      return "social_comparers";
+    }
+
+    // Default based on Romanian parent psychology research
+    return "anxious_parents"; // Most common trigger for Romanian parents
   }
 }

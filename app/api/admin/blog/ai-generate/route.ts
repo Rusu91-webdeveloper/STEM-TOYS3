@@ -7,7 +7,7 @@ import { isAdmin } from "@/lib/auth/admin";
 import { db } from "@/lib/db";
 import { applyStandardHeaders } from "@/lib/response-headers";
 import { handleApiError, createSuccessResponse } from "@/lib/api-error-handler";
-import { AIBlogEnhancementService } from "@/lib/ai/ai-blog-enhancement-service";
+import { DualProviderBlogEnhancementService } from "@/lib/ai/dual-provider-blog-enhancement-service";
 import {
   BlogGenerationRequest,
   BlogGenerationResponse,
@@ -123,8 +123,8 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now();
 
-    // Initialize blog enhancement service
-    const blogService = new AIBlogEnhancementService();
+    // Initialize blog enhancement service with viral capabilities
+    const blogService = new DualProviderBlogEnhancementService();
 
     // Set up generation options
     const options: BlogGenerationOptions = {

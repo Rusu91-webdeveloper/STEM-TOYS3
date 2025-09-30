@@ -16,7 +16,8 @@ interface OpenAIRequest {
     role: "system" | "user" | "assistant";
     content: string;
   }>;
-  max_tokens: number;
+  max_tokens?: number; // For older models
+  max_completion_tokens?: number; // For newer models
   temperature: number;
   stream?: boolean;
 }
@@ -47,7 +48,7 @@ export class OpenAIService extends BaseAIService {
   private apiKey: string;
   private baseUrl = "https://api.openai.com/v1";
 
-  constructor() {
+  constructor(modelOverride?: string) {
     super();
 
     const config = AIConfig.getProviderConfig("openai");
@@ -57,7 +58,7 @@ export class OpenAIService extends BaseAIService {
     }
 
     this.apiKey = config.apiKey;
-    this.model = config.model;
+    this.model = modelOverride || config.model;
   }
 
   /**
@@ -69,13 +70,35 @@ export class OpenAIService extends BaseAIService {
   ): Promise<AIResponse> {
     const validatedOptions = this.validateOptions(options);
 
-    // Prepare the request
+    // Prepare the request - use correct parameters based on model
+    const isNewerModel =
+      validatedOptions.model?.includes("gpt-5") ||
+      validatedOptions.model?.includes("gpt-4o") ||
+      validatedOptions.model?.startsWith("gpt-4-turbo");
+
+    // Some newer models only support temperature=1 (default)
+    const supportedTemperature = isNewerModel
+      ? 1
+      : validatedOptions.temperature!;
+
     const requestBody: OpenAIRequest = {
       model: validatedOptions.model!,
       messages: this.prepareMessages(prompt, validatedOptions),
-      max_tokens: validatedOptions.maxTokens!,
-      temperature: validatedOptions.temperature!,
+      temperature: supportedTemperature,
     };
+
+    // Debug logging to see what model is being sent
+    console.log("🔍 OpenAI API Request Debug:");
+    console.log("- Model:", validatedOptions.model);
+    console.log("- Is newer model:", isNewerModel);
+    console.log("- Full request body:", JSON.stringify(requestBody, null, 2));
+
+    // Use correct max_tokens parameter based on model version
+    if (isNewerModel) {
+      (requestBody as any).max_completion_tokens = validatedOptions.maxTokens!;
+    } else {
+      (requestBody as any).max_tokens = validatedOptions.maxTokens!;
+    }
 
     try {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
@@ -136,7 +159,11 @@ export class OpenAIService extends BaseAIService {
       let outputRate = 0.0015; // Default to gpt-3.5-turbo rate
 
       // Adjust rates based on the model
-      if (data.model.includes("gpt-4")) {
+      if (data.model.includes("gpt-5")) {
+        // GPT-5 pricing (estimated - adjust as needed)
+        inputRate = 0.01; // $0.01 per 1K input tokens
+        outputRate = 0.03; // $0.03 per 1K output tokens
+      } else if (data.model.includes("gpt-4")) {
         inputRate = data.model.includes("turbo") ? 0.01 : 0.03;
         outputRate = data.model.includes("turbo") ? 0.03 : 0.06;
       }
@@ -153,6 +180,21 @@ export class OpenAIService extends BaseAIService {
         data.usage.total_tokens,
         cost
       );
+
+      // Handle GPT-5 models (reasoning models that may need different parameters)
+      if (data.model.includes("gpt-5")) {
+        // GPT-5 models appear to be reasoning models that don't return visible content
+        // They use all tokens for internal reasoning
+        if (
+          !choice.message.content ||
+          choice.message.content.trim().length === 0
+        ) {
+          console.warn(
+            "⚠️ GPT-5 returned empty content - this will trigger fallback logic in blog service"
+          );
+          // Don't throw error here - let the blog service handle the fallback
+        }
+      }
 
       return {
         content: choice.message.content,
@@ -292,7 +334,7 @@ export class OpenAIService extends BaseAIService {
         .map((model: any) => model.id);
     } catch (error) {
       console.error("Failed to fetch OpenAI models:", error);
-      return ["gpt-4", "gpt-3.5-turbo"]; // Fallback to known models
+      return ["gpt-5", "gpt-4", "gpt-3.5-turbo"]; // Fallback to known models
     }
   }
 }

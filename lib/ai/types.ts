@@ -47,9 +47,18 @@ export interface EnhancedProduct extends BasicProduct {
   romanianMinistryApproval?: boolean;
   romanianEducationalCertification?: string;
 
+  // Database status fields
+  isActive?: boolean;
+  featured?: boolean;
+  status?: string;
+  aiEnhanced?: boolean;
+  requiresApproval?: boolean;
+
   // Fallback tracking
   fallbackUsed?: boolean;
   fallbackReason?: string;
+  refinementFallbackUsed?: boolean;
+  refinementFallbackReason?: string;
   generatedByFallback?: boolean;
   dualProviderEnhancement?: boolean;
   refinements?: string[];

@@ -6,10 +6,18 @@ import remarkGfm from "remark-gfm";
 
 interface EnhancedMarkdownRendererProps {
   content: string;
+  socialOptimization?: {
+    facebook?: { title?: string };
+    instagram?: { title?: string };
+    tiktok?: { hook?: string; description?: string };
+  };
+  blogTitle?: string;
 }
 
 export default function EnhancedMarkdownRenderer({
   content,
+  socialOptimization,
+  blogTitle,
 }: EnhancedMarkdownRendererProps) {
   // Check if content contains HTML tags
   const hasHtmlTags = /<[^>]*>/g.test(content);
@@ -131,20 +139,30 @@ export default function EnhancedMarkdownRenderer({
               {children}
             </a>
           ),
-          img: ({ src, alt }) => (
-            <div className="my-12">
-              <img
-                src={src}
-                alt={alt}
-                className="rounded-2xl shadow-2xl max-w-full h-auto mx-auto border-4 border-white"
-              />
-              {alt && (
-                <p className="text-center text-gray-600 mt-4 text-sm italic">
-                  {alt}
-                </p>
-              )}
-            </div>
-          ),
+          img: ({ src, alt }) => {
+            // Use AI-optimized alt text if available, fallback to provided alt or blog title
+            const optimizedAlt =
+              socialOptimization?.facebook?.title ||
+              socialOptimization?.instagram?.title ||
+              alt ||
+              `Ilustrație pentru articolul: ${blogTitle || "TechTots"}`;
+
+            return (
+              <div className="my-12">
+                <img
+                  src={src}
+                  alt={optimizedAlt}
+                  className="rounded-2xl shadow-2xl max-w-full h-auto mx-auto border-4 border-white"
+                  loading="lazy"
+                />
+                {alt && (
+                  <p className="text-center text-gray-600 mt-4 text-sm italic">
+                    {alt}
+                  </p>
+                )}
+              </div>
+            );
+          },
           table: ({ children }) => (
             <div className="overflow-x-auto my-12">
               <table className="w-full border-collapse border border-gray-300 rounded-2xl overflow-hidden shadow-lg">
@@ -163,13 +181,13 @@ export default function EnhancedMarkdownRenderer({
             </td>
           ),
           tr: ({ children, ...props }) => (
-              <tr
-                className="hover:bg-gray-50 transition-colors duration-200"
-                {...props}
-              >
-                {children}
-              </tr>
-            ),
+            <tr
+              className="hover:bg-gray-50 transition-colors duration-200"
+              {...props}
+            >
+              {children}
+            </tr>
+          ),
           hr: () => (
             <hr className="my-16 border-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
           ),

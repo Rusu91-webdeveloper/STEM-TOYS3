@@ -15,6 +15,11 @@ import {
   Building2,
   MessageSquare,
   Image,
+  TrendingUp,
+  Search,
+  Share2,
+  Calendar,
+  TestTube,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -125,6 +130,31 @@ export const adminNavItems = [
     title: "SEO Dashboard",
     href: "/admin/seo-dashboard",
     icon: BarChart,
+  },
+  {
+    title: "Google Search Console",
+    href: "/admin/seo/google-search-console",
+    icon: Search,
+  },
+  {
+    title: "Facebook Pixel Analytics",
+    href: "/admin/analytics/facebook-pixel",
+    icon: Share2,
+  },
+  {
+    title: "Competitor Analysis",
+    href: "/admin/competitor-analysis",
+    icon: TrendingUp,
+  },
+  {
+    title: "A/B Testing",
+    href: "/admin/ab-testing",
+    icon: TestTube,
+  },
+  {
+    title: "Content Calendar",
+    href: "/admin/content-calendar",
+    icon: Calendar,
   },
   {
     title: "Email Templates",

@@ -7,12 +7,16 @@ import ProfessionalBlogTemplate from "@/components/blog/ProfessionalBlogTemplate
 
 interface BlogPostDetailProps {
   post: BlogPost;
+  relatedPosts?: BlogPost[];
 }
 
-export default function BlogPostDetail({ post }: BlogPostDetailProps) {
+export default function BlogPostDetail({
+  post,
+  relatedPosts,
+}: BlogPostDetailProps) {
   if (!post) {
     return <div className="container py-12">Post not found</div>;
   }
 
-  return <ProfessionalBlogTemplate post={post} />;
+  return <ProfessionalBlogTemplate post={post} relatedPosts={relatedPosts} />;
 }

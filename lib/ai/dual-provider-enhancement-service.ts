@@ -13,7 +13,8 @@
 import { BaseAIService } from "./base-ai-service";
 import { AIServiceFactory } from "./ai-service-factory";
 import { AIConfig } from "./config";
-import { ApiErrors } from "@/lib/api-error-handler";
+import { getAIConfig } from "../config/environment";
+import { ApiErrors } from "../api-error-handler";
 import {
   BasicProduct,
   EnhancedProduct,
@@ -53,10 +54,16 @@ export class DualProviderEnhancementService {
   private secondaryService: BaseAIService | null = null;
 
   private defaultConfig: DualProviderConfig = {
-    primaryProvider: "openai", // FORCED TO OPENAI-ONLY
-    primaryModel: "gpt-4o-mini",
-    secondaryProvider: "openai", // FORCED TO OPENAI-ONLY
-    secondaryModel: "gpt-4o-mini",
+    primaryProvider: getAIConfig().primaryProvider as
+      | "openai"
+      | "gemini"
+      | "anthropic",
+    primaryModel: getAIConfig().primaryModel,
+    secondaryProvider: getAIConfig().secondaryProvider as
+      | "openai"
+      | "gemini"
+      | "anthropic",
+    secondaryModel: getAIConfig().secondaryModel,
     refinementOptions: {
       validateContent: true,
       improveSEO: true,
@@ -287,12 +294,54 @@ ${productJson}
 
 Please provide all required fields for a complete product entry.`;
 
-    // Generate content
-    const response = await this.primaryService!.generateWithSystemPrompt(
-      systemPrompt,
-      userPrompt,
-      { model: this.config!.primaryModel }
-    );
+    // Generate content with GPT-5-mini first, then fallback to GPT-4o if empty
+    let response;
+    let usedFallback = false;
+
+    try {
+      response = await this.primaryService!.generateWithSystemPrompt(
+        systemPrompt,
+        userPrompt,
+        { model: this.config!.primaryModel }
+      );
+
+      // Check if GPT-5-mini returned empty content (expected behavior for reasoning models)
+      if (!response || response.trim().length === 0) {
+        console.warn(
+          "⚠️ GPT-5-mini returned empty content - triggering fallback for product enhancement"
+        );
+        usedFallback = true;
+
+        // Create a fresh OpenAI service instance for fallback with GPT-4o
+        const { OpenAIService } = await import("./openai-service");
+        const fallbackService = new OpenAIService(getAIConfig().fallbackModel);
+
+        response = await fallbackService.generateWithSystemPrompt(
+          systemPrompt,
+          userPrompt,
+          { model: getAIConfig().fallbackModel }
+        );
+      }
+    } catch (primaryError) {
+      // If primary service throws an error, try GPT-4o as fallback
+      console.warn(
+        "⚠️ Primary model threw error, trying GPT-4o fallback:",
+        primaryError instanceof Error
+          ? primaryError.message
+          : String(primaryError)
+      );
+      usedFallback = true;
+
+      // Create a fresh OpenAI service instance for fallback with GPT-4o
+      const { OpenAIService } = await import("./openai-service");
+      const fallbackService = new OpenAIService(getAIConfig().fallbackModel);
+
+      response = await fallbackService.generateWithSystemPrompt(
+        systemPrompt,
+        userPrompt,
+        { model: getAIConfig().fallbackModel }
+      );
+    }
 
     // Parse the response
     try {
@@ -306,20 +355,34 @@ Please provide all required fields for a complete product entry.`;
       const parsedResponse = JSON.parse(jsonContent);
 
       // Convert to EnhancedProduct format
-      return this.normalizeToEnhancedProduct(product, parsedResponse);
+      const enhancedProduct = this.normalizeToEnhancedProduct(
+        product,
+        parsedResponse
+      );
+
+      // Mark if fallback was used
+      if (usedFallback) {
+        enhancedProduct.fallbackUsed = true;
+        enhancedProduct.fallbackReason =
+          "GPT-5-mini returned empty content or threw error";
+      }
+
+      return enhancedProduct;
     } catch (error) {
-      console.error("Failed to parse primary provider response:", error);
+      console.error("Failed to parse provider response:", error);
       console.log("Raw response:", response);
 
       // Fallback: Return basic product with minimal enhancements
       return {
         ...product,
-        enhancedDescription: response.substring(0, 1000),
+        enhancedDescription: response ? response.substring(0, 1000) : "",
         metaTitle: product.name,
-        metaDescription: response.substring(0, 160),
+        metaDescription: response ? response.substring(0, 160) : "",
         metaKeywords: [],
         tags: product.tags || [],
         learningOutcomes: [],
+        fallbackUsed: true,
+        fallbackReason: "JSON parsing failed",
       };
     }
   }
@@ -354,12 +417,54 @@ ${enhancedJson}
 
 Please review the enhanced data, check for any issues, and provide an improved version that follows database schema requirements, has excellent SEO, proper grammar, and maintains factual accuracy.`;
 
-    // Generate refined content
-    const response = await this.secondaryService!.generateWithSystemPrompt(
-      systemPrompt,
-      userPrompt,
-      { model: this.config!.secondaryModel }
-    );
+    // Generate refined content with GPT-5-mini first, then fallback to GPT-4o if empty
+    let response;
+    let usedFallback = false;
+
+    try {
+      response = await this.secondaryService!.generateWithSystemPrompt(
+        systemPrompt,
+        userPrompt,
+        { model: this.config!.secondaryModel }
+      );
+
+      // Check if GPT-5-mini returned empty content (expected behavior for reasoning models)
+      if (!response || response.trim().length === 0) {
+        console.warn(
+          "⚠️ Secondary GPT-5-mini returned empty content - triggering fallback for refinement"
+        );
+        usedFallback = true;
+
+        // Create a fresh OpenAI service instance for fallback with GPT-4o
+        const { OpenAIService } = await import("./openai-service");
+        const fallbackService = new OpenAIService(getAIConfig().fallbackModel);
+
+        response = await fallbackService.generateWithSystemPrompt(
+          systemPrompt,
+          userPrompt,
+          { model: getAIConfig().fallbackModel }
+        );
+      }
+    } catch (secondaryError) {
+      // If secondary service throws an error, try GPT-4o as fallback
+      console.warn(
+        "⚠️ Secondary model threw error, trying GPT-4o fallback:",
+        secondaryError instanceof Error
+          ? secondaryError.message
+          : String(secondaryError)
+      );
+      usedFallback = true;
+
+      // Create a fresh OpenAI service instance for fallback with GPT-4o
+      const { OpenAIService } = await import("./openai-service");
+      const fallbackService = new OpenAIService(getAIConfig().fallbackModel);
+
+      response = await fallbackService.generateWithSystemPrompt(
+        systemPrompt,
+        userPrompt,
+        { model: getAIConfig().fallbackModel }
+      );
+    }
 
     // Parse the response
     try {
@@ -373,12 +478,21 @@ Please review the enhanced data, check for any issues, and provide an improved v
       const parsedResponse = JSON.parse(jsonContent);
 
       // Convert to EnhancedProduct format and merge with initial enhancement
-      return {
+      const refinedProduct = {
         ...initialEnhancement,
         ...this.normalizeToEnhancedProduct(originalProduct, parsedResponse),
         dualProviderEnhancement: true,
         refinements: parsedResponse.refinements || [],
       };
+
+      // Mark if fallback was used during refinement
+      if (usedFallback) {
+        refinedProduct.refinementFallbackUsed = true;
+        refinedProduct.refinementFallbackReason =
+          "GPT-5-mini returned empty content or threw error during refinement";
+      }
+
+      return refinedProduct;
     } catch (error) {
       console.error("Failed to parse secondary provider response:", error);
       console.log("Raw response:", response);
@@ -388,6 +502,8 @@ Please review the enhanced data, check for any issues, and provide an improved v
         ...initialEnhancement,
         dualProviderEnhancement: true,
         refinements: ["Error parsing refinement response"],
+        refinementFallbackUsed: true,
+        refinementFallbackReason: "JSON parsing failed during refinement",
       };
     }
   }

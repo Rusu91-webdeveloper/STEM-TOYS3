@@ -66,7 +66,7 @@
 | **gpt-4o-mini**   | $0.15      | $0.60       | Content generation (RECOMMENDED) |
 | **gpt-3.5-turbo** | $0.50      | $1.50       | General purpose (outdated)       |
 | **o1-mini**       | $3.00      | $12.00      | Complex reasoning (expensive)    |
-| **gpt-4o**        | $2.50      | $10.00      | Premium content (future upgrade) |
+| **gpt-5-mini**    | $0.15      | $0.60       | Current optimal (upgraded)       |
 
 ---
 
@@ -85,7 +85,7 @@
 
 ### Future Upgrades
 
-1. **When you have budget**: Upgrade to `gpt-4o` for premium content
+1. **When you have budget**: Upgrade to `gpt-5-mini` for premium content
 2. **For specific reasoning tasks**: Add `o1-mini` as a third option
 3. **For cost optimization**: Consider `gpt-4o-mini` as primary when Gemini
    quota is consistently exceeded
@@ -99,7 +99,7 @@
 **OpenAI Models:**
 
 - `gpt-4o-mini` (recommended for content)
-- `gpt-4o` (premium option)
+- `gpt-5-mini` (premium option)
 - `o1-mini` (reasoning tasks)
 - `gpt-3.5-turbo` (legacy, not recommended)
 

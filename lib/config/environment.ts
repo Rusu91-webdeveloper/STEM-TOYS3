@@ -116,7 +116,7 @@ const AIConfigSchema = z.object({
   ANTHROPIC_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   AI_PROVIDER: z.enum(["openai", "anthropic", "gemini"]).default("openai"),
-  AI_MODEL: z.string().default("gpt-4"),
+  AI_MODEL: z.string().default("gpt-5-mini"),
   AI_MAX_TOKENS: z
     .string()
     .transform(val => parseInt(val, 10))
@@ -129,6 +129,16 @@ const AIConfigSchema = z.object({
     .string()
     .transform(val => val === "true")
     .default("true"),
+  // Dual-provider configuration for blog generation
+  AI_PRIMARY_PROVIDER: z
+    .enum(["openai", "anthropic", "gemini"])
+    .default("openai"),
+  AI_PRIMARY_MODEL: z.string().default("gpt-5-mini"),
+  AI_SECONDARY_PROVIDER: z
+    .enum(["openai", "anthropic", "gemini"])
+    .default("openai"),
+  AI_SECONDARY_MODEL: z.string().default("gpt-5-mini"),
+  AI_FALLBACK_MODEL: z.string().default("gpt-4o"),
 });
 
 // Combined environment schema
@@ -279,6 +289,12 @@ class EnvironmentConfig {
       maxTokens: this.get("AI_MAX_TOKENS"),
       temperature: this.get("AI_TEMPERATURE"),
       enhancementEnabled: this.get("AI_ENHANCEMENT_ENABLED"),
+      // Dual-provider configuration
+      primaryProvider: this.get("AI_PRIMARY_PROVIDER"),
+      primaryModel: this.get("AI_PRIMARY_MODEL"),
+      secondaryProvider: this.get("AI_SECONDARY_PROVIDER"),
+      secondaryModel: this.get("AI_SECONDARY_MODEL"),
+      fallbackModel: this.get("AI_FALLBACK_MODEL"),
       isConfigured: !!(
         this.get("OPENAI_API_KEY") ||
         this.get("ANTHROPIC_API_KEY") ||

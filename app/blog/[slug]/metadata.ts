@@ -27,8 +27,22 @@ export async function generateMetadata(
     // Get previous images for fallback
     const previousImages = (await parent).openGraph?.images || [];
 
-    // Define article keywords based on categories and tags
+    // Get AI-generated SEO metadata
+    const aiMetadata = (blogPost as any).metadata?.ai || {};
+    const seoMetadata = (blogPost as any).metadata?.seo || {};
+
+    // Use AI-generated meta data with fallbacks
+    const metaTitle = seoMetadata.metaTitle || aiMetadata.seo?.metaTitle;
+    const metaDescription =
+      seoMetadata.metaDescription || aiMetadata.seo?.metaDescription;
+    const metaKeywords =
+      seoMetadata.metaKeywords || aiMetadata.seo?.metaKeywords || [];
+
+    // Define comprehensive keywords including AI-generated ones
     const keywords = [
+      // AI-generated keywords first
+      ...(metaKeywords || []),
+      // Article-specific keywords
       blogPost.title,
       blogPost.stemCategory,
       "STEM education",
@@ -67,32 +81,60 @@ export async function generateMetadata(
       }
     } catch (_e) {}
 
-    // Create structured data for article rich results
+    // Get social optimization data from AI metadata
+    const socialOptimization = aiMetadata.socialOptimization || {};
+
+    // Create enhanced structured data for article rich results
     const structuredData = {
       "@context": "https://schema.org",
-      "@type": "BlogPosting",
+      "@type": "Article",
       headline: localizedTitle,
       description: localizedExcerpt,
-      image: blogPost.coverImage || "",
+      image: [
+        blogPost.coverImage,
+        socialOptimization.facebook?.image,
+        socialOptimization.instagram?.image,
+        socialOptimization.tiktok?.image,
+      ].filter(Boolean),
       datePublished: blogPost.publishedAt,
       dateModified: blogPost.updatedAt || blogPost.publishedAt,
       author: {
-        "@type": "Person",
-        name: blogPost.author?.name || "TechTots Team",
+        "@type": "Organization",
+        name: "TechTots România",
+        url: "https://techtots.ro",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://techtots.ro/images/logo.png",
+        },
       },
       publisher: {
         "@type": "Organization",
-        name: "TechTots",
+        name: "TechTots România",
+        url: "https://techtots.ro",
         logo: {
           "@type": "ImageObject",
-          url: "https://techtots.com/TechTots_LOGO.png",
+          url: "https://techtots.ro/images/logo.png",
         },
       },
       mainEntityOfPage: {
         "@type": "WebPage",
         "@id": canonicalUrl,
       },
+      articleSection: blogPost.category?.name || "Educație STEM",
       keywords: keywords.join(", "),
+      wordCount:
+        aiMetadata.contentAnalysis?.wordCount || blogPost.content?.length / 5,
+      timeRequired: `PT${Math.ceil((aiMetadata.contentAnalysis?.wordCount || blogPost.content?.length / 5) / 200)}M`,
+      speakable: {
+        "@type": "SpeakableSpecification",
+        cssSelector: [".article-title", ".article-intro"],
+      },
+      about: seoMetadata.focusKeyword
+        ? {
+            "@type": "Thing",
+            name: seoMetadata.focusKeyword,
+          }
+        : undefined,
     };
 
     return {
@@ -100,12 +142,11 @@ export async function generateMetadata(
       description: localizedExcerpt,
       keywords,
       openGraph: {
-        title: localizedTitle,
-        description: localizedExcerpt,
+        title: socialOptimization.facebook?.title || localizedTitle,
+        description:
+          socialOptimization.facebook?.description || localizedExcerpt,
         type: "article",
-        authors: blogPost.author?.name
-          ? [blogPost.author.name]
-          : ["TechTots Team"],
+        authors: ["TechTots România"],
         publishedTime: blogPost.publishedAt
           ? new Date(blogPost.publishedAt).toISOString()
           : undefined,
@@ -114,28 +155,50 @@ export async function generateMetadata(
           : blogPost.publishedAt
             ? new Date(blogPost.publishedAt).toISOString()
             : undefined,
-        section: blogPost.category?.name,
+        section: blogPost.category?.name || "Educație STEM",
         tags: [
           blogPost.stemCategory,
           "STEM Education",
           blogPost.category?.name,
+          ...(blogPost.tags || []),
         ].filter(Boolean),
-        images: blogPost.coverImage
+        images: socialOptimization.facebook?.image
           ? [
               {
-                url: blogPost.coverImage,
+                url: socialOptimization.facebook.image,
                 width: 1200,
                 height: 630,
-                alt: blogPost.title,
+                alt: socialOptimization.facebook.title || blogPost.title,
               },
             ]
-          : previousImages,
+          : blogPost.coverImage
+            ? [
+                {
+                  url: blogPost.coverImage,
+                  width: 1200,
+                  height: 630,
+                  alt: blogPost.title,
+                },
+              ]
+            : previousImages,
       },
       twitter: {
         card: "summary_large_image",
-        title: blogPost.title,
-        description: blogPost.excerpt,
-        images: blogPost.coverImage ? [blogPost.coverImage] : [],
+        site: "@techtotsro",
+        creator: "@techtotsro",
+        title:
+          socialOptimization.tiktok?.hook ||
+          socialOptimization.facebook?.title ||
+          localizedTitle,
+        description:
+          socialOptimization.tiktok?.description ||
+          socialOptimization.facebook?.description ||
+          localizedExcerpt,
+        images: socialOptimization.instagram?.image
+          ? [socialOptimization.instagram.image]
+          : blogPost.coverImage
+            ? [blogPost.coverImage]
+            : [],
       },
       alternates: {
         canonical: canonicalUrl,

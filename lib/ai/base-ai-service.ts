@@ -51,6 +51,15 @@ export abstract class BaseAIService {
   ): Promise<AIResponse>;
 
   /**
+   * Generate response with system and user prompts (convenience method)
+   */
+  abstract generateWithSystemPrompt(
+    systemPrompt: string,
+    userPrompt: string,
+    options?: AIRequestOptions
+  ): Promise<string>;
+
+  /**
    * Generate content using the AI service
    */
   async generateContent(

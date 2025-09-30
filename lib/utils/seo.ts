@@ -639,3 +639,154 @@ export function generateHomepageMetadata(storeSettings: any): Metadata {
     translations,
   });
 }
+
+/**
+ * Validate structured data schema
+ * @param structuredData Array of structured data objects
+ * @returns Validation result with errors and warnings
+ */
+export function validateStructuredData(structuredData: any[]): {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  score: number;
+} {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  structuredData.forEach((data, index) => {
+    // Check required @context
+    if (!data["@context"]) {
+      errors.push(`Schema ${index}: Missing @context`);
+    }
+
+    // Check required @type
+    if (!data["@type"]) {
+      errors.push(`Schema ${index}: Missing @type`);
+    }
+
+    // Type-specific validations
+    switch (data["@type"]) {
+      case "Article":
+        if (!data.headline) warnings.push(`Article ${index}: Missing headline`);
+        if (!data.description)
+          warnings.push(`Article ${index}: Missing description`);
+        if (!data.mainEntityOfPage)
+          errors.push(`Article ${index}: Missing mainEntityOfPage`);
+        if (!data.author) warnings.push(`Article ${index}: Missing author`);
+        if (!data.publisher)
+          warnings.push(`Article ${index}: Missing publisher`);
+        break;
+
+      case "BreadcrumbList":
+        if (!data.itemListElement || !Array.isArray(data.itemListElement)) {
+          errors.push(
+            `BreadcrumbList ${index}: Missing or invalid itemListElement`
+          );
+        } else {
+          data.itemListElement.forEach((item: any, itemIndex: number) => {
+            if (!item.position)
+              errors.push(
+                `BreadcrumbList ${index}, item ${itemIndex}: Missing position`
+              );
+            if (!item.name)
+              errors.push(
+                `BreadcrumbList ${index}, item ${itemIndex}: Missing name`
+              );
+            if (!item.item)
+              errors.push(
+                `BreadcrumbList ${index}, item ${itemIndex}: Missing item URL`
+              );
+          });
+        }
+        break;
+
+      case "Organization":
+        if (!data.name) errors.push(`Organization ${index}: Missing name`);
+        if (!data.url) errors.push(`Organization ${index}: Missing url`);
+        break;
+
+      case "FAQPage":
+        if (!data.mainEntity || !Array.isArray(data.mainEntity)) {
+          errors.push(`FAQPage ${index}: Missing or invalid mainEntity`);
+        } else {
+          data.mainEntity.forEach((faq: any, faqIndex: number) => {
+            if (!faq.name)
+              errors.push(
+                `FAQPage ${index}, FAQ ${faqIndex}: Missing question name`
+              );
+            if (!faq.acceptedAnswer?.text)
+              errors.push(
+                `FAQPage ${index}, FAQ ${faqIndex}: Missing answer text`
+              );
+          });
+        }
+        break;
+
+      case "ImageObject":
+        if (!data.url) errors.push(`ImageObject ${index}: Missing url`);
+        if (!data.caption && !data.description) {
+          warnings.push(`ImageObject ${index}: Missing caption or description`);
+        }
+        break;
+    }
+  });
+
+  const totalChecks = structuredData.length * 5; // Rough estimate of checks per schema
+  const errorPenalty = errors.length * 20;
+  const warningPenalty = warnings.length * 5;
+  const score = Math.max(0, 100 - errorPenalty - warningPenalty);
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+    score,
+  };
+}
+
+/**
+ * Generate SEO performance tracking data
+ * @param blogPost Blog post data
+ * @returns Performance tracking data
+ */
+export function generateSEOTrackingData(blogPost: any) {
+  const aiMetadata = blogPost.metadata?.ai || {};
+  const seoMetadata = blogPost.metadata?.seo || {};
+
+  return {
+    blogId: blogPost.id,
+    slug: blogPost.slug,
+    title: blogPost.title,
+    category: blogPost.category?.name,
+    stemCategory: blogPost.stemCategory,
+    hasAIMetadata: !!blogPost.metadata?.ai,
+    hasSEOMetadata: !!blogPost.metadata?.seo,
+    hasSocialOptimization: !!aiMetadata.socialOptimization,
+    hasContentAnalysis: !!aiMetadata.contentAnalysis,
+    hasKeywordOptimization: !!aiMetadata.keywordOptimization,
+    hasFAQContent: !!(aiMetadata.contentAnalysis?.questions?.length > 0),
+    wordCount:
+      aiMetadata.contentAnalysis?.wordCount || blogPost.content?.length / 5,
+    readingTime:
+      aiMetadata.contentAnalysis?.readingTime || blogPost.readingTime,
+    seoScore: seoMetadata.seoScore || aiMetadata.seoScore,
+    focusKeyword: seoMetadata.focusKeyword,
+    metaTitleLength: (seoMetadata.metaTitle || blogPost.title).length,
+    metaDescriptionLength: (seoMetadata.metaDescription || blogPost.excerpt)
+      .length,
+    hasOpenGraph: true, // Always true now
+    hasTwitterCard: true, // Always true now
+    hasArticleSchema: true, // Always true now
+    hasBreadcrumbSchema: true, // Always true now
+    hasImageSchema: !!(
+      blogPost.coverImage || aiMetadata.socialOptimization?.facebook?.image
+    ),
+    hasFAQSchema: !!(aiMetadata.contentAnalysis?.questions?.length > 0),
+    hasOrganizationSchema: true, // Added to layout
+    publishedAt: blogPost.publishedAt,
+    tagsCount: blogPost.tags?.length || 0,
+    socialShares: blogPost.socialShares || 0,
+    viralScore: blogPost.viralScore || 0,
+  };
+}

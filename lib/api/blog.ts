@@ -27,6 +27,11 @@ export interface BlogPost {
   updatedAt: Date;
   readingTime: number | null;
   metadata: any;
+  // Viral content metrics for Romanian market domination
+  viralScore: number | null;
+  socialShares: number;
+  competitorRank: number | null;
+  romanianMarketFit: number | null;
   author: {
     id: string;
     name: string | null;
@@ -67,6 +72,86 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
   });
 
   return blog as BlogPost | null;
+}
+
+/**
+ * Get related blog posts for a given post
+ */
+export async function getRelatedPosts(
+  currentPostId: string,
+  categoryId?: string,
+  tags?: string[],
+  stemCategory?: StemCategory,
+  limit: number = 4
+): Promise<BlogPost[]> {
+  const where: any = {
+    id: { not: currentPostId }, // Exclude current post
+    isPublished: true,
+  };
+
+  // Priority 1: Same category
+  if (categoryId) {
+    where.categoryId = categoryId;
+  }
+
+  // Priority 2: Same stem category if no category match
+  if (!categoryId && stemCategory) {
+    where.stemCategory = stemCategory;
+  }
+
+  // Priority 3: Shared tags
+  if (tags && tags.length > 0) {
+    where.tags = {
+      hasSome: tags,
+    };
+  }
+
+  const relatedPosts = await db.blog.findMany({
+    where,
+    take: limit,
+    orderBy: [
+      { publishedAt: "desc" }, // Most recent first
+      { socialShares: "desc" }, // Then by social shares
+    ],
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      category: true,
+    },
+  });
+
+  // If we don't have enough related posts, get more from the same stem category
+  if (relatedPosts.length < limit && stemCategory) {
+    const additionalPosts = await db.blog.findMany({
+      where: {
+        id: { not: currentPostId },
+        isPublished: true,
+        stemCategory: stemCategory,
+        categoryId: categoryId ? { not: categoryId } : undefined, // Avoid duplicates
+      },
+      take: limit - relatedPosts.length,
+      orderBy: { publishedAt: "desc" },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        category: true,
+      },
+    });
+
+    relatedPosts.push(...additionalPosts);
+  }
+
+  return relatedPosts.slice(0, limit) as BlogPost[];
 }
 
 /**
