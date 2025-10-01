@@ -1,0 +1,8 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="90" cy="90" r="85" stroke="#E5E7EB" stroke-width="2" fill="none"/>
+  <path d="M60 75 L75 90 L60 105" stroke="#9CA3AF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M105 75 L120 90 L105 105" stroke="#9CA3AF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="75" cy="85" r="3" fill="#9CA3AF"/>
+  <circle cx="105" cy="95" r="3" fill="#9CA3AF"/>
+  <text x="90" y="135" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#6B7280">No content yet</text>
+</svg>

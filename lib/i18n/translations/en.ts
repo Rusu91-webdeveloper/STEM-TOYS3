@@ -1705,6 +1705,11 @@ export const en = {
   filters: "Filters",
   active: "Active",
   clear: "Clear",
+
+  // Missing translation keys from console errors
+  All: "All",
+  Close: "Close",
+  "Filter by Category": "Filter by Category",
   best: "Best Sellers",
   new: "New Arrivals",
   gifts: "Gift Ideas",

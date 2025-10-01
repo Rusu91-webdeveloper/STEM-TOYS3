@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
 interface BlogEditPageProps {
@@ -108,14 +109,14 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
           content: blog.content,
           multilingual: {
             en: blog.metadata?.multilingual?.en || {
-              title: blog.title,
-              excerpt: blog.excerpt,
-              content: blog.content,
-            },
-            ro: blog.metadata?.multilingual?.ro || {
               title: "",
               excerpt: "",
               content: "",
+            },
+            ro: blog.metadata?.multilingual?.ro || {
+              title: blog.title,
+              excerpt: blog.excerpt,
+              content: blog.content,
             },
           },
           coverImage: blog.coverImage || "",
@@ -303,54 +304,139 @@ export default function EditBlogPage({ params }: BlogEditPageProps) {
                     <TabsTrigger value="ro">Romanian</TabsTrigger>
                   </TabsList>
                   <TabsContent value="en">
-                    <div className="space-y-2 mt-4">
-                      <Label htmlFor="content-en">Content (EN)</Label>
-                      <Textarea
-                        id="content-en"
-                        name="content-en"
-                        value={
-                          blogData.multilingual.en.content || blogData.content
-                        }
-                        onChange={e =>
-                          setBlogData(prev => ({
-                            ...prev,
-                            multilingual: {
-                              ...prev.multilingual,
-                              en: {
-                                title: prev.multilingual.en.title || prev.title,
-                                excerpt:
-                                  prev.multilingual.en.excerpt || prev.excerpt,
-                                content: e.target.value,
+                    <div className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="title-en">Title (EN)</Label>
+                        <Input
+                          id="title-en"
+                          name="title-en"
+                          value={blogData.multilingual.en.title}
+                          onChange={e =>
+                            setBlogData(prev => ({
+                              ...prev,
+                              multilingual: {
+                                ...prev.multilingual,
+                                en: {
+                                  ...prev.multilingual.en,
+                                  title: e.target.value,
+                                },
                               },
-                            },
-                          }))
-                        }
-                        rows={15}
-                      />
+                            }))
+                          }
+                          placeholder="English title"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="excerpt-en">Excerpt (EN)</Label>
+                        <Textarea
+                          id="excerpt-en"
+                          name="excerpt-en"
+                          value={blogData.multilingual.en.excerpt}
+                          onChange={e =>
+                            setBlogData(prev => ({
+                              ...prev,
+                              multilingual: {
+                                ...prev.multilingual,
+                                en: {
+                                  ...prev.multilingual.en,
+                                  excerpt: e.target.value,
+                                },
+                              },
+                            }))
+                          }
+                          placeholder="Brief summary in English"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="content-en">Content (EN)</Label>
+                        <Textarea
+                          id="content-en"
+                          name="content-en"
+                          value={blogData.multilingual.en.content}
+                          onChange={e =>
+                            setBlogData(prev => ({
+                              ...prev,
+                              multilingual: {
+                                ...prev.multilingual,
+                                en: {
+                                  ...prev.multilingual.en,
+                                  content: e.target.value,
+                                },
+                              },
+                            }))
+                          }
+                          rows={15}
+                        />
+                      </div>
                     </div>
                   </TabsContent>
                   <TabsContent value="ro">
-                    <div className="space-y-2 mt-4">
-                      <Label htmlFor="content-ro">Content (RO)</Label>
-                      <Textarea
-                        id="content-ro"
-                        name="content-ro"
-                        value={blogData.multilingual.ro.content}
-                        onChange={e =>
-                          setBlogData(prev => ({
-                            ...prev,
-                            multilingual: {
-                              ...prev.multilingual,
-                              ro: {
-                                title: prev.multilingual.ro.title,
-                                excerpt: prev.multilingual.ro.excerpt,
-                                content: e.target.value,
+                    <div className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="title-ro">Title (RO)</Label>
+                        <Input
+                          id="title-ro"
+                          name="title-ro"
+                          value={blogData.multilingual.ro.title}
+                          onChange={e =>
+                            setBlogData(prev => ({
+                              ...prev,
+                              multilingual: {
+                                ...prev.multilingual,
+                                ro: {
+                                  ...prev.multilingual.ro,
+                                  title: e.target.value,
+                                },
                               },
-                            },
-                          }))
-                        }
-                        rows={15}
-                      />
+                            }))
+                          }
+                          placeholder="Titlu în română"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="excerpt-ro">Excerpt (RO)</Label>
+                        <Textarea
+                          id="excerpt-ro"
+                          name="excerpt-ro"
+                          value={blogData.multilingual.ro.excerpt}
+                          onChange={e =>
+                            setBlogData(prev => ({
+                              ...prev,
+                              multilingual: {
+                                ...prev.multilingual,
+                                ro: {
+                                  ...prev.multilingual.ro,
+                                  excerpt: e.target.value,
+                                },
+                              },
+                            }))
+                          }
+                          placeholder="Rezumat scurt în română"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="content-ro">Content (RO)</Label>
+                        <Textarea
+                          id="content-ro"
+                          name="content-ro"
+                          value={blogData.multilingual.ro.content}
+                          onChange={e =>
+                            setBlogData(prev => ({
+                              ...prev,
+                              multilingual: {
+                                ...prev.multilingual,
+                                ro: {
+                                  ...prev.multilingual.ro,
+                                  content: e.target.value,
+                                },
+                              },
+                            }))
+                          }
+                          rows={15}
+                        />
+                      </div>
                     </div>
                   </TabsContent>
                 </Tabs>

@@ -151,6 +151,14 @@ export async function PUT(
     }
 
     const data = await request.json();
+    console.log("🔍 UPDATE API - Received data:", {
+      hasMultilingual: !!data.multilingual,
+      multilingualKeys: data.multilingual
+        ? Object.keys(data.multilingual)
+        : null,
+      enContentLength: data.multilingual?.en?.content?.length || 0,
+      roContentLength: data.multilingual?.ro?.content?.length || 0,
+    });
 
     // Process tags from comma-separated string to array
     let tags: string[] = [];
@@ -176,7 +184,35 @@ export async function PUT(
     }
 
     // For markdown content, we don't need to sanitize as it will be processed by ReactMarkdown
-    const content = data.content;
+    // Use Romanian content as the main content, or fall back to the provided content
+    const content = data.multilingual?.ro?.content || data.content;
+
+    // Prepare metadata with multilingual content
+    const metadata = (existingBlog.metadata as any) || {};
+
+    // Update multilingual content if provided
+    if (data.multilingual) {
+      console.log(
+        "🌍 SETTING LANGUAGE TO BOTH - multilingual content detected"
+      );
+      // Set language to "both" when multilingual content is present
+      metadata.language = "both";
+      metadata.multilingual = {
+        en: {
+          title: data.multilingual.en?.title || "",
+          excerpt: data.multilingual.en?.excerpt || "",
+          content: data.multilingual.en?.content || "",
+        },
+        ro: {
+          title: data.multilingual.ro?.title || data.title,
+          excerpt: data.multilingual.ro?.excerpt || data.excerpt,
+          content: data.multilingual.ro?.content || data.content,
+        },
+      };
+      console.log("✅ Updated metadata with language='both'");
+    } else {
+      console.log("❌ No multilingual data in request");
+    }
 
     // Update blog post using blog service (includes automatic notifications)
     const updatedBlog = await blogService.updateBlog({
@@ -191,10 +227,11 @@ export async function PUT(
       isPublished: data.isPublished,
     });
 
-    // Update additional fields using direct database update
+    // Update additional fields including metadata using direct database update
     await prisma.blog.update({
       where: { id: existingBlog.id },
       data: {
+        metadata,
         readingTime: Math.ceil(data.content.split(" ").length / 200), // Rough estimate: 200 words per minute
         updatedAt: new Date(),
       },

@@ -1910,4 +1910,9 @@ export const ro = {
   discoverStemCollection: "Descoperă colecția noastră STEM",
   scienceDescription:
     "Explorează colecția noastră de jucării și experimente științifice care fac învățarea distractivă și captivantă pentru mințile curioase.",
+
+  // Missing translation keys from console errors
+  All: "Toate",
+  Close: "Închide",
+  "Filter by Category": "Filtrează după Categorie",
 };
