@@ -124,7 +124,14 @@ export default function BlogPage() {
         }
 
         const data = await response.json();
-        setBlogPosts(data);
+
+        // Ensure we have a valid array of blogs
+        if (!data || typeof data !== "object") {
+          throw new Error("Invalid response format from server");
+        }
+
+        const blogs = Array.isArray(data.blogs) ? data.blogs : [];
+        setBlogPosts(blogs);
       } catch (err) {
         console.error("Error fetching blog posts:", err);
         setError(`${err instanceof Error ? err.message : "An error occurred"}`);

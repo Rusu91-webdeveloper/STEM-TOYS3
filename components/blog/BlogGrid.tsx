@@ -59,7 +59,8 @@ export function BlogGrid({
     );
   }
 
-  if (blogPosts.length === 0) {
+  // Additional safety check for blogPosts
+  if (!Array.isArray(blogPosts) || blogPosts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24">
         <Image
