@@ -5,6 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+// Ensure this API route is always dynamic to bypass Next.js caching
+export const dynamic = "force-dynamic";
 import { gscService } from "@/lib/services/google-search-console-service";
 
 export async function GET(request: NextRequest) {
@@ -26,42 +28,63 @@ export async function GET(request: NextRequest) {
     switch (action) {
       case "overview":
         const overviewData = await gscService.getRomanianMarketData(days);
-        return NextResponse.json(overviewData);
+        return NextResponse.json({
+          dataSource: gscService.isConfigured ? "live" : "mock",
+          data: overviewData,
+        });
 
       case "keywords":
         const keywordRankings = await gscService.getKeywordRankings(keywords);
-        return NextResponse.json(keywordRankings);
+        return NextResponse.json({
+          dataSource: gscService.isConfigured ? "live" : "mock",
+          data: keywordRankings,
+        });
 
       case "indexing":
         const indexingStatus = await gscService.getSiteIndexingStatus();
-        return NextResponse.json(indexingStatus);
+        return NextResponse.json({
+          dataSource: gscService.isConfigured ? "live" : "mock",
+          data: indexingStatus,
+        });
 
       case "performance":
         const performanceData = await gscService.getPerformanceMetrics(
-          startDateObj.toISOString().split('T')[0],
-          endDateObj.toISOString().split('T')[0]
+          startDateObj.toISOString().split("T")[0],
+          endDateObj.toISOString().split("T")[0]
         );
-        return NextResponse.json(performanceData);
+        return NextResponse.json({
+          dataSource: gscService.isConfigured ? "live" : "mock",
+          data: performanceData,
+        });
 
       case "competitor-analysis":
         const competitorData = await gscService.getCompetitorAnalysis();
-        return NextResponse.json(competitorData);
+        return NextResponse.json({
+          dataSource: gscService.isConfigured ? "live" : "mock",
+          data: competitorData,
+        });
 
       case "health-score":
         const healthScore = await gscService.getSEOHealthScore();
-        return NextResponse.json(healthScore);
+        return NextResponse.json({
+          dataSource: gscService.isConfigured ? "live" : "mock",
+          data: healthScore,
+        });
 
       default:
         // Return comprehensive dashboard data by default
         const dashboardData = await gscService.getDashboardData(days);
-        return NextResponse.json(dashboardData);
+        return NextResponse.json({
+          dataSource: gscService.isConfigured ? "live" : "mock",
+          data: dashboardData,
+        });
     }
   } catch (error) {
     console.error("GSC API Error:", error);
 
     // Return enhanced mock data for development
     const mockData = generateMockSEOData();
-    return NextResponse.json(mockData);
+    return NextResponse.json({ dataSource: "mock", data: mockData });
   }
 }
 
@@ -73,7 +96,7 @@ function generateMockSEOData() {
   return {
     totalClicks: baseClicks,
     totalImpressions: baseImpressions,
-    averageCTR: ((baseClicks / baseImpressions) * 100),
+    averageCTR: (baseClicks / baseImpressions) * 100,
     averagePosition: Math.random() * 5 + 5,
     topKeywords: [
       {
@@ -126,15 +149,21 @@ function generateMockSEOData() {
     competitorKeywords: [],
     viralKeywords: [],
     performanceMetrics: {
-      dailyClicks: Array.from({ length: 30 }, () => Math.floor(Math.random() * 200) + 100),
-      dailyImpressions: Array.from({ length: 30 }, () => Math.floor(Math.random() * 5000) + 3000),
+      dailyClicks: Array.from(
+        { length: 30 },
+        () => Math.floor(Math.random() * 200) + 100
+      ),
+      dailyImpressions: Array.from(
+        { length: 30 },
+        () => Math.floor(Math.random() * 5000) + 3000
+      ),
       positionTrend: Array.from({ length: 30 }, () => Math.random() * 3 + 6),
     },
     indexingStatus: {
       indexedPages: Math.floor(Math.random() * 500) + 800,
       submittedPages: Math.floor(Math.random() * 100) + 50,
       coverageIssues: Math.floor(Math.random() * 20),
-    }
+    },
   };
 }
 

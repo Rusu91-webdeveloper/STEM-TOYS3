@@ -79,6 +79,7 @@ export default function SEODashboardPage() {
   const [seoData, setSeoData] = useState<SEOData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dataSource, setDataSource] = useState<string | null>(null);
   const [selectedKeyword, setSelectedKeyword] = useState<string>(
     "jucării STEM România"
   );
@@ -112,7 +113,8 @@ export default function SEODashboardPage() {
         `/api/admin/seo/google-search-console?action=keywords&keywords=${encodeURIComponent(keyword)}`
       );
       if (response.ok) {
-        const data = await response.json();
+        const payload = await response.json();
+        const data = payload.data;
         // For now, we'll simulate historical data since we don't have real historical data yet
         setKeywordHistory({
           dates: Array.from({ length: 30 }, (_, i) => {
@@ -121,7 +123,7 @@ export default function SEODashboardPage() {
             return date.toISOString().split("T")[0];
           }),
           positions: Array.from({ length: 30 }, (_, i) => {
-            const basePosition = data[0]?.position || 5;
+            const basePosition = data?.[0]?.position || 5;
             return Math.max(1, basePosition + (Math.random() - 0.5) * 4);
           }),
           clicks: Array.from(
@@ -146,8 +148,8 @@ export default function SEODashboardPage() {
         "/api/admin/seo/google-search-console?action=health-score"
       );
       if (response.ok) {
-        const data = await response.json();
-        setHealthScore(data);
+        const payload = await response.json();
+        setHealthScore(payload.data);
       }
     } catch (err) {
       console.error("Error fetching health score:", err);
@@ -196,8 +198,9 @@ export default function SEODashboardPage() {
         if (!response.ok) {
           throw new Error("Failed to fetch SEO data");
         }
-        const data = await response.json();
-        setSeoData(data);
+        const payload = await response.json();
+        setDataSource(payload.dataSource ?? null);
+        setSeoData(payload.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
         console.error("Error fetching SEO data:", err);
@@ -276,6 +279,9 @@ export default function SEODashboardPage() {
             🚀 SEO Performance Dashboard
           </h1>
           <div className="flex items-center space-x-4">
+            <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+              Source: {dataSource || "unknown"}
+            </span>
             <div className="text-sm text-gray-500">
               Last updated: {new Date().toLocaleDateString()}
             </div>

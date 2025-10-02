@@ -54,28 +54,45 @@ export class GoogleSearchConsoleService {
   private siteUrl: string;
 
   constructor(siteUrl: string = "https://techtots.ro/") {
-    this.siteUrl = siteUrl;
+    // Prefer env override for site URL if provided
+    const envSiteUrl =
+      process.env.GSC_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
+    this.siteUrl = envSiteUrl || siteUrl;
     this.initializeGSC();
   }
 
   private initializeGSC() {
     try {
-      // For production, use service account credentials
-      // For development, we'll use API key approach
+      // Ensure required credentials exist before constructing JWT
+      const serviceAccountEmail = process.env.GSC_SERVICE_ACCOUNT_EMAIL;
+      const privateKey = process.env.GSC_PRIVATE_KEY?.replace(/\\n/g, "\n");
+
+      if (!serviceAccountEmail || !privateKey) {
+        console.warn(
+          "Google Search Console not configured: missing GSC_SERVICE_ACCOUNT_EMAIL or GSC_PRIVATE_KEY"
+        );
+        this.searchconsole = null;
+        return;
+      }
+
       const auth = new JWT({
-        email: process.env.GSC_SERVICE_ACCOUNT_EMAIL,
-        key: process.env.GSC_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        email: serviceAccountEmail,
+        key: privateKey,
         scopes: ["https://www.googleapis.com/auth/webmasters.readonly"],
       });
 
-      this.searchconsole = google.searchconsole({
-        version: "v1",
-        auth,
-      });
+      this.searchconsole = google.searchconsole({ version: "v1", auth });
     } catch (error) {
       console.warn("Google Search Console not configured:", error);
       this.searchconsole = null;
     }
+  }
+
+  /**
+   * Whether the Google Search Console client is configured with credentials
+   */
+  get isConfigured(): boolean {
+    return !!this.searchconsole;
   }
 
   /**
