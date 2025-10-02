@@ -54,59 +54,29 @@ async function getFacebookAnalytics(): Promise<{
   }>;
 }> {
   try {
-    // Mock data for development - would fetch from Facebook Insights API
-    return {
-      overview: {
-        totalEvents: 15420,
-        viralShares: 892,
-        blogEngagements: 3456,
-        purchasesFromBlog: 127,
-        totalRevenue: 45280,
-      },
-      viralData: [
-        {
-          blogId: "stem-beneficii-copii-2025",
-          shares: 247,
-          facebookShares: 189,
-          viralCoefficient: 1.8,
-          reach: 15420,
-          engagement: 892,
-          timeSpent: 4.2,
-          romanianEngagement: 734,
+    // Fetch real data from the API
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const response = await fetch(
+      `${baseUrl}/api/admin/analytics/facebook-pixel?days=30`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
         },
-        {
-          blogId: "jucarii-stem-matematica",
-          shares: 198,
-          facebookShares: 145,
-          viralCoefficient: 2.1,
-          reach: 12350,
-          engagement: 756,
-          timeSpent: 5.1,
-          romanianEngagement: 623,
-        },
-      ],
-      recentEvents: [
-        {
-          event: "ViralShare",
-          blogId: "stem-beneficii-copii-2025",
-          platform: "facebook",
-          timestamp: new Date().toISOString(),
-        },
-        {
-          event: "Purchase",
-          blogId: "jucarii-stem-matematica",
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          value: 299,
-        },
-        {
-          event: "BlogEngagement",
-          blogId: "programare-copii-6-ani",
-          timestamp: new Date(Date.now() - 7200000).toISOString(),
-        },
-      ],
-    };
+        // Add cache control for better performance
+        next: { revalidate: 300 }, // Revalidate every 5 minutes
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch analytics data: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error("Failed to fetch Facebook analytics:", error);
+    // Return empty data structure on error
     return {
       overview: {
         totalEvents: 0,
@@ -351,10 +321,11 @@ export default async function FacebookPixelPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Facebook Pixel Analytics
+            Social Media Analytics
           </h1>
           <p className="text-muted-foreground">
-            Monitor Romanian viral content spread and conversion tracking
+            Monitor Romanian viral content spread across Facebook, Instagram,
+            and TikTok
           </p>
         </div>
         <div className="flex items-center space-x-2">

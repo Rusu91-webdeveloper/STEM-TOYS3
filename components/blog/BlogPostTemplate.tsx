@@ -10,6 +10,7 @@ import MarkdownRenderer from "@/components/blog/MarkdownRenderer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Share } from "@/components/ui/share";
 import { useTranslation } from "@/lib/i18n";
 
 interface BlogPost {
@@ -198,25 +199,14 @@ export default function BlogPostTemplate({
 
             {/* Share Button */}
             <div className="ml-auto">
-              <Button
-                variant="outline"
-                size="sm"
+              <Share
+                url={window.location.href}
+                title={post.title}
+                text={post.excerpt}
+                blogId={post.slug}
+                contentType="blog"
                 className="flex items-center gap-2 hover:bg-gray-50"
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: post.title,
-                      text: post.excerpt,
-                      url: window.location.href,
-                    });
-                  } else {
-                    navigator.clipboard.writeText(window.location.href);
-                  }
-                }}
-              >
-                <Share2 className="h-4 w-4" />
-                Share
-              </Button>
+              />
             </div>
           </div>
         </div>

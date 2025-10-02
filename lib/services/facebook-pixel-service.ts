@@ -109,6 +109,9 @@ export class FacebookPixelService {
     }
 
     try {
+      // Store event in database
+      await this.storeEventInDatabase(eventData);
+
       // Server-side event tracking (for conversion API)
       if (this.accessToken) {
         await this.trackServerSideEvent(eventData);
@@ -322,22 +325,75 @@ export class FacebookPixelService {
   }
 
   /**
+   * Store Facebook Pixel event in database
+   */
+  private async storeEventInDatabase(
+    eventData: FacebookPixelEventData
+  ): Promise<void> {
+    try {
+      // Dynamically import Prisma client to avoid server-side issues
+      const { prisma } = await import("@/lib/prisma");
+
+      await prisma.facebookPixelEvent.create({
+        data: {
+          eventName: eventData.eventName,
+          eventId: eventData.eventId,
+          pixelId: this.pixelId,
+          userId: eventData.userData?.email
+            ? this.hashString(eventData.userData.email)
+            : null,
+          value: eventData.value,
+          currency: eventData.currency || "RON",
+          contentType: eventData.contentType,
+          contentIds: eventData.contentIds || [],
+          contentName: eventData.contentName,
+          contentCategory: eventData.contentCategory,
+          searchString: eventData.searchString,
+          customData: eventData.customData,
+          userData: eventData.userData,
+          timestamp: new Date(),
+        },
+      });
+    } catch (error) {
+      console.error("Failed to store Facebook Pixel event in database:", error);
+      // Don't throw error - we still want to track the event even if DB storage fails
+    }
+  }
+
+  /**
    * Get Romanian viral tracking data
    */
   async getViralTrackingData(
     blogId: string
   ): Promise<RomanianViralTrackingData | null> {
-    // Mock data for development - would fetch from Facebook Insights API
-    return {
-      blogId,
-      shares: 247,
-      facebookShares: 189,
-      viralCoefficient: 1.8,
-      reach: 15420,
-      engagement: 892,
-      timeSpent: 4.2, // minutes
-      romanianEngagement: 734,
-    };
+    try {
+      // Dynamically import Prisma client to avoid server-side issues
+      const { prisma } = await import("@/lib/prisma");
+
+      const viralData = await prisma.romanianViralContent.findUnique({
+        where: {
+          blogId: blogId,
+        },
+      });
+
+      if (!viralData) {
+        return null;
+      }
+
+      return {
+        blogId: viralData.blogId,
+        shares: viralData.shares,
+        facebookShares: viralData.facebookShares,
+        viralCoefficient: viralData.viralCoefficient,
+        reach: viralData.reach,
+        engagement: viralData.engagement,
+        timeSpent: viralData.timeSpent,
+        romanianEngagement: viralData.romanianEngagement,
+      };
+    } catch (error) {
+      console.error("Failed to fetch viral tracking data:", error);
+      return null;
+    }
   }
 
   /**

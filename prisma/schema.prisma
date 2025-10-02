@@ -1379,3 +1379,107 @@ model SEOAnalytics {
   @@index([dataSource])
   @@index([country])
 }
+
+model FacebookPixelEvent {
+  id            String    @id @default(cuid())
+  eventName     String
+  eventId       String?   @unique
+  pixelId       String?
+  userId        String?
+  sessionId     String?
+  value         Float?
+  currency      String    @default("RON")
+  contentType   String?
+  contentIds    String[]
+  contentName   String?
+  contentCategory String?
+  searchString  String?
+  customData    Json?
+  userData      Json?
+  pageUrl       String?
+  referrer      String?
+  userAgent     String?
+  ipAddress     String?
+  timestamp     DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([eventName])
+  @@index([timestamp])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([contentType])
+  @@index([pixelId])
+  @@index([createdAt])
+  @@index([eventName, timestamp])
+  @@index([userId, timestamp])
+  @@index([sessionId, timestamp])
+  @@index([contentType, timestamp])
+}
+
+model RomanianViralContent {
+  id                  String   @id @default(cuid())
+  blogId              String
+  contentTitle        String?
+  contentSlug         String?
+  shares              Int      @default(0)
+  facebookShares      Int      @default(0)
+  instagramShares     Int      @default(0)
+  tiktokShares        Int      @default(0)
+  viralCoefficient    Float    @default(0)
+  reach               Int      @default(0)
+  engagement          Int      @default(0)
+  timeSpent           Float    @default(0)
+  romanianEngagement  Int      @default(0)
+  lastCalculatedAt    DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([blogId])
+  @@index([shares])
+  @@index([engagement])
+  @@index([viralCoefficient])
+  @@index([updatedAt])
+}
+
+model FacebookPixelConfig {
+  id          String   @id @default(cuid())
+  pixelId     String   @unique
+  accessToken String?
+  isActive    Boolean  @default(true)
+  lastSyncAt  DateTime?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([pixelId])
+}
+
+model InstagramPixelConfig {
+  id          String   @id @default(cuid())
+  pixelId     String   @unique
+  accessToken String?
+  isActive    Boolean  @default(true)
+  lastSyncAt  DateTime?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([pixelId])
+}
+
+model TikTokPixelConfig {
+  id          String   @id @default(cuid())
+  pixelId     String   @unique
+  accessToken String?
+  isActive    Boolean  @default(true)
+  lastSyncAt  DateTime?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([pixelId])
+}
