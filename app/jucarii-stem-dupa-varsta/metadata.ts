@@ -3,8 +3,9 @@ import { cookies } from "next/headers";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = createMetadata({
-  title: "metaTitle" as any,
-  description: "metaDescription" as any,
+  title: "Jucării STEM Perfecte pentru Fiecare Vârstă - Ghid Complet 2025",
+  description:
+    "Recomandări specializate de jucării STEM pe grupe de vârstă: 3-5, 6-8, 9-12, 13+ ani. Ghid complet cu beneficii educaționale și progresie naturală pentru dezvoltarea copiilor.",
   ogImage: "/opengraph-image.png",
   pathWithoutLocale: "/jucarii-stem-dupa-varsta",
   translations: {

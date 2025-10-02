@@ -3,8 +3,10 @@ import { cookies } from "next/headers";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = createMetadata({
-  title: "metaTitle" as any,
-  description: "metaDescription" as any,
+  title:
+    "Ghidul Complet al Jucăriilor STEM pentru Copii în 2025 - Top Recomandări",
+  description:
+    "Ghid exhaustiv cu peste 3000 de cuvinte despre jucăriile STEM: categorii, grupe de vârstă, beneficii educaționale și top recomandări pentru dezvoltarea copiilor.",
   ogImage: "/opengraph-image.png",
   pathWithoutLocale: "/ghid-jucarii-stem-2025",
   translations: {

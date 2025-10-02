@@ -132,8 +132,10 @@ const organizationSchema = {
 const combinedStructuredData = [structuredData, organizationSchema];
 
 export const metadata = createMetadata({
-  title: "metaTitle",
-  description: "metaDescription",
+  title:
+    "Transformă Copilul Într-un Geniu STEM - Jucării Educaționale Premium | TechTots",
+  description:
+    "Oprește luptele cu temele pentru totdeauna! Alătură-te celor 10,000+ părinți care și-au transformat copiii din 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite. Garanție 30 zile.",
   keywords: mainKeywords,
   structuredData: combinedStructuredData,
   ogImage: "/opengraph-image.png",

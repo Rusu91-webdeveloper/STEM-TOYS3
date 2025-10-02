@@ -3,8 +3,10 @@ import { cookies } from "next/headers";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = createMetadata({
-  title: "metaTitle" as any,
-  description: "metaDescription" as any,
+  title:
+    "Beneficiile Jucăriilor STEM pentru Dezvoltarea Copilului - Ghid Complet 2025",
+  description:
+    "Descoperă cum jucăriile STEM dezvoltă gândirea critică, logica, creativitatea și colaborarea la copii. Ghid complet cu beneficii educaționale dovedite și recomandări de vârstă.",
   ogImage: "/opengraph-image.png",
   pathWithoutLocale: "/beneficiile-jucariilor-stem",
   translations: {

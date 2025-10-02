@@ -3,8 +3,9 @@ import { cookies } from "next/headers";
 import { createMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = createMetadata({
-  title: "metaTitle" as any,
-  description: "metaDescription" as any,
+  title: "Întrebări Frecvente (FAQ) - Jucării STEM și Educație | TechTots",
+  description:
+    "Răspunsuri la cele mai frecvente întrebări despre jucăriile STEM, livrare, retur și siguranță. Ghid complet pentru părinți despre educația STEM.",
   ogImage: "/opengraph-image.png",
   pathWithoutLocale: "/faq",
   translations: {
