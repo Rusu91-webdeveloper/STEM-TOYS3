@@ -64,7 +64,9 @@ async function getGSCData(): Promise<GSCRomanianMarketData> {
       throw new Error("Failed to fetch GSC data");
     }
 
-    return await response.json();
+    const json = await response.json();
+    // API returns { dataSource, data }; fall back to json if already unwrapped
+    return json?.data ?? json;
   } catch (error) {
     console.error("Failed to fetch GSC data:", error);
     // Return mock data for development
@@ -421,7 +423,7 @@ async function GSCDashboardContent() {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">
-                  {data.topKeywords.filter(k => k.position <= 3).length}
+                  {(data.topKeywords ?? []).filter(k => k.position <= 3).length}
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Keywords in top 3 positions
@@ -433,7 +435,7 @@ async function GSCDashboardContent() {
       </TabsContent>
 
       <TabsContent value="keywords" className="space-y-6">
-        <TopKeywordsTable keywords={data.topKeywords} />
+        <TopKeywordsTable keywords={data.topKeywords ?? []} />
       </TabsContent>
 
       <TabsContent value="viral" className="space-y-6">
@@ -482,12 +484,12 @@ async function GSCDashboardContent() {
                     <span>Viral Keywords:</span>
                     <span
                       className={
-                        data.viralKeywords.length >= 5
+                        (data.viralKeywords ?? []).length >= 5
                           ? "text-green-600 font-medium"
                           : "text-yellow-600"
                       }
                     >
-                      {data.viralKeywords.length}/5 found
+                      {(data.viralKeywords ?? []).length}/5 found
                     </span>
                   </div>
                 </div>
@@ -498,15 +500,15 @@ async function GSCDashboardContent() {
                   <div className="flex justify-between">
                     <span>Local Keywords:</span>
                     <span className="text-blue-600 font-medium">
-                      {data.romanianKeywords.length} tracked
+                      {(data.romanianKeywords ?? []).length} tracked
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Market Share:</span>
                     <span className="text-purple-600 font-medium">
                       {(
-                        (data.romanianKeywords.length /
-                          data.topKeywords.length) *
+                        ((data.romanianKeywords ?? []).length /
+                          Math.max(1, (data.topKeywords ?? []).length)) *
                         100
                       ).toFixed(1)}
                       %
@@ -533,21 +535,23 @@ async function GSCDashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {data.competitorKeywords.slice(0, 5).map((keyword, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div>
-                    <div className="font-medium">{keyword.keyword}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Position: {keyword.position} | Clicks: {keyword.clicks}
+              {(data.competitorKeywords ?? [])
+                .slice(0, 5)
+                .map((keyword, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div>
+                      <div className="font-medium">{keyword.keyword}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Position: {keyword.position} | Clicks: {keyword.clicks}
+                      </div>
                     </div>
+                    <Badge variant="destructive">Opportunity</Badge>
                   </div>
-                  <Badge variant="destructive">Opportunity</Badge>
-                </div>
-              ))}
-              {data.competitorKeywords.length === 0 && (
+                ))}
+              {(data.competitorKeywords ?? []).length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-8">
                   No competitor keywords detected. Your SEO strategy is working
                   well!
