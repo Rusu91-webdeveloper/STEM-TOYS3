@@ -1,6 +1,6 @@
 export interface Supplier {
   id: string;
-  userId: string;
+  userId?: string; // Made optional to match schema
   companyName: string;
   companySlug: string;
   description?: string;
@@ -34,6 +34,20 @@ export interface Supplier {
   privacyAccepted: boolean;
   createdAt: Date;
   updatedAt: Date;
+  // Romanian compliance fields
+  adresaSediu?: string;
+  anpcApproval: boolean;
+  codFiscal?: string;
+  cui?: string;
+  educationalCertification?: string;
+  iscApproval: boolean;
+  nrRegCom?: string;
+  reprezentantLegal?: string;
+  romanianBankAccount?: string;
+  romanianComplianceStatus: RomanianComplianceStatus;
+  romanianCurrency: string;
+  romanianPaymentTerms: number;
+  romanianVatNumber?: string;
 }
 
 export type SupplierStatus =
@@ -42,6 +56,14 @@ export type SupplierStatus =
   | "REJECTED"
   | "SUSPENDED"
   | "INACTIVE";
+
+export type RomanianComplianceStatus =
+  | "PENDING"
+  | "IN_REVIEW"
+  | "APPROVED"
+  | "REJECTED"
+  | "EXPIRED"
+  | "NEEDS_UPDATE";
 
 export type SupplierOrderStatus =
   | "PENDING"

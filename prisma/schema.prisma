@@ -40,6 +40,10 @@ model User {
   wishlistItems       Wishlist[]
 
   @@index([email])
+
+  // Analytics-specific indexes for performance
+  @@index([role, createdAt], map: "idx_user_role_created_analytics")
+  @@index([createdAt, role], map: "idx_user_created_role_analytics")
 }
 
 model PasswordResetToken {
@@ -262,31 +266,36 @@ model Supplier {
 }
 
 model Blog {
-  id                  String       @id @default(cuid())
-  title               String
-  slug                String       @unique
-  excerpt             String
-  content             String
-  coverImage          String?
-  categoryId          String
-  authorId            String
-  tags                String[]
-  metadata            Json?
-  isPublished         Boolean      @default(false)
-  publishedAt         DateTime?
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
-  readingTime         Int?
-  stemCategory        StemCategory @default(GENERAL)
+  id           String       @id @default(cuid())
+  title        String
+  slug         String       @unique
+  excerpt      String
+  content      String
+  coverImage   String?
+  categoryId   String
+  authorId     String
+  tags         String[]
+  metadata     Json?
+  isPublished  Boolean      @default(false)
+  publishedAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  readingTime  Int?
+  stemCategory StemCategory @default(GENERAL)
 
   // Viral content metrics for Romanian market domination
-  viralScore          Decimal?     @db.Decimal(3, 2) // 0.00-9.99 viral potential score
-  socialShares        Int          @default(0)       // Total social media shares
-  competitorRank      Int?                          // Rank vs competitors for target keywords
-  romanianMarketFit   Decimal?     @db.Decimal(3, 2) // 0.00-9.99 Romanian market relevance
+  viralScore        Decimal? @db.Decimal(3, 2) // 0.00-9.99 viral potential score
+  socialShares      Int      @default(0) // Total social media shares
+  competitorRank    Int? // Rank vs competitors for target keywords
+  romanianMarketFit Decimal? @db.Decimal(3, 2) // 0.00-9.99 Romanian market relevance
 
-  author              User         @relation(fields: [authorId], references: [id])
-  category            Category     @relation(fields: [categoryId], references: [id])
+  // Image relations
+  coverImageMetadata ImageMetadata?  @relation("coverImage", fields: [coverImageId], references: [id])
+  coverImageId       String?         @unique
+  contentImages      ImageMetadata[] @relation("contentImages")
+
+  author   User     @relation(fields: [authorId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
 
   @@index([categoryId])
   @@index([authorId])
@@ -294,6 +303,8 @@ model Blog {
   @@index([viralScore])
   @@index([socialShares])
   @@index([romanianMarketFit])
+  @@index([coverImageId])
+  @@index([isPublished, updatedAt])
 }
 
 model Book {
@@ -382,6 +393,11 @@ model Order {
   @@index([paymentStatus])
   @@index([orderNumber])
   @@index([couponId])
+
+  // Analytics-specific indexes for performance
+  @@index([status, createdAt], map: "idx_order_status_created_analytics")
+  @@index([createdAt, status, total], map: "idx_order_created_status_total_analytics")
+  @@index([userId, createdAt], map: "idx_order_user_created_analytics")
 }
 
 model OrderStatusHistory {
@@ -424,6 +440,9 @@ model OrderItem {
   @@index([orderId])
   @@index([productId])
   @@index([bookId])
+
+  // Analytics-specific indexes for performance
+  @@index([productId, price, quantity], map: "idx_orderitem_product_price_quantity_analytics")
 }
 
 model StoreSettings {
@@ -951,11 +970,27 @@ model Coupon {
   usages            CouponUsage[]
   orders            Order[]
 
+  // **PERFORMANCE**: Optimized indexes for common query patterns
   @@index([code])
   @@index([expiresAt])
   @@index([isInfluencer])
   @@index([createdBy])
   @@index([isActive, showAsPopup, popupPriority, expiresAt, startsAt], map: "idx_popup_coupon")
+
+  // **PERFORMANCE**: Composite indexes for admin dashboard queries
+  @@index([isActive, createdAt(sort: Desc)], map: "idx_coupon_active_created")
+  @@index([isInfluencer, isActive, createdAt(sort: Desc)], map: "idx_coupon_influencer_active_created")
+  @@index([isActive, currentUses, maxUses], map: "idx_coupon_active_usage_limits")
+
+  // **PERFORMANCE**: Text search indexes
+  @@index([name], map: "idx_coupon_name_search")
+  @@index([description], map: "idx_coupon_description_search")
+
+  // **PERFORMANCE**: Date range queries for popup coupons
+  @@index([showAsPopup, isActive, startsAt, expiresAt], map: "idx_coupon_popup_dates")
+
+  // **PERFORMANCE**: Admin usage tracking
+  @@index([createdBy, isActive, createdAt(sort: Desc)], map: "idx_coupon_admin_active_created")
 }
 
 model CouponUsage {
@@ -971,6 +1006,11 @@ model CouponUsage {
   @@index([couponId])
   @@index([userId])
   @@index([usedAt])
+
+  // **PERFORMANCE**: Optimized indexes for coupon usage analytics
+  @@index([couponId, usedAt(sort: Desc)], map: "idx_coupon_usage_recent")
+  @@index([userId, couponId], map: "idx_user_coupon_usage")
+  @@index([userId, usedAt(sort: Desc)], map: "idx_user_usage_history")
 }
 
 model ContentVersion {
@@ -1017,14 +1057,29 @@ model ImageMetadata {
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
   productId         String?
+  blogId            String? // For cover images
+  blogContentId     String? // For content images
   product           Product?             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  coverImageBlog    Blog?                @relation("coverImage")
+  contentImageBlog  Blog?                @relation("contentImages", fields: [blogId], references: [id])
   processingLogs    ImageProcessingLog[]
 
   @@index([productId])
+  @@index([blogId])
+  @@index([blogContentId])
   @@index([isActive])
   @@index([format])
   @@index([uploadedAt])
   @@index([tags])
+  // Composite indexes for better query performance
+  @@index([productId, isActive])
+  @@index([blogId, isActive])
+  @@index([uploadedAt, isActive])
+  @@index([format, uploadedAt])
+  @@index([productId, uploadedAt])
+  @@index([blogId, uploadedAt])
+  // Partial index for active images (more efficient than filtering)
+  @@index([id], name: "active_images_idx")
 }
 
 model ImageProcessingLog {
@@ -1297,4 +1352,30 @@ enum AnnouncementPriority {
   NORMAL
   HIGH
   URGENT
+}
+
+model SEOAnalytics {
+  id              String   @id @default(cuid())
+  keyword         String
+  position        Float
+  previousPosition Float?
+  clicks          Int
+  impressions     Int
+  ctr             Float
+  url             String?
+  searchVolume    Int?
+  difficulty      Int?
+  intent          String?
+  competitorGap   Boolean  @default(false)
+  targetPage      String?
+  dateRecorded    DateTime @default(now())
+  dataSource      String   @default("GSC") // GSC, SEMrush, Ahrefs, etc.
+  country         String   @default("ROU") // Romania by default
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([keyword, dateRecorded])
+  @@index([dateRecorded])
+  @@index([dataSource])
+  @@index([country])
 }

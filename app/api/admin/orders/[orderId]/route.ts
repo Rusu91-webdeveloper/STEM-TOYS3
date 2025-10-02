@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { invalidateAnalyticsOnOrderChange } from "@/lib/cache/analytics-cache";
 
 // Schema for updating order status
 const updateOrderSchema = z.object({
@@ -321,6 +322,9 @@ export async function PATCH(
       payment: updatedOrder.paymentMethod,
       items: updatedOrder.items.reduce((sum, item) => sum + item.quantity, 0),
     };
+
+    // Invalidate analytics cache since order update affects analytics
+    await invalidateAnalyticsOnOrderChange();
 
     return NextResponse.json({ order: formattedOrder });
   } catch (error) {

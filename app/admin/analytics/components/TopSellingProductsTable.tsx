@@ -1,13 +1,7 @@
 "use client";
 
 import { useCurrency } from "@/lib/currency";
-
-interface TopSellingProduct {
-  name: string;
-  price: number;
-  sold: number;
-  revenue: number;
-}
+import type { TopSellingProduct } from "@/lib/validations/analytics";
 
 export function TopSellingProductsTable({
   products,

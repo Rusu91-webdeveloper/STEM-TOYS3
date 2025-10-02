@@ -13,6 +13,15 @@ const nextConfig = {
     // **PERFORMANCE**: Enable faster builds
     webpackBuildWorker: true,
   },
+  // **PERFORMANCE**: Optimize bundle splitting and reduce legacy JavaScript
+  modularizeImports: {
+    "lucide-react": {
+      transform: "lucide-react/{{member}}",
+    },
+    "@radix-ui/react-icons": {
+      transform: "{{member}}",
+    },
+  },
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
@@ -29,6 +38,11 @@ const nextConfig = {
   // Enhanced performance settings
   // Enable experimental features for better performance
   // Note: experimental config is already defined above
+
+  // **PERFORMANCE**: Optimize output settings for better mobile performance
+  output: "standalone",
+  outputFileTracingRoot: undefined,
+
   // Don't block production builds even with ESLint errors
   eslint: {
     ignoreDuringBuilds: true,

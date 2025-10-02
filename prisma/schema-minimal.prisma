@@ -1,0 +1,63 @@
+// Minimal schema for testing
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model EmailTemplate {
+  id           String   @id @default(cuid())
+  name         String
+  subject      String?
+  htmlContent  String?
+  textContent  String?
+  variables    String[]
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ImageMetadata {
+  id                String               @id @default(cuid())
+  originalUrl       String
+  filename          String
+  fileSize          Int
+  width             Int?
+  height            Int?
+  format            String
+  uploadedAt        DateTime             @default(now())
+  processedSizes    Json?
+  optimizationStats Json?
+  tags              String[]
+  alt               String?
+  isActive          Boolean              @default(true)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  productId         String?
+  blogId            String?
+  blogContentId     String?
+
+  @@index([productId])
+  @@index([blogId])
+  @@index([blogContentId])
+  @@index([isActive])
+}
+
+model ImageProcessingLog {
+  id           String        @id @default(cuid())
+  imageId      String
+  operation    String
+  status       String
+  details      Json?
+  startedAt    DateTime      @default(now())
+  completedAt  DateTime?
+  errorMessage String?
+
+  @@index([imageId])
+  @@index([operation])
+  @@index([status])
+  @@index([startedAt])
+}

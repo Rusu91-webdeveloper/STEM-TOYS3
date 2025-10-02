@@ -16,8 +16,13 @@ export async function GET(request: NextRequest) {
     const language = searchParams.get("language") || "en"; // Default to English if not specified
     const publishedParam = searchParams.get("published") || "true"; // Default to published only
 
+    // Pagination parameters
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 50); // Max 50 per page
+    const skip = (page - 1) * limit;
+
     console.log(
-      `Fetching blogs with filters: language=${language}, stemCategory=${stemCategory}, categoryId=${categoryId}, published=${publishedParam}`
+      `Fetching blogs with filters: language=${language}, stemCategory=${stemCategory}, categoryId=${categoryId}, published=${publishedParam}, page=${page}, limit=${limit}`
     );
 
     // Build filter object
@@ -36,7 +41,10 @@ export async function GET(request: NextRequest) {
       filter.categoryId = categoryId;
     }
 
-    // Fetch blog posts
+    // Get total count for pagination
+    const totalCount = await db.blog.count({ where: filter });
+
+    // Fetch blog posts with pagination
     const blogs = await db.blog.findMany({
       where: filter,
       include: {
@@ -58,7 +66,14 @@ export async function GET(request: NextRequest) {
       orderBy: {
         publishedAt: "desc",
       },
+      skip,
+      take: limit,
     });
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
 
     // Filter blogs by language using the metadata field
     // Blogs without explicit language metadata are treated as available in Romanian (default)
@@ -115,7 +130,17 @@ export async function GET(request: NextRequest) {
       return blog;
     });
 
-    return NextResponse.json(localizedBlogs);
+    return NextResponse.json({
+      blogs: localizedBlogs,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage,
+      },
+    });
   } catch (error) {
     console.error("Error fetching blog posts:", error);
     return NextResponse.json(

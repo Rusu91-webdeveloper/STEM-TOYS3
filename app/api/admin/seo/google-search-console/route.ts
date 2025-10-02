@@ -12,6 +12,16 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get("action");
     const days = parseInt(searchParams.get("days") || "30");
+    const keywords = searchParams.get("keywords")?.split(",") || [];
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+
+    // Calculate date range if not provided
+    const endDateObj = endDate ? new Date(endDate) : new Date();
+    const startDateObj = startDate ? new Date(startDate) : new Date();
+    if (!startDate) {
+      startDateObj.setDate(endDateObj.getDate() - days);
+    }
 
     switch (action) {
       case "overview":
@@ -19,7 +29,6 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(overviewData);
 
       case "keywords":
-        const keywords = searchParams.get("keywords")?.split(",") || [];
         const keywordRankings = await gscService.getKeywordRankings(keywords);
         return NextResponse.json(keywordRankings);
 
@@ -27,38 +36,106 @@ export async function GET(request: NextRequest) {
         const indexingStatus = await gscService.getSiteIndexingStatus();
         return NextResponse.json(indexingStatus);
 
+      case "performance":
+        const performanceData = await gscService.getPerformanceMetrics(
+          startDateObj.toISOString().split('T')[0],
+          endDateObj.toISOString().split('T')[0]
+        );
+        return NextResponse.json(performanceData);
+
+      case "competitor-analysis":
+        const competitorData = await gscService.getCompetitorAnalysis();
+        return NextResponse.json(competitorData);
+
+      case "health-score":
+        const healthScore = await gscService.getSEOHealthScore();
+        return NextResponse.json(healthScore);
+
       default:
-        // Return overview data by default
-        const defaultData = await gscService.getRomanianMarketData(days);
-        return NextResponse.json(defaultData);
+        // Return comprehensive dashboard data by default
+        const dashboardData = await gscService.getDashboardData(days);
+        return NextResponse.json(dashboardData);
     }
   } catch (error) {
     console.error("GSC API Error:", error);
 
-    // Return mock data for development
-    const mockData = {
-      totalClicks: 15420,
-      totalImpressions: 284750,
-      averageCTR: 5.42,
-      averagePosition: 8.7,
-      topKeywords: [
-        {
-          keyword: "jucării STEM România",
-          position: 2,
-          clicks: 1250,
-          impressions: 8750,
-          ctr: 14.29,
-          url: "https://techtots.ro/categorii/jucarii-stem-romania",
-          lastUpdated: new Date().toISOString(),
-        },
-      ],
-      romanianKeywords: [],
-      competitorKeywords: [],
-      viralKeywords: [],
-    };
-
+    // Return enhanced mock data for development
+    const mockData = generateMockSEOData();
     return NextResponse.json(mockData);
   }
+}
+
+// Generate comprehensive mock SEO data for development
+function generateMockSEOData() {
+  const baseClicks = Math.floor(Math.random() * 5000) + 10000;
+  const baseImpressions = Math.floor(Math.random() * 100000) + 200000;
+
+  return {
+    totalClicks: baseClicks,
+    totalImpressions: baseImpressions,
+    averageCTR: ((baseClicks / baseImpressions) * 100),
+    averagePosition: Math.random() * 5 + 5,
+    topKeywords: [
+      {
+        keyword: "jucării STEM România",
+        position: Math.floor(Math.random() * 3) + 1,
+        clicks: Math.floor(Math.random() * 1000) + 800,
+        impressions: Math.floor(Math.random() * 5000) + 5000,
+        ctr: Math.random() * 5 + 10,
+        url: "https://techtots.ro/categorii/jucarii-stem-romania",
+        lastUpdated: new Date().toISOString(),
+      },
+      {
+        keyword: "jucării educaționale STEM copii",
+        position: Math.floor(Math.random() * 5) + 2,
+        clicks: Math.floor(Math.random() * 800) + 500,
+        impressions: Math.floor(Math.random() * 4000) + 3000,
+        ctr: Math.random() * 4 + 8,
+        url: "https://techtots.ro/products",
+        lastUpdated: new Date().toISOString(),
+      },
+      {
+        keyword: "robotică educațională România",
+        position: Math.floor(Math.random() * 4) + 3,
+        clicks: Math.floor(Math.random() * 600) + 300,
+        impressions: Math.floor(Math.random() * 3000) + 2000,
+        ctr: Math.random() * 3 + 6,
+        url: "https://techtots.ro/categories/robotics",
+        lastUpdated: new Date().toISOString(),
+      },
+      {
+        keyword: "jucării STEM București",
+        position: Math.floor(Math.random() * 6) + 4,
+        clicks: Math.floor(Math.random() * 400) + 200,
+        impressions: Math.floor(Math.random() * 2000) + 1500,
+        ctr: Math.random() * 2 + 4,
+        url: "https://techtots.ro/bucuresti",
+        lastUpdated: new Date().toISOString(),
+      },
+      {
+        keyword: "educație STEM copii",
+        position: Math.floor(Math.random() * 5) + 5,
+        clicks: Math.floor(Math.random() * 500) + 250,
+        impressions: Math.floor(Math.random() * 2500) + 2000,
+        ctr: Math.random() * 3 + 5,
+        url: "https://techtots.ro/blog",
+        lastUpdated: new Date().toISOString(),
+      },
+    ],
+    romanianKeywords: [],
+    competitorKeywords: [],
+    viralKeywords: [],
+    performanceMetrics: {
+      dailyClicks: Array.from({ length: 30 }, () => Math.floor(Math.random() * 200) + 100),
+      dailyImpressions: Array.from({ length: 30 }, () => Math.floor(Math.random() * 5000) + 3000),
+      positionTrend: Array.from({ length: 30 }, () => Math.random() * 3 + 6),
+    },
+    indexingStatus: {
+      indexedPages: Math.floor(Math.random() * 500) + 800,
+      submittedPages: Math.floor(Math.random() * 100) + 50,
+      coverageIssues: Math.floor(Math.random() * 20),
+    }
+  };
 }
 
 export async function POST(request: NextRequest) {

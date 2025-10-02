@@ -3,6 +3,13 @@ import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import {
+  cache,
+  CacheKeys,
+  getCached,
+  invalidateCache,
+  invalidateCachePattern,
+} from "@/lib/cache";
 
 // Validation schema for updating coupons
 const updateCouponSchema = z.object({
@@ -39,35 +46,43 @@ export async function GET(
 
     const { id } = await params;
 
-    const coupon = await db.coupon.findUnique({
-      where: { id },
-      include: {
-        admin: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-        _count: {
-          select: {
-            orders: true,
-            usages: true,
-          },
-        },
-        usages: {
-          take: 10,
-          orderBy: { usedAt: "desc" },
+    // Generate cache key for individual coupon
+    const cacheKey = CacheKeys.coupons(id);
+
+    const coupon = await getCached(
+      cacheKey,
+      async () =>
+        await db.coupon.findUnique({
+          where: { id },
           include: {
-            user: {
+            admin: {
               select: {
                 name: true,
                 email: true,
               },
             },
+            _count: {
+              select: {
+                orders: true,
+                usages: true,
+              },
+            },
+            usages: {
+              take: 10,
+              orderBy: { usedAt: "desc" },
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
           },
-        },
-      },
-    });
+        }),
+      10 * 60 * 1000 // Cache for 10 minutes (longer for individual items)
+    );
 
     if (!coupon) {
       return NextResponse.json({ error: "Coupon not found" }, { status: 404 });
@@ -164,6 +179,10 @@ export async function PUT(
       },
     });
 
+    // Invalidate coupon caches when coupon is updated
+    await invalidateCache(CacheKeys.coupons(id));
+    await invalidateCachePattern("coupons:*");
+
     return NextResponse.json({ coupon: updatedCoupon });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -223,6 +242,10 @@ export async function DELETE(
         data: { isActive: false },
       });
 
+      // Invalidate coupon caches when coupon is deactivated
+      await invalidateCache(CacheKeys.coupons(id));
+      await invalidateCachePattern("coupons:*");
+
       return NextResponse.json({
         message: "Coupon has been deactivated (cannot delete used coupons)",
         coupon: deactivatedCoupon,
@@ -233,6 +256,10 @@ export async function DELETE(
     await db.coupon.delete({
       where: { id },
     });
+
+    // Invalidate coupon caches when coupon is deleted
+    await invalidateCache(CacheKeys.coupons(id));
+    await invalidateCachePattern("coupons:*");
 
     return NextResponse.json({ message: "Coupon deleted successfully" });
   } catch (error) {

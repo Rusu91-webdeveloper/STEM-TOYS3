@@ -76,6 +76,13 @@ export function ImageManagementDashboard() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationInfo, setPaginationInfo] = useState<{
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   const { toast } = useToast();
 
@@ -88,30 +95,47 @@ export function ImageManagementDashboard() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const [statusResponse, cleanupResponse] = await Promise.all([
-        fetch("/api/admin/images/status", {
-          signal: controller.signal,
-          headers: {
-            "Cache-Control": "max-age=300", // Cache for 5 minutes
-          },
-        }),
-        fetch("/api/admin/images/cleanup", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            cleanupTypes: ["orphaned", "invalid"],
-            dryRun: true,
-            settings: {
-              maxAge: 30,
-              maxSize: 5 * 1024 * 1024,
-              duplicateThreshold: 0.95,
+      const [statusResponse, cleanupResponse, imagesResponse] =
+        await Promise.all([
+          fetch("/api/admin/images/status", {
+            signal: controller.signal,
+            headers: {
+              "Cache-Control": "max-age=300", // Cache for 5 minutes
             },
           }),
-          signal: controller.signal,
-        }),
-      ]);
+          fetch("/api/admin/images/cleanup", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              cleanupTypes: ["orphaned", "invalid"],
+              dryRun: true,
+              settings: {
+                maxAge: 30,
+                maxSize: 5 * 1024 * 1024,
+                duplicateThreshold: 0.95,
+              },
+            }),
+            signal: controller.signal,
+          }),
+          fetch("/api/admin/images/list", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              page: currentPage,
+              limit: 20, // Reasonable page size for dashboard
+              search: searchTerm || undefined,
+              format: formatFilter !== "all" ? formatFilter : undefined,
+              status: statusFilter !== "all" ? statusFilter : undefined,
+              sortBy,
+              sortOrder,
+            }),
+            signal: controller.signal,
+          }),
+        ]);
 
       clearTimeout(timeoutId);
 
@@ -122,48 +146,51 @@ export function ImageManagementDashboard() {
       const statusData = await statusResponse.json();
       const cleanupData = await cleanupResponse.json();
 
-      // Transform API data to match our interface
-      const mockImages: ImageItem[] = [
-        // For now, we'll use mock data since we don't have a dedicated images list endpoint
-        // In a real implementation, you'd have an API endpoint that returns the image list
-        {
-          id: "1",
-          url: "https://via.placeholder.com/400x400?text=Sample+Image+1",
-          filename: "sample-image-1.jpg",
-          size: 1024000,
-          width: 400,
-          height: 400,
-          format: "jpeg",
-          uploadedAt: new Date(),
-          tags: ["product", "toy"],
-          alt: "Sample product image",
-          status: "valid",
-          isSelected: false,
-        },
-        {
-          id: "2",
-          url: "https://via.placeholder.com/600x400?text=Sample+Image+2",
-          filename: "sample-image-2.png",
-          size: 2048000,
-          width: 600,
-          height: 400,
-          format: "png",
-          uploadedAt: new Date(Date.now() - 86400000),
-          tags: ["product"],
-          alt: "Another sample image",
-          status: "valid",
-          isSelected: false,
-        },
-      ];
+      // Load real images from the list API
+      let imagesData = { data: { images: [] } };
+      if (imagesResponse.ok) {
+        imagesData = await imagesResponse.json();
+      } else {
+        console.warn("Failed to load images list, using empty array");
+      }
 
-      setImages(mockImages);
-      setFilteredImages(mockImages);
+      const realImages: ImageItem[] =
+        imagesData.data?.images?.map((img: any) => ({
+          id: img.id,
+          url: img.url,
+          filename: img.filename,
+          size: img.size,
+          width: img.width,
+          height: img.height,
+          format: img.format,
+          uploadedAt: new Date(img.uploadedAt),
+          tags: img.tags || [],
+          alt: img.alt,
+          status: img.status,
+          isSelected: false,
+        })) || [];
+
+      setImages(realImages);
+      setFilteredImages(realImages);
+
+      // Store pagination information
+      setPaginationInfo({
+        total: imagesData.data.pagination?.total || 0,
+        totalPages: imagesData.data.pagination?.totalPages || 0,
+        hasNext: imagesData.data.pagination?.hasNext || false,
+        hasPrev: imagesData.data.pagination?.hasPrev || false,
+      });
 
       // Extract stats from API response
       const stats: ImageStats = {
-        totalImages: statusData.statistics?.totalProcessedImages || 0,
-        totalSize: 0, // Would need to calculate from actual data
-        averageSize: 0, // Would need to calculate from actual data
+        totalImages:
+          statusData.statistics?.totalProcessedImages || realImages.length,
+        totalSize: realImages.reduce((sum, img) => sum + img.size, 0),
+        averageSize:
+          realImages.length > 0
+            ? realImages.reduce((sum, img) => sum + img.size, 0) /
+              realImages.length
+            : 0,
         formats: statusData.statistics?.formatDistribution || {},
         orphanedImages: cleanupData.analysis?.orphaned?.count || 0,
         invalidImages: cleanupData.analysis?.invalid?.count || 0,
@@ -201,52 +228,25 @@ export function ImageManagementDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [toast, sortBy, sortOrder]);
+  }, [
+    toast,
+    sortBy,
+    sortOrder,
+    currentPage,
+    searchTerm,
+    formatFilter,
+    statusFilter,
+  ]);
 
-  // Filter and sort images
+  // Images are now filtered and sorted server-side, so filteredImages = images
   useEffect(() => {
-    let filtered = [...images];
+    setFilteredImages(images);
+  }, [images]);
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(
-        img =>
-          img.filename.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          img.alt?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          img.tags?.some(tag =>
-            tag.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-      );
-    }
-
-    // Apply format filter
-    if (formatFilter !== "all") {
-      filtered = filtered.filter(img => img.format === formatFilter);
-    }
-
-    // Apply status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(img => img.status === statusFilter);
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let aValue: any = a[sortBy as keyof ImageItem];
-      let bValue: any = b[sortBy as keyof ImageItem];
-
-      if (sortBy === "uploadedAt") {
-        aValue = aValue.getTime();
-        bValue = bValue.getTime();
-      }
-
-      if (sortOrder === "asc") {
-        return aValue > bValue ? 1 : -1;
-      }
-      return aValue < bValue ? 1 : -1;
-    });
-
-    setFilteredImages(filtered);
-  }, [images, searchTerm, formatFilter, statusFilter, sortBy, sortOrder]);
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, formatFilter, statusFilter, sortBy, sortOrder]);
 
   // Handle image selection
   const toggleImageSelection = useCallback((imageId: string) => {
@@ -270,21 +270,43 @@ export function ImageManagementDashboard() {
     if (selectedImages.length === 0) return;
 
     try {
-      // For now, we'll simulate the delete operation
-      // In a real implementation, you'd call a delete API endpoint
-      toast({
-        title: "Success",
-        description: `Deleted ${selectedImages.length} images successfully`,
+      const response = await fetch("/api/admin/images/bulk", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          operation: "delete",
+          imageIds: selectedImages,
+          deleteFromStorage: true, // Delete from UploadThing as well
+        }),
       });
 
-      // Remove deleted images from state
-      setImages(prev => prev.filter(img => !selectedImages.includes(img.id)));
-      setSelectedImages([]);
-      loadImages(); // Reload to update stats
+      if (!response.ok) {
+        throw new Error("Failed to delete images");
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        });
+
+        // Remove deleted images from state
+        setImages(prev => prev.filter(img => !selectedImages.includes(img.id)));
+        setSelectedImages([]);
+        loadImages(); // Reload to update stats
+      } else {
+        throw new Error(result.error || "Delete operation failed");
+      }
     } catch (error) {
+      console.error("Delete operation failed:", error);
       toast({
         title: "Error",
-        description: "Failed to delete images",
+        description:
+          error instanceof Error ? error.message : "Failed to delete images",
         variant: "destructive",
       });
     }
@@ -640,6 +662,74 @@ export function ImageManagementDashboard() {
               )}
             </CardContent>
           </Card>
+
+          {/* Pagination Controls */}
+          {paginationInfo && paginationInfo.totalPages > 1 && (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {filteredImages.length} of {paginationInfo.total}{" "}
+                    images
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage(prev => Math.max(1, prev - 1))
+                      }
+                      disabled={!paginationInfo.hasPrev}
+                    >
+                      Previous
+                    </Button>
+
+                    <div className="flex items-center space-x-1">
+                      {/* Show current page and nearby pages */}
+                      {Array.from(
+                        { length: Math.min(5, paginationInfo.totalPages) },
+                        (_, i) => {
+                          const pageNum = Math.max(
+                            1,
+                            Math.min(
+                              paginationInfo.totalPages,
+                              currentPage - 2 + i
+                            )
+                          );
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={
+                                pageNum === currentPage ? "default" : "outline"
+                              }
+                              size="sm"
+                              onClick={() => setCurrentPage(pageNum)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        }
+                      )}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage(prev =>
+                          Math.min(paginationInfo.totalPages, prev + 1)
+                        )
+                      }
+                      disabled={!paginationInfo.hasNext}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="optimization">

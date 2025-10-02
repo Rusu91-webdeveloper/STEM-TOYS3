@@ -1,104 +1,17 @@
-import {
-  ArrowUpRight,
-  ArrowDownRight,
-  TrendingUp,
-  ShoppingBag,
-  Users,
-  CreditCard,
-  Activity,
-  Calendar,
-} from "lucide-react";
 import { redirect } from "next/navigation";
-import React from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { auth } from "@/lib/auth";
-import { CurrencyProvider } from "@/lib/currency";
+import { getCached, CacheKeys } from "@/lib/cache";
 import { db } from "@/lib/db";
 
-import { AnalyticsDashboard } from "./components/AnalyticsDashboard";
 import { ClientAnalytics } from "./components/ClientAnalytics";
-import { CurrencyDisplay } from "./components/CurrencyDisplay";
-import { SalesChart } from "./components/sales-chart";
-import { SalesByCategoryChart } from "./components/SalesByCategoryChart";
-import { TopSellingProductsTable } from "./components/TopSellingProductsTable";
-
-// Define types for our API responses
-interface SalesData {
-  daily: number;
-  weekly: number;
-  monthly: number;
-  previousPeriodChange: number;
-  trending: "up" | "down";
-}
-
-interface OrderStats {
-  conversionRate: {
-    rate: number;
-    previousPeriodChange: number;
-    trending: "up" | "down";
-  };
-  averageOrderValue: {
-    value: number;
-    previousPeriodChange: number;
-    trending: "up" | "down";
-  };
-  totalCustomers: {
-    value: number;
-    previousPeriodChange: number;
-    trending: "up" | "down";
-  };
-}
-
-interface TopSellingProduct {
-  name: string;
-  price: number;
-  sold: number;
-  revenue: number;
-}
-
-interface CategorySales {
-  categoryId: string;
-  category: string;
-  amount: number;
-  percentage: number;
-}
-
-interface SalesByDay {
-  date: string;
-  sales: number;
-}
-
-interface AnalyticsData {
-  salesData: SalesData;
-  orderStats: OrderStats;
-  topSellingProducts: TopSellingProduct[];
-  salesByCategory: CategorySales[];
-}
-
-interface SalesChartData {
-  salesData: SalesByDay[];
-}
+import type { AnalyticsData } from "@/lib/validations/analytics";
 
 /**
  * Fetch sales data with aggregations for daily, weekly, and monthly
  */
 async function fetchSalesData(startDate: Date, endDate: Date) {
-  // Get current period sales data
+  // Get current period sales data using parameterized query
   const currentPeriodSales = await db.order.aggregate({
     where: {
       createdAt: {
@@ -199,6 +112,14 @@ async function fetchSalesData(startDate: Date, endDate: Date) {
  * Fetch order stats including conversion rate and avg order value
  */
 async function fetchOrderStats(startDate: Date, endDate: Date) {
+  // Get configuration values from environment
+  const CONVERSION_RATE_MULTIPLIER = parseInt(
+    process.env.ANALYTICS_CONVERSION_MULTIPLIER || "25"
+  );
+  const CONVERSION_RATE_SIMULATION = parseFloat(
+    process.env.ANALYTICS_CONVERSION_SIMULATION || "0.9"
+  );
+
   // Total orders in period
   const totalOrders = await db.order.count({
     where: {
@@ -297,12 +218,12 @@ async function fetchOrderStats(startDate: Date, endDate: Date) {
   }
 
   // Estimated site visits for conversion rate
-  const estimatedVisits = totalOrders * 25; // Simple estimation
+  const estimatedVisits = totalOrders * CONVERSION_RATE_MULTIPLIER;
   const conversionRate =
     estimatedVisits > 0 ? (totalOrders / estimatedVisits) * 100 : 0;
 
-  // Simulate previous conversion rate (in real app, get from analytics)
-  const previousConversionRate = conversionRate * 0.9; // 10% lower than current
+  // Simulate previous conversion rate
+  const previousConversionRate = conversionRate * CONVERSION_RATE_SIMULATION;
   const conversionRateChange =
     ((conversionRate - previousConversionRate) / previousConversionRate) * 100;
 
@@ -327,15 +248,23 @@ async function fetchOrderStats(startDate: Date, endDate: Date) {
 }
 
 /**
- * Fetch top selling products
+ * Fetch top selling products using parameterized queries
  */
 async function fetchTopSellingProducts(startDate: Date, endDate: Date) {
-  // Get top products by quantity sold
-  const topSoldProducts = await db.$queryRaw`
-    SELECT 
-      p.id, 
-      p.name, 
-      p.price, 
+  // Use parameterized query to prevent SQL injection
+  const topSoldProducts = await db.$queryRaw<
+    Array<{
+      id: string;
+      name: string;
+      price: number;
+      sold: bigint;
+      revenue: string;
+    }>
+  >`
+    SELECT
+      p.id,
+      p.name,
+      p.price,
       SUM(oi.quantity) AS sold,
       SUM(oi.price * oi.quantity) AS revenue
     FROM "OrderItem" oi
@@ -348,23 +277,29 @@ async function fetchTopSellingProducts(startDate: Date, endDate: Date) {
     LIMIT 5
   `;
 
-  return (topSoldProducts as any[]).map(product => ({
+  return topSoldProducts.map(product => ({
     name: product.name,
-    price: parseFloat(product.price),
-    sold: parseInt(product.sold),
+    price: parseFloat(product.price.toString()),
+    sold: parseInt(product.sold.toString()),
     revenue: parseFloat(product.revenue),
   }));
 }
 
 /**
- * Fetch sales by category
+ * Fetch sales by category using parameterized queries
  */
 async function fetchSalesByCategory(startDate: Date, endDate: Date) {
-  // Get sales by category
-  const categorySales = await db.$queryRaw`
-    SELECT 
-      c.id AS "categoryId", 
-      c.name AS category, 
+  // Use parameterized query to prevent SQL injection
+  const categorySales = await db.$queryRaw<
+    Array<{
+      categoryId: string;
+      category: string;
+      amount: string;
+    }>
+  >`
+    SELECT
+      c.id AS "categoryId",
+      c.name AS category,
       SUM(oi.price * oi.quantity) AS amount
     FROM "OrderItem" oi
     JOIN "Product" p ON oi."productId" = p.id
@@ -377,12 +312,12 @@ async function fetchSalesByCategory(startDate: Date, endDate: Date) {
   `;
 
   // Calculate total sales to get percentages
-  const totalSales = (categorySales as any[]).reduce(
+  const totalSales = categorySales.reduce(
     (sum, item) => sum + parseFloat(item.amount),
     0
   );
 
-  return (categorySales as any[]).map(item => ({
+  return categorySales.map(item => ({
     categoryId: item.categoryId,
     category: item.category,
     amount: parseFloat(item.amount),
@@ -393,7 +328,7 @@ async function fetchSalesByCategory(startDate: Date, endDate: Date) {
 }
 
 /**
- * Fetch sales chart data by day
+ * Fetch sales chart data by day using parameterized queries
  */
 async function fetchSalesChartData(startDate: Date, endDate: Date) {
   // Create an array with all days in the period
@@ -405,9 +340,14 @@ async function fetchSalesChartData(startDate: Date, endDate: Date) {
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
-  // Get daily sales data using SQL for better performance
-  const dailySales = await db.$queryRaw`
-    SELECT 
+  // Get daily sales data using parameterized query for better performance
+  const dailySales = await db.$queryRaw<
+    Array<{
+      date: string;
+      sales: string;
+    }>
+  >`
+    SELECT
       DATE(o."createdAt") AS date,
       SUM(o.total) AS sales
     FROM "Order" o
@@ -418,8 +358,8 @@ async function fetchSalesChartData(startDate: Date, endDate: Date) {
   `;
 
   // Create a map for quick lookups
-  const salesByDateMap = new Map();
-  (dailySales as any[]).forEach(day => {
+  const salesByDateMap = new Map<string, number>();
+  dailySales.forEach(day => {
     const dateStr = new Date(day.date).toISOString().split("T")[0];
     salesByDateMap.set(dateStr, parseFloat(day.sales));
   });
@@ -447,29 +387,52 @@ export default async function AnalyticsPage() {
   const defaultPeriod = "30";
 
   try {
-    // Get analytics data for default period (30 days)
+    // Calculate date range
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - parseInt(defaultPeriod));
 
-    // Fetch all data
-    const salesData = await fetchSalesData(startDate, endDate);
-    const orderStats = await fetchOrderStats(startDate, endDate);
-    const topSellingProducts = await fetchTopSellingProducts(
-      startDate,
-      endDate
+    // Caching strategy for analytics data
+    const cacheKey = CacheKeys.analytics(`page:${defaultPeriod}`);
+    const CACHE_TTL = 10 * 60 * 1000; // 10 minutes for page-level analytics (longer than API)
+
+    const analyticsData = await getCached(
+      cacheKey,
+      async () => {
+        // Fetch all analytics data in parallel for better performance
+        const [
+          salesData,
+          orderStats,
+          topSellingProducts,
+          salesByCategory,
+          salesChartData,
+        ] = await Promise.all([
+          fetchSalesData(startDate, endDate),
+          fetchOrderStats(startDate, endDate),
+          fetchTopSellingProducts(startDate, endDate),
+          fetchSalesByCategory(startDate, endDate),
+          fetchSalesChartData(startDate, endDate),
+        ]);
+
+        return {
+          salesData,
+          orderStats,
+          topSellingProducts,
+          salesByCategory,
+          salesChartData,
+        };
+      },
+      CACHE_TTL
     );
-    const salesByCategory = await fetchSalesByCategory(startDate, endDate);
-    const salesChartData = await fetchSalesChartData(startDate, endDate);
 
     // Return the client component with all data
     return (
       <ClientAnalytics
-        initialSalesData={salesData}
-        initialOrderStats={orderStats}
-        initialTopSellingProducts={topSellingProducts}
-        initialSalesByCategory={salesByCategory}
-        initialSalesChartData={salesChartData}
+        initialSalesData={analyticsData.salesData}
+        initialOrderStats={analyticsData.orderStats}
+        initialTopSellingProducts={analyticsData.topSellingProducts}
+        initialSalesByCategory={analyticsData.salesByCategory}
+        initialSalesChartData={analyticsData.salesChartData}
         defaultPeriod={defaultPeriod}
       />
     );
@@ -483,17 +446,20 @@ export default async function AnalyticsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
         </div>
 
-        <Card>
-          <CardContent className="p-12 flex flex-col items-center justify-center">
-            <h2 className="text-xl font-semibold text-center mb-4">
-              Unable to load analytics data
-            </h2>
-            <p className="text-muted-foreground text-center max-w-md">
-              There was an error loading the analytics data. Please try again
-              later or contact support if the issue persists.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Placeholder cards for error state */}
+          <div className="h-32 bg-muted rounded-lg animate-pulse"></div>
+          <div className="h-32 bg-muted rounded-lg animate-pulse"></div>
+          <div className="h-32 bg-muted rounded-lg animate-pulse"></div>
+          <div className="h-32 bg-muted rounded-lg animate-pulse"></div>
+        </div>
+
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            Analytics data is temporarily unavailable. Please try refreshing the
+            page.
+          </p>
+        </div>
       </div>
     );
   }

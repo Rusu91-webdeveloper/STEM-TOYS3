@@ -19,6 +19,10 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const status = searchParams.get("status");
+    const reason = searchParams.get("reason");
+    const customerSegment = searchParams.get("customerSegment");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
 
     const skip = (page - 1) * limit;
 
@@ -27,17 +31,79 @@ export async function GET(request: Request) {
     if (status) {
       where.status = status;
     }
+    if (reason) {
+      where.reason = reason;
+    }
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) where.createdAt.lte = new Date(endDate);
+    }
+
+    // Customer segment filtering requires more complex logic
+    let customerSegmentFilter = {};
+    if (customerSegment) {
+      // We'll handle customer segment filtering in the query with includes
+    }
 
     // Get returns with pagination
-    const [returns, total] = await Promise.all([
-      prisma.return.findMany({
+    let returnsQuery = {
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        order: {
+          select: {
+            id: true,
+            orderNumber: true,
+            createdAt: true,
+          },
+        },
+        orderItem: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            quantity: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                sku: true,
+                images: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip,
+      take: limit,
+    };
+
+    // If customer segment filtering is needed, we need to fetch all and filter
+    let returns, total;
+    if (customerSegment) {
+      // Get all returns that match other filters first
+      const allReturns = await prisma.return.findMany({
         where,
         include: {
           user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+            include: {
+              orders: {
+                select: {
+                  total: true,
+                  createdAt: true,
+                },
+              },
             },
           },
           order: {
@@ -68,11 +134,53 @@ export async function GET(request: Request) {
         orderBy: {
           createdAt: "desc",
         },
-        skip,
-        take: limit,
-      }),
-      prisma.return.count({ where }),
-    ]);
+      });
+
+      // Filter by customer segment
+      const filteredReturns = allReturns.filter(returnItem => {
+        const userOrders = returnItem.user.orders;
+        const totalSpent = userOrders.reduce(
+          (sum, order) => sum + order.total,
+          0
+        );
+        const orderCount = userOrders.length;
+
+        switch (customerSegment) {
+          case "new":
+            return orderCount === 1;
+          case "returning":
+            return orderCount > 1;
+          case "high-value":
+            return totalSpent >= 1000;
+          case "medium-value":
+            return totalSpent >= 500 && totalSpent < 1000;
+          case "low-value":
+            return totalSpent < 500;
+          default:
+            return true;
+        }
+      });
+
+      // Apply pagination to filtered results
+      total = filteredReturns.length;
+      returns = filteredReturns.slice(skip, skip + limit);
+
+      // Remove user orders from the response (not needed in UI)
+      returns = returns.map(returnItem => ({
+        ...returnItem,
+        user: {
+          id: returnItem.user.id,
+          name: returnItem.user.name,
+          email: returnItem.user.email,
+        },
+      }));
+    } else {
+      // Standard query without customer segment filtering
+      [returns, total] = await Promise.all([
+        prisma.return.findMany(returnsQuery),
+        prisma.return.count({ where }),
+      ]);
+    }
 
     return NextResponse.json({
       returns,

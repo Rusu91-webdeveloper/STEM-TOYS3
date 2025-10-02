@@ -1,5 +1,4 @@
 import { Plus } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
@@ -12,18 +11,11 @@ import {
   CardDescription,
   CardTitle,
 } from "@/components/ui/card";
+import { Pagination } from "@/components/ui/pagination";
 import { db } from "@/lib/db";
-import {
-  getAgeGroupDisplayName,
-  getStemDisciplineDisplayName,
-  getProductTypeDisplayName,
-  getLearningOutcomeDisplayName,
-  getSpecialCategoryDisplayName,
-} from "@/lib/utils/product-categorization";
 
-import { ProductDeleteButton } from "./components/ProductDeleteButton";
-import { ProductStatusActions } from "./components/ProductStatusActions";
-import { ProductFilterBar } from "./components/ProductFilterBar";
+import { EnhancedProductFilter } from "@/components/admin/EnhancedProductFilter";
+import { ProductGrid } from "@/components/admin/ProductGrid";
 import { BulkUploadModal } from "./components/BulkUploadModal";
 
 // Force this page to be dynamic and not cached
@@ -92,7 +84,7 @@ async function getCategories(): Promise<Category[]> {
   }
 }
 
-// Function to fetch products from the database
+// Function to fetch products from the database with pagination
 async function getProducts(filters?: {
   q?: string;
   status?: string;
@@ -100,8 +92,14 @@ async function getProducts(filters?: {
   categoryId?: string;
   priceMin?: number;
   priceMax?: number;
-}): Promise<Product[]> {
+  page?: number;
+  limit?: number;
+}): Promise<{ products: Product[]; pagination: any }> {
   try {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 20;
+    const offset = (page - 1) * limit;
+
     const where: any = {
       isActive: true,
       category: { slug: { not: "educational-books" } },
@@ -125,20 +123,45 @@ async function getProducts(filters?: {
       }
     }
 
-    const products = await db.product.findMany({
-      where,
-      include: {
-        category: true,
-        supplier: { select: { id: true, companyName: true } },
-        _count: { select: { orderItems: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const [products, totalCount] = await Promise.all([
+      db.product.findMany({
+        where,
+        include: {
+          category: true,
+          supplier: { select: { id: true, companyName: true } },
+          _count: { select: { orderItems: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        skip: offset,
+        take: limit,
+      }),
+      db.product.count({ where }),
+    ]);
 
-    return products as Product[];
+    return {
+      products: products as Product[],
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        hasNextPage: offset + limit < totalCount,
+        hasPrevPage: page > 1,
+      },
+    };
   } catch (error) {
     console.error("Error fetching products:", error);
-    return [];
+    return {
+      products: [],
+      pagination: {
+        page: 1,
+        limit: 20,
+        totalCount: 0,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
+    };
   }
 }
 
@@ -175,14 +198,22 @@ export default async function AdminProductsPage({
   const priceMax = resolvedSearchParams?.priceMax
     ? Number(resolvedSearchParams.priceMax)
     : undefined;
+  const page = resolvedSearchParams?.page
+    ? Number(resolvedSearchParams.page)
+    : 1;
+  const limit = resolvedSearchParams?.limit
+    ? Number(resolvedSearchParams.limit)
+    : 20;
 
-  const products = await getProducts({
+  const { products, pagination } = await getProducts({
     q,
     status,
     supplierId,
     categoryId,
     priceMin,
     priceMax,
+    page,
+    limit,
   });
   const suppliers = await getSuppliers();
   // Get STEM categories for info display
@@ -237,7 +268,11 @@ export default async function AdminProductsPage({
           <CardDescription>Filtrează produsele după criterii</CardDescription>
         </CardHeader>
         <CardContent>
-          <ProductFilterBar suppliers={suppliers} categories={_categories} />
+          <EnhancedProductFilter
+            suppliers={suppliers}
+            categories={_categories}
+            totalResults={pagination.totalCount}
+          />
         </CardContent>
       </Card>
 
@@ -290,441 +325,33 @@ export default async function AdminProductsPage({
         </Card>
       ) : (
         <div className="space-y-10">
-          {/* Approved */}
-          <div className="space-y-3">
-            <h2 className="text-xl font-semibold">Aprobate</h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {products
-                .filter(p => p.status === "APPROVED")
-                .map(product => (
-                  <Card key={product.id} className="overflow-hidden">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start gap-3">
-                        {product.images && product.images.length > 0 ? (
-                          <div className="relative w-16 h-20">
-                            <Image
-                              src={product.images[0]}
-                              alt={product.name}
-                              fill
-                              className="object-cover rounded-md border"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-16 h-20 bg-muted rounded-md border flex items-center justify-center">
-                            <Plus className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                        )}
+          <ProductGrid products={products} status="APPROVED" title="Aprobate" />
 
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg line-clamp-2">
-                            {product.name}
-                          </CardTitle>
-                          <CardDescription className="mt-1">
-                            {product.category.name}
-                          </CardDescription>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="default" className="bg-purple-600">
-                              STEM
-                            </Badge>
-                            <Badge variant="default">Aprobat</Badge>
-                            {product.supplier?.companyName && (
-                              <Badge variant="outline">
-                                {product.supplier.companyName}
-                              </Badge>
-                            )}
-                            <span className="text-sm font-medium text-green-600">
-                              {formatPrice(product.price)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
+          <ProductGrid
+            products={products}
+            status="PENDING_APPROVAL"
+            title="În Așteptare"
+          />
 
-                    <CardContent className="pt-0">
-                      <div className="space-y-3">
-                        {/* Product Info */}
-                        <div className="bg-muted/50 rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-muted-foreground">
-                              Detalii Produs
-                            </span>
-                            <Badge variant="outline">
-                              {product.stockQuantity ?? 0} în stoc
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {product.description}
-                          </p>
-                        </div>
+          <ProductGrid products={products} status="REJECTED" title="Respinse" />
 
-                        {/* Categorization Badges */}
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap gap-1">
-                            {product.ageGroup && (
-                              <Badge variant="secondary" className="text-xs">
-                                {getAgeGroupDisplayName(
-                                  product.ageGroup as any
-                                )}
-                              </Badge>
-                            )}
-                            {product.stemDiscipline && (
-                              <Badge variant="secondary" className="text-xs">
-                                {getStemDisciplineDisplayName(
-                                  product.stemDiscipline as any
-                                )}
-                              </Badge>
-                            )}
-                            {product.productType && (
-                              <Badge variant="secondary" className="text-xs">
-                                {getProductTypeDisplayName(
-                                  product.productType as any
-                                )}
-                              </Badge>
-                            )}
-                          </div>
-
-                          {/* Learning Outcomes */}
-                          {product.learningOutcomes &&
-                            product.learningOutcomes.length > 0 && (
-                              <div className="flex flex-wrap gap-1">
-                                {product.learningOutcomes
-                                  .slice(0, 3)
-                                  .map(outcome => (
-                                    <Badge
-                                      key={outcome}
-                                      variant="outline"
-                                      className="text-xs"
-                                    >
-                                      {getLearningOutcomeDisplayName(
-                                        outcome as any
-                                      )}
-                                    </Badge>
-                                  ))}
-                                {product.learningOutcomes.length > 3 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    +{product.learningOutcomes.length - 3} more
-                                  </Badge>
-                                )}
-                              </div>
-                            )}
-
-                          {/* Special Categories */}
-                          {product.specialCategories &&
-                            product.specialCategories.length > 0 && (
-                              <div className="flex flex-wrap gap-1">
-                                {product.specialCategories.map(category => (
-                                  <Badge
-                                    key={category}
-                                    variant="default"
-                                    className="text-xs bg-orange-500"
-                                  >
-                                    {getSpecialCategoryDisplayName(
-                                      category as any
-                                    )}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                        </div>
-
-                        {/* Sales Info */}
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <span>📦 {product._count.orderItems} vânzări</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span>🏷️ {product.tags?.length ?? 0} etichete</span>
-                          </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex flex-col gap-2">
-                          <ProductStatusActions productId={product.id} />
-                          <Button
-                            asChild
-                            variant="default"
-                            size="sm"
-                            className="flex-1"
-                          >
-                            <Link href={`/admin/products/${product.id}`}>
-                              Editează
-                            </Link>
-                          </Button>
-
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={`/products/${product.slug}`}>
-                              Vizualizează
-                            </Link>
-                          </Button>
-                        </div>
-
-                        {/* Delete Button - Need client component for functionality */}
-                        <div className="pt-2">
-                          <ProductDeleteButton
-                            productId={product.id}
-                            productName={product.name}
-                          />
-                        </div>
-
-                        <p className="text-xs text-muted-foreground">
-                          Creat la{" "}
-                          {new Date(product.createdAt).toLocaleDateString(
-                            "ro-RO"
-                          )}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+          {pagination.totalPages > 1 && (
+            <div className="mt-8 flex justify-center">
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                baseUrl="/admin/products"
+                searchParams={{
+                  ...(q && { q }),
+                  ...(status && status !== "all" && { status }),
+                  ...(supplierId && supplierId !== "all" && { supplierId }),
+                  ...(categoryId && categoryId !== "all" && { categoryId }),
+                  ...(priceMin && { priceMin: priceMin.toString() }),
+                  ...(priceMax && { priceMax: priceMax.toString() }),
+                }}
+              />
             </div>
-          </div>
-
-          {/* Pending */}
-          <div className="space-y-3">
-            <h2 className="text-xl font-semibold">În Așteptare</h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {products
-                .filter(p => p.status === "PENDING_APPROVAL")
-                .map(product => (
-                  <Card key={product.id} className="overflow-hidden">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start gap-3">
-                        {product.images && product.images.length > 0 ? (
-                          <div className="relative w-16 h-20">
-                            <Image
-                              src={product.images[0]}
-                              alt={product.name}
-                              fill
-                              className="object-cover rounded-md border"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-16 h-20 bg-muted rounded-md border flex items-center justify-center">
-                            <Plus className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                        )}
-
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg line-clamp-2">
-                            {product.name}
-                          </CardTitle>
-                          <CardDescription className="mt-1">
-                            {product.category.name}
-                          </CardDescription>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="default" className="bg-purple-600">
-                              STEM
-                            </Badge>
-                            <Badge variant="secondary">În așteptare</Badge>
-                            {product.supplier?.companyName && (
-                              <Badge variant="outline">
-                                {product.supplier.companyName}
-                              </Badge>
-                            )}
-                            <span className="text-sm font-medium text-green-600">
-                              {formatPrice(product.price)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-3">
-                        {/* Product Info */}
-                        <div className="bg-muted/50 rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-muted-foreground">
-                              Detalii Produs
-                            </span>
-                            <Badge variant="outline">
-                              {product.stockQuantity ?? 0} în stoc
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {product.description}
-                          </p>
-                        </div>
-                        {/* Categorization Badges */}
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap gap-1">
-                            {product.ageGroup && (
-                              <Badge variant="secondary" className="text-xs">
-                                {getAgeGroupDisplayName(
-                                  product.ageGroup as any
-                                )}
-                              </Badge>
-                            )}
-                            {product.stemDiscipline && (
-                              <Badge variant="secondary" className="text-xs">
-                                {getStemDisciplineDisplayName(
-                                  product.stemDiscipline as any
-                                )}
-                              </Badge>
-                            )}
-                            {product.productType && (
-                              <Badge variant="secondary" className="text-xs">
-                                {getProductTypeDisplayName(
-                                  product.productType as any
-                                )}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        {/* Sales Info */}
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <span>📦 {product._count.orderItems} vânzări</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span>🏷️ {product.tags?.length ?? 0} etichete</span>
-                          </div>
-                        </div>
-                        {/* Action Buttons */}
-                        <div className="flex flex-col gap-2">
-                          <ProductStatusActions productId={product.id} />
-                          <Button
-                            asChild
-                            variant="default"
-                            size="sm"
-                            className="flex-1"
-                          >
-                            <Link href={`/admin/products/${product.id}`}>
-                              Editează
-                            </Link>
-                          </Button>
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={`/products/${product.slug}`}>
-                              Vizualizează
-                            </Link>
-                          </Button>
-                        </div>
-                        <div className="pt-2">
-                          <ProductDeleteButton
-                            productId={product.id}
-                            productName={product.name}
-                          />
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Creat la{" "}
-                          {new Date(product.createdAt).toLocaleDateString(
-                            "ro-RO"
-                          )}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          </div>
-
-          {/* Rejected */}
-          <div className="space-y-3">
-            <h2 className="text-xl font-semibold">Respinse</h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {products
-                .filter(p => p.status === "REJECTED")
-                .map(product => (
-                  <Card key={product.id} className="overflow-hidden">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start gap-3">
-                        {product.images && product.images.length > 0 ? (
-                          <div className="relative w-16 h-20">
-                            <Image
-                              src={product.images[0]}
-                              alt={product.name}
-                              fill
-                              className="object-cover rounded-md border"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-16 h-20 bg-muted rounded-md border flex items-center justify-center">
-                            <Plus className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                        )}
-
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg line-clamp-2">
-                            {product.name}
-                          </CardTitle>
-                          <CardDescription className="mt-1">
-                            {product.category.name}
-                          </CardDescription>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="default" className="bg-purple-600">
-                              STEM
-                            </Badge>
-                            <Badge variant="destructive">Respins</Badge>
-                            {product.supplier?.companyName && (
-                              <Badge variant="outline">
-                                {product.supplier.companyName}
-                              </Badge>
-                            )}
-                            <span className="text-sm font-medium text-green-600">
-                              {formatPrice(product.price)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-3">
-                        <div className="bg-muted/50 rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-muted-foreground">
-                              Detalii Produs
-                            </span>
-                            <Badge variant="outline">
-                              {product.stockQuantity ?? 0} în stoc
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {product.description}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <span>📦 {product._count.orderItems} vânzări</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span>🏷️ {product.tags?.length ?? 0} etichete</span>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <ProductStatusActions productId={product.id} />
-                          <Button
-                            asChild
-                            variant="default"
-                            size="sm"
-                            className="flex-1"
-                          >
-                            <Link href={`/admin/products/${product.id}`}>
-                              Editează
-                            </Link>
-                          </Button>
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={`/products/${product.slug}`}>
-                              Vizualizează
-                            </Link>
-                          </Button>
-                        </div>
-                        <div className="pt-2">
-                          <ProductDeleteButton
-                            productId={product.id}
-                            productName={product.name}
-                          />
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Creat la{" "}
-                          {new Date(product.createdAt).toLocaleDateString(
-                            "ro-RO"
-                          )}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          </div>
+          )}
         </div>
       )}
     </div>

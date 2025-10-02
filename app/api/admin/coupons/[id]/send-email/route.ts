@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { serviceConfig } from "@/lib/config";
 import { db } from "@/lib/db";
 import { sendCouponEmail } from "@/lib/email/coupon-templates";
+import { invalidateCache, CacheKeys } from "@/lib/cache";
 
 // Validation schema for sending coupon emails
 const sendCouponEmailSchema = z.object({

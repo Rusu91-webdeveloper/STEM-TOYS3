@@ -151,7 +151,7 @@ const productUpdateSchema = productSchema.partial().extend({
   id: z.string().min(1, { message: "Product ID is required" }),
 });
 
-// GET all products
+// GET all products with pagination support
 export const GET = withRateLimit(
   async (request: NextRequest) => {
     try {
@@ -160,22 +160,51 @@ export const GET = withRateLimit(
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
+      const { searchParams } = new URL(request.url);
+      const page = parseInt(searchParams.get("page") || "1");
+      const limit = parseInt(searchParams.get("limit") || "20");
+      const offset = (page - 1) * limit;
+
       // --- Caching logic start ---
-      const cacheKey = CacheKeys.productList({ admin: true });
+      const cacheKey = CacheKeys.productList({
+        admin: true,
+        page,
+        limit,
+        type: "paginated",
+      });
       const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
-      const products = await getCached(
+      const result = await getCached(
         cacheKey,
         async () => {
           // Fetch from database with proper error handling
           try {
-            return await db.product.findMany({
-              include: {
-                category: true,
+            const [products, totalCount] = await Promise.all([
+              db.product.findMany({
+                include: {
+                  category: true,
+                  supplier: { select: { id: true, companyName: true } },
+                  _count: { select: { orderItems: true } },
+                },
+                orderBy: {
+                  createdAt: "desc",
+                },
+                skip: offset,
+                take: limit,
+              }),
+              db.product.count(),
+            ]);
+
+            return {
+              products,
+              pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages: Math.ceil(totalCount / limit),
+                hasNextPage: offset + limit < totalCount,
+                hasPrevPage: page > 1,
               },
-              orderBy: {
-                createdAt: "desc",
-              },
-            });
+            };
           } catch (dbError) {
             console.error("Database error when fetching products:", dbError);
             throw dbError;
@@ -185,7 +214,7 @@ export const GET = withRateLimit(
       );
       // --- Caching logic end ---
 
-      return applyStandardHeaders(NextResponse.json(products), {
+      return applyStandardHeaders(NextResponse.json(result), {
         cache: "private",
       });
     } catch (error) {

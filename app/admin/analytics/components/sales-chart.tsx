@@ -12,11 +12,9 @@ import {
 } from "recharts";
 
 import { useCurrency } from "@/lib/currency";
+import type { SalesByDay } from "@/lib/validations/analytics";
 
-interface SalesDataPoint {
-  date: string;
-  sales: number;
-}
+interface SalesDataPoint extends SalesByDay {}
 
 interface SalesChartProps {
   data: SalesDataPoint[];

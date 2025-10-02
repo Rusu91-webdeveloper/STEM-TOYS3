@@ -4,6 +4,13 @@ import { z } from "zod";
 import { resolveAdminUserId } from "@/lib/admin-utils";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import {
+  cache,
+  CacheKeys,
+  getCached,
+  invalidateCache,
+  invalidateCachePattern,
+} from "@/lib/cache";
 
 // Validation schema for creating coupons
 const createCouponSchema = z
@@ -90,60 +97,77 @@ export async function GET(request: NextRequest) {
     const isActive = searchParams.get("isActive");
     const isInfluencer = searchParams.get("isInfluencer");
 
-    const skip = (page - 1) * limit;
-
-    // Build where clause
-    const where: any = {};
-
-    if (search) {
-      where.OR = [
-        { code: { contains: search, mode: "insensitive" } },
-        { name: { contains: search, mode: "insensitive" } },
-        { influencerName: { contains: search, mode: "insensitive" } },
-      ];
-    }
-
-    if (isActive !== null && isActive !== undefined) {
-      where.isActive = isActive === "true";
-    }
-
-    if (isInfluencer !== null && isInfluencer !== undefined) {
-      where.isInfluencer = isInfluencer === "true";
-    }
-
-    const [coupons, total] = await Promise.all([
-      db.coupon.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-        include: {
-          admin: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
-          _count: {
-            select: {
-              orders: true,
-              usages: true,
-            },
-          },
-        },
-      }),
-      db.coupon.count({ where }),
-    ]);
-
-    return NextResponse.json({
-      coupons,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
+    // Generate cache key based on query parameters
+    const cacheKey = CacheKeys.coupons({
+      page,
+      limit,
+      search: search || "",
+      isActive: isActive || "",
+      isInfluencer: isInfluencer || "",
     });
+
+    const result = await getCached(
+      cacheKey,
+      async () => {
+        const skip = (page - 1) * limit;
+
+        // Build where clause
+        const where: any = {};
+
+        if (search) {
+          where.OR = [
+            { code: { contains: search, mode: "insensitive" } },
+            { name: { contains: search, mode: "insensitive" } },
+            { influencerName: { contains: search, mode: "insensitive" } },
+          ];
+        }
+
+        if (isActive !== null && isActive !== undefined) {
+          where.isActive = isActive === "true";
+        }
+
+        if (isInfluencer !== null && isInfluencer !== undefined) {
+          where.isInfluencer = isInfluencer === "true";
+        }
+
+        const [coupons, total] = await Promise.all([
+          db.coupon.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: { createdAt: "desc" },
+            include: {
+              admin: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
+              _count: {
+                select: {
+                  orders: true,
+                  usages: true,
+                },
+              },
+            },
+          }),
+          db.coupon.count({ where }),
+        ]);
+
+        return {
+          coupons,
+          pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+          },
+        };
+      },
+      5 * 60 * 1000 // Cache for 5 minutes
+    );
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching coupons:", error);
     return NextResponse.json(
@@ -227,6 +251,9 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // Invalidate all coupon caches when a new coupon is created
+    await invalidateCachePattern("coupons:*");
 
     return NextResponse.json({ coupon }, { status: 201 });
   } catch (error) {

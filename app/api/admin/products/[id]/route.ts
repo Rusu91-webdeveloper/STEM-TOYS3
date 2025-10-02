@@ -5,6 +5,7 @@ import { z } from "zod";
 import { handleFormData } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { invalidateAnalyticsOnProductChange } from "@/lib/cache/analytics-cache";
 import { deleteUploadThingFiles } from "@/lib/uploadthing";
 import { slugify } from "@/lib/utils";
 
@@ -359,6 +360,9 @@ export async function PATCH(
     if (existingProduct.categoryId !== categoryId) {
       revalidateTag(`category-${existingProduct.categoryId}`);
     }
+
+    // Invalidate analytics cache since product changes affect analytics
+    await invalidateAnalyticsOnProductChange();
 
     return NextResponse.json({
       success: true,

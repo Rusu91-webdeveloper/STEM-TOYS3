@@ -1,0 +1,706 @@
+{
+  "timestamp": "2025-10-01T18:47:06.650Z",
+  "version": "1.0.0",
+  "tables": {
+    "User": [
+      {
+        "id": "cmg8bkpx200001k8kwg1c57eh",
+        "name": "Rusu",
+        "email": "rusu.emanuel.webdeveloper@gmail.com",
+        "password": "$2b$12$89zV/nrYo5.xM9R3uyy1duhJWFaFLKhxPCHb0Rhvkg77sr75I1Tji",
+        "role": "ADMIN",
+        "emailVerified": "2025-10-01T18:28:19.379Z",
+        "verificationToken": null,
+        "isActive": true,
+        "createdAt": "2025-10-01T18:28:19.381Z",
+        "updatedAt": "2025-10-01T18:28:19.381Z"
+      }
+    ],
+    "Category": [],
+    "Language": [],
+    "Product": [],
+    "Blog": [],
+    "Book": [],
+    "Order": [],
+    "OrderItem": [],
+    "OrderStatusHistory": [],
+    "PaymentCard": [],
+    "Address": [],
+    "Wishlist": [],
+    "Return": [],
+    "Review": [],
+    "Coupon": [],
+    "CouponUsage": [],
+    "EmailTemplate": [
+      {
+        "id": "welcome-email",
+        "name": "Welcome Email",
+        "slug": "welcome",
+        "subject": "Bun venit la TechTots STEM Store! 🎉",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Bun venit la TechTots!</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                🎉 Bun venit la TechTots!\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                Jucării STEM pentru Minți Curioase\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{userName}}! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Mulțumim că te-ai alăturat comunității noastre de entuziaști STEM! \n                Suntem încântați să te avem alături în călătoria de descoperire a științei și tehnologiei.\n            </p>\n            \n            <div style=\"background-color: #f0f9ff; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #1e40af; margin: 0 0 10px 0; font-size: 18px;\">\n                    🚀 Ce poți face acum:\n                </h3>\n                <ul style=\"color: #374151; margin: 0; padding-left: 20px;\">\n                    <li>Explorează colecția noastră de jucării STEM</li>\n                    <li>Configurează profilul tău și preferințele</li>\n                    <li>Alătură-te newsletter-ului pentru oferte exclusive</li>\n                    <li>Urmărește-ne pe rețelele sociale</li>\n                </ul>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/products\" \n                   style=\"background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);\">\n                    🛍️ Începe să cumperi\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong><br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "userName",
+          "siteUrl"
+        ],
+        "category": "authentication",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:10.883Z",
+        "updatedAt": "2025-10-01T18:32:10.883Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "welcome",
+            "onboarding",
+            "authentication"
+          ],
+          "priority": 1,
+          "description": "Email de bun venit pentru utilizatori noi",
+          "estimatedOpenRate": 0.85
+        }
+      },
+      {
+        "id": "email-verification",
+        "name": "Email Verification",
+        "slug": "email-verification",
+        "subject": "Verifică-ți adresa de email - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Verifică-ți email-ul</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                📧 Verifică-ți email-ul\n            </h1>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{userName}}!\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Pentru a finaliza înregistrarea contului tău, te rugăm să verifici adresa de email \n                făcând clic pe butonul de mai jos.\n            </p>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{verificationLink}}\" \n                   style=\"background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);\">\n                    ✅ Verifică email-ul\n                </a>\n            </div>\n            \n            <div style=\"background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <p style=\"margin: 0; color: #92400e; font-size: 14px;\">\n                    <strong>⚠️ Important:</strong> Acest link va expira în 24 de ore din motive de securitate.\n                </p>\n            </div>\n            \n            <p style=\"color: #6b7280; font-size: 14px; margin-top: 30px;\">\n                Dacă butonul nu funcționează, copiază și lipește acest link în browser:<br>\n                <a href=\"{{verificationLink}}\" style=\"color: #3b82f6; word-break: break-all;\">{{verificationLink}}</a>\n            </p>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "userName",
+          "verificationLink"
+        ],
+        "category": "authentication",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:11.005Z",
+        "updatedAt": "2025-10-01T18:32:11.005Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "verification",
+            "authentication",
+            "security"
+          ],
+          "priority": 1,
+          "description": "Email pentru verificarea adresei de email",
+          "estimatedOpenRate": 0.75
+        }
+      },
+      {
+        "id": "order-confirmation",
+        "name": "Order Confirmation",
+        "slug": "order-confirmation",
+        "subject": "Confirmare comandă #{{order.number}} - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Confirmare comandă</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                ✅ Comanda confirmată!\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                Comanda #{{order.number}}\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Mulțumim pentru comandă, {{customerName}}! 🎉\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 30px;\">\n                Am primit comanda ta și o procesăm acum. Vei primi un email de confirmare \n                când comanda va fi expediată.\n            </p>\n            \n            <!-- Order Summary -->\n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    📦 Detalii comandă\n                </h3>\n                <div style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;\">\n                    <div>\n                        <strong style=\"color: #374151;\">Număr comandă:</strong><br>\n                        <span style=\"color: #1f2937;\">#{{order.number}}</span>\n                    </div>\n                    <div>\n                        <strong style=\"color: #374151;\">Data:</strong><br>\n                        <span style=\"color: #1f2937;\">{{orderDate}}</span>\n                    </div>\n                </div>\n                <div style=\"border-top: 1px solid #e5e7eb; padding-top: 15px;\">\n                    <div style=\"display: flex; justify-content: space-between; align-items: center;\">\n                        <strong style=\"color: #1f2937; font-size: 18px;\">Total:</strong>\n                        <span style=\"color: #1f2937; font-size: 20px; font-weight: 700;\">{{order.total}} RON</span>\n                    </div>\n                </div>\n            </div>\n            \n            <!-- Items -->\n            <div style=\"margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    🛍️ Produse comandate\n                </h3>\n                {{#each items}}\n                <div style=\"border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px;\">\n                    <div style=\"display: flex; justify-content: space-between; align-items: center;\">\n                        <div>\n                            <strong style=\"color: #1f2937;\">{{this.name}}</strong><br>\n                            <span style=\"color: #6b7280; font-size: 14px;\">Cantitate: {{this.quantity}}</span>\n                        </div>\n                        <div style=\"text-align: right;\">\n                            <span style=\"color: #1f2937; font-weight: 600;\">{{this.price}} RON</span>\n                        </div>\n                    </div>\n                </div>\n                {{/each}}\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/account/orders/{{order.number}}\" \n                   style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);\">\n                    📋 Vezi comanda\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "customerName",
+          "order.number",
+          "orderDate",
+          "order.total",
+          "items",
+          "siteUrl"
+        ],
+        "category": "orders",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:11.084Z",
+        "updatedAt": "2025-10-01T18:32:11.084Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "order",
+            "confirmation",
+            "ecommerce"
+          ],
+          "priority": 1,
+          "description": "Email de confirmare pentru comenzi",
+          "estimatedOpenRate": 0.9
+        }
+      },
+      {
+        "id": "newsletter-welcome",
+        "name": "Newsletter Welcome",
+        "slug": "newsletter-welcome",
+        "subject": "Bun venit în comunitatea TechTots! 🚀",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Newsletter TechTots</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                🚀 Bun venit în comunitatea TechTots!\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                Ultimele noutăți STEM direct în inbox-ul tău\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Mulțumim că te-ai abonat la newsletter-ul nostru! Ești acum parte din comunitatea \n                de părinți și educatori care își doresc să inspireze dragostea pentru știință și tehnologie.\n            </p>\n            \n            <div style=\"background-color: #f0f9ff; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #1e40af; margin: 0 0 15px 0; font-size: 18px;\">\n                    📧 Ce vei primi în newsletter:\n                </h3>\n                <ul style=\"color: #374151; margin: 0; padding-left: 20px;\">\n                    <li>Noutăți despre jucării STEM noi</li>\n                    <li>Ghiduri educaționale pentru părinți</li>\n                    <li>Oferte exclusive și reduceri</li>\n                    <li>Idei de activități științifice pentru acasă</li>\n                    <li>Interviuri cu experți în educație STEM</li>\n                </ul>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/products\" \n                   style=\"background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);\">\n                    🛍️ Explorează produsele\n                </a>\n            </div>\n            \n            <div style=\"background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <p style=\"margin: 0; color: #92400e; font-size: 14px;\">\n                    <strong>💡 Sfat:</strong> Adaugă adresa noastră în lista de contacte pentru a ne asigura \n                    că newsletter-ul ajunge în inbox-ul tău, nu în spam.\n                </p>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                <a href=\"{{unsubscribeUrl}}\" style=\"color: #6b7280; text-decoration: underline;\">Dezabonează-te</a> | \n                <a href=\"{{siteUrl}}/privacy\" style=\"color: #6b7280; text-decoration: underline;\">Politica de confidențialitate</a>\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "siteUrl",
+          "unsubscribeUrl"
+        ],
+        "category": "marketing",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:11.164Z",
+        "updatedAt": "2025-10-01T18:32:11.164Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "newsletter",
+            "welcome",
+            "marketing"
+          ],
+          "priority": 2,
+          "description": "Email de bun venit pentru newsletter",
+          "estimatedOpenRate": 0.8
+        }
+      },
+      {
+        "id": "password-change-confirmation",
+        "name": "Password Change Confirmation",
+        "slug": "password-change-confirmation",
+        "subject": "Parola a fost schimbată cu succes - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Parola schimbată</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                🔒 Parola schimbată cu succes\n            </h1>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{userName}}! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Parola contului tău TechTots a fost schimbată cu succes la {{changeTime}}.\n            </p>\n            \n            <div style=\"background-color: #d4edda; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #155724; margin: 0 0 10px 0; font-size: 18px;\">\n                    ✅ Schimbare confirmată\n                </h3>\n                <p style=\"color: #155724; margin: 0;\">\n                    Parola ta a fost actualizată cu succes. Contul tău este sigur.\n                </p>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    📱 Detalii despre schimbare\n                </h3>\n                <p style=\"color: #374151; margin: 5px 0;\"><strong>Ora:</strong> {{changeTime}}</p>\n                <p style=\"color: #374151; margin: 5px 0;\"><strong>Dispozitiv:</strong> {{deviceInfo}}</p>\n                <p style=\"color: #374151; margin: 5px 0;\"><strong>IP:</strong> {{ipAddress}}</p>\n            </div>\n            \n            <div style=\"background-color: #fff3cd; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <p style=\"margin: 0; color: #92400e; font-size: 14px;\">\n                    <strong>⚠️ Important:</strong> Dacă nu ai făcut această schimbare, te rugăm să ne contactezi imediat la support@techtots.ro\n                </p>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/account\" \n                   style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);\">\n                    🔐 Accesează contul\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "userName",
+          "changeTime",
+          "deviceInfo",
+          "ipAddress",
+          "siteUrl"
+        ],
+        "category": "authentication",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:11.240Z",
+        "updatedAt": "2025-10-01T18:32:11.240Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "password",
+            "security",
+            "authentication"
+          ],
+          "priority": 1,
+          "description": "Confirmare schimbare parolă",
+          "estimatedOpenRate": 0.95
+        }
+      },
+      {
+        "id": "new-device-login",
+        "name": "New Device Login Alert",
+        "slug": "new-device-login",
+        "subject": "Conectare de pe dispozitiv nou - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Conectare dispozitiv nou</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                📱 Conectare de pe dispozitiv nou\n            </h1>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{userName}}! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Am detectat o conectare la contul tău TechTots de pe un dispozitiv nou la {{loginTime}}.\n            </p>\n            \n            <div style=\"background-color: #fff3cd; border-left: 4px solid #f59e0b; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #856404; margin: 0 0 10px 0; font-size: 18px;\">\n                    🔍 Detalii despre conectare\n                </h3>\n                <p style=\"color: #856404; margin: 5px 0;\"><strong>Ora:</strong> {{loginTime}}</p>\n                <p style=\"color: #856404; margin: 5px 0;\"><strong>Dispozitiv:</strong> {{deviceInfo}}</p>\n                <p style=\"color: #856404; margin: 5px 0;\"><strong>Locație:</strong> {{location}}</p>\n                <p style=\"color: #856404; margin: 5px 0;\"><strong>IP:</strong> {{ipAddress}}</p>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    ✅ Ești tu?\n                </h3>\n                <p style=\"color: #374151; margin: 0;\">\n                    Dacă ai fost tu care te-ai conectat, nu trebuie să faci nimic. \n                    Dacă nu recunoști această activitate, te rugăm să schimbi parola imediat.\n                </p>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/account/security\" \n                   style=\"background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);\">\n                    🔒 Verifică securitatea\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "userName",
+          "loginTime",
+          "deviceInfo",
+          "location",
+          "ipAddress",
+          "siteUrl"
+        ],
+        "category": "authentication",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:11.319Z",
+        "updatedAt": "2025-10-01T18:32:11.319Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "security",
+            "login",
+            "device",
+            "authentication"
+          ],
+          "priority": 1,
+          "description": "Alertă conectare dispozitiv nou",
+          "estimatedOpenRate": 0.9
+        }
+      },
+      {
+        "id": "order-processing",
+        "name": "Order Processing",
+        "slug": "order-processing",
+        "subject": "Comanda #{{order.number}} este în procesare - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Comanda în procesare</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                ⚙️ Comanda în procesare\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                Comanda #{{order.number}}\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{customerName}}! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Comanda ta a fost confirmată și este acum în procesare. Echipa noastră se ocupă de pregătirea comenzii pentru expediere.\n            </p>\n            \n            <div style=\"background-color: #e0f2fe; border-left: 4px solid #0288d1; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #01579b; margin: 0 0 10px 0; font-size: 18px;\">\n                    📦 Statusul comenzii\n                </h3>\n                <p style=\"color: #01579b; margin: 0;\">\n                    <strong>În procesare</strong> - Pregătim produsele pentru expediere\n                </p>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    📋 Detalii comandă\n                </h3>\n                <div style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;\">\n                    <div>\n                        <strong style=\"color: #374151;\">Număr comandă:</strong><br>\n                        <span style=\"color: #1f2937;\">#{{order.number}}</span>\n                    </div>\n                    <div>\n                        <strong style=\"color: #374151;\">Data comenzii:</strong><br>\n                        <span style=\"color: #1f2937;\">{{orderDate}}</span>\n                    </div>\n                </div>\n                <div>\n                    <strong style=\"color: #374151;\">Livrare estimată:</strong><br>\n                    <span style=\"color: #1f2937;\">{{estimatedDelivery}}</span>\n                </div>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/account/orders/{{order.number}}\" \n                   style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);\">\n                    📋 Urmărește comanda\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "customerName",
+          "orderNumber",
+          "orderDate",
+          "estimatedDelivery",
+          "siteUrl"
+        ],
+        "category": "orders",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:11.396Z",
+        "updatedAt": "2025-10-01T18:32:11.396Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "order",
+            "processing",
+            "status"
+          ],
+          "priority": 1,
+          "description": "Notificare comandă în procesare",
+          "estimatedOpenRate": 0.85
+        }
+      },
+      {
+        "id": "order-shipped",
+        "name": "Order Shipped",
+        "slug": "order-shipped",
+        "subject": "Comanda #{{order.number}} a fost expediată! 🚚",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Comanda expediată</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                🚚 Comanda a fost expediată!\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                Comanda #{{order.number}}\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{customerName}}! 🎉\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Comanda ta a fost expediată cu succes! Produsele sunt pe drum către tine.\n            </p>\n            \n            <div style=\"background-color: #d4edda; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #155724; margin: 0 0 10px 0; font-size: 18px;\">\n                    📦 Informații despre expediere\n                </h3>\n                <p style=\"color: #155724; margin: 5px 0;\"><strong>Număr de urmărire:</strong> {{trackingNumber}}</p>\n                <p style=\"color: #155724; margin: 5px 0;\"><strong>Curier:</strong> {{carrier}}</p>\n                <p style=\"color: #155724; margin: 5px 0;\"><strong>Data expedierii:</strong> {{shippingDate}}</p>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    🚚 Urmărește-ți comanda\n                </h3>\n                <p style=\"color: #374151; margin: 0;\">\n                    Folosește numărul de urmărire pentru a vedea unde se află comanda ta în timp real.\n                </p>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{trackingUrl}}\" \n                   style=\"background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);\">\n                    🚚 Urmărește comanda\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "customerName",
+          "orderNumber",
+          "trackingNumber",
+          "carrier",
+          "shippingDate",
+          "trackingUrl"
+        ],
+        "category": "orders",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:11.474Z",
+        "updatedAt": "2025-10-01T18:32:11.474Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "order",
+            "shipped",
+            "tracking"
+          ],
+          "priority": 1,
+          "description": "Notificare comandă expediată",
+          "estimatedOpenRate": 0.9
+        }
+      },
+      {
+        "id": "order-delivered",
+        "name": "Order Delivered",
+        "slug": "order-delivered",
+        "subject": "Comanda #{{order.number}} a fost livrată! 📦",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Comanda livrată</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                📦 Comanda a fost livrată!\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                Comanda #{{order.number}}\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{customerName}}! 🎉\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Comanda ta a fost livrată cu succes! Sperăm că te vei bucura de produsele comandate.\n            </p>\n            \n            <div style=\"background-color: #d4edda; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #155724; margin: 0 0 10px 0; font-size: 18px;\">\n                    ✅ Livrare confirmată\n                </h3>\n                <p style=\"color: #155724; margin: 5px 0;\"><strong>Data livrării:</strong> {{deliveryDate}}</p>\n                <p style=\"color: #155724; margin: 5px 0;\"><strong>Status:</strong> Livrat cu succes</p>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    ⭐ Evaluează-ți experiența\n                </h3>\n                <p style=\"color: #374151; margin: 0;\">\n                    Ne-ar face plăcere să știm cum ți-a plăcut comanda! Evaluează produsele și experiența ta de cumpărare.\n                </p>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{reviewUrl}}\" \n                   style=\"background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);\">\n                    ⭐ Evaluează comanda\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "customerName",
+          "orderNumber",
+          "deliveryDate",
+          "reviewUrl",
+          "siteUrl"
+        ],
+        "category": "orders",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:11.553Z",
+        "updatedAt": "2025-10-01T18:32:11.553Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "order",
+            "delivered",
+            "review"
+          ],
+          "priority": 1,
+          "description": "Notificare comandă livrată",
+          "estimatedOpenRate": 0.85
+        }
+      },
+      {
+        "id": "order-cancelled",
+        "name": "Order Cancelled",
+        "slug": "order-cancelled",
+        "subject": "Comanda #{{order.number}} a fost anulată - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Comanda anulată</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                ❌ Comanda a fost anulată\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                Comanda #{{order.number}}\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{customerName}}! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Comanda ta a fost anulată. Înțelegem că poate fi dezamăgitor și ne cerem scuze pentru orice inconveniență.\n            </p>\n            \n            <div style=\"background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #721c24; margin: 0 0 10px 0; font-size: 18px;\">\n                    📋 Detalii despre anulare\n                </h3>\n                <p style=\"color: #721c24; margin: 5px 0;\"><strong>Motivul anulării:</strong> {{cancellationReason}}</p>\n                <p style=\"color: #721c24; margin: 5px 0;\"><strong>Data anulării:</strong> {{cancellationDate}}</p>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    💰 Informații despre rambursare\n                </h3>\n                <p style=\"color: #374151; margin: 0;\">\n                    {{refundInfo}} Dacă ai întrebări despre rambursare, te rugăm să ne contactezi.\n                </p>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/products\" \n                   style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);\">\n                    🛍️ Explorează produsele\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "customerName",
+          "orderNumber",
+          "cancellationReason",
+          "cancellationDate",
+          "refundInfo",
+          "siteUrl"
+        ],
+        "category": "orders",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:11.628Z",
+        "updatedAt": "2025-10-01T18:32:11.628Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "order",
+            "cancelled",
+            "refund"
+          ],
+          "priority": 1,
+          "description": "Notificare comandă anulată",
+          "estimatedOpenRate": 0.9
+        }
+      },
+      {
+        "id": "order-failed",
+        "name": "Order Failed",
+        "slug": "order-failed",
+        "subject": "Probleme cu comanda #{{order.number}} - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Comanda eșuată</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                ⚠️ Problema cu comanda\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                Comanda #{{order.number}}\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{customerName}}! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Ne pare rău să te anunțăm că a apărut o problemă cu comanda ta. Echipa noastră lucrează pentru a rezolva situația.\n            </p>\n            \n            <div style=\"background-color: #fff3cd; border-left: 4px solid #f59e0b; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #856404; margin: 0 0 10px 0; font-size: 18px;\">\n                    🔍 Detalii despre problemă\n                </h3>\n                <p style=\"color: #856404; margin: 5px 0;\"><strong>Motivul:</strong> {{failureReason}}</p>\n                <p style=\"color: #856404; margin: 5px 0;\"><strong>Data detectării:</strong> {{failureDate}}</p>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    🛠️ Ce facem acum\n                </h3>\n                <p style=\"color: #374151; margin: 0;\">\n                    Echipa noastră lucrează pentru a rezolva problema. Te vom contacta în cel mai scurt timp posibil cu o soluție.\n                </p>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{retryUrl}}\" \n                   style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);\">\n                    🔄 Încearcă din nou\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "customerName",
+          "orderNumber",
+          "failureReason",
+          "failureDate",
+          "retryUrl",
+          "siteUrl"
+        ],
+        "category": "orders",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:11.704Z",
+        "updatedAt": "2025-10-01T18:32:11.704Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "order",
+            "failed",
+            "error"
+          ],
+          "priority": 1,
+          "description": "Notificare comandă eșuată",
+          "estimatedOpenRate": 0.95
+        }
+      },
+      {
+        "id": "blog-post-notification",
+        "name": "Blog Post Notification",
+        "slug": "blog-post-notification",
+        "subject": "Nou articol: {{blogTitle}} - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Nou articol TechTots</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                📝 Nou articol pe blog\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                Descoperă ultimele noutăți STEM\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{subscriberName}}! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Am publicat un nou articol pe blogul nostru și am vrut să îl împărtășim cu tine!\n            </p>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #e5e7eb;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 20px;\">\n                    {{blogTitle}}\n                </h3>\n                <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin: 0;\">\n                    {{blogExcerpt}}\n                </p>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{blogUrl}}\" \n                   style=\"background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);\">\n                    📖 Citește articolul\n                </a>\n            </div>\n            \n            <div style=\"background-color: #f0f9ff; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #1e40af; margin: 0 0 10px 0; font-size: 18px;\">\n                    💡 De ce să citești?\n                </h3>\n                <ul style=\"color: #374151; margin: 0; padding-left: 20px;\">\n                    <li>Ghiduri practice pentru părinți</li>\n                    <li>Idei de activități STEM pentru acasă</li>\n                    <li>Noutăți despre educația științifică</li>\n                    <li>Interviuri cu experți în domeniu</li>\n                </ul>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                <a href=\"{{unsubscribeUrl}}\" style=\"color: #6b7280; text-decoration: underline;\">Dezabonează-te</a> | \n                <a href=\"{{siteUrl}}/privacy\" style=\"color: #6b7280; text-decoration: underline;\">Politica de confidențialitate</a>\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "subscriberName",
+          "blogTitle",
+          "blogExcerpt",
+          "blogUrl",
+          "unsubscribeUrl",
+          "siteUrl"
+        ],
+        "category": "marketing",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:11.794Z",
+        "updatedAt": "2025-10-01T18:32:11.794Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "blog",
+            "newsletter",
+            "content"
+          ],
+          "priority": 2,
+          "description": "Notificare articol nou pe blog",
+          "estimatedOpenRate": 0.75
+        }
+      },
+      {
+        "id": "coupon-distribution",
+        "name": "Coupon Distribution",
+        "slug": "coupon-distribution",
+        "subject": "🎁 Ofertă specială pentru tine! {{discountAmount}} reducere - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Ofertă specială TechTots</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                🎁 Ofertă specială!\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                {{discountAmount}} reducere pentru tine\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{customerName}}! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Am pregătit o ofertă specială doar pentru tine! Folosește codul de reducere de mai jos pentru a economisi la următoarea ta comandă.\n            </p>\n            \n            <div style=\"background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; padding: 30px; margin: 20px 0; text-align: center;\">\n                <h3 style=\"color: white; margin: 0 0 15px 0; font-size: 24px;\">\n                    🎫 Codul tău de reducere\n                </h3>\n                <div style=\"background: white; border-radius: 8px; padding: 20px; margin: 15px 0;\">\n                    <span style=\"color: #1f2937; font-size: 32px; font-weight: 700; letter-spacing: 2px;\">{{couponCode}}</span>\n                </div>\n                <p style=\"color: white; margin: 10px 0 0 0; font-size: 16px;\">\n                    Valabil până la {{expiryDate}}\n                </p>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    🛍️ Cum să folosești codul\n                </h3>\n                <ol style=\"color: #374151; margin: 0; padding-left: 20px;\">\n                    <li>Adaugă produsele dorite în coș</li>\n                    <li>La finalizarea comenzii, introdu codul {{couponCode}}</li>\n                    <li>Reducerea se va aplica automat</li>\n                    <li>Finalizează comanda și bucură-te de economii!</li>\n                </ol>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/products\" \n                   style=\"background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);\">\n                    🛒 Cumpără acum\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                <a href=\"{{unsubscribeUrl}}\" style=\"color: #6b7280; text-decoration: underline;\">Dezabonează-te</a> | \n                <a href=\"{{siteUrl}}/privacy\" style=\"color: #6b7280; text-decoration: underline;\">Politica de confidențialitate</a>\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "customerName",
+          "couponCode",
+          "discountAmount",
+          "expiryDate",
+          "siteUrl",
+          "unsubscribeUrl"
+        ],
+        "category": "marketing",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:11.994Z",
+        "updatedAt": "2025-10-01T18:32:11.994Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "coupon",
+            "promotion",
+            "discount"
+          ],
+          "priority": 2,
+          "description": "Distribuție cupoane de reducere",
+          "estimatedOpenRate": 0.8
+        }
+      },
+      {
+        "id": "flash-sale-alert",
+        "name": "Flash Sale Alert",
+        "slug": "flash-sale-alert",
+        "subject": "⚡ Vânzare flash! {{saleTitle}} - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Vânzare flash TechTots</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                ⚡ VÂNZARE FLASH!\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                {{saleTitle}}\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{customerName}}! 🚨\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Oferte incredibile pentru o perioadă limitată! Nu rata această oportunitate unică de a economisi la jucăriile STEM preferate.\n            </p>\n            \n            <div style=\"background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border-radius: 12px; padding: 30px; margin: 20px 0; text-align: center;\">\n                <h3 style=\"color: white; margin: 0 0 15px 0; font-size: 24px;\">\n                    🔥 {{discountPercent}}% REDUCERE\n                </h3>\n                <p style=\"color: white; margin: 10px 0 0 0; font-size: 18px;\">\n                    Valabil până la {{saleEndTime}}\n                </p>\n            </div>\n            \n            <div style=\"background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #991b1b; margin: 0 0 10px 0; font-size: 18px;\">\n                    ⏰ Atenție! Timp limitat\n                </h3>\n                <p style=\"color: #991b1b; margin: 0;\">\n                    Această ofertă expiră în curând! Grăbește-te să nu ratezi șansa de a economisi.\n                </p>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/products\" \n                   style=\"background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);\">\n                    ⚡ Cumpără acum\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                <a href=\"{{unsubscribeUrl}}\" style=\"color: #6b7280; text-decoration: underline;\">Dezabonează-te</a> | \n                <a href=\"{{siteUrl}}/privacy\" style=\"color: #6b7280; text-decoration: underline;\">Politica de confidențialitate</a>\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "customerName",
+          "saleTitle",
+          "discountPercent",
+          "saleEndTime",
+          "siteUrl",
+          "unsubscribeUrl"
+        ],
+        "category": "marketing",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:12.071Z",
+        "updatedAt": "2025-10-01T18:32:12.071Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "flash-sale",
+            "promotion",
+            "urgent"
+          ],
+          "priority": 1,
+          "description": "Alertă vânzare flash",
+          "estimatedOpenRate": 0.85
+        }
+      },
+      {
+        "id": "supplier-registration-confirmation",
+        "name": "Supplier Registration Confirmation",
+        "slug": "supplier-registration-confirmation",
+        "subject": "Confirmare înregistrare furnizor - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Confirmare înregistrare furnizor</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                🏢 Confirmare înregistrare furnizor\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                {{companyName}}\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{contactPersonName}}! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Mulțumim pentru înregistrarea ca furnizor la TechTots! Am primit cererea ta și o analizăm.\n            </p>\n            \n            <div style=\"background-color: #e0f2fe; border-left: 4px solid #0288d1; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #01579b; margin: 0 0 10px 0; font-size: 18px;\">\n                    📋 Următorii pași\n                </h3>\n                <ul style=\"color: #01579b; margin: 0; padding-left: 20px;\">\n                    <li>Verificăm documentele încărcate</li>\n                    <li>Analizăm profilul companiei</li>\n                    <li>Contactăm pentru întrebări suplimentare (dacă este necesar)</li>\n                    <li>Te notificăm despre decizia de aprobare</li>\n                </ul>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    📊 Detalii înregistrare\n                </h3>\n                <p style=\"color: #374151; margin: 5px 0;\"><strong>Companie:</strong> {{companyName}}</p>\n                <p style=\"color: #374151; margin: 5px 0;\"><strong>Persoană de contact:</strong> {{contactPersonName}}</p>\n                <p style=\"color: #374151; margin: 5px 0;\"><strong>Email:</strong> {{contactPersonEmail}}</p>\n                <p style=\"color: #374151; margin: 5px 0;\"><strong>Data înregistrării:</strong> {{registrationDate}}</p>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/supplier/dashboard\" \n                   style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);\">\n                    📊 Accesează dashboard-ul\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "companyName",
+          "contactPersonName",
+          "contactPersonEmail",
+          "registrationDate",
+          "siteUrl"
+        ],
+        "category": "suppliers",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:12.148Z",
+        "updatedAt": "2025-10-01T18:32:12.148Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "supplier",
+            "registration",
+            "confirmation"
+          ],
+          "priority": 1,
+          "description": "Confirmare înregistrare furnizor",
+          "estimatedOpenRate": 0.9
+        }
+      },
+      {
+        "id": "supplier-approval",
+        "name": "Supplier Approval",
+        "slug": "supplier-approval",
+        "subject": "Felicitări! Contul de furnizor a fost aprobat - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Furnizor aprobat</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                🎉 Felicitări! Ești aprobat!\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                {{companyName}} este acum furnizor TechTots\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{contactPersonName}}! 🚀\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Suntem încântați să te anunțăm că {{companyName}} a fost aprobat ca furnizor oficial TechTots! \n                Acum poți începe să adaugi produse și să construiești afacerea ta cu noi.\n            </p>\n            \n            <div style=\"background-color: #d4edda; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #155724; margin: 0 0 10px 0; font-size: 18px;\">\n                    ✅ Ce poți face acum\n                </h3>\n                <ul style=\"color: #155724; margin: 0; padding-left: 20px;\">\n                    <li>Adaugă produse în catalogul tău</li>\n                    <li>Configurează prețurile și stocurile</li>\n                    <li>Urmărește comenzile și vânzările</li>\n                    <li>Accesează rapoartele de performanță</li>\n                </ul>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    📊 Detalii cont\n                </h3>\n                <p style=\"color: #374151; margin: 5px 0;\"><strong>Companie:</strong> {{companyName}}</p>\n                <p style=\"color: #374151; margin: 5px 0;\"><strong>Comision:</strong> {{commissionRate}}%</p>\n                <p style=\"color: #374151; margin: 5px 0;\"><strong>Termeni de plată:</strong> {{paymentTerms}} zile</p>\n                <p style=\"color: #374151; margin: 5px 0;\"><strong>Valoare minimă comandă:</strong> {{minimumOrderValue}} RON</p>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/supplier/dashboard\" \n                   style=\"background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);\">\n                    🚀 Începe să adaugi produse\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "companyName",
+          "contactPersonName",
+          "commissionRate",
+          "paymentTerms",
+          "minimumOrderValue",
+          "siteUrl"
+        ],
+        "category": "suppliers",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:12.223Z",
+        "updatedAt": "2025-10-01T18:32:12.223Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "supplier",
+            "approval",
+            "success"
+          ],
+          "priority": 1,
+          "description": "Notificare aprobare furnizor",
+          "estimatedOpenRate": 0.95
+        }
+      },
+      {
+        "id": "supplier-rejection",
+        "name": "Supplier Rejection",
+        "slug": "supplier-rejection",
+        "subject": "Decizie privind cererea de furnizor - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Cerere furnizor respinsă</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                📋 Decizie privind cererea\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                {{companyName}}\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{contactPersonName}}! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Mulțumim pentru interesul arătat față de parteneriatul cu TechTots. \n                După o analiză atentă, am luat decizia să nu aprobăm cererea de furnizor în acest moment.\n            </p>\n            \n            <div style=\"background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #721c24; margin: 0 0 10px 0; font-size: 18px;\">\n                    📝 Motivele deciziei\n                </h3>\n                <p style=\"color: #721c24; margin: 0;\">{{rejectionReason}}</p>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    🔄 Ce poți face în viitor\n                </h3>\n                <ul style=\"color: #374151; margin: 0; padding-left: 20px;\">\n                    <li>Îmbunătățește profilul companiei</li>\n                    <li>Completează documentația lipsă</li>\n                    <li>Contactează-ne pentru clarificări</li>\n                    <li>Reîncearcă după 6 luni</li>\n                </ul>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/contact\" \n                   style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);\">\n                    💬 Contactează-ne\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "companyName",
+          "contactPersonName",
+          "rejectionReason",
+          "siteUrl"
+        ],
+        "category": "suppliers",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:12.299Z",
+        "updatedAt": "2025-10-01T18:32:12.299Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "supplier",
+            "rejection",
+            "feedback"
+          ],
+          "priority": 1,
+          "description": "Notificare respingere furnizor",
+          "estimatedOpenRate": 0.9
+        }
+      },
+      {
+        "id": "admin-new-order",
+        "name": "Admin New Order Notification",
+        "slug": "admin-new-order",
+        "subject": "🛒 Comandă nouă #{{order.number}} - TechTots Admin",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Comandă nouă - Admin</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                🛒 Comandă nouă\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                Comanda #{{order.number}}\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Notificare comandă nouă! 📦\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                A fost plasată o comandă nouă pe platforma TechTots. Detaliile comenzii sunt prezentate mai jos.\n            </p>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    📋 Detalii comandă\n                </h3>\n                <div style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;\">\n                    <div>\n                        <strong style=\"color: #374151;\">Număr comandă:</strong><br>\n                        <span style=\"color: #1f2937;\">#{{order.number}}</span>\n                    </div>\n                    <div>\n                        <strong style=\"color: #374151;\">Client:</strong><br>\n                        <span style=\"color: #1f2937;\">{{customerName}}</span>\n                    </div>\n                    <div>\n                        <strong style=\"color: #374151;\">Email client:</strong><br>\n                        <span style=\"color: #1f2937;\">{{customerEmail}}</span>\n                    </div>\n                    <div>\n                        <strong style=\"color: #374151;\">Total:</strong><br>\n                        <span style=\"color: #1f2937; font-weight: 700;\">{{order.total}} RON</span>\n                    </div>\n                </div>\n            </div>\n            \n            <div style=\"background-color: #e0f2fe; border-left: 4px solid #0288d1; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #01579b; margin: 0 0 10px 0; font-size: 18px;\">\n                    🛍️ Produse comandate\n                </h3>\n                {{#each orderItems}}\n                <div style=\"border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px;\">\n                    <div style=\"display: flex; justify-content: space-between; align-items: center;\">\n                        <div>\n                            <strong style=\"color: #1f2937;\">{{this.name}}</strong><br>\n                            <span style=\"color: #6b7280; font-size: 14px;\">Cantitate: {{this.quantity}}</span>\n                        </div>\n                        <div style=\"text-align: right;\">\n                            <span style=\"color: #1f2937; font-weight: 600;\">{{this.price}} RON</span>\n                        </div>\n                    </div>\n                </div>\n                {{/each}}\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{adminUrl}}/orders/{{order.number}}\" \n                   style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);\">\n                    📊 Vezi comanda în admin\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Admin Panel<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "order.number",
+          "customerName",
+          "customerEmail",
+          "order.total",
+          "orderItems",
+          "adminUrl"
+        ],
+        "category": "admin",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:12.377Z",
+        "updatedAt": "2025-10-01T18:32:12.377Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "admin",
+            "order",
+            "notification"
+          ],
+          "priority": 1,
+          "description": "Notificare comandă nouă pentru admin",
+          "estimatedOpenRate": 0.95
+        }
+      },
+      {
+        "id": "admin-high-value-order",
+        "name": "Admin High Value Order Notification",
+        "slug": "admin-high-value-order",
+        "subject": "💰 Comandă de valoare mare #{{order.number}} - TechTots Admin",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Comandă de valoare mare - Admin</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                💰 Comandă de valoare mare!\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                Comanda #{{order.number}} - {{order.total}} RON\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Atenție! Comandă de valoare mare! 🚨\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                A fost plasată o comandă cu valoare mare pe platforma TechTots. Această comandă necesită atenție specială.\n            </p>\n            \n            <div style=\"background-color: #fff3cd; border-left: 4px solid #f59e0b; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #856404; margin: 0 0 10px 0; font-size: 18px;\">\n                    ⚠️ Acțiuni recomandate\n                </h3>\n                <ul style=\"color: #856404; margin: 0; padding-left: 20px;\">\n                    <li>Verifică disponibilitatea produselor</li>\n                    <li>Contactează clientul pentru confirmare</li>\n                    <li>Pregătește ambalarea specială</li>\n                    <li>Planifică livrarea cu asigurare</li>\n                </ul>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    📊 Detalii comandă\n                </h3>\n                <div style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;\">\n                    <div>\n                        <strong style=\"color: #374151;\">Număr comandă:</strong><br>\n                        <span style=\"color: #1f2937;\">#{{order.number}}</span>\n                    </div>\n                    <div>\n                        <strong style=\"color: #374151;\">Client:</strong><br>\n                        <span style=\"color: #1f2937;\">{{customerName}}</span>\n                    </div>\n                    <div>\n                        <strong style=\"color: #374151;\">Email client:</strong><br>\n                        <span style=\"color: #1f2937;\">{{customerEmail}}</span>\n                    </div>\n                    <div>\n                        <strong style=\"color: #374151;\">Total:</strong><br>\n                        <span style=\"color: #1f2937; font-weight: 700; font-size: 18px;\">{{order.total}} RON</span>\n                    </div>\n                </div>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{adminUrl}}/orders/{{order.number}}\" \n                   style=\"background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);\">\n                    📊 Vezi comanda în admin\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Admin Panel<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "order.number",
+          "customerName",
+          "customerEmail",
+          "order.total",
+          "adminUrl"
+        ],
+        "category": "admin",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:12.452Z",
+        "updatedAt": "2025-10-01T18:32:12.452Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "admin",
+            "high-value",
+            "order",
+            "priority"
+          ],
+          "priority": 1,
+          "description": "Notificare comandă de valoare mare pentru admin",
+          "estimatedOpenRate": 0.98
+        }
+      },
+      {
+        "id": "return-request-confirmation",
+        "name": "Return Request Confirmation",
+        "slug": "return-request-confirmation",
+        "subject": "Confirmare cerere de returnare #{{returnId}} - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Confirmare cerere returnare</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                🔄 Cerere de returnare confirmată\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                Cerere #{{returnId}}\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{customerName}}! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Am primit cererea ta de returnare și o procesăm. Vei primi o notificare când cererea va fi aprobată.\n            </p>\n            \n            <div style=\"background-color: #e0f2fe; border-left: 4px solid #0288d1; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #01579b; margin: 0 0 10px 0; font-size: 18px;\">\n                    📋 Detalii cerere\n                </h3>\n                <p style=\"color: #01579b; margin: 5px 0;\"><strong>Număr cerere:</strong> #{{returnId}}</p>\n                <p style=\"color: #01579b; margin: 5px 0;\"><strong>Comanda:</strong> #{{order.number}}</p>\n                <p style=\"color: #01579b; margin: 5px 0;\"><strong>Motivul:</strong> {{reason}}</p>\n                <p style=\"color: #01579b; margin: 5px 0;\"><strong>Data:</strong> {{requestDate}}</p>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    📦 Următorii pași\n                </h3>\n                <ol style=\"color: #374151; margin: 0; padding-left: 20px;\">\n                    <li>Analizăm cererea (1-2 zile lucrătoare)</li>\n                    <li>Te notificăm despre aprobare/respingere</li>\n                    <li>Dacă este aprobată, primești instrucțiuni de returnare</li>\n                    <li>Procesăm rambursarea după primirea produsului</li>\n                </ol>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/account/returns/{{returnId}}\" \n                   style=\"background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);\">\n                    📋 Vezi cererea\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "customerName",
+          "returnId",
+          "order.number",
+          "reason",
+          "requestDate",
+          "siteUrl"
+        ],
+        "category": "returns",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:12.526Z",
+        "updatedAt": "2025-10-01T18:32:12.526Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "return",
+            "confirmation",
+            "customer"
+          ],
+          "priority": 1,
+          "description": "Confirmare cerere de returnare",
+          "estimatedOpenRate": 0.9
+        }
+      },
+      {
+        "id": "digital-product-delivery",
+        "name": "Digital Product Delivery",
+        "slug": "digital-product-delivery",
+        "subject": "📚 Produsul digital este gata! - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Produs digital livrat</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                📚 Produsul digital este gata!\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                {{productName}}\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut, {{customerName}}! 🎉\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Produsul digital pe care l-ai comandat este gata pentru descărcare! Poți accesa conținutul folosind linkurile de mai jos.\n            </p>\n            \n            <div style=\"background-color: #f0f9ff; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n                <h3 style=\"color: #1e40af; margin: 0 0 10px 0; font-size: 18px;\">\n                    📖 Detalii produs\n                </h3>\n                <p style=\"color: #1e40af; margin: 5px 0;\"><strong>Nume:</strong> {{productName}}</p>\n                <p style=\"color: #1e40af; margin: 5px 0;\"><strong>Autor:</strong> {{author}}</p>\n                <p style=\"color: #1e40af; margin: 5px 0;\"><strong>Format:</strong> {{format}}</p>\n                <p style=\"color: #1e40af; margin: 5px 0;\"><strong>Mărime:</strong> {{fileSize}}</p>\n            </div>\n            \n            <div style=\"background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <h3 style=\"color: #1f2937; margin: 0 0 15px 0; font-size: 18px;\">\n                    🔗 Linkuri de descărcare\n                </h3>\n                {{#each downloadLinks}}\n                <div style=\"border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px;\">\n                    <div style=\"display: flex; justify-content: space-between; align-items: center;\">\n                        <div>\n                            <strong style=\"color: #1f2937;\">{{format}}</strong><br>\n                            <span style=\"color: #6b7280; font-size: 14px;\">{{language}}</span>\n                        </div>\n                        <div>\n                            <a href=\"{{url}}\" \n                               style=\"background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block;\">\n                                📥 Descarcă\n                            </a>\n                        </div>\n                    </div>\n                </div>\n                {{/each}}\n            </div>\n            \n            <div style=\"background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <p style=\"margin: 0; color: #92400e; font-size: 14px;\">\n                    <strong>⚠️ Important:</strong> Linkurile de descărcare expiră în {{expiryDays}} zile. \n                    Descarcă produsul cât mai curând posibil.\n                </p>\n            </div>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{siteUrl}}/account/digital-library\" \n                   style=\"background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);\">\n                    📚 Biblioteca digitală\n                </a>\n            </div>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "customerName",
+          "productName",
+          "author",
+          "format",
+          "fileSize",
+          "downloadLinks",
+          "expiryDays",
+          "siteUrl"
+        ],
+        "category": "digital",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:12.604Z",
+        "updatedAt": "2025-10-01T18:32:12.604Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "digital",
+            "download",
+            "ebook",
+            "delivery"
+          ],
+          "priority": 1,
+          "description": "Livrare produs digital",
+          "estimatedOpenRate": 0.95
+        }
+      },
+      {
+        "id": "password-reset",
+        "name": "Password Reset",
+        "slug": "password-reset",
+        "subject": "Resetare parolă - TechTots",
+        "content": "\n<!DOCTYPE html>\n<html lang=\"ro\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Resetare parolă</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\">\n    <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff;\">\n        <!-- Header -->\n        <div style=\"background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); padding: 40px 20px; text-align: center;\">\n            <h1 style=\"color: white; margin: 0; font-size: 28px; font-weight: 700;\">\n                🔒 Resetare parolă\n            </h1>\n            <p style=\"color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;\">\n                TechTots STEM Store\n            </p>\n        </div>\n        \n        <!-- Content -->\n        <div style=\"padding: 40px 20px;\">\n            <h2 style=\"color: #1f2937; margin: 0 0 20px 0; font-size: 24px;\">\n                Salut! 👋\n            </h2>\n            \n            <p style=\"color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">\n                Am primit o cerere de resetare a parolei pentru contul tău TechTots. \n                Dacă ai făcut această cerere, fă clic pe butonul de mai jos pentru a reseta parola.\n            </p>\n            \n            <div style=\"text-align: center; margin: 30px 0;\">\n                <a href=\"{{resetLink}}\" \n                   style=\"background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);\">\n                    🔑 Resetează parola\n                </a>\n            </div>\n            \n            <div style=\"background-color: #f8d7da; border: 1px solid #dc3545; border-radius: 8px; padding: 20px; margin: 20px 0;\">\n                <p style=\"margin: 0; color: #721c24; font-size: 14px;\">\n                    <strong>⚠️ Important:</strong> Acest link va expira în 1 oră din motive de securitate. \n                    Dacă nu ai cerut resetarea parolei, ignoră acest email.\n                </p>\n            </div>\n            \n            <p style=\"color: #6b7280; font-size: 14px; margin-top: 30px;\">\n                Dacă butonul nu funcționează, copiază și lipește acest link în browser:<br>\n                <a href=\"{{resetLink}}\" style=\"color: #3b82f6; word-break: break-all;\">{{resetLink}}</a>\n            </p>\n        </div>\n        \n        <!-- Footer -->\n        <div style=\"background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;\">\n            <p style=\"margin: 0; color: #6b7280; font-size: 14px;\">\n                <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>\n                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "variables": [
+          "resetLink"
+        ],
+        "category": "authentication",
+        "isActive": true,
+        "createdAt": "2025-10-01T18:32:12.680Z",
+        "updatedAt": "2025-10-01T18:32:12.680Z",
+        "createdBy": "system",
+        "metadata": {
+          "tags": [
+            "password",
+            "reset",
+            "security",
+            "authentication"
+          ],
+          "priority": 1,
+          "description": "Email pentru resetarea parolei",
+          "estimatedOpenRate": 0.8
+        }
+      }
+    ],
+    "EmailCampaign": [],
+    "EmailSequence": [],
+    "EmailSequenceStep": [],
+    "EmailSequenceUser": [],
+    "EmailEvent": [],
+    "Campaign": [],
+    "CampaignApplication": [],
+    "AutomationWorkflow": [],
+    "Newsletter": [],
+    "Supplier": [],
+    "SupplierOrder": [],
+    "SupplierInvoice": [],
+    "SupplierMessage": [],
+    "SupplierNotification": [],
+    "SupplierSupportTicket": [],
+    "SupplierTicketResponse": [],
+    "SupplierAnnouncement": [],
+    "ImageMetadata": [],
+    "ImageProcessingLog": [],
+    "DigitalFile": [],
+    "DigitalDownload": [],
+    "ContentVersion": [],
+    "StoreSettings": [],
+    "PerformanceMetric": [],
+    "ConversionLog": [],
+    "Session": [],
+    "PasswordResetToken": []
+  }
+}

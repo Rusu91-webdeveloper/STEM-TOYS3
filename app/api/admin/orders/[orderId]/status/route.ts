@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { invalidateAnalyticsOnOrderChange } from "@/lib/cache/analytics-cache";
 import {
   updateOrderStatus,
   getOrderStatusHistory,
@@ -109,6 +110,9 @@ export async function PATCH(
       );
     }
 
+    // Invalidate analytics cache since order status change affects analytics
+    await invalidateAnalyticsOnOrderChange();
+
     return NextResponse.json({
       success: true,
       message: `Order status updated to ${validatedData.status}`,
@@ -160,6 +164,9 @@ export async function POST(req: NextRequest) {
         updatedBy: session.user.id,
       }
     );
+
+    // Invalidate analytics cache since bulk order status changes affect analytics
+    await invalidateAnalyticsOnOrderChange();
 
     return NextResponse.json({
       success: true,

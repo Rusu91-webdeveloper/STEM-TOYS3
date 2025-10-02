@@ -28,6 +28,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { SimpleCouponImage } from "@/components/ui/coupon-image";
 
 interface Coupon {
   id: string;
@@ -819,6 +820,19 @@ export default function CouponsPage() {
                         </Badge>
                       )}
                     </div>
+
+                    {/* **PERFORMANCE**: Optimized coupon image display */}
+                    {coupon.image && (
+                      <div className="mb-3">
+                        <SimpleCouponImage
+                          src={coupon.image}
+                          alt={`${coupon.name} promotional image`}
+                          width={200}
+                          height={120}
+                          className="rounded-md border"
+                        />
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-6 text-sm text-muted-foreground mb-2">
                       <span className="font-mono bg-muted px-2 py-1 rounded">

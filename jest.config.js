@@ -24,8 +24,25 @@ const customJestConfig = {
     "^@/types/(.*)$": "<rootDir>/types/$1",
   },
 
-  // Test environment - use node environment by default, jsdom when needed
-  testEnvironment: "jest-environment-node",
+  // Test environment - use different environments based on test location
+  projects: [
+    {
+      displayName: "node",
+      testEnvironment: "jest-environment-node",
+      testPathIgnorePatterns: [
+        "<rootDir>/__tests__/features/",
+        "<rootDir>/__tests__/components/",
+      ],
+    },
+    {
+      displayName: "jsdom",
+      testEnvironment: "jsdom",
+      testMatch: [
+        "**/__tests__/features/**/*.test.(ts|tsx)",
+        "**/__tests__/components/**/*.test.(ts|tsx)",
+      ],
+    },
+  ],
 
   // Test file patterns
   testMatch: [

@@ -35,6 +35,7 @@ export interface ImageItem extends ImageMetadata {
   alt: string | null;
   isActive: boolean;
   productId: string | null;
+  blogId: string | null;
   status: "valid" | "invalid" | "orphaned" | "processing";
 }
 
@@ -47,10 +48,14 @@ export class ImageManagementService {
       page?: number;
       limit?: number;
       format?: string;
+      status?: "valid" | "invalid" | "orphaned" | "processing";
       isActive?: boolean;
       search?: string;
-      sortBy?: string;
+      sortBy?: "uploadedAt" | "filename" | "size" | "format";
       sortOrder?: "asc" | "desc";
+      productId?: string;
+      dateFrom?: Date;
+      dateTo?: Date;
     } = {}
   ): Promise<{
     images: ImageItem[];
@@ -63,82 +68,123 @@ export class ImageManagementService {
       page = 1,
       limit = 20,
       format,
+      status,
       isActive,
       search,
-      sortBy = "createdAt",
+      sortBy = "uploadedAt",
       sortOrder = "desc",
+      productId,
+      dateFrom,
+      dateTo,
     } = options;
 
     const skip = (page - 1) * limit;
 
-    // Build where clause for products
-    const where: any = {
-      images: {
-        isEmpty: false,
-      },
-    };
+    // Build where clause for ImageMetadata
+    const where: any = {};
 
+    // Filter by format
+    if (format) {
+      where.format = format;
+    }
+
+    // Filter by status (for backward compatibility with status filter)
+    if (status) {
+      if (status === "orphaned") {
+        // Orphaned images have no productId and no blogId
+        where.AND = [{ productId: null }, { blogId: null }];
+      } else if (status === "valid") {
+        // Valid images have either productId or blogId
+        where.OR = [{ productId: { not: null } }, { blogId: { not: null } }];
+      } else if (status === "invalid") {
+        where.isActive = false;
+      }
+      // "processing" status could be determined by processing logs, but for now we'll skip it
+    }
+
+    // Filter by active status
+    if (isActive !== undefined) {
+      where.isActive = isActive;
+    }
+
+    // Filter by product
+    if (productId) {
+      where.productId = productId;
+    }
+
+    // Filter by date range
+    if (dateFrom || dateTo) {
+      where.uploadedAt = {};
+      if (dateFrom) where.uploadedAt.gte = dateFrom;
+      if (dateTo) where.uploadedAt.lte = dateTo;
+    }
+
+    // Search functionality
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
+        { filename: { contains: search, mode: "insensitive" } },
+        { alt: { contains: search, mode: "insensitive" } },
+        { tags: { hasSome: [search] } },
+        // Also search in related product name if productId not specified
+        ...(productId
+          ? []
+          : [
+              {
+                product: {
+                  name: { contains: search, mode: "insensitive" },
+                },
+              },
+            ]),
       ];
     }
 
-    // Get products with images and total count
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
+    // Get images with metadata and total count
+    const [imageMetadata, total] = await Promise.all([
+      prisma.imageMetadata.findMany({
         where,
         skip,
         take: limit,
         orderBy: { [sortBy]: sortOrder },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          images: true,
-          createdAt: true,
-          updatedAt: true,
-          isActive: true,
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              isActive: true,
+            },
+          },
         },
       }),
-      prisma.product.count({ where }),
+      prisma.imageMetadata.count({ where }),
     ]);
 
-    // Transform product images to ImageItem format
-    const transformedImages: ImageItem[] = [];
-
-    products.forEach(product => {
-      product.images.forEach((imageUrl, index) => {
-        const filename = this.extractFilename(imageUrl);
-        const format = this.extractFormat(imageUrl);
-
-        transformedImages.push({
-          id: `${product.id}-${index}`,
-          originalUrl: imageUrl,
-          filename: filename,
-          fileSize: 0, // We don't have file size info from URLs
-          width: 0, // We don't have dimension info from URLs
-          height: 0,
-          format: format,
-          uploadedAt: product.createdAt,
-          processedSizes: null,
-          optimizationStats: null,
-          tags: [product.name],
-          alt: `${product.name} image ${index + 1}`,
-          isActive: product.isActive,
-          productId: product.id,
-          status: this.determineImageStatusFromProduct(product, imageUrl),
-        });
-      });
-    });
+    // Transform to ImageItem format
+    const transformedImages: ImageItem[] = imageMetadata.map(metadata => ({
+      id: metadata.id,
+      originalUrl: metadata.originalUrl,
+      filename: metadata.filename,
+      fileSize: metadata.fileSize,
+      width: metadata.width || 0,
+      height: metadata.height || 0,
+      format: metadata.format,
+      uploadedAt: metadata.uploadedAt,
+      processedSizes: metadata.processedSizes,
+      optimizationStats: metadata.optimizationStats,
+      tags: metadata.tags,
+      alt: metadata.alt,
+      isActive: metadata.isActive,
+      productId: metadata.productId,
+      blogId: metadata.blogId || metadata.blogContentId, // Use either cover or content blog ID
+      status: this.determineImageStatus(metadata),
+    }));
 
     return {
       images: transformedImages,
-      total: transformedImages.length,
+      total,
       page,
       limit,
-      totalPages: Math.ceil(transformedImages.length / limit),
+      totalPages: Math.ceil(total / limit),
     };
   }
 
@@ -266,12 +312,40 @@ export class ImageManagementService {
    */
   static async saveProcessedImages(
     processedImages: ProcessedImage[],
+    productId?: string,
+    blogId?: string
+  ): Promise<ImageMetadata[]> {
+    return this.saveProcessedImagesForBlog(
+      processedImages,
+      blogId,
+      undefined,
+      productId
+    );
+  }
+
+  /**
+   * Save processed images for blogs with proper field assignment
+   */
+  static async saveProcessedImagesForBlog(
+    processedImages: ProcessedImage[],
+    blogId: string,
+    imageType: "cover" | "content",
     productId?: string
   ): Promise<ImageMetadata[]> {
     const savedImages: ImageMetadata[] = [];
 
     for (const processedImage of processedImages) {
       try {
+        // Determine which blog field to use based on image type
+        const blogData: any = {};
+        if (blogId) {
+          if (imageType === "cover") {
+            blogData.blogId = blogId;
+          } else if (imageType === "content") {
+            blogData.blogContentId = blogId;
+          }
+        }
+
         const imageMetadata = await prisma.imageMetadata.create({
           data: {
             originalUrl: processedImage.originalUrl,
@@ -291,6 +365,7 @@ export class ImageManagementService {
             alt: null,
             isActive: true,
             productId,
+            ...blogData,
           },
         });
 
@@ -331,13 +406,97 @@ export class ImageManagementService {
   }
 
   /**
-   * Find orphaned images (not referenced by any product)
+   * Find orphaned images (not referenced by any product or blog)
    */
   static async findOrphanedImages(): Promise<ImageItem[]> {
-    // Since images are stored in Product.images array, we don't have orphaned images
-    // in the traditional sense. All images are associated with products.
-    // Return empty array for now.
-    return [];
+    try {
+      // Get all ImageMetadata records
+      const allImages = await prisma.imageMetadata.findMany({
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              isActive: true,
+            },
+          },
+        },
+      });
+
+      const orphanedImages: ImageItem[] = [];
+
+      for (const image of allImages) {
+        let isOrphaned = true;
+
+        // Check if image is referenced by a product
+        if (image.productId && image.product) {
+          // Additional check: verify the image URL is actually in the product's images array
+          const productWithImages = await prisma.product.findUnique({
+            where: { id: image.productId },
+            select: { images: true },
+          });
+
+          if (
+            productWithImages &&
+            productWithImages.images.includes(image.originalUrl)
+          ) {
+            isOrphaned = false;
+          }
+        }
+
+        // Check if image is referenced by a blog as cover image
+        if (image.blogId) {
+          // Additional check: verify the blog actually has this as cover image
+          const blogWithCoverImage = await prisma.blog.findUnique({
+            where: { id: image.blogId },
+            select: { coverImageId: true },
+          });
+
+          if (blogWithCoverImage?.coverImageId === image.id) {
+            isOrphaned = false;
+          }
+        }
+
+        // Check if image is referenced by a blog as content image
+        if (image.blogContentId) {
+          // Check if the blog exists (content images relation is checked via blogContentId)
+          const blogExists = await prisma.blog.findUnique({
+            where: { id: image.blogContentId },
+            select: { id: true },
+          });
+
+          if (blogExists) {
+            isOrphaned = false;
+          }
+        }
+
+        if (isOrphaned) {
+          orphanedImages.push({
+            id: image.id,
+            originalUrl: image.originalUrl,
+            filename: image.filename,
+            fileSize: image.fileSize,
+            width: image.width || 0,
+            height: image.height || 0,
+            format: image.format,
+            uploadedAt: image.uploadedAt,
+            processedSizes: image.processedSizes,
+            optimizationStats: image.optimizationStats,
+            tags: image.tags,
+            alt: image.alt,
+            isActive: image.isActive,
+            productId: image.productId,
+            status: "orphaned",
+          });
+        }
+      }
+
+      console.log(`Found ${orphanedImages.length} orphaned images`);
+      return orphanedImages;
+    } catch (error) {
+      console.error("Error finding orphaned images:", error);
+      return [];
+    }
   }
 
   /**
@@ -464,6 +623,121 @@ export class ImageManagementService {
   }
 
   /**
+   * Get single image by ID
+   */
+  static async getImageById(imageId: string): Promise<ImageItem | null> {
+    try {
+      const metadata = await prisma.imageMetadata.findUnique({
+        where: { id: imageId },
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              isActive: true,
+            },
+          },
+        },
+      });
+
+      if (!metadata) return null;
+
+      return {
+        id: metadata.id,
+        originalUrl: metadata.originalUrl,
+        filename: metadata.filename,
+        fileSize: metadata.fileSize,
+        width: metadata.width || 0,
+        height: metadata.height || 0,
+        format: metadata.format,
+        uploadedAt: metadata.uploadedAt,
+        processedSizes: metadata.processedSizes,
+        optimizationStats: metadata.optimizationStats,
+        tags: metadata.tags,
+        alt: metadata.alt,
+        isActive: metadata.isActive,
+        productId: metadata.productId,
+        status: this.determineImageStatus(metadata),
+      };
+    } catch (error) {
+      console.error("Error getting image by ID:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Sync Product.images array with ImageMetadata records
+   * This ensures consistency between the two storage methods
+   */
+  static async syncProductImages(productId: string): Promise<void> {
+    try {
+      // Get all active image metadata for this product
+      const productImages = await prisma.imageMetadata.findMany({
+        where: {
+          productId,
+          isActive: true,
+        },
+        orderBy: {
+          uploadedAt: "asc", // Maintain consistent ordering
+        },
+      });
+
+      // Extract URLs
+      const imageUrls = productImages.map(img => img.originalUrl);
+
+      // Update the product's images array
+      await prisma.product.update({
+        where: { id: productId },
+        data: {
+          images: imageUrls,
+        },
+      });
+
+      console.log(`Synced ${imageUrls.length} images for product ${productId}`);
+    } catch (error) {
+      console.error(`Error syncing product images for ${productId}:`, error);
+    }
+  }
+
+  /**
+   * Sync all products' images arrays with their ImageMetadata records
+   * This is a maintenance operation to fix inconsistencies
+   */
+  static async syncAllProductImages(): Promise<{
+    processed: number;
+    errors: number;
+  }> {
+    try {
+      const products = await prisma.product.findMany({
+        select: { id: true, name: true },
+      });
+
+      let processed = 0;
+      let errors = 0;
+
+      for (const product of products) {
+        try {
+          await this.syncProductImages(product.id);
+          processed++;
+        } catch (error) {
+          console.error(
+            `Failed to sync images for product ${product.name}:`,
+            error
+          );
+          errors++;
+        }
+      }
+
+      console.log(`Synced images for ${processed} products, ${errors} errors`);
+      return { processed, errors };
+    } catch (error) {
+      console.error("Error syncing all product images:", error);
+      return { processed: 0, errors: 1 };
+    }
+  }
+
+  /**
    * Update image metadata
    */
   static async updateImageMetadata(
@@ -475,10 +749,17 @@ export class ImageManagementService {
     }
   ): Promise<ImageMetadata | null> {
     try {
-      return await prisma.imageMetadata.update({
+      const updatedImage = await prisma.imageMetadata.update({
         where: { id: imageId },
         data: updates,
       });
+
+      // If this affects a product's images, sync the product
+      if (updatedImage.productId && updates.isActive !== undefined) {
+        await this.syncProductImages(updatedImage.productId);
+      }
+
+      return updatedImage;
     } catch (error) {
       console.error("Error updating image metadata:", error);
       return null;
@@ -490,7 +771,8 @@ export class ImageManagementService {
     image: any
   ): "valid" | "invalid" | "orphaned" | "processing" {
     if (!image.isActive) return "invalid";
-    if (!image.productId) return "orphaned";
+    if (!image.productId && !image.blogId && !image.blogContentId)
+      return "orphaned";
     return "valid";
   }
 

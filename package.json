@@ -18,6 +18,11 @@
     "check:auth-config": "node scripts/check-auth-config.js",
     "check:env": "node scripts/check-env.js",
     "check:ai-env": "node scripts/check-ai-env.js",
+    "backup": "npx tsx scripts/backup-database.ts",
+    "backup:auto": "npx tsx scripts/backup-database.ts && echo '✅ Backup completed at $(date)' >> backups/backup-log.txt",
+    "restore": "npx tsx scripts/restore-database.ts",
+    "restore:fresh": "npx tsx scripts/restore-database.ts --clear",
+    "restore:file": "npx tsx scripts/restore-database.ts",
     "db:studio": "./scripts/db-studio.sh",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -38,7 +43,9 @@
     "setup:romanian": "npm run seed && npm run seed:romanian",
     "seed:blogs": "npx ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed-blogs-romanian.ts",
     "seed:books": "npx ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed-books-romanian.ts",
-    "seed:admin": "npx ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed-admin.ts"
+    "seed:admin": "npx ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed-admin.ts",
+    "seo-analytics:daily": "npx tsx scripts/save-daily-seo-analytics.ts",
+    "seo-analytics:manual": "curl -X POST http://localhost:3000/api/cron/daily-seo-analytics -H \"Authorization: Bearer ${CRON_SECRET_TOKEN}\""
   },
   "prisma": {
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
@@ -120,6 +127,7 @@
     "postcss": "^8.4.32",
     "prisma": "^6.11.1",
     "react": "^19.1.0",
+    "react-day-picker": "^9.11.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.4",
     "react-markdown": "^10.1.0",

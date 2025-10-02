@@ -32,51 +32,13 @@ import { CurrencyDisplay } from "./CurrencyDisplay";
 import { SalesChart } from "./sales-chart";
 import { SalesByCategoryChart } from "./SalesByCategoryChart";
 import { TopSellingProductsTable } from "./TopSellingProductsTable";
-
-interface SalesData {
-  daily: number;
-  weekly: number;
-  monthly: number;
-  previousPeriodChange: number;
-  trending: "up" | "down";
-}
-
-interface OrderStats {
-  conversionRate: {
-    rate: number;
-    previousPeriodChange: number;
-    trending: "up" | "down";
-  };
-  averageOrderValue: {
-    value: number;
-    previousPeriodChange: number;
-    trending: "up" | "down";
-  };
-  totalCustomers: {
-    value: number;
-    previousPeriodChange: number;
-    trending: "up" | "down";
-  };
-}
-
-interface TopSellingProduct {
-  name: string;
-  price: number;
-  sold: number;
-  revenue: number;
-}
-
-interface CategorySales {
-  categoryId: string;
-  category: string;
-  amount: number;
-  percentage: number;
-}
-
-interface SalesByDay {
-  date: string;
-  sales: number;
-}
+import type {
+  SalesData,
+  OrderStats,
+  TopSellingProduct,
+  CategorySales,
+  SalesByDay,
+} from "@/lib/validations/analytics";
 
 interface AnalyticsDashboardProps {
   salesData: SalesData;

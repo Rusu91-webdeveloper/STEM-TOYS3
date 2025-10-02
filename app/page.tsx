@@ -125,8 +125,8 @@ async function fetchFeaturedProductsOptimized(): Promise<Product[]> {
   const { db } = await import("@/lib/db");
 
   try {
-    // **PERFORMANCE**: Ultra-minimal query with only essential fields, no joins if possible
-    const products = await db.product.findMany({
+    // **PERFORMANCE**: Add timeout to prevent hanging queries (590ms savings opportunity)
+    const queryPromise = db.product.findMany({
       where: {
         isActive: true,
         status: "APPROVED",
@@ -150,12 +150,17 @@ async function fetchFeaturedProductsOptimized(): Promise<Product[]> {
         createdAt: "desc",
       },
       take: 6,
-      // **PERFORMANCE**: Add query timeout to prevent hanging
-      // Note: Prisma doesn't support query timeouts in all databases, but this is good practice
     });
 
+    // **PERFORMANCE**: Add 500ms timeout to prevent slow database queries from blocking LCP
+    const timeoutPromise = new Promise<Product[]>(resolve => {
+      setTimeout(() => resolve([]), 500);
+    });
+
+    const products = await Promise.race([queryPromise, timeoutPromise]);
+
     // **PERFORMANCE**: Return raw data without any processing to minimize server time
-    return products;
+    return products || [];
   } catch (error) {
     // **PERFORMANCE**: Silent error handling with immediate return to avoid blocking TTFB
     console.error("Database error in fetchFeaturedProductsOptimized:", error);
@@ -163,18 +168,18 @@ async function fetchFeaturedProductsOptimized(): Promise<Product[]> {
   }
 }
 
-// **PERFORMANCE**: Incremental Static Regeneration for optimal TTFB
-export const revalidate = 3600; // Revalidate every hour for fresh content
+// **PERFORMANCE**: Incremental Static Regeneration for optimal TTFB and LCP
+export const revalidate = 1800; // Revalidate every 30 minutes for better cache freshness
 
 export default async function Home() {
   // **PERFORMANCE**: Aggressive caching strategy for TTFB optimization
   let featuredProducts: Product[] = [];
 
   try {
-    // **PERFORMANCE**: Use Promise.race with shorter timeout to prioritize TTFB over complete data
+    // **PERFORMANCE**: Get featured products with reasonable timeout to prevent blocking LCP
     const cachePromise = getFeaturedProducts();
     const timeoutPromise = new Promise<Product[]>(resolve => {
-      setTimeout(() => resolve([]), 50); // **PERFORMANCE**: 50ms timeout - prioritize TTFB
+      setTimeout(() => resolve([]), 200); // **PERFORMANCE**: 200ms timeout - balance TTFB with content availability
     });
 
     featuredProducts = await Promise.race([cachePromise, timeoutPromise]);
@@ -246,7 +251,7 @@ export function generateMetadata() {
       images: ["/images/homepage_hero_banner_01.png"],
     },
     other: {
-      // **PERFORMANCE**: Preload critical resources for hero section
+      // **PERFORMANCE**: Preload critical resources for hero section to improve LCP
       "link-preload-hero":
         "/images/optimized/homepage_hero_banner_01_fallback.jpg",
       // Additional SEO meta tags
@@ -254,6 +259,16 @@ export function generateMetadata() {
       googlebot: "index, follow, max-image-preview:large",
       bingbot: "index, follow, max-image-preview:large",
     },
+    // **PERFORMANCE**: Add preload links in head for critical LCP resources
+    links: [
+      {
+        rel: "preload",
+        href: "/images/optimized/homepage_hero_banner_01_fallback.jpg",
+        as: "image",
+        type: "image/jpeg",
+        fetchPriority: "high",
+      },
+    ],
     // Structured data for better search results
     alternates: {
       canonical: "https://www.techtots.ro/",
