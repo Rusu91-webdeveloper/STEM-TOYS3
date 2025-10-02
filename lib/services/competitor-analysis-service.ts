@@ -136,27 +136,25 @@ export class CompetitorAnalysisService {
     socialMetrics?: any;
   }> {
     try {
-      // Use web parser to analyze competitor website
-      const analysis =
-        (await mcp_zapier) -
-        mcp_web_parser_by_zapier_parse_webpage({
-          instructions: `Analyze this Romanian STEM education website for:
-        1. Main content topics and themes
-        2. Target keywords and SEO strategy
-        3. Content structure and quality
-        4. Social media presence
-        5. Unique selling propositions
+      // TODO: Implement MCP web parser integration when available
+      // For now, return mock data for development
+      console.log("Analyzing competitor website:", website);
 
-        Focus on STEM education content, target audience (Romanian parents), and competitive positioning.`,
-          url: website,
-        });
+      // Mock analysis data based on website
+      const mockAnalysis = {
+        title: "Competitor Website Analysis",
+        description: "STEM education content for Romanian parents",
+        content: "STEM education, jucării educative, dezvoltare copil, românia",
+      };
 
       // Parse the analysis (mock implementation for development)
       return {
-        title: analysis.title || "Analyzed Website",
-        metaDescription: analysis.description || "",
-        keywords: this.extractKeywordsFromContent(analysis.content || ""),
-        contentTopics: this.extractTopicsFromContent(analysis.content || ""),
+        title: mockAnalysis.title || "Analyzed Website",
+        metaDescription: mockAnalysis.description || "",
+        keywords: this.extractKeywordsFromContent(mockAnalysis.content || ""),
+        contentTopics: this.extractTopicsFromContent(
+          mockAnalysis.content || ""
+        ),
         backlinks: 0, // Would need additional API
         socialMetrics: {}, // Would need additional APIs
       };

@@ -6,6 +6,9 @@
  */
 
 import { Suspense } from "react";
+
+// Force dynamic rendering since we use no-store fetch
+export const dynamic = "force-dynamic";
 import {
   Card,
   CardContent,

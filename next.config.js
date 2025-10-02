@@ -49,7 +49,7 @@ const nextConfig = {
   },
 
   // **PERFORMANCE**: Modern JavaScript output for better performance
-  swcMinify: true,
+  // swcMinify is deprecated in Next.js 13+ and enabled by default
 
   // **PERFORMANCE**: Optimize output settings for better mobile performance
   output: "standalone",

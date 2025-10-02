@@ -117,7 +117,7 @@ export class ContentCalendarService {
   /**
    * Generate Romanian STEM content calendar for a month
    */
-  static async generateMonthlyCalendar(
+  async generateMonthlyCalendar(
     year: number,
     month: number
   ): Promise<ContentCalendarEntry[]> {
@@ -182,7 +182,8 @@ export class ContentCalendarService {
       if (dayOfWeek === "Sunday") continue;
 
       // Determine content type and timing based on Romanian audience behavior
-      const optimalTime = this.getOptimalPublishingTime(dayOfWeek);
+      const optimalTime =
+        ContentCalendarService.getOptimalPublishingTime(dayOfWeek);
 
       // Create 1-2 pieces of content per optimal publishing day
       const contentCount = Math.random() > 0.6 ? 2 : 1;
@@ -190,7 +191,8 @@ export class ContentCalendarService {
       for (let i = 0; i < contentCount; i++) {
         const pillar =
           contentPillars[Math.floor(Math.random() * contentPillars.length)];
-        const seasonalContext = this.getSeasonalContext(month);
+        const seasonalContext =
+          ContentCalendarService.getSeasonalContext(month);
 
         const scheduledDateTime = new Date(
           year,
@@ -204,20 +206,26 @@ export class ContentCalendarService {
         // Skip if scheduled time is in the past
         if (scheduledDateTime <= new Date()) continue;
 
-        const entry = await this.scheduleContent({
-          title: this.generateRomanianTitle(pillar.theme, seasonalContext),
+        const entry = await ContentCalendarService.scheduleContent({
+          title: ContentCalendarService.generateRomanianTitle(
+            pillar.theme,
+            seasonalContext
+          ),
           type: "blog",
           status: "scheduled",
           content: "", // Will be generated later
-          excerpt: this.generateExcerpt(pillar.theme),
+          excerpt: ContentCalendarService.generateExcerpt(pillar.theme),
           tags: pillar.keywords,
           targetKeywords: pillar.keywords.slice(0, 3),
           scheduledDate: scheduledDateTime,
           stemCategory: pillar.theme,
           targetAudience: "romanian_parents",
-          priority: this.calculatePriority(pillar.theme, seasonalContext),
+          priority: ContentCalendarService.calculatePriority(
+            pillar.theme,
+            seasonalContext
+          ),
           seasonalContext,
-          regionalFocus: this.getRegionalFocus(),
+          regionalFocus: ContentCalendarService.getRegionalFocus(),
           socialPromotion: true,
           emailPromotion: true,
           crossPromotion: Math.random() > 0.7,
