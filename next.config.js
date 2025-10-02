@@ -35,9 +35,21 @@ const nextConfig = {
           }
         : false,
   },
-  // Enhanced performance settings
-  // Enable experimental features for better performance
-  // Note: experimental config is already defined above
+
+  // **PERFORMANCE**: Optimize JavaScript delivery for modern browsers
+  experimental: {
+    // Enable optimized package imports
+    optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
+    // **PERFORMANCE**: Enable faster builds
+    webpackBuildWorker: true,
+    // Enable server actions
+    serverActions: {
+      allowedOrigins: ["localhost:3000", "your-domain.com"],
+    },
+  },
+
+  // **PERFORMANCE**: Modern JavaScript output for better performance
+  swcMinify: true,
 
   // **PERFORMANCE**: Optimize output settings for better mobile performance
   output: "standalone",
@@ -197,7 +209,7 @@ const nextConfig = {
     ];
   },
   // Fix module resolution and OpenTelemetry warnings
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     // Improve module resolution
     config.resolve.extensions = [".tsx", ".ts", ".jsx", ".js", ".json"];
 
@@ -206,6 +218,43 @@ const nextConfig = {
       ...config.resolve.alias,
       "@": require("path").resolve(__dirname),
     };
+
+    // **PERFORMANCE**: Optimize chunk splitting for better caching and loading
+    if (!dev && !isServer) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          ...config.optimization.splitChunks,
+          chunks: "all",
+          cacheGroups: {
+            ...config.optimization.splitChunks?.cacheGroups,
+            // Separate large vendor libraries
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: "vendors",
+              chunks: "all",
+              priority: 10,
+            },
+            // Separate React and Next.js runtime
+            framework: {
+              chunks: "all",
+              name: "framework",
+              test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+              priority: 20,
+              enforce: true,
+            },
+            // Separate UI library components
+            ui: {
+              test: /[\\/]node_modules[\\/](@radix-ui|@headlessui|framer-motion|lucide-react)[\\/]/,
+              name: "ui-components",
+              chunks: "all",
+              priority: 15,
+            },
+          },
+        },
+      };
+    }
+
     if (isServer) {
       // Prevent OpenTelemetry from trying to load native modules
       config.externals = [
