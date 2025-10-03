@@ -88,38 +88,38 @@ const categories = [
 
 // Loading fallback for featured products accordion
 const FeaturedProductsLoader = () => (
-  <section className="py-4 sm:py-6 md:py-8 lg:py-10">
-    <div className="container mx-auto px-2 sm:px-4 max-w-7xl">
-      <div className="mb-3 sm:mb-4 md:mb-6 text-center">
-        <span className="inline-block px-2 py-0.5 sm:px-3 sm:py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full mb-1 sm:mb-2">
+  <section className="py-6 sm:py-8 md:py-12 lg:py-14">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <div className="mb-4 sm:mb-6 md:mb-8 text-center">
+        <span className="inline-block px-2.5 py-0.5 sm:px-3 sm:py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full mb-2">
           Recommended For You
         </span>
-        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-2 sm:mb-3 md:mb-4 text-center mt-1 sm:mt-0 leading-tight">
+        <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2.5 sm:mb-3.5 md:mb-4 text-center mt-1 sm:mt-0 leading-tight tracking-tight">
           Featured Products
         </h2>
-        <p className="text-center text-muted-foreground mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto px-4 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed">
+        <p className="text-center text-muted-foreground mb-5 sm:mb-7 md:mb-9 max-w-3xl mx-auto px-4 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed">
           Discover our carefully curated selection of educational toys
         </p>
       </div>
 
       <div className="relative mx-auto max-w-5xl">
-        <div className="overflow-hidden relative rounded-xl shadow-lg border border-gray-200 bg-white">
+        <div className="overflow-hidden relative rounded-2xl shadow-sm border border-border bg-card">
           <div className="flex flex-col md:flex-row animate-pulse">
             {/* Product image skeleton */}
-            <div className="relative h-48 sm:h-56 md:h-80 md:w-1/2 bg-gray-200 rounded-t-xl md:rounded-t-none md:rounded-l-xl"></div>
+            <div className="relative h-48 sm:h-56 md:h-80 md:w-1/2 bg-muted rounded-t-2xl md:rounded-t-none md:rounded-l-2xl"></div>
 
             {/* Product details skeleton */}
             <div className="p-4 sm:p-6 md:p-8 md:w-1/2 flex flex-col justify-between">
               <div>
-                <div className="h-6 sm:h-8 bg-gray-200 rounded-md w-3/4 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded-md w-full mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded-md w-full mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded-md w-2/3 mb-4"></div>
+                <div className="h-6 sm:h-8 bg-muted rounded-md w-3/4 mb-3"></div>
+                <div className="h-3.5 bg-muted rounded-md w-full mb-2"></div>
+                <div className="h-3.5 bg-muted rounded-md w-11/12 mb-2"></div>
+                <div className="h-3.5 bg-muted rounded-md w-2/3 mb-4"></div>
               </div>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-auto">
-                <div className="h-6 sm:h-8 bg-gray-200 rounded-md w-24 mb-2 sm:mb-0"></div>
-                <div className="h-10 sm:h-12 bg-gray-200 rounded-md w-full sm:w-32"></div>
+                <div className="h-6 sm:h-8 bg-muted rounded-md w-24 mb-2 sm:mb-0"></div>
+                <div className="h-10 sm:h-12 bg-muted rounded-md w-full sm:w-32"></div>
               </div>
             </div>
           </div>
@@ -130,7 +130,7 @@ const FeaturedProductsLoader = () => (
           {[1, 2, 3, 4, 5, 6].map((_, index) => (
             <div
               key={index}
-              className="mx-1 h-2 w-2 sm:h-3 sm:w-3 rounded-full bg-gray-200"
+              className="mx-1 h-2 w-2 sm:h-3 sm:w-3 rounded-full bg-muted"
             />
           ))}
         </div>
@@ -313,14 +313,14 @@ export default function HomePageClient({
       <HeroSection t={t} />
 
       {/* **PERFORMANCE**: Trust badges and age links - Keep above fold for UX but optimize loading */}
-      <div className="-mt-4 sm:-mt-6 mb-4 sm:mb-6">
-        <div className="container mx-auto px-4">
-          <div className="mx-auto w-full max-w-5xl bg-white/95 backdrop-blur shadow-sm border border-gray-100 rounded-2xl p-4 sm:p-6">
+      <div className="-mt-4 sm:-mt-6 mb-6 sm:mb-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-5xl bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85 shadow-sm border border-border rounded-2xl p-4 sm:p-6 lg:p-7">
             {/* Trust badges row */}
             <TrustBadgesRow t={t} />
 
             {/* Subtle divider */}
-            <div className="my-3 sm:my-4 border-t border-gray-100"></div>
+            <div className="my-3 sm:my-4 border-t border-border"></div>
 
             {/* Age quick links row */}
             <AgeQuickLinksRow t={t} />
@@ -331,7 +331,7 @@ export default function HomePageClient({
       {/* **PERFORMANCE**: Defer non-critical sections below the fold */}
       <Suspense
         fallback={
-          <div className="h-32 bg-gray-100 animate-pulse rounded-lg mx-4 max-w-7xl"></div>
+          <div className="h-32 bg-muted animate-pulse rounded-xl mx-4 sm:mx-6 lg:mx-8 max-w-7xl"></div>
         }
       >
         <PillarSection />
@@ -339,7 +339,7 @@ export default function HomePageClient({
 
       <Suspense
         fallback={
-          <div className="h-48 bg-gray-100 animate-pulse rounded-lg mx-4 max-w-7xl"></div>
+          <div className="h-48 bg-muted animate-pulse rounded-xl mx-4 sm:mx-6 lg:mx-8 max-w-7xl"></div>
         }
       >
         <CategoriesSection categories={categories} t={t} />
@@ -347,7 +347,7 @@ export default function HomePageClient({
 
       <Suspense
         fallback={
-          <div className="h-64 bg-gray-100 animate-pulse rounded-lg mx-4 max-w-7xl"></div>
+          <div className="h-64 bg-muted animate-pulse rounded-xl mx-4 sm:mx-6 lg:mx-8 max-w-7xl"></div>
         }
       >
         <ValuePropositionSection t={t} />

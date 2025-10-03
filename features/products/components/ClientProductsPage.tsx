@@ -661,10 +661,10 @@ function ClientProductsPageContent({
           t={t}
         />
 
-        <div className="w-full max-w-full overflow-x-hidden bg-gradient-to-b from-gray-50/30 via-white to-gray-50/20">
-          <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8 relative z-10">
-            {/* Premium design element - top wave decoration */}
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500/20 via-purple-500/30 to-indigo-500/20 rounded-full opacity-75 hidden sm:block"></div>
+        <div className="w-full max-w-full overflow-x-hidden bg-gradient-to-b from-muted/20 via-background to-muted/10">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 relative z-10">
+            {/* Subtle top accent */}
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary/10 via-primary/20 to-primary/10 rounded-full opacity-70 hidden sm:block"></div>
 
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
               <ProductFiltersErrorBoundary
@@ -778,18 +778,18 @@ function ClientProductsPageContent({
 
 function ClientProductsPageFallback() {
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
       <div className="animate-pulse">
-        <div className="h-[15vh] sm:h-[20vh] bg-gray-200 rounded-xl mb-4 sm:mb-8"></div>
-        <div className="flex flex-col md:flex-row gap-3 sm:gap-6">
-          <div className="w-full md:w-64 h-80 sm:h-96 bg-gray-200 rounded-xl"></div>
+        <div className="h-[15vh] sm:h-[20vh] bg-muted rounded-2xl mb-4 sm:mb-8"></div>
+        <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
+          <div className="w-full md:w-64 h-80 sm:h-96 bg-muted rounded-2xl"></div>
           <div className="flex-1 space-y-3 sm:space-y-4">
-            <div className="h-6 sm:h-8 bg-gray-200 rounded"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="h-6 sm:h-8 bg-muted rounded-md"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-48 sm:h-64 bg-gray-200 rounded-xl"
+                  className="h-48 sm:h-64 bg-muted rounded-2xl"
                 ></div>
               ))}
             </div>
