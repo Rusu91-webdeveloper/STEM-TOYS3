@@ -64,10 +64,18 @@ export function useABTest(
         const response = await fetch(`/api/ab-testing/track?${params}`);
 
         if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.variant) {
-            setVariant(data.variant);
-            return;
+          try {
+            const data = await response.json();
+            if (data.success && data.variant) {
+              setVariant(data.variant);
+              return;
+            }
+          } catch (jsonError) {
+            console.warn(
+              "Failed to parse A/B test API response as JSON:",
+              jsonError
+            );
+            // Fall through to local fallback
           }
         }
 
@@ -105,7 +113,7 @@ export function useABTest(
       if (!variant) return;
 
       try {
-        await fetch("/api/ab-testing/track", {
+        const response = await fetch("/api/ab-testing/track", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -118,6 +126,22 @@ export function useABTest(
             userId,
           }),
         });
+
+        if (!response.ok) {
+          console.warn(
+            `A/B test tracking failed with status: ${response.status}`
+          );
+          return;
+        }
+
+        try {
+          await response.json();
+        } catch (jsonError) {
+          console.warn(
+            "Failed to parse A/B test tracking response:",
+            jsonError
+          );
+        }
       } catch (err) {
         console.error("Error tracking metric:", err);
       }

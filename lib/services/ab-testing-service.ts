@@ -5,7 +5,7 @@
  * optimization, focusing on titles, content structure, and conversion elements
  */
 
-import { db } from "@/lib/db";
+import { db } from "../db/index";
 
 // Define our own types based on the Prisma schema
 export type ABTestType =
