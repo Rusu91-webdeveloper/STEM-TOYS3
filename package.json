@@ -4,6 +4,11 @@
   "packageManager": "pnpm@9.14.4",
   "private": true,
   "scripts": {
+    "db:snapshot": "npx tsx scripts/prisma-snapshot.ts",
+    "db:diff": "npx prisma migrate diff --from-url $DATABASE_URL --to-schema-datamodel prisma/schema.prisma",
+    "db:migrate:dev": "npx prisma migrate dev",
+    "db:migrate:deploy": "npx prisma migrate deploy",
+    "db:reset": "npx prisma migrate reset --force",
     "dev": "next dev",
     "dev:clean": "rm -rf .next && next dev",
     "dev:memory": "NODE_OPTIONS=\"--max-old-space-size=2048\" next dev",

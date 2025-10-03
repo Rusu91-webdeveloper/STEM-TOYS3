@@ -2,6 +2,23 @@
 
 ## 2025-10-02
 
+## 2025-10-03
+
+- Add Prisma migration snapshot & automated DB backup
+  - Description: Add script to snapshot Prisma schema to SQL, generate DB diffs,
+    and wire npm scripts. Ensure JSON data backups and restore scripts are in
+    place.
+  - Estimated time: 0.5h
+  - Status: Completed
+  - Date: 2025-10-03
+  - Notes:
+    - Added `scripts/prisma-snapshot.ts`.
+    - Added npm scripts: `db:snapshot`, `db:diff`, `db:migrate:dev`,
+      `db:migrate:deploy`, `db:reset`.
+    - Existing `scripts/backup-database.ts` and `scripts/restore-database.ts`
+      provide full data backup/restore.
+    - Use `pnpm backup:auto` to generate JSON data backup with timestamp.
+
 - Fix Vercel Production Build Errors
   - Description: Resolve multiple build and runtime errors in Vercel production
     deployment
