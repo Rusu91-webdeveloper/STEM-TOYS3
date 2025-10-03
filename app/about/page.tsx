@@ -224,28 +224,25 @@ export default function AboutPage() {
                     height={24}
                     className="mr-2"
                   />
-                  10,000+ Părinți Transformați
+                  {t("aboutHeroSocialProof")}
                 </span>
               </div>
 
               {/* Hormozi-Style Headline */}
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gray-900 leading-tight">
-                Am Ajutat 10,000+ Părinți Să-și Transforme Copiii din{" "}
+                {t("aboutHeroHeadline")}{" "}
                 <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
-                  Elevi cu Dificultăți
+                  {t("aboutHeroHeadlineStruggling")}
                 </span>{" "}
-                în{" "}
+                {t("aboutHeroHeadlineInto")}{" "}
                 <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                  Viitori Inovatori
+                  {t("aboutHeroHeadlineFuture")}
                 </span>
               </h1>
 
               {/* Transformation-Focused Subheadline */}
               <p className="text-lg sm:text-xl md:text-2xl mb-8 text-gray-700 max-w-4xl mx-auto leading-relaxed">
-                Misiunea noastră este simplă: transformăm "urăsc matematica" în
-                "când facem experimente?" în doar 30 de zile. Am dovedit că cu
-                jucăriile STEM potrivite, orice copil poate trece de la
-                frustrare la fascinație.
+                {t("aboutHeroSubheadline")}
               </p>
 
               {/* Results Proof */}
@@ -255,7 +252,7 @@ export default function AboutPage() {
                     87%
                   </div>
                   <div className="text-sm text-gray-600">
-                    Îmbunătățire Matematică
+                    {t("aboutHeroMathImprovement")}
                   </div>
                 </div>
 
@@ -264,7 +261,7 @@ export default function AboutPage() {
                     30
                   </div>
                   <div className="text-sm text-gray-600">
-                    Zile Transformare Medie
+                    {t("aboutHeroTransformationDays")}
                   </div>
                 </div>
 
@@ -272,7 +269,9 @@ export default function AboutPage() {
                   <div className="text-4xl font-bold text-purple-600 mb-2">
                     99%
                   </div>
-                  <div className="text-sm text-gray-600">Părinți Mulțumiți</div>
+                  <div className="text-sm text-gray-600">
+                    {t("aboutHeroSatisfiedParents")}
+                  </div>
                 </div>
               </div>
 
@@ -284,7 +283,7 @@ export default function AboutPage() {
                   className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
                 >
                   <Link href="/contact">
-                    Obține Consultare Gratuită Acum
+                    {t("aboutHeroFreeConsultation")}
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Link>
                 </Button>
@@ -295,7 +294,7 @@ export default function AboutPage() {
                   size="lg"
                   className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg font-semibold"
                 >
-                  <Link href="/products">Vezi Jucăriile Care Transformă</Link>
+                  <Link href="/products">{t("aboutHeroSeeToys")}</Link>
                 </Button>
               </div>
 

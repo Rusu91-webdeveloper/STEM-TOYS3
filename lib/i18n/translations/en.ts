@@ -804,6 +804,20 @@ export const en = {
   ourTeam: "Our Team",
   joinStemJourney: "Join Our STEM Journey",
 
+  // About Page Hero Section
+  aboutHeroSocialProof: "10,000+ Parents Transformed",
+  aboutHeroHeadline: "We've Helped 10,000+ Parents Transform Their Kids from",
+  aboutHeroHeadlineStruggling: "Struggling Students",
+  aboutHeroHeadlineInto: "into",
+  aboutHeroHeadlineFuture: "Future Innovators",
+  aboutHeroSubheadline:
+    "Our mission is simple: we transform 'I hate math' into 'when can we do experiments?' in just 30 days. We've proven that with the right STEM toys, any child can go from frustration to fascination.",
+  aboutHeroMathImprovement: "Math Improvement",
+  aboutHeroTransformationDays: "Average Transformation Days",
+  aboutHeroSatisfiedParents: "Satisfied Parents",
+  aboutHeroFreeConsultation: "Get Free Consultation Now",
+  aboutHeroSeeToys: "See the Toys That Transform",
+
   // About page paragraphs
   ourStoryParagraph1:
     'Established in 2025, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.',

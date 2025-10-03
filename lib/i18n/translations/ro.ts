@@ -880,6 +880,20 @@ export const ro = {
   ourTeam: "Echipa Noastră",
   joinStemJourney: "Alătură-te Călătoriei Noastre STEM",
 
+  // About Page Hero Section
+  aboutHeroSocialProof: "10,000+ Părinți Transformați",
+  aboutHeroHeadline: "Am Ajutat 10,000+ Părinți Să-și Transforme Copiii din",
+  aboutHeroHeadlineStruggling: "Elevi cu Dificultăți",
+  aboutHeroHeadlineInto: "în",
+  aboutHeroHeadlineFuture: "Viitori Inovatori",
+  aboutHeroSubheadline:
+    "Misiunea noastră este simplă: transformăm 'urăsc matematica' în 'când facem experimente?' în doar 30 de zile. Am dovedit că cu jucăriile STEM potrivite, orice copil poate trece de la frustrare la fascinație.",
+  aboutHeroMathImprovement: "Îmbunătățire Matematică",
+  aboutHeroTransformationDays: "Zile Transformare Medie",
+  aboutHeroSatisfiedParents: "Părinți Mulțumiți",
+  aboutHeroFreeConsultation: "Obține Consultare Gratuită Acum",
+  aboutHeroSeeToys: "Vezi Jucăriile Care Transformă",
+
   // About page paragraphs
   ourStoryParagraph1:
     'Înființat în 2025, TechTots a fost fondat pe o viziune inspirată de două cărți pivot: "Jocuri STEM pentru minți neurodivergente" de Casey Wrenly și "Născut pentru viitor" de un educator și părinte dedicat. Aceste lucrări au evidențiat impactul profund al jocului STEM asupra dezvoltării copilului și importanța abilităților pregătite pentru viitor, modelând misiunea noastră principală.',
