@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
 import { formatPrice } from "@/lib/email/base";
 import { ProductImageGallery } from "./ProductImageGallery";
 import ProductSpecs from "./ProductSpecs";
@@ -30,10 +31,14 @@ export default function ProductDetailClient({
   relatedProducts = [],
 }: ProductDetailClientProps) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<
     number | null
   >(null);
   const [isFreeShippingActive, setIsFreeShippingActive] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+  const [wishlistItemId, setWishlistItemId] = useState<string | null>(null);
 
   // Fetch free shipping settings on component mount
   useEffect(() => {
@@ -61,6 +66,182 @@ export default function ProductDetailClient({
 
   const getCategoryName = () => {
     return product.category?.name || t("generalCategory");
+  };
+
+  const handleShare = async () => {
+    try {
+      const url =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/products/${product.slug}`
+          : "";
+      const title = product.name;
+      const text = t("shareProductText", "Vezi acest produs pe STEM Toys");
+
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        try {
+          await (navigator as any).share({ title, text, url });
+          return;
+        } catch {
+          // fall through to clipboard copy
+        }
+      }
+
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        toast({
+          title: t("linkCopied", "Link copiat"),
+          description: t(
+            "linkCopiedDesc",
+            "Link-ul produsului a fost copiat în clipboard."
+          ),
+        });
+        return;
+      }
+
+      // Fallback for very old browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      toast({
+        title: t("linkCopied", "Link copiat"),
+        description: t(
+          "linkCopiedDesc",
+          "Link-ul produsului a fost copiat în clipboard."
+        ),
+      });
+    } catch (error) {
+      console.error("Share failed:", error);
+      toast({
+        title: t("error", "Eroare"),
+        description: t(
+          "sharingNotSupported",
+          "Partajarea nu este disponibilă în acest moment."
+        ),
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    async function checkWishlist() {
+      try {
+        const res = await fetch("/api/account/wishlist", { cache: "no-store" });
+        if (!res.ok) return;
+        const items = await res.json();
+        if (cancelled) return;
+        if (Array.isArray(items)) {
+          const match = items.find((it: any) => it.productId === product.id);
+          setIsFavorited(Boolean(match));
+          setWishlistItemId(match ? match.id : null);
+        }
+      } catch {}
+    }
+    checkWishlist();
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id]);
+
+  const handleFavorite = async () => {
+    if (isFavoriteLoading) return;
+    setIsFavoriteLoading(true);
+    try {
+      if (!isFavorited) {
+        // Add to wishlist
+        const res = await fetch("/api/account/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: product.id }),
+        });
+
+        if (res.status === 401) {
+          toast({
+            title: t("loginRequired", "Autentificare necesară"),
+            description: t(
+              "loginToSaveWishlist",
+              "Autentifică-te pentru a salva în lista de dorințe."
+            ),
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (!res.ok) throw new Error("Failed to save to wishlist");
+
+        // Refresh to capture the new wishlist item id
+        try {
+          const refresh = await fetch("/api/account/wishlist", {
+            cache: "no-store",
+          });
+          if (refresh.ok) {
+            const items = await refresh.json();
+            const match = Array.isArray(items)
+              ? items.find((it: any) => it.productId === product.id)
+              : null;
+            setWishlistItemId(match ? match.id : null);
+          }
+        } catch {}
+
+        setIsFavorited(true);
+        toast({
+          title: t("addedToWishlist", "Adăugat în lista de dorințe"),
+          description: t(
+            "wishlistSaved",
+            "Produsul a fost salvat în lista ta de dorințe."
+          ),
+        });
+      } else {
+        // Remove from wishlist
+        let idToDelete = wishlistItemId;
+        if (!idToDelete) {
+          try {
+            const res = await fetch("/api/account/wishlist", {
+              cache: "no-store",
+            });
+            if (res.ok) {
+              const items = await res.json();
+              const match = Array.isArray(items)
+                ? items.find((it: any) => it.productId === product.id)
+                : null;
+              idToDelete = match ? match.id : null;
+            }
+          } catch {}
+        }
+
+        if (!idToDelete) throw new Error("Missing wishlist item id");
+
+        const del = await fetch(`/api/account/wishlist?id=${idToDelete}`, {
+          method: "DELETE",
+        });
+        if (!del.ok) throw new Error("Failed to remove from wishlist");
+
+        setIsFavorited(false);
+        setWishlistItemId(null);
+        toast({
+          title: t("removedFromWishlist", "Eliminat din lista de dorințe"),
+          description: t(
+            "wishlistRemoved",
+            "Produsul a fost eliminat din lista ta de dorințe."
+          ),
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: t("error", "Eroare"),
+        description: t(
+          "wishlistToggleError",
+          "Nu s-a putut actualiza lista de dorințe."
+        ),
+        variant: "destructive",
+      });
+    } finally {
+      setIsFavoriteLoading(false);
+    }
   };
 
   return (
@@ -131,16 +312,30 @@ export default function ProductDetailClient({
                   </div>
                   <div className="flex items-center space-x-1 flex-shrink-0">
                     <Button
-                      variant="outline"
+                      variant={isFavorited ? "default" : "outline"}
                       size="icon"
                       className="h-7 w-7 sm:h-8 sm:w-8"
+                      onClick={handleFavorite}
+                      disabled={isFavoriteLoading}
+                      title={
+                        isFavorited
+                          ? t("inWishlist", "În lista de dorințe")
+                          : t("addToWishlist", "Adaugă la dorințe")
+                      }
                     >
-                      <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <Heart
+                        className={
+                          "sm:h-4 sm:w-4 h-3 w-3 " +
+                          (isFavorited ? "text-red-500 fill-current" : "")
+                        }
+                      />
                     </Button>
                     <Button
                       variant="outline"
                       size="icon"
                       className="h-7 w-7 sm:h-8 sm:w-8"
+                      onClick={handleShare}
+                      title={t("share", "Partajează")}
                     >
                       <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
@@ -249,10 +444,32 @@ export default function ProductDetailClient({
                     </h1>
                   </div>
                   <div className="flex items-center space-x-2 flex-shrink-0">
-                    <Button variant="outline" size="icon" className="h-8 w-8">
-                      <Heart className="h-4 w-4" />
+                    <Button
+                      variant={isFavorited ? "default" : "outline"}
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={handleFavorite}
+                      disabled={isFavoriteLoading}
+                      title={
+                        isFavorited
+                          ? t("inWishlist", "În lista de dorințe")
+                          : t("addToWishlist", "Adaugă la dorințe")
+                      }
+                    >
+                      <Heart
+                        className={
+                          "h-4 w-4 " +
+                          (isFavorited ? "text-red-500 fill-current" : "")
+                        }
+                      />
                     </Button>
-                    <Button variant="outline" size="icon" className="h-8 w-8">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={handleShare}
+                      title={t("share", "Partajează")}
+                    >
                       <Share2 className="h-4 w-4" />
                     </Button>
                   </div>
