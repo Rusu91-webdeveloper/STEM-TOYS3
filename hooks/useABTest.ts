@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { conversionTracker } from "@/lib/conversion-tracking";
 
 export interface ABTestVariant {
   id: string;
@@ -28,6 +29,10 @@ export interface ABTestTracking {
   trackTimeOnPage: (timeInSeconds: number) => void;
   trackBounceRate: (hasBounced: boolean) => void;
 }
+
+// Re-export conversion tracking hook used across features to keep a stable public API
+// for modules importing from `@/hooks/useABTest`.
+export { useConversionTracking } from "@/lib/conversion-tracking";
 
 /**
  * Hook for A/B testing integration
@@ -58,14 +63,23 @@ export function useABTest(
 
         const response = await fetch(`/api/ab-testing/track?${params}`);
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch A/B test variant");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.variant) {
+            setVariant(data.variant);
+            return;
+          }
         }
 
-        const data = await response.json();
-
-        if (data.success && data.variant) {
-          setVariant(data.variant);
+        // Fallback: use client-side variant selection if API is unavailable/not provisioned
+        const localVariant = conversionTracker.getVariant(testId);
+        if (localVariant) {
+          setVariant({
+            id: localVariant.id,
+            name: localVariant.name,
+            content: localVariant.name,
+            isControl: !!localVariant.isControl,
+          });
         } else {
           setVariant(null);
         }

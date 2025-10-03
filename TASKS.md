@@ -4,6 +4,18 @@
 
 ## 2025-10-03
 
+- Fix products page import error for conversion tracking
+  - Description: Re-export `useConversionTracking` from `hooks/useABTest.ts` so
+    existing imports like `@/hooks/useABTest` work on `/products` components
+    (`ProductsHeroSection`, `AgeQuickFilters`, etc.).
+  - Estimated time: 0.2h
+  - Status: Completed
+  - Date: 2025-10-03
+  - Notes:
+    - Added `export { useConversionTracking } from "@/lib/conversion-tracking";`
+      to `hooks/useABTest.ts` to align with project import pattern.
+    - Resolves runtime TypeError: useConversionTracking is not a function.
+
 - Add Prisma migration snapshot & automated DB backup
   - Description: Add script to snapshot Prisma schema to SQL, generate DB diffs,
     and wire npm scripts. Ensure JSON data backups and restore scripts are in

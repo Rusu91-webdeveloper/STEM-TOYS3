@@ -38,7 +38,7 @@ export function ProductsHeroSection({
 }: ProductsHeroSectionProps) {
   const IconComponent = activeCategoryInfo.icon;
   const { variantName, isControl, trackConversion } = useABTest(
-    "products-hero-headline"
+    "products_hero_headline"
   );
   const { trackEvent } = useConversionTracking();
 
