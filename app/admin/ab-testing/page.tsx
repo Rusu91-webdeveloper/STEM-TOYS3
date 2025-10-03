@@ -26,66 +26,36 @@ import {
   RefreshCw,
   CheckCircle,
   AlertTriangle,
-  Play,
-  Pause,
-  StopCircle,
 } from "lucide-react";
+import { ABTestActions } from "@/components/admin/ABTestActions";
+import { CreateTestSection } from "@/components/admin/CreateTestSection";
 
 // Import A/B testing service
 import {
-  abTestingService,
-  ABTest,
-  ABTestResult,
+  ABTestingService,
+  ABTestWithVariants,
+  ABTestResultWithDetails,
 } from "@/lib/services/ab-testing-service";
 
 async function getABTests(): Promise<{
-  running: ABTest[];
-  completed: ABTest[];
-  results: ABTestResult[];
+  running: ABTestWithVariants[];
+  completed: ABTestWithVariants[];
+  results: ABTestResultWithDetails[];
 }> {
   try {
-    const running = await abTestingService.getRunningTests();
+    const running = await ABTestingService.getRunningTests();
+    const completed = await ABTestingService.getCompletedTests();
 
-    // Mock completed tests and results
-    const completed: ABTest[] = [
-      {
-        id: "completed_title_test",
-        name: "Title Variation Test - Completed",
-        description: "Successfully identified winning title variation",
-        type: "title",
-        status: "completed",
-        targetAudience: "romanian",
-        variants: [],
-        metrics: [],
-        startDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-        endDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        winner: "viral_shock",
-        confidence: 98.5,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ];
-
-    const results: ABTestResult[] = [
-      {
-        test: completed[0],
-        winner: {
-          id: "viral_shock",
-          name: "Viral - Shock Statistic",
-          content: "ȘOC! De ce 8 din 10 Copii Români URĂSC Matematica?",
-          weight: 25,
-        },
-        confidence: 98.5,
-        improvement: 35.2,
-        statisticalSignificance: true,
-        recommendations: [
-          "Implement the winning title variation across all STEM content",
-          "Expected 35.2% improvement in click-through rates",
-          "Continue testing other viral elements",
-          "Consider combining winning title with other optimizations",
-        ],
-      },
-    ];
+    // Get results for completed tests
+    const results: ABTestResultWithDetails[] = [];
+    for (const test of completed) {
+      if (test.results) {
+        const result = await ABTestingService.getTestResults(test.id);
+        if (result) {
+          results.push(result);
+        }
+      }
+    }
 
     return { running, completed, results };
   } catch (error) {
@@ -114,17 +84,25 @@ function TestsSkeleton() {
   );
 }
 
-function TestCard({ test, result }: { test: ABTest; result?: ABTestResult }) {
+function TestCard({
+  test,
+  result,
+}: {
+  test: ABTestWithVariants;
+  result?: ABTestResultWithDetails;
+}) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "running":
+      case "RUNNING":
         return "bg-green-100 text-green-800";
-      case "completed":
+      case "COMPLETED":
         return "bg-blue-100 text-blue-800";
-      case "paused":
+      case "PAUSED":
         return "bg-yellow-100 text-yellow-800";
-      case "draft":
+      case "DRAFT":
         return "bg-gray-100 text-gray-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -132,16 +110,22 @@ function TestCard({ test, result }: { test: ABTest; result?: ABTestResult }) {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case "title":
+      case "TITLE":
         return "🎯";
-      case "content":
+      case "CONTENT":
         return "📝";
-      case "call_to_action":
+      case "CALL_TO_ACTION":
         return "📢";
-      case "image":
+      case "IMAGE":
         return "🖼️";
-      case "structure":
+      case "STRUCTURE":
         return "🏗️";
+      case "LAYOUT":
+        return "📐";
+      case "PRICING":
+        return "💰";
+      case "CUSTOM":
+        return "⚙️";
       default:
         return "🧪";
     }
@@ -193,43 +177,25 @@ function TestCard({ test, result }: { test: ABTest; result?: ABTestResult }) {
                 </span>
               </div>
               <div className="text-sm text-green-700">
-                <div>Winner: {result.winner.name}</div>
+                <div>
+                  Winner:{" "}
+                  {test.variants.find(v => v.id === result.winnerVariantId)
+                    ?.name || "Unknown"}
+                </div>
                 <div>Improvement: +{result.improvement.toFixed(1)}%</div>
                 <div>Confidence: {result.confidence.toFixed(1)}%</div>
               </div>
             </div>
           )}
 
-          <div className="flex gap-2 pt-2">
-            {test.status === "running" && (
-              <>
-                <Button size="sm" variant="outline">
-                  <Pause className="h-3 w-3 mr-1" />
-                  Pause
-                </Button>
-                <Button size="sm" variant="outline">
-                  <StopCircle className="h-3 w-3 mr-1" />
-                  Stop
-                </Button>
-              </>
-            )}
-            {test.status === "paused" && (
-              <Button size="sm">
-                <Play className="h-3 w-3 mr-1" />
-                Resume
-              </Button>
-            )}
-            <Button size="sm" variant="outline">
-              View Details
-            </Button>
-          </div>
+          <ABTestActions test={test} />
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function TestResultsCard({ result }: { result: ABTestResult }) {
+function TestResultsCard({ result }: { result: ABTestResultWithDetails }) {
   return (
     <Card>
       <CardHeader>
@@ -266,10 +232,21 @@ function TestResultsCard({ result }: { result: ABTestResult }) {
 
           <div className="p-4 bg-green-50 rounded-lg border border-green-200">
             <h4 className="font-medium text-green-800 mb-2">Winning Variant</h4>
-            <p className="text-green-700 font-medium">
-              {result.winner.content}
-            </p>
-            <p className="text-sm text-green-600 mt-1">{result.winner.name}</p>
+            {(() => {
+              const winnerVariant = result.test.variants.find(
+                v => v.id === result.winnerVariantId
+              );
+              return (
+                <>
+                  <p className="text-green-700 font-medium">
+                    {winnerVariant?.content || "Unknown variant"}
+                  </p>
+                  <p className="text-sm text-green-600 mt-1">
+                    {winnerVariant?.name || "Unknown"}
+                  </p>
+                </>
+              );
+            })()}
           </div>
 
           <div>
@@ -283,50 +260,6 @@ function TestResultsCard({ result }: { result: ABTestResult }) {
               ))}
             </ul>
           </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function CreateTestSection() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Plus className="h-5 w-5" />
-          Create New A/B Test
-        </CardTitle>
-        <CardDescription>
-          Start optimizing your Romanian STEM content with data-driven testing
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Button className="h-20 flex-col gap-2" variant="outline">
-            <span className="text-lg">🎯</span>
-            <span>Title Test</span>
-          </Button>
-          <Button className="h-20 flex-col gap-2" variant="outline">
-            <span className="text-lg">📢</span>
-            <span>CTA Test</span>
-          </Button>
-          <Button className="h-20 flex-col gap-2" variant="outline">
-            <span className="text-lg">📝</span>
-            <span>Content Test</span>
-          </Button>
-          <Button className="h-20 flex-col gap-2" variant="outline">
-            <span className="text-lg">🖼️</span>
-            <span>Image Test</span>
-          </Button>
-          <Button className="h-20 flex-col gap-2" variant="outline">
-            <span className="text-lg">🏗️</span>
-            <span>Structure Test</span>
-          </Button>
-          <Button className="h-20 flex-col gap-2" variant="outline">
-            <span className="text-lg">⚡</span>
-            <span>Custom Test</span>
-          </Button>
         </div>
       </CardContent>
     </Card>

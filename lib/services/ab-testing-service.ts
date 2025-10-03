@@ -7,15 +7,62 @@
 
 import { db } from "@/lib/db";
 
-export interface ABTestVariant {
+// Define our own types based on the Prisma schema
+export type ABTestType =
+  | "TITLE"
+  | "CONTENT"
+  | "CALL_TO_ACTION"
+  | "IMAGE"
+  | "STRUCTURE"
+  | "LAYOUT"
+  | "PRICING"
+  | "CUSTOM";
+export type ABTestStatus =
+  | "DRAFT"
+  | "RUNNING"
+  | "COMPLETED"
+  | "PAUSED"
+  | "CANCELLED";
+export type ABTestAudience =
+  | "ALL"
+  | "ROMANIAN"
+  | "NEW_USERS"
+  | "RETURNING_USERS"
+  | "MOBILE_USERS"
+  | "DESKTOP_USERS";
+
+export interface ABTest {
   id: string;
   name: string;
+  description: string | null;
+  type: ABTestType;
+  status: ABTestStatus;
+  targetAudience: ABTestAudience;
+  startDate: Date | null;
+  endDate: Date | null;
+  winner: string | null;
+  confidence: number | null;
+  isActive: boolean;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ABTestVariant {
+  id: string;
+  testId: string;
+  name: string;
   content: string;
-  weight: number; // Percentage of traffic (0-100)
-  isControl?: boolean;
+  weight: number;
+  isControl: boolean;
+  isWinner: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ABTestMetrics {
+  id: string;
+  testId: string;
   variantId: string;
   impressions: number;
   clicks: number;
@@ -23,33 +70,47 @@ export interface ABTestMetrics {
   socialShares: number;
   timeOnPage: number;
   bounceRate: number;
-  viralScore?: number;
-}
-
-export interface ABTest {
-  id: string;
-  name: string;
-  description: string;
-  type: "title" | "content" | "call_to_action" | "image" | "structure";
-  status: "draft" | "running" | "completed" | "paused";
-  targetAudience: "all" | "romanian" | "new_users" | "returning_users";
-  variants: ABTestVariant[];
-  metrics: ABTestMetrics[];
-  startDate?: Date;
-  endDate?: Date;
-  winner?: string; // Variant ID of the winner
-  confidence?: number; // Statistical confidence level
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface ABTestResult {
-  test: ABTest;
-  winner: ABTestVariant;
+  id: string;
+  testId: string;
+  winnerVariantId: string;
   confidence: number;
-  improvement: number; // Percentage improvement over control
+  improvement: number;
   statisticalSignificance: boolean;
   recommendations: string[];
+  analysisData: any;
+  completedAt: Date;
+}
+
+// Extended types for the service layer
+export interface ABTestWithVariants extends ABTest {
+  variants: ABTestVariant[];
+  metrics: ABTestMetrics[];
+  results?: ABTestResult | null;
+}
+
+export interface ABTestResultWithDetails extends ABTestResult {
+  test: ABTestWithVariants;
+}
+
+export interface CreateABTestData {
+  name: string;
+  description?: string;
+  type: ABTestType;
+  targetAudience: ABTestAudience;
+  variants: Array<{
+    name: string;
+    content: string;
+    weight: number;
+    isControl?: boolean;
+  }>;
+  startDate?: Date;
+  endDate?: Date;
+  createdBy: string;
 }
 
 export class ABTestingService {
@@ -57,8 +118,8 @@ export class ABTestingService {
    * Create a new A/B test
    */
   static async createABTest(
-    testData: Omit<ABTest, "id" | "metrics" | "createdAt" | "updatedAt">
-  ): Promise<ABTest> {
+    testData: CreateABTestData
+  ): Promise<ABTestWithVariants> {
     // Validate variants
     const totalWeight = testData.variants.reduce(
       (sum, variant) => sum + variant.weight,
@@ -78,32 +139,316 @@ export class ABTestingService {
       throw new Error("A/B test must have exactly one control variant");
     }
 
-    // In a real implementation, this would save to database
-    const test: ABTest = {
-      ...testData,
-      id: `ab_test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      metrics: testData.variants.map(variant => ({
-        variantId: variant.id,
-        impressions: 0,
-        clicks: 0,
-        conversions: 0,
-        socialShares: 0,
-        timeOnPage: 0,
-        bounceRate: 0,
-      })),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    // Create the test with variants and metrics in a transaction
+    const result = await db.$transaction(async tx => {
+      // Create the main test
+      const test = await tx.aBTest.create({
+        data: {
+          name: testData.name,
+          description: testData.description,
+          type: testData.type,
+          targetAudience: testData.targetAudience,
+          startDate: testData.startDate,
+          endDate: testData.endDate,
+          createdBy: testData.createdBy,
+          status: "DRAFT",
+          isActive: false,
+        },
+      });
+
+      // Create variants
+      const variants = await Promise.all(
+        testData.variants.map(variantData =>
+          tx.aBTestVariant.create({
+            data: {
+              testId: test.id,
+              name: variantData.name,
+              content: variantData.content,
+              weight: variantData.weight,
+              isControl: variantData.isControl || false,
+            },
+          })
+        )
+      );
+
+      // Create initial metrics for each variant
+      const metrics = await Promise.all(
+        variants.map(variant =>
+          tx.aBTestMetrics.create({
+            data: {
+              testId: test.id,
+              variantId: variant.id,
+              impressions: 0,
+              clicks: 0,
+              conversions: 0,
+              socialShares: 0,
+              timeOnPage: 0,
+              bounceRate: 0,
+            },
+          })
+        )
+      );
+
+      return { test, variants, metrics };
+    });
+
+    return {
+      ...result.test,
+      variants: result.variants,
+      metrics: result.metrics,
     };
+  }
+
+  /**
+   * Get all A/B tests with their variants and metrics
+   */
+  static async getAllTests(): Promise<ABTestWithVariants[]> {
+    return await db.aBTest.findMany({
+      include: {
+        variants: true,
+        metrics: true,
+        results: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
+  /**
+   * Get running A/B tests
+   */
+  static async getRunningTests(): Promise<ABTestWithVariants[]> {
+    return await db.aBTest.findMany({
+      where: {
+        status: "RUNNING",
+        isActive: true,
+      },
+      include: {
+        variants: true,
+        metrics: true,
+        results: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
+  /**
+   * Get completed A/B tests
+   */
+  static async getCompletedTests(): Promise<ABTestWithVariants[]> {
+    return await db.aBTest.findMany({
+      where: {
+        status: "COMPLETED",
+      },
+      include: {
+        variants: true,
+        metrics: true,
+        results: true,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+  }
+
+  /**
+   * Get A/B test by ID
+   */
+  static async getTestById(testId: string): Promise<ABTestWithVariants | null> {
+    return await db.aBTest.findUnique({
+      where: { id: testId },
+      include: {
+        variants: true,
+        metrics: true,
+        results: true,
+      },
+    });
+  }
+
+  /**
+   * Start an A/B test
+   */
+  static async startTest(testId: string): Promise<ABTestWithVariants> {
+    const test = await db.$transaction(async tx => {
+      const updatedTest = await tx.aBTest.update({
+        where: { id: testId },
+        data: {
+          status: "RUNNING",
+          isActive: true,
+          startDate: new Date(),
+        },
+      });
+
+      return await tx.aBTest.findUnique({
+        where: { id: testId },
+        include: {
+          variants: true,
+          metrics: true,
+          results: true,
+        },
+      });
+    });
+
+    if (!test) {
+      throw new Error("Test not found");
+    }
 
     return test;
   }
 
   /**
+   * Pause an A/B test
+   */
+  static async pauseTest(testId: string): Promise<ABTestWithVariants> {
+    const test = await db.$transaction(async tx => {
+      await tx.aBTest.update({
+        where: { id: testId },
+        data: {
+          status: "PAUSED",
+          isActive: false,
+        },
+      });
+
+      return await tx.aBTest.findUnique({
+        where: { id: testId },
+        include: {
+          variants: true,
+          metrics: true,
+          results: true,
+        },
+      });
+    });
+
+    if (!test) {
+      throw new Error("Test not found");
+    }
+
+    return test;
+  }
+
+  /**
+   * Stop an A/B test and complete it
+   */
+  static async stopTest(testId: string): Promise<ABTestWithVariants> {
+    const test = await db.$transaction(async tx => {
+      // Get current test data
+      const currentTest = await tx.aBTest.findUnique({
+        where: { id: testId },
+        include: {
+          variants: true,
+          metrics: true,
+        },
+      });
+
+      if (!currentTest) {
+        throw new Error("Test not found");
+      }
+
+      // Calculate winner and results
+      const results = this.calculateTestResults(currentTest);
+
+      // Update test status
+      await tx.aBTest.update({
+        where: { id: testId },
+        data: {
+          status: "COMPLETED",
+          isActive: false,
+          endDate: new Date(),
+          winner: results.winnerVariantId,
+          confidence: results.confidence,
+        },
+      });
+
+      // Create result record
+      await tx.aBTestResult.create({
+        data: {
+          testId: testId,
+          winnerVariantId: results.winnerVariantId,
+          confidence: results.confidence,
+          improvement: results.improvement,
+          statisticalSignificance: results.statisticalSignificance,
+          recommendations: results.recommendations,
+          analysisData: results.analysisData,
+        },
+      });
+
+      // Mark winning variant
+      await tx.aBTestVariant.updateMany({
+        where: {
+          testId: testId,
+          id: results.winnerVariantId,
+        },
+        data: {
+          isWinner: true,
+        },
+      });
+
+      return await tx.aBTest.findUnique({
+        where: { id: testId },
+        include: {
+          variants: true,
+          metrics: true,
+          results: true,
+        },
+      });
+    });
+
+    if (!test) {
+      throw new Error("Test not found");
+    }
+
+    return test;
+  }
+
+  /**
+   * Track metric for A/B test variant
+   */
+  static async trackMetric(
+    testId: string,
+    variantId: string,
+    metricType: keyof Omit<
+      ABTestMetrics,
+      "id" | "testId" | "variantId" | "createdAt" | "updatedAt"
+    >,
+    value: number = 1
+  ): Promise<void> {
+    await db.aBTestMetrics.upsert({
+      where: {
+        testId_variantId: { testId, variantId },
+      },
+      update: {
+        [metricType]: { increment: value },
+        updatedAt: new Date(),
+      },
+      create: {
+        testId,
+        variantId,
+        [metricType]: value,
+        impressions: metricType === "impressions" ? value : 0,
+        clicks: metricType === "clicks" ? value : 0,
+        conversions: metricType === "conversions" ? value : 0,
+        socialShares: metricType === "socialShares" ? value : 0,
+        timeOnPage: metricType === "timeOnPage" ? value : 0,
+        bounceRate: metricType === "bounceRate" ? value : 0,
+      },
+    });
+  }
+
+  /**
    * Get variant for user based on test configuration
    */
-  static getVariantForUser(test: ABTest, userId: string): ABTestVariant {
+  static getVariantForUser(
+    test: ABTestWithVariants,
+    userId: string
+  ): ABTestVariant | null {
+    if (!test.isActive || test.status !== "RUNNING") {
+      return null;
+    }
+
     // Simple deterministic assignment based on user ID
-    // In production, use proper randomization with consistent assignment
     const hash = this.simpleHash(userId + test.id);
     const randomValue = (hash % 100) / 100;
 
@@ -116,217 +461,163 @@ export class ABTestingService {
     }
 
     // Fallback to first variant
-    return test.variants[0];
-  }
-
-  /**
-   * Track metric for A/B test variant
-   */
-  static async trackMetric(
-    testId: string,
-    variantId: string,
-    metricType: keyof ABTestMetrics,
-    value: number = 1
-  ): Promise<void> {
-    // In a real implementation, this would update the database
-    console.log(
-      `Tracking ${metricType} for test ${testId}, variant ${variantId}: ${value}`
-    );
-
-    // Simulate database update
-    // await db.abTestMetric.upsert({
-    //   where: { testId_variantId: { testId, variantId } },
-    //   update: { [metricType]: { increment: value } },
-    //   create: {
-    //     testId,
-    //     variantId,
-    //     [metricType]: value,
-    //     impressions: metricType === 'impressions' ? value : 0,
-    //     clicks: metricType === 'clicks' ? value : 0,
-    //     conversions: metricType === 'conversions' ? value : 0,
-    //     socialShares: metricType === 'socialShares' ? value : 0,
-    //     timeOnPage: metricType === 'timeOnPage' ? value : 0,
-    //     bounceRate: metricType === 'bounceRate' ? value : 0,
-    //   },
-    // });
+    return test.variants[0] || null;
   }
 
   /**
    * Get A/B test results and determine winner
    */
-  static async getTestResults(testId: string): Promise<ABTestResult | null> {
-    // Mock implementation - in production would fetch from database
-    const mockTest: ABTest = {
-      id: testId,
-      name: "Romanian Title Test",
-      description: "Testing viral title variations for STEM content",
-      type: "title",
-      status: "running",
-      targetAudience: "romanian",
-      variants: [
-        {
-          id: "control",
-          name: "Control Title",
-          content: "De ce Copiii Au Nevoie de Jucării STEM?",
-          weight: 50,
-          isControl: true,
-        },
-        {
-          id: "variant_a",
-          name: "Viral Title A",
-          content: "ȘOC! De ce 8 din 10 Copii Români URĂSC Matematica?",
-          weight: 25,
-        },
-        {
-          id: "variant_b",
-          name: "Viral Title B",
-          content: "SECRETUL Părinților din Cluj: Copiii Lor EXCELEAZĂ!",
-          weight: 25,
-        },
-      ],
-      metrics: [
-        {
-          variantId: "control",
-          impressions: 15420,
-          clicks: 1234,
-          conversions: 89,
-          socialShares: 156,
-          timeOnPage: 185,
-          bounceRate: 0.35,
-        },
-        {
-          variantId: "variant_a",
-          impressions: 7680,
-          clicks: 984,
-          conversions: 76,
-          socialShares: 234,
-          timeOnPage: 245,
-          bounceRate: 0.28,
-        },
-        {
-          variantId: "variant_b",
-          impressions: 7720,
-          clicks: 756,
-          conversions: 45,
-          socialShares: 198,
-          timeOnPage: 198,
-          bounceRate: 0.42,
-        },
-      ],
-      startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  static async getTestResults(
+    testId: string
+  ): Promise<ABTestResultWithDetails | null> {
+    const test = await this.getTestById(testId);
+    if (!test || !test.results) {
+      return null;
+    }
 
-    // Calculate winner based on conversion rate
-    const variantsWithConversionRate = mockTest.metrics.map(metric => {
-      const variant = mockTest.variants.find(v => v.id === metric.variantId);
-      const conversionRate = metric.conversions / metric.clicks;
+    return {
+      ...test.results,
+      test,
+    };
+  }
+
+  /**
+   * Calculate test results and determine winner
+   */
+  private static calculateTestResults(test: ABTestWithVariants): {
+    winnerVariantId: string;
+    confidence: number;
+    improvement: number;
+    statisticalSignificance: boolean;
+    recommendations: string[];
+    analysisData: any;
+  } {
+    // Calculate conversion rates for each variant
+    const variantsWithMetrics = test.variants.map(variant => {
+      const metrics = test.metrics.find(m => m.variantId === variant.id);
+      const conversionRate = metrics
+        ? metrics.conversions / Math.max(metrics.clicks, 1)
+        : 0;
       return {
-        variant: variant!,
-        metric,
+        variant,
+        metrics,
         conversionRate,
       };
     });
 
-    const sortedVariants = variantsWithConversionRate.sort(
+    // Sort by conversion rate
+    const sortedVariants = variantsWithMetrics.sort(
       (a, b) => b.conversionRate - a.conversionRate
     );
     const winner = sortedVariants[0];
-    const control = variantsWithConversionRate.find(v => v.variant.isControl)!;
+    const control = variantsWithMetrics.find(v => v.variant.isControl);
 
-    const improvement =
-      ((winner.conversionRate - control.conversionRate) /
-        control.conversionRate) *
-      100;
+    if (!control) {
+      throw new Error("No control variant found");
+    }
 
-    // Calculate statistical significance (simplified)
+    const improvement = control.metrics?.clicks
+      ? (((winner.metrics?.conversions || 0) -
+          (control.metrics?.conversions || 0)) /
+          Math.max(control.metrics.conversions, 1)) *
+        100
+      : 0;
+
+    // Calculate statistical significance
     const confidence = this.calculateStatisticalSignificance(
-      winner.metric.conversions,
-      winner.metric.clicks,
-      control.metric.conversions,
-      control.metric.clicks
+      winner.metrics?.conversions || 0,
+      winner.metrics?.clicks || 0,
+      control.metrics?.conversions || 0,
+      control.metrics?.clicks || 0
     );
 
+    const recommendations = [
+      `Implement "${winner.variant.name}" as the winning variation`,
+      `Expected ${improvement.toFixed(1)}% improvement over control`,
+      "Continue A/B testing other content elements",
+      "Consider testing winning variation with different contexts",
+    ];
+
     return {
-      test: mockTest,
-      winner: winner.variant,
+      winnerVariantId: winner.variant.id,
       confidence,
       improvement,
       statisticalSignificance: confidence > 95,
-      recommendations: [
-        `Implement "${winner.variant.name}" as the winning title variation`,
-        `Expected ${improvement.toFixed(1)}% improvement in conversions`,
-        "Continue A/B testing other content elements",
-        "Consider testing winning title with different content structures",
-      ],
+      recommendations,
+      analysisData: {
+        variantsWithMetrics,
+        conversionRates: variantsWithMetrics.map(v => ({
+          variantId: v.variant.id,
+          conversionRate: v.conversionRate,
+        })),
+      },
     };
   }
 
   /**
    * Generate Romanian title variations for A/B testing
    */
-  static generateRomanianTitleVariations(baseTopic: string): ABTestVariant[] {
-    const variations = [
+  static generateRomanianTitleVariations(baseTopic: string): Array<{
+    name: string;
+    content: string;
+    weight: number;
+    isControl?: boolean;
+  }> {
+    return [
       {
-        id: "control",
         name: "Control - Question Based",
         content: `De ce Copiii Au Nevoie de ${baseTopic}?`,
         weight: 40,
         isControl: true,
       },
       {
-        id: "viral_shock",
         name: "Viral - Shock Statistic",
         content: `ȘOC! De ce 8 din 10 Copii Români URĂSC ${baseTopic}?`,
         weight: 20,
       },
       {
-        id: "viral_secret",
         name: "Viral - Local Secret",
         content: `SECRETUL Părinților din București: Copiii Lor EXCELEAZĂ la ${baseTopic}!`,
         weight: 20,
       },
       {
-        id: "viral_fear",
         name: "Viral - Fear of Missing Out",
         content: `NU RATA ȘANSA! Cum să faci Copilul să IUBEASCĂ ${baseTopic} în 30 de zile`,
         weight: 20,
       },
     ];
-
-    return variations;
   }
 
   /**
    * Generate Romanian CTA variations for A/B testing
    */
-  static generateRomanianCTAVariations(): ABTestVariant[] {
+  static generateRomanianCTAVariations(): Array<{
+    name: string;
+    content: string;
+    weight: number;
+    isControl?: boolean;
+  }> {
     return [
       {
-        id: "control",
         name: "Control - Standard CTA",
         content: "Descoperă colecția noastră STEM →",
         weight: 40,
         isControl: true,
       },
       {
-        id: "urgency",
         name: "Urgency - Limited Time",
         content:
           "🚨 Doar azi: Reducere 30% la jucăriile STEM! Descoperă acum →",
         weight: 20,
       },
       {
-        id: "social_proof",
         name: "Social Proof - Numbers",
         content:
           "Alătură-te celor 10,000+ părinți mulțumiți! Vezi rezultatele →",
         weight: 20,
       },
       {
-        id: "fear_missing_out",
-        name: "FOMO - Don&apos;t Miss Out",
+        name: "FOMO - Don't Miss Out",
         content: "⚠️ NU pierde șansa! Copiii tăi vor rămâne în urmă fără STEM",
         weight: 20,
       },
@@ -342,8 +633,7 @@ export class ABTestingService {
     conversionsB: number,
     clicksB: number
   ): number {
-    // Simplified statistical significance calculation
-    // In production, use proper statistical libraries
+    if (clicksA === 0 || clicksB === 0) return 0;
 
     const rateA = conversionsA / clicksA;
     const rateB = conversionsB / clicksB;
@@ -376,42 +666,6 @@ export class ABTestingService {
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash);
-  }
-
-  /**
-   * Get running A/B tests
-   */
-  static async getRunningTests(): Promise<ABTest[]> {
-    // Mock implementation - would fetch from database
-    return [
-      {
-        id: "title_test_2025",
-        name: "Romanian Title Optimization",
-        description:
-          "Testing viral title variations for maximum click-through rates",
-        type: "title",
-        status: "running",
-        targetAudience: "romanian",
-        variants: [],
-        metrics: [],
-        startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: "cta_test_2025",
-        name: "Call-to-Action Optimization",
-        description: "Testing different CTA variations for maximum conversions",
-        type: "call_to_action",
-        status: "running",
-        targetAudience: "all",
-        variants: [],
-        metrics: [],
-        startDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ];
   }
 }
 

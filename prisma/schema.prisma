@@ -1483,3 +1483,116 @@ model TikTokPixelConfig {
   @@index([isActive])
   @@index([pixelId])
 }
+
+model ABTest {
+  id              String        @id @default(cuid())
+  name            String
+  description     String?
+  type            ABTestType
+  status          ABTestStatus  @default(DRAFT)
+  targetAudience  ABTestAudience @default(ALL)
+  startDate       DateTime?
+  endDate         DateTime?
+  winner          String?       // Variant ID of the winner
+  confidence      Float?        // Statistical confidence level (0-100)
+  isActive        Boolean       @default(false)
+  createdBy       String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  variants        ABTestVariant[]
+  metrics         ABTestMetrics[]
+  results         ABTestResult?
+
+  @@index([status])
+  @@index([type])
+  @@index([isActive])
+  @@index([targetAudience])
+  @@index([createdBy])
+  @@index([createdAt])
+  @@index([startDate, endDate])
+}
+
+model ABTestVariant {
+  id        String   @id @default(cuid())
+  testId    String
+  name      String
+  content   String
+  weight    Float    // Percentage of traffic (0-100)
+  isControl Boolean  @default(false)
+  isWinner  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  test      ABTest   @relation(fields: [testId], references: [id], onDelete: Cascade)
+  metrics   ABTestMetrics[]
+
+  @@index([testId])
+  @@index([isControl])
+  @@index([isWinner])
+  @@index([weight])
+}
+
+model ABTestMetrics {
+  id           String    @id @default(cuid())
+  testId       String
+  variantId    String
+  impressions  Int       @default(0)
+  clicks       Int       @default(0)
+  conversions  Int       @default(0)
+  socialShares Int       @default(0)
+  timeOnPage   Float     @default(0) // Average time in seconds
+  bounceRate   Float     @default(0) // Bounce rate percentage
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  test         ABTest    @relation(fields: [testId], references: [id], onDelete: Cascade)
+  variant      ABTestVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([testId, variantId])
+  @@index([testId])
+  @@index([variantId])
+  @@index([createdAt])
+}
+
+model ABTestResult {
+  id                    String   @id @default(cuid())
+  testId                String   @unique
+  winnerVariantId       String
+  confidence            Float    // Statistical confidence (0-100)
+  improvement           Float    // Percentage improvement over control
+  statisticalSignificance Boolean
+  recommendations       String[] // Array of recommendation strings
+  analysisData          Json?    // Additional statistical analysis data
+  completedAt           DateTime @default(now())
+  test                  ABTest   @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([testId])
+  @@index([completedAt])
+  @@index([statisticalSignificance])
+}
+
+enum ABTestType {
+  TITLE
+  CONTENT
+  CALL_TO_ACTION
+  IMAGE
+  STRUCTURE
+  LAYOUT
+  PRICING
+  CUSTOM
+}
+
+enum ABTestStatus {
+  DRAFT
+  RUNNING
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+enum ABTestAudience {
+  ALL
+  ROMANIAN
+  NEW_USERS
+  RETURNING_USERS
+  MOBILE_USERS
+  DESKTOP_USERS
+}

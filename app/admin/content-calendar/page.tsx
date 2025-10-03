@@ -36,6 +36,7 @@ import {
   ContentCalendarEntry,
   PublishingSchedule,
   ContentCalendarAnalytics,
+  ContentCalendarService,
 } from "@/lib/services/content-calendar-service";
 
 async function getContentCalendarData(): Promise<{
@@ -51,8 +52,8 @@ async function getContentCalendarData(): Promise<{
       now.getFullYear(),
       now.getMonth()
     );
-    const schedule = contentCalendarService.getOptimalPublishingTimes();
-    const analytics = await contentCalendarService.getCalendarAnalytics();
+    const schedule = ContentCalendarService.getOptimalPublishingTimes();
+    const analytics = await ContentCalendarService.getCalendarAnalytics();
 
     // Get upcoming content (next 7 days)
     const upcoming = calendar
@@ -67,7 +68,7 @@ async function getContentCalendarData(): Promise<{
     console.error("Failed to fetch content calendar data:", error);
     return {
       calendar: [],
-      schedule: contentCalendarService.getOptimalPublishingTimes(),
+      schedule: ContentCalendarService.getOptimalPublishingTimes(),
       analytics: {
         totalScheduled: 0,
         totalPublished: 0,

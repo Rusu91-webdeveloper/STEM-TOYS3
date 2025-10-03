@@ -75,6 +75,9 @@ export interface ContentCalendarAnalytics {
   conversionRate: number;
 }
 
+import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
+
 export class ContentCalendarService {
   private static readonly ROMANIAN_OPTIMAL_TIMES = [
     { day: "Monday", hour: 19, expectedTraffic: 85, romanianTimezone: true },
@@ -121,123 +124,116 @@ export class ContentCalendarService {
     year: number,
     month: number
   ): Promise<ContentCalendarEntry[]> {
-    const calendar: ContentCalendarEntry[] = [];
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const startOfMonth = new Date(year, month, 1);
+    const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59, 999);
 
-    // Romanian STEM content pillars
-    const contentPillars = [
-      {
-        theme: "matematică",
-        keywords: [
-          "matematică distractivă",
-          "jocuri matematice",
-          "STEM matematică",
-        ],
-        frequency: "weekly",
+    // Fetch published blogs in this month
+    const blogs = await db.blog.findMany({
+      where: {
+        isPublished: true,
+        publishedAt: {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        },
       },
-      {
-        theme: "știință",
-        keywords: [
-          "experimente științifice",
-          "STEM știință",
-          "explorare științifică",
-        ],
-        frequency: "weekly",
+      orderBy: { publishedAt: "asc" },
+      select: {
+        id: true,
+        title: true,
+        excerpt: true,
+        tags: true,
+        publishedAt: true,
+        stemCategory: true,
+        viralScore: true,
+        createdAt: true,
+        updatedAt: true,
       },
-      {
-        theme: "programare",
-        keywords: [
-          "programare copii",
-          "coding pentru copii",
-          "STEM programare",
+    });
+
+    // Fetch email campaigns that are scheduled or sent in this month
+    const emailCampaigns = await db.emailCampaign.findMany({
+      where: {
+        OR: [
+          {
+            status: "SCHEDULED",
+            scheduledAt: {
+              gte: startOfMonth,
+              lte: endOfMonth,
+            },
+          },
+          {
+            status: "SENT",
+            sentAt: {
+              gte: startOfMonth,
+              lte: endOfMonth,
+            },
+          },
         ],
-        frequency: "bi-weekly",
       },
-      {
-        theme: "robotică",
-        keywords: [
-          "robotică educațională",
-          "STEM robotică",
-          "construcție roboți",
-        ],
-        frequency: "bi-weekly",
+      orderBy: [{ scheduledAt: "asc" }, { sentAt: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        subject: true,
+        status: true,
+        scheduledAt: true,
+        sentAt: true,
+        createdAt: true,
+        updatedAt: true,
       },
-      {
-        theme: "părinți",
-        keywords: [
-          "educație STEM acasă",
-          "părinți și STEM",
-          "dezvoltare copil STEM",
-        ],
-        frequency: "weekly",
-      },
-    ];
+    });
 
-    // Generate content for each day
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
-      const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "long" });
+    const calendar: ContentCalendarEntry[] = [
+      // Map blogs as published entries
+      ...blogs.map(b => ({
+        id: b.id,
+        title: b.title,
+        type: "blog" as const,
+        status: "published" as const,
+        excerpt: b.excerpt || undefined,
+        tags: b.tags || [],
+        targetKeywords: [],
+        scheduledDate: b.publishedAt || new Date(),
+        stemCategory: (b.stemCategory as unknown as string) || undefined,
+        targetAudience: "romanian_parents",
+        priority: "high",
+        viralPotential:
+          Number((b.viralScore as unknown as Prisma.Decimal) || 7) || 7,
+        seasonalContext: ContentCalendarService.getSeasonalContext(month),
+        regionalFocus: "national",
+        socialPromotion: true,
+        emailPromotion: true,
+        crossPromotion: false,
+        createdAt: b.createdAt,
+        updatedAt: b.updatedAt,
+      })),
+      // Map email campaigns as scheduled/published entries
+      ...emailCampaigns.map(
+        c =>
+          ({
+            id: c.id,
+            title: c.subject || c.name,
+            type: "email" as const,
+            status:
+              c.status === "SCHEDULED"
+                ? ("scheduled" as const)
+                : ("published" as const),
+            scheduledDate:
+              (c.status === "SCHEDULED" ? c.scheduledAt : c.sentAt) ||
+              new Date(),
+            targetAudience: "romanian_parents",
+            priority: "medium" as const,
+            viralPotential: 6,
+            socialPromotion: false,
+            emailPromotion: true,
+            crossPromotion: false,
+            createdAt: c.createdAt,
+            updatedAt: c.updatedAt,
+          }) as ContentCalendarEntry
+      ),
+    ].sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime());
 
-      // Skip Sundays (lower engagement in Romania)
-      if (dayOfWeek === "Sunday") continue;
-
-      // Determine content type and timing based on Romanian audience behavior
-      const optimalTime =
-        ContentCalendarService.getOptimalPublishingTime(dayOfWeek);
-
-      // Create 1-2 pieces of content per optimal publishing day
-      const contentCount = Math.random() > 0.6 ? 2 : 1;
-
-      for (let i = 0; i < contentCount; i++) {
-        const pillar =
-          contentPillars[Math.floor(Math.random() * contentPillars.length)];
-        const seasonalContext =
-          ContentCalendarService.getSeasonalContext(month);
-
-        const scheduledDateTime = new Date(
-          year,
-          month,
-          day,
-          optimalTime.hour + i,
-          0,
-          0
-        );
-
-        // Skip if scheduled time is in the past
-        if (scheduledDateTime <= new Date()) continue;
-
-        const entry = await ContentCalendarService.scheduleContent({
-          title: ContentCalendarService.generateRomanianTitle(
-            pillar.theme,
-            seasonalContext
-          ),
-          type: "blog",
-          status: "scheduled",
-          content: "", // Will be generated later
-          excerpt: ContentCalendarService.generateExcerpt(pillar.theme),
-          tags: pillar.keywords,
-          targetKeywords: pillar.keywords.slice(0, 3),
-          scheduledDate: scheduledDateTime,
-          stemCategory: pillar.theme,
-          targetAudience: "romanian_parents",
-          priority: ContentCalendarService.calculatePriority(
-            pillar.theme,
-            seasonalContext
-          ),
-          seasonalContext,
-          regionalFocus: ContentCalendarService.getRegionalFocus(),
-          socialPromotion: true,
-          emailPromotion: true,
-          crossPromotion: Math.random() > 0.7,
-        });
-
-        calendar.push(entry);
-      }
-    }
-
-    return calendar.sort(
-      (a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime()
-    );
+    return calendar;
   }
 
   /**
@@ -327,31 +323,110 @@ export class ContentCalendarService {
    * Get content calendar analytics
    */
   static async getCalendarAnalytics(): Promise<ContentCalendarAnalytics> {
-    // Mock analytics data
-    return {
-      totalScheduled: 45,
-      totalPublished: 32,
-      averageViralScore: 7.2,
-      topPerformingContent: [
-        {
-          id: "top1",
-          title: "ȘOC! De ce 8 din 10 Copii Români URĂSC Matematica?",
-          type: "blog",
-          status: "published",
-          scheduledDate: new Date(),
-          targetAudience: "romanian_parents",
-          priority: "high",
-          viralPotential: 9.5,
-          socialPromotion: true,
-          emailPromotion: true,
-          crossPromotion: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+    // Define a recent window (last 30 days)
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 30);
+
+    // Published blogs in window
+    const [blogs, campaignsScheduled, campaignsSent] = await Promise.all([
+      db.blog.findMany({
+        where: {
+          isPublished: true,
+          publishedAt: {
+            gte: start,
+            lte: end,
+          },
         },
-      ],
-      publishingEfficiency: 87.5,
-      audienceEngagement: 8.3,
-      conversionRate: 4.2,
+        orderBy: { publishedAt: "desc" },
+        select: {
+          id: true,
+          title: true,
+          excerpt: true,
+          tags: true,
+          publishedAt: true,
+          viralScore: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        take: 50,
+      }),
+      db.emailCampaign.count({
+        where: {
+          status: "SCHEDULED",
+          scheduledAt: { gte: start, lte: end },
+        },
+      }),
+      db.emailCampaign.findMany({
+        where: {
+          status: "SENT",
+          sentAt: { gte: start, lte: end },
+        },
+        orderBy: { sentAt: "desc" },
+        select: {
+          id: true,
+          name: true,
+          subject: true,
+          sentAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        take: 50,
+      }),
+    ]);
+
+    const totalScheduled = campaignsScheduled;
+    const totalPublished = blogs.length + campaignsSent.length;
+
+    const avgViral =
+      blogs.length > 0
+        ? blogs.reduce(
+            (sum, b) =>
+              sum + Number((b.viralScore as unknown as Prisma.Decimal) || 0),
+            0
+          ) / blogs.length
+        : 0;
+
+    // Top performing: choose top 5 blogs by viralScore
+    const topBlogs = [...blogs]
+      .sort(
+        (a, b) =>
+          Number((b.viralScore as unknown as Prisma.Decimal) || 0) -
+          Number((a.viralScore as unknown as Prisma.Decimal) || 0)
+      )
+      .slice(0, 5)
+      .map(b => ({
+        id: b.id,
+        title: b.title,
+        type: "blog" as const,
+        status: "published" as const,
+        scheduledDate: b.publishedAt || new Date(),
+        targetAudience: "romanian_parents" as const,
+        priority: "high" as const,
+        viralPotential: Number(
+          (b.viralScore as unknown as Prisma.Decimal) || 0
+        ),
+        socialPromotion: true,
+        emailPromotion: true,
+        crossPromotion: false,
+        createdAt: b.createdAt,
+        updatedAt: b.updatedAt,
+      }));
+
+    // Simple heuristics for engagement/conversion until dedicated metrics exist
+    const publishingEfficiency =
+      totalScheduled > 0 ? Math.min(100, 80 + totalPublished) : 80;
+    const audienceEngagement = Math.min(10, avgViral + 2);
+    const conversionRate = Math.max(0, Math.min(10, avgViral / 2));
+
+    return {
+      totalScheduled,
+      totalPublished,
+      averageViralScore: Number(avgViral.toFixed(2)),
+      topPerformingContent: topBlogs as ContentCalendarEntry[],
+      publishingEfficiency,
+      audienceEngagement,
+      conversionRate,
     };
   }
 
