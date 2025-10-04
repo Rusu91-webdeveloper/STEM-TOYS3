@@ -39,14 +39,6 @@ export async function POST(request: NextRequest) {
     const suppliers = await db.supplier.findMany({
       where,
       include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            isActive: true,
-          },
-        },
         _count: {
           select: {
             products: true,
@@ -57,7 +49,7 @@ export async function POST(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    // Calculate revenue for each supplier
+    // Transform suppliers and calculate revenue
     const suppliersWithRevenue = await Promise.all(
       suppliers.map(async supplier => {
         const revenue = await db.supplierOrder.aggregate({
@@ -68,9 +60,66 @@ export async function POST(request: NextRequest) {
           _sum: { supplierRevenue: true },
         });
 
+        // Transform database fields to match expected format
         return {
-          ...supplier,
+          id: supplier.id,
+          userId: supplier.userId,
+          companyName: supplier.companyName || supplier.name,
+          companySlug: supplier.companySlug,
+          description: supplier.description,
+          website: supplier.website,
+          phone: supplier.phone,
+          email: supplier.email,
+          contactPersonName:
+            supplier.contactPersonName || supplier.contactPerson,
+          contactPersonEmail: supplier.contactPersonEmail,
+          contactPersonPhone: supplier.contactPersonPhone,
+          businessAddress: supplier.businessAddress,
+          businessCity: supplier.businessCity,
+          businessState: supplier.businessState,
+          businessCountry: supplier.businessCountry || "Romania",
+          businessPostalCode: supplier.businessPostalCode,
+          vatNumber: supplier.vatNumber,
+          taxId: supplier.taxId,
+          cui: supplier.cui,
+          codFiscal: supplier.codFiscal,
+          nrRegCom: supplier.nrRegCom,
+          reprezentantLegal: supplier.reprezentantLegal,
+          yearEstablished: supplier.yearEstablished,
+          employeeCount: supplier.employeeCount,
+          annualRevenue: supplier.annualRevenue,
+          certifications: supplier.certifications,
+          productCategories: supplier.productCategories,
+          isActive: supplier.isActive,
+          status: supplier.status,
+          approvedAt: supplier.approvedAt,
+          approvedBy: supplier.approvedBy,
+          rejectionReason: supplier.rejectionReason,
+          commissionRate: supplier.commissionRate,
+          paymentTerms: supplier.paymentTerms,
+          minimumOrderValue: supplier.minimumOrderValue,
+          adresaSediu: supplier.adresaSediu,
+          anpcApproval: supplier.anpcApproval,
+          educationalCertification: supplier.educationalCertification,
+          iscApproval: supplier.iscApproval,
+          romanianBankAccount: supplier.romanianBankAccount,
+          romanianComplianceStatus: supplier.romanianComplianceStatus,
+          romanianCurrency: supplier.romanianCurrency,
+          romanianPaymentTerms: supplier.romanianPaymentTerms,
+          romanianVatNumber: supplier.romanianVatNumber,
+          apiEndpoint: supplier.apiEndpoint,
+          apiKey: supplier.apiKey,
+          trackingUrl: supplier.trackingUrl,
+          averageDeliveryDays: supplier.averageDeliveryDays,
+          logo: supplier.logo,
+          catalogUrl: supplier.catalogUrl,
+          termsAccepted: supplier.termsAccepted,
+          privacyAccepted: supplier.privacyAccepted,
+          createdAt: supplier.createdAt,
+          updatedAt: supplier.updatedAt,
+          _count: supplier._count,
           totalRevenue: revenue._sum.supplierRevenue || 0,
+          user: null, // No user relation in export
         };
       })
     );

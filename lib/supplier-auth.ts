@@ -152,6 +152,65 @@ export async function validateSupplierAccess(
 }
 
 /**
+ * Get supplier settings data
+ * @param session The current user session
+ * @returns Settings data for the supplier
+ */
+export async function getSupplierSettingsData(session?: Session | null) {
+  try {
+    const validation = await validateSupplierAccess(session, true);
+
+    if (!validation.isValid) {
+      return null;
+    }
+
+    const supplier = validation.supplier;
+
+    if (!supplier) {
+      return null;
+    }
+
+    // Get supplier profile data
+    const profile = {
+      id: supplier.id,
+      companyName: supplier.companyName,
+      email: supplier.email,
+      phone: supplier.phone,
+      businessAddress: supplier.businessAddress,
+      businessCity: supplier.businessCity,
+      businessCountry: supplier.businessCountry,
+      businessWebsite: supplier.businessWebsite,
+      taxId: supplier.taxId,
+      registrationNumber: supplier.registrationNumber,
+      contactPersonName: supplier.contactPersonName,
+      contactPersonEmail: supplier.contactPersonEmail,
+      contactPersonPhone: supplier.contactPersonPhone,
+      commissionRate: supplier.commissionRate,
+      status: supplier.status,
+      createdAt: supplier.createdAt,
+      logoUrl: supplier.logoUrl,
+    };
+
+    // Default notification settings
+    const notifications = {
+      emailNotifications: true,
+      orderNotifications: true,
+      paymentNotifications: true,
+      marketingEmails: false,
+      smsNotifications: false,
+    };
+
+    return {
+      profile,
+      notifications,
+    };
+  } catch (error) {
+    logger.error("Error getting supplier settings data:", error);
+    return null;
+  }
+}
+
+/**
  * Get supplier dashboard data
  * @param session The current user session
  * @returns Dashboard data for the supplier
@@ -192,7 +251,7 @@ export async function getSupplierDashboardData(session?: Session | null) {
           supplierId: supplier.id,
           status: { in: ["DELIVERED"] },
         },
-        _sum: { supplierRevenue: true },
+        _sum: { totalCost: true },
       }),
     ]);
 
@@ -223,7 +282,7 @@ export async function getSupplierDashboardData(session?: Session | null) {
       stats: {
         productCount,
         orderCount,
-        totalRevenue: totalRevenue._sum.supplierRevenue || 0,
+        totalRevenue: totalRevenue._sum.totalCost || 0,
       },
       recentOrders,
     };

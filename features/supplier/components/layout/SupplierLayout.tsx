@@ -94,6 +94,13 @@ const navigation = [
         description: "View and manage invoices",
         badge: null,
       },
+      {
+        name: "Payments",
+        href: "/supplier/payments",
+        icon: DollarSign,
+        description: "Track payment history",
+        badge: null,
+      },
     ],
   },
   {

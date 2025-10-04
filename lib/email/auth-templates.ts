@@ -5,8 +5,7 @@
 
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
 import { prisma } from "@/lib/prisma";
-
-import { sendEmailViaUnifiedSystem } from "../brevo";
+import { getEmailService } from "./index";
 
 import {
   getStoreSettings,
@@ -173,11 +172,11 @@ export async function sendWelcomeEmail({
     previewText
   );
 
-  return sendEmailViaUnifiedSystem({
+  const emailService = getEmailService();
+  return emailService.sendEmail({
     to,
     subject: `🎉 Bine ai venit la ${storeSettings.storeName} - Primești 10% Reducere!`,
     html,
-    params: { email: to },
   });
 }
 
@@ -373,11 +372,11 @@ export async function sendVerificationEmail({
     previewText
   );
 
-  return sendEmailViaUnifiedSystem({
+  const emailService = getEmailService();
+  return emailService.sendEmail({
     to,
     subject: roTranslations.email_verification_subject,
     html,
-    params: { email: to },
   });
 }
 
@@ -560,10 +559,10 @@ export async function sendPasswordResetEmail({
     previewText
   );
 
-  return sendEmailViaUnifiedSystem({
+  const emailService = getEmailService();
+  return emailService.sendEmail({
     to,
     subject: "🔑 Resetare parolă pentru contul tău",
     html,
-    params: { email: to },
   });
 }

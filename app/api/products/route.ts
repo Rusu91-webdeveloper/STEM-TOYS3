@@ -273,7 +273,7 @@ async function fetchProductsFromDatabase(params: {
   // **PERFORMANCE**: Build optimized where clause
   const where: Prisma.ProductWhereInput = {
     isActive: true,
-    status: "APPROVED" as any,
+    status: "APPROVED",
   };
 
   // **PERFORMANCE**: Optimized category filtering with better query patterns
@@ -456,7 +456,7 @@ async function fetchProductsFromDatabase(params: {
           const queryOptions = {
             where: {
               isActive: true,
-              status: "APPROVED" as const,
+              status: "APPROVED",
               featured: true,
             },
             orderBy: {
@@ -475,7 +475,7 @@ async function fetchProductsFromDatabase(params: {
             db.product.count({
               where: {
                 isActive: true,
-                status: "APPROVED" as const,
+                status: "APPROVED",
                 featured: true,
               },
             }),

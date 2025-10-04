@@ -8,42 +8,41 @@ datasource db {
 }
 
 model User {
-  id                  String                   @id @default(cuid())
+  id                  String               @id @default(cuid())
   name                String?
-  email               String                   @unique
+  email               String               @unique
+  phone               String?
   password            String
-  role                Role                     @default(CUSTOMER)
+  role                Role                 @default(CUSTOMER)
   emailVerified       DateTime?
   verificationToken   String?
-  isActive            Boolean                  @default(false)
-  createdAt           DateTime                 @default(now())
-  updatedAt           DateTime                 @updatedAt
+  isActive            Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
   addresses           Address[]
   blogs               Blog[]
   contentVersions     ContentVersion[]
-  couponsCreated      Coupon[]                 @relation("CouponCreatedBy")
+  couponsCreated      Coupon[]             @relation("CouponCreatedBy")
   couponUsages        CouponUsage[]
   digitalDownloads    DigitalDownload[]
-  emailEvents         EmailEvent[]
-  emailSequenceUsers  EmailSequenceUser[]
   orders              Order[]
   passwordResetTokens PasswordResetToken[]
   paymentCards        PaymentCard[]
   returns             Return[]
   reviews             Review[]
-  Session             Session[]
-  approvedSuppliers   Supplier[]               @relation("SupplierApprovedBy")
-  supplier            Supplier?
-  messagesSent        SupplierMessage[]        @relation("MessageSender")
-  ticketAssignedTo    SupplierSupportTicket[]  @relation("TicketAssignedTo")
-  ticketResponses     SupplierTicketResponse[] @relation("TicketResponder")
+  tickets             Ticket[]
   wishlistItems       Wishlist[]
+  emailEvents         EmailEvent[]
+  emailSequences      EmailSequence[]
+  emailSequenceUsers  EmailSequenceUser[]
+  supplierMessages    SupplierMessage[]    @relation("MessageSender")
+  supplierTickets     SupplierSupportTicket[] @relation("TicketAssignedTo")
+  supplierTicketResponses SupplierTicketResponse[] @relation("TicketResponder")
+  sessions            Session[]
+  campaignApplications CampaignApplication[]
+  suppliers           Supplier[]
 
   @@index([email])
-
-  // Analytics-specific indexes for performance
-  @@index([role, createdAt], map: "idx_user_role_created_analytics")
-  @@index([createdAt, role], map: "idx_user_created_role_analytics")
 }
 
 model PasswordResetToken {
@@ -112,77 +111,95 @@ model Category {
 }
 
 model Product {
-  id                               String                    @id @default(cuid())
-  name                             String
-  slug                             String                    @unique
-  description                      String?
-  price                            Float
-  compareAtPrice                   Float?
-  sku                              String?
-  images                           String[]
-  categoryId                       String?
-  tags                             String[]
-  attributes                       Json?
-  metadata                         Json?
-  isActive                         Boolean                   @default(true)
-  featured                         Boolean                   @default(false)
-  stockQuantity                    Int                       @default(0)
-  reservedQuantity                 Int                       @default(0)
-  reorderPoint                     Int?
-  weight                           Float?
-  dimensions                       Json?
-  averageRating                    Float?
-  reviewCount                      Int                       @default(0)
-  totalSold                        Int                       @default(0)
-  createdAt                        DateTime                  @default(now())
-  updatedAt                        DateTime                  @updatedAt
-  barcode                          String?
-  ageGroup                         AgeGroup?
-  learningOutcomes                 LearningOutcome[]
-  productType                      ProductType?
-  specialCategories                SpecialCategory[]
-  stemDiscipline                   StemCategory              @default(GENERAL)
-  supplierId                       String?
-  romanianCompetencies             String[]
-  romanianCurriculumAlignment      String[]
-  romanianEducationalCertification String?
-  romanianEducationalLevel         RomanianEducationalLevel?
-  romanianMinistryApproval         Boolean                   @default(false)
-  romanianParentGuides             String[]
-  romanianSubjectAreas             String[]
-  romanianTeacherResources         String[]
-  status                           ProductStatus             @default(PENDING_APPROVAL)
-  compareAtPriceCurrency           String                    @default("RON")
-  priceCurrency                    String                    @default("RON")
-  imageMetadata                    ImageMetadata[]
-  orderItems                       OrderItem[]
-  category                         Category?                 @relation(fields: [categoryId], references: [id])
-  supplier                         Supplier?                 @relation(fields: [supplierId], references: [id])
-  reviews                          Review[]
-  supplierOrders                   SupplierOrder[]
-  wishlistItems                    Wishlist[]
+  id                   String          @id @default(cuid())
+  name                 String
+  slug                 String          @unique
+  description          String?
+  price                Float
+  compareAtPrice       Float?
+  sku                  String?         @unique
+  images               String[]
+  categoryId           String?
+  tags                 String[]
+  attributes           Json?
+  metadata             Json?
+  isActive             Boolean         @default(true)
+  status               ProductStatus   @default(IN_PENDING)
+  featured             Boolean         @default(false)
+  stockQuantity        Int             @default(0)
+  reservedQuantity     Int             @default(0)
+  reorderPoint         Int?
+  weight               Float?
+  dimensions           Json?
+  averageRating        Float?
+  reviewCount          Int             @default(0)
+  totalSold            Int             @default(0)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  barcode              String?
+  costPrice            Float?
+  importDuties         Float?          @default(0)
+  shippingCost         Float?          @default(0)
+  storageCost          Float?          @default(0)
+  packagingCost        Float?          @default(0)
+  laborCost            Float?          @default(0)
+  qualityControlCost   Float?          @default(0)
+  paymentProcessingFee Float?          @default(2.9)
+  customerServiceCost  Float?          @default(0)
+  operationalOverhead  Float?          @default(0)
+  ageGroup             String?
+  stemDiscipline       String?
+  marketingCosts       MarketingCost[]
+  orderItems           OrderItem[]
+  category             Category?       @relation(fields: [categoryId], references: [id])
+  productCosts         ProductCost[]
+  reviews              Review[]
+  supplierOrders       SupplierOrder[]
+  wishlistItems        Wishlist[]
+  supplier             Supplier?       @relation(fields: [supplierId], references: [id])
+  supplierId           String?
 
-  @@unique([sku, supplierId])
   @@index([categoryId])
-  @@index([supplierId])
   @@index([slug])
-  @@index([status])
   @@index([isActive])
+  @@index([status])
   @@index([featured])
+  @@index([costPrice], map: "idx_product_cost_price")
+  @@index([costPrice, price], map: "idx_product_cost_price_analytics")
+  @@index([averageRating])
+  @@index([categoryId, isActive])
+  @@index([isActive, status])
+  @@index([createdAt])
+  @@index([featured, createdAt(sort: Desc)])
+  @@index([isActive, featured])
+  @@index([name])
+  @@index([price])
+  @@index([price, isActive])
+  @@index([stockQuantity])
+  @@index([stockQuantity, isActive])
   @@index([ageGroup])
   @@index([stemDiscipline])
-  @@index([productType])
-  @@index([isActive, status, featured, createdAt(sort: Desc)], map: "idx_product_active_status_featured_created")
-  @@index([isActive, status, featured, createdAt(sort: Desc)], map: "idx_homepage_featured_products")
-  @@index([isActive, status, categoryId, featured], map: "idx_product_active_status_category_featured")
-  @@index([isActive, status, price], map: "idx_product_active_status_price")
-  @@index([isActive, status, name], map: "idx_product_search_name")
-  @@index([isActive, status, stemDiscipline, featured], map: "idx_product_active_status_stem_featured")
-  @@index([isActive, status, ageGroup, featured], map: "idx_product_active_status_age_featured")
-  @@index([status, createdAt(sort: Desc)], map: "idx_product_status_created")
-  @@index([name], map: "idx_product_name_search")
-  @@index([description], map: "idx_product_description_search")
   @@map("Product")
+}
+
+model MarketingCost {
+  id                 String   @id @default(cuid())
+  productId          String
+  date               DateTime
+  googleAdsCost      Float    @default(0)
+  facebookAdsCost    Float    @default(0)
+  seoCost            Float    @default(0)
+  influencerCost     Float    @default(0)
+  totalMarketingCost Float    @default(0)
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([date])
+  @@index([productId, date])
+  @@map("MarketingCost")
 }
 
 model Wishlist {
@@ -196,73 +213,6 @@ model Wishlist {
   @@unique([userId, productId])
   @@index([userId])
   @@index([productId])
-}
-
-model Supplier {
-  id                       String                   @id @default(cuid())
-  userId                   String?                  @unique
-  companyName              String
-  companySlug              String                   @unique
-  description              String?
-  website                  String?
-  phone                    String
-  vatNumber                String?
-  taxId                    String?
-  businessAddress          String
-  businessCity             String
-  businessState            String
-  businessCountry          String                   @default("România")
-  businessPostalCode       String
-  contactPersonName        String
-  contactPersonEmail       String
-  contactPersonPhone       String
-  yearEstablished          Int?
-  employeeCount            Int?
-  annualRevenue            String?
-  certifications           String[]
-  productCategories        String[]
-  status                   SupplierStatus           @default(PENDING)
-  approvedAt               DateTime?
-  approvedBy               String?
-  rejectionReason          String?
-  commissionRate           Float                    @default(15.0)
-  paymentTerms             Int                      @default(30)
-  minimumOrderValue        Float                    @default(0)
-  logo                     String?
-  catalogUrl               String?
-  termsAccepted            Boolean                  @default(false)
-  privacyAccepted          Boolean                  @default(false)
-  createdAt                DateTime                 @default(now())
-  updatedAt                DateTime                 @updatedAt
-  notificationPreferences  Json?
-  adresaSediu              String?
-  anpcApproval             Boolean                  @default(false)
-  codFiscal                String?
-  cui                      String?
-  educationalCertification String?
-  iscApproval              Boolean                  @default(false)
-  nrRegCom                 String?
-  reprezentantLegal        String?
-  romanianBankAccount      String?
-  romanianComplianceStatus RomanianComplianceStatus @default(PENDING)
-  romanianCurrency         String                   @default("RON")
-  romanianPaymentTerms     Int                      @default(30)
-  romanianVatNumber        String?
-  products                 Product[]
-  approvedByUser           User?                    @relation("SupplierApprovedBy", fields: [approvedBy], references: [id])
-  user                     User?                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invoices                 SupplierInvoice[]
-  messagesReceived         SupplierMessage[]
-  notificationsReceived    SupplierNotification[]
-  orders                   SupplierOrder[]
-  supportTickets           SupplierSupportTicket[]
-
-  @@index([status])
-  @@index([companySlug])
-  @@index([vatNumber])
-  @@index([romanianComplianceStatus])
-  @@index([anpcApproval])
-  @@index([iscApproval])
 }
 
 model Blog {
@@ -282,29 +232,12 @@ model Blog {
   updatedAt    DateTime     @updatedAt
   readingTime  Int?
   stemCategory StemCategory @default(GENERAL)
-
-  // Viral content metrics for Romanian market domination
-  viralScore        Decimal? @db.Decimal(3, 2) // 0.00-9.99 viral potential score
-  socialShares      Int      @default(0) // Total social media shares
-  competitorRank    Int? // Rank vs competitors for target keywords
-  romanianMarketFit Decimal? @db.Decimal(3, 2) // 0.00-9.99 Romanian market relevance
-
-  // Image relations
-  coverImageMetadata ImageMetadata?  @relation("coverImage", fields: [coverImageId], references: [id])
-  coverImageId       String?         @unique
-  contentImages      ImageMetadata[] @relation("contentImages")
-
-  author   User     @relation(fields: [authorId], references: [id])
-  category Category @relation(fields: [categoryId], references: [id])
+  author       User         @relation(fields: [authorId], references: [id])
+  category     Category     @relation(fields: [categoryId], references: [id])
 
   @@index([categoryId])
   @@index([authorId])
   @@index([stemCategory])
-  @@index([viralScore])
-  @@index([socialShares])
-  @@index([romanianMarketFit])
-  @@index([coverImageId])
-  @@index([isPublished, updatedAt])
 }
 
 model Book {
@@ -355,65 +288,49 @@ model Language {
 }
 
 model Order {
-  id                    String                @id @default(cuid())
-  orderNumber           String                @unique
+  id                    String          @id @default(cuid())
+  orderNumber           String          @unique
   userId                String
   total                 Float
   subtotal              Float
   tax                   Float
   shippingCost          Float
-  discountAmount        Float                 @default(0)
+  discountAmount        Float           @default(0)
   couponCode            String?
   couponId              String?
-  status                OrderStatus           @default(PROCESSING)
-  paymentStatus         PaymentStatus         @default(PENDING)
+  status                OrderStatus     @default(PROCESSING)
+  paymentStatus         PaymentStatus   @default(PENDING)
   paymentMethod         String
   notes                 String?
   shippingAddressId     String
   billingAddressId      String?
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
   deliveredAt           DateTime?
   stripePaymentIntentId String?
   completedAt           DateTime?
   fulfilledAt           DateTime?
   shippedAt             DateTime?
   trackingNumber        String?
-  campaignApplications  CampaignApplication[]
-  coupon                Coupon?               @relation(fields: [couponId], references: [id])
-  shippingAddress       Address               @relation(fields: [shippingAddressId], references: [id])
-  user                  User                  @relation(fields: [userId], references: [id])
+  carrier               String?
+  estimatedDelivery     DateTime?
+  priority              String          @default("MEDIUM")
+  tags                  String[]        @default([])
+  updatedBy             String?
+  coupon                Coupon?         @relation(fields: [couponId], references: [id])
+  shippingAddress       Address         @relation(fields: [shippingAddressId], references: [id])
+  user                  User            @relation(fields: [userId], references: [id])
   items                 OrderItem[]
-  statusHistory         OrderStatusHistory[]
   returns               Return[]
   supplierOrders        SupplierOrder[]
+  statusHistory         OrderStatusHistory[]
+  campaignApplications  CampaignApplication[]
 
   @@index([userId])
   @@index([status])
   @@index([paymentStatus])
   @@index([orderNumber])
   @@index([couponId])
-
-  // Analytics-specific indexes for performance
-  @@index([status, createdAt], map: "idx_order_status_created_analytics")
-  @@index([createdAt, status, total], map: "idx_order_created_status_total_analytics")
-  @@index([userId, createdAt], map: "idx_order_user_created_analytics")
-}
-
-model OrderStatusHistory {
-  id         String      @id @default(cuid())
-  orderId    String
-  fromStatus OrderStatus
-  toStatus   OrderStatus
-  reason     String?
-  notes      String?
-  updatedBy  String?
-  createdAt  DateTime    @default(now())
-  order      Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@index([orderId])
-  @@index([toStatus])
-  @@index([createdAt])
 }
 
 model OrderItem {
@@ -440,310 +357,41 @@ model OrderItem {
   @@index([orderId])
   @@index([productId])
   @@index([bookId])
-
-  // Analytics-specific indexes for performance
-  @@index([productId, price, quantity], map: "idx_orderitem_product_price_quantity_analytics")
 }
 
 model StoreSettings {
-  id                  String   @id @default(cuid())
-  storeName           String   @default("TechTots")
-  storeUrl            String   @default("https://techtots.com")
-  storeDescription    String   @default("TechTots is a premier online destination for STEM toys that inspire learning through play.")
-  contactEmail        String   @default("info@techtots.com")
-  contactPhone        String   @default("+1 (555) 123-4567")
-  currency            String   @default("usd")
-  timezone            String   @default("america-new_york")
-  dateFormat          String   @default("mm-dd-yyyy")
-  weightUnit          String   @default("lb")
-  metaTitle           String   @default("TechTots | STEM Toys for Curious Minds")
-  metaDescription     String   @default("Discover the best STEM toys for curious minds at TechTots. Educational toys that make learning fun for children of all ages.")
-  metaKeywords        String   @default("STEM toys, educational toys, science toys, technology toys, engineering toys, math toys")
-  shippingSettings    Json?
-  paymentSettings     Json?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  metadata            Json?
-  taxSettings         Json?
-  businessHours       Json?
-  customerService     Json?
-  inventoryManagement Json?
-  marketingSettings   Json?
-  orderProcessing     Json?
-  businessAddress     String   @default("Mehedinți 54-56, Bl D5, sc 2, apt 70")
-  businessCity        String   @default("Cluj-Napoca")
-  businessCountry     String   @default("România")
-  businessPostalCode  String   @default("400000")
-  businessState       String   @default("Cluj")
+  id               String   @id @default(cuid())
+  storeName        String   @default("TechTots")
+  storeUrl         String   @default("https://techtots.com")
+  storeDescription String   @default("TechTots is a premier online destination for STEM toys that inspire learning through play.")
+  contactEmail     String   @default("info@techtots.com")
+  contactPhone     String   @default("+1 (555) 123-4567")
+  currency         String   @default("usd")
+  timezone         String   @default("america-new_york")
+  dateFormat       String   @default("mm-dd-yyyy")
+  weightUnit       String   @default("lb")
+  metaTitle        String   @default("TechTots | STEM Toys for Curious Minds")
+  metaDescription  String   @default("Discover the best STEM toys for curious minds at TechTots. Educational toys that make learning fun for children of all ages.")
+  metaKeywords     String   @default("STEM toys, educational toys, science toys, technology toys, engineering toys, math toys")
+  shippingSettings Json?
+  paymentSettings  Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  metadata         Json?
+  taxSettings      Json?
 }
 
-model PerformanceMetric {
-  id        String   @id @default(cuid())
-  cls       Float    @default(0)
-  fid       Float    @default(0)
-  fcp       Float    @default(0)
-  lcp       Float    @default(0)
-  ttfb      Float    @default(0)
-  timestamp DateTime @default(now())
-  url       String
-  userAgent String   @default("")
-  metadata  Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([timestamp])
-  @@index([url])
-}
-
-model ConversionLog {
+model StoreSettingsBackup {
   id           String   @id @default(cuid())
-  conversionId String   @unique
-  type         String
-  category     String
-  action       String
-  elementData  Json
-  pageData     Json
-  userData     Json
-  contextData  Json
-  metadata     Json?
-  timestamp    DateTime @default(now())
+  name         String
+  description  String?
+  settingsData Json
+  version      String   @default("1.0")
+  createdBy    String
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
 
-  @@index([timestamp])
-  @@index([type])
-  @@index([category])
-  @@index([action])
-}
-
-model Campaign {
-  id                    String                @id @default(cuid())
-  name                  String
-  type                  String
-  status                String                @default("draft")
-  startDate             DateTime
-  endDate               DateTime
-  discountPercent       Float?
-  minimumOrderAmount    Float?
-  maximumDiscountAmount Float?
-  applicableCategories  String[]              @default([])
-  applicableProducts    String[]              @default([])
-  customerSegments      String[]              @default([])
-  maxUses               Int?
-  currentUses           Int                   @default(0)
-  metadata              Json?
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  applications          CampaignApplication[]
-
-  @@index([status])
-  @@index([type])
-  @@index([startDate])
-  @@index([endDate])
-}
-
-model CampaignApplication {
-  id             String   @id @default(cuid())
-  campaignId     String
-  orderId        String?
-  customerId     String
-  discountAmount Float
-  appliedAt      DateTime @default(now())
-  metadata       Json?
-  campaign       Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  order          Order?   @relation(fields: [orderId], references: [id])
-
-  @@index([campaignId])
-  @@index([customerId])
-  @@index([appliedAt])
-}
-
-model AutomationWorkflow {
-  id                String   @id @default(cuid())
-  name              String
-  type              String
-  status            String   @default("active")
-  customerId        String
-  currentStep       Int      @default(0)
-  totalSteps        Int
-  nextExecutionDate DateTime
-  metadata          Json?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  @@index([customerId])
-  @@index([status])
-  @@index([type])
-  @@index([nextExecutionDate])
-}
-
-model SupplierOrder {
-  id              String              @id @default(cuid())
-  supplierId      String
-  orderId         String
-  orderItemId     String
-  productId       String
-  quantity        Int
-  unitPrice       Float
-  totalPrice      Float
-  commission      Float
-  supplierRevenue Float
-  status          SupplierOrderStatus @default(PENDING)
-  shippedAt       DateTime?
-  trackingNumber  String?
-  notes           String?
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  invoiceId       String?
-  invoice         SupplierInvoice?    @relation(fields: [invoiceId], references: [id])
-  order           Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderItem       OrderItem           @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  product         Product             @relation(fields: [productId], references: [id])
-  supplier        Supplier            @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-
-  @@index([supplierId])
-  @@index([orderId])
-  @@index([status])
   @@index([createdAt])
-}
-
-model SupplierInvoice {
-  id            String          @id @default(cuid())
-  supplierId    String
-  invoiceNumber String          @unique
-  periodStart   DateTime
-  periodEnd     DateTime
-  subtotal      Float
-  commission    Float
-  totalAmount   Float
-  status        InvoiceStatus   @default(DRAFT)
-  dueDate       DateTime
-  paidAt        DateTime?
-  paymentMethod String?
-  notes         String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  supplier      Supplier        @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  orders        SupplierOrder[]
-
-  @@index([supplierId])
-  @@index([invoiceNumber])
-  @@index([status])
-  @@index([dueDate])
-}
-
-model SupplierMessage {
-  id                String            @id @default(cuid())
-  supplierId        String
-  senderId          String
-  senderType        MessageSenderType
-  subject           String
-  content           String
-  isRead            Boolean           @default(false)
-  readAt            DateTime?
-  priority          MessagePriority   @default(NORMAL)
-  category          MessageCategory   @default(GENERAL)
-  attachments       String[]
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  attachmentDetails Json?
-  sender            User              @relation("MessageSender", fields: [senderId], references: [id])
-  supplier          Supplier          @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-
-  @@index([supplierId])
-  @@index([senderId])
-  @@index([isRead])
-  @@index([priority])
-  @@index([category])
-  @@index([createdAt])
-}
-
-model SupplierNotification {
-  id         String           @id @default(cuid())
-  supplierId String
-  type       NotificationType
-  title      String
-  message    String
-  isRead     Boolean          @default(false)
-  readAt     DateTime?
-  actionUrl  String?
-  metadata   Json?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-  supplier   Supplier         @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-
-  @@index([supplierId])
-  @@index([type])
-  @@index([isRead])
-  @@index([createdAt])
-}
-
-model SupplierSupportTicket {
-  id                String                   @id @default(cuid())
-  supplierId        String
-  ticketNumber      String                   @unique
-  subject           String
-  description       String
-  status            TicketStatus             @default(OPEN)
-  priority          TicketPriority           @default(MEDIUM)
-  category          TicketCategory
-  assignedTo        String?
-  attachments       String[]
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
-  closedAt          DateTime?
-  attachmentDetails Json?
-  assignedAdmin     User?                    @relation("TicketAssignedTo", fields: [assignedTo], references: [id])
-  supplier          Supplier                 @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  responses         SupplierTicketResponse[]
-
-  @@index([supplierId])
-  @@index([ticketNumber])
-  @@index([status])
-  @@index([priority])
-  @@index([category])
-  @@index([assignedTo])
-  @@index([createdAt])
-}
-
-model SupplierTicketResponse {
-  id                String                @id @default(cuid())
-  ticketId          String
-  responderId       String
-  responderType     ResponderType
-  content           String
-  isInternal        Boolean               @default(false)
-  attachments       String[]
-  createdAt         DateTime              @default(now())
-  updatedAt         DateTime              @updatedAt
-  attachmentDetails Json?
-  responder         User                  @relation("TicketResponder", fields: [responderId], references: [id])
-  ticket            SupplierSupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-
-  @@index([ticketId])
-  @@index([responderId])
-  @@index([responderType])
-  @@index([createdAt])
-}
-
-model SupplierAnnouncement {
-  id              String               @id @default(cuid())
-  title           String
-  content         String
-  type            AnnouncementType
-  priority        AnnouncementPriority @default(NORMAL)
-  isActive        Boolean              @default(true)
-  publishedAt     DateTime             @default(now())
-  expiresAt       DateTime?
-  targetSuppliers String[]
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-
-  @@index([type])
-  @@index([priority])
-  @@index([isActive])
-  @@index([publishedAt])
-  @@index([expiresAt])
+  @@index([createdBy])
 }
 
 model Return {
@@ -801,126 +449,6 @@ model Newsletter {
   @@index([isActive])
 }
 
-model EmailTemplate {
-  id            String              @id @default(cuid())
-  name          String
-  slug          String              @unique
-  subject       String
-  content       String
-  variables     String[]
-  category      String
-  isActive      Boolean             @default(true)
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  createdBy     String
-  metadata      Json?
-  campaigns     EmailCampaign[]
-  sequenceSteps EmailSequenceStep[]
-
-  @@index([slug])
-  @@index([category])
-  @@index([isActive])
-}
-
-model EmailCampaign {
-  id          String              @id @default(cuid())
-  name        String
-  description String?
-  templateId  String
-  subject     String
-  content     String
-  status      EmailCampaignStatus @default(DRAFT)
-  scheduledAt DateTime?
-  sentAt      DateTime?
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  createdBy   String
-  metadata    Json?
-  template    EmailTemplate       @relation(fields: [templateId], references: [id])
-
-  @@index([status])
-  @@index([scheduledAt])
-  @@index([createdBy])
-}
-
-model EmailSequence {
-  id            String              @id @default(cuid())
-  name          String
-  description   String?
-  trigger       String
-  isActive      Boolean             @default(true)
-  maxEmails     Int                 @default(5)
-  cooldownHours Int                 @default(24)
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  createdBy     String
-  steps         EmailSequenceStep[]
-  users         EmailSequenceUser[]
-
-  @@index([trigger])
-  @@index([isActive])
-  @@index([createdBy])
-}
-
-model EmailSequenceStep {
-  id         String        @id @default(cuid())
-  sequenceId String
-  order      Int
-  delayHours Int           @default(0)
-  templateId String
-  subject    String
-  content    String
-  conditions Json?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  sequence   EmailSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
-  template   EmailTemplate @relation(fields: [templateId], references: [id])
-
-  @@index([sequenceId])
-  @@index([order])
-}
-
-model EmailSequenceUser {
-  id          String                  @id @default(cuid())
-  sequenceId  String
-  userId      String
-  status      EmailSequenceUserStatus @default(ACTIVE)
-  currentStep Int                     @default(0)
-  startedAt   DateTime                @default(now())
-  completedAt DateTime?
-  lastEmailAt DateTime?
-  metadata    Json?
-  sequence    EmailSequence           @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
-  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([sequenceId, userId])
-  @@index([sequenceId])
-  @@index([userId])
-  @@index([status])
-}
-
-model EmailEvent {
-  id         String         @id @default(cuid())
-  emailId    String         @unique
-  userId     String?
-  email      String
-  eventType  EmailEventType
-  campaignId String?
-  sequenceId String?
-  templateId String?
-  metadata   Json?
-  createdAt  DateTime       @default(now())
-  user       User?          @relation(fields: [userId], references: [id])
-
-  @@index([emailId])
-  @@index([userId])
-  @@index([eventType])
-  @@index([campaignId])
-  @@index([sequenceId])
-  @@index([templateId])
-  @@index([createdAt])
-}
-
 model DigitalDownload {
   id            String      @id @default(cuid())
   orderItemId   String
@@ -970,27 +498,11 @@ model Coupon {
   usages            CouponUsage[]
   orders            Order[]
 
-  // **PERFORMANCE**: Optimized indexes for common query patterns
   @@index([code])
   @@index([expiresAt])
   @@index([isInfluencer])
   @@index([createdBy])
   @@index([isActive, showAsPopup, popupPriority, expiresAt, startsAt], map: "idx_popup_coupon")
-
-  // **PERFORMANCE**: Composite indexes for admin dashboard queries
-  @@index([isActive, createdAt(sort: Desc)], map: "idx_coupon_active_created")
-  @@index([isInfluencer, isActive, createdAt(sort: Desc)], map: "idx_coupon_influencer_active_created")
-  @@index([isActive, currentUses, maxUses], map: "idx_coupon_active_usage_limits")
-
-  // **PERFORMANCE**: Text search indexes
-  @@index([name], map: "idx_coupon_name_search")
-  @@index([description], map: "idx_coupon_description_search")
-
-  // **PERFORMANCE**: Date range queries for popup coupons
-  @@index([showAsPopup, isActive, startsAt, expiresAt], map: "idx_coupon_popup_dates")
-
-  // **PERFORMANCE**: Admin usage tracking
-  @@index([createdBy, isActive, createdAt(sort: Desc)], map: "idx_coupon_admin_active_created")
 }
 
 model CouponUsage {
@@ -1006,11 +518,6 @@ model CouponUsage {
   @@index([couponId])
   @@index([userId])
   @@index([usedAt])
-
-  // **PERFORMANCE**: Optimized indexes for coupon usage analytics
-  @@index([couponId, usedAt(sort: Desc)], map: "idx_coupon_usage_recent")
-  @@index([userId, couponId], map: "idx_user_coupon_usage")
-  @@index([userId, usedAt(sort: Desc)], map: "idx_user_usage_history")
 }
 
 model ContentVersion {
@@ -1032,71 +539,236 @@ model ContentVersion {
   @@index([createdAt])
 }
 
-model Session {
-  id           String   @id
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model ConversionLog {
+  id           String   @id @default(cuid())
+  conversionId String
+  type         String
+  category     String?
+  action       String?
+  elementData  Json?
+  pageData     Json?
+  userData     Json?
+  contextData  Json?
+  metadata     Json?
+  timestamp    DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([type])
+  @@index([timestamp])
+  @@index([conversionId])
 }
 
-model ImageMetadata {
-  id                String               @id @default(cuid())
-  originalUrl       String
-  filename          String
-  fileSize          Int
-  width             Int?
-  height            Int?
-  format            String
-  uploadedAt        DateTime             @default(now())
-  processedSizes    Json?
-  optimizationStats Json?
-  tags              String[]
-  alt               String?
-  isActive          Boolean              @default(true)
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
-  productId         String?
-  blogId            String? // For cover images
-  blogContentId     String? // For content images
-  product           Product?             @relation(fields: [productId], references: [id], onDelete: Cascade)
-  coverImageBlog    Blog?                @relation("coverImage")
-  contentImageBlog  Blog?                @relation("contentImages", fields: [blogId], references: [id])
-  processingLogs    ImageProcessingLog[]
+model EmailTemplate {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  subject   String
+  content   String
+  category  String
+  isActive  Boolean    @default(true)
+  metadata  Json?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  createdBy String     @default("system")
+  variables String[]
+  emails    EmailLog[]
+  campaigns EmailCampaign[]
+  sequenceSteps EmailSequenceStep[]
+
+  @@index([slug])
+  @@index([category])
+  @@index([isActive])
+}
+
+model EmailLog {
+  id          String         @id @default(cuid())
+  templateId  String?
+  to          String
+  subject     String
+  status      String         @default("pending")
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  openedAt    DateTime?
+  clickedAt   DateTime?
+  error       String?
+  metadata    Json?
+  createdAt   DateTime       @default(now())
+  template    EmailTemplate? @relation(fields: [templateId], references: [id])
+
+  @@index([templateId])
+  @@index([to])
+  @@index([status])
+  @@index([sentAt])
+}
+
+model ProductCost {
+  id        String   @id @default(cuid())
+  productId String
+  costType  String
+  amount    Float
+  date      DateTime
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
-  @@index([blogId])
-  @@index([blogContentId])
-  @@index([isActive])
-  @@index([format])
-  @@index([uploadedAt])
-  @@index([tags])
-  // Composite indexes for better query performance
-  @@index([productId, isActive])
-  @@index([blogId, isActive])
-  @@index([uploadedAt, isActive])
-  @@index([format, uploadedAt])
-  @@index([productId, uploadedAt])
-  @@index([blogId, uploadedAt])
-  // Partial index for active images (more efficient than filtering)
-  @@index([id], name: "active_images_idx")
+  @@index([costType])
+  @@index([date])
 }
 
-model ImageProcessingLog {
-  id           String        @id @default(cuid())
-  imageId      String
-  operation    String
-  status       String
-  details      Json?
-  startedAt    DateTime      @default(now())
-  completedAt  DateTime?
-  errorMessage String?
-  image        ImageMetadata @relation(fields: [imageId], references: [id], onDelete: Cascade)
+model SupplierOrder {
+  id                String   @id @default(cuid())
+  orderId           String
+  orderItemId       String
+  supplierId        String
+  productId         String
+  quantity          Int
+  unitCost          Float
+  totalCost         Float
+  status            String   @default("PENDING")
+  trackingNumber    String?
+  carrier           String?
+  shippedAt         DateTime?
+  estimatedDelivery DateTime?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem         OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplier          Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  tracking          SupplierOrderTracking?
 
-  @@index([imageId])
-  @@index([operation])
+  @@index([orderId])
+  @@index([orderItemId])
+  @@index([supplierId])
+  @@index([productId])
   @@index([status])
-  @@index([startedAt])
+  @@index([trackingNumber])
+  @@index([shippedAt])
+}
+
+model Supplier {
+  id            String          @id @default(cuid())
+  // User association (optional - suppliers can exist independently)
+  userId        String?
+  user          User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Basic Company Information (mapped to existing fields for compatibility)
+  name          String          // Keep existing field name
+  companyName   String?         // New comprehensive field
+  companySlug   String?         @unique
+  description   String?
+  website       String?
+  phone         String
+  email         String          @unique
+
+  // Contact Person (mapped to existing fields)
+  contactPerson     String?     // Keep existing field name
+  contactPersonName String?     // New comprehensive field
+  contactPersonEmail String?
+  contactPersonPhone String?
+
+  // Business Address
+  address            Json?      // Keep existing field
+  businessAddress    String?
+  businessCity       String?
+  businessState      String?
+  businessCountry    String?    @default("Romania")
+  businessPostalCode String?
+
+  // Legal Information
+  vatNumber     String?
+  taxId         String?
+  cui           String?         // Romanian tax identifier
+  codFiscal     String?         // Romanian fiscal code
+  nrRegCom      String?         // Romanian trade register number
+  reprezentantLegal   String?   // Romanian legal representative
+
+  // Business Details
+  yearEstablished     Int?
+  employeeCount       Int?
+  annualRevenue       String?
+  certifications      String[]  @default([])
+  productCategories   String[]  @default([])
+
+  // Status and Approval
+  isActive            Boolean   @default(true)
+  status              String    @default("PENDING")
+  approvedAt          DateTime?
+  approvedBy          String?
+  rejectionReason     String?
+
+  // Financial Terms
+  commissionRate      Float     @default(15.0) // Percentage
+  paymentTerms        Int       @default(30)   // Days
+  minimumOrderValue   Float     @default(0)
+
+  // Romanian Compliance
+  adresaSediu               String?
+  anpcApproval              Boolean @default(false)
+  educationalCertification  String?
+  iscApproval               Boolean @default(false)
+  romanianBankAccount       String?
+  romanianComplianceStatus  String  @default("PENDING")
+  romanianCurrency          String  @default("RON")
+  romanianPaymentTerms      Int     @default(30)
+  romanianVatNumber         String?
+
+  // API Integration (existing fields)
+  apiEndpoint         String?
+  apiKey              String?
+  trackingUrl         String?
+  averageDeliveryDays Int      @default(7)
+
+  // Files and Media
+  logo                String?
+  catalogUrl          String?
+  termsAccepted       Boolean  @default(false)
+  privacyAccepted     Boolean  @default(false)
+
+  // Timestamps
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  orders              SupplierOrder[]
+  invoices            SupplierInvoice[]
+  messages            SupplierMessage[]
+  notifications       SupplierNotification[]
+  supportTickets      SupplierSupportTicket[]
+  products            Product[]
+  performanceMetrics  SupplierPerformanceMetrics[]
+
+  @@index([userId])
+  @@index([email])
+  @@index([companySlug])
+  @@index([isActive])
+  @@index([status])
+  @@index([businessCountry])
+  @@index([commissionRate])
+  @@index([minimumOrderValue])
+}
+
+model Ticket {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  status      String   @default("open")
+  priority    String   @default("medium")
+  category    String?
+  userId      String?
+  assignedTo  String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@index([assignedTo])
 }
 
 enum OrderItemReturnStatus {
@@ -1111,8 +783,6 @@ enum OrderItemReturnStatus {
 enum Role {
   CUSTOMER
   ADMIN
-  SUPPLIER
-  VISITOR
 }
 
 enum StemCategory {
@@ -1131,13 +801,13 @@ enum ContentType {
 
 enum OrderStatus {
   PROCESSING
+  PENDING_REVIEW
+  READY_FOR_SHIPPING
+  FULFILLED
   SHIPPED
   DELIVERED
   CANCELLED
   COMPLETED
-  PENDING_REVIEW
-  READY_FOR_SHIPPING
-  FULFILLED
 }
 
 enum PaymentStatus {
@@ -1169,217 +839,14 @@ enum CouponType {
   FIXED_AMOUNT
 }
 
-enum AgeGroup {
-  TODDLERS_1_3
-  PRESCHOOL_3_5
-  ELEMENTARY_6_8
-  MIDDLE_SCHOOL_9_12
-  TEENS_13_PLUS
-}
-
-enum LearningOutcome {
-  PROBLEM_SOLVING
-  CREATIVITY
-  CRITICAL_THINKING
-  MOTOR_SKILLS
-  LOGIC
-}
-
-enum ProductType {
-  ROBOTICS
-  PUZZLES
-  CONSTRUCTION_SETS
-  EXPERIMENT_KITS
-  BOARD_GAMES
-}
-
-enum SpecialCategory {
-  NEW_ARRIVALS
-  BEST_SELLERS
-  GIFT_IDEAS
-  SALE_ITEMS
-}
-
-enum EmailCampaignStatus {
-  DRAFT
-  SCHEDULED
-  SENDING
-  SENT
-  PAUSED
-  CANCELLED
-}
-
-enum EmailEventType {
-  SENT
-  DELIVERED
-  OPENED
-  CLICKED
-  BOUNCED
-  UNSUBSCRIBED
-  SPAM_REPORTED
-  FAILED
-}
-
-enum EmailSequenceUserStatus {
-  ACTIVE
-  PAUSED
-  COMPLETED
-  UNSUBSCRIBED
-  FAILED
-}
-
-enum SupplierStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  SUSPENDED
-  INACTIVE
-}
-
-enum RomanianComplianceStatus {
-  PENDING
-  IN_REVIEW
-  APPROVED
-  REJECTED
-  EXPIRED
-  NEEDS_UPDATE
-}
-
-enum RomanianEducationalLevel {
-  GRADINITA
-  PRIMAR
-  GIMNAZIU
-  LICEU
-  UNIVERSITATE
-}
-
-enum SupplierOrderStatus {
-  PENDING
-  CONFIRMED
-  IN_PRODUCTION
-  READY_TO_SHIP
-  SHIPPED
-  DELIVERED
-  CANCELLED
-}
-
 enum ProductStatus {
-  DRAFT
-  PENDING_APPROVAL
+  IN_PENDING
   APPROVED
+  DENIED
   REJECTED
 }
 
-enum InvoiceStatus {
-  DRAFT
-  SENT
-  PAID
-  OVERDUE
-  CANCELLED
-}
-
-enum MessageSenderType {
-  SUPPLIER
-  ADMIN
-  SYSTEM
-}
-
-enum MessagePriority {
-  LOW
-  NORMAL
-  HIGH
-  URGENT
-}
-
-enum MessageCategory {
-  GENERAL
-  ACCOUNT
-  ORDER
-  SUPPORT
-  MARKETING
-  ANNOUNCEMENT
-}
-
-enum NotificationType {
-  INFO
-  WARNING
-  ERROR
-  SUCCESS
-}
-
-enum TicketStatus {
-  OPEN
-  PENDING_CUSTOMER
-  PENDING_SUPPLIER
-  RESOLVED
-  CLOSED
-  REOPENED
-}
-
-enum TicketPriority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
-
-enum TicketCategory {
-  GENERAL
-  ACCOUNT
-  ORDER
-  SUPPORT
-  MARKETING
-  ANNOUNCEMENT
-}
-
-enum ResponderType {
-  SUPPLIER
-  ADMIN
-  SYSTEM
-}
-
-enum AnnouncementType {
-  GENERAL
-  ACCOUNT
-  ORDER
-  SUPPORT
-  MARKETING
-  ANNOUNCEMENT
-}
-
-enum AnnouncementPriority {
-  LOW
-  NORMAL
-  HIGH
-  URGENT
-}
-
-model SEOAnalytics {
-  id              String   @id @default(cuid())
-  keyword         String
-  position        Float
-  previousPosition Float?
-  clicks          Int
-  impressions     Int
-  ctr             Float
-  url             String?
-  searchVolume    Int?
-  difficulty      Int?
-  intent          String?
-  competitorGap   Boolean  @default(false)
-  targetPage      String?
-  dateRecorded    DateTime @default(now())
-  dataSource      String   @default("GSC") // GSC, SEMrush, Ahrefs, etc.
-  country         String   @default("ROU") // Romania by default
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([keyword, dateRecorded])
-  @@index([dateRecorded])
-  @@index([dataSource])
-  @@index([country])
-}
-
+// Analytics and Pixel Tracking Models
 model FacebookPixelEvent {
   id            String    @id @default(cuid())
   eventName     String
@@ -1484,115 +951,587 @@ model TikTokPixelConfig {
   @@index([pixelId])
 }
 
-model ABTest {
-  id              String        @id @default(cuid())
-  name            String
-  description     String?
-  type            ABTestType
-  status          ABTestStatus  @default(DRAFT)
-  targetAudience  ABTestAudience @default(ALL)
-  startDate       DateTime?
-  endDate         DateTime?
-  winner          String?       // Variant ID of the winner
-  confidence      Float?        // Statistical confidence level (0-100)
-  isActive        Boolean       @default(false)
-  createdBy       String
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  variants        ABTestVariant[]
-  metrics         ABTestMetrics[]
-  results         ABTestResult?
+model SEOAnalytics {
+  id              String   @id @default(cuid())
+  keyword         String
+  position        Float
+  previousPosition Float?
+  clicks          Int
+  impressions     Int
+  ctr             Float
+  url             String?
+  searchVolume    Int?
+  difficulty      Int?
+  intent          String?
+  competitorGap   Boolean  @default(false)
+  targetPage      String?
+  dateRecorded    DateTime @default(now())
+  dataSource      String   @default("GSC") // GSC, SEMrush, Ahrefs, etc.
+  country         String   @default("ROU") // Romania by default
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([keyword, dateRecorded])
+  @@index([dateRecorded])
+  @@index([dataSource])
+  @@index([country])
+}
+
+// Email Marketing Models
+model EmailCampaign {
+  id          String              @id @default(cuid())
+  name        String
+  description String?
+  templateId  String
+  subject     String
+  content     String
+  status      EmailCampaignStatus @default(DRAFT)
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  createdBy   String
+  metadata    Json?
+  template    EmailTemplate       @relation(fields: [templateId], references: [id])
 
   @@index([status])
-  @@index([type])
-  @@index([isActive])
-  @@index([targetAudience])
+  @@index([scheduledAt])
   @@index([createdBy])
-  @@index([createdAt])
-  @@index([startDate, endDate])
 }
 
-model ABTestVariant {
-  id        String   @id @default(cuid())
-  testId    String
-  name      String
-  content   String
-  weight    Float    // Percentage of traffic (0-100)
-  isControl Boolean  @default(false)
-  isWinner  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  test      ABTest   @relation(fields: [testId], references: [id], onDelete: Cascade)
-  metrics   ABTestMetrics[]
+model EmailEvent {
+  id         String         @id @default(cuid())
+  emailId    String         @unique
+  userId     String?
+  email      String
+  eventType  EmailEventType
+  campaignId String?
+  sequenceId String?
+  templateId String?
+  metadata   Json?
+  createdAt  DateTime       @default(now())
+  user       User?          @relation(fields: [userId], references: [id])
 
-  @@index([testId])
-  @@index([isControl])
-  @@index([isWinner])
-  @@index([weight])
-}
-
-model ABTestMetrics {
-  id           String    @id @default(cuid())
-  testId       String
-  variantId    String
-  impressions  Int       @default(0)
-  clicks       Int       @default(0)
-  conversions  Int       @default(0)
-  socialShares Int       @default(0)
-  timeOnPage   Float     @default(0) // Average time in seconds
-  bounceRate   Float     @default(0) // Bounce rate percentage
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  test         ABTest    @relation(fields: [testId], references: [id], onDelete: Cascade)
-  variant      ABTestVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-
-  @@unique([testId, variantId])
-  @@index([testId])
-  @@index([variantId])
+  @@index([emailId])
+  @@index([userId])
+  @@index([eventType])
+  @@index([campaignId])
+  @@index([sequenceId])
+  @@index([templateId])
   @@index([createdAt])
 }
 
-model ABTestResult {
-  id                    String   @id @default(cuid())
-  testId                String   @unique
-  winnerVariantId       String
-  confidence            Float    // Statistical confidence (0-100)
-  improvement           Float    // Percentage improvement over control
-  statisticalSignificance Boolean
-  recommendations       String[] // Array of recommendation strings
-  analysisData          Json?    // Additional statistical analysis data
-  completedAt           DateTime @default(now())
-  test                  ABTest   @relation(fields: [testId], references: [id], onDelete: Cascade)
+model EmailSequence {
+  id            String              @id @default(cuid())
+  name          String
+  description   String?
+  trigger       String
+  isActive      Boolean             @default(true)
+  maxEmails     Int                 @default(5)
+  cooldownHours Int                 @default(24)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  createdBy     String
+  steps         EmailSequenceStep[]
+  users         EmailSequenceUser[]
+  createdByUser User?            @relation(fields: [createdBy], references: [id])
 
-  @@index([testId])
-  @@index([completedAt])
-  @@index([statisticalSignificance])
+  @@index([trigger])
+  @@index([isActive])
+  @@index([createdBy])
 }
 
-enum ABTestType {
-  TITLE
-  CONTENT
-  CALL_TO_ACTION
-  IMAGE
-  STRUCTURE
-  LAYOUT
-  PRICING
-  CUSTOM
+model EmailSequenceStep {
+  id         String        @id @default(cuid())
+  sequenceId String
+  order      Int
+  delayHours Int           @default(0)
+  templateId String
+  subject    String
+  content    String
+  conditions Json?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  sequence   EmailSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  template   EmailTemplate @relation(fields: [templateId], references: [id])
+
+  @@index([sequenceId])
+  @@index([order])
 }
 
-enum ABTestStatus {
+model EmailSequenceUser {
+  id          String                  @id @default(cuid())
+  sequenceId  String
+  userId      String
+  status      EmailSequenceUserStatus @default(ACTIVE)
+  currentStep Int                     @default(0)
+  startedAt   DateTime                @default(now())
+  completedAt DateTime?
+  lastEmailAt DateTime?
+  metadata    Json?
+  sequence    EmailSequence           @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sequenceId, userId])
+  @@index([sequenceId])
+  @@index([userId])
+  @@index([status])
+}
+
+// Email Marketing Enums
+enum EmailCampaignStatus {
   DRAFT
-  RUNNING
-  COMPLETED
+  SCHEDULED
+  SENDING
+  SENT
   PAUSED
   CANCELLED
 }
 
-enum ABTestAudience {
-  ALL
-  ROMANIAN
-  NEW_USERS
-  RETURNING_USERS
-  MOBILE_USERS
-  DESKTOP_USERS
+enum EmailEventType {
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  UNSUBSCRIBED
+  SPAM_REPORTED
+  FAILED
+}
+
+enum EmailSequenceUserStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  UNSUBSCRIBED
+  FAILED
+}
+
+// Supplier Management Models
+model SupplierAnnouncement {
+  id              String               @id @default(cuid())
+  title           String
+  content         String
+  type            AnnouncementType
+  priority        AnnouncementPriority @default(NORMAL)
+  isActive        Boolean              @default(true)
+  publishedAt     DateTime             @default(now())
+  expiresAt       DateTime?
+  targetSuppliers String[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([type])
+  @@index([priority])
+  @@index([isActive])
+  @@index([publishedAt])
+  @@index([expiresAt])
+}
+
+model SupplierInvoice {
+  id            String          @id @default(cuid())
+  supplierId    String
+  invoiceNumber String          @unique
+  periodStart   DateTime
+  periodEnd     DateTime
+  subtotal      Float
+  commission    Float
+  totalAmount   Float
+  status        InvoiceStatus   @default(DRAFT)
+  dueDate       DateTime
+  paidAt        DateTime?
+  paymentMethod String?
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  supplier      Supplier        @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([supplierId])
+  @@index([invoiceNumber])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model SupplierMessage {
+  id                String            @id @default(cuid())
+  supplierId        String
+  senderId          String
+  senderType        MessageSenderType
+  subject           String
+  content           String
+  isRead            Boolean           @default(false)
+  readAt            DateTime?
+  priority          MessagePriority   @default(NORMAL)
+  category          MessageCategory   @default(GENERAL)
+  attachments       String[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  attachmentDetails Json?
+  sender            User              @relation("MessageSender", fields: [senderId], references: [id])
+  supplier          Supplier          @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([supplierId])
+  @@index([senderId])
+  @@index([isRead])
+  @@index([priority])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model SupplierNotification {
+  id         String           @id @default(cuid())
+  supplierId String
+  type       NotificationType
+  title      String
+  message    String
+  isRead     Boolean          @default(false)
+  readAt     DateTime?
+  actionUrl  String?
+  metadata   Json?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  supplier   Supplier         @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([supplierId])
+  @@index([type])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model SupplierSupportTicket {
+  id                String                   @id @default(cuid())
+  supplierId        String
+  ticketNumber      String                   @unique
+  subject           String
+  description       String
+  status            TicketStatus             @default(OPEN)
+  priority          TicketPriority           @default(MEDIUM)
+  category          TicketCategory
+  assignedTo        String?
+  attachments       String[]
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  closedAt          DateTime?
+  attachmentDetails Json?
+  assignedAdmin     User?                    @relation("TicketAssignedTo", fields: [assignedTo], references: [id])
+  supplier          Supplier                 @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  responses         SupplierTicketResponse[]
+
+  @@index([supplierId])
+  @@index([ticketNumber])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([assignedTo])
+  @@index([createdAt])
+}
+
+model SupplierTicketResponse {
+  id                String                @id @default(cuid())
+  ticketId          String
+  responderId       String
+  responderType     ResponderType
+  content           String
+  isInternal        Boolean               @default(false)
+  attachments       String[]
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  attachmentDetails Json?
+  responder         User                  @relation("TicketResponder", fields: [responderId], references: [id])
+  ticket            SupplierSupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([responderId])
+  @@index([responderType])
+  @@index([createdAt])
+}
+
+// Supplier Performance Tracking Models
+model SupplierPerformanceMetrics {
+  id                    String   @id @default(cuid())
+  supplierId           String
+  periodStart          DateTime
+  periodEnd            DateTime
+  totalOrders          Int      @default(0)
+  fulfilledOrders      Int      @default(0)
+  onTimeDeliveryRate   Float    @default(0) // Percentage 0-100
+  averageDeliveryDays  Float?   // Average actual delivery time
+  qualityScore         Float    @default(0) // Average rating from reviews 0-5
+  returnRate           Float    @default(0) // Percentage of orders returned
+  customerSatisfaction Float    @default(0) // Average customer satisfaction 0-5
+  totalRevenue         Float    @default(0)
+  commissionEarned     Float    @default(0)
+  fulfillmentRate      Float    @default(0) // Percentage of orders fulfilled successfully
+  responseTimeHours    Float?   // Average response time to admin queries
+  issueResolutionRate  Float    @default(0) // Percentage of support issues resolved
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  supplier             Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@unique([supplierId, periodStart, periodEnd])
+  @@index([supplierId])
+  @@index([periodStart])
+  @@index([periodEnd])
+  @@index([onTimeDeliveryRate])
+  @@index([qualityScore])
+  @@index([fulfillmentRate])
+}
+
+model SupplierOrderTracking {
+  id                    String            @id @default(cuid())
+  supplierOrderId      String            @unique // One tracking record per supplier order
+  orderId              String
+  orderItemId          String
+  status               String            @default("PENDING")
+  estimatedDeliveryDate DateTime?
+  actualDeliveryDate   DateTime?
+  shippedDate          DateTime?
+  trackingNumber       String?
+  carrier              String?
+  qualityRating        Int?              // 1-5 scale
+  deliveryRating       Int?              // 1-5 scale
+  customerFeedback     String?
+  issuesReported       String[]           @default([])
+  resolutionStatus     String?           // RESOLVED, PENDING, ESCALATED
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  supplierOrder        SupplierOrder     @relation(fields: [supplierOrderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status])
+  @@index([estimatedDeliveryDate])
+  @@index([actualDeliveryDate])
+  @@index([qualityRating])
+}
+
+// Supplier Management Enums
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum MessageSenderType {
+  SUPPLIER
+  ADMIN
+  SYSTEM
+}
+
+enum MessagePriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum MessageCategory {
+  GENERAL
+  ACCOUNT
+  ORDER
+  SUPPORT
+  MARKETING
+  ANNOUNCEMENT
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  ERROR
+  SUCCESS
+}
+
+enum TicketStatus {
+  OPEN
+  PENDING_CUSTOMER
+  PENDING_SUPPLIER
+  RESOLVED
+  CLOSED
+  REOPENED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketCategory {
+  GENERAL
+  ACCOUNT
+  ORDER
+  SUPPORT
+  MARKETING
+  ANNOUNCEMENT
+}
+
+enum ResponderType {
+  SUPPLIER
+  ADMIN
+  SYSTEM
+}
+
+enum AnnouncementType {
+  GENERAL
+  ACCOUNT
+  ORDER
+  SUPPORT
+  MARKETING
+  ANNOUNCEMENT
+}
+
+enum AnnouncementPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+// Automation and Campaign Models
+model AutomationWorkflow {
+  id                String   @id @default(cuid())
+  name              String
+  type              String
+  status            String   @default("active")
+  customerId        String
+  currentStep       Int      @default(0)
+  totalSteps        Int
+  nextExecutionDate DateTime
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([type])
+  @@index([nextExecutionDate])
+}
+
+model Campaign {
+  id                    String                @id @default(cuid())
+  name                  String
+  type                  String
+  status                String                @default("draft")
+  startDate             DateTime
+  endDate               DateTime
+  discountPercent       Float?
+  minimumOrderAmount    Float?
+  maximumDiscountAmount Float?
+  applicableCategories  String[]              @default([])
+  applicableProducts    String[]              @default([])
+  customerSegments      String[]              @default([])
+  maxUses               Int?
+  currentUses           Int                   @default(0)
+  metadata              Json?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  applications          CampaignApplication[]
+
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([type])
+}
+
+model CampaignApplication {
+  id             String   @id @default(cuid())
+  campaignId     String
+  orderId        String?
+  customerId     String
+  discountAmount Float
+  appliedAt      DateTime @default(now())
+  metadata       Json?
+  campaign       Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  order          Order?   @relation(fields: [orderId], references: [id])
+  customer       User     @relation(fields: [customerId], references: [id])
+
+  @@index([campaignId])
+  @@index([customerId])
+  @@index([appliedAt])
+}
+
+model PerformanceMetric {
+  id        String   @id @default(cuid())
+  cls       Float    @default(0)
+  fid       Float    @default(0)
+  fcp       Float    @default(0)
+  lcp       Float    @default(0)
+  ttfb      Float    @default(0)
+  timestamp DateTime @default(now())
+  url       String
+  userAgent String   @default("")
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([timestamp])
+  @@index([url])
+}
+
+model Session {
+  id           String   @id
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OrderStatusHistory {
+  id         String      @id @default(cuid())
+  orderId    String
+  fromStatus OrderStatus
+  toStatus   OrderStatus
+  reason     String?
+  notes      String?
+  updatedBy  String?
+  createdAt  DateTime    @default(now())
+  order      Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([toStatus])
+  @@index([createdAt])
+}
+
+// Image Processing Models
+model ImageMetadata {
+  id                String               @id @default(cuid())
+  originalUrl       String
+  filename          String
+  fileSize          Int
+  width             Int?
+  height            Int?
+  format            String
+  uploadedAt        DateTime             @default(now())
+  processedSizes    Json?
+  optimizationStats Json?
+  tags              String[]
+  alt               String?
+  description       String?
+  metadata          Json?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  processingLogs    ImageProcessingLog[]
+
+  @@index([originalUrl])
+  @@index([format])
+  @@index([uploadedAt])
+}
+
+model ImageProcessingLog {
+  id           String        @id @default(cuid())
+  imageId      String
+  operation    String
+  status       String
+  details      Json?
+  startedAt    DateTime      @default(now())
+  completedAt  DateTime?
+  errorMessage String?
+  image        ImageMetadata @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  @@index([imageId])
+  @@index([operation])
+  @@index([status])
+  @@index([startedAt])
 }

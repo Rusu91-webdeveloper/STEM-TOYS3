@@ -34,23 +34,6 @@ export async function GET(request: NextRequest) {
     const supplier = await db.supplier.findUnique({
       where: { id: supplierId },
       include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            isActive: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-        approvedByUser: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
         _count: {
           select: {
             products: true,
@@ -141,8 +124,67 @@ export async function GET(request: NextRequest) {
       take: 5,
     });
 
+    // Transform supplier to match frontend expectations
+    const transformedSupplier = {
+      id: supplier.id,
+      userId: supplier.userId,
+      companyName: supplier.companyName || supplier.name,
+      companySlug: supplier.companySlug,
+      description: supplier.description,
+      website: supplier.website,
+      phone: supplier.phone,
+      email: supplier.email,
+      contactPersonName: supplier.contactPersonName || supplier.contactPerson,
+      contactPersonEmail: supplier.contactPersonEmail,
+      contactPersonPhone: supplier.contactPersonPhone,
+      businessAddress: supplier.businessAddress,
+      businessCity: supplier.businessCity,
+      businessState: supplier.businessState,
+      businessCountry: supplier.businessCountry || "Romania",
+      businessPostalCode: supplier.businessPostalCode,
+      vatNumber: supplier.vatNumber,
+      taxId: supplier.taxId,
+      cui: supplier.cui,
+      codFiscal: supplier.codFiscal,
+      nrRegCom: supplier.nrRegCom,
+      reprezentantLegal: supplier.reprezentantLegal,
+      yearEstablished: supplier.yearEstablished,
+      employeeCount: supplier.employeeCount,
+      annualRevenue: supplier.annualRevenue,
+      certifications: supplier.certifications,
+      productCategories: supplier.productCategories,
+      isActive: supplier.isActive,
+      status: supplier.status,
+      approvedAt: supplier.approvedAt,
+      approvedBy: supplier.approvedBy,
+      rejectionReason: supplier.rejectionReason,
+      commissionRate: supplier.commissionRate,
+      paymentTerms: supplier.paymentTerms,
+      minimumOrderValue: supplier.minimumOrderValue,
+      adresaSediu: supplier.adresaSediu,
+      anpcApproval: supplier.anpcApproval,
+      educationalCertification: supplier.educationalCertification,
+      iscApproval: supplier.iscApproval,
+      romanianBankAccount: supplier.romanianBankAccount,
+      romanianComplianceStatus: supplier.romanianComplianceStatus,
+      romanianCurrency: supplier.romanianCurrency,
+      romanianPaymentTerms: supplier.romanianPaymentTerms,
+      romanianVatNumber: supplier.romanianVatNumber,
+      apiEndpoint: supplier.apiEndpoint,
+      apiKey: supplier.apiKey,
+      trackingUrl: supplier.trackingUrl,
+      averageDeliveryDays: supplier.averageDeliveryDays,
+      logo: supplier.logo,
+      catalogUrl: supplier.catalogUrl,
+      termsAccepted: supplier.termsAccepted,
+      privacyAccepted: supplier.privacyAccepted,
+      createdAt: supplier.createdAt,
+      updatedAt: supplier.updatedAt,
+      _count: supplier._count,
+    };
+
     const supplierData = {
-      ...supplier,
+      ...transformedSupplier,
       statistics: {
         totalRevenue: totalRevenue._sum.supplierRevenue || 0,
         totalOrders,
@@ -255,15 +297,6 @@ export async function PUT(request: NextRequest) {
       const supplier = await db.supplier.update({
         where: { id: supplierId },
         data: updateData,
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
       });
 
       logger.info("Admin supplier updated successfully", {
@@ -350,10 +383,68 @@ export async function PUT(request: NextRequest) {
         }
       }
 
+      // Transform supplier to match frontend expectations
+      const transformedSupplier = {
+        id: supplier.id,
+        userId: supplier.userId,
+        companyName: supplier.companyName || supplier.name,
+        companySlug: supplier.companySlug,
+        description: supplier.description,
+        website: supplier.website,
+        phone: supplier.phone,
+        email: supplier.email,
+        contactPersonName: supplier.contactPersonName || supplier.contactPerson,
+        contactPersonEmail: supplier.contactPersonEmail,
+        contactPersonPhone: supplier.contactPersonPhone,
+        businessAddress: supplier.businessAddress,
+        businessCity: supplier.businessCity,
+        businessState: supplier.businessState,
+        businessCountry: supplier.businessCountry || "Romania",
+        businessPostalCode: supplier.businessPostalCode,
+        vatNumber: supplier.vatNumber,
+        taxId: supplier.taxId,
+        cui: supplier.cui,
+        codFiscal: supplier.codFiscal,
+        nrRegCom: supplier.nrRegCom,
+        reprezentantLegal: supplier.reprezentantLegal,
+        yearEstablished: supplier.yearEstablished,
+        employeeCount: supplier.employeeCount,
+        annualRevenue: supplier.annualRevenue,
+        certifications: supplier.certifications,
+        productCategories: supplier.productCategories,
+        isActive: supplier.isActive,
+        status: supplier.status,
+        approvedAt: supplier.approvedAt,
+        approvedBy: supplier.approvedBy,
+        rejectionReason: supplier.rejectionReason,
+        commissionRate: supplier.commissionRate,
+        paymentTerms: supplier.paymentTerms,
+        minimumOrderValue: supplier.minimumOrderValue,
+        adresaSediu: supplier.adresaSediu,
+        anpcApproval: supplier.anpcApproval,
+        educationalCertification: supplier.educationalCertification,
+        iscApproval: supplier.iscApproval,
+        romanianBankAccount: supplier.romanianBankAccount,
+        romanianComplianceStatus: supplier.romanianComplianceStatus,
+        romanianCurrency: supplier.romanianCurrency,
+        romanianPaymentTerms: supplier.romanianPaymentTerms,
+        romanianVatNumber: supplier.romanianVatNumber,
+        apiEndpoint: supplier.apiEndpoint,
+        apiKey: supplier.apiKey,
+        trackingUrl: supplier.trackingUrl,
+        averageDeliveryDays: supplier.averageDeliveryDays,
+        logo: supplier.logo,
+        catalogUrl: supplier.catalogUrl,
+        termsAccepted: supplier.termsAccepted,
+        privacyAccepted: supplier.privacyAccepted,
+        createdAt: supplier.createdAt,
+        updatedAt: supplier.updatedAt,
+      };
+
       return NextResponse.json({
         success: true,
         message: "Supplier updated successfully",
-        supplier,
+        supplier: transformedSupplier,
       });
     } catch (dbError: any) {
       logger.error("Database error updating supplier:", dbError);

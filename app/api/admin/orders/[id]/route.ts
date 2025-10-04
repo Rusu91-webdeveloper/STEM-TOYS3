@@ -21,7 +21,7 @@ const updateOrderSchema = z.object({
 // GET - Get order details for admin
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ orderId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -31,7 +31,7 @@ export async function GET(
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
-    const { orderId } = await params;
+    const { id: orderId } = await params;
 
     // Find the order by ID or order number
     const order = await db.order.findFirst({
@@ -137,7 +137,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ orderId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -147,7 +147,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
-    const { orderId } = await params;
+    const { id: orderId } = await params;
     const body = await request.json();
 
     // Validate the request body

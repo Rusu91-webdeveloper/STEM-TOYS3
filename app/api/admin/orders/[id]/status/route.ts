@@ -47,7 +47,7 @@ const bulkUpdateSchema = z.object({
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ orderId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -55,7 +55,7 @@ export async function GET(
       return new NextResponse("Unauthorized", { status: 403 });
     }
 
-    const { orderId } = await params;
+    const { id: orderId } = await params;
 
     const history = await getOrderStatusHistory(orderId);
 
@@ -80,7 +80,7 @@ export async function GET(
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ orderId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -88,7 +88,7 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 403 });
     }
 
-    const { orderId } = await params;
+    const { id: orderId } = await params;
     const body = await req.json();
 
     const validatedData = updateStatusSchema.parse(body);

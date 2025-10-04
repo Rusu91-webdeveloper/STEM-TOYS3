@@ -4,8 +4,23 @@
  * This file provides a unified interface for all email templates,
  * organized into modular categories for better maintainability.
  *
- * Replaces the original monolithic brevoTemplates.ts file.
+ * Enterprise-grade email system with unified service integration.
  */
+
+// Export unified email service
+export { UnifiedEmailService } from "./unified-service";
+export type {
+  EmailProvider,
+  EmailProviderSendResult,
+  UnifiedEmailRequest,
+  UnifiedEmailResponse,
+  EmailServiceOptions,
+} from "./types";
+
+// Export provider implementations
+export { ResendProvider } from "./providers/resend";
+export { BrevoProvider } from "./providers/brevo";
+export { GmailProvider } from "./providers/gmail";
 
 // Export all authentication templates
 export {
@@ -36,6 +51,68 @@ export {
   type SEOMetadata,
   type BlogWithAuthorAndCategory,
 } from "./base";
+
+// Initialize unified email service
+import { UnifiedEmailService } from "./unified-service";
+import { ResendProvider } from "./providers/resend";
+import { BrevoProvider } from "./providers/brevo";
+import { GmailProvider } from "./providers/gmail";
+
+/**
+ * Enterprise Email Service Factory
+ * Creates and configures the unified email service based on environment configuration
+ */
+export function createEmailService() {
+  const providerType = process.env.EMAIL_PROVIDER || "resend";
+
+  // Initialize primary provider
+  let primaryProvider: any;
+  let fallbackProvider: any;
+
+  switch (providerType) {
+    case "resend":
+      primaryProvider = new ResendProvider();
+      fallbackProvider = process.env.EMAIL_FALLBACK_API_KEY
+        ? new BrevoProvider()
+        : undefined;
+      break;
+    case "brevo":
+      primaryProvider = new BrevoProvider();
+      fallbackProvider = process.env.EMAIL_FALLBACK_API_KEY
+        ? new ResendProvider()
+        : undefined;
+      break;
+    case "gmail":
+      primaryProvider = new GmailProvider();
+      fallbackProvider = process.env.EMAIL_FALLBACK_API_KEY
+        ? new ResendProvider()
+        : undefined;
+      break;
+    default:
+      throw new Error(`Unsupported email provider: ${providerType}`);
+  }
+
+  return new UnifiedEmailService({
+    primaryProvider,
+    fallbackProvider,
+    fromEmail: process.env.EMAIL_FROM || "noreply@techtots.com",
+    fromName: process.env.EMAIL_FROM_NAME || "TechTots STEM Store",
+    replyTo: process.env.EMAIL_REPLY_TO,
+  });
+}
+
+// Singleton instance for application-wide use
+let emailServiceInstance: UnifiedEmailService | null = null;
+
+/**
+ * Get the global email service instance
+ */
+export function getEmailService(): UnifiedEmailService {
+  if (!emailServiceInstance) {
+    emailServiceInstance = createEmailService();
+  }
+  return emailServiceInstance;
+}
 
 // Legacy compatibility: Export sendEmailViaUnifiedSystem object for existing code
 import {

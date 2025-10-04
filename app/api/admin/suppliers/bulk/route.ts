@@ -98,15 +98,6 @@ export async function POST(request: NextRequest) {
             approvedBy: action === "approve" ? session.user.id : undefined,
             rejectionReason: action === "reject" ? rejectionReason : null,
           },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
         });
 
         // For approval, create user account and send email

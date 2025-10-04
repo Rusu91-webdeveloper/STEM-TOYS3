@@ -3,7 +3,7 @@
  * Includes digital book delivery, order confirmation, and shipping notifications
  */
 
-import { sendEmailWithBrevo } from "../brevo";
+import { getEmailService } from "./index";
 
 import {
   getStoreSettings,
@@ -150,11 +150,11 @@ export async function sendDigitalBookDeliveryEmail({
     "Cărțile tale digitale sunt gata!"
   );
 
-  return sendEmailWithBrevo({
+  const emailService = getEmailService();
+  return emailService.sendEmail({
     to,
     subject: `📚 Cărțile tale digitale sunt gata pentru descărcare! - Comanda #${orderId}`,
     html,
-    params: { email: to },
   });
 }
 
@@ -358,11 +358,11 @@ export async function sendOrderConfirmationEmail({
     previewText
   );
 
-  return sendEmailWithBrevo({
+  const emailService = getEmailService();
+  return emailService.sendEmail({
     to,
     subject: `✅ Comanda #${orderId} confirmată - ${storeSettings.storeName}`,
     html,
-    params: { email: to },
   });
 }
 
@@ -590,11 +590,11 @@ export async function sendShippingNotificationEmail({
     previewText
   );
 
-  return sendEmailWithBrevo({
+  const emailService = getEmailService();
+  return emailService.sendEmail({
     to,
     subject: `🚚 Comanda #${orderId} a fost expediată - ${storeSettings.storeName}`,
     html,
-    params: { email: to },
   });
 }
 
@@ -798,11 +798,11 @@ export async function sendOrderCompletedEmail({
     previewText
   );
 
-  return sendEmailWithBrevo({
+  const emailService = getEmailService();
+  return emailService.sendEmail({
     to,
     subject: `🎉 Comanda #${orderId} a fost finalizată cu succes! - ${storeSettings.storeName}`,
     html,
-    params: { email: to },
   });
 }
 
@@ -1006,11 +1006,11 @@ export async function sendOrderDeliveredEmail({
     previewText
   );
 
-  return sendEmailWithBrevo({
+  const emailService = getEmailService();
+  return emailService.sendEmail({
     to,
     subject: `📦 Comanda #${orderId} a fost livrată - ${storeSettings.storeName}`,
     html,
-    params: { email: to },
   });
 }
 
@@ -1188,10 +1188,10 @@ export async function sendOrderCancellationEmail({
     previewText
   );
 
-  return sendEmailWithBrevo({
+  const emailService = getEmailService();
+  return emailService.sendEmail({
     to,
     subject: `❌ Comanda #${orderId} a fost anulată - ${storeSettings.storeName}`,
     html,
-    params: { email: to },
   });
 }

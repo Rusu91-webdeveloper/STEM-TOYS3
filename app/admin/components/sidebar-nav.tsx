@@ -20,6 +20,11 @@ import {
   Share2,
   Calendar,
   TestTube,
+  Receipt,
+  Calculator,
+  Target,
+  Truck,
+  Cog,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -92,6 +97,11 @@ export const adminNavItems = [
     icon: ShoppingCart,
   },
   {
+    title: "Order Management",
+    href: "/admin/order-management",
+    icon: Truck,
+  },
+  {
     title: "Returns",
     href: "/admin/returns",
     icon: FileText,
@@ -107,9 +117,19 @@ export const adminNavItems = [
     icon: Building2,
   },
   {
+    title: "Supplier Invoices",
+    href: "/admin/supplier-invoices",
+    icon: Receipt,
+  },
+  {
     title: "Messages",
     href: "/admin/messages",
     icon: Mail,
+  },
+  {
+    title: "Communication Hub",
+    href: "/admin/communication",
+    icon: MessageSquare,
   },
   {
     title: "Support Tickets",
@@ -125,6 +145,26 @@ export const adminNavItems = [
     title: "Analytics",
     href: "/admin/analytics",
     icon: BarChart,
+  },
+  {
+    title: "Advanced Analytics",
+    href: "/admin/advanced-analytics",
+    icon: TrendingUp,
+  },
+  {
+    title: "Unit Economics",
+    href: "/admin/analytics/unit-economics",
+    icon: Calculator,
+  },
+  {
+    title: "Pixel Config",
+    href: "/admin/analytics/pixel-config",
+    icon: TestTube,
+  },
+  {
+    title: "Cost Management",
+    href: "/admin/cost-management",
+    icon: Target,
   },
   {
     title: "SEO Dashboard",

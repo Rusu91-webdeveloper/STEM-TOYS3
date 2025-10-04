@@ -57,8 +57,8 @@ interface Product {
   status?: string;
   supplier?: {
     id: string;
-    companyName: string;
-  } | null;
+    name: string;
+  };
   _count: {
     orderItems: number;
   };
@@ -107,7 +107,13 @@ async function getProducts(filters?: {
 
     if (filters) {
       if (filters.status) where.status = filters.status;
-      if (filters.supplierId) where.supplierId = filters.supplierId;
+      if (filters.supplierId) {
+        where.supplierOrders = {
+          some: {
+            supplierId: filters.supplierId,
+          },
+        };
+      }
       if (filters.categoryId) where.categoryId = filters.categoryId;
       if (filters.priceMin != null || filters.priceMax != null) {
         where.price = {} as any;
@@ -128,7 +134,9 @@ async function getProducts(filters?: {
         where,
         include: {
           category: true,
-          supplier: { select: { id: true, companyName: true } },
+          supplier: {
+            select: { id: true, name: true },
+          },
           _count: { select: { orderItems: true } },
         },
         orderBy: { createdAt: "desc" },
@@ -168,14 +176,14 @@ async function getProducts(filters?: {
 async function getSuppliers() {
   try {
     const suppliers = await db.supplier.findMany({
-      where: { status: { in: ["APPROVED", "PENDING"] } },
-      select: { id: true, companyName: true },
-      orderBy: { companyName: "asc" },
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
     });
     return suppliers;
   } catch (error) {
     console.error("Error fetching suppliers:", error);
-    return [] as { id: string; companyName: string }[];
+    return [] as { id: string; name: string }[];
   }
 }
 

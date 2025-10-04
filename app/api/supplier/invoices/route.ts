@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== "SUPPLIER") {
-      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
     }
 
+    // Get supplier
     const supplier = await db.supplier.findUnique({
       where: { userId: session.user.id },
       select: { id: true },
     });
+
     if (!supplier) {
       return NextResponse.json(
         { error: "Supplier not found" },
@@ -21,59 +27,57 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const sp = request.nextUrl.searchParams;
-    const page = parseInt(sp.get("page") || "1");
-    const limit = parseInt(sp.get("limit") || "10");
-    const status = sp.get("status") || ""; // DRAFT|SENT|PAID|OVERDUE|CANCELLED
-    const periodStart = sp.get("periodStart");
-    const periodEnd = sp.get("periodEnd");
-    const search = sp.get("search") || ""; // invoiceNumber
-
-    const where: any = { supplierId: supplier.id };
-    if (status) where.status = status;
-    if (periodStart || periodEnd) {
-      where.createdAt = {} as any;
-      if (periodStart) (where.createdAt as any).gte = new Date(periodStart);
-      if (periodEnd) (where.createdAt as any).lte = new Date(periodEnd);
-    }
-    if (search) {
-      where.invoiceNumber = { contains: search, mode: "insensitive" };
-    }
-
-    const [invoices, total] = await Promise.all([
-      db.supplierInvoice.findMany({
-        where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          invoiceNumber: true,
-          periodStart: true,
-          periodEnd: true,
-          subtotal: true,
-          commission: true,
-          totalAmount: true,
-          status: true,
-          dueDate: true,
-          paidAt: true,
-          createdAt: true,
+    // Get invoices for this supplier
+    const invoices = await db.supplierInvoice.findMany({
+      where: { supplierId: supplier.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        _count: {
+          select: {
+            orders: true,
+          },
         },
-      }),
-      db.supplierInvoice.count({ where }),
-    ]);
-
-    return NextResponse.json({
-      invoices,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
       },
     });
+
+    // Transform invoices for frontend
+    const transformedInvoices = invoices.map(invoice => ({
+      id: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      periodStart: invoice.periodStart.toISOString(),
+      periodEnd: invoice.periodEnd.toISOString(),
+      subtotal: invoice.subtotal,
+      commission: invoice.commission,
+      totalAmount: invoice.totalAmount,
+      status: invoice.status,
+      dueDate: invoice.dueDate.toISOString(),
+      paidAt: invoice.paidAt?.toISOString(),
+      notes: invoice.notes,
+      createdAt: invoice.createdAt.toISOString(),
+      orderCount: invoice._count.orders,
+      totalOrdersValue: invoice.subtotal, // Assuming subtotal is the orders value
+    }));
+
+    // Calculate stats
+    const stats = {
+      totalInvoices: invoices.length,
+      totalSubtotal: invoices.reduce((sum, inv) => sum + inv.subtotal, 0),
+      totalCommission: invoices.reduce((sum, inv) => sum + inv.commission, 0),
+      totalAmount: invoices.reduce((sum, inv) => sum + inv.totalAmount, 0),
+    };
+
+    logger.info("Supplier invoices retrieved", {
+      supplierId: supplier.id,
+      userId: session.user.id,
+      invoiceCount: invoices.length,
+    });
+
+    return NextResponse.json({
+      invoices: transformedInvoices,
+      stats,
+    });
   } catch (error) {
-    console.error("Error fetching supplier invoices:", error);
+    logger.error("Error retrieving supplier invoices:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

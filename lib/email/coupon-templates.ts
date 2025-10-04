@@ -1,6 +1,6 @@
 import type { Coupon } from "@prisma/client";
 
-import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
+import { getEmailService } from "./index";
 import { db } from "@/lib/db";
 
 /**
@@ -244,11 +244,10 @@ export async function sendCouponEmail({
     previewText
   );
 
-  await sendEmailViaUnifiedSystem({
+  const emailService = getEmailService();
+  await emailService.sendEmail({
     to,
     subject,
     html,
-    from: storeSettings?.contactEmail,
-    fromName: storeName,
   });
 }

@@ -1,89 +1,71 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
-export async function PUT(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user || session.user.role !== "SUPPLIER") {
-      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
     }
 
+    // Get supplier data
     const supplier = await db.supplier.findUnique({
       where: { userId: session.user.id },
-      select: { id: true },
+      select: {
+        id: true,
+        companyName: true,
+        email: true,
+        phone: true,
+        businessAddress: true,
+        businessCity: true,
+        businessCountry: true,
+        businessWebsite: true,
+        taxId: true,
+        registrationNumber: true,
+        contactPersonName: true,
+        contactPersonEmail: true,
+        contactPersonPhone: true,
+        commissionRate: true,
+        status: true,
+        createdAt: true,
+        logoUrl: true,
+      },
     });
 
     if (!supplier) {
       return NextResponse.json(
-        { error: "Supplier profile not found" },
+        { error: "Supplier not found" },
         { status: 404 }
       );
     }
 
-    const body = await request.json().catch(() => ({}));
+    // Get notification settings (assuming they exist in user preferences or supplier settings)
+    // For now, return default settings
+    const notifications = {
+      emailNotifications: true,
+      orderNotifications: true,
+      paymentNotifications: true,
+      marketingEmails: false,
+      smsNotifications: false,
+    };
 
-    // Update supplier profile
-    const updatedSupplier = await db.supplier.update({
-      where: { id: supplier.id },
-      data: {
-        companyName: body.companyName,
-        description: body.description,
-        website: body.website,
-        phone: body.phone,
-        vatNumber: body.vatNumber,
-        businessAddress: body.businessAddress,
-        businessCity: body.businessCity,
-        businessState: body.businessState,
-        businessCountry: body.businessCountry,
-        businessPostalCode: body.businessPostalCode,
-        contactPersonName: body.contactPersonName,
-        contactPersonEmail: body.contactPersonEmail,
-        contactPersonPhone: body.contactPersonPhone,
-        yearEstablished: body.yearEstablished,
-        employeeCount: body.employeeCount,
-        annualRevenue: body.annualRevenue,
-        commissionRate: body.commissionRate,
-        paymentTerms: body.paymentTerms,
-        minimumOrderValue: body.minimumOrderValue,
-      },
-      select: {
-        id: true,
-        companyName: true,
-        description: true,
-        website: true,
-        phone: true,
-        vatNumber: true,
-        businessAddress: true,
-        businessCity: true,
-        businessState: true,
-        businessCountry: true,
-        businessPostalCode: true,
-        contactPersonName: true,
-        contactPersonEmail: true,
-        contactPersonPhone: true,
-        yearEstablished: true,
-        employeeCount: true,
-        annualRevenue: true,
-        commissionRate: true,
-        paymentTerms: true,
-        minimumOrderValue: true,
-      },
-    });
-
-    logger.info("Supplier settings updated successfully", {
+    logger.info("Supplier settings retrieved", {
       supplierId: supplier.id,
       userId: session.user.id,
     });
 
     return NextResponse.json({
-      success: true,
-      supplier: updatedSupplier,
+      profile: supplier,
+      notifications,
     });
   } catch (error) {
-    logger.error("Error updating supplier settings:", error);
+    logger.error("Error retrieving supplier settings:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -1,11 +1,40 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSession } from "next-auth/react";
+import {
+  User,
+  Building2,
+  Mail,
+  Phone,
+  MapPin,
+  Globe,
+  CreditCard,
+  Shield,
+  Bell,
+  Save,
+  AlertTriangle,
+  CheckCircle,
+  Eye,
+  EyeOff,
+  Key,
+  Upload,
+  FileText,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -15,701 +44,898 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Building2,
-  User,
-  Mail,
-  Phone,
-  Globe,
-  MapPin,
-  CreditCard,
-  Bell,
-  Save,
-  AlertTriangle,
-  CheckCircle,
-} from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
-interface SupplierData {
+interface SupplierProfile {
   id: string;
   companyName: string;
-  companySlug: string;
-  description: string;
-  website: string;
-  phone: string;
-  vatNumber: string;
-  businessAddress: string;
-  businessCity: string;
-  businessState: string;
-  businessCountry: string;
-  businessPostalCode: string;
-  contactPersonName: string;
-  contactPersonEmail: string;
-  contactPersonPhone: string;
-  yearEstablished: number;
-  employeeCount: number;
-  annualRevenue: string;
-  certifications: string[];
-  productCategories: string[];
+  email: string;
+  phone?: string;
+  businessAddress?: string;
+  businessCity?: string;
+  businessCountry?: string;
+  businessWebsite?: string;
+  taxId?: string;
+  registrationNumber?: string;
+  contactPersonName?: string;
+  contactPersonEmail?: string;
+  contactPersonPhone?: string;
   commissionRate: number;
-  paymentTerms: number;
-  minimumOrderValue: number;
-  logo: string | null;
-  catalogUrl: string | null;
+  status: string;
+  createdAt: string;
+  logoUrl?: string;
 }
 
-interface NotificationPreferences {
-  email: {
-    messages: boolean;
-    tickets: boolean;
-    announcements: boolean;
-    invoices: boolean;
-    orders: boolean;
-  };
-  inApp: {
-    messages: boolean;
-    tickets: boolean;
-    announcements: boolean;
-    invoices: boolean;
-    orders: boolean;
-  };
+interface NotificationSettings {
+  emailNotifications: boolean;
+  orderNotifications: boolean;
+  paymentNotifications: boolean;
+  marketingEmails: boolean;
+  smsNotifications: boolean;
 }
 
-export function SupplierSettings() {
-  const [supplier, setSupplier] = useState<SupplierData | null>(null);
-  const [loading, setLoading] = useState(true);
+interface SettingsData {
+  profile: SupplierProfile;
+  notifications: NotificationSettings;
+}
+
+export function SupplierSettings({
+  initialData,
+}: {
+  initialData?: SettingsData | null;
+}) {
+  const { data: session } = useSession();
+  const [settingsData, setSettingsData] = useState<SettingsData | null>(
+    initialData ?? null
+  );
+  const [loading, setLoading] = useState(!initialData);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Partial<SupplierData>>({});
-  const [notificationPrefs, setNotificationPrefs] =
-    useState<NotificationPreferences | null>(null);
-  const [savingPrefs, setSavingPrefs] = useState(false);
+
+  // Form states
+  const [profileForm, setProfileForm] = useState<Partial<SupplierProfile>>({});
+  const [notificationForm, setNotificationForm] =
+    useState<NotificationSettings>({
+      emailNotifications: true,
+      orderNotifications: true,
+      paymentNotifications: true,
+      marketingEmails: false,
+      smsNotifications: false,
+    });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
 
   useEffect(() => {
-    fetchSupplierData();
-    fetchNotificationPrefs();
-  }, []);
+    if (initialData) {
+      setSettingsData(initialData);
+      setProfileForm(initialData.profile);
+      setNotificationForm(initialData.notifications);
+    } else {
+      fetchSettingsData();
+    }
+  }, [initialData]);
 
-  const fetchSupplierData = async () => {
+  const fetchSettingsData = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/supplier/auth/me");
-      if (!response.ok) throw new Error("Failed to fetch supplier data");
-
-      const data = await response.json();
-      setSupplier(data);
-      setFormData(data);
+      setError(null);
+      const res = await fetch("/api/supplier/settings", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to load settings data");
+      }
+      const data = await res.json();
+      setSettingsData(data);
+      setProfileForm(data.profile);
+      setNotificationForm(data.notifications);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load settings");
+      console.error("Error fetching settings data:", err);
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchNotificationPrefs = async () => {
-    try {
-      const res = await fetch("/api/supplier/notifications/preferences", {
-        cache: "no-store",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setNotificationPrefs(data.notificationPreferences);
-      }
-    } catch (e) {
-      // non-blocking
-    }
-  };
-
-  const saveNotificationPrefs = async () => {
-    if (!notificationPrefs) return;
-    try {
-      setSavingPrefs(true);
-      const res = await fetch("/api/supplier/notifications/preferences", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(notificationPrefs),
-      });
-      if (!res.ok) throw new Error("Failed to save notification preferences");
-      setSuccess("Notification preferences saved.");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to save preferences");
-    } finally {
-      setSavingPrefs(false);
-    }
-  };
-
-  const togglePref = (
-    channel: keyof NotificationPreferences,
-    key: keyof NotificationPreferences["email"]
-  ) => {
-    setNotificationPrefs(prev =>
-      prev
-        ? {
-            ...prev,
-            [channel]: { ...prev[channel], [key]: !prev[channel][key] },
-          }
-        : prev
-    );
-  };
-
-  const handleSave = async () => {
+  const saveProfile = async () => {
     try {
       setSaving(true);
       setError(null);
-      setSuccess(null);
 
-      const response = await fetch("/api/supplier/settings", {
+      const res = await fetch("/api/supplier/settings/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(profileForm),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save settings");
+      if (!res.ok) {
+        throw new Error("Failed to update profile");
       }
 
-      setSuccess("Settings saved successfully!");
-      await fetchSupplierData(); // Refresh data
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+
+      await fetchSettingsData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save settings");
+      console.error("Error updating profile:", err);
+      setError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleInputChange = (field: keyof SupplierData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const saveNotifications = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+
+      const res = await fetch("/api/supplier/settings/notifications", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(notificationForm),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update notification settings");
+      }
+
+      toast({
+        title: "Notifications Updated",
+        description: "Your notification preferences have been saved.",
+      });
+
+      await fetchSettingsData();
+    } catch (err) {
+      console.error("Error updating notifications:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to update notifications"
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const changePassword = async () => {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setError("New passwords do not match");
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+
+      const res = await fetch("/api/supplier/settings/password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to change password");
+      }
+
+      toast({
+        title: "Password Changed",
+        description: "Your password has been successfully updated.",
+      });
+
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (err) {
+      console.error("Error changing password:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to change password"
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const uploadLogo = async (file: File) => {
+    try {
+      setSaving(true);
+      const formData = new FormData();
+      formData.append("logo", file);
+
+      const res = await fetch("/api/supplier/settings/logo", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to upload logo");
+      }
+
+      const data = await res.json();
+      setProfileForm({ ...profileForm, logoUrl: data.logoUrl });
+
+      toast({
+        title: "Logo Updated",
+        description: "Your company logo has been successfully updated.",
+      });
+    } catch (err) {
+      console.error("Error uploading logo:", err);
+      setError(err instanceof Error ? err.message : "Failed to upload logo");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading settings...</p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading settings...</p>
+          </div>
         </div>
       </div>
-    );
-  }
-
-  if (!supplier) {
-    return (
-      <Alert variant="destructive">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>Failed to load supplier data</AlertDescription>
-      </Alert>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600 mt-1">
-            Manage your supplier account settings and preferences.
+          <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
+          <p className="text-gray-600 mt-2">
+            Manage your business information, notifications, and security
+            settings
           </p>
         </div>
-        <Button onClick={handleSave} disabled={saving}>
-          <Save className="w-4 h-4 mr-2" />
-          {saving ? "Saving..." : "Save Changes"}
-        </Button>
       </div>
 
+      {/* Error Alert */}
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      {success && (
-        <Alert>
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>{success}</AlertDescription>
-        </Alert>
-      )}
+      {/* Settings Tabs */}
+      <Tabs defaultValue="profile" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="profile" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Profile
+          </TabsTrigger>
+          <TabsTrigger
+            value="notifications"
+            className="flex items-center gap-2"
+          >
+            <Bell className="h-4 w-4" />
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Security
+          </TabsTrigger>
+          <TabsTrigger value="business" className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            Business
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Company Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Building2 className="w-5 h-5 mr-2" />
-              Company Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="companyName">Company Name</Label>
-              <Input
-                id="companyName"
-                value={formData.companyName || ""}
-                onChange={e => handleInputChange("companyName", e.target.value)}
-                placeholder="Your company name"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description || ""}
-                onChange={e => handleInputChange("description", e.target.value)}
-                placeholder="Brief description of your company"
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                value={formData.website || ""}
-                onChange={e => handleInputChange("website", e.target.value)}
-                placeholder="https://your-website.com"
-              />
-            </div>
-            <div>
-              <Label htmlFor="vatNumber">VAT Number</Label>
-              <Input
-                id="vatNumber"
-                value={formData.vatNumber || ""}
-                onChange={e => handleInputChange("vatNumber", e.target.value)}
-                placeholder="VAT123456789"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Contact Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="w-5 h-5 mr-2" />
-              Contact Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="contactPersonName">Contact Person</Label>
-              <Input
-                id="contactPersonName"
-                value={formData.contactPersonName || ""}
-                onChange={e =>
-                  handleInputChange("contactPersonName", e.target.value)
-                }
-                placeholder="Full name"
-              />
-            </div>
-            <div>
-              <Label htmlFor="contactPersonEmail">Email</Label>
-              <Input
-                id="contactPersonEmail"
-                type="email"
-                value={formData.contactPersonEmail || ""}
-                onChange={e =>
-                  handleInputChange("contactPersonEmail", e.target.value)
-                }
-                placeholder="contact@company.com"
-              />
-            </div>
-            <div>
-              <Label htmlFor="contactPersonPhone">Phone</Label>
-              <Input
-                id="contactPersonPhone"
-                value={formData.contactPersonPhone || ""}
-                onChange={e =>
-                  handleInputChange("contactPersonPhone", e.target.value)
-                }
-                placeholder="+1234567890"
-              />
-            </div>
-            <div>
-              <Label htmlFor="phone">Company Phone</Label>
-              <Input
-                id="phone"
-                value={formData.phone || ""}
-                onChange={e => handleInputChange("phone", e.target.value)}
-                placeholder="+1234567890"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Business Address */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <MapPin className="w-5 h-5 mr-2" />
-              Business Address
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="businessAddress">Address</Label>
-              <Input
-                id="businessAddress"
-                value={formData.businessAddress || ""}
-                onChange={e =>
-                  handleInputChange("businessAddress", e.target.value)
-                }
-                placeholder="123 Business Street"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="businessCity">City</Label>
-                <Input
-                  id="businessCity"
-                  value={formData.businessCity || ""}
-                  onChange={e =>
-                    handleInputChange("businessCity", e.target.value)
-                  }
-                  placeholder="City"
-                />
-              </div>
-              <div>
-                <Label htmlFor="businessState">State</Label>
-                <Input
-                  id="businessState"
-                  value={formData.businessState || ""}
-                  onChange={e =>
-                    handleInputChange("businessState", e.target.value)
-                  }
-                  placeholder="State"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="businessCountry">Country</Label>
-                <Input
-                  id="businessCountry"
-                  value={formData.businessCountry || ""}
-                  onChange={e =>
-                    handleInputChange("businessCountry", e.target.value)
-                  }
-                  placeholder="Country"
-                />
-              </div>
-              <div>
-                <Label htmlFor="businessPostalCode">Postal Code</Label>
-                <Input
-                  id="businessPostalCode"
-                  value={formData.businessPostalCode || ""}
-                  onChange={e =>
-                    handleInputChange("businessPostalCode", e.target.value)
-                  }
-                  placeholder="12345"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Business Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Building2 className="w-5 h-5 mr-2" />
-              Business Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="yearEstablished">Year Established</Label>
-              <Input
-                id="yearEstablished"
-                type="number"
-                value={formData.yearEstablished || ""}
-                onChange={e =>
-                  handleInputChange(
-                    "yearEstablished",
-                    parseInt(e.target.value) || null
-                  )
-                }
-                placeholder="2020"
-              />
-            </div>
-            <div>
-              <Label htmlFor="employeeCount">Number of Employees</Label>
-              <Input
-                id="employeeCount"
-                type="number"
-                value={formData.employeeCount || ""}
-                onChange={e =>
-                  handleInputChange(
-                    "employeeCount",
-                    parseInt(e.target.value) || null
-                  )
-                }
-                placeholder="25"
-              />
-            </div>
-            <div>
-              <Label htmlFor="annualRevenue">Annual Revenue Range</Label>
-              <Select
-                value={formData.annualRevenue || ""}
-                onValueChange={value =>
-                  handleInputChange("annualRevenue", value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select revenue range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0-50000">$0 - $50,000</SelectItem>
-                  <SelectItem value="50000-100000">
-                    $50,000 - $100,000
-                  </SelectItem>
-                  <SelectItem value="100000-500000">
-                    $100,000 - $500,000
-                  </SelectItem>
-                  <SelectItem value="500000-1000000">
-                    $500,000 - $1,000,000
-                  </SelectItem>
-                  <SelectItem value="1000000+">$1,000,000+</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Financial Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <CreditCard className="w-5 h-5 mr-2" />
-              Financial Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="commissionRate">Commission Rate (%)</Label>
-              <Input
-                id="commissionRate"
-                type="number"
-                step="0.1"
-                value={formData.commissionRate || ""}
-                onChange={e =>
-                  handleInputChange(
-                    "commissionRate",
-                    parseFloat(e.target.value) || 0
-                  )
-                }
-                placeholder="15.0"
-              />
-            </div>
-            <div>
-              <Label htmlFor="paymentTerms">Payment Terms (days)</Label>
-              <Input
-                id="paymentTerms"
-                type="number"
-                value={formData.paymentTerms || ""}
-                onChange={e =>
-                  handleInputChange(
-                    "paymentTerms",
-                    parseInt(e.target.value) || 0
-                  )
-                }
-                placeholder="30"
-              />
-            </div>
-            <div>
-              <Label htmlFor="minimumOrderValue">
-                Minimum Order Value (RON)
-              </Label>
-              <Input
-                id="minimumOrderValue"
-                type="number"
-                step="0.01"
-                value={formData.minimumOrderValue || ""}
-                onChange={e =>
-                  handleInputChange(
-                    "minimumOrderValue",
-                    parseFloat(e.target.value) || 0
-                  )
-                }
-                placeholder="100.00"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Notifications (wired to API) */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Bell className="w-5 h-5 mr-2" />
-              Notifications
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {!notificationPrefs ? (
-              <div className="text-sm text-gray-500">
-                Loading preferences...
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-medium mb-2">Email Notifications</h4>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label>Messages</Label>
-                          <p className="text-sm text-gray-600">
-                            New messages from TechTots
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notificationPrefs.email.messages}
-                          onCheckedChange={() =>
-                            togglePref("email", "messages")
-                          }
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label>Support Tickets</Label>
-                          <p className="text-sm text-gray-600">
-                            Ticket updates and replies
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notificationPrefs.email.tickets}
-                          onCheckedChange={() => togglePref("email", "tickets")}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label>Announcements</Label>
-                          <p className="text-sm text-gray-600">
-                            Important news and updates
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notificationPrefs.email.announcements}
-                          onCheckedChange={() =>
-                            togglePref("email", "announcements")
-                          }
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label>Invoices</Label>
-                          <p className="text-sm text-gray-600">
-                            New or due invoices
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notificationPrefs.email.invoices}
-                          onCheckedChange={() =>
-                            togglePref("email", "invoices")
-                          }
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label>Orders</Label>
-                          <p className="text-sm text-gray-600">
-                            Order status changes
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notificationPrefs.email.orders}
-                          onCheckedChange={() => togglePref("email", "orders")}
-                        />
-                      </div>
-                    </div>
+        {/* Profile Tab */}
+        <TabsContent value="profile" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Personal Information</CardTitle>
+              <CardDescription>
+                Update your contact information and preferences
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Logo Upload */}
+              <div className="flex items-center gap-6">
+                <div className="relative">
+                  <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                    {profileForm.logoUrl ? (
+                      <img
+                        src={profileForm.logoUrl}
+                        alt="Company logo"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Building2 className="w-8 h-8 text-gray-400" />
+                    )}
                   </div>
-                  <div>
-                    <h4 className="font-medium mb-2">In-App Notifications</h4>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label>Messages</Label>
-                          <p className="text-sm text-gray-600">
-                            New messages from TechTots
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notificationPrefs.inApp.messages}
-                          onCheckedChange={() =>
-                            togglePref("inApp", "messages")
-                          }
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label>Support Tickets</Label>
-                          <p className="text-sm text-gray-600">
-                            Ticket updates and replies
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notificationPrefs.inApp.tickets}
-                          onCheckedChange={() => togglePref("inApp", "tickets")}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label>Announcements</Label>
-                          <p className="text-sm text-gray-600">
-                            Important news and updates
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notificationPrefs.inApp.announcements}
-                          onCheckedChange={() =>
-                            togglePref("inApp", "announcements")
-                          }
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label>Invoices</Label>
-                          <p className="text-sm text-gray-600">
-                            New or due invoices
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notificationPrefs.inApp.invoices}
-                          onCheckedChange={() =>
-                            togglePref("inApp", "invoices")
-                          }
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label>Orders</Label>
-                          <p className="text-sm text-gray-600">
-                            Order status changes
-                          </p>
-                        </div>
-                        <Switch
-                          checked={notificationPrefs.inApp.orders}
-                          onCheckedChange={() => togglePref("inApp", "orders")}
-                        />
-                      </div>
-                    </div>
+                  <label className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-1 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
+                    <Upload className="w-4 h-4" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadLogo(file);
+                      }}
+                    />
+                  </label>
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900">Company Logo</h3>
+                  <p className="text-sm text-gray-600">
+                    Upload a logo for your business (max 2MB)
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Contact Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contactName">Contact Person Name</Label>
+                  <Input
+                    id="contactName"
+                    value={profileForm.contactPersonName || ""}
+                    onChange={e =>
+                      setProfileForm({
+                        ...profileForm,
+                        contactPersonName: e.target.value,
+                      })
+                    }
+                    placeholder="Full name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contactEmail">Contact Email</Label>
+                  <Input
+                    id="contactEmail"
+                    type="email"
+                    value={profileForm.contactPersonEmail || ""}
+                    onChange={e =>
+                      setProfileForm({
+                        ...profileForm,
+                        contactPersonEmail: e.target.value,
+                      })
+                    }
+                    placeholder="contact@company.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contactPhone">Contact Phone</Label>
+                  <Input
+                    id="contactPhone"
+                    value={profileForm.contactPersonPhone || ""}
+                    onChange={e =>
+                      setProfileForm({
+                        ...profileForm,
+                        contactPersonPhone: e.target.value,
+                      })
+                    }
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Business Phone</Label>
+                  <Input
+                    id="phone"
+                    value={profileForm.phone || ""}
+                    onChange={e =>
+                      setProfileForm({ ...profileForm, phone: e.target.value })
+                    }
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Business Address */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Business Address</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Street Address</Label>
+                    <Input
+                      id="address"
+                      value={profileForm.businessAddress || ""}
+                      onChange={e =>
+                        setProfileForm({
+                          ...profileForm,
+                          businessAddress: e.target.value,
+                        })
+                      }
+                      placeholder="123 Business St"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      value={profileForm.businessCity || ""}
+                      onChange={e =>
+                        setProfileForm({
+                          ...profileForm,
+                          businessCity: e.target.value,
+                        })
+                      }
+                      placeholder="New York"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="country">Country</Label>
+                    <Select
+                      value={profileForm.businessCountry || ""}
+                      onValueChange={value =>
+                        setProfileForm({
+                          ...profileForm,
+                          businessCountry: value,
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="US">United States</SelectItem>
+                        <SelectItem value="CA">Canada</SelectItem>
+                        <SelectItem value="GB">United Kingdom</SelectItem>
+                        <SelectItem value="DE">Germany</SelectItem>
+                        <SelectItem value="FR">France</SelectItem>
+                        <SelectItem value="RO">Romania</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="website">Website</Label>
+                    <Input
+                      id="website"
+                      value={profileForm.businessWebsite || ""}
+                      onChange={e =>
+                        setProfileForm({
+                          ...profileForm,
+                          businessWebsite: e.target.value,
+                        })
+                      }
+                      placeholder="https://www.company.com"
+                    />
                   </div>
                 </div>
-                <div className="flex justify-end">
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={saveProfile} disabled={saving}>
+                  {saving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Profile
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Notifications Tab */}
+        <TabsContent value="notifications" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Notification Preferences</CardTitle>
+              <CardDescription>
+                Choose how you want to be notified about important updates
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-blue-600" />
+                      <Label className="text-base">Email Notifications</Label>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Receive important updates via email
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notificationForm.emailNotifications}
+                    onCheckedChange={checked =>
+                      setNotificationForm({
+                        ...notificationForm,
+                        emailNotifications: checked,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-green-600" />
+                      <Label className="text-base">Order Notifications</Label>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Get notified when orders are placed or updated
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notificationForm.orderNotifications}
+                    onCheckedChange={checked =>
+                      setNotificationForm({
+                        ...notificationForm,
+                        orderNotifications: checked,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-purple-600" />
+                      <Label className="text-base">Payment Notifications</Label>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Receive payment and invoice updates
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notificationForm.paymentNotifications}
+                    onCheckedChange={checked =>
+                      setNotificationForm({
+                        ...notificationForm,
+                        paymentNotifications: checked,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-orange-600" />
+                      <Label className="text-base">Marketing Emails</Label>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Receive promotional content and updates
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notificationForm.marketingEmails}
+                    onCheckedChange={checked =>
+                      setNotificationForm({
+                        ...notificationForm,
+                        marketingEmails: checked,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-indigo-600" />
+                      <Label className="text-base">SMS Notifications</Label>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Get urgent notifications via SMS
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notificationForm.smsNotifications}
+                    onCheckedChange={checked =>
+                      setNotificationForm({
+                        ...notificationForm,
+                        smsNotifications: checked,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={saveNotifications} disabled={saving}>
+                  {saving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Preferences
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Security Tab */}
+        <TabsContent value="security" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Change Password</CardTitle>
+              <CardDescription>
+                Update your password to keep your account secure
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword">Current Password</Label>
+                <div className="relative">
+                  <Input
+                    id="currentPassword"
+                    type={showPasswords.current ? "text" : "password"}
+                    value={passwordForm.currentPassword}
+                    onChange={e =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        currentPassword: e.target.value,
+                      })
+                    }
+                    placeholder="Enter current password"
+                  />
                   <Button
-                    variant="outline"
-                    onClick={saveNotificationPrefs}
-                    disabled={savingPrefs}
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() =>
+                      setShowPasswords({
+                        ...showPasswords,
+                        current: !showPasswords.current,
+                      })
+                    }
                   >
-                    {savingPrefs ? "Saving..." : "Save Preferences"}
+                    {showPasswords.current ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showPasswords.new ? "text" : "password"}
+                    value={passwordForm.newPassword}
+                    onChange={e =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        newPassword: e.target.value,
+                      })
+                    }
+                    placeholder="Enter new password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() =>
+                      setShowPasswords({
+                        ...showPasswords,
+                        new: !showPasswords.new,
+                      })
+                    }
+                  >
+                    {showPasswords.new ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showPasswords.confirm ? "text" : "password"}
+                    value={passwordForm.confirmPassword}
+                    onChange={e =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        confirmPassword: e.target.value,
+                      })
+                    }
+                    placeholder="Confirm new password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() =>
+                      setShowPasswords({
+                        ...showPasswords,
+                        confirm: !showPasswords.confirm,
+                      })
+                    }
+                  >
+                    {showPasswords.confirm ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={changePassword} disabled={saving}>
+                  {saving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Changing...
+                    </>
+                  ) : (
+                    <>
+                      <Key className="w-4 h-4 mr-2" />
+                      Change Password
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Business Tab */}
+        <TabsContent value="business" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Business Information</CardTitle>
+              <CardDescription>
+                Legal and business details for compliance
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="companyName">Company Name</Label>
+                  <Input
+                    id="companyName"
+                    value={profileForm.companyName || ""}
+                    onChange={e =>
+                      setProfileForm({
+                        ...profileForm,
+                        companyName: e.target.value,
+                      })
+                    }
+                    placeholder="Your Company Ltd."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Business Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={profileForm.email || ""}
+                    onChange={e =>
+                      setProfileForm({ ...profileForm, email: e.target.value })
+                    }
+                    placeholder="business@company.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="taxId">Tax ID / VAT Number</Label>
+                  <Input
+                    id="taxId"
+                    value={profileForm.taxId || ""}
+                    onChange={e =>
+                      setProfileForm({ ...profileForm, taxId: e.target.value })
+                    }
+                    placeholder="RO12345678"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="registrationNumber">
+                    Registration Number
+                  </Label>
+                  <Input
+                    id="registrationNumber"
+                    value={profileForm.registrationNumber || ""}
+                    onChange={e =>
+                      setProfileForm({
+                        ...profileForm,
+                        registrationNumber: e.target.value,
+                      })
+                    }
+                    placeholder="J12/3456/2020"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Commission Rate</Label>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-lg px-3 py-1">
+                    {profileForm.commissionRate || 0}%
+                  </Badge>
+                  <span className="text-sm text-gray-600">
+                    Commission earned on each sale
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Account Status</Label>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    className={
+                      profileForm.status === "APPROVED"
+                        ? "bg-green-100 text-green-800"
+                        : profileForm.status === "PENDING"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-gray-100 text-gray-800"
+                    }
+                  >
+                    {profileForm.status}
+                  </Badge>
+                  <span className="text-sm text-gray-600">
+                    {profileForm.status === "APPROVED"
+                      ? "Your account is active and you can receive orders"
+                      : profileForm.status === "PENDING"
+                        ? "Your application is being reviewed"
+                        : "Your account status"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={saveProfile} disabled={saving}>
+                  {saving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Business Info
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

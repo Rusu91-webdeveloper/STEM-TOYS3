@@ -54,7 +54,9 @@ export const GET = async (request: NextRequest) => {
         { companyName: { contains: search, mode: "insensitive" } },
         { contactPersonName: { contains: search, mode: "insensitive" } },
         { contactPersonEmail: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
         { vatNumber: { contains: search, mode: "insensitive" } },
+        { businessCity: { contains: search, mode: "insensitive" } },
       ];
     }
 
@@ -62,9 +64,14 @@ export const GET = async (request: NextRequest) => {
       where.status = status;
     }
 
-    // Build order by clause
+    // Build order by clause - map sortBy to actual field names
     const orderBy: any = {};
-    orderBy[sortBy] = sortOrder;
+    const sortFieldMap: Record<string, string> = {
+      createdAt: "createdAt",
+      companyName: "companyName",
+      status: "status",
+    };
+    orderBy[sortFieldMap[sortBy] || "createdAt"] = sortOrder;
 
     // Fetch suppliers with pagination
     const [suppliers, total] = await Promise.all([
@@ -74,15 +81,6 @@ export const GET = async (request: NextRequest) => {
         take: limit,
         orderBy,
         include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              isActive: true,
-              createdAt: true,
-            },
-          },
           _count: {
             select: {
               products: true,
@@ -110,7 +108,7 @@ export const GET = async (request: NextRequest) => {
       {} as Record<string, number>
     );
 
-    // Calculate total revenue for each supplier
+    // Transform suppliers to match frontend expectations and calculate revenue
     const suppliersWithRevenue = await Promise.all(
       suppliers.map(async supplier => {
         const revenue = await db.supplierOrder.aggregate({
@@ -118,13 +116,96 @@ export const GET = async (request: NextRequest) => {
             supplierId: supplier.id,
             status: { in: ["DELIVERED"] },
           },
-          _sum: { supplierRevenue: true },
+          _sum: { totalCost: true },
         });
 
-        return {
-          ...supplier,
-          totalRevenue: revenue._sum.supplierRevenue || 0,
+        // Transform database fields to match frontend expectations
+        const transformedSupplier = {
+          id: supplier.id,
+          userId: supplier.userId,
+          // Company info - use companyName if available, otherwise fall back to name
+          companyName: supplier.companyName || supplier.name,
+          companySlug: supplier.companySlug,
+          description: supplier.description,
+          website: supplier.website,
+          phone: supplier.phone,
+          email: supplier.email,
+
+          // Contact person - use detailed fields if available, otherwise fall back to basic
+          contactPersonName:
+            supplier.contactPersonName || supplier.contactPerson,
+          contactPersonEmail: supplier.contactPersonEmail,
+          contactPersonPhone: supplier.contactPersonPhone,
+
+          // Business address
+          businessAddress: supplier.businessAddress,
+          businessCity: supplier.businessCity,
+          businessState: supplier.businessState,
+          businessCountry: supplier.businessCountry || "Romania",
+          businessPostalCode: supplier.businessPostalCode,
+
+          // Legal info
+          vatNumber: supplier.vatNumber,
+          taxId: supplier.taxId,
+          cui: supplier.cui,
+          codFiscal: supplier.codFiscal,
+          nrRegCom: supplier.nrRegCom,
+          reprezentantLegal: supplier.reprezentantLegal,
+
+          // Business details
+          yearEstablished: supplier.yearEstablished,
+          employeeCount: supplier.employeeCount,
+          annualRevenue: supplier.annualRevenue,
+          certifications: supplier.certifications,
+          productCategories: supplier.productCategories,
+
+          // Status and approval
+          isActive: supplier.isActive,
+          status: supplier.status,
+          approvedAt: supplier.approvedAt,
+          approvedBy: supplier.approvedBy,
+          rejectionReason: supplier.rejectionReason,
+
+          // Financial terms
+          commissionRate: supplier.commissionRate,
+          paymentTerms: supplier.paymentTerms,
+          minimumOrderValue: supplier.minimumOrderValue,
+
+          // Romanian compliance
+          adresaSediu: supplier.adresaSediu,
+          anpcApproval: supplier.anpcApproval,
+          educationalCertification: supplier.educationalCertification,
+          iscApproval: supplier.iscApproval,
+          romanianBankAccount: supplier.romanianBankAccount,
+          romanianComplianceStatus: supplier.romanianComplianceStatus,
+          romanianCurrency: supplier.romanianCurrency,
+          romanianPaymentTerms: supplier.romanianPaymentTerms,
+          romanianVatNumber: supplier.romanianVatNumber,
+
+          // API integration
+          apiEndpoint: supplier.apiEndpoint,
+          apiKey: supplier.apiKey,
+          trackingUrl: supplier.trackingUrl,
+          averageDeliveryDays: supplier.averageDeliveryDays,
+
+          // Files and media
+          logo: supplier.logo,
+          catalogUrl: supplier.catalogUrl,
+          termsAccepted: supplier.termsAccepted,
+          privacyAccepted: supplier.privacyAccepted,
+
+          // Timestamps
+          createdAt: supplier.createdAt,
+          updatedAt: supplier.updatedAt,
+
+          // Counts
+          _count: supplier._count,
+
+          // Revenue
+          totalRevenue: revenue._sum.totalCost || 0,
         };
+
+        return transformedSupplier;
       })
     );
 
@@ -205,15 +286,6 @@ export const POST = async (request: NextRequest) => {
     // Verify supplier exists
     const existingSupplier = await db.supplier.findUnique({
       where: { id: supplierId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
     });
 
     if (!existingSupplier) {
@@ -236,15 +308,6 @@ export const POST = async (request: NextRequest) => {
             approvedBy: session.user.id,
             rejectionReason: null,
           },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
         });
         logMessage = "Supplier approved";
         break;
@@ -256,15 +319,6 @@ export const POST = async (request: NextRequest) => {
             status: "REJECTED",
             rejectionReason: data.rejectionReason || "Application rejected",
           },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
         });
         logMessage = "Supplier rejected";
         break;
@@ -275,15 +329,6 @@ export const POST = async (request: NextRequest) => {
           data: {
             status: "SUSPENDED",
             rejectionReason: data.suspensionReason || "Account suspended",
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
           },
         });
         logMessage = "Supplier suspended";
@@ -302,15 +347,6 @@ export const POST = async (request: NextRequest) => {
         supplier = await db.supplier.update({
           where: { id: supplierId },
           data: updateData,
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
         });
         logMessage = "Supplier updated";
         break;
@@ -323,13 +359,71 @@ export const POST = async (request: NextRequest) => {
       adminId: session.user.id,
       supplierId,
       action,
-      supplierName: supplier?.companyName,
+      supplierName: supplier?.companyName || supplier?.name,
     });
+
+    // Transform supplier to match frontend expectations
+    const transformedSupplier = {
+      id: supplier.id,
+      userId: supplier.userId,
+      companyName: supplier.companyName || supplier.name,
+      companySlug: supplier.companySlug,
+      description: supplier.description,
+      website: supplier.website,
+      phone: supplier.phone,
+      email: supplier.email,
+      contactPersonName: supplier.contactPersonName || supplier.contactPerson,
+      contactPersonEmail: supplier.contactPersonEmail,
+      contactPersonPhone: supplier.contactPersonPhone,
+      businessAddress: supplier.businessAddress,
+      businessCity: supplier.businessCity,
+      businessState: supplier.businessState,
+      businessCountry: supplier.businessCountry || "Romania",
+      businessPostalCode: supplier.businessPostalCode,
+      vatNumber: supplier.vatNumber,
+      taxId: supplier.taxId,
+      cui: supplier.cui,
+      codFiscal: supplier.codFiscal,
+      nrRegCom: supplier.nrRegCom,
+      reprezentantLegal: supplier.reprezentantLegal,
+      yearEstablished: supplier.yearEstablished,
+      employeeCount: supplier.employeeCount,
+      annualRevenue: supplier.annualRevenue,
+      certifications: supplier.certifications,
+      productCategories: supplier.productCategories,
+      isActive: supplier.isActive,
+      status: supplier.status,
+      approvedAt: supplier.approvedAt,
+      approvedBy: supplier.approvedBy,
+      rejectionReason: supplier.rejectionReason,
+      commissionRate: supplier.commissionRate,
+      paymentTerms: supplier.paymentTerms,
+      minimumOrderValue: supplier.minimumOrderValue,
+      adresaSediu: supplier.adresaSediu,
+      anpcApproval: supplier.anpcApproval,
+      educationalCertification: supplier.educationalCertification,
+      iscApproval: supplier.iscApproval,
+      romanianBankAccount: supplier.romanianBankAccount,
+      romanianComplianceStatus: supplier.romanianComplianceStatus,
+      romanianCurrency: supplier.romanianCurrency,
+      romanianPaymentTerms: supplier.romanianPaymentTerms,
+      romanianVatNumber: supplier.romanianVatNumber,
+      apiEndpoint: supplier.apiEndpoint,
+      apiKey: supplier.apiKey,
+      trackingUrl: supplier.trackingUrl,
+      averageDeliveryDays: supplier.averageDeliveryDays,
+      logo: supplier.logo,
+      catalogUrl: supplier.catalogUrl,
+      termsAccepted: supplier.termsAccepted,
+      privacyAccepted: supplier.privacyAccepted,
+      createdAt: supplier.createdAt,
+      updatedAt: supplier.updatedAt,
+    };
 
     return NextResponse.json({
       success: true,
       message: logMessage,
-      supplier,
+      supplier: transformedSupplier,
     });
   } catch (error) {
     logger.error("Error in admin supplier action:", error);

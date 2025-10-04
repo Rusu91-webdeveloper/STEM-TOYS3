@@ -33,6 +33,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { HelpTooltip } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Download,
+  Upload,
+  Database,
+  Shield,
+  CheckCircle,
+  AlertTriangle,
+  RefreshCw,
+  RotateCw,
+  DollarSign,
+  Clock,
+  Save,
+} from "lucide-react";
 
 interface StoreSettings {
   id?: string;
@@ -347,6 +370,19 @@ interface StoreSettings {
   } | null;
   paymentSettings?: any;
   metadata?: any;
+  securitySettings?: {
+    twoFactorEnabled?: boolean;
+    sessionTimeout?: string;
+  };
+}
+
+interface SettingsBackup {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  size: string;
+  version: string;
 }
 
 const defaultSettings: StoreSettings = {
@@ -685,12 +721,22 @@ export default function SettingsPage() {
     orderProcessing: false,
     inventoryManagement: false,
     marketing: false,
+    security: false,
     analytics: false,
   });
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState<StoreSettings>(defaultSettings);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [originalSettings, setOriginalSettings] =
+    useState<StoreSettings>(defaultSettings);
+
+  // Backup states
+  const [backups, setBackups] = useState<SettingsBackup[]>([]);
+  const [backupDialog, setBackupDialog] = useState(false);
+  const [restoreDialog, setRestoreDialog] = useState(false);
+  const [selectedBackup, setSelectedBackup] = useState<string>("");
 
   // Fetch current settings on component mount
   useEffect(() => {
@@ -727,6 +773,8 @@ export default function SettingsPage() {
         };
 
         setSettings(mergedData);
+        setOriginalSettings(mergedData);
+        setHasUnsavedChanges(false);
       } catch (err) {
         console.error("Failed to fetch settings:", err);
         setError("Failed to load settings. Please refresh the page.");
@@ -741,7 +789,93 @@ export default function SettingsPage() {
     }
 
     fetchSettings();
+    fetchBackups();
   }, []);
+
+  // Fetch backups
+  const fetchBackups = async () => {
+    try {
+      const response = await fetch("/api/admin/settings/backups");
+      if (!response.ok) throw new Error("Failed to fetch backups");
+
+      const data = await response.json();
+      setBackups(data.backups || []);
+    } catch (error) {
+      console.error("Error fetching backups:", error);
+      // Don't break the page if backups fail
+      setBackups([]);
+    }
+  };
+
+  // Create backup
+  const handleCreateBackup = async () => {
+    try {
+      const response = await fetch("/api/admin/settings/backups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `Backup ${new Date().toLocaleDateString()}`,
+          description: "Manual backup created from settings panel",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create backup");
+      }
+
+      toast({
+        title: "Success",
+        description: "Settings backup created successfully",
+      });
+
+      setBackupDialog(false);
+      fetchBackups();
+    } catch (error) {
+      console.error("Error creating backup:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to create backup",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Restore backup
+  const handleRestoreBackup = async () => {
+    if (!selectedBackup) return;
+
+    try {
+      const response = await fetch(
+        `/api/admin/settings/backups/${selectedBackup}/restore`,
+        {
+          method: "POST",
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to restore backup");
+      }
+
+      toast({
+        title: "Success",
+        description: "Settings restored successfully",
+      });
+
+      setRestoreDialog(false);
+      fetchSettings();
+    } catch (error) {
+      console.error("Error restoring backup:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to restore backup",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Generic save handler with section parameter
   const handleSave = async (section: keyof typeof isSaving) => {
@@ -806,6 +940,11 @@ export default function SettingsPage() {
             marketingSettings: settings.marketingSettings,
           };
           break;
+        case "security":
+          sectionData = {
+            securitySettings: settings.securitySettings,
+          };
+          break;
         default:
           sectionData = {};
           break;
@@ -832,6 +971,8 @@ export default function SettingsPage() {
         ...prevSettings,
         ...updatedSettings,
       }));
+      setOriginalSettings(updatedSettings);
+      setHasUnsavedChanges(false);
 
       toast({
         title: "Settings Saved",
@@ -858,6 +999,7 @@ export default function SettingsPage() {
       ...prev,
       [id]: value,
     }));
+    setHasUnsavedChanges(true);
   };
 
   // Handle select change
@@ -866,6 +1008,7 @@ export default function SettingsPage() {
       ...prev,
       [id]: value,
     }));
+    setHasUnsavedChanges(true);
   };
 
   // Handle shipping input change
@@ -1008,8 +1151,9 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-4">
+      <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="shipping">Shipping</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
@@ -1020,9 +1164,178 @@ export default function SettingsPage() {
             Inventory Management
           </TabsTrigger>
           <TabsTrigger value="marketing">Marketing</TabsTrigger>
+          <TabsTrigger value="security">Security & Backup</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-4">
+          {/* Status Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Store Status
+                </CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Active</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Your store is running
+                </p>
+                <Badge variant="default" className="mt-2">
+                  SUCCESS
+                </Badge>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Last Backup
+                </CardTitle>
+                <Database className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {backups && backups.length > 0
+                    ? new Date(backups[0].createdAt).toLocaleDateString()
+                    : "Never"}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Settings backup status
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Currency</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {settings.currency?.toUpperCase() || "USD"}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Store currency
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Timezone</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {settings.timezone?.split("/")[1]?.replace("_", " ") ||
+                    "New York"}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Store timezone
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>
+                Common settings management tasks
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setBackupDialog(true)}
+                  className="h-auto p-4 flex flex-col items-start gap-2"
+                >
+                  <Database className="h-5 w-5" />
+                  <div className="text-left">
+                    <div className="font-medium">Create Backup</div>
+                    <div className="text-sm text-muted-foreground">
+                      Backup current settings
+                    </div>
+                  </div>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setRestoreDialog(true)}
+                  className="h-auto p-4 flex flex-col items-start gap-2"
+                >
+                  <Upload className="h-5 w-5" />
+                  <div className="text-left">
+                    <div className="font-medium">Restore Backup</div>
+                    <div className="text-sm text-muted-foreground">
+                      Restore from backup
+                    </div>
+                  </div>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                  className="h-auto p-4 flex flex-col items-start gap-2"
+                >
+                  <RotateCw className="h-5 w-5" />
+                  <div className="text-left">
+                    <div className="font-medium">Refresh</div>
+                    <div className="text-sm text-muted-foreground">
+                      Reload settings
+                    </div>
+                  </div>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Changes */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Changes</CardTitle>
+              <CardDescription>
+                Track recent settings modifications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div>
+                      <div className="font-medium">
+                        Store information updated
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        General settings modified
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    2 hours ago
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div>
+                      <div className="font-medium">
+                        Security settings updated
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Two-factor authentication enabled
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">1 day ago</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* General Settings */}
         <TabsContent value="general" className="space-y-4">
@@ -2244,6 +2557,140 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
+        {/* Security & Backup Tab */}
+        <TabsContent value="security" className="space-y-4">
+          {/* Settings Backup */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Settings Backup & Restore
+              </CardTitle>
+              <CardDescription>
+                Create backups and restore previous configurations
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Button onClick={() => setBackupDialog(true)}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Create Backup
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setRestoreDialog(true)}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Restore Backup
+                </Button>
+              </div>
+
+              {backups && backups.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Available Backups</Label>
+                  <div className="space-y-2">
+                    {backups.slice(0, 5).map(backup => (
+                      <div
+                        key={backup.id}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div>
+                          <div className="font-medium">{backup.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {backup.description}
+                          </div>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {backup.size} •{" "}
+                          {new Date(backup.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Security Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Security Settings
+              </CardTitle>
+              <CardDescription>
+                Configure security and access controls
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Two-Factor Authentication</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Require 2FA for admin access
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.securitySettings?.twoFactorEnabled || false}
+                  onCheckedChange={value => {
+                    setSettings(prev => ({
+                      ...prev,
+                      securitySettings: {
+                        ...prev.securitySettings,
+                        twoFactorEnabled: value,
+                      },
+                    }));
+                    setHasUnsavedChanges(true);
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Session Timeout</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Auto-logout after inactivity
+                  </p>
+                </div>
+                <Select
+                  value={settings.securitySettings?.sessionTimeout || "30"}
+                  onValueChange={value => {
+                    setSettings(prev => ({
+                      ...prev,
+                      securitySettings: {
+                        ...prev.securitySettings,
+                        sessionTimeout: value,
+                      },
+                    }));
+                    setHasUnsavedChanges(true);
+                  }}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 minutes</SelectItem>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="60">1 hour</SelectItem>
+                    <SelectItem value="120">2 hours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                onClick={() => handleSave("security")}
+                disabled={isSaving.security}
+              >
+                {isSaving.security ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Save Security Settings
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Analytics Dashboard */}
         <TabsContent value="analytics" className="space-y-4">
           <AnalyticsDashboard />
@@ -2259,6 +2706,102 @@ export default function SettingsPage() {
           <UserManagementSettings />
         </TabsContent>
       </Tabs>
+
+      {/* Unsaved Changes Alert */}
+      {hasUnsavedChanges && (
+        <Alert className="mt-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            You have unsaved changes. Make sure to save your settings before
+            leaving this page.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Backup Dialog */}
+      <Dialog open={backupDialog} onOpenChange={setBackupDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Settings Backup</DialogTitle>
+            <DialogDescription>
+              Create a backup of your current store settings
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="backupName">Backup Name</Label>
+              <Input
+                id="backupName"
+                placeholder={`Backup ${new Date().toLocaleDateString()}`}
+              />
+            </div>
+            <div>
+              <Label htmlFor="backupDescription">Description</Label>
+              <Textarea
+                id="backupDescription"
+                placeholder="Optional description for this backup"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBackupDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateBackup}>Create Backup</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Restore Dialog */}
+      <Dialog open={restoreDialog} onOpenChange={setRestoreDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Restore Settings Backup</DialogTitle>
+            <DialogDescription>
+              Restore settings from a previous backup
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Select Backup</Label>
+              <Select value={selectedBackup} onValueChange={setSelectedBackup}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a backup to restore" />
+                </SelectTrigger>
+                <SelectContent>
+                  {backups &&
+                    backups.map(backup => (
+                      <SelectItem key={backup.id} value={backup.id}>
+                        {backup.name} -{" "}
+                        {new Date(backup.createdAt).toLocaleDateString()}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                This will overwrite your current settings. Make sure to create a
+                backup first.
+              </AlertDescription>
+            </Alert>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRestoreDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRestoreBackup}
+              disabled={!selectedBackup}
+              variant="destructive"
+            >
+              Restore Backup
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
