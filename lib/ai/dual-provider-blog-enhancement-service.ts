@@ -386,7 +386,7 @@ Make sure the content is educational, engaging, and optimized for Romanian paren
           systemPrompt: "You are an expert Romanian content writer specializing in STEM education for children. Write engaging, educational content that resonates with Romanian parents.",
           userPrompt: comprehensivePrompt,
           temperature: 0.8,
-          maxTokens: 4000, // Increased for complete blog generation
+          maxTokens: 2000, // EMERGENCY: Reduced for faster generation
           model: this.config!.primaryModel,
         });
 
@@ -402,7 +402,7 @@ Make sure the content is educational, engaging, and optimized for Romanian paren
             systemPrompt: "You are an expert Romanian content writer specializing in STEM education for children. Write engaging, educational content that resonates with Romanian parents.",
             userPrompt: comprehensivePrompt,
             temperature: 0.8,
-            maxTokens: 4000,
+            maxTokens: 2000, // EMERGENCY: Reduced for faster generation
             model: getAIConfig().fallbackModel,
           });
         }
@@ -417,7 +417,7 @@ Make sure the content is educational, engaging, and optimized for Romanian paren
           systemPrompt: "You are an expert Romanian content writer specializing in STEM education for children. Write engaging, educational content that resonates with Romanian parents.",
           userPrompt: comprehensivePrompt,
           temperature: 0.8,
-          maxTokens: 4000,
+          maxTokens: 2000, // EMERGENCY: Reduced for faster generation
           model: getAIConfig().fallbackModel,
         });
       }

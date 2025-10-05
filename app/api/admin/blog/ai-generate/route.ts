@@ -191,11 +191,11 @@ ${prompt.prompt} nu trebuie să fie complicat. Cu abordarea corectă și răbdar
 
 // POST - AI Blog Generation API Endpoint
 export async function POST(request: NextRequest) {
-  // Set up timeout handling
+  // Set up timeout handling - EMERGENCY: Much shorter timeout
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => {
       reject(new Error("Request timeout - blog generation took too long"));
-    }, 240000); // 4 minutes timeout (less than Vercel's 5-minute limit)
+    }, 120000); // 2 minutes timeout (much shorter for emergency fix)
   });
 
   try {
@@ -222,10 +222,10 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now();
 
-    // Initialize blog enhancement service with optimized configuration
+    // Initialize blog enhancement service with EMERGENCY configuration
     const blogService = new DualProviderBlogEnhancementService({
-      timeoutMs: 180000, // 3 minutes timeout for the service
-      maxRetries: 2, // Reduced retries to save time
+      timeoutMs: 45000, // 45 seconds timeout for the service (EMERGENCY)
+      maxRetries: 1, // Only 1 retry to save time
     });
 
     // Set up generation options
@@ -251,31 +251,35 @@ export async function POST(request: NextRequest) {
       keywordFocus: options.keywordFocus,
     };
 
-    // Generate the blog with timeout protection
+    // EMERGENCY FIX: Use fallback-first approach to prevent timeouts
     let result;
-    try {
-      result = await Promise.race([
-        blogService.generateBlog(blogPrompt, options),
-        timeoutPromise
-      ]);
-    } catch (timeoutError) {
-      // If timeout occurs, try a simplified fallback generation
-      console.warn("Primary blog generation timed out, attempting fallback...");
+    
+    // Check if user wants AI generation (default to fallback for reliability)
+    const useAI = validatedData.options?.includeSEO !== false; // Default to true, but allow override
+    
+    if (useAI) {
+      // Try AI generation with very short timeout
+      const aiTimeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error("AI generation timeout"));
+        }, 60000); // Only 1 minute for AI generation
+      });
       
       try {
+        console.log("Attempting AI blog generation with 1-minute timeout...");
+        result = await Promise.race([
+          blogService.generateBlog(blogPrompt, options),
+          aiTimeoutPromise
+        ]);
+        console.log("✅ AI blog generation completed successfully");
+      } catch (aiError) {
+        console.warn("⚠️ AI generation failed or timed out, using fallback:", aiError instanceof Error ? aiError.message : String(aiError));
         result = await generateFallbackBlog(blogPrompt, options);
-      } catch (fallbackError) {
-        console.error("Fallback blog generation also failed:", fallbackError);
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Blog generation timeout",
-            message: "The blog generation process took too long. Please try with a shorter prompt or try again later.",
-            processingTime: Date.now() - startTime,
-          },
-          { status: 408 }
-        );
       }
+    } else {
+      // Use fallback directly
+      console.log("Using fallback blog generation (AI disabled)");
+      result = await generateFallbackBlog(blogPrompt, options);
     }
 
     if (!result.success || !result.generatedBlog) {
