@@ -8,6 +8,11 @@ import { handlePreflight, applyCors } from "@/lib/cors";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { applyRateLimit } from "@/lib/rate-limit";
 import { securityHeaders, isDevelopment } from "@/lib/security";
+import {
+  getTenantContext,
+  withTenantIsolation,
+  addTenantHeaders,
+} from "@/lib/middleware/tenant";
 
 // Supported locales
 const locales = ["en", "ro"];
@@ -81,6 +86,35 @@ export async function middleware(request: NextRequest) {
   const preflightResponse = handlePreflight(request);
   if (preflightResponse) {
     return preflightResponse;
+  }
+
+  // Get tenant context for multi-tenant support
+  let tenantContext;
+  try {
+    tenantContext = await getTenantContext(request);
+  } catch (error) {
+    console.warn("Error getting tenant context:", error);
+    tenantContext = {
+      tenantId: null,
+      tenant: null,
+      organizationId: null,
+      organization: null,
+      isMultiTenant: false,
+    };
+  }
+
+  // Apply tenant isolation rules
+  const tenantIsolationResponse = await withTenantIsolation(
+    request,
+    tenantContext
+  );
+  if (tenantIsolationResponse) {
+    return tenantIsolationResponse;
+  }
+
+  // Add tenant context to request headers
+  if (tenantContext.isMultiTenant) {
+    request = addTenantHeaders(request, tenantContext);
   }
 
   // Apply rate limiting for API routes and sensitive endpoints

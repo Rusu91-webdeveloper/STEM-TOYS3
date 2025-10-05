@@ -25,6 +25,7 @@ import {
   Target,
   Truck,
   Cog,
+  CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -147,6 +148,11 @@ export const adminNavItems = [
     icon: BarChart,
   },
   {
+    title: "User Analytics Dashboard",
+    href: "/admin/analytics/dashboard",
+    icon: Users,
+  },
+  {
     title: "Advanced Analytics",
     href: "/admin/advanced-analytics",
     icon: TrendingUp,
@@ -210,6 +216,11 @@ export const adminNavItems = [
     title: "Email Automation",
     href: "/admin/email-automation",
     icon: Mail,
+  },
+  {
+    title: "Payment Rollout",
+    href: "/admin/payment-rollout",
+    icon: CreditCard,
   },
   {
     title: "Settings",

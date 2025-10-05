@@ -8,6 +8,9 @@ import {
   Users,
   CreditCard,
   Activity,
+  Target,
+  BarChart3,
+  Zap,
 } from "lucide-react";
 import React from "react";
 import Link from "next/link";
@@ -87,6 +90,19 @@ export function AnalyticsDashboard({
             </Button>
           </Link>
         </div>
+      </div>
+
+      {/* Quick Navigation */}
+      <div className="flex items-center gap-4 text-sm">
+        <Link
+          href="/admin/analytics"
+          className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+        >
+          <BarChart3 className="h-4 w-4" />
+          Analytics Hub
+        </Link>
+        <span className="text-muted-foreground">•</span>
+        <span className="font-medium">Sales Analytics</span>
       </div>
 
       {/* Stats Grid */}

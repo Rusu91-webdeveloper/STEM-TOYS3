@@ -229,11 +229,11 @@ export default async function AdminProductsPage({
     where: {
       slug: {
         in: [
-          "science-kits",
-          "engineering-robotics",
-          "technology-programming",
-          "mathematics",
-          "general-stem",
+          "science",
+          "technology",
+          "engineering",
+          "math",
+          "educational-books",
         ],
       },
       isActive: true,

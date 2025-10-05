@@ -120,9 +120,127 @@ export function CheckoutFlow() {
     setOrderError(null);
 
     try {
+      // Check if this is a Netopia payment
+      const isNetopiaPayment =
+        checkoutData.paymentMethod?.startsWith("netopia_");
+
+      if (isNetopiaPayment) {
+        // For Netopia payments: Create order first, then initiate payment
+        await handleNetopiaPayment();
+      } else {
+        // For other payment methods: Create order directly
+        await handleRegularOrder();
+      }
+    } catch (error) {
+      console.error("Order creation failed:", error);
+      setOrderError(
+        error instanceof Error
+          ? error.message
+          : t("orderError", "Failed to create order. Please try again.")
+      );
+      setIsProcessingOrder(false);
+    }
+  };
+
+  const handleNetopiaPayment = async () => {
+    try {
       // Get tax settings from database
       let taxRate = 0.21; // Default 21% VAT
-      // let includeInPrice = true; // Default: prices include VAT (EU compliance) - commented out as not used
+      let includeInPrice = true; // Default: prices include VAT (EU compliance)
+      try {
+        const response = await fetch("/api/checkout/tax-settings");
+        if (response.ok) {
+          const taxData = await response.json();
+          if (taxData.taxSettings?.active) {
+            taxRate = parseFloat(taxData.taxSettings.rate) / 100;
+            includeInPrice = taxData.taxSettings.includeInPrice !== false;
+          }
+        }
+      } catch (error) {
+        console.warn("Failed to fetch tax settings, using default:", error);
+      }
+
+      // Calculate proper total - prices already include VAT for EU compliance
+      const cartTotalIncludingVAT = getCartTotal();
+      const shippingCost = checkoutData.shippingMethod?.price ?? 0;
+
+      // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
+      const subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
+      const tax = cartTotalIncludingVAT - subtotalExcludingVAT;
+      const total = cartTotalIncludingVAT + shippingCost - discountAmount;
+
+      // Prepare order data for Netopia - create with pending payment status
+      const orderData = {
+        items: cartItems,
+        shippingAddress: checkoutData.shippingAddress!,
+        billingAddress: checkoutData.billingAddressSameAsShipping
+          ? checkoutData.shippingAddress!
+          : checkoutData.billingAddress!,
+        shippingMethod: checkoutData.shippingMethod!,
+        paymentMethod: checkoutData.paymentMethod!,
+        coupon: appliedCoupon,
+        discountAmount,
+        subtotal: subtotalExcludingVAT,
+        tax,
+        shippingCost,
+        total,
+        // Mark as Netopia payment - order will be created with pending status
+        paymentProvider: "netopia",
+        paymentStatus: "PENDING",
+      };
+
+      // Create order first (will be in pending payment status)
+      const order = await createOrder(orderData);
+
+      if (order && order.success) {
+        // Store order ID for Netopia callback
+        sessionStorage.setItem("pendingOrderId", order.orderId);
+        sessionStorage.setItem("paymentMethod", checkoutData.paymentMethod!);
+
+        // Now initiate Netopia payment with the order ID
+        const netopiaData = {
+          orderId: order.orderId,
+          amount: total,
+          currency: "RON",
+          customerData: {
+            name: orderData.billingAddress.fullName,
+            email: "", // Will be filled from user session
+            phone: orderData.billingAddress.phone,
+          },
+          paymentMethod: checkoutData.paymentMethod,
+        };
+
+        const response = await fetch("/api/payments/netopia/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(netopiaData),
+        });
+
+        if (response.ok) {
+          const paymentResult = await response.json();
+
+          if (paymentResult.paymentUrl) {
+            // Clear cart before redirect
+            await clearCart();
+
+            // Redirect to Netopia payment page
+            window.location.href = paymentResult.paymentUrl;
+            return;
+          }
+        }
+
+        throw new Error("Failed to initiate Netopia payment");
+      }
+    } finally {
+      setIsProcessingOrder(false);
+    }
+  };
+
+  const handleRegularOrder = async () => {
+    try {
+      // Get tax settings from database
+      let taxRate = 0.21; // Default 21% VAT
+      let includeInPrice = true; // Default: prices include VAT (EU compliance)
       try {
         const response = await fetch("/api/checkout/tax-settings");
         if (response.ok) {
@@ -184,13 +302,6 @@ export function CheckoutFlow() {
         // Clear cart after setting the flags to prevent race condition
         await clearCart();
       }
-    } catch (error) {
-      console.error("Order creation failed:", error);
-      setOrderError(
-        error instanceof Error
-          ? error.message
-          : t("orderError", "Failed to create order. Please try again.")
-      );
     } finally {
       setIsProcessingOrder(false);
     }

@@ -3,6 +3,7 @@ import { Session } from "next-auth";
 
 import { auth } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { validateTenantAccess } from "@/lib/middleware/tenant";
 
 /**
  * Standard response for unauthorized access
@@ -314,6 +315,26 @@ export function withAuth<T>(
         });
 
         return unauthorizedResponse(message);
+      }
+
+      // Extract tenant context from headers
+      const tenantId = request.headers.get("x-tenant-id");
+
+      // Validate tenant access for authenticated users
+      if (session?.user?.id && tenantId) {
+        const hasTenantAccess = await validateTenantAccess(
+          session.user.id,
+          tenantId
+        );
+        if (!hasTenantAccess) {
+          logger.warn("Tenant access denied", {
+            path: request.nextUrl.pathname,
+            userId: session.user.id,
+            tenantId,
+          });
+
+          return unauthorizedResponse("Access denied for this tenant");
+        }
       }
 
       // Execute the handler with the authenticated session

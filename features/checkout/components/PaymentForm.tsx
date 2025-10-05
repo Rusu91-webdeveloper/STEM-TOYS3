@@ -11,8 +11,9 @@ import { PaymentDetails, ShippingAddress, ShippingMethod } from "../types";
 import { BillingAddressForm } from "./BillingAddressForm";
 import { PaymentMethodSelector } from "./PaymentMethodSelector";
 import { PaymentSummary } from "./PaymentSummary";
-import { StripePaymentForm } from "./StripePaymentForm";
-import { StripeProvider } from "./StripeProvider";
+// import { StripePaymentForm } from "./StripePaymentForm"; // Commented out - Netopia only for now
+// import { StripeProvider } from "./StripeProvider"; // Commented out - Netopia only for now
+import { NetopiaPaymentForm } from "./NetopiaPaymentForm";
 import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
 
 interface PaymentCard {
@@ -69,6 +70,8 @@ export function PaymentForm({
   const [useNewCard, setUseNewCard] = useState(true);
   const [totalAmount, setTotalAmount] = useState(0);
   const [isCalculatingTotal, setIsCalculatingTotal] = useState(true);
+  const [userLocation, setUserLocation] = useState<string>("");
+  const [userLocale, setUserLocale] = useState<string>("");
   const { settings } = useCheckoutSettings();
 
   // Calculate the total amount including tax and shipping
@@ -150,6 +153,28 @@ export function PaymentForm({
 
     fetchPaymentCards();
   }, [initialData]);
+
+  // Detect user location and locale
+  useEffect(() => {
+    const detectUserLocation = async () => {
+      try {
+        // Get locale from browser
+        setUserLocale(navigator.language);
+
+        // Try to get location from IP (in production, use a geolocation service)
+        // For now, we'll use browser locale and billing address as indicators
+        if (billingAddress?.country) {
+          setUserLocation(billingAddress.country);
+        } else if (navigator.language.startsWith("ro")) {
+          setUserLocation("RO");
+        }
+      } catch (error) {
+        console.error("Error detecting user location:", error);
+      }
+    };
+
+    detectUserLocation();
+  }, [billingAddress]);
 
   const showBillingForm = !useSameAddress;
 
@@ -233,20 +258,66 @@ export function PaymentForm({
           onPaymentMethodChange={handlePaymentMethodChange}
           savedCards={savedCards}
           isLoadingCards={isLoadingCards}
+          userLocation={userLocation}
+          userLocale={userLocale}
+          billingCountry={billingAddress?.country}
         />
 
         <PaymentSummary
           appliedCoupon={appliedCoupon}
           discountAmount={discountAmount}
-          useNewCard={useNewCard}
+          useNewCard={false} // Netopia only - no card selection needed
           selectedPaymentMethod={selectedPaymentMethod}
           isCalculatingTotal={isCalculatingTotal}
           totalAmount={totalAmount}
           getCartTotal={getCartTotal}
         />
 
-        {/* Show the saved card or Stripe form */}
+        {/* Show Netopia payment form - Netopia is the primary payment provider */}
+        {selectedPaymentMethod.startsWith("netopia_") ? (
+          // Netopia payment form
+          <div className="my-6">
+            <NetopiaPaymentForm
+              order={{
+                id: `temp_${Date.now()}`, // This should be replaced with actual order ID
+                totalAmount: totalAmount,
+                customer: {
+                  name:
+                    billingAddress?.fullName || shippingAddress?.fullName || "",
+                  email: "", // Should come from user session
+                  phone: billingAddress?.phone || shippingAddress?.phone || "",
+                },
+              }}
+              paymentMethod={selectedPaymentMethod}
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+            />
+          </div>
+        ) : (
+          // Fallback to Netopia card if no Netopia method selected (shouldn't happen)
+          <div className="my-6">
+            <NetopiaPaymentForm
+              order={{
+                id: `temp_${Date.now()}`,
+                totalAmount: totalAmount,
+                customer: {
+                  name:
+                    billingAddress?.fullName || shippingAddress?.fullName || "",
+                  email: "",
+                  phone: billingAddress?.phone || shippingAddress?.phone || "",
+                },
+              }}
+              paymentMethod="netopia_card"
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+            />
+          </div>
+        )}
+
+        {/* Commented out - Stripe payment forms for future use */}
+        {/*
         {!useNewCard && selectedPaymentMethod !== "new" ? (
+          // Saved card (Stripe)
           <div className="my-6">
             <div className="bg-gray-50 rounded-lg p-4 border">
               <p className="text-gray-700">
@@ -255,6 +326,7 @@ export function PaymentForm({
             </div>
           </div>
         ) : (
+          // New Stripe card
           <StripeProvider>
             <StripePaymentForm
               onSuccess={handlePaymentSuccess}
@@ -267,6 +339,7 @@ export function PaymentForm({
             />
           </StripeProvider>
         )}
+        */}
 
         <BillingAddressForm
           useSameAddress={useSameAddress}

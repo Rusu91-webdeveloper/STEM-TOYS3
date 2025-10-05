@@ -19,6 +19,84 @@ model User {
   isActive            Boolean              @default(false)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+
+  // Multi-tenant architecture fields
+  tenantId            String?
+  organizationId      String?
+
+  // GDPR Compliance fields
+  consentGiven        Boolean              @default(false)
+  consentDate         DateTime?
+  dataRetention       Json?                // Retention policies and schedules
+  anonymized          Boolean              @default(false)
+
+  // Romanian Market Compliance fields
+  cui                 String?              // Romanian tax identification number
+  cnp                 String?              // Romanian personal numerical code
+  serieCi             String?              // Romanian ID card series
+  numarCi             String?              // Romanian ID card number
+  eliberatDe          String?              // Romanian ID card issuer
+  eliberatLa          DateTime?            // Romanian ID card issue date
+  valabilPanaLa       DateTime?            // Romanian ID card expiry date
+  adresaDomiciliu     Json?                // Romanian registered address
+  codPostal           String?              // Romanian postal code
+  judet              String?              // Romanian county
+  localitate         String?              // Romanian locality
+  isRomanianResident  Boolean              @default(false)
+
+  // Advanced Security Features (Phase 3.2)
+  lastLoginAt         DateTime?            // Last successful login timestamp
+  failedLoginAttempts Int                  @default(0) // Failed login attempts counter
+  accountLocked       Boolean              @default(false) // Account lockout status
+  lockoutUntil        DateTime?            // Account lockout expiry time
+  twoFactorEnabled    Boolean              @default(false) // 2FA enabled status
+  securityQuestions   Json?                // Encrypted security questions for recovery
+
+  // User Segmentation & Intelligence (Phase 4.1)
+  segment             UserSegment          @default(NEW) // User segment for marketing
+  tags                String[]             @default([]) // Flexible categorization tags
+  preferences         Json?                // User settings and marketing preferences
+  lifecycleStage      LifecycleStage       @default(AWARENESS) // Customer lifecycle stage
+  segmentUpdatedAt    DateTime?            // Last segment update timestamp
+  churnRiskScore      Float?               @default(0) // Churn prediction score 0-100
+
+  // Behavioral Analytics (Phase 4.2)
+  totalPageViews      Int                  @default(0) // Total page views across sessions
+  totalTimeSpent      Int                  @default(0) // Total time spent in minutes
+  avgSessionDuration  Float?               @default(0) // Average session duration in minutes
+  lastActivityAt      DateTime?            // Last user activity timestamp
+  purchaseFrequency   Float?               @default(0) // Average purchases per month
+  avgOrderValue       Float?               @default(0) // Average order value
+  lifetimeValue       Float                @default(0) // Customer lifetime value
+  referralCount       Int                  @default(0) // Number of referrals made
+  socialEngagementScore Float?             @default(0) // Social media engagement score
+  recommendationClicks Int                 @default(0) // Product recommendation clicks
+  wishlistSize        Int                  @default(0) // Current wishlist size
+
+  // Romanian Market Intelligence (Phase 4.3)
+  regionalPreference  String?              // Preferred Romanian region (Transylvania, Moldova, etc.)
+  seasonalPatterns    Json?                // Seasonal buying patterns for Romanian holidays
+  productCategoryPrefs String[]            @default([]) // Preferred product categories
+  ageGroup            String?              // Age group (18-25, 26-35, etc.)
+  educationLevel      String?              // Education level for demographic analysis
+  paymentMethodPrefs  String[]             @default([]) // Preferred payment methods (card, cash, installments)
+  deliveryTimeExpectation Int?             @default(3) // Expected delivery time in days
+  priceSensitivity    Float?               @default(0.5) // Price sensitivity score 0-1
+  brandLoyaltyScore   Float?               @default(0) // Brand loyalty score 0-100
+
+  // Scalability Infrastructure (Phase 5.1)
+  shardId             String?              // Database shard identifier for horizontal scaling
+  replicaId           String?              // Read replica identifier for load distribution
+  cacheKey            String?              // Redis cache key for user data caching
+  cacheVersion        Int                  @default(1) // Cache version for invalidation
+  lastCacheUpdate     DateTime?            // Last time cache was updated
+  dataArchiveStatus   String               @default("ACTIVE") // ACTIVE, ARCHIVED, DELETED
+
+  // Relations
+  tenant              Tenant?              @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  organization        Organization?        @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  shard               UserShard?           @relation(fields: [shardId], references: [shardId], onDelete: SetNull)
+  consentLogs         ConsentLog[]
   addresses           Address[]
   blogs               Blog[]
   contentVersions     ContentVersion[]
@@ -41,8 +119,157 @@ model User {
   sessions            Session[]
   campaignApplications CampaignApplication[]
   suppliers           Supplier[]
+  twoFactor           TwoFactor?
+  securityEventLogs   SecurityEventLog[]
 
   @@index([email])
+  @@index([role])
+  @@index([isActive])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([role, isActive])
+
+  // Multi-tenant indexes for performance
+  @@index([tenantId])
+  @@index([organizationId])
+  @@index([tenantId, isActive])
+  @@index([organizationId, isActive])
+  @@index([tenantId, role])
+  @@index([organizationId, role])
+
+  // Security indexes
+  @@index([failedLoginAttempts])
+  @@index([accountLocked])
+  @@index([twoFactorEnabled])
+  @@index([lockoutUntil])
+
+  // Segmentation & Intelligence indexes (Phase 4)
+  @@index([segment])
+  @@index([lifecycleStage])
+  @@index([segmentUpdatedAt])
+  @@index([churnRiskScore])
+  @@index([lastActivityAt])
+  @@index([lifetimeValue])
+  @@index([segment, lifecycleStage])
+  @@index([segment, tenantId])
+  @@index([lifecycleStage, tenantId])
+  @@index([churnRiskScore, segment])
+  @@index([regionalPreference])
+  @@index([ageGroup])
+  @@index([educationLevel])
+
+  // Scalability Infrastructure indexes (Phase 5.1)
+  @@index([shardId])
+  @@index([replicaId])
+  @@index([cacheKey])
+  @@index([cacheVersion])
+  @@index([dataArchiveStatus])
+  @@index([shardId, tenantId])
+  @@index([replicaId, shardId])
+  @@index([dataArchiveStatus, updatedAt])
+}
+
+model TwoFactor {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  secret        String   // TOTP secret key (encrypted)
+  backupCodes   String[] // Encrypted backup codes
+  algorithm     String   @default("SHA1") // TOTP algorithm
+  digits        Int      @default(6) // Number of digits
+  period        Int      @default(30) // Time period in seconds
+  isVerified    Boolean  @default(false) // Whether 2FA is verified and active
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastUsedAt    DateTime? // Last time 2FA was used
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isVerified])
+}
+
+model SegmentationRule {
+  id            String         @id @default(cuid())
+  name          String         // Rule name for identification
+  description   String?        // Rule description
+  segment       UserSegment    // Target segment to assign
+  lifecycleStage LifecycleStage? // Target lifecycle stage
+  isActive      Boolean        @default(true) // Whether rule is active
+  priority      Int            @default(0) // Execution priority (higher = first)
+
+  // Rule conditions (JSON structure for flexible conditions)
+  conditions    Json           // Conditions that must be met
+
+  // Examples of conditions:
+  // {
+  //   "lifetimeValue": { "operator": "gte", "value": 500 },
+  //   "purchaseFrequency": { "operator": "gte", "value": 2 },
+  //   "lastActivityAt": { "operator": "lt", "value": "30_days_ago" },
+  //   "totalPageViews": { "operator": "gte", "value": 50 }
+  // }
+
+  // Rule metadata
+  tags          String[]       @default([]) // Rule categorization tags
+  tenantId      String?        // Multi-tenant support
+  createdBy     String         // Admin who created the rule
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relations
+  tenant        Tenant?        @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([segment])
+  @@index([lifecycleStage])
+  @@index([isActive])
+  @@index([priority])
+  @@index([tenantId])
+  @@index([createdBy])
+  @@index([segment, isActive])
+  @@index([lifecycleStage, isActive])
+}
+
+model SecurityEventLog {
+  id          String          @id @default(cuid())
+  userId      String?
+  eventType   SecurityEventType
+  ipAddress   String?
+  userAgent   String?
+  location    Json?           // Geolocation data
+  details     Json?           // Additional event details
+  success     Boolean         @default(true) // Whether the action succeeded
+  riskScore   Int             @default(0) // Risk score 0-100
+  sessionId   String?         // Associated session ID
+  metadata    Json?           // Additional metadata
+  createdAt   DateTime        @default(now())
+
+  // Relations
+  user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@index([ipAddress])
+  @@index([success])
+  @@index([riskScore])
+}
+
+enum SecurityEventType {
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGOUT
+  PASSWORD_CHANGE
+  PASSWORD_RESET_REQUEST
+  PASSWORD_RESET_COMPLETE
+  ACCOUNT_LOCKOUT
+  ACCOUNT_UNLOCK
+  TWO_FACTOR_SETUP
+  TWO_FACTOR_VERIFY
+  TWO_FACTOR_DISABLE
+  SUSPICIOUS_ACTIVITY
+  SECURITY_QUESTION_SETUP
+  SECURITY_QUESTION_VERIFY
+  ACCOUNT_RECOVERY
 }
 
 model PasswordResetToken {
@@ -55,6 +282,125 @@ model PasswordResetToken {
 
   @@index([email])
   @@index([token])
+}
+
+model Tenant {
+  id                String    @id @default(cuid())
+  name              String
+  slug              String    @unique
+  description       String?
+  logo              String?
+  domain            String?   @unique
+  isActive          Boolean   @default(true)
+  settings          Json?     // Tenant-specific settings
+  limits            Json?     // Usage limits and quotas
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  users             User[]
+  organizations     Organization[]
+  segmentationRules SegmentationRule[]
+  emailTriggers     EmailTrigger[]
+
+  @@index([slug])
+  @@index([isActive])
+}
+
+model Organization {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String    @unique
+  description     String?
+  logo            String?
+  domain          String?   @unique
+  tenantId        String
+  isActive        Boolean   @default(true)
+  settings        Json?     // Organization-specific settings
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users           User[]
+
+  @@index([slug])
+  @@index([tenantId])
+  @@index([isActive])
+}
+
+model UserShard {
+  id                String   @id @default(cuid())
+  shardId           String   @unique // Unique identifier for the shard
+  name              String   // Human-readable name (e.g., "shard-us-east-1")
+  description       String?
+  databaseUrl       String   // Database connection URL for this shard
+  isActive          Boolean  @default(true) // Whether this shard is active
+  capacity          Int      @default(1000000) // Maximum users this shard can handle
+  currentUsers      Int      @default(0) // Current number of users on this shard
+  region            String   // AWS region or data center location
+  readReplicas      Json?    // Array of read replica configurations
+  writeEndpoint     String   // Primary write endpoint
+  readEndpoints     String[] @default([]) // Read replica endpoints
+  healthStatus      String   @default("HEALTHY") // HEALTHY, DEGRADED, UNHEALTHY
+  lastHealthCheck   DateTime?
+  failoverPriority  Int      @default(0) // Priority for failover (higher = preferred)
+  backupSchedule    Json?    // Backup configuration
+  migrationStatus   String   @default("NONE") // NONE, MIGRATING, MIGRATED
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  users             User[]
+
+  @@index([shardId])
+  @@index([isActive])
+  @@index([region])
+  @@index([healthStatus])
+  @@index([failoverPriority])
+  @@index([migrationStatus])
+}
+
+model ConsentLog {
+  id              String       @id @default(cuid())
+  userId          String
+  action          ConsentAction
+  consentType     String       // marketing, essential, analytics, etc.
+  consentGiven    Boolean
+  ipAddress       String?
+  userAgent       String?
+  consentDetails  Json?        // Additional consent information
+  validUntil      DateTime?    // For time-limited consents
+  createdAt       DateTime     @default(now())
+
+  // Relations
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([consentType])
+  @@index([createdAt])
+  @@index([userId, consentType])
+}
+
+enum ConsentAction {
+  GRANTED
+  WITHDRAWN
+  UPDATED
+  EXPIRED
+}
+
+model DataRetentionPolicy {
+  id              String   @id @default(cuid())
+  category        String   @unique // personal_data, marketing_data, analytics_data, logs
+  retentionPeriod Int      // Days to retain data
+  autoDelete      Boolean  @default(true)
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([category])
+  @@index([autoDelete])
 }
 
 model Address {
@@ -70,6 +416,14 @@ model Address {
   country      String
   phone        String
   isDefault    Boolean @default(false)
+
+  // Romanian Address Compliance fields
+  judet        String? // Romanian county
+  localitate   String? // Romanian locality
+  codPostal    String? // Romanian postal code (6 digits)
+  sector       String? // Bucharest sector (1-6)
+  isBillingAddress Boolean @default(false) // For Romanian tax compliance
+
   user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   orders       Order[]
 }
@@ -307,7 +661,12 @@ model Order {
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   deliveredAt           DateTime?
+  // Legacy Stripe fields (keep for backward compatibility)
   stripePaymentIntentId String?
+  // Netopia payment fields
+  netopiaTransactionId  String?
+  netopiaInvoiceId      String?
+  netopiaPaymentUrl     String?
   completedAt           DateTime?
   fulfilledAt           DateTime?
   shippedAt             DateTime?
@@ -785,6 +1144,23 @@ enum Role {
   ADMIN
 }
 
+enum UserSegment {
+  NEW
+  ACTIVE
+  VIP
+  INACTIVE
+  CHURNED
+  AT_RISK
+}
+
+enum LifecycleStage {
+  AWARENESS
+  CONSIDERATION
+  PURCHASE
+  RETENTION
+  ADVOCACY
+}
+
 enum StemCategory {
   SCIENCE
   TECHNOLOGY
@@ -1078,6 +1454,84 @@ model EmailSequenceUser {
   @@index([status])
 }
 
+model EmailTrigger {
+  id            String             @id @default(cuid())
+  name          String             // Trigger name for identification
+  description   String?            // Trigger description
+  type          EmailTriggerType   // Type of trigger
+  status        EmailTriggerStatus @default(DRAFT) // Trigger status
+
+  // Trigger conditions (JSON structure for flexible conditions)
+  conditions    Json               // Conditions that must be met to fire
+
+  // Examples of conditions:
+  // SEGMENT_ENTER: { "segment": "VIP", "previousSegment": "ACTIVE" }
+  // BEHAVIOR_EVENT: { "event": "cart_abandoned", "value": { "minItems": 1 } }
+  // TIME_BASED: { "inactiveDays": 30, "segment": "ACTIVE" }
+  // LIFECYCLE_CHANGE: { "fromStage": "AWARENESS", "toStage": "CONSIDERATION" }
+
+  // Action to take when trigger fires
+  actionType    String             // "send_email", "start_sequence", "update_user"
+  actionData    Json               // Action-specific data
+
+  // Examples of actionData:
+  // send_email: { "templateId": "welcome-email", "subject": "Welcome to STEM Toys!" }
+  // start_sequence: { "sequenceId": "vip-onboarding" }
+  // update_user: { "tags": ["special-offer-sent"] }
+
+  // Trigger settings
+  priority      Int                @default(0) // Execution priority
+  cooldownHours Int                @default(24) // Minimum hours between triggers for same user
+  maxExecutions Int?               // Maximum times this trigger can fire per user (null = unlimited)
+  isActive      Boolean            @default(false) // Whether trigger is active
+
+  // Targeting
+  segmentFilter String?            // Only trigger for users in this segment
+  lifecycleFilter String?          // Only trigger for users in this lifecycle stage
+  tenantId      String?            // Multi-tenant support
+
+  // Metadata
+  tags          String[]           @default([]) // Categorization tags
+  createdBy     String             // Admin who created the trigger
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  // Relations
+  tenant        Tenant?            @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  executions    EmailTriggerExecution[]
+
+  @@index([type])
+  @@index([status])
+  @@index([isActive])
+  @@index([priority])
+  @@index([segmentFilter])
+  @@index([lifecycleFilter])
+  @@index([tenantId])
+  @@index([createdBy])
+  @@index([type, isActive])
+}
+
+model EmailTriggerExecution {
+  id            String       @id @default(cuid())
+  triggerId     String       // Which trigger fired
+  userId        String       // Which user triggered it
+  executionData Json?        // Data about what caused the trigger
+  actionResult  Json?        // Result of the action (email sent, sequence started, etc.)
+  status        String       @default("pending") // pending, success, failed
+  errorMessage  String?      // If status is failed
+  executedAt    DateTime     @default(now())
+
+  // Relations
+  trigger       EmailTrigger @relation(fields: [triggerId], references: [id], onDelete: Cascade)
+
+  @@index([triggerId])
+  @@index([userId])
+  @@index([status])
+  @@index([executedAt])
+  @@index([triggerId, userId])
+  @@index([userId, executedAt])
+}
+
 // Email Marketing Enums
 enum EmailCampaignStatus {
   DRAFT
@@ -1105,6 +1559,22 @@ enum EmailSequenceUserStatus {
   COMPLETED
   UNSUBSCRIBED
   FAILED
+}
+
+enum EmailTriggerType {
+  SEGMENT_ENTER     // When user enters a segment
+  SEGMENT_EXIT      // When user leaves a segment
+  LIFECYCLE_CHANGE  // When lifecycle stage changes
+  BEHAVIOR_EVENT    // Based on specific behaviors (cart abandonment, etc.)
+  TIME_BASED        // Time-based triggers (inactive for X days, etc.)
+  CUSTOM_EVENT      // Custom business logic events
+}
+
+enum EmailTriggerStatus {
+  ACTIVE
+  PAUSED
+  DRAFT
+  ARCHIVED
 }
 
 // Supplier Management Models

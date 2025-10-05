@@ -1,461 +1,438 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { getCached, CacheKeys, invalidateCachePattern } from "@/lib/cache";
 import { db } from "@/lib/db";
-import { withRateLimit } from "@/lib/rate-limit";
-import {
-  AnalyticsRequestSchema,
-  validateAnalyticsData,
-} from "@/lib/validations/analytics";
+import { UserAnalyticsService } from "@/lib/services/user-analytics-service";
+import { SegmentationService } from "@/lib/services/segmentation-service";
+import { getUserCache } from "@/lib/cache/user-cache";
 
-export const GET = withRateLimit(
-  async (request: NextRequest) => {
-    try {
-      // Check authentication
-      const session = await auth();
-      if (!session?.user || session.user.role !== "ADMIN") {
-        return NextResponse.json({ error: "Not authorized" }, { status: 403 });
-      }
-
-      // Parse and validate query parameters
-      const searchParams = request.nextUrl.searchParams;
-      const period = searchParams.get("period") || "30";
-
-      // Validate period using Zod schema
-      const validatedData = AnalyticsRequestSchema.parse({ period });
-
-      // Calculate date range
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(endDate.getDate() - validatedData.period);
-
-      // Caching strategy for analytics data
-      const cacheKey = CacheKeys.analytics(`admin:${validatedData.period}`);
-      const CACHE_TTL = 5 * 60 * 1000; // 5 minutes for analytics (less critical than dashboard)
-
-      const analyticsData = await getCached(
-        cacheKey,
-        async () => {
-          // Fetch all analytics data in parallel for better performance
-          const [
-            salesData,
-            orderStats,
-            topSellingProducts,
-            salesByCategory,
-            salesChartData,
-          ] = await Promise.all([
-            fetchSalesData(startDate, endDate),
-            fetchOrderStats(startDate, endDate),
-            fetchTopSellingProducts(startDate, endDate),
-            fetchSalesByCategory(startDate, endDate),
-            fetchSalesChartData(startDate, endDate),
-          ]);
-
-          return {
-            salesData,
-            orderStats,
-            topSellingProducts,
-            salesByCategory,
-            salesChartData,
-          };
-        },
-        CACHE_TTL
-      );
-
-      // Validate the analytics data before returning
-      const validatedAnalyticsData = validateAnalyticsData(analyticsData);
-
-      return NextResponse.json(validatedAnalyticsData);
-    } catch (error) {
-      console.error("Error fetching analytics data:", error);
-
-      // Handle validation errors
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      if (errorMessage.includes("Invalid request parameters")) {
-        return NextResponse.json(
-          {
-            error: "Invalid request parameters",
-            details: error,
-          },
-          { status: 400 }
-        );
-      }
-
-      return NextResponse.json(
-        { error: "Failed to fetch analytics data" },
-        { status: 500 }
-      );
+export async function GET(request: NextRequest) {
+  try {
+    // Check authentication
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-  },
-  { limit: 20, windowMs: 10 * 60 * 1000 } // Stricter rate limiting for analytics
-);
 
-/**
- * Fetch sales data with aggregations for daily, weekly, and monthly
- */
-async function fetchSalesData(startDate: Date, endDate: Date) {
-  // Get current period sales data using parameterized query
-  const currentPeriodSales = await db.order.aggregate({
-    where: {
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
+    // Initialize services
+    const analyticsService = new UserAnalyticsService(db);
+    const segmentationService = new SegmentationService(db, analyticsService);
+    const userCache = getUserCache();
+
+    // Get date range for metrics (default to last 30 days)
+    const url = new URL(request.url);
+    const days = parseInt(url.searchParams.get("days") || "30");
+    const endDate = new Date();
+    const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
+
+    // Fetch all metrics in parallel for better performance
+    const [
+      overviewMetrics,
+      realtimeMetrics,
+      segmentationMetrics,
+      behaviorMetrics,
+      performanceMetrics,
+    ] = await Promise.all([
+      getOverviewMetrics(startDate, endDate),
+      getRealtimeMetrics(),
+      getSegmentationMetrics(),
+      getBehaviorMetrics(startDate, endDate),
+      getPerformanceMetrics(),
+    ]);
+
+    // Combine all metrics
+    const dashboardData = {
+      overview: overviewMetrics,
+      realtime: realtimeMetrics,
+      segmentation: segmentationMetrics,
+      behavior: behaviorMetrics,
+      performance: performanceMetrics,
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        timeRange: {
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+          days,
+        },
+        cacheStatus: "fresh", // Could be enhanced with actual cache info
       },
-      status: {
-        in: ["COMPLETED", "DELIVERED", "SHIPPED"],
-      },
-    },
-    _sum: {
-      total: true,
-    },
-  });
-
-  // Calculate daily sales
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-
-  const dailySales = await db.order.aggregate({
-    where: {
-      createdAt: {
-        gte: yesterday,
-        lte: today,
-      },
-      status: {
-        in: ["COMPLETED", "DELIVERED", "SHIPPED"],
-      },
-    },
-    _sum: {
-      total: true,
-    },
-  });
-
-  // Calculate weekly sales
-  const weekStartDate = new Date();
-  weekStartDate.setDate(today.getDate() - 7);
-
-  const weeklySales = await db.order.aggregate({
-    where: {
-      createdAt: {
-        gte: weekStartDate,
-        lte: today,
-      },
-      status: {
-        in: ["COMPLETED", "DELIVERED", "SHIPPED"],
-      },
-    },
-    _sum: {
-      total: true,
-    },
-  });
-
-  // Get previous period data for comparison
-  const prevPeriodStartDate = new Date(startDate);
-  prevPeriodStartDate.setDate(
-    prevPeriodStartDate.getDate() -
-      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-  );
-
-  const previousPeriodSales = await db.order.aggregate({
-    where: {
-      createdAt: {
-        gte: prevPeriodStartDate,
-        lt: startDate,
-      },
-      status: {
-        in: ["COMPLETED", "DELIVERED", "SHIPPED"],
-      },
-    },
-    _sum: {
-      total: true,
-    },
-  });
-
-  // Calculate percentage change
-  const currentTotal = currentPeriodSales._sum.total || 0;
-  const previousTotal = previousPeriodSales._sum.total || 0;
-
-  let percentageChange = 0;
-  if (previousTotal > 0) {
-    percentageChange = ((currentTotal - previousTotal) / previousTotal) * 100;
-  } else if (currentTotal > 0) {
-    percentageChange = 100;
-  }
-
-  return {
-    daily: dailySales._sum.total || 0,
-    weekly: weeklySales._sum.total || 0,
-    monthly: currentTotal,
-    previousPeriodChange: parseFloat(percentageChange.toFixed(1)),
-    trending: percentageChange >= 0 ? ("up" as const) : ("down" as const),
-  };
-}
-
-/**
- * Fetch order stats including conversion rate and avg order value
- */
-async function fetchOrderStats(startDate: Date, endDate: Date) {
-  // Get configuration values from environment
-  const CONVERSION_RATE_MULTIPLIER = parseInt(
-    process.env.ANALYTICS_CONVERSION_MULTIPLIER || "25"
-  );
-  const CONVERSION_RATE_SIMULATION = parseFloat(
-    process.env.ANALYTICS_CONVERSION_SIMULATION || "0.9"
-  );
-
-  // Total orders in period
-  const totalOrders = await db.order.count({
-    where: {
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      },
-    },
-  });
-
-  // Total customers in the system
-  const totalCustomers = await db.user.count({
-    where: {
-      role: "CUSTOMER",
-    },
-  });
-
-  // New customers in period
-  const newCustomers = await db.user.count({
-    where: {
-      role: "CUSTOMER",
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      },
-    },
-  });
-
-  // Previous period data for comparison
-  const prevPeriodStartDate = new Date(startDate);
-  prevPeriodStartDate.setDate(
-    prevPeriodStartDate.getDate() -
-      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-  );
-
-  const prevPeriodNewCustomers = await db.user.count({
-    where: {
-      role: "CUSTOMER",
-      createdAt: {
-        gte: prevPeriodStartDate,
-        lt: startDate,
-      },
-    },
-  });
-
-  // Calculate customer growth percentage
-  let customerGrowthPercentage = 0;
-  if (prevPeriodNewCustomers > 0) {
-    customerGrowthPercentage =
-      ((newCustomers - prevPeriodNewCustomers) / prevPeriodNewCustomers) * 100;
-  } else if (newCustomers > 0) {
-    customerGrowthPercentage = 100;
-  }
-
-  // Average order value
-  const orderValues = await db.order.aggregate({
-    where: {
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      },
-      status: {
-        in: ["COMPLETED", "DELIVERED", "SHIPPED"],
-      },
-    },
-    _avg: {
-      total: true,
-    },
-  });
-
-  // Previous period average order value
-  const prevOrderValues = await db.order.aggregate({
-    where: {
-      createdAt: {
-        gte: prevPeriodStartDate,
-        lt: startDate,
-      },
-      status: {
-        in: ["COMPLETED", "DELIVERED", "SHIPPED"],
-      },
-    },
-    _avg: {
-      total: true,
-    },
-  });
-
-  // Calculate AOV growth percentage
-  const currentAOV = orderValues._avg.total || 0;
-  const prevAOV = prevOrderValues._avg.total || 0;
-
-  let aovGrowthPercentage = 0;
-  if (prevAOV > 0) {
-    aovGrowthPercentage = ((currentAOV - prevAOV) / prevAOV) * 100;
-  } else if (currentAOV > 0) {
-    aovGrowthPercentage = 100;
-  }
-
-  // Estimated site visits for conversion rate
-  const estimatedVisits = totalOrders * CONVERSION_RATE_MULTIPLIER;
-  const conversionRate =
-    estimatedVisits > 0 ? (totalOrders / estimatedVisits) * 100 : 0;
-
-  // Simulate previous conversion rate
-  const previousConversionRate = conversionRate * CONVERSION_RATE_SIMULATION;
-  const conversionRateChange =
-    ((conversionRate - previousConversionRate) / previousConversionRate) * 100;
-
-  return {
-    conversionRate: {
-      rate: parseFloat(conversionRate.toFixed(1)),
-      previousPeriodChange: parseFloat(conversionRateChange.toFixed(1)),
-      trending: conversionRateChange >= 0 ? ("up" as const) : ("down" as const),
-    },
-    averageOrderValue: {
-      value: parseFloat(currentAOV.toFixed(2)),
-      previousPeriodChange: parseFloat(aovGrowthPercentage.toFixed(1)),
-      trending: aovGrowthPercentage >= 0 ? ("up" as const) : ("down" as const),
-    },
-    totalCustomers: {
-      value: totalCustomers,
-      previousPeriodChange: parseFloat(customerGrowthPercentage.toFixed(1)),
-      trending:
-        customerGrowthPercentage >= 0 ? ("up" as const) : ("down" as const),
-    },
-  };
-}
-
-/**
- * Fetch top selling products using parameterized queries
- */
-async function fetchTopSellingProducts(startDate: Date, endDate: Date) {
-  // Use parameterized query to prevent SQL injection
-  const topSoldProducts = await db.$queryRaw<
-    Array<{
-      id: string;
-      name: string;
-      price: number;
-      sold: bigint;
-      revenue: string;
-    }>
-  >`
-    SELECT
-      p.id,
-      p.name,
-      p.price,
-      SUM(oi.quantity) AS sold,
-      SUM(oi.price * oi.quantity) AS revenue
-    FROM "OrderItem" oi
-    JOIN "Product" p ON oi."productId" = p.id
-    JOIN "Order" o ON oi."orderId" = o.id
-    WHERE o."createdAt" >= $1 AND o."createdAt" <= $2
-      AND o.status IN ('COMPLETED', 'DELIVERED', 'SHIPPED')
-    GROUP BY p.id, p.name, p.price
-    ORDER BY sold DESC
-    LIMIT 5
-  `;
-
-  return topSoldProducts.map(product => ({
-    name: product.name,
-    price: parseFloat(product.price.toString()),
-    sold: parseInt(product.sold.toString()),
-    revenue: parseFloat(product.revenue),
-  }));
-}
-
-/**
- * Fetch sales by category using parameterized queries
- */
-async function fetchSalesByCategory(startDate: Date, endDate: Date) {
-  // Use parameterized query to prevent SQL injection
-  const categorySales = await db.$queryRaw<
-    Array<{
-      categoryId: string;
-      category: string;
-      amount: string;
-    }>
-  >`
-    SELECT
-      c.id AS "categoryId",
-      c.name AS category,
-      SUM(oi.price * oi.quantity) AS amount
-    FROM "OrderItem" oi
-    JOIN "Product" p ON oi."productId" = p.id
-    JOIN "Category" c ON p."categoryId" = c.id
-    JOIN "Order" o ON oi."orderId" = o.id
-    WHERE o."createdAt" >= $1 AND o."createdAt" <= $2
-      AND o.status IN ('COMPLETED', 'DELIVERED', 'SHIPPED')
-    GROUP BY c.id, c.name
-    ORDER BY amount DESC
-  `;
-
-  // Calculate total sales to get percentages
-  const totalSales = categorySales.reduce(
-    (sum, item) => sum + parseFloat(item.amount),
-    0
-  );
-
-  return categorySales.map(item => ({
-    categoryId: item.categoryId,
-    category: item.category,
-    amount: parseFloat(item.amount),
-    percentage: parseFloat(
-      ((parseFloat(item.amount) / totalSales) * 100).toFixed(1)
-    ),
-  }));
-}
-
-/**
- * Fetch sales chart data by day using parameterized queries
- */
-async function fetchSalesChartData(startDate: Date, endDate: Date) {
-  // Create an array with all days in the period
-  const days = [];
-  const currentDate = new Date(startDate);
-
-  while (currentDate <= endDate) {
-    days.push(new Date(currentDate));
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  // Get daily sales data using parameterized query for better performance
-  const dailySales = await db.$queryRaw<
-    Array<{
-      date: string;
-      sales: string;
-    }>
-  >`
-    SELECT
-      DATE(o."createdAt") AS date,
-      SUM(o.total) AS sales
-    FROM "Order" o
-    WHERE o."createdAt" >= $1 AND o."createdAt" <= $2
-      AND o.status IN ('COMPLETED', 'DELIVERED', 'SHIPPED', 'PROCESSING')
-    GROUP BY DATE(o."createdAt")
-    ORDER BY date
-  `;
-
-  // Create a map for quick lookups
-  const salesByDateMap = new Map<string, number>();
-  dailySales.forEach(day => {
-    const dateStr = new Date(day.date).toISOString().split("T")[0];
-    salesByDateMap.set(dateStr, parseFloat(day.sales));
-  });
-
-  // Fill in all days, even those with no sales
-  const salesData = days.map(day => {
-    const dateStr = day.toISOString().split("T")[0];
-    return {
-      date: dateStr,
-      sales: salesByDateMap.get(dateStr) || 0,
     };
-  });
 
-  return { salesData };
+    return NextResponse.json(dashboardData);
+  } catch (error) {
+    console.error("Dashboard metrics error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch dashboard metrics" },
+      { status: 500 }
+    );
+  }
+}
+
+async function getOverviewMetrics(startDate: Date, endDate: Date) {
+  const [
+    totalUsers,
+    activeUsers,
+    newUsersToday,
+    totalRevenue,
+    avgOrderValue,
+    conversionData,
+  ] = await Promise.all([
+    // Total users
+    db.user.count(),
+
+    // Active users (logged in within last 30 days)
+    db.user.count({
+      where: {
+        lastLoginAt: {
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        },
+      },
+    }),
+
+    // New users today
+    db.user.count({
+      where: {
+        createdAt: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+        },
+      },
+    }),
+
+    // Total revenue from completed orders
+    db.order
+      .aggregate({
+        where: {
+          status: "COMPLETED",
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        _sum: {
+          total: true,
+        },
+      })
+      .then(result => result._sum.total || 0),
+
+    // Average order value
+    db.order
+      .aggregate({
+        where: {
+          status: "COMPLETED",
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        _avg: {
+          total: true,
+        },
+      })
+      .then(result => result._avg.total || 0),
+
+    // Conversion rate calculation
+    getConversionRate(startDate, endDate),
+  ]);
+
+  return {
+    totalUsers,
+    activeUsers,
+    newUsersToday,
+    totalRevenue: Number(totalRevenue),
+    avgOrderValue: Number(avgOrderValue),
+    conversionRate: conversionData,
+  };
+}
+
+async function getRealtimeMetrics() {
+  // In a real implementation, these would come from Redis/cache with real-time updates
+  // For now, we'll simulate with recent activity data
+
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+  const [activeUsersNow, recentPageViews, recentOrders, recentRevenue] =
+    await Promise.all([
+      // Active users in last 5 minutes (simulated)
+      db.user.count({
+        where: {
+          lastActivityAt: {
+            gte: new Date(now.getTime() - 5 * 60 * 1000),
+          },
+        },
+      }),
+
+      // Page views in last hour (this would come from analytics events)
+      db.user
+        .aggregate({
+          where: {
+            lastActivityAt: {
+              gte: oneHourAgo,
+            },
+          },
+          _sum: {
+            totalPageViews: true,
+          },
+        })
+        .then(result => result._sum.totalPageViews || 0),
+
+      // Orders in last hour
+      db.order.count({
+        where: {
+          createdAt: {
+            gte: oneHourAgo,
+          },
+        },
+      }),
+
+      // Revenue in last hour
+      db.order
+        .aggregate({
+          where: {
+            status: "COMPLETED",
+            createdAt: {
+              gte: oneHourAgo,
+            },
+          },
+          _sum: {
+            total: true,
+          },
+        })
+        .then(result => result._sum.total || 0),
+    ]);
+
+  return {
+    activeUsersNow,
+    pageViewsPerMinute: Math.round(Number(recentPageViews) / 60),
+    ordersPerHour: recentOrders,
+    revenuePerHour: Number(recentRevenue),
+  };
+}
+
+async function getSegmentationMetrics() {
+  const [segmentDistribution, lifecycleDistribution] = await Promise.all([
+    // Segment distribution
+    db.user.groupBy({
+      by: ["segment"],
+      _count: {
+        id: true,
+      },
+      orderBy: {
+        _count: {
+          id: "desc",
+        },
+      },
+    }),
+
+    // Lifecycle stage distribution
+    db.user.groupBy({
+      by: ["lifecycleStage"],
+      _count: {
+        id: true,
+      },
+      orderBy: {
+        _count: {
+          id: "desc",
+        },
+      },
+    }),
+  ]);
+
+  const totalUsers = await db.user.count();
+
+  return {
+    segmentDistribution: segmentDistribution.map(item => ({
+      segment: item.segment,
+      count: item._count.id,
+      percentage: (item._count.id / totalUsers) * 100,
+    })),
+    lifecycleDistribution: lifecycleDistribution.map(item => ({
+      stage: item.lifecycleStage,
+      count: item._count.id,
+      percentage: (item._count.id / totalUsers) * 100,
+    })),
+  };
+}
+
+async function getBehaviorMetrics(startDate: Date, endDate: Date) {
+  const [topPages, userJourney, engagementMetrics] = await Promise.all([
+    // Top pages (simulated - would come from analytics events)
+    getTopPages(),
+
+    // User journey metrics
+    getUserJourneyMetrics(),
+
+    // Engagement metrics
+    getEngagementMetrics(),
+  ]);
+
+  return {
+    topPages,
+    userJourney,
+    engagement: engagementMetrics,
+  };
+}
+
+async function getPerformanceMetrics() {
+  // In a real implementation, these would come from monitoring services
+  // like DataDog, New Relic, or custom performance tracking
+
+  const [apiResponseTime, errorRate, uptime, throughput] = await Promise.all([
+    // Average API response time (simulated)
+    Promise.resolve(245), // ms
+
+    // Error rate (simulated)
+    Promise.resolve(0.02), // 2%
+
+    // Uptime percentage (simulated)
+    Promise.resolve(0.995), // 99.5%
+
+    // Throughput (requests per minute, simulated)
+    Promise.resolve(1250),
+  ]);
+
+  return {
+    apiResponseTime,
+    errorRate,
+    uptime,
+    throughput,
+  };
+}
+
+async function getConversionRate(startDate: Date, endDate: Date) {
+  const [totalVisitors, totalCustomers] = await Promise.all([
+    // Total unique users who viewed pages (simulated)
+    db.user.count({
+      where: {
+        totalPageViews: {
+          gt: 0,
+        },
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    }),
+
+    // Total users who made purchases
+    db.user.count({
+      where: {
+        orders: {
+          some: {
+            status: "COMPLETED",
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+        },
+      },
+    }),
+  ]);
+
+  return totalVisitors > 0 ? totalCustomers / totalVisitors : 0;
+}
+
+async function getTopPages() {
+  // Simulated top pages data
+  // In a real implementation, this would come from analytics events
+  return [
+    { page: "/products", views: 15420, bounceRate: 0.35 },
+    { page: "/products/toys", views: 8920, bounceRate: 0.28 },
+    { page: "/", views: 12650, bounceRate: 0.42 },
+    { page: "/cart", views: 7830, bounceRate: 0.51 },
+    { page: "/checkout", views: 5420, bounceRate: 0.23 },
+  ];
+}
+
+async function getUserJourneyMetrics() {
+  // User journey funnel data
+  const [awareness, consideration, purchase, retention] = await Promise.all([
+    // Awareness: Users who viewed products
+    db.user.count({
+      where: {
+        totalPageViews: { gt: 0 },
+      },
+    }),
+
+    // Consideration: Users who added to wishlist or viewed cart
+    db.user.count({
+      where: {
+        OR: [
+          { wishlistSize: { gt: 0 } },
+          { totalPageViews: { gte: 5 } }, // Viewed multiple pages
+        ],
+      },
+    }),
+
+    // Purchase: Users who completed orders
+    db.user.count({
+      where: {
+        orders: {
+          some: {
+            status: "COMPLETED",
+          },
+        },
+      },
+    }),
+
+    // Retention: Users who made repeat purchases
+    db.user.count({
+      where: {
+        orders: {
+          some: {
+            status: "COMPLETED",
+          },
+        },
+        lifetimeValue: { gte: 200 }, // Significant repeat value
+      },
+    }),
+  ]);
+
+  return {
+    awareness,
+    consideration,
+    purchase,
+    retention,
+  };
+}
+
+async function getEngagementMetrics() {
+  const [avgSessionDuration, avgPagesPerSession, returnVisitorRate] =
+    await Promise.all([
+      // Average session duration
+      db.user
+        .aggregate({
+          where: {
+            avgSessionDuration: {
+              not: null,
+            },
+          },
+          _avg: {
+            avgSessionDuration: true,
+          },
+        })
+        .then(result => result._avg.avgSessionDuration || 0),
+
+      // Average pages per session
+      db.user
+        .aggregate({
+          where: {
+            totalPageViews: { gt: 0 },
+            avgSessionDuration: { gt: 0 },
+          },
+          _avg: {
+            totalPageViews: true,
+          },
+        })
+        .then(result => result._avg.totalPageViews || 0),
+
+      // Return visitor rate (simulated)
+      Promise.resolve(0.34), // 34%
+    ]);
+
+  return {
+    avgSessionDuration: Number(avgSessionDuration),
+    pagesPerSession: Number(avgPagesPerSession),
+    returnVisitorRate: returnVisitorRate,
+  };
 }

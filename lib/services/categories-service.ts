@@ -37,7 +37,7 @@ const staticCategoryData = [
   {
     nameKey: "Math",
     description: "mathCategoryDesc",
-    slug: "math",
+    slug: "mathematics",
     image: "/images/category_banner_math_01.png",
   },
   {
@@ -53,7 +53,7 @@ export const slugToQueryCategory: Record<string, string> = {
   science: "science",
   technology: "technology",
   engineering: "engineering",
-  math: "mathematics", // Fix: math → mathematics
+  mathematics: "mathematics",
   "educational-books": "educational-books",
 };
 
@@ -65,7 +65,7 @@ export function getCategoryName(slug: string, language: string = "en"): string {
     science: { en: "Science", ro: "Știință" },
     technology: { en: "Technology", ro: "Tehnologie" },
     engineering: { en: "Engineering", ro: "Inginerie" },
-    math: { en: "Math", ro: "Matematică" },
+    mathematics: { en: "Math", ro: "Matematică" },
     "educational-books": { en: "Educational Books", ro: "Cărți Educaționale" },
   };
 
