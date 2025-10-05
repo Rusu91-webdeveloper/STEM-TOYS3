@@ -109,30 +109,56 @@ async function generateFallbackBlog(
     const title = `${prompt.prompt} - Ghid Complet pentru Părinți`;
     const slug = generateSlug(title);
     
-    // Generate basic content using a simple template
+    // Generate comprehensive content using an enhanced template
     const content = `
 # ${title}
 
 ## Introducere
 
-${prompt.prompt} este un subiect important pentru educația copiilor noștri. În acest ghid complet, vom explora cele mai eficiente metode de a introduce aceste concepte în viața zilnică a familiei.
+${prompt.prompt} reprezintă o componentă esențială în educația modernă a copiilor. În era digitală, este crucial să pregătim copiii pentru viitor prin dezvoltarea competențelor STEM (Știință, Tehnologie, Inginerie, Matematică).
 
-## De ce este important?
+## De ce este important ${prompt.prompt.toLowerCase()}?
 
-Educația STEM (Știință, Tehnologie, Inginerie, Matematică) pregătește copiii pentru viitorul digital. Cercetările arată că copiii care sunt expuși la concepte STEM de la o vârstă fragedă dezvoltă gândirea critică și creativitatea.
+Cercetările arată că copiii care sunt expuși la concepte STEM de la o vârstă fragedă:
+- Dezvoltă gândirea critică și analitică
+- Îmbunătățesc abilitățile de rezolvare a problemelor
+- Cresc încrezători în utilizarea tehnologiei
+- Pregătesc pentru cariere viitoare în domenii tehnice
 
-## Cum să începi
+## Cum să introduci ${prompt.prompt.toLowerCase()} în viața copilului tău
 
-1. **Începe cu jocurile** - Folosește jocuri educaționale care introduc concepte STEM într-un mod distractiv
-2. **Experimente simple** - Realizează experimente casnice cu copilul tău
-3. **Încurajează întrebările** - Răspunde la toate întrebările copilului cu răbdare
-4. **Folosește tehnologia** - Aplicațiile educaționale pot fi foarte utile
+### 1. **Începe cu jocurile educaționale**
+Jocurile interactive sunt cea mai bună modalitate de a introduce concepte complexe într-un mod distractiv. Alege jocuri care combină învățarea cu distracția.
+
+### 2. **Experimente practice**
+Realizează experimente simple acasă. Aceasta permite copilului să înțeleagă conceptele prin experiență directă și să dezvolte curiozitatea științifică.
+
+### 3. **Încurajează întrebările**
+Răspunde la toate întrebările copilului cu răbdare și entuziasm. Întrebările sunt semnul unei minți curioase și gata să învețe.
+
+### 4. **Folosește tehnologia educațională**
+Aplicațiile și platformele educaționale pot fi foarte utile pentru a face învățarea mai interactivă și captivantă.
+
+### 5. **Conectează cu viața reală**
+Arată copilului cum conceptele pe care le învață se aplică în viața de zi cu zi. Aceasta face învățarea mai relevantă și mai interesantă.
+
+## Beneficii pe termen lung
+
+Investiția în educația STEM a copilului tău va aduce beneficii pe termen lung:
+- Pregătire pentru cariere viitoare în tehnologie
+- Dezvoltarea abilităților de gândire logică
+- Îmbunătățirea performanței școlare
+- Creșterea încrederii în sine
 
 ## Concluzie
 
-${prompt.prompt} nu trebuie să fie complicat. Cu abordarea corectă și răbdare, poți transforma orice moment într-o oportunitate de învățare.
+${prompt.prompt} nu trebuie să fie complicat sau intimidant. Cu abordarea corectă, răbdare și resursele potrivite, poți transforma orice moment într-o oportunitate de învățare valoroasă pentru copilul tău.
 
-**Acțiunea ta următoare:** Începe astăzi cu un experiment simplu sau un joc educațional. Fiecare pas contează pentru viitorul copilului tău.
+**Următorul pas:** Începe astăzi cu un experiment simplu, un joc educațional sau o conversație despre cum funcționează lucrurile din jurul nostru. Fiecare pas contează pentru viitorul copilului tău.
+
+---
+
+*Acest ghid a fost creat pentru a te ajuta să introduci concepte STEM în viața copilului tău într-un mod natural și distractiv. Amintiți-vă că învățarea este un proces, nu o destinație.*
 `;
 
     const excerpt = `Ghid complet despre ${prompt.prompt.toLowerCase()} pentru părinți. Învață cum să introduci concepte STEM în viața zilnică a familiei.`;
@@ -191,11 +217,14 @@ ${prompt.prompt} nu trebuie să fie complicat. Cu abordarea corectă și răbdar
 
 // POST - AI Blog Generation API Endpoint
 export async function POST(request: NextRequest) {
-  // Set up timeout handling - EMERGENCY: Much shorter timeout
+  // Set up timeout handling - PRODUCTION: Ultra-short timeout
+  const isProduction = process.env.NODE_ENV === "production";
+  const timeoutMs = isProduction ? 30000 : 120000; // 30s in production, 2min in dev
+  
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => {
       reject(new Error("Request timeout - blog generation took too long"));
-    }, 120000); // 2 minutes timeout (much shorter for emergency fix)
+    }, timeoutMs);
   });
 
   try {
@@ -251,35 +280,44 @@ export async function POST(request: NextRequest) {
       keywordFocus: options.keywordFocus,
     };
 
-    // EMERGENCY FIX: Use fallback-first approach to prevent timeouts
+    // PRODUCTION FIX: Use fallback-only approach in production to prevent timeouts
     let result;
     
-    // Check if user wants AI generation (default to fallback for reliability)
-    const useAI = validatedData.options?.includeSEO !== false; // Default to true, but allow override
+    // In production, always use fallback to prevent timeouts
+    const isProduction = process.env.NODE_ENV === "production";
+    const forceFallback = process.env.FORCE_BLOG_FALLBACK === "true";
     
-    if (useAI) {
-      // Try AI generation with very short timeout
-      const aiTimeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          reject(new Error("AI generation timeout"));
-        }, 60000); // Only 1 minute for AI generation
-      });
+    if (isProduction || forceFallback) {
+      // Production or forced fallback: Use fallback only for reliability
+      console.log("🚀 PRODUCTION/FALLBACK MODE: Using fallback blog generation for reliability");
+      result = await generateFallbackBlog(blogPrompt, options);
+    } else {
+      // Development: Try AI generation with very short timeout
+      const useAI = validatedData.options?.includeSEO !== false;
       
-      try {
-        console.log("Attempting AI blog generation with 1-minute timeout...");
-        result = await Promise.race([
-          blogService.generateBlog(blogPrompt, options),
-          aiTimeoutPromise
-        ]);
-        console.log("✅ AI blog generation completed successfully");
-      } catch (aiError) {
-        console.warn("⚠️ AI generation failed or timed out, using fallback:", aiError instanceof Error ? aiError.message : String(aiError));
+      if (useAI) {
+        const aiTimeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            reject(new Error("AI generation timeout"));
+          }, 60000); // Only 1 minute for AI generation
+        });
+        
+        try {
+          console.log("Attempting AI blog generation with 1-minute timeout...");
+          result = await Promise.race([
+            blogService.generateBlog(blogPrompt, options),
+            aiTimeoutPromise
+          ]);
+          console.log("✅ AI blog generation completed successfully");
+        } catch (aiError) {
+          console.warn("⚠️ AI generation failed or timed out, using fallback:", aiError instanceof Error ? aiError.message : String(aiError));
+          result = await generateFallbackBlog(blogPrompt, options);
+        }
+      } else {
+        // Use fallback directly
+        console.log("Using fallback blog generation (AI disabled)");
         result = await generateFallbackBlog(blogPrompt, options);
       }
-    } else {
-      // Use fallback directly
-      console.log("Using fallback blog generation (AI disabled)");
-      result = await generateFallbackBlog(blogPrompt, options);
     }
 
     if (!result.success || !result.generatedBlog) {

@@ -4,7 +4,7 @@
       "maxDuration": 30
     },
     "app/api/admin/blog/ai-generate/route.ts": {
-      "maxDuration": 180
+      "maxDuration": 60
     }
   },
   "crons": [
