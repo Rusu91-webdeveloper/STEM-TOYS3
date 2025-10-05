@@ -10,5 +10,7 @@
       "schedule": "0 1 * * *"
     }
   ],
-  "buildCommand": "NODE_OPTIONS=\"--max-old-space-size=4096\" prisma generate && NODE_OPTIONS=\"--max-old-space-size=4096\" next build"
+  "env": {
+    "NODE_OPTIONS": "--max-old-space-size=4096"
+  }
 }

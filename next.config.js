@@ -12,8 +12,6 @@ const nextConfig = {
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
     // **PERFORMANCE**: Enable faster builds
     webpackBuildWorker: true,
-    // Reduce memory usage during builds
-    optimizeCss: true,
   },
   // **PERFORMANCE**: Optimize bundle splitting and reduce legacy JavaScript
   modularizeImports: {
