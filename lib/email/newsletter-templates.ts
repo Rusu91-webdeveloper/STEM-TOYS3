@@ -171,7 +171,9 @@ export async function sendNewsletterWelcomeEmail({
     </div>
 
     ${createTestimonial(
-      "Newsletter-ul de la " + storeSettings.storeName + " este minunat! Primești informații valoroase despre educația STEM și oferte exclusive.",
+      "Newsletter-ul de la " +
+        storeSettings.storeName +
+        " este minunat! Primești informații valoroase despre educația STEM și oferte exclusive.",
       "Maria Ionescu",
       "Mamă de 2 copii",
       5
@@ -318,7 +320,9 @@ export async function sendNewsletterResubscribeEmail({
     ])}
 
     ${createTestimonial(
-      "M-am abonat din nou la newsletter-ul " + storeSettings.storeName + " și sunt încântată de conținutul valoros pe care îl primesc!",
+      "M-am abonat din nou la newsletter-ul " +
+        storeSettings.storeName +
+        " și sunt încântată de conținutul valoros pe care îl primesc!",
       "Ana Popescu",
       "Educatoare",
       5
@@ -498,7 +502,9 @@ export async function sendNewsletterNotificationEmail({
     ])}
 
     ${createTestimonial(
-      "Articolele de pe blogul " + storeSettings.storeName + " sunt minunate! Îmi oferă sfaturi practice pentru educația STEM a copiilor mei.",
+      "Articolele de pe blogul " +
+        storeSettings.storeName +
+        " sunt minunate! Îmi oferă sfaturi practice pentru educația STEM a copiilor mei.",
       "Cristina Dumitrescu",
       "Mamă de 3 copii",
       5
