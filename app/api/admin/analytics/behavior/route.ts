@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/server/auth";
 import { UserAnalyticsService } from "@/lib/services/user-analytics-service";
 import { EmailTriggerService } from "@/lib/services/email-trigger-service";
 import { PrismaClient } from "@prisma/client";
@@ -12,7 +11,7 @@ const emailTriggerService = new EmailTriggerService(prisma);
 // GET /api/admin/analytics/behavior - Get behavioral analytics dashboard data
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -54,7 +53,7 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/analytics/behavior/churn-risk - Calculate churn risk for all users
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

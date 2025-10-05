@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { auth } from "@/lib/server/auth";
 import { authOptions } from "@/lib/auth";
 import { SegmentationService } from "@/lib/services/segmentation-service";
 import { UserAnalyticsService } from "@/lib/services/user-analytics-service";
@@ -24,7 +24,7 @@ interface RouteParams {
 // GET /api/admin/segmentation/rules/[id] - Get a specific segmentation rule
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT /api/admin/segmentation/rules/[id] - Update a segmentation rule
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -74,7 +74,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/admin/segmentation/rules/[id] - Delete a segmentation rule
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

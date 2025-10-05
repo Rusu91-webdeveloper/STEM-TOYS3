@@ -1,8 +1,14 @@
 {
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/daily-maintenance",
       "schedule": "0 1 * * *"
     }
-  ]
+  ],
+  "buildCommand": "NODE_OPTIONS=\"--max-old-space-size=4096\" prisma generate && NODE_OPTIONS=\"--max-old-space-size=4096\" next build"
 }

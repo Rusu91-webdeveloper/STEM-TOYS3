@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { auth } from "@/lib/server/auth";
 import { authOptions } from "@/lib/auth";
 import { SegmentationService } from "@/lib/services/segmentation-service";
 import { UserAnalyticsService } from "@/lib/services/user-analytics-service";
@@ -18,7 +18,7 @@ const segmentationService = new SegmentationService(
 // GET /api/admin/segmentation/rules - Get all email triggers
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

@@ -12,6 +12,8 @@ const nextConfig = {
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
     // **PERFORMANCE**: Enable faster builds
     webpackBuildWorker: true,
+    // Reduce memory usage during builds
+    optimizeCss: true,
   },
   // **PERFORMANCE**: Optimize bundle splitting and reduce legacy JavaScript
   modularizeImports: {
@@ -36,18 +38,6 @@ const nextConfig = {
         : false,
   },
 
-  // **PERFORMANCE**: Optimize JavaScript delivery for modern browsers
-  experimental: {
-    // Enable optimized package imports
-    optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
-    // **PERFORMANCE**: Enable faster builds
-    webpackBuildWorker: true,
-    // Enable server actions
-    serverActions: {
-      allowedOrigins: ["localhost:3000", "your-domain.com"],
-    },
-  },
-
   // **PERFORMANCE**: Modern JavaScript output for better performance
   // swcMinify is deprecated in Next.js 13+ and enabled by default
 
@@ -55,7 +45,7 @@ const nextConfig = {
   output: "standalone",
   outputFileTracingRoot: undefined,
 
-  // Don't block production builds even with ESLint errors
+  // Skip ESLint during builds to prevent memory issues and speed up deployment
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -255,8 +245,9 @@ const nextConfig = {
       };
     }
 
+    // Vercel-compatible server configuration
     if (isServer) {
-      // Prevent OpenTelemetry from trying to load native modules
+      // Prevent OpenTelemetry from trying to load native modules in serverless
       config.externals = [
         ...(config.externals || []),
         {
@@ -265,13 +256,13 @@ const nextConfig = {
         },
       ];
 
-      // Ignore the critical dependency warnings
+      // Ignore the critical dependency warnings for Vercel
       config.module = {
         ...config.module,
         exprContextCritical: false,
       };
 
-      // Add fallbacks for node modules that might not be available
+      // Add fallbacks for node modules that might not be available in serverless
       config.resolve = {
         ...config.resolve,
         fallback: {

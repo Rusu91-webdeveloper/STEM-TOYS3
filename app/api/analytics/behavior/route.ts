@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { auth } from "@/lib/server/auth";
 import { authOptions } from "@/lib/auth";
 import { UserAnalyticsService } from "@/lib/services/user-analytics-service";
 import { SegmentationService } from "@/lib/services/segmentation-service";
@@ -18,7 +18,7 @@ const segmentationService = new SegmentationService(
 // POST /api/analytics/behavior - Track user behavior
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     // Allow anonymous tracking but prefer authenticated users
     const userId = session?.user?.id;
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
 // GET /api/analytics/behavior - Get user behavior metrics (for authenticated users)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
