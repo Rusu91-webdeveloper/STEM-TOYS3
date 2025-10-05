@@ -97,71 +97,235 @@ async function findOrCreateBlogCategory(stemCategory: StemCategory) {
   return category;
 }
 
-// Fallback blog generation for timeout scenarios
-async function generateFallbackBlog(
-  prompt: BlogGenerationPrompt,
-  options: BlogGenerationOptions
-): Promise<BlogGenerationResult> {
-  const startTime = Date.now();
+// Generate topic-specific content based on the prompt
+function generateTopicSpecificContent(topic: string, prompt: BlogGenerationPrompt): string {
+  const topicLower = topic.toLowerCase();
   
-  try {
-    // Create a simple, fast blog generation using basic templates
-    const title = `${prompt.prompt} - Ghid Complet pentru Părinți`;
-    const slug = generateSlug(title);
-    
-    // Generate comprehensive content using an enhanced template
-    const content = `
-# ${title}
+  // Determine the main focus based on the topic
+  let mainFocus = "educație STEM";
+  let specificBenefits = [
+    "Dezvoltă gândirea critică și analitică",
+    "Îmbunătățesc abilitățile de rezolvare a problemelor", 
+    "Cresc încrezători în utilizarea tehnologiei",
+    "Pregătesc pentru cariere viitoare în domenii tehnice"
+  ];
+  let practicalTips = [
+    "Începe cu jocurile educaționale interactive",
+    "Realizează experimente practice acasă",
+    "Încurajează întrebările și curiozitatea",
+    "Folosește tehnologia educațională",
+    "Conectează conceptele cu viața reală"
+  ];
+  
+  // Customize content based on specific topics
+  if (topicLower.includes("stem toys") || topicLower.includes("jucării stem")) {
+    mainFocus = "jucăriile STEM";
+    specificBenefits = [
+      "Dezvoltă creativitatea și imaginația",
+      "Îmbunătățesc coordonarea mână-ochi",
+      "Învață concepte științifice prin joc",
+      "Pregătesc pentru școala și cariera viitoare"
+    ];
+    practicalTips = [
+      "Alege jucării potrivite pentru vârsta copilului",
+      "Combină jocul cu învățarea",
+      "Încurajează explorarea și experimentarea",
+      "Participă activ la jocuri cu copilul",
+      "Creează un mediu de învățare distractiv"
+    ];
+  } else if (topicLower.includes("robotics") || topicLower.includes("robotica")) {
+    mainFocus = "robotica educațională";
+    specificBenefits = [
+      "Dezvoltă gândirea logică și secvențială",
+      "Învață programarea de bază",
+      "Îmbunătățește abilitățile de rezolvare a problemelor",
+      "Pregătește pentru viitorul digital"
+    ];
+    practicalTips = [
+      "Începe cu roboți simpli și programabili",
+      "Folosește aplicații de programare vizuală",
+      "Încurajează proiectele creative",
+      "Participă la competiții de robotică",
+      "Conectează robotica cu alte domenii STEM"
+    ];
+  } else if (topicLower.includes("coding") || topicLower.includes("programare")) {
+    mainFocus = "programarea pentru copii";
+    specificBenefits = [
+      "Dezvoltă gândirea algoritmică",
+      "Îmbunătățește rezolvarea problemelor",
+      "Creează încredere în utilizarea tehnologiei",
+      "Pregătește pentru cariere în IT"
+    ];
+    practicalTips = [
+      "Începe cu programarea vizuală (Scratch, Blockly)",
+      "Folosește jocuri de programare",
+      "Încurajează proiectele personale",
+      "Participă la cluburi de programare",
+      "Conectează programarea cu interesele copilului"
+    ];
+  } else if (topicLower.includes("science") || topicLower.includes("știință")) {
+    mainFocus = "știința pentru copii";
+    specificBenefits = [
+      "Dezvoltă curiozitatea științifică",
+      "Învață să observe și să analizeze",
+      "Îmbunătățește gândirea critică",
+      "Pregătește pentru studii științifice"
+    ];
+    practicalTips = [
+      "Realizează experimente simple acasă",
+      "Vizitează muzee și laboratoare",
+      "Încurajează întrebările despre natură",
+      "Folosește cărți și documentare științifice",
+      "Conectează știința cu viața de zi cu zi"
+    ];
+  } else if (topicLower.includes("math") || topicLower.includes("matematică")) {
+    mainFocus = "matematica pentru copii";
+    specificBenefits = [
+      "Dezvoltă gândirea logică și analitică",
+      "Îmbunătățește rezolvarea problemelor",
+      "Creează încredere în abilitățile matematice",
+      "Pregătește pentru studii superioare"
+    ];
+    practicalTips = [
+      "Transformă matematica în joc",
+      "Folosește obiecte concrete pentru învățare",
+      "Încurajează rezolvarea problemelor practice",
+      "Conectează matematica cu hobby-urile",
+      "Creează un mediu pozitiv pentru învățare"
+    ];
+  }
+  
+  return `
+# ${topic} - Ghid Complet pentru Părinți în 2025
 
 ## Introducere
 
-${prompt.prompt} reprezintă o componentă esențială în educația modernă a copiilor. În era digitală, este crucial să pregătim copiii pentru viitor prin dezvoltarea competențelor STEM (Știință, Tehnologie, Inginerie, Matematică).
+${topic} reprezintă o componentă esențială în educația modernă a copiilor. În era digitală, este crucial să pregătim copiii pentru viitor prin dezvoltarea competențelor STEM (Știință, Tehnologie, Inginerie, Matematică).
 
-## De ce este important ${prompt.prompt.toLowerCase()}?
+## De ce este important ${topic.toLowerCase()}?
 
-Cercetările arată că copiii care sunt expuși la concepte STEM de la o vârstă fragedă:
-- Dezvoltă gândirea critică și analitică
-- Îmbunătățesc abilitățile de rezolvare a problemelor
-- Cresc încrezători în utilizarea tehnologiei
-- Pregătesc pentru cariere viitoare în domenii tehnice
+Cercetările arată că copiii care sunt expuși la ${mainFocus} de la o vârstă fragedă:
+${specificBenefits.map(benefit => `- ${benefit}`).join('\n')}
 
-## Cum să introduci ${prompt.prompt.toLowerCase()} în viața copilului tău
+## Cum să introduci ${topic.toLowerCase()} în viața copilului tău
 
-### 1. **Începe cu jocurile educaționale**
-Jocurile interactive sunt cea mai bună modalitate de a introduce concepte complexe într-un mod distractiv. Alege jocuri care combină învățarea cu distracția.
-
-### 2. **Experimente practice**
-Realizează experimente simple acasă. Aceasta permite copilului să înțeleagă conceptele prin experiență directă și să dezvolte curiozitatea științifică.
-
-### 3. **Încurajează întrebările**
-Răspunde la toate întrebările copilului cu răbdare și entuziasm. Întrebările sunt semnul unei minți curioase și gata să învețe.
-
-### 4. **Folosește tehnologia educațională**
-Aplicațiile și platformele educaționale pot fi foarte utile pentru a face învățarea mai interactivă și captivantă.
-
-### 5. **Conectează cu viața reală**
-Arată copilului cum conceptele pe care le învață se aplică în viața de zi cu zi. Aceasta face învățarea mai relevantă și mai interesantă.
+${practicalTips.map((tip, index) => `### ${index + 1}. **${tip.split(' - ')[0]}**
+${tip.includes(' - ') ? tip.split(' - ')[1] : 'Această abordare permite copilului să învețe într-un mod natural și distractiv.'}`).join('\n\n')}
 
 ## Beneficii pe termen lung
 
-Investiția în educația STEM a copilului tău va aduce beneficii pe termen lung:
-- Pregătire pentru cariere viitoare în tehnologie
-- Dezvoltarea abilităților de gândire logică
-- Îmbunătățirea performanței școlare
-- Creșterea încrederii în sine
+Investiția în ${mainFocus} a copilului tău va aduce beneficii pe termen lung:
+- Pregătire pentru cariere viitoare în tehnologie și știință
+- Dezvoltarea abilităților de gândire logică și analitică
+- Îmbunătățirea performanței școlare în toate domeniile
+- Creșterea încrederii în sine și a motivației pentru învățare
+- Pregătirea pentru provocările viitorului digital
+
+## Tendințe și inovații în 2025
+
+În 2025, ${mainFocus} evoluează rapid cu noi tehnologii și abordări:
+- Inteligenta artificială integrată în jucării educaționale
+- Realitatea augmentată pentru experiențe immersive
+- Platforme online interactive pentru învățare la distanță
+- Jucării personalizate bazate pe interesele copilului
+- Integrarea sustenabilității în educația STEM
+
+## Cum să alegi resursele potrivite
+
+Când alegi resurse pentru ${topic.toLowerCase()}, ia în considerare:
+- **Vârsta copilului**: Asigură-te că resursele sunt potrivite pentru nivelul de dezvoltare
+- **Interesele copilului**: Alege subiecte care îi pasionează
+- **Calitatea educațională**: Caută resurse dezvoltate de experți în educație
+- **Siguranța**: Verifică că toate materialele sunt sigure pentru copii
+- **Valoarea educațională**: Prioritizează învățarea față de distracția pură
 
 ## Concluzie
 
-${prompt.prompt} nu trebuie să fie complicat sau intimidant. Cu abordarea corectă, răbdare și resursele potrivite, poți transforma orice moment într-o oportunitate de învățare valoroasă pentru copilul tău.
+${topic} nu trebuie să fie complicat sau intimidant. Cu abordarea corectă, răbdare și resursele potrivite, poți transforma orice moment într-o oportunitate de învățare valoroasă pentru copilul tău.
 
 **Următorul pas:** Începe astăzi cu un experiment simplu, un joc educațional sau o conversație despre cum funcționează lucrurile din jurul nostru. Fiecare pas contează pentru viitorul copilului tău.
 
 ---
 
-*Acest ghid a fost creat pentru a te ajuta să introduci concepte STEM în viața copilului tău într-un mod natural și distractiv. Amintiți-vă că învățarea este un proces, nu o destinație.*
+*Acest ghid a fost creat pentru a te ajuta să introduci ${mainFocus} în viața copilului tău într-un mod natural și distractiv. Amintiți-vă că învățarea este un proces, nu o destinație.*
 `;
+}
 
-    const excerpt = `Ghid complet despre ${prompt.prompt.toLowerCase()} pentru părinți. Învață cum să introduci concepte STEM în viața zilnică a familiei.`;
+// Generate intelligent SEO keywords based on topic
+function generateSEOKeywords(topic: string, prompt: BlogGenerationPrompt): string[] {
+  const topicLower = topic.toLowerCase();
+  const baseKeywords = ["STEM", "educație", "copii", "părinți", "2025"];
+  
+  // Add topic-specific keywords
+  if (topicLower.includes("stem toys") || topicLower.includes("jucării stem")) {
+    return [...baseKeywords, "jucării educaționale", "jocuri STEM", "învățare prin joc", "dezvoltare copii"];
+  } else if (topicLower.includes("robotics") || topicLower.includes("robotica")) {
+    return [...baseKeywords, "robotica educațională", "programare copii", "roboți educaționali", "tehnologie"];
+  } else if (topicLower.includes("coding") || topicLower.includes("programare")) {
+    return [...baseKeywords, "programare copii", "coding", "informatică", "tehnologie", "viitor digital"];
+  } else if (topicLower.includes("science") || topicLower.includes("știință")) {
+    return [...baseKeywords, "știință copii", "experimente", "curiozitate științifică", "laborator"];
+  } else if (topicLower.includes("math") || topicLower.includes("matematică")) {
+    return [...baseKeywords, "matematică copii", "numere", "logica", "rezolvare probleme"];
+  } else {
+    // Generic STEM keywords
+    return [...baseKeywords, "educație modernă", "tehnologie", "viitor", "dezvoltare"];
+  }
+}
+
+// Generate intelligent tags based on topic
+function generateTags(topic: string, prompt: BlogGenerationPrompt): string[] {
+  const topicLower = topic.toLowerCase();
+  const baseTags = ["STEM", "educație", "copii", "părinți"];
+  
+  // Add topic-specific tags
+  if (topicLower.includes("stem toys") || topicLower.includes("jucării stem")) {
+    return [...baseTags, "jucării educaționale", "jocuri", "învățare"];
+  } else if (topicLower.includes("robotics") || topicLower.includes("robotica")) {
+    return [...baseTags, "robotica", "programare", "tehnologie"];
+  } else if (topicLower.includes("coding") || topicLower.includes("programare")) {
+    return [...baseTags, "programare", "coding", "informatică"];
+  } else if (topicLower.includes("science") || topicLower.includes("știință")) {
+    return [...baseTags, "știință", "experimente", "cercetare"];
+  } else if (topicLower.includes("math") || topicLower.includes("matematică")) {
+    return [...baseTags, "matematică", "numere", "logica"];
+  } else {
+    return [...baseTags, "tehnologie", "viitor"];
+  }
+}
+
+// Enhanced fallback blog generation with intelligent content creation
+async function generateFallbackBlog(
+  prompt: BlogGenerationPrompt,
+  options: BlogGenerationOptions
+): Promise<BlogGenerationResult> {
+  const startTime = Date.now();
+
+  try {
+    // Parse the prompt to extract the actual topic
+    const promptText = prompt.prompt.toLowerCase();
+    let topic = promptText;
+
+    // Clean up common prompt patterns
+    if (promptText.includes("generate me a blog about")) {
+      topic = promptText.replace("generate me a blog about", "").trim();
+    } else if (promptText.includes("write a blog about")) {
+      topic = promptText.replace("write a blog about", "").trim();
+    } else if (promptText.includes("create a blog about")) {
+      topic = promptText.replace("create a blog about", "").trim();
+    }
+
+    // Capitalize first letter
+    topic = topic.charAt(0).toUpperCase() + topic.slice(1);
+
+    // Generate intelligent title based on topic
+    const title = `${topic} - Ghid Complet pentru Părinți în 2025`;
+    const slug = generateSlug(title);
+
+    // Generate comprehensive, topic-specific content
+    const content = generateTopicSpecificContent(topic, prompt);
+
+    const excerpt = `Ghid complet despre ${topic.toLowerCase()} pentru părinți în 2025. Învață cum să introduci concepte STEM în viața zilnică a familiei.`;
     const wordCount = content.trim().split(/\s+/).length;
     const readingTime = Math.ceil(wordCount / 200);
 
@@ -171,16 +335,16 @@ ${prompt.prompt} nu trebuie să fie complicat sau intimidant. Cu abordarea corec
       excerpt,
       content,
       coverImage: undefined,
-      tags: ["STEM", "educație", "copii", "părinți"],
+      tags: generateTags(topic, prompt),
       stemCategory: prompt.targetStemCategory ?? "GENERAL",
       readingTime,
       language: "ro",
       wordCount,
-      seoMetadata: {
-        metaTitle: title.substring(0, 70),
-        metaDescription: excerpt.substring(0, 160),
-        metaKeywords: ["STEM", "educație", "copii", prompt.prompt.toLowerCase()],
-      },
+        seoMetadata: {
+          metaTitle: title.substring(0, 70),
+          metaDescription: excerpt.substring(0, 160),
+          metaKeywords: generateSEOKeywords(topic, prompt),
+        },
       aiMetadata: {
         aiGenerated: true,
         generatedBy: "fallback-blog-generator",
@@ -189,7 +353,13 @@ ${prompt.prompt} nu trebuie să fie complicat sau intimidant. Cu abordarea corec
         processingTime: Date.now() - startTime,
         refinementApplied: false,
         modelVersion: "fallback",
-        keywordOptimization: { primaryKeyword: prompt.prompt, secondaryKeywords: [], longTailKeywords: [], painPointKeywords: [], commercialKeywords: [] },
+        keywordOptimization: {
+          primaryKeyword: prompt.prompt,
+          secondaryKeywords: [],
+          longTailKeywords: [],
+          painPointKeywords: [],
+          commercialKeywords: [],
+        },
         contentAnalysis: { missingKeywords: [], suggestions: [] },
         socialOptimization: {},
         conversionOptimization: {},
@@ -203,7 +373,9 @@ ${prompt.prompt} nu trebuie să fie complicat sau intimidant. Cu abordarea corec
       generatedBlog,
       processingTime: Date.now() - startTime,
       seoScore: 75, // Basic SEO score for fallback
-      suggestions: ["Consider using the full AI generation for better content quality"],
+      suggestions: [
+        "Consider using the full AI generation for better content quality",
+      ],
       warnings: ["This is a fallback blog generated due to timeout"],
     };
   } catch (error) {
@@ -220,7 +392,7 @@ export async function POST(request: NextRequest) {
   // Set up timeout handling - PRODUCTION: Ultra-short timeout
   const isProduction = process.env.NODE_ENV === "production";
   const timeoutMs = isProduction ? 30000 : 120000; // 30s in production, 2min in dev
-  
+
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => {
       reject(new Error("Request timeout - blog generation took too long"));
@@ -282,35 +454,40 @@ export async function POST(request: NextRequest) {
 
     // PRODUCTION FIX: Use fallback-only approach in production to prevent timeouts
     let result;
-    
+
     // In production, always use fallback to prevent timeouts
     const isProduction = process.env.NODE_ENV === "production";
     const forceFallback = process.env.FORCE_BLOG_FALLBACK === "true";
-    
+
     if (isProduction || forceFallback) {
       // Production or forced fallback: Use fallback only for reliability
-      console.log("🚀 PRODUCTION/FALLBACK MODE: Using fallback blog generation for reliability");
+      console.log(
+        "🚀 PRODUCTION/FALLBACK MODE: Using fallback blog generation for reliability"
+      );
       result = await generateFallbackBlog(blogPrompt, options);
     } else {
       // Development: Try AI generation with very short timeout
       const useAI = validatedData.options?.includeSEO !== false;
-      
+
       if (useAI) {
         const aiTimeoutPromise = new Promise<never>((_, reject) => {
           setTimeout(() => {
             reject(new Error("AI generation timeout"));
           }, 60000); // Only 1 minute for AI generation
         });
-        
+
         try {
           console.log("Attempting AI blog generation with 1-minute timeout...");
           result = await Promise.race([
             blogService.generateBlog(blogPrompt, options),
-            aiTimeoutPromise
+            aiTimeoutPromise,
           ]);
           console.log("✅ AI blog generation completed successfully");
         } catch (aiError) {
-          console.warn("⚠️ AI generation failed or timed out, using fallback:", aiError instanceof Error ? aiError.message : String(aiError));
+          console.warn(
+            "⚠️ AI generation failed or timed out, using fallback:",
+            aiError instanceof Error ? aiError.message : String(aiError)
+          );
           result = await generateFallbackBlog(blogPrompt, options);
         }
       } else {
@@ -463,20 +640,21 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("AI Blog Generation API error:", error);
-    
+
     // Handle timeout specifically
     if (error instanceof Error && error.message.includes("timeout")) {
       return NextResponse.json(
         {
           success: false,
           error: "Blog generation timeout",
-          message: "The blog generation process took too long and was cancelled. Please try with a shorter prompt or try again later.",
+          message:
+            "The blog generation process took too long and was cancelled. Please try with a shorter prompt or try again later.",
           processingTime: Date.now() - Date.now(), // Will be calculated properly in the actual error
         },
         { status: 408 } // Request Timeout
       );
     }
-    
+
     return handleApiError(error, "Failed to generate blog");
   }
 }
