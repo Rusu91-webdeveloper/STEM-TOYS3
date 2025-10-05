@@ -106,9 +106,9 @@ export class OpenAIService extends BaseAIService {
       (requestBody as any).max_tokens = validatedOptions.maxTokens!;
     }
 
-    // Create AbortController for request timeout
+    // Create AbortController for request timeout - reduced for faster failure
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout for individual API calls
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout for individual API calls
 
     try {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
@@ -240,8 +240,10 @@ export class OpenAIService extends BaseAIService {
       clearTimeout(timeoutId); // Ensure timeout is cleared
 
       // Handle AbortController timeout
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('OpenAI API request timed out after 60 seconds. The service may be experiencing high latency or is unavailable.');
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error(
+          "OpenAI API request timed out after 45 seconds. The service may be experiencing high latency or is unavailable."
+        );
       }
 
       if (error instanceof Error) {

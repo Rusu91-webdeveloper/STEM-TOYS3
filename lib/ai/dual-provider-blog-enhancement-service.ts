@@ -154,7 +154,8 @@ export class DualProviderBlogEnhancementService {
   }
 
   /**
-   * Generate a complete blog post from a prompt
+   * Generate a complete blog post from a prompt - OPTIMIZED VERSION
+   * Reduced from 10+ API calls to 2-3 calls maximum
    */
   async generateBlog(
     prompt: BlogGenerationPrompt,
@@ -171,230 +172,124 @@ export class DualProviderBlogEnhancementService {
       onProgress?.({
         stage: "analyzing_prompt",
         progress: 10,
-        currentStep: "Analyzing prompt and selecting optimal Romanian keywords",
-        estimatedTimeRemaining: 30000,
+        currentStep: "Analyzing prompt and preparing content generation",
+        estimatedTimeRemaining: 45000,
       });
 
-      // Select optimal keywords for this prompt
-      const keywordOptimization =
-        RomanianKeywordService.selectKeywordsForPrompt(prompt);
+      // OPTIMIZATION: Use cached/static data instead of multiple API calls
+      const keywordOptimization = RomanianKeywordService.selectKeywordsForPrompt(prompt);
+      
+      // Use static high-impact content instead of topic-specific lookups
+      const shockingStatistics = getHighImpactStatistics()
+        .slice(0, 2)
+        .map(stat => stat.statistic)
+        .join("; ");
 
-      // Get shocking statistics for viral content
-      const topicStats = getStatisticsForTopic(prompt.prompt);
-      const shockingStatistics =
-        topicStats.length > 0
-          ? topicStats
-              .slice(0, 3)
-              .map(stat => stat.statistic)
-              .join("; ")
-          : getHighImpactStatistics()
-              .slice(0, 3)
-              .map(stat => stat.statistic)
-              .join("; ");
+      const successStories = getHighImpactStories()
+        .slice(0, 1)
+        .map(story => `${story.hero}: ${story.challenge} → ${story.results}`)
+        .join("; ");
 
-      // Get success stories for emotional storytelling
-      const topicStories = getStoriesForTopic(prompt.prompt);
-      const successStories =
-        topicStories.length > 0
-          ? topicStories
-              .slice(0, 2)
-              .map(
-                story => `${story.hero}: ${story.challenge} → ${story.results}`
-              )
-              .join("; ")
-          : getHighImpactStories()
-              .slice(0, 2)
-              .map(
-                story => `${story.hero}: ${story.challenge} → ${story.results}`
-              )
-              .join("; ");
-
-      // Get social proof testimonials and trust badges
-      const topicTestimonials = getTestimonialsForTopic(prompt.prompt);
-      const socialProof =
-        topicTestimonials.length > 0
-          ? topicTestimonials
-              .slice(0, 2)
-              .map(
-                t =>
-                  `${t.name} (${t.location}): "${t.testimonial.substring(0, 100)}..."`
-              )
-              .join("; ")
-          : getHighImpactTestimonials()
-              .slice(0, 2)
-              .map(
-                t =>
-                  `${t.name} (${t.location}): "${t.testimonial.substring(0, 100)}..."`
-              )
-              .join("; ");
+      const socialProof = getHighImpactTestimonials()
+        .slice(0, 1)
+        .map(t => `${t.name}: "${t.testimonial.substring(0, 80)}..."`)
+        .join("; ");
 
       const trustBadges = getAllTrustBadges()
-        .slice(0, 3)
+        .slice(0, 2)
         .map(badge => badge.displayText)
         .join("; ");
 
-      // Step 1: Generate title
-      const titleResult = await this.generateTitle(prompt);
-      if (
-        !titleResult.success ||
-        !titleResult.title ||
-        titleResult.title.trim().length === 0
-      ) {
-        throw new Error(
-          `Title generation failed: ${titleResult.error || "Empty title returned"}`
-        );
-      }
-
       onProgress?.({
         stage: "generating_content",
-        progress: 20,
-        currentStep: "Generating main blog content",
+        progress: 30,
+        currentStep: "Generating complete blog content in single optimized call",
         estimatedTimeRemaining: 60000,
       });
 
-      // Step 2: Generate main content with keyword optimization
-      const contentResult = await this.generateContent(
+      // OPTIMIZATION: Generate everything in one API call instead of 5+ separate calls
+      const completeBlogResult = await this.generateCompleteBlogInOneCall(
         prompt,
-        titleResult.title,
         keywordOptimization,
         shockingStatistics,
         successStories,
         socialProof,
         trustBadges
       );
-      if (!contentResult.success) {
-        throw new Error(`Content generation failed: ${contentResult.error}`);
+
+      if (!completeBlogResult.success) {
+        throw new Error(`Complete blog generation failed: ${completeBlogResult.error}`);
       }
-
-      onProgress?.({
-        stage: "optimizing_seo",
-        progress: 60,
-        currentStep: "Optimizing SEO metadata",
-        estimatedTimeRemaining: 30000,
-      });
-
-      // Step 3: Generate SEO metadata
-      const seoResult = await this.generateSEOMetadata(
-        prompt,
-        titleResult.title!,
-        contentResult.content!
-      );
-      if (!seoResult.success) {
-        console.warn(
-          "SEO metadata generation failed, using defaults:",
-          seoResult.error
-        );
-      }
-
-      onProgress?.({
-        stage: "refining_language",
-        progress: 80,
-        currentStep: "Refining Romanian language and cultural context",
-        estimatedTimeRemaining: 20000,
-      });
-
-      // Step 4: Apply Romanian optimization
-      const refinedContent = await this.refineContent(
-        titleResult.title!,
-        contentResult.content!,
-        seoResult.metadata ?? null
-      );
-
-      // Step 5: Analyze and optimize keywords in the final content
-      const contentAnalysis = RomanianKeywordService.analyzeContentKeywords(
-        refinedContent,
-        keywordOptimization
-      );
-
-      // Optimize content with missing keywords if needed
-      let finalContent = refinedContent;
-      if (contentAnalysis.missingKeywords.length > 0) {
-        finalContent = RomanianKeywordService.optimizeContentKeywords(
-          refinedContent,
-          contentAnalysis,
-          keywordOptimization
-        );
-      }
-
-      // Step 6: Calculate reading time and final metrics
-      const wordCount = this.calculateWordCount(finalContent);
-      const readingTime = Math.ceil(wordCount / 200); // Average reading speed
-      const slug = this.generateSlug(titleResult.title!);
-
-      // Step 7: Generate excerpt if not provided
-      const excerpt = await this.generateExcerpt(
-        prompt,
-        titleResult.title!,
-        finalContent
-      );
-
-      // Step 8: Generate social media optimization
-      const socialMediaUrl = `https://techtots.ro/blog/${slug}`;
-      const publishedDate = new Date().toISOString();
-      const socialOptimization =
-        RomanianOpenGraphOptimizer.generateCompleteSocialOptimization(
-          titleResult.title!,
-          excerpt || finalContent.substring(0, 200),
-          keywordOptimization.secondaryKeywords.slice(0, 5),
-          socialMediaUrl,
-          publishedDate
-        );
-
-      // Step 9: Generate urgency and scarcity optimization for conversion
-      const contentLength =
-        wordCount > 2000 ? "long" : wordCount > 1000 ? "medium" : "short";
-      const audienceType = this.determineAudienceType(prompt.prompt);
-      const conversionOptimization =
-        RomanianUrgencyScarcityOptimizer.generateConversionOptimization(
-          contentLength,
-          prompt.prompt.split(" ")[0], // Use first word as topic
-          audienceType,
-          "high" // High intensity for viral content
-        );
-
-      // Step 10: Generate buyer psychology optimization
-      const buyerPsychologyOptimization =
-        RomanianBuyerPsychologyOptimizer.generateConversionPsychology(
-          audienceType,
-          prompt.prompt.split(" ")[0], // Use first word as topic
-          ["prea_scap", "nu_stiu_daca_merge"] // Common Romanian objections
-        );
 
       onProgress?.({
         stage: "finalizing",
-        progress: 95,
-        currentStep: "Finalizing blog post with conversion optimization",
-        estimatedTimeRemaining: 5000,
+        progress: 90,
+        currentStep: "Finalizing blog post and calculating metrics",
+        estimatedTimeRemaining: 10000,
       });
+
+      // Calculate final metrics
+      const wordCount = this.calculateWordCount(completeBlogResult.content);
+      const readingTime = Math.ceil(wordCount / 200);
+      const slug = this.generateSlug(completeBlogResult.title);
+
+      // Generate basic SEO metadata (no additional API call)
+      const seoMetadata = {
+        metaTitle: completeBlogResult.title.substring(0, 70),
+        metaDescription: completeBlogResult.excerpt?.substring(0, 160) ?? completeBlogResult.content.substring(0, 160),
+        metaKeywords: this.extractKeywords(completeBlogResult.content),
+      };
+
+      // Generate static social optimization (no API call)
+      const socialMediaUrl = `https://techtots.ro/blog/${slug}`;
+      const publishedDate = new Date().toISOString();
+      const socialOptimization = RomanianOpenGraphOptimizer.generateCompleteSocialOptimization(
+        completeBlogResult.title,
+        completeBlogResult.excerpt || completeBlogResult.content.substring(0, 200),
+        keywordOptimization.secondaryKeywords.slice(0, 5),
+        socialMediaUrl,
+        publishedDate
+      );
+
+      // Generate static conversion optimization (no API call)
+      const contentLength = wordCount > 2000 ? "long" : wordCount > 1000 ? "medium" : "short";
+      const audienceType = this.determineAudienceType(prompt.prompt);
+      const conversionOptimization = RomanianUrgencyScarcityOptimizer.generateConversionOptimization(
+        contentLength,
+        prompt.prompt.split(" ")[0],
+        audienceType,
+        "high"
+      );
+
+      const buyerPsychologyOptimization = RomanianBuyerPsychologyOptimizer.generateConversionPsychology(
+        audienceType,
+        prompt.prompt.split(" ")[0],
+        ["prea_scap", "nu_stiu_daca_merge"]
+      );
 
       // Assemble final blog
       const generatedBlog: GeneratedBlogContent = {
-        title: titleResult.title,
+        title: completeBlogResult.title,
         slug,
-        excerpt: excerpt ?? finalContent.substring(0, 200) + "...",
-        content: finalContent,
-        coverImage: await this.generateCoverImageSuggestion(prompt),
-        tags: this.extractTags(prompt, finalContent),
+        excerpt: completeBlogResult.excerpt ?? completeBlogResult.content.substring(0, 200) + "...",
+        content: completeBlogResult.content,
+        coverImage: undefined, // Skip cover image generation to save time
+        tags: this.extractTags(prompt, completeBlogResult.content),
         stemCategory: prompt.targetStemCategory ?? "GENERAL",
         readingTime,
         language: "ro",
         wordCount,
-        seoMetadata: seoResult.metadata ?? {
-          metaTitle: titleResult.title.substring(0, 70),
-          metaDescription:
-            excerpt?.substring(0, 160) ?? refinedContent.substring(0, 160),
-          metaKeywords: this.extractKeywords(refinedContent),
-        },
+        seoMetadata,
         aiMetadata: {
           aiGenerated: true,
-          generatedBy: "dual-provider-blog-viral",
+          generatedBy: "dual-provider-blog-optimized",
           generationTimestamp: new Date().toISOString(),
           originalPrompt: prompt.prompt,
           processingTime: Date.now() - startTime,
-          refinementApplied: true,
-          modelVersion: `gpt-5-mini/gpt-5-mini`,
+          refinementApplied: false, // Skip refinement to save time
+          modelVersion: `${this.config!.primaryModel}/${this.config!.secondaryModel}`,
           keywordOptimization: keywordOptimization,
-          contentAnalysis: contentAnalysis,
+          contentAnalysis: { missingKeywords: [], suggestions: [] }, // Simplified
           socialOptimization: socialOptimization,
           conversionOptimization: conversionOptimization,
           buyerPsychologyOptimization: buyerPsychologyOptimization,
@@ -402,7 +297,7 @@ export class DualProviderBlogEnhancementService {
         },
       };
 
-      // Step 7: Validate the generated blog
+      // Validate the generated blog
       const validation = this.validateBlogSchema(generatedBlog);
       if (!validation.isValid && validation.correctedBlog) {
         Object.assign(generatedBlog, validation.correctedBlog);
@@ -433,6 +328,164 @@ export class DualProviderBlogEnhancementService {
         success: false,
         error: error instanceof Error ? error.message : String(error),
         processingTime,
+      };
+    }
+  }
+
+  /**
+   * OPTIMIZATION: Generate complete blog in one API call instead of multiple calls
+   */
+  private async generateCompleteBlogInOneCall(
+    prompt: BlogGenerationPrompt,
+    keywordOptimization: KeywordOptimization,
+    shockingStatistics: string,
+    successStories: string,
+    socialProof: string,
+    trustBadges: string
+  ): Promise<{ success: boolean; title?: string; content?: string; excerpt?: string; error?: string }> {
+    try {
+      // Create a comprehensive prompt that generates everything at once
+      const comprehensivePrompt = `
+Generate a complete Romanian blog post for STEM education with the following requirements:
+
+PROMPT: ${prompt.prompt}
+TARGET AUDIENCE: ${prompt.targetAudience || "părinți români interesați de educația STEM"}
+TONE: ${prompt.tone || "educational"}
+STEM CATEGORY: ${prompt.targetStemCategory || "GENERAL"}
+
+KEYWORDS TO INCLUDE:
+- Primary: ${keywordOptimization.primaryKeyword}
+- Secondary: ${keywordOptimization.secondaryKeywords.join(", ")}
+- Long-tail: ${keywordOptimization.longTailKeywords.slice(0, 3).join(", ")}
+
+VIRAL ELEMENTS TO INCLUDE:
+- Shocking Statistics: ${shockingStatistics}
+- Success Stories: ${successStories}
+- Social Proof: ${socialProof}
+- Trust Badges: ${trustBadges}
+
+REQUIREMENTS:
+1. Write a compelling title (max 70 characters)
+2. Create engaging content (1200-2000 words) with proper Romanian grammar
+3. Include the keywords naturally throughout the content
+4. Add the viral elements strategically
+5. End with a strong call-to-action
+6. Write a compelling excerpt (150-160 characters)
+
+FORMAT YOUR RESPONSE EXACTLY LIKE THIS:
+TITLE: [Your title here]
+CONTENT: [Your full blog content here]
+EXCERPT: [Your excerpt here]
+
+Make sure the content is educational, engaging, and optimized for Romanian parents interested in STEM education for their children.
+`;
+
+      let response;
+      try {
+        response = await this.primaryService!.generateResponse({
+          systemPrompt: "You are an expert Romanian content writer specializing in STEM education for children. Write engaging, educational content that resonates with Romanian parents.",
+          userPrompt: comprehensivePrompt,
+          temperature: 0.8,
+          maxTokens: 4000, // Increased for complete blog generation
+          model: this.config!.primaryModel,
+        });
+
+        // Check if GPT-5-mini returned empty content
+        if (!response || response.trim().length === 0) {
+          console.warn("⚠️ GPT-5 returned empty content - triggering fallback for complete blog generation");
+
+          // Create a fresh OpenAI service instance for fallback with GPT-4o
+          const { OpenAIService } = await import("./openai-service");
+          const fallbackService = new OpenAIService(getAIConfig().fallbackModel);
+
+          response = await fallbackService.generateResponse({
+            systemPrompt: "You are an expert Romanian content writer specializing in STEM education for children. Write engaging, educational content that resonates with Romanian parents.",
+            userPrompt: comprehensivePrompt,
+            temperature: 0.8,
+            maxTokens: 4000,
+            model: getAIConfig().fallbackModel,
+          });
+        }
+      } catch (primaryError) {
+        console.warn("⚠️ Primary model threw error, trying GPT-4o fallback:", primaryError instanceof Error ? primaryError.message : String(primaryError));
+
+        // Create a fresh OpenAI service instance for fallback with GPT-4o
+        const { OpenAIService } = await import("./openai-service");
+        const fallbackService = new OpenAIService(getAIConfig().fallbackModel);
+
+        response = await fallbackService.generateResponse({
+          systemPrompt: "You are an expert Romanian content writer specializing in STEM education for children. Write engaging, educational content that resonates with Romanian parents.",
+          userPrompt: comprehensivePrompt,
+          temperature: 0.8,
+          maxTokens: 4000,
+          model: getAIConfig().fallbackModel,
+        });
+      }
+
+      if (!response || response.trim().length === 0) {
+        return {
+          success: false,
+          error: "Complete blog generation failed - both primary and fallback models returned empty content",
+        };
+      }
+
+      // Parse the response
+      const lines = response.split('\n');
+      let title = '';
+      let content = '';
+      let excerpt = '';
+      let currentSection = '';
+
+      for (const line of lines) {
+        if (line.startsWith('TITLE:')) {
+          title = line.replace('TITLE:', '').trim();
+          currentSection = 'title';
+        } else if (line.startsWith('CONTENT:')) {
+          content = line.replace('CONTENT:', '').trim();
+          currentSection = 'content';
+        } else if (line.startsWith('EXCERPT:')) {
+          excerpt = line.replace('EXCERPT:', '').trim();
+          currentSection = 'excerpt';
+        } else if (line.trim() && currentSection) {
+          // Continue building the current section
+          if (currentSection === 'content') {
+            content += '\n' + line;
+          } else if (currentSection === 'excerpt') {
+            excerpt += ' ' + line;
+          }
+        }
+      }
+
+      // Validate the parsed content
+      if (!title || title.length < 10) {
+        return {
+          success: false,
+          error: "Generated title is too short or empty",
+        };
+      }
+
+      if (!content || content.length < 500) {
+        return {
+          success: false,
+          error: "Generated content is too short or empty",
+        };
+      }
+
+      // Clean up the content
+      title = title.trim();
+      content = content.trim();
+      excerpt = excerpt.trim();
+
+      return {
+        success: true,
+        title,
+        content,
+        excerpt: excerpt || content.substring(0, 160) + "...",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
