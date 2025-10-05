@@ -294,6 +294,266 @@ function generateTags(topic: string, prompt: BlogGenerationPrompt): string[] {
   }
 }
 
+// Generate enterprise-level SEO title for Romanian market domination
+function generateSEOTitle(topic: string, prompt: BlogGenerationPrompt): string {
+  const topicLower = topic.toLowerCase();
+  
+  // Romanian SEO-optimized titles with emotional triggers
+  if (topicLower.includes("stem toys") || topicLower.includes("jucării stem")) {
+    return "De ce Copiii Români Urăsc Matematica? SOLUȚIA ȘOCANTĂ!";
+  } else if (topicLower.includes("robotics") || topicLower.includes("robotica")) {
+    return "Cum Pregătești Copilul pentru Viitorul Digital? REVOLUȚIA!";
+  } else if (topicLower.includes("coding") || topicLower.includes("programare")) {
+    return "Programarea pentru Copii: SECRETUL Succesului în 2025!";
+  } else if (topicLower.includes("science") || topicLower.includes("știință")) {
+    return "Știința pentru Copii: Cum Dezvolți Curiozitatea Științifică?";
+  } else if (topicLower.includes("math") || topicLower.includes("matematică")) {
+    return "Matematica pentru Copii: Ghidul Complet al Părinților!";
+  } else {
+    return `${topic} - Ghid Complet pentru Părinți în 2025`;
+  }
+}
+
+// Generate conversion-focused SEO description
+function generateSEODescription(topic: string, prompt: BlogGenerationPrompt): string {
+  const topicLower = topic.toLowerCase();
+  
+  if (topicLower.includes("stem toys") || topicLower.includes("jucării stem")) {
+    return "Descoperă de ce 70% dintre copiii români urăsc matematica și cum jucăriile STEM schimbă TOTUL în doar 30 de zile. Rezultate garantate!";
+  } else if (topicLower.includes("robotics") || topicLower.includes("robotica")) {
+    return "Învață cum robotica educațională pregătește copiii pentru viitorul digital. Ghid complet cu rezultate dovedite!";
+  } else if (topicLower.includes("coding") || topicLower.includes("programare")) {
+    return "Programarea pentru copii: cum să începi, ce resurse să folosești și cum să faci copilul să iubească coding-ul!";
+  } else if (topicLower.includes("science") || topicLower.includes("știință")) {
+    return "Știința pentru copii: experimente simple, activități practice și cum să dezvolți curiozitatea științifică acasă!";
+  } else if (topicLower.includes("math") || topicLower.includes("matematică")) {
+    return "Matematica pentru copii: cum să faci copilul să iubească numerele și să devină confident în rezolvarea problemelor!";
+  } else {
+    return `Ghid complet despre ${topic.toLowerCase()} pentru părinți în 2025. Învață cum să introduci concepte STEM în viața zilnică a familiei.`;
+  }
+}
+
+// Generate focus keyword for Romanian market
+function generateFocusKeyword(topic: string, prompt: BlogGenerationPrompt): string {
+  const topicLower = topic.toLowerCase();
+  
+  if (topicLower.includes("stem toys") || topicLower.includes("jucării stem")) {
+    return "jucării STEM România";
+  } else if (topicLower.includes("robotics") || topicLower.includes("robotica")) {
+    return "robotica educațională copii";
+  } else if (topicLower.includes("coding") || topicLower.includes("programare")) {
+    return "programare copii România";
+  } else if (topicLower.includes("science") || topicLower.includes("știință")) {
+    return "știință pentru copii";
+  } else if (topicLower.includes("math") || topicLower.includes("matematică")) {
+    return "matematică pentru copii";
+  } else {
+    return `${topic.toLowerCase()} educație copii`;
+  }
+}
+
+// Generate secondary keywords for commercial intent
+function generateSecondaryKeywords(topic: string, prompt: BlogGenerationPrompt): string[] {
+  const topicLower = topic.toLowerCase();
+  
+  if (topicLower.includes("stem toys") || topicLower.includes("jucării stem")) {
+    return [
+      "jucării educative copii",
+      "STEM toys București", 
+      "educație STEM modernă",
+      "dezvoltare cognitivă copii",
+      "jucării interactive matematice",
+      "jucării știință copii",
+      "educație prin joc"
+    ];
+  } else if (topicLower.includes("robotics") || topicLower.includes("robotica")) {
+    return [
+      "roboți educaționali",
+      "programare vizuală copii",
+      "tehnologie educațională",
+      "robotica școală",
+      "STEM toys programare",
+      "dezvoltare logică copii"
+    ];
+  } else if (topicLower.includes("coding") || topicLower.includes("programare")) {
+    return [
+      "programare vizuală",
+      "coding pentru copii",
+      "informatică educațională",
+      "dezvoltare algoritmică",
+      "tehnologie copii",
+      "viitor digital"
+    ];
+  } else if (topicLower.includes("science") || topicLower.includes("știință")) {
+    return [
+      "experimente copii",
+      "curiozitate științifică",
+      "laborator acasă",
+      "știință educațională",
+      "observație științifică"
+    ];
+  } else if (topicLower.includes("math") || topicLower.includes("matematică")) {
+    return [
+      "numere pentru copii",
+      "logica matematică",
+      "rezolvare probleme",
+      "matematică educațională",
+      "dezvoltare cognitivă"
+    ];
+  } else {
+    return ["educație modernă", "tehnologie", "viitor", "dezvoltare"];
+  }
+}
+
+// Generate long-tail keywords for voice search
+function generateLongTailKeywords(topic: string, prompt: BlogGenerationPrompt): string[] {
+  const topicLower = topic.toLowerCase();
+  
+  if (topicLower.includes("stem toys") || topicLower.includes("jucării stem")) {
+    return [
+      "cum să fac copilul să iubească matematica",
+      "care sunt cele mai bune jucării STEM din România",
+      "jucării STEM pentru copii 6-8 ani București",
+      "cum aleg jucării STEM pentru școală",
+      "beneficii jucării STEM dezvoltare copil",
+      "jucării educaționale recomandate părinți",
+      "STEM toys pentru copii mici România"
+    ];
+  } else if (topicLower.includes("robotics") || topicLower.includes("robotica")) {
+    return [
+      "cum să învăț copilul programare",
+      "roboți educaționali pentru începători",
+      "robotica pentru copii 8-12 ani",
+      "cum să fac copilul să înțeleagă tehnologia",
+      "programare vizuală pentru copii mici"
+    ];
+  } else if (topicLower.includes("coding") || topicLower.includes("programare")) {
+    return [
+      "cum să încep programarea cu copilul",
+      "aplicații programare pentru copii",
+      "coding pentru copii 6-10 ani",
+      "cum să fac copilul să învețe programare",
+      "programare educațională acasă"
+    ];
+  } else if (topicLower.includes("science") || topicLower.includes("știință")) {
+    return [
+      "experimente știință pentru copii acasă",
+      "cum să dezvolt curiozitatea științifică",
+      "știință pentru copii mici",
+      "activități știință educaționale",
+      "cum să fac copilul să iubească știința"
+    ];
+  } else if (topicLower.includes("math") || topicLower.includes("matematică")) {
+    return [
+      "cum să fac copilul să învețe matematica",
+      "matematică pentru copii mici",
+      "cum să devină copilul confident la matematică",
+      "jocuri matematice pentru copii",
+      "cum să înțeleagă copilul numerele"
+    ];
+  } else {
+    return [
+      "cum să educ copilul în 2025",
+      "educație modernă pentru copii",
+      "dezvoltare copii prin tehnologie"
+    ];
+  }
+}
+
+// Generate structured data for featured snippets
+function generateStructuredData(topic: string, title: string, excerpt: string, prompt: BlogGenerationPrompt): any {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": title,
+    "description": excerpt,
+    "image": `https://techtots.ro/images/${topic.toLowerCase().replace(/\s+/g, '-')}-2025.jpg`,
+    "author": {
+      "@type": "Organization",
+      "name": "TechTots România"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "TechTots România",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://techtots.ro/logo.png"
+      }
+    },
+    "datePublished": new Date().toISOString(),
+    "dateModified": new Date().toISOString(),
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://techtots.ro/blog/${title.toLowerCase().replace(/\s+/g, '-')}`
+    },
+    "articleSection": "Educație STEM",
+    "keywords": generateSEOKeywords(topic, prompt).join(", ")
+  };
+}
+
+// Generate Open Graph data for social sharing
+function generateOpenGraphData(topic: string, title: string, excerpt: string, prompt: BlogGenerationPrompt): any {
+  return {
+    "og:title": title,
+    "og:description": excerpt,
+    "og:image": `https://techtots.ro/images/${topic.toLowerCase().replace(/\s+/g, '-')}-2025.jpg`,
+    "og:url": `https://techtots.ro/blog/${title.toLowerCase().replace(/\s+/g, '-')}`,
+    "og:type": "article",
+    "og:locale": "ro_RO",
+    "og:site_name": "TechTots România"
+  };
+}
+
+// Generate Twitter Cards data
+function generateTwitterCardsData(topic: string, title: string, excerpt: string, prompt: BlogGenerationPrompt): any {
+  return {
+    "twitter:card": "summary_large_image",
+    "twitter:title": title,
+    "twitter:description": excerpt,
+    "twitter:image": `https://techtots.ro/images/${topic.toLowerCase().replace(/\s+/g, '-')}-2025.jpg`,
+    "twitter:site": "@TechTotsRomania",
+    "twitter:creator": "@TechTotsRomania"
+  };
+}
+
+// Generate internal links for SEO
+function generateInternalLinks(topic: string, prompt: BlogGenerationPrompt): string[] {
+  const topicLower = topic.toLowerCase();
+  
+  if (topicLower.includes("stem toys") || topicLower.includes("jucării stem")) {
+    return [
+      "/blog/de-ce-copiii-urasc-matematica",
+      "/categorii/jucarii-stem-romania", 
+      "/blog/cum-aleg-jucarii-stem-pentru-copilul-meu",
+      "/blog/success-stories-stem-romania",
+      "/blog/beneficiile-jucariilor-educative"
+    ];
+  } else if (topicLower.includes("robotics") || topicLower.includes("robotica")) {
+    return [
+      "/blog/robotica-pentru-copii-incepatori",
+      "/categorii/robotica-educationala",
+      "/blog/programare-vizuala-copii",
+      "/blog/tehnologie-educationala-2025"
+    ];
+  } else {
+    return [
+      "/blog/educatie-stem-romania",
+      "/categorii/educatie-moderna",
+      "/blog/tehnologie-pentru-copii"
+    ];
+  }
+}
+
+// Generate external links to authorities
+function generateExternalLinks(topic: string, prompt: BlogGenerationPrompt): string[] {
+  return [
+    "https://www.edu.ro/curriculum-national",
+    "https://www.frumos.ro/educatie/studii-copii-stem-romania", 
+    "https://www.digi24.ro/stiri/educatie/cum-invata-copiii-romani-in-2025",
+    "https://www.romania-insider.com/education-romania-2025"
+  ];
+}
+
 // Enhanced fallback blog generation with intelligent content creation
 async function generateFallbackBlog(
   prompt: BlogGenerationPrompt,
@@ -341,9 +601,19 @@ async function generateFallbackBlog(
       language: "ro",
       wordCount,
         seoMetadata: {
-          metaTitle: title.substring(0, 70),
-          metaDescription: excerpt.substring(0, 160),
+          metaTitle: generateSEOTitle(topic, prompt),
+          metaDescription: generateSEODescription(topic, prompt),
           metaKeywords: generateSEOKeywords(topic, prompt),
+          focusKeyword: generateFocusKeyword(topic, prompt),
+          secondaryKeywords: generateSecondaryKeywords(topic, prompt),
+          longTailKeywords: generateLongTailKeywords(topic, prompt),
+          structuredData: generateStructuredData(topic, title, excerpt, prompt),
+          openGraph: generateOpenGraphData(topic, title, excerpt, prompt),
+          twitterCards: generateTwitterCardsData(topic, title, excerpt, prompt),
+          canonicalUrl: `https://techtots.ro/blog/${slug}`,
+          mobileOptimization: "viewport width=device-width initial-scale=1, responsive images max-width 100%, mobile-friendly fonts Inter, touch-friendly buttons min 44px",
+          internalLinks: generateInternalLinks(topic, prompt),
+          externalLinks: generateExternalLinks(topic, prompt),
         },
       aiMetadata: {
         aiGenerated: true,
