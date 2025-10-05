@@ -116,7 +116,7 @@ const AIConfigSchema = z.object({
   ANTHROPIC_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   AI_PROVIDER: z.enum(["openai", "anthropic", "gemini"]).default("openai"),
-  AI_MODEL: z.string().default("gpt-5-mini"),
+  AI_MODEL: z.string().default("gpt-4o"),
   AI_MAX_TOKENS: z
     .string()
     .transform(val => parseInt(val, 10))
@@ -133,11 +133,11 @@ const AIConfigSchema = z.object({
   AI_PRIMARY_PROVIDER: z
     .enum(["openai", "anthropic", "gemini"])
     .default("openai"),
-  AI_PRIMARY_MODEL: z.string().default("gpt-5-mini"),
+  AI_PRIMARY_MODEL: z.string().default("gpt-4o"),
   AI_SECONDARY_PROVIDER: z
     .enum(["openai", "anthropic", "gemini"])
     .default("openai"),
-  AI_SECONDARY_MODEL: z.string().default("gpt-5-mini"),
+  AI_SECONDARY_MODEL: z.string().default("gpt-4o"),
   AI_FALLBACK_MODEL: z.string().default("gpt-4o"),
 });
 
