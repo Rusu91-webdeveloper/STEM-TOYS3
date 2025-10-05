@@ -91,6 +91,12 @@ export class OpenAIService extends BaseAIService {
     console.log("🔍 OpenAI API Request Debug:");
     console.log("- Model:", validatedOptions.model);
     console.log("- Is newer model:", isNewerModel);
+    console.log("- Environment:", process.env.NODE_ENV || "unknown");
+    console.log("- API Key exists:", !!this.apiKey);
+    console.log(
+      "- API Key prefix:",
+      this.apiKey ? this.apiKey.substring(0, 10) + "..." : "none"
+    );
     console.log("- Full request body:", JSON.stringify(requestBody, null, 2));
 
     // Use correct max_tokens parameter based on model version
@@ -111,8 +117,26 @@ export class OpenAIService extends BaseAIService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || "";
+        // Try to parse as JSON first, but fallback to text if it fails
+        let errorData: any = {};
+        let errorMessage = "";
+        try {
+          errorData = await response.json();
+          errorMessage = errorData.error?.message || "";
+        } catch (jsonError) {
+          // If JSON parsing fails, get the response as text
+          const errorText = await response.text();
+          console.error(
+            "OpenAI API returned non-JSON error response:",
+            errorText.substring(0, 500)
+          );
+          console.error("Response status:", response.status);
+          console.error(
+            "Response headers:",
+            Object.fromEntries(response.headers.entries())
+          );
+          errorMessage = errorText || "Unknown error";
+        }
 
         // Handle specific error cases
         if (response.status === 401) {
@@ -125,7 +149,7 @@ export class OpenAIService extends BaseAIService {
           );
         } else if (response.status === 404) {
           throw new Error(
-            `OpenAI API model not found: ${this.model} is not available. Please check your AI_MODEL setting.`
+            `OpenAI API model not found: ${this.model} is not available. Please check your AI_MODEL setting. Raw error: ${errorMessage}`
           );
         } else if (response.status === 400) {
           throw new Error(

@@ -505,12 +505,14 @@ model Blog {
   updatedAt    DateTime     @updatedAt
   readingTime  Int?
   stemCategory StemCategory @default(GENERAL)
+  socialShares Int?         @default(0)
   author       User         @relation(fields: [authorId], references: [id])
   category     Category     @relation(fields: [categoryId], references: [id])
 
   @@index([categoryId])
   @@index([authorId])
   @@index([stemCategory])
+  @@index([socialShares])
 }
 
 model Book {
