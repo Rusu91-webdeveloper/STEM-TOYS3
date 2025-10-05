@@ -25,13 +25,15 @@ let cachedStoreSettings: StoreSettings | null = null;
 export async function getStoreSettings(): Promise<StoreSettings> {
   if (cachedStoreSettings) return cachedStoreSettings;
 
-  const settings = await prisma.storeSettings.findFirst();
-  if (!settings) {
-    throw new Error("Store settings not found");
-  }
+  // Use the utility function that provides defaults when no settings exist
+  const { getStoreSettings: getStoreSettingsWithDefaults } = await import(
+    "@/lib/utils/store-settings"
+  );
+  const settings = await getStoreSettingsWithDefaults();
 
-  cachedStoreSettings = settings;
-  return settings;
+  // Convert the utility response to StoreSettings type
+  cachedStoreSettings = settings as StoreSettings;
+  return cachedStoreSettings;
 }
 
 /**
@@ -189,7 +191,7 @@ export function generatePreviewText(
     .replace(/\s+/g, " ")
     .trim();
   return cleanText.length > maxLength
-    ? `${cleanText.substring(0, maxLength)  }...`
+    ? `${cleanText.substring(0, maxLength)}...`
     : cleanText;
 }
 

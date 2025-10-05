@@ -101,7 +101,10 @@ export async function GET(req: NextRequest) {
                 });
                 results.notifications.sent++;
               } catch (emailError) {
-                console.error(`Failed to send fulfillment email for order ${order.id}:`, emailError);
+                console.error(
+                  `Failed to send fulfillment email for order ${order.id}:`,
+                  emailError
+                );
                 results.notifications.errors++;
               }
             }
@@ -110,8 +113,10 @@ export async function GET(req: NextRequest) {
             console.log(`Auto-fulfilled order ${order.id}`);
           } else {
             // Check if it's been too long in PROCESSING status
-            const hoursSinceCreated = (Date.now() - order.createdAt.getTime()) / (1000 * 60 * 60);
-            if (hoursSinceCreated > 48) { // Increased threshold for daily processing
+            const hoursSinceCreated =
+              (Date.now() - order.createdAt.getTime()) / (1000 * 60 * 60);
+            if (hoursSinceCreated > 48) {
+              // Increased threshold for daily processing
               await db.order.update({
                 where: { id: order.id },
                 data: {
@@ -119,7 +124,9 @@ export async function GET(req: NextRequest) {
                 },
               });
               results.orderProcessing.processed++;
-              console.log(`Flagged order ${order.id} for manual review (${hoursSinceCreated.toFixed(1)}h old)`);
+              console.log(
+                `Flagged order ${order.id} for manual review (${hoursSinceCreated.toFixed(1)}h old)`
+              );
             }
           }
         } catch (orderError) {
@@ -222,6 +229,18 @@ export async function GET(req: NextRequest) {
       });
       console.log(`Cleaned up ${oldFailedPayments.count} old failed orders`);
 
+      // Clean up expired password reset tokens (older than 24 hours to be safe)
+      const expiredTokens = await db.passwordResetToken.deleteMany({
+        where: {
+          expires: {
+            lt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 24 hours ago
+          },
+        },
+      });
+      console.log(
+        `Cleaned up ${expiredTokens.count} expired password reset tokens`
+      );
+
       // Log daily stats
       const todayStats = await db.order.aggregate({
         where: {
@@ -234,7 +253,9 @@ export async function GET(req: NextRequest) {
           total: true,
         },
       });
-      console.log(`Today's stats: ${todayStats._count} orders, $${todayStats._sum.total || 0} revenue`);
+      console.log(
+        `Today's stats: ${todayStats._count} orders, $${todayStats._sum.total || 0} revenue`
+      );
     } catch (error) {
       console.error("Error in cleanup phase:", error);
     }

@@ -372,7 +372,7 @@ sequenceDiagram
 
 - **Registration**: 5 requests per IP per 15 minutes
 - **Login attempts**: Progressive delays after failed attempts
-- **Password reset**: 3 requests per email per hour
+- **Password reset**: 3 requests per IP per 30 minutes
 - **API endpoints**: Configurable per endpoint
 
 ### Account Security

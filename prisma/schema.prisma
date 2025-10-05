@@ -8,119 +8,100 @@ datasource db {
 }
 
 model User {
-  id                  String               @id @default(cuid())
-  name                String?
-  email               String               @unique
-  phone               String?
-  password            String
-  role                Role                 @default(CUSTOMER)
-  emailVerified       DateTime?
-  verificationToken   String?
-  isActive            Boolean              @default(false)
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-
-  // Multi-tenant architecture fields
-  tenantId            String?
-  organizationId      String?
-
-  // GDPR Compliance fields
-  consentGiven        Boolean              @default(false)
-  consentDate         DateTime?
-  dataRetention       Json?                // Retention policies and schedules
-  anonymized          Boolean              @default(false)
-
-  // Romanian Market Compliance fields
-  cui                 String?              // Romanian tax identification number
-  cnp                 String?              // Romanian personal numerical code
-  serieCi             String?              // Romanian ID card series
-  numarCi             String?              // Romanian ID card number
-  eliberatDe          String?              // Romanian ID card issuer
-  eliberatLa          DateTime?            // Romanian ID card issue date
-  valabilPanaLa       DateTime?            // Romanian ID card expiry date
-  adresaDomiciliu     Json?                // Romanian registered address
-  codPostal           String?              // Romanian postal code
-  judet              String?              // Romanian county
-  localitate         String?              // Romanian locality
-  isRomanianResident  Boolean              @default(false)
-
-  // Advanced Security Features (Phase 3.2)
-  lastLoginAt         DateTime?            // Last successful login timestamp
-  failedLoginAttempts Int                  @default(0) // Failed login attempts counter
-  accountLocked       Boolean              @default(false) // Account lockout status
-  lockoutUntil        DateTime?            // Account lockout expiry time
-  twoFactorEnabled    Boolean              @default(false) // 2FA enabled status
-  securityQuestions   Json?                // Encrypted security questions for recovery
-
-  // User Segmentation & Intelligence (Phase 4.1)
-  segment             UserSegment          @default(NEW) // User segment for marketing
-  tags                String[]             @default([]) // Flexible categorization tags
-  preferences         Json?                // User settings and marketing preferences
-  lifecycleStage      LifecycleStage       @default(AWARENESS) // Customer lifecycle stage
-  segmentUpdatedAt    DateTime?            // Last segment update timestamp
-  churnRiskScore      Float?               @default(0) // Churn prediction score 0-100
-
-  // Behavioral Analytics (Phase 4.2)
-  totalPageViews      Int                  @default(0) // Total page views across sessions
-  totalTimeSpent      Int                  @default(0) // Total time spent in minutes
-  avgSessionDuration  Float?               @default(0) // Average session duration in minutes
-  lastActivityAt      DateTime?            // Last user activity timestamp
-  purchaseFrequency   Float?               @default(0) // Average purchases per month
-  avgOrderValue       Float?               @default(0) // Average order value
-  lifetimeValue       Float                @default(0) // Customer lifetime value
-  referralCount       Int                  @default(0) // Number of referrals made
-  socialEngagementScore Float?             @default(0) // Social media engagement score
-  recommendationClicks Int                 @default(0) // Product recommendation clicks
-  wishlistSize        Int                  @default(0) // Current wishlist size
-
-  // Romanian Market Intelligence (Phase 4.3)
-  regionalPreference  String?              // Preferred Romanian region (Transylvania, Moldova, etc.)
-  seasonalPatterns    Json?                // Seasonal buying patterns for Romanian holidays
-  productCategoryPrefs String[]            @default([]) // Preferred product categories
-  ageGroup            String?              // Age group (18-25, 26-35, etc.)
-  educationLevel      String?              // Education level for demographic analysis
-  paymentMethodPrefs  String[]             @default([]) // Preferred payment methods (card, cash, installments)
-  deliveryTimeExpectation Int?             @default(3) // Expected delivery time in days
-  priceSensitivity    Float?               @default(0.5) // Price sensitivity score 0-1
-  brandLoyaltyScore   Float?               @default(0) // Brand loyalty score 0-100
-
-  // Scalability Infrastructure (Phase 5.1)
-  shardId             String?              // Database shard identifier for horizontal scaling
-  replicaId           String?              // Read replica identifier for load distribution
-  cacheKey            String?              // Redis cache key for user data caching
-  cacheVersion        Int                  @default(1) // Cache version for invalidation
-  lastCacheUpdate     DateTime?            // Last time cache was updated
-  dataArchiveStatus   String               @default("ACTIVE") // ACTIVE, ARCHIVED, DELETED
-
-  // Relations
-  tenant              Tenant?              @relation(fields: [tenantId], references: [id], onDelete: SetNull)
-  organization        Organization?        @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  shard               UserShard?           @relation(fields: [shardId], references: [shardId], onDelete: SetNull)
-  consentLogs         ConsentLog[]
-  addresses           Address[]
-  blogs               Blog[]
-  contentVersions     ContentVersion[]
-  couponsCreated      Coupon[]             @relation("CouponCreatedBy")
-  couponUsages        CouponUsage[]
-  digitalDownloads    DigitalDownload[]
-  orders              Order[]
-  passwordResetTokens PasswordResetToken[]
-  paymentCards        PaymentCard[]
-  returns             Return[]
-  reviews             Review[]
-  tickets             Ticket[]
-  wishlistItems       Wishlist[]
-  emailEvents         EmailEvent[]
-  emailSequences      EmailSequence[]
-  emailSequenceUsers  EmailSequenceUser[]
-  supplierMessages    SupplierMessage[]    @relation("MessageSender")
-  supplierTickets     SupplierSupportTicket[] @relation("TicketAssignedTo")
+  id                      String                   @id @default(cuid())
+  name                    String?
+  email                   String                   @unique
+  password                String
+  role                    Role                     @default(CUSTOMER)
+  emailVerified           DateTime?
+  verificationToken       String?
+  isActive                Boolean                  @default(false)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  accountLocked           Boolean                  @default(false)
+  adresaDomiciliu         Json?
+  ageGroup                String?
+  anonymized              Boolean                  @default(false)
+  avgOrderValue           Float?                   @default(0)
+  avgSessionDuration      Float?                   @default(0)
+  brandLoyaltyScore       Float?                   @default(0)
+  churnRiskScore          Float?                   @default(0)
+  cnp                     String?
+  codPostal               String?
+  consentDate             DateTime?
+  consentGiven            Boolean                  @default(false)
+  cui                     String?
+  dataRetention           Json?
+  deliveryTimeExpectation Int?                     @default(3)
+  educationLevel          String?
+  eliberatDe              String?
+  eliberatLa              DateTime?
+  failedLoginAttempts     Int                      @default(0)
+  isRomanianResident      Boolean                  @default(false)
+  judet                   String?
+  lastActivityAt          DateTime?
+  lastLoginAt             DateTime?
+  lifecycleStage          LifecycleStage           @default(AWARENESS)
+  lifetimeValue           Float                    @default(0)
+  localitate              String?
+  lockoutUntil            DateTime?
+  numarCi                 String?
+  organizationId          String?
+  paymentMethodPrefs      String[]                 @default([])
+  phone                   String?
+  preferences             Json?
+  priceSensitivity        Float?                   @default(0.5)
+  productCategoryPrefs    String[]                 @default([])
+  purchaseFrequency       Float?                   @default(0)
+  recommendationClicks    Int                      @default(0)
+  referralCount           Int                      @default(0)
+  regionalPreference      String?
+  seasonalPatterns        Json?
+  securityQuestions       Json?
+  segment                 UserSegment              @default(NEW)
+  segmentUpdatedAt        DateTime?
+  serieCi                 String?
+  socialEngagementScore   Float?                   @default(0)
+  tags                    String[]                 @default([])
+  tenantId                String?
+  totalPageViews          Int                      @default(0)
+  totalTimeSpent          Int                      @default(0)
+  twoFactorEnabled        Boolean                  @default(false)
+  valabilPanaLa           DateTime?
+  wishlistSize            Int                      @default(0)
+  cacheKey                String?
+  cacheVersion            Int                      @default(1)
+  dataArchiveStatus       String                   @default("ACTIVE")
+  lastCacheUpdate         DateTime?
+  replicaId               String?
+  shardId                 String?
+  addresses               Address[]
+  blogs                   Blog[]
+  campaignApplications    CampaignApplication[]
+  consentLogs             ConsentLog[]
+  contentVersions         ContentVersion[]
+  couponsCreated          Coupon[]                 @relation("CouponCreatedBy")
+  couponUsages            CouponUsage[]
+  digitalDownloads        DigitalDownload[]
+  emailEvents             EmailEvent[]
+  emailSequences          EmailSequence[]
+  emailSequenceUsers      EmailSequenceUser[]
+  orders                  Order[]
+  passwordResetTokens     PasswordResetToken[]
+  paymentCards            PaymentCard[]
+  returns                 Return[]
+  reviews                 Review[]
+  securityEventLogs       SecurityEventLog[]
+  suppliers               Supplier[]
+  supplierMessages        SupplierMessage[]        @relation("MessageSender")
+  supplierTickets         SupplierSupportTicket[]  @relation("TicketAssignedTo")
   supplierTicketResponses SupplierTicketResponse[] @relation("TicketResponder")
-  sessions            Session[]
-  campaignApplications CampaignApplication[]
-  suppliers           Supplier[]
-  twoFactor           TwoFactor?
-  securityEventLogs   SecurityEventLog[]
+  tickets                 Ticket[]
+  twoFactor               TwoFactor?
+  organization            Organization?            @relation(fields: [organizationId], references: [id])
+  shard                   UserShard?               @relation(fields: [shardId], references: [shardId])
+  tenant                  Tenant?                  @relation(fields: [tenantId], references: [id])
+  wishlistItems           Wishlist[]
 
   @@index([email])
   @@index([role])
@@ -128,22 +109,16 @@ model User {
   @@index([createdAt])
   @@index([updatedAt])
   @@index([role, isActive])
-
-  // Multi-tenant indexes for performance
   @@index([tenantId])
   @@index([organizationId])
   @@index([tenantId, isActive])
   @@index([organizationId, isActive])
   @@index([tenantId, role])
   @@index([organizationId, role])
-
-  // Security indexes
   @@index([failedLoginAttempts])
   @@index([accountLocked])
   @@index([twoFactorEnabled])
   @@index([lockoutUntil])
-
-  // Segmentation & Intelligence indexes (Phase 4)
   @@index([segment])
   @@index([lifecycleStage])
   @@index([segmentUpdatedAt])
@@ -157,8 +132,6 @@ model User {
   @@index([regionalPreference])
   @@index([ageGroup])
   @@index([educationLevel])
-
-  // Scalability Infrastructure indexes (Phase 5.1)
   @@index([shardId])
   @@index([replicaId])
   @@index([cacheKey])
@@ -170,54 +143,38 @@ model User {
 }
 
 model TwoFactor {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  secret        String   // TOTP secret key (encrypted)
-  backupCodes   String[] // Encrypted backup codes
-  algorithm     String   @default("SHA1") // TOTP algorithm
-  digits        Int      @default(6) // Number of digits
-  period        Int      @default(30) // Time period in seconds
-  isVerified    Boolean  @default(false) // Whether 2FA is verified and active
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  lastUsedAt    DateTime? // Last time 2FA was used
-
-  // Relations
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  secret      String
+  backupCodes String[]
+  algorithm   String    @default("SHA1")
+  digits      Int       @default(6)
+  period      Int       @default(30)
+  isVerified  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastUsedAt  DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([isVerified])
 }
 
 model SegmentationRule {
-  id            String         @id @default(cuid())
-  name          String         // Rule name for identification
-  description   String?        // Rule description
-  segment       UserSegment    // Target segment to assign
-  lifecycleStage LifecycleStage? // Target lifecycle stage
-  isActive      Boolean        @default(true) // Whether rule is active
-  priority      Int            @default(0) // Execution priority (higher = first)
-
-  // Rule conditions (JSON structure for flexible conditions)
-  conditions    Json           // Conditions that must be met
-
-  // Examples of conditions:
-  // {
-  //   "lifetimeValue": { "operator": "gte", "value": 500 },
-  //   "purchaseFrequency": { "operator": "gte", "value": 2 },
-  //   "lastActivityAt": { "operator": "lt", "value": "30_days_ago" },
-  //   "totalPageViews": { "operator": "gte", "value": 50 }
-  // }
-
-  // Rule metadata
-  tags          String[]       @default([]) // Rule categorization tags
-  tenantId      String?        // Multi-tenant support
-  createdBy     String         // Admin who created the rule
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  // Relations
-  tenant        Tenant?        @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  id             String          @id @default(cuid())
+  name           String
+  description    String?
+  segment        UserSegment
+  lifecycleStage LifecycleStage?
+  isActive       Boolean         @default(true)
+  priority       Int             @default(0)
+  conditions     Json
+  tags           String[]        @default([])
+  tenantId       String?
+  createdBy      String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  tenant         Tenant?         @relation(fields: [tenantId], references: [id])
 
   @@index([segment])
   @@index([lifecycleStage])
@@ -230,21 +187,19 @@ model SegmentationRule {
 }
 
 model SecurityEventLog {
-  id          String          @id @default(cuid())
-  userId      String?
-  eventType   SecurityEventType
-  ipAddress   String?
-  userAgent   String?
-  location    Json?           // Geolocation data
-  details     Json?           // Additional event details
-  success     Boolean         @default(true) // Whether the action succeeded
-  riskScore   Int             @default(0) // Risk score 0-100
-  sessionId   String?         // Associated session ID
-  metadata    Json?           // Additional metadata
-  createdAt   DateTime        @default(now())
-
-  // Relations
-  user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id        String            @id @default(cuid())
+  userId    String?
+  eventType SecurityEventType
+  ipAddress String?
+  userAgent String?
+  location  Json?
+  details   Json?
+  success   Boolean           @default(true)
+  riskScore Int               @default(0)
+  sessionId String?
+  metadata  Json?
+  createdAt DateTime          @default(now())
+  user      User?             @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([eventType])
@@ -252,24 +207,6 @@ model SecurityEventLog {
   @@index([ipAddress])
   @@index([success])
   @@index([riskScore])
-}
-
-enum SecurityEventType {
-  LOGIN_SUCCESS
-  LOGIN_FAILED
-  LOGOUT
-  PASSWORD_CHANGE
-  PASSWORD_RESET_REQUEST
-  PASSWORD_RESET_COMPLETE
-  ACCOUNT_LOCKOUT
-  ACCOUNT_UNLOCK
-  TWO_FACTOR_SETUP
-  TWO_FACTOR_VERIFY
-  TWO_FACTOR_DISABLE
-  SUSPICIOUS_ACTIVITY
-  SECURITY_QUESTION_SETUP
-  SECURITY_QUESTION_VERIFY
-  ACCOUNT_RECOVERY
 }
 
 model PasswordResetToken {
@@ -285,44 +222,40 @@ model PasswordResetToken {
 }
 
 model Tenant {
-  id                String    @id @default(cuid())
+  id                String             @id @default(cuid())
   name              String
-  slug              String    @unique
+  slug              String             @unique
   description       String?
   logo              String?
-  domain            String?   @unique
-  isActive          Boolean   @default(true)
-  settings          Json?     // Tenant-specific settings
-  limits            Json?     // Usage limits and quotas
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  // Relations
-  users             User[]
+  domain            String?            @unique
+  isActive          Boolean            @default(true)
+  settings          Json?
+  limits            Json?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  emailTriggers     EmailTrigger[]
   organizations     Organization[]
   segmentationRules SegmentationRule[]
-  emailTriggers     EmailTrigger[]
+  users             User[]
 
   @@index([slug])
   @@index([isActive])
 }
 
 model Organization {
-  id              String    @id @default(cuid())
-  name            String
-  slug            String    @unique
-  description     String?
-  logo            String?
-  domain          String?   @unique
-  tenantId        String
-  isActive        Boolean   @default(true)
-  settings        Json?     // Organization-specific settings
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  // Relations
-  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  users           User[]
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logo        String?
+  domain      String?  @unique
+  tenantId    String
+  isActive    Boolean  @default(true)
+  settings    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users       User[]
 
   @@index([slug])
   @@index([tenantId])
@@ -330,28 +263,26 @@ model Organization {
 }
 
 model UserShard {
-  id                String   @id @default(cuid())
-  shardId           String   @unique // Unique identifier for the shard
-  name              String   // Human-readable name (e.g., "shard-us-east-1")
-  description       String?
-  databaseUrl       String   // Database connection URL for this shard
-  isActive          Boolean  @default(true) // Whether this shard is active
-  capacity          Int      @default(1000000) // Maximum users this shard can handle
-  currentUsers      Int      @default(0) // Current number of users on this shard
-  region            String   // AWS region or data center location
-  readReplicas      Json?    // Array of read replica configurations
-  writeEndpoint     String   // Primary write endpoint
-  readEndpoints     String[] @default([]) // Read replica endpoints
-  healthStatus      String   @default("HEALTHY") // HEALTHY, DEGRADED, UNHEALTHY
-  lastHealthCheck   DateTime?
-  failoverPriority  Int      @default(0) // Priority for failover (higher = preferred)
-  backupSchedule    Json?    // Backup configuration
-  migrationStatus   String   @default("NONE") // NONE, MIGRATING, MIGRATED
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  // Relations
-  users             User[]
+  id               String    @id @default(cuid())
+  shardId          String    @unique
+  name             String
+  description      String?
+  databaseUrl      String
+  isActive         Boolean   @default(true)
+  capacity         Int       @default(1000000)
+  currentUsers     Int       @default(0)
+  region           String
+  readReplicas     Json?
+  writeEndpoint    String
+  readEndpoints    String[]  @default([])
+  healthStatus     String    @default("HEALTHY")
+  lastHealthCheck  DateTime?
+  failoverPriority Int       @default(0)
+  backupSchedule   Json?
+  migrationStatus  String    @default("NONE")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  users            User[]
 
   @@index([shardId])
   @@index([isActive])
@@ -362,19 +293,17 @@ model UserShard {
 }
 
 model ConsentLog {
-  id              String       @id @default(cuid())
-  userId          String
-  action          ConsentAction
-  consentType     String       // marketing, essential, analytics, etc.
-  consentGiven    Boolean
-  ipAddress       String?
-  userAgent       String?
-  consentDetails  Json?        // Additional consent information
-  validUntil      DateTime?    // For time-limited consents
-  createdAt       DateTime     @default(now())
-
-  // Relations
-  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String        @id @default(cuid())
+  userId         String
+  action         ConsentAction
+  consentType    String
+  consentGiven   Boolean
+  ipAddress      String?
+  userAgent      String?
+  consentDetails Json?
+  validUntil     DateTime?
+  createdAt      DateTime      @default(now())
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([action])
@@ -383,17 +312,10 @@ model ConsentLog {
   @@index([userId, consentType])
 }
 
-enum ConsentAction {
-  GRANTED
-  WITHDRAWN
-  UPDATED
-  EXPIRED
-}
-
 model DataRetentionPolicy {
   id              String   @id @default(cuid())
-  category        String   @unique // personal_data, marketing_data, analytics_data, logs
-  retentionPeriod Int      // Days to retain data
+  category        String   @unique
+  retentionPeriod Int
   autoDelete      Boolean  @default(true)
   description     String?
   createdAt       DateTime @default(now())
@@ -404,28 +326,25 @@ model DataRetentionPolicy {
 }
 
 model Address {
-  id           String  @id @default(cuid())
-  userId       String
-  name         String
-  fullName     String
-  addressLine1 String
-  addressLine2 String?
-  city         String
-  state        String
-  postalCode   String
-  country      String
-  phone        String
-  isDefault    Boolean @default(false)
-
-  // Romanian Address Compliance fields
-  judet        String? // Romanian county
-  localitate   String? // Romanian locality
-  codPostal    String? // Romanian postal code (6 digits)
-  sector       String? // Bucharest sector (1-6)
-  isBillingAddress Boolean @default(false) // For Romanian tax compliance
-
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders       Order[]
+  id               String  @id @default(cuid())
+  userId           String
+  name             String
+  fullName         String
+  addressLine1     String
+  addressLine2     String?
+  city             String
+  state            String
+  postalCode       String
+  country          String
+  phone            String
+  isDefault        Boolean @default(false)
+  codPostal        String?
+  isBillingAddress Boolean @default(false)
+  judet            String?
+  localitate       String?
+  sector           String?
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders           Order[]
 }
 
 model PaymentCard {
@@ -478,7 +397,6 @@ model Product {
   attributes           Json?
   metadata             Json?
   isActive             Boolean         @default(true)
-  status               ProductStatus   @default(IN_PENDING)
   featured             Boolean         @default(false)
   stockQuantity        Int             @default(0)
   reservedQuantity     Int             @default(0)
@@ -491,6 +409,7 @@ model Product {
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
   barcode              String?
+  ageGroup             String?
   costPrice            Float?
   importDuties         Float?          @default(0)
   shippingCost         Float?          @default(0)
@@ -501,17 +420,17 @@ model Product {
   paymentProcessingFee Float?          @default(2.9)
   customerServiceCost  Float?          @default(0)
   operationalOverhead  Float?          @default(0)
-  ageGroup             String?
+  status               ProductStatus   @default(IN_PENDING)
   stemDiscipline       String?
+  supplierId           String?
   marketingCosts       MarketingCost[]
   orderItems           OrderItem[]
   category             Category?       @relation(fields: [categoryId], references: [id])
+  supplier             Supplier?       @relation(fields: [supplierId], references: [id])
   productCosts         ProductCost[]
   reviews              Review[]
   supplierOrders       SupplierOrder[]
   wishlistItems        Wishlist[]
-  supplier             Supplier?       @relation(fields: [supplierId], references: [id])
-  supplierId           String?
 
   @@index([categoryId])
   @@index([slug])
@@ -642,48 +561,46 @@ model Language {
 }
 
 model Order {
-  id                    String          @id @default(cuid())
-  orderNumber           String          @unique
+  id                    String                @id @default(cuid())
+  orderNumber           String                @unique
   userId                String
   total                 Float
   subtotal              Float
   tax                   Float
   shippingCost          Float
-  discountAmount        Float           @default(0)
+  discountAmount        Float                 @default(0)
   couponCode            String?
   couponId              String?
-  status                OrderStatus     @default(PROCESSING)
-  paymentStatus         PaymentStatus   @default(PENDING)
+  status                OrderStatus           @default(PROCESSING)
+  paymentStatus         PaymentStatus         @default(PENDING)
   paymentMethod         String
   notes                 String?
   shippingAddressId     String
   billingAddressId      String?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
   deliveredAt           DateTime?
-  // Legacy Stripe fields (keep for backward compatibility)
   stripePaymentIntentId String?
-  // Netopia payment fields
-  netopiaTransactionId  String?
-  netopiaInvoiceId      String?
-  netopiaPaymentUrl     String?
   completedAt           DateTime?
   fulfilledAt           DateTime?
   shippedAt             DateTime?
   trackingNumber        String?
   carrier               String?
   estimatedDelivery     DateTime?
-  priority              String          @default("MEDIUM")
-  tags                  String[]        @default([])
+  netopiaInvoiceId      String?
+  netopiaPaymentUrl     String?
+  netopiaTransactionId  String?
+  priority              String                @default("MEDIUM")
+  tags                  String[]              @default([])
   updatedBy             String?
-  coupon                Coupon?         @relation(fields: [couponId], references: [id])
-  shippingAddress       Address         @relation(fields: [shippingAddressId], references: [id])
-  user                  User            @relation(fields: [userId], references: [id])
+  campaignApplications  CampaignApplication[]
+  coupon                Coupon?               @relation(fields: [couponId], references: [id])
+  shippingAddress       Address               @relation(fields: [shippingAddressId], references: [id])
+  user                  User                  @relation(fields: [userId], references: [id])
   items                 OrderItem[]
+  statusHistory         OrderStatusHistory[]
   returns               Return[]
   supplierOrders        SupplierOrder[]
-  statusHistory         OrderStatusHistory[]
-  campaignApplications  CampaignApplication[]
 
   @@index([userId])
   @@index([status])
@@ -918,20 +835,20 @@ model ConversionLog {
 }
 
 model EmailTemplate {
-  id        String     @id @default(cuid())
-  name      String
-  slug      String     @unique
-  subject   String
-  content   String
-  category  String
-  isActive  Boolean    @default(true)
-  metadata  Json?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  createdBy String     @default("system")
-  variables String[]
-  emails    EmailLog[]
-  campaigns EmailCampaign[]
+  id            String              @id @default(cuid())
+  name          String
+  slug          String              @unique
+  subject       String
+  content       String
+  category      String
+  isActive      Boolean             @default(true)
+  metadata      Json?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  createdBy     String              @default("system")
+  variables     String[]
+  campaigns     EmailCampaign[]
+  emails        EmailLog[]
   sequenceSteps EmailSequenceStep[]
 
   @@index([slug])
@@ -977,26 +894,26 @@ model ProductCost {
 }
 
 model SupplierOrder {
-  id                String   @id @default(cuid())
+  id                String                 @id @default(cuid())
   orderId           String
-  orderItemId       String
   supplierId        String
   productId         String
   quantity          Int
   unitCost          Float
   totalCost         Float
-  status            String   @default("PENDING")
-  trackingNumber    String?
-  carrier           String?
-  shippedAt         DateTime?
-  estimatedDelivery DateTime?
+  status            String                 @default("PENDING")
   notes             String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderItem         OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  supplier          Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  carrier           String?
+  estimatedDelivery DateTime?
+  orderItemId       String
+  shippedAt         DateTime?
+  trackingNumber    String?
+  order             Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem         OrderItem              @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  product           Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplier          Supplier               @relation(fields: [supplierId], references: [id], onDelete: Cascade)
   tracking          SupplierOrderTracking?
 
   @@index([orderId])
@@ -1009,96 +926,71 @@ model SupplierOrder {
 }
 
 model Supplier {
-  id            String          @id @default(cuid())
-  // User association (optional - suppliers can exist independently)
-  userId        String?
-  user          User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  // Basic Company Information (mapped to existing fields for compatibility)
-  name          String          // Keep existing field name
-  companyName   String?         // New comprehensive field
-  companySlug   String?         @unique
-  description   String?
-  website       String?
-  phone         String
-  email         String          @unique
-
-  // Contact Person (mapped to existing fields)
-  contactPerson     String?     // Keep existing field name
-  contactPersonName String?     // New comprehensive field
-  contactPersonEmail String?
-  contactPersonPhone String?
-
-  // Business Address
-  address            Json?      // Keep existing field
-  businessAddress    String?
-  businessCity       String?
-  businessState      String?
-  businessCountry    String?    @default("Romania")
-  businessPostalCode String?
-
-  // Legal Information
-  vatNumber     String?
-  taxId         String?
-  cui           String?         // Romanian tax identifier
-  codFiscal     String?         // Romanian fiscal code
-  nrRegCom      String?         // Romanian trade register number
-  reprezentantLegal   String?   // Romanian legal representative
-
-  // Business Details
-  yearEstablished     Int?
-  employeeCount       Int?
-  annualRevenue       String?
-  certifications      String[]  @default([])
-  productCategories   String[]  @default([])
-
-  // Status and Approval
-  isActive            Boolean   @default(true)
-  status              String    @default("PENDING")
-  approvedAt          DateTime?
-  approvedBy          String?
-  rejectionReason     String?
-
-  // Financial Terms
-  commissionRate      Float     @default(15.0) // Percentage
-  paymentTerms        Int       @default(30)   // Days
-  minimumOrderValue   Float     @default(0)
-
-  // Romanian Compliance
-  adresaSediu               String?
-  anpcApproval              Boolean @default(false)
-  educationalCertification  String?
-  iscApproval               Boolean @default(false)
-  romanianBankAccount       String?
-  romanianComplianceStatus  String  @default("PENDING")
-  romanianCurrency          String  @default("RON")
-  romanianPaymentTerms      Int     @default(30)
-  romanianVatNumber         String?
-
-  // API Integration (existing fields)
-  apiEndpoint         String?
-  apiKey              String?
-  trackingUrl         String?
-  averageDeliveryDays Int      @default(7)
-
-  // Files and Media
-  logo                String?
-  catalogUrl          String?
-  termsAccepted       Boolean  @default(false)
-  privacyAccepted     Boolean  @default(false)
-
-  // Timestamps
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  // Relations
-  orders              SupplierOrder[]
-  invoices            SupplierInvoice[]
-  messages            SupplierMessage[]
-  notifications       SupplierNotification[]
-  supportTickets      SupplierSupportTicket[]
-  products            Product[]
-  performanceMetrics  SupplierPerformanceMetrics[]
+  id                       String                       @id @default(cuid())
+  name                     String
+  email                    String                       @unique
+  phone                    String
+  address                  Json?
+  contactPerson            String?
+  isActive                 Boolean                      @default(true)
+  createdAt                DateTime                     @default(now())
+  updatedAt                DateTime                     @updatedAt
+  adresaSediu              String?
+  annualRevenue            String?
+  anpcApproval             Boolean                      @default(false)
+  apiEndpoint              String?
+  apiKey                   String?
+  approvedAt               DateTime?
+  approvedBy               String?
+  averageDeliveryDays      Int                          @default(7)
+  businessAddress          String?
+  businessCity             String?
+  businessCountry          String?                      @default("Romania")
+  businessPostalCode       String?
+  businessState            String?
+  catalogUrl               String?
+  certifications           String[]                     @default([])
+  codFiscal                String?
+  commissionRate           Float                        @default(15.0)
+  companyName              String?
+  companySlug              String?                      @unique
+  contactPersonEmail       String?
+  contactPersonName        String?
+  contactPersonPhone       String?
+  cui                      String?
+  description              String?
+  educationalCertification String?
+  employeeCount            Int?
+  iscApproval              Boolean                      @default(false)
+  logo                     String?
+  minimumOrderValue        Float                        @default(0)
+  nrRegCom                 String?
+  paymentTerms             Int                          @default(30)
+  privacyAccepted          Boolean                      @default(false)
+  productCategories        String[]                     @default([])
+  rejectionReason          String?
+  reprezentantLegal        String?
+  romanianBankAccount      String?
+  romanianComplianceStatus String                       @default("PENDING")
+  romanianCurrency         String                       @default("RON")
+  romanianPaymentTerms     Int                          @default(30)
+  romanianVatNumber        String?
+  status                   String                       @default("PENDING")
+  taxId                    String?
+  termsAccepted            Boolean                      @default(false)
+  trackingUrl              String?
+  userId                   String?
+  vatNumber                String?
+  website                  String?
+  yearEstablished          Int?
+  products                 Product[]
+  user                     User?                        @relation(fields: [userId], references: [id])
+  invoices                 SupplierInvoice[]
+  messages                 SupplierMessage[]
+  notifications            SupplierNotification[]
+  orders                   SupplierOrder[]
+  performanceMetrics       SupplierPerformanceMetrics[]
+  supportTickets           SupplierSupportTicket[]
 
   @@index([userId])
   @@index([email])
@@ -1130,122 +1022,29 @@ model Ticket {
   @@index([assignedTo])
 }
 
-enum OrderItemReturnStatus {
-  NONE
-  REQUESTED
-  APPROVED
-  REJECTED
-  RECEIVED
-  REFUNDED
-}
-
-enum Role {
-  CUSTOMER
-  ADMIN
-}
-
-enum UserSegment {
-  NEW
-  ACTIVE
-  VIP
-  INACTIVE
-  CHURNED
-  AT_RISK
-}
-
-enum LifecycleStage {
-  AWARENESS
-  CONSIDERATION
-  PURCHASE
-  RETENTION
-  ADVOCACY
-}
-
-enum StemCategory {
-  SCIENCE
-  TECHNOLOGY
-  ENGINEERING
-  MATHEMATICS
-  GENERAL
-}
-
-enum ContentType {
-  BLOG
-  PRODUCT
-  CATEGORY
-}
-
-enum OrderStatus {
-  PROCESSING
-  PENDING_REVIEW
-  READY_FOR_SHIPPING
-  FULFILLED
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  COMPLETED
-}
-
-enum PaymentStatus {
-  PENDING
-  PAID
-  FAILED
-  REFUNDED
-}
-
-enum ReturnReason {
-  DOES_NOT_MEET_EXPECTATIONS
-  DAMAGED_OR_DEFECTIVE
-  WRONG_ITEM_SHIPPED
-  CHANGED_MIND
-  ORDERED_WRONG_PRODUCT
-  OTHER
-}
-
-enum ReturnStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  RECEIVED
-  REFUNDED
-}
-
-enum CouponType {
-  PERCENTAGE
-  FIXED_AMOUNT
-}
-
-enum ProductStatus {
-  IN_PENDING
-  APPROVED
-  DENIED
-  REJECTED
-}
-
-// Analytics and Pixel Tracking Models
 model FacebookPixelEvent {
-  id            String    @id @default(cuid())
-  eventName     String
-  eventId       String?   @unique
-  pixelId       String?
-  userId        String?
-  sessionId     String?
-  value         Float?
-  currency      String    @default("RON")
-  contentType   String?
-  contentIds    String[]
-  contentName   String?
+  id              String   @id @default(cuid())
+  eventName       String
+  eventId         String?  @unique
+  pixelId         String?
+  userId          String?
+  sessionId       String?
+  value           Float?
+  currency        String   @default("RON")
+  contentType     String?
+  contentIds      String[]
+  contentName     String?
   contentCategory String?
-  searchString  String?
-  customData    Json?
-  userData      Json?
-  pageUrl       String?
-  referrer      String?
-  userAgent     String?
-  ipAddress     String?
-  timestamp     DateTime  @default(now())
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  searchString    String?
+  customData      Json?
+  userData        Json?
+  pageUrl         String?
+  referrer        String?
+  userAgent       String?
+  ipAddress       String?
+  timestamp       DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([eventName])
   @@index([timestamp])
@@ -1261,22 +1060,22 @@ model FacebookPixelEvent {
 }
 
 model RomanianViralContent {
-  id                  String   @id @default(cuid())
-  blogId              String
-  contentTitle        String?
-  contentSlug         String?
-  shares              Int      @default(0)
-  facebookShares      Int      @default(0)
-  instagramShares     Int      @default(0)
-  tiktokShares        Int      @default(0)
-  viralCoefficient    Float    @default(0)
-  reach               Int      @default(0)
-  engagement          Int      @default(0)
-  timeSpent           Float    @default(0)
-  romanianEngagement  Int      @default(0)
-  lastCalculatedAt    DateTime @default(now())
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  blogId             String
+  contentTitle       String?
+  contentSlug        String?
+  shares             Int      @default(0)
+  facebookShares     Int      @default(0)
+  instagramShares    Int      @default(0)
+  tiktokShares       Int      @default(0)
+  viralCoefficient   Float    @default(0)
+  reach              Int      @default(0)
+  engagement         Int      @default(0)
+  timeSpent          Float    @default(0)
+  romanianEngagement Int      @default(0)
+  lastCalculatedAt   DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   @@index([blogId])
   @@index([shares])
@@ -1286,66 +1085,66 @@ model RomanianViralContent {
 }
 
 model FacebookPixelConfig {
-  id          String   @id @default(cuid())
-  pixelId     String   @unique
+  id          String    @id @default(cuid())
+  pixelId     String    @unique
   accessToken String?
-  isActive    Boolean  @default(true)
+  isActive    Boolean   @default(true)
   lastSyncAt  DateTime?
   metadata    Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([isActive])
   @@index([pixelId])
 }
 
 model InstagramPixelConfig {
-  id          String   @id @default(cuid())
-  pixelId     String   @unique
+  id          String    @id @default(cuid())
+  pixelId     String    @unique
   accessToken String?
-  isActive    Boolean  @default(true)
+  isActive    Boolean   @default(true)
   lastSyncAt  DateTime?
   metadata    Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([isActive])
   @@index([pixelId])
 }
 
 model TikTokPixelConfig {
-  id          String   @id @default(cuid())
-  pixelId     String   @unique
+  id          String    @id @default(cuid())
+  pixelId     String    @unique
   accessToken String?
-  isActive    Boolean  @default(true)
+  isActive    Boolean   @default(true)
   lastSyncAt  DateTime?
   metadata    Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([isActive])
   @@index([pixelId])
 }
 
 model SEOAnalytics {
-  id              String   @id @default(cuid())
-  keyword         String
-  position        Float
+  id               String   @id @default(cuid())
+  keyword          String
+  position         Float
   previousPosition Float?
-  clicks          Int
-  impressions     Int
-  ctr             Float
-  url             String?
-  searchVolume    Int?
-  difficulty      Int?
-  intent          String?
-  competitorGap   Boolean  @default(false)
-  targetPage      String?
-  dateRecorded    DateTime @default(now())
-  dataSource      String   @default("GSC") // GSC, SEMrush, Ahrefs, etc.
-  country         String   @default("ROU") // Romania by default
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  clicks           Int
+  impressions      Int
+  ctr              Float
+  url              String?
+  searchVolume     Int?
+  difficulty       Int?
+  intent           String?
+  competitorGap    Boolean  @default(false)
+  targetPage       String?
+  dateRecorded     DateTime @default(now())
+  dataSource       String   @default("GSC")
+  country          String   @default("ROU")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([keyword, dateRecorded])
   @@index([dateRecorded])
@@ -1353,7 +1152,6 @@ model SEOAnalytics {
   @@index([country])
 }
 
-// Email Marketing Models
 model EmailCampaign {
   id          String              @id @default(cuid())
   name        String
@@ -1408,9 +1206,9 @@ model EmailSequence {
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
   createdBy     String
+  createdByUser User                @relation(fields: [createdBy], references: [id])
   steps         EmailSequenceStep[]
   users         EmailSequenceUser[]
-  createdByUser User?            @relation(fields: [createdBy], references: [id])
 
   @@index([trigger])
   @@index([isActive])
@@ -1455,50 +1253,27 @@ model EmailSequenceUser {
 }
 
 model EmailTrigger {
-  id            String             @id @default(cuid())
-  name          String             // Trigger name for identification
-  description   String?            // Trigger description
-  type          EmailTriggerType   // Type of trigger
-  status        EmailTriggerStatus @default(DRAFT) // Trigger status
-
-  // Trigger conditions (JSON structure for flexible conditions)
-  conditions    Json               // Conditions that must be met to fire
-
-  // Examples of conditions:
-  // SEGMENT_ENTER: { "segment": "VIP", "previousSegment": "ACTIVE" }
-  // BEHAVIOR_EVENT: { "event": "cart_abandoned", "value": { "minItems": 1 } }
-  // TIME_BASED: { "inactiveDays": 30, "segment": "ACTIVE" }
-  // LIFECYCLE_CHANGE: { "fromStage": "AWARENESS", "toStage": "CONSIDERATION" }
-
-  // Action to take when trigger fires
-  actionType    String             // "send_email", "start_sequence", "update_user"
-  actionData    Json               // Action-specific data
-
-  // Examples of actionData:
-  // send_email: { "templateId": "welcome-email", "subject": "Welcome to STEM Toys!" }
-  // start_sequence: { "sequenceId": "vip-onboarding" }
-  // update_user: { "tags": ["special-offer-sent"] }
-
-  // Trigger settings
-  priority      Int                @default(0) // Execution priority
-  cooldownHours Int                @default(24) // Minimum hours between triggers for same user
-  maxExecutions Int?               // Maximum times this trigger can fire per user (null = unlimited)
-  isActive      Boolean            @default(false) // Whether trigger is active
-
-  // Targeting
-  segmentFilter String?            // Only trigger for users in this segment
-  lifecycleFilter String?          // Only trigger for users in this lifecycle stage
-  tenantId      String?            // Multi-tenant support
-
-  // Metadata
-  tags          String[]           @default([]) // Categorization tags
-  createdBy     String             // Admin who created the trigger
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-
-  // Relations
-  tenant        Tenant?            @relation(fields: [tenantId], references: [id], onDelete: SetNull)
-  executions    EmailTriggerExecution[]
+  id              String                  @id @default(cuid())
+  name            String
+  description     String?
+  type            EmailTriggerType
+  status          EmailTriggerStatus      @default(DRAFT)
+  conditions      Json
+  actionType      String
+  actionData      Json
+  priority        Int                     @default(0)
+  cooldownHours   Int                     @default(24)
+  maxExecutions   Int?
+  isActive        Boolean                 @default(false)
+  segmentFilter   String?
+  lifecycleFilter String?
+  tenantId        String?
+  tags            String[]                @default([])
+  createdBy       String
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  tenant          Tenant?                 @relation(fields: [tenantId], references: [id])
+  executions      EmailTriggerExecution[]
 
   @@index([type])
   @@index([status])
@@ -1513,15 +1288,13 @@ model EmailTrigger {
 
 model EmailTriggerExecution {
   id            String       @id @default(cuid())
-  triggerId     String       // Which trigger fired
-  userId        String       // Which user triggered it
-  executionData Json?        // Data about what caused the trigger
-  actionResult  Json?        // Result of the action (email sent, sequence started, etc.)
-  status        String       @default("pending") // pending, success, failed
-  errorMessage  String?      // If status is failed
+  triggerId     String
+  userId        String
+  executionData Json?
+  actionResult  Json?
+  status        String       @default("pending")
+  errorMessage  String?
   executedAt    DateTime     @default(now())
-
-  // Relations
   trigger       EmailTrigger @relation(fields: [triggerId], references: [id], onDelete: Cascade)
 
   @@index([triggerId])
@@ -1532,52 +1305,6 @@ model EmailTriggerExecution {
   @@index([userId, executedAt])
 }
 
-// Email Marketing Enums
-enum EmailCampaignStatus {
-  DRAFT
-  SCHEDULED
-  SENDING
-  SENT
-  PAUSED
-  CANCELLED
-}
-
-enum EmailEventType {
-  SENT
-  DELIVERED
-  OPENED
-  CLICKED
-  BOUNCED
-  UNSUBSCRIBED
-  SPAM_REPORTED
-  FAILED
-}
-
-enum EmailSequenceUserStatus {
-  ACTIVE
-  PAUSED
-  COMPLETED
-  UNSUBSCRIBED
-  FAILED
-}
-
-enum EmailTriggerType {
-  SEGMENT_ENTER     // When user enters a segment
-  SEGMENT_EXIT      // When user leaves a segment
-  LIFECYCLE_CHANGE  // When lifecycle stage changes
-  BEHAVIOR_EVENT    // Based on specific behaviors (cart abandonment, etc.)
-  TIME_BASED        // Time-based triggers (inactive for X days, etc.)
-  CUSTOM_EVENT      // Custom business logic events
-}
-
-enum EmailTriggerStatus {
-  ACTIVE
-  PAUSED
-  DRAFT
-  ARCHIVED
-}
-
-// Supplier Management Models
 model SupplierAnnouncement {
   id              String               @id @default(cuid())
   title           String
@@ -1599,22 +1326,22 @@ model SupplierAnnouncement {
 }
 
 model SupplierInvoice {
-  id            String          @id @default(cuid())
+  id            String        @id @default(cuid())
   supplierId    String
-  invoiceNumber String          @unique
+  invoiceNumber String        @unique
   periodStart   DateTime
   periodEnd     DateTime
   subtotal      Float
   commission    Float
   totalAmount   Float
-  status        InvoiceStatus   @default(DRAFT)
+  status        InvoiceStatus @default(DRAFT)
   dueDate       DateTime
   paidAt        DateTime?
   paymentMethod String?
   notes         String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  supplier      Supplier        @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  supplier      Supplier      @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
   @@index([supplierId])
   @@index([invoiceNumber])
@@ -1716,24 +1443,23 @@ model SupplierTicketResponse {
   @@index([createdAt])
 }
 
-// Supplier Performance Tracking Models
 model SupplierPerformanceMetrics {
-  id                    String   @id @default(cuid())
+  id                   String   @id @default(cuid())
   supplierId           String
   periodStart          DateTime
   periodEnd            DateTime
   totalOrders          Int      @default(0)
   fulfilledOrders      Int      @default(0)
-  onTimeDeliveryRate   Float    @default(0) // Percentage 0-100
-  averageDeliveryDays  Float?   // Average actual delivery time
-  qualityScore         Float    @default(0) // Average rating from reviews 0-5
-  returnRate           Float    @default(0) // Percentage of orders returned
-  customerSatisfaction Float    @default(0) // Average customer satisfaction 0-5
+  onTimeDeliveryRate   Float    @default(0)
+  averageDeliveryDays  Float?
+  qualityScore         Float    @default(0)
+  returnRate           Float    @default(0)
+  customerSatisfaction Float    @default(0)
   totalRevenue         Float    @default(0)
   commissionEarned     Float    @default(0)
-  fulfillmentRate      Float    @default(0) // Percentage of orders fulfilled successfully
-  responseTimeHours    Float?   // Average response time to admin queries
-  issueResolutionRate  Float    @default(0) // Percentage of support issues resolved
+  fulfillmentRate      Float    @default(0)
+  responseTimeHours    Float?
+  issueResolutionRate  Float    @default(0)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
   supplier             Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
@@ -1748,24 +1474,24 @@ model SupplierPerformanceMetrics {
 }
 
 model SupplierOrderTracking {
-  id                    String            @id @default(cuid())
-  supplierOrderId      String            @unique // One tracking record per supplier order
-  orderId              String
-  orderItemId          String
-  status               String            @default("PENDING")
+  id                    String        @id @default(cuid())
+  supplierOrderId       String        @unique
+  orderId               String
+  orderItemId           String
+  status                String        @default("PENDING")
   estimatedDeliveryDate DateTime?
-  actualDeliveryDate   DateTime?
-  shippedDate          DateTime?
-  trackingNumber       String?
-  carrier              String?
-  qualityRating        Int?              // 1-5 scale
-  deliveryRating       Int?              // 1-5 scale
-  customerFeedback     String?
-  issuesReported       String[]           @default([])
-  resolutionStatus     String?           // RESOLVED, PENDING, ESCALATED
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-  supplierOrder        SupplierOrder     @relation(fields: [supplierOrderId], references: [id], onDelete: Cascade)
+  actualDeliveryDate    DateTime?
+  shippedDate           DateTime?
+  trackingNumber        String?
+  carrier               String?
+  qualityRating         Int?
+  deliveryRating        Int?
+  customerFeedback      String?
+  issuesReported        String[]      @default([])
+  resolutionStatus      String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  supplierOrder         SupplierOrder @relation(fields: [supplierOrderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
   @@index([status])
@@ -1774,7 +1500,304 @@ model SupplierOrderTracking {
   @@index([qualityRating])
 }
 
-// Supplier Management Enums
+model AutomationWorkflow {
+  id                String   @id @default(cuid())
+  name              String
+  type              String
+  status            String   @default("active")
+  customerId        String
+  currentStep       Int      @default(0)
+  totalSteps        Int
+  nextExecutionDate DateTime
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([type])
+  @@index([nextExecutionDate])
+}
+
+model Campaign {
+  id                    String                @id @default(cuid())
+  name                  String
+  type                  String
+  status                String                @default("draft")
+  startDate             DateTime
+  endDate               DateTime
+  discountPercent       Float?
+  minimumOrderAmount    Float?
+  maximumDiscountAmount Float?
+  applicableCategories  String[]              @default([])
+  applicableProducts    String[]              @default([])
+  customerSegments      String[]              @default([])
+  maxUses               Int?
+  currentUses           Int                   @default(0)
+  metadata              Json?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  applications          CampaignApplication[]
+
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([type])
+}
+
+model CampaignApplication {
+  id             String   @id @default(cuid())
+  campaignId     String
+  orderId        String?
+  customerId     String
+  discountAmount Float
+  appliedAt      DateTime @default(now())
+  metadata       Json?
+  campaign       Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customer       User     @relation(fields: [customerId], references: [id])
+  order          Order?   @relation(fields: [orderId], references: [id])
+
+  @@index([campaignId])
+  @@index([customerId])
+  @@index([appliedAt])
+}
+
+model PerformanceMetric {
+  id        String   @id @default(cuid())
+  cls       Float    @default(0)
+  fid       Float    @default(0)
+  fcp       Float    @default(0)
+  lcp       Float    @default(0)
+  ttfb      Float    @default(0)
+  timestamp DateTime @default(now())
+  url       String
+  userAgent String   @default("")
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([timestamp])
+  @@index([url])
+}
+
+model OrderStatusHistory {
+  id         String      @id @default(cuid())
+  orderId    String
+  fromStatus OrderStatus
+  toStatus   OrderStatus
+  reason     String?
+  notes      String?
+  updatedBy  String?
+  createdAt  DateTime    @default(now())
+  order      Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([toStatus])
+  @@index([createdAt])
+}
+
+model ImageMetadata {
+  id                String               @id @default(cuid())
+  originalUrl       String
+  filename          String
+  fileSize          Int
+  width             Int?
+  height            Int?
+  format            String
+  uploadedAt        DateTime             @default(now())
+  processedSizes    Json?
+  optimizationStats Json?
+  tags              String[]
+  alt               String?
+  description       String?
+  metadata          Json?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  processingLogs    ImageProcessingLog[]
+
+  @@index([originalUrl])
+  @@index([format])
+  @@index([uploadedAt])
+}
+
+model ImageProcessingLog {
+  id           String        @id @default(cuid())
+  imageId      String
+  operation    String
+  status       String
+  details      Json?
+  startedAt    DateTime      @default(now())
+  completedAt  DateTime?
+  errorMessage String?
+  image        ImageMetadata @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  @@index([imageId])
+  @@index([operation])
+  @@index([status])
+  @@index([startedAt])
+}
+
+enum SecurityEventType {
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGOUT
+  PASSWORD_CHANGE
+  PASSWORD_RESET_REQUEST
+  PASSWORD_RESET_COMPLETE
+  ACCOUNT_LOCKOUT
+  ACCOUNT_UNLOCK
+  TWO_FACTOR_SETUP
+  TWO_FACTOR_VERIFY
+  TWO_FACTOR_DISABLE
+  SUSPICIOUS_ACTIVITY
+  SECURITY_QUESTION_SETUP
+  SECURITY_QUESTION_VERIFY
+  ACCOUNT_RECOVERY
+}
+
+enum ConsentAction {
+  GRANTED
+  WITHDRAWN
+  UPDATED
+  EXPIRED
+}
+
+enum OrderItemReturnStatus {
+  NONE
+  REQUESTED
+  APPROVED
+  REJECTED
+  RECEIVED
+  REFUNDED
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum UserSegment {
+  NEW
+  ACTIVE
+  VIP
+  INACTIVE
+  CHURNED
+  AT_RISK
+}
+
+enum LifecycleStage {
+  AWARENESS
+  CONSIDERATION
+  PURCHASE
+  RETENTION
+  ADVOCACY
+}
+
+enum StemCategory {
+  SCIENCE
+  TECHNOLOGY
+  ENGINEERING
+  MATHEMATICS
+  GENERAL
+}
+
+enum ContentType {
+  BLOG
+  PRODUCT
+  CATEGORY
+}
+
+enum OrderStatus {
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  COMPLETED
+  PENDING_REVIEW
+  READY_FOR_SHIPPING
+  FULFILLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum ReturnReason {
+  DOES_NOT_MEET_EXPECTATIONS
+  DAMAGED_OR_DEFECTIVE
+  WRONG_ITEM_SHIPPED
+  CHANGED_MIND
+  ORDERED_WRONG_PRODUCT
+  OTHER
+}
+
+enum ReturnStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  RECEIVED
+  REFUNDED
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum ProductStatus {
+  IN_PENDING
+  APPROVED
+  DENIED
+  REJECTED
+}
+
+enum EmailCampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  PAUSED
+  CANCELLED
+}
+
+enum EmailEventType {
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  UNSUBSCRIBED
+  SPAM_REPORTED
+  FAILED
+}
+
+enum EmailSequenceUserStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  UNSUBSCRIBED
+  FAILED
+}
+
+enum EmailTriggerType {
+  SEGMENT_ENTER
+  SEGMENT_EXIT
+  LIFECYCLE_CHANGE
+  BEHAVIOR_EVENT
+  TIME_BASED
+  CUSTOM_EVENT
+}
+
+enum EmailTriggerStatus {
+  ACTIVE
+  PAUSED
+  DRAFT
+  ARCHIVED
+}
+
 enum InvoiceStatus {
   DRAFT
   SENT
@@ -1857,151 +1880,4 @@ enum AnnouncementPriority {
   NORMAL
   HIGH
   URGENT
-}
-
-// Automation and Campaign Models
-model AutomationWorkflow {
-  id                String   @id @default(cuid())
-  name              String
-  type              String
-  status            String   @default("active")
-  customerId        String
-  currentStep       Int      @default(0)
-  totalSteps        Int
-  nextExecutionDate DateTime
-  metadata          Json?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  @@index([customerId])
-  @@index([status])
-  @@index([type])
-  @@index([nextExecutionDate])
-}
-
-model Campaign {
-  id                    String                @id @default(cuid())
-  name                  String
-  type                  String
-  status                String                @default("draft")
-  startDate             DateTime
-  endDate               DateTime
-  discountPercent       Float?
-  minimumOrderAmount    Float?
-  maximumDiscountAmount Float?
-  applicableCategories  String[]              @default([])
-  applicableProducts    String[]              @default([])
-  customerSegments      String[]              @default([])
-  maxUses               Int?
-  currentUses           Int                   @default(0)
-  metadata              Json?
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  applications          CampaignApplication[]
-
-  @@index([status])
-  @@index([startDate])
-  @@index([endDate])
-  @@index([type])
-}
-
-model CampaignApplication {
-  id             String   @id @default(cuid())
-  campaignId     String
-  orderId        String?
-  customerId     String
-  discountAmount Float
-  appliedAt      DateTime @default(now())
-  metadata       Json?
-  campaign       Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  order          Order?   @relation(fields: [orderId], references: [id])
-  customer       User     @relation(fields: [customerId], references: [id])
-
-  @@index([campaignId])
-  @@index([customerId])
-  @@index([appliedAt])
-}
-
-model PerformanceMetric {
-  id        String   @id @default(cuid())
-  cls       Float    @default(0)
-  fid       Float    @default(0)
-  fcp       Float    @default(0)
-  lcp       Float    @default(0)
-  ttfb      Float    @default(0)
-  timestamp DateTime @default(now())
-  url       String
-  userAgent String   @default("")
-  metadata  Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([timestamp])
-  @@index([url])
-}
-
-model Session {
-  id           String   @id
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model OrderStatusHistory {
-  id         String      @id @default(cuid())
-  orderId    String
-  fromStatus OrderStatus
-  toStatus   OrderStatus
-  reason     String?
-  notes      String?
-  updatedBy  String?
-  createdAt  DateTime    @default(now())
-  order      Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@index([orderId])
-  @@index([toStatus])
-  @@index([createdAt])
-}
-
-// Image Processing Models
-model ImageMetadata {
-  id                String               @id @default(cuid())
-  originalUrl       String
-  filename          String
-  fileSize          Int
-  width             Int?
-  height            Int?
-  format            String
-  uploadedAt        DateTime             @default(now())
-  processedSizes    Json?
-  optimizationStats Json?
-  tags              String[]
-  alt               String?
-  description       String?
-  metadata          Json?
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
-  processingLogs    ImageProcessingLog[]
-
-  @@index([originalUrl])
-  @@index([format])
-  @@index([uploadedAt])
-}
-
-model ImageProcessingLog {
-  id           String        @id @default(cuid())
-  imageId      String
-  operation    String
-  status       String
-  details      Json?
-  startedAt    DateTime      @default(now())
-  completedAt  DateTime?
-  errorMessage String?
-  image        ImageMetadata @relation(fields: [imageId], references: [id], onDelete: Cascade)
-
-  @@index([imageId])
-  @@index([operation])
-  @@index([status])
-  @@index([startedAt])
 }
