@@ -111,6 +111,54 @@ export class AIConfig {
   }
 
   /**
+   * Get the primary AI provider for dual-provider systems
+   */
+  static getPrimaryProvider(): AIProvider {
+    return getAIConfig().primaryProvider as AIProvider;
+  }
+
+  /**
+   * Get the primary AI model for dual-provider systems
+   */
+  static getPrimaryModel(): string {
+    return getAIConfig().primaryModel;
+  }
+
+  /**
+   * Get the secondary AI provider for dual-provider systems
+   */
+  static getSecondaryProvider(): AIProvider {
+    return getAIConfig().secondaryProvider as AIProvider;
+  }
+
+  /**
+   * Get the secondary AI model for dual-provider systems
+   */
+  static getSecondaryModel(): string {
+    return getAIConfig().secondaryModel;
+  }
+
+  /**
+   * Get the fallback AI model for dual-provider systems
+   */
+  static getFallbackModel(): string {
+    return getAIConfig().fallbackModel;
+  }
+
+  /**
+   * Check if dual-provider configuration is available
+   */
+  static isDualProviderConfigured(): boolean {
+    const config = getAIConfig();
+    return !!(
+      config.primaryProvider &&
+      config.secondaryProvider &&
+      config.primaryModel &&
+      config.secondaryModel
+    );
+  }
+
+  /**
    * Get provider-specific configuration
    */
   static getProviderConfig(provider: AIProvider) {
@@ -141,5 +189,19 @@ export class AIConfig {
       default:
         throw new Error(`Unsupported AI provider: ${provider}`);
     }
+  }
+
+  /**
+   * Get dual-provider configuration
+   */
+  static getDualProviderConfig() {
+    const config = getAIConfig();
+    return {
+      primaryProvider: config.primaryProvider,
+      primaryModel: config.primaryModel,
+      secondaryProvider: config.secondaryProvider,
+      secondaryModel: config.secondaryModel,
+      fallbackModel: config.fallbackModel,
+    };
   }
 }
