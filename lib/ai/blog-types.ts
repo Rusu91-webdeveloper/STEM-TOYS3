@@ -23,6 +23,9 @@ export interface BlogSEOMetadata {
   secondaryKeywords?: string[];
   readabilityScore?: number;
   seoScore?: number;
+  structuredData?: any;
+  openGraph?: any;
+  twitterCards?: any;
 }
 
 export interface GeneratedBlogContent {
@@ -65,12 +68,21 @@ export interface BlogGenerationOptions {
   keywordFocus?: string[];
   saveToDatabase: boolean;
   autoPublish?: boolean;
+  titleFormat?: string;
+  viralOptimizationLevel?: string;
+  ctaStrategy?: string;
+  faqLength?: string;
+  contentStructure?: string;
 }
 
 export interface BlogGenerationProgress {
   stage:
     | "analyzing_prompt"
+    | "generating_title"
     | "generating_content"
+    | "generating_seo"
+    | "generating_excerpt"
+    | "refining_content"
     | "optimizing_seo"
     | "refining_language"
     | "finalizing"
@@ -134,6 +146,7 @@ export interface BlogGenerationPrompts {
   refinement: BlogPromptTemplate;
   title: BlogPromptTemplate;
   excerpt: BlogPromptTemplate;
+  socialMedia: BlogPromptTemplate;
 }
 
 export interface BlogPromptTemplate {

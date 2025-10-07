@@ -106,9 +106,9 @@ export class OpenAIService extends BaseAIService {
       (requestBody as any).max_tokens = validatedOptions.maxTokens!;
     }
 
-    // Create AbortController for request timeout - EMERGENCY: Very short timeout
+    // Create AbortController for request timeout - OPTIMIZED: Longer timeout for complex generation
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for individual API calls (EMERGENCY)
+    const timeoutId = setTimeout(() => controller.abort(), 180000); // 180 second (3 minute) timeout for complex blog generation
 
     try {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
@@ -124,25 +124,35 @@ export class OpenAIService extends BaseAIService {
       clearTimeout(timeoutId); // Clear timeout on successful response
 
       if (!response.ok) {
-        // Try to parse as JSON first, but fallback to text if it fails
-        let errorData: any = {};
+        // ✅ FIX: Read as text first, then try to parse as JSON
+        // This prevents "Body has already been read" error
         let errorMessage = "";
+        let errorData: any = {};
+
         try {
-          errorData = await response.json();
-          errorMessage = errorData.error?.message || "";
-        } catch (jsonError) {
-          // If JSON parsing fails, get the response as text
-          const errorText = await response.text();
-          console.error(
-            "OpenAI API returned non-JSON error response:",
-            errorText.substring(0, 500)
-          );
+          const responseText = await response.text();
+
+          // Try to parse as JSON
+          try {
+            errorData = JSON.parse(responseText);
+            errorMessage = errorData.error?.message || responseText;
+          } catch (jsonError) {
+            // Not JSON, use text as-is
+            errorMessage = responseText || "Unknown error";
+            console.error(
+              "OpenAI API returned non-JSON error response:",
+              responseText.substring(0, 500)
+            );
+          }
+
           console.error("Response status:", response.status);
           console.error(
             "Response headers:",
             Object.fromEntries(response.headers.entries())
           );
-          errorMessage = errorText || "Unknown error";
+        } catch (readError) {
+          errorMessage = "Failed to read error response";
+          console.error("Failed to read error response:", readError);
         }
 
         // Handle specific error cases
@@ -242,7 +252,7 @@ export class OpenAIService extends BaseAIService {
       // Handle AbortController timeout
       if (error instanceof Error && error.name === "AbortError") {
         throw new Error(
-          "OpenAI API request timed out after 30 seconds. The service may be experiencing high latency or is unavailable."
+          "OpenAI API request timed out after 180 seconds. The service may be experiencing high latency or the request is too complex. Try a shorter prompt or simpler requirements."
         );
       }
 

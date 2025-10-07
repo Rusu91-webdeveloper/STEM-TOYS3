@@ -1,0 +1,170 @@
+/**
+ * SEO ENHANCEMENT PROMPTS
+ *
+ * Stage 2 prompts for enhancing blog content with:
+ * - SEO metadata
+ * - Expanded FAQ (15+ questions)
+ * - Internal linking
+ * - CTAs
+ * - Viral elements
+ *
+ * These prompts are small and focused for fast processing (30-50s)
+ */
+
+export interface SEOPromptTemplate {
+  system: string;
+  user: string;
+}
+
+export interface SEOEnhancementPrompts {
+  expandContent: SEOPromptTemplate;
+  expandFAQ: SEOPromptTemplate;
+  addInternalLinks: SEOPromptTemplate;
+  addCTAs: SEOPromptTemplate;
+  generateMetadata: SEOPromptTemplate;
+}
+
+export const SEO_ENHANCEMENT_PROMPTS: SEOEnhancementPrompts = {
+  expandContent: {
+    system: `You are an expert Romanian content optimizer. Your task is to expand blog content to reach optimal word count (2,200-2,500 words) while maintaining quality and relevance.`,
+
+    user: `Acest articol are {wordCount} cuvinte. Extinde-l la 2,200-2,500 cuvinte adăugând:
+- Mai multe exemple practice din România
+- Detalii educaționale suplimentare
+- Statistici relevante
+- Studii de caz românești
+- Beneficii detaliate
+
+Primele 3000 caractere din conținut:
+{content}
+
+Returnează conținutul COMPLET extins în Markdown (păstrează tot conținutul original + adaugă secțiuni noi).`,
+  },
+
+  expandFAQ: {
+    system: `You are an expert in Romanian parent education. Expand FAQ sections to 15+ questions optimized for voice search and featured snippets.`,
+
+    user: `Creează o secțiune FAQ extinsă cu 15-20 întrebări frecvente despre acest subiect:
+
+Context articol:
+{content}
+
+CERINȚE:
+- 15-20 întrebări în limba română
+- Optimizate pentru voice search ("Cum să...", "Care sunt...", "De ce...")
+- Răspunsuri concise (2-3 propoziții)
+- Adresează preocupările părinților români
+- Include întrebări despre prețuri, vârstă potrivită, beneficii educaționale
+
+FORMAT:
+## Întrebări Frecvente
+
+**1. [Întrebare]?**
+[Răspuns]
+
+**2-20. [Continuă cu toate întrebările]**
+
+Returnează secțiunea completă în Markdown.`,
+  },
+
+  addInternalLinks: {
+    system: `You are an expert in Romanian e-commerce content optimization. Add natural internal links to blog content.`,
+
+    user: `Adaugă link-uri interne strategice în acest conținut:
+
+{content}
+
+LINK-URI DE ADĂUGAT (natural, în context):
+- [jucării STEM](/categorii/jucarii-stem)
+- [jucării educative](/categorii/jucarii-educative)
+- [robotică pentru copii](/categorii/robotica)
+- [Vezi colecția completă](/products) sau [Descoperă jucării STEM](https://www.techtots.ro/products)
+
+CERINȚE:
+- Adaugă 5-8 link-uri în mod natural
+- Păstrează fluxul conținutului
+- Nu forța link-urile
+- Folosește text ancora relevant în română
+
+Returnează conținutul COMPLET cu link-uri adăugate în Markdown.`,
+  },
+
+  addCTAs: {
+    system: `You are an expert in Romanian e-commerce conversion optimization. Add compelling CTAs throughout blog content.`,
+
+    user: `Adaugă Call-to-Actions strategice în acest conținut:
+
+{content}
+
+TIPURI DE CTA-URI:
+- CTA-uri soft în mijlocul conținutului ("Explorează colecția noastră...")
+- CTA primar la final ("Descoperă jucăriile STEM perfecte...")
+- Mențiuni naturale către www.techtots.ro/products
+
+CERINȚE:
+- 3-5 CTA-uri în total
+- Limbaj natural și persuasiv în română
+- Referințe către produse și categorii
+- Nu fi prea agresiv/salesy
+- Integrează natural în secțiuni relevante
+
+Returnează conținutul COMPLET cu CTA-uri adăugate în Markdown.`,
+  },
+
+  generateMetadata: {
+    system: `You are an expert Romanian SEO specialist. Generate comprehensive SEO metadata for blog posts targeting Romanian parents searching for STEM educational content.`,
+
+    user: `Generează metadata SEO completă pentru acest articol:
+
+Titlu: {title}
+Conținut (primele 1000 caractere): {content}
+Data: {currentDate}
+
+RETURNEAZĂ FORMAT JSON EXACT:
+{
+  "metaTitle": "[50-60 caractere în română - MAXIM 60!]",
+  "metaDescription": "[150-160 caractere în română - MAXIM 160!]",
+  "metaKeywords": ["cuvânt1", "cuvânt2", "cuvânt3", "cuvânt4", "cuvânt5"],
+  "focusKeyword": "cuvânt cheie principal",
+  "secondaryKeywords": ["secundar1", "secundar2", "secundar3"],
+  "longTailKeywords": ["expresie lungă 1", "expresie lungă 2"],
+  "regionalKeywords": ["jucării STEM București", "jucării STEM Cluj"],
+  "structuredData": {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "{title}",
+    "author": {
+      "@type": "Organization",
+      "name": "TechTots România"
+    },
+    "datePublished": "{currentDate}"
+  }
+}
+
+CRITICAL:
+- metaTitle: MAXIM 60 caractere (numără exact!)
+- metaDescription: MAXIM 160 caractere (numără exact!)
+- Folosește diacritice românești (ă, â, î, ș, ț)
+- Returnează DOAR JSON valid, nimic altceva`,
+  },
+};
+
+/**
+ * Format SEO prompt with variables
+ */
+export function formatSEOPrompt(
+  template: string,
+  variables: Record<string, any>
+): string {
+  let formatted = template;
+
+  for (const [key, value] of Object.entries(variables)) {
+    const placeholder = `{${key}}`;
+    formatted = formatted.replace(
+      new RegExp(placeholder, "g"),
+      String(value || "")
+    );
+  }
+
+  return formatted;
+}
