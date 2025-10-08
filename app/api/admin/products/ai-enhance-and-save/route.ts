@@ -240,24 +240,7 @@ export async function POST(request: NextRequest) {
     // Check authentication and admin role
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        {
-          error: "Not authorized",
-          message: "You must be logged in as an admin to use AI enhancement",
-        },
-        { status: 403 }
-      );
-    }
-
-    // Check if AI enhancement is enabled
-    if (!AIConfig.isEnhancementEnabled() || !AIConfig.isConfigured()) {
-      return NextResponse.json(
-        {
-          error: "AI Enhancement not available",
-          message: "AI enhancement is not configured or enabled",
-        },
-        { status: 503 }
-      );
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
     // Parse and validate request body
@@ -265,24 +248,59 @@ export async function POST(request: NextRequest) {
     const validatedData = aiEnhanceAndSaveSchema.parse(body);
 
     console.log(
-      `Starting AI enhancement and save for ${validatedData.products.length} products...`
+      `Creating AI enhancement job for ${validatedData.products.length} products...`
     );
 
-    const startTime = Date.now();
-    const results = {
-      enhanced: 0,
-      saved: 0,
-      failed: 0,
-      errors: [] as Array<{ product: string; error: string; stage: string }>,
-      warnings: [] as Array<{ product: string; warning: string }>,
-    };
+    // Create job record
+    const job = await db.aiJob.create({
+      data: {
+        type: "PRODUCT_ENHANCEMENT",
+        status: "PENDING",
+        userId: session.user.id,
+        input: JSON.stringify({
+          products: validatedData.products,
+          options: validatedData.options,
+          saveToDatabase: validatedData.saveToDatabase,
+          autoApprove: validatedData.autoApprove,
+        }),
+      },
+    });
 
-    // Initialize dual provider enhancement service
-    const enhancementService = new DualProviderEnhancementService();
-    const enhancedProducts = [];
-    const savedProducts = [];
+    // Trigger Inngest job
+    const { inngest } = await import("@/inngest/client");
+    await inngest.send({
+      name: "products/enhance.requested",
+      data: {
+        userId: session.user.id,
+        products: validatedData.products,
+        options: validatedData.options,
+        saveToDatabase: validatedData.saveToDatabase,
+        autoApprove: validatedData.autoApprove,
+        jobId: job.id,
+      },
+    });
 
-    // Process each product
+    console.log(`✅ Product enhancement job created: ${job.id}`);
+
+    // Return job ID immediately (< 1 second!)
+    return NextResponse.json({
+      success: true,
+      jobId: job.id,
+      status: "PENDING",
+      message:
+        "Product enhancement started. Poll status endpoint for progress.",
+    });
+  } catch (error) {
+    console.error("Product enhancement API error:", error);
+    return handleApiError(error, "Failed to start product enhancement");
+  }
+}
+
+// Keep the old implementation commented for reference
+/*
+export async function POST_OLD(request: NextRequest) {
+  try {
+    // Old implementation...
     for (const [index, productData] of validatedData.products.entries()) {
       try {
         console.log(`Processing product ${index + 1}: ${productData.name}`);
@@ -556,3 +574,4 @@ export async function POST(request: NextRequest) {
     return handleApiError(error, "Failed to enhance and save products");
   }
 }
+*/

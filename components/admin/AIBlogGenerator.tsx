@@ -95,50 +95,103 @@ export default function AIBlogGenerator({
     setIsGenerating(true);
     setError(null);
     setGeneratedBlog(null);
-    setProgress(null);
+    setProgress({
+      stage: 1,
+      message: "Starting blog generation...",
+      percent: 0,
+    });
 
     try {
-      const requestBody = {
-        prompt: prompt.trim(),
-        options: {
-          includeSEO,
-          includeCoverImage,
-          targetStemCategory: stemCategory ? stemCategory : undefined,
-          targetAudience: targetAudience ?? undefined,
-          tone,
-          includeCallToAction,
-          saveToDatabase,
-          autoPublish,
-        },
-      };
-
+      // Start job
       const response = await fetch("/api/admin/blog/ai-generate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: prompt.trim(),
+          options: {
+            includeSEO,
+            includeCoverImage,
+            targetStemCategory: stemCategory || undefined,
+            targetAudience: targetAudience || undefined,
+            tone,
+            includeCallToAction,
+            saveToDatabase,
+            autoPublish,
+          },
+        }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate blog");
+        throw new Error(errorData.error || "Failed to start blog generation");
       }
 
       const data = await response.json();
+      const jobId = data.jobId;
 
-      if (data.success && data.generatedBlog) {
-        setGeneratedBlog(data.generatedBlog);
-        onBlogGenerated?.(data.generatedBlog);
-      } else {
-        throw new Error(data.error ?? "Blog generation failed");
-      }
+      setProgress({
+        stage: 1,
+        message: "Blog generation in progress...",
+        percent: 25,
+      });
+
+      // Poll for completion
+      let pollCount = 0;
+      const maxPolls = 60; // 5 minutes max (60 * 5 seconds)
+
+      const pollInterval = setInterval(async () => {
+        pollCount++;
+
+        if (pollCount > maxPolls) {
+          clearInterval(pollInterval);
+          setError("Blog generation timed out. Please try again.");
+          setIsGenerating(false);
+          return;
+        }
+
+        try {
+          const statusResponse = await fetch(
+            `/api/admin/blog/ai-generate/status/${jobId}`
+          );
+          const statusData = await statusResponse.json();
+
+          if (statusData.status === "PROCESSING") {
+            const progressPercent = Math.min(25 + pollCount * 2, 90);
+            setProgress({
+              stage: 1,
+              message: "Generating high-quality blog content...",
+              percent: progressPercent,
+            });
+          }
+
+          if (statusData.status === "COMPLETED") {
+            clearInterval(pollInterval);
+            setProgress({
+              stage: 1,
+              message: "Blog generated successfully!",
+              percent: 100,
+            });
+
+            if (statusData.result?.generatedBlog) {
+              setGeneratedBlog(statusData.result.generatedBlog);
+              onBlogGenerated?.(statusData.result.generatedBlog);
+            }
+            setIsGenerating(false);
+          } else if (statusData.status === "FAILED") {
+            clearInterval(pollInterval);
+            setError(statusData.error || "Blog generation failed");
+            setIsGenerating(false);
+          }
+        } catch (pollError) {
+          console.error("Polling error:", pollError);
+          // Continue polling even if one request fails
+        }
+      }, 5000); // Poll every 5 seconds
     } catch (err) {
       console.error("Blog generation error:", err);
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred"
       );
-    } finally {
       setIsGenerating(false);
       setProgress(null);
     }

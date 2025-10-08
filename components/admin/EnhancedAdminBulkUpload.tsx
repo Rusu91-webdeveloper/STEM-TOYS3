@@ -309,7 +309,6 @@ export function EnhancedAdminBulkUpload() {
     setIsEnhancing(true);
     setCurrentStep("ai-enhancement");
 
-    // Initialize progress tracking
     const startTime = Date.now();
     setEnhancementProgress({
       total: products.length,
@@ -322,8 +321,7 @@ export function EnhancedAdminBulkUpload() {
     });
 
     try {
-      // Convert products to BasicProduct format
-      const basicProducts: BasicProduct[] = products.map(product => ({
+      const basicProducts = products.map(product => ({
         name: product.name,
         price: product.price,
         category: product.category,
@@ -335,94 +333,113 @@ export function EnhancedAdminBulkUpload() {
         tags: product.tags ? product.tags.split(",") : [],
       }));
 
-      // Call AI enhancement and save API (enhance AND save in one call)
+      // Start job
       const response = await fetch("/api/admin/products/ai-enhance-and-save", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           products: basicProducts,
           options: aiEnhancementOptions,
-          saveToDatabase: true,        // Save to database
-          autoApprove: false,          // Require admin approval
+          saveToDatabase: true,
+          autoApprove: false,
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.message || "AI enhancement failed";
-        const errorDetails = errorData.details || "";
-        const errorHelp = errorData.help
-          ? JSON.stringify(errorData.help, null, 2)
-          : "";
-
-        throw new Error(
-          `${errorMessage}${errorDetails ? ` - ${errorDetails}` : ""}${errorHelp ? `\n\nHelp:\n${errorHelp}` : ""}`
-        );
+        throw new Error("Failed to start product enhancement");
       }
 
-      const result = await response.json();
+      const data = await response.json();
+      const jobId = data.jobId;
 
-      // Handle the ai-enhance-and-save response format
-      setEnhancedProducts(result.enhancedProducts);
+      // Poll for completion
+      let pollCount = 0;
+      const maxPolls = 120; // 10 minutes max (120 * 5 seconds)
 
-      // Update final progress
-      setEnhancementProgress(prev =>
-        prev
-          ? {
-              ...prev,
-              processed: result.summary.total,
-              successful: result.summary.successful,
-              failed: result.summary.failed,
-              errors: result.errors || [],
-              estimatedTimeRemaining: 0,
-            }
-          : null
-      );
+      const pollInterval = setInterval(async () => {
+        pollCount++;
 
-      toast({
-        title: "AI Enhancement & Save Complete",
-        description: `Successfully enhanced and saved ${result.saveResults?.saved || 0} products. ${result.saveResults?.pending_approval || 0} pending approval.`,
-      });
+        if (pollCount > maxPolls) {
+          clearInterval(pollInterval);
+          toast({
+            title: "Timeout",
+            description: "Product enhancement timed out. Please try again.",
+            variant: "destructive",
+          });
+          setIsEnhancing(false);
+          return;
+        }
 
-      // Since products are already saved, show completion
-      setCurrentStep("complete");
-    } catch (error) {
-      // Update progress with error
-      setEnhancementProgress(prev =>
-        prev
-          ? {
-              ...prev,
+        try {
+          const statusResponse = await fetch(
+            `/api/admin/ai-jobs/status/${jobId}`
+          );
+          const statusData = await statusResponse.json();
+
+          if (statusData.status === "PROCESSING") {
+            // Estimate progress
+            const elapsedTime = Date.now() - startTime;
+            const estimatedProgress = Math.min(
+              Math.floor((elapsedTime / (products.length * 15000)) * 100),
+              90
+            );
+
+            setEnhancementProgress(prev => ({
+              ...prev!,
+              processed: Math.floor(
+                (estimatedProgress / 100) * products.length
+              ),
+              estimatedTimeRemaining: Math.max(
+                products.length * 15000 - elapsedTime,
+                5000
+              ),
+            }));
+          }
+
+          if (statusData.status === "COMPLETED") {
+            clearInterval(pollInterval);
+
+            const result = statusData.result;
+            setEnhancementProgress({
+              total: products.length,
               processed: products.length,
-              failed: products.length,
-              errors: [
-                ...(prev.errors || []),
-                {
-                  product: "All products",
-                  error:
-                    error instanceof Error ? error.message : "Unknown error",
-                },
-              ],
-              estimatedTimeRemaining: 0,
-            }
-          : null
-      );
+              successful: result.summary?.successful || products.length,
+              failed: result.summary?.failed || 0,
+              errors: result.errors || [],
+              startTime,
+            });
 
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
+            setIsEnhancing(false);
+            setCurrentStep("complete");
+
+            toast({
+              title: "Success!",
+              description: `Enhanced and saved ${result.summary?.successful || 0} products`,
+            });
+          } else if (statusData.status === "FAILED") {
+            clearInterval(pollInterval);
+            toast({
+              title: "Enhancement failed",
+              description: statusData.error || "Product enhancement failed",
+              variant: "destructive",
+            });
+            setIsEnhancing(false);
+            setCurrentStep("upload");
+          }
+        } catch (pollError) {
+          console.error("Polling error:", pollError);
+        }
+      }, 5000); // Poll every 5 seconds
+    } catch (error) {
+      console.error("Enhancement error:", error);
       toast({
-        title: "AI Enhancement Failed",
+        title: "Error",
         description:
-          errorMessage.length > 100
-            ? `${errorMessage.substring(0, 100)}...`
-            : errorMessage,
+          error instanceof Error ? error.message : "Enhancement failed",
         variant: "destructive",
       });
-      console.error("AI enhancement error:", error);
-      setCurrentStep("upload");
-    } finally {
       setIsEnhancing(false);
+      setCurrentStep("upload");
     }
   };
 

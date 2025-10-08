@@ -535,32 +535,61 @@ export async function POST(request: NextRequest) {
     // Check authentication and admin role
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        {
-          error: "Not authorized",
-          message: "You must be logged in as an admin to upload products",
-        },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
     // Parse and validate request body
     const body = await request.json();
     const validatedData = adminBulkUploadSchema.parse(body);
 
-    const results = {
-      success: 0,
-      failed: 0,
-      errors: [] as Array<{
-        row: number;
-        field: string;
-        message: string;
-        value?: string;
-      }>,
-      warnings: [] as Array<{ row: number; field: string; message: string }>,
-      processingTime: 0,
-    };
+    console.log(
+      `Creating bulk upload job for ${validatedData.products.length} products...`
+    );
 
+    // Create job record
+    const job = await db.aiJob.create({
+      data: {
+        type: "PRODUCT_BULK_UPLOAD",
+        status: "PENDING",
+        userId: session.user.id,
+        input: JSON.stringify({
+          products: validatedData.products,
+          aiEnhancement: validatedData.aiEnhancement,
+        }),
+      },
+    });
+
+    // Trigger Inngest job
+    const { inngest } = await import("@/inngest/client");
+    await inngest.send({
+      name: "products/bulk-upload.requested",
+      data: {
+        userId: session.user.id,
+        products: validatedData.products,
+        aiEnhancement: validatedData.aiEnhancement,
+        jobId: job.id,
+      },
+    });
+
+    console.log(`✅ Bulk upload job created: ${job.id}`);
+
+    // Return job ID immediately (< 1 second!)
+    return NextResponse.json({
+      success: true,
+      jobId: job.id,
+      status: "PENDING",
+      message: "Product upload started. Poll status endpoint for progress.",
+    });
+  } catch (error) {
+    console.error("Bulk upload API error:", error);
+    return handleApiError(error);
+  }
+}
+
+// Keep old implementation for reference
+/*
+export async function POST_OLD(request: NextRequest) {
+  try {
     const startTime = Date.now();
 
     // Initialize dual-provider product enhancement service (GPT-5-mini → GPT-4o fallback)
@@ -1103,3 +1132,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+*/

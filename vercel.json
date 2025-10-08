@@ -3,8 +3,8 @@
     "app/api/**/*.ts": {
       "maxDuration": 30
     },
-    "app/api/admin/blog/ai-generate/route.ts": {
-      "maxDuration": 60
+    "app/api/inngest/route.ts": {
+      "maxDuration": 10
     }
   },
   "crons": [

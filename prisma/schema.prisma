@@ -101,6 +101,7 @@ model User {
   organization            Organization?            @relation(fields: [organizationId], references: [id])
   shard                   UserShard?               @relation(fields: [shardId], references: [shardId])
   tenant                  Tenant?                  @relation(fields: [tenantId], references: [id])
+  aiJobs                  AiJob[]
   wishlistItems           Wishlist[]
 
   @@index([email])
@@ -1637,6 +1638,24 @@ model ImageProcessingLog {
   @@index([operation])
   @@index([status])
   @@index([startedAt])
+}
+
+model AiJob {
+  id          String    @id @default(cuid())
+  type        String    // "BLOG_GENERATION"
+  status      String    // "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED"
+  userId      String
+  input       String    @db.Text
+  result      String?   @db.Text
+  error       String?   @db.Text
+  createdAt   DateTime  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 enum SecurityEventType {
