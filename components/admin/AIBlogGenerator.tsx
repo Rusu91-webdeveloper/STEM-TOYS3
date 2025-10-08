@@ -166,9 +166,15 @@ export default function AIBlogGenerator({
 
           if (statusData.status === "COMPLETED") {
             clearInterval(pollInterval);
+            // Check if blog was auto-saved to database
+            const blogSaved = statusData.blogPost?.success;
+            const blogTitle = statusData.blogPost?.title;
+
             setProgress({
               stage: 1,
-              message: "Blog generated successfully!",
+              message: blogSaved
+                ? `Blog "${blogTitle}" generated and saved as draft!`
+                : "Blog generated successfully!",
               percent: 100,
             });
 
