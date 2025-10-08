@@ -51,9 +51,11 @@ Database → Saves results
 3. Click "New Project"
 4. Select "Deploy from GitHub repo"
 5. Choose your repository
-6. Set root directory: `inngest-server`
-7. Add environment variables (see below)
-8. Click "Deploy"
+6. **Important:** Do NOT set a root directory - leave it empty
+7. Railway will detect `Dockerfile.railway` and use it automatically
+8. Add environment variables (see below)
+9. Set start command (if needed): `node inngest-server/server.js`
+10. Click "Deploy"
 
 ### Option 2: Via Railway CLI
 

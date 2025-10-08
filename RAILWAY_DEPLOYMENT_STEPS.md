@@ -65,6 +65,7 @@ NODE_ENV=production
 ```
 
 **Important Notes:**
+
 - Copy the EXACT values from your working local setup
 - Don't add quotes around values
 - Railway will restart automatically after adding variables
@@ -73,6 +74,7 @@ NODE_ENV=production
 
 1. **Go to "Deployments" tab**
 2. **Watch the build logs** - you'll see:
+
    ```
    Building...
    Installing dependencies...
@@ -91,16 +93,19 @@ NODE_ENV=production
 2. **Scroll to "Domains"**
 3. **Click "Generate Domain"**
 4. **Copy the URL** - it will look like:
+
    ```
    https://your-app-production-xxxx.up.railway.app
    ```
 
 5. **Test the health endpoint:**
+
    ```bash
    curl https://your-app-production-xxxx.up.railway.app/health
    ```
-   
+
    Should return:
+
    ```json
    {
      "status": "ok",
@@ -138,6 +143,7 @@ Now we need to tell Inngest Cloud to call Railway instead of Vercel:
 Now let's test if everything works:
 
 1. **Go to your admin panel:**
+
    ```
    https://www.techtots.ro/admin/blog
    ```
@@ -145,6 +151,7 @@ Now let's test if everything works:
 2. **Click "AI Generate Blog"**
 
 3. **Enter a test prompt:**
+
    ```
    STEM toys help children learn mathematics
    ```
@@ -152,6 +159,7 @@ Now let's test if everything works:
 4. **Click "Generate"**
 
 5. **Watch Inngest Dashboard:**
+
    ```
    https://app.inngest.com/env/production/stream
    ```
@@ -177,7 +185,7 @@ Now let's test if everything works:
 Check that the job completed successfully:
 
 ```sql
-SELECT 
+SELECT
   id,
   status,
   EXTRACT(EPOCH FROM (completedAt - startedAt)) as duration_seconds,
@@ -188,6 +196,7 @@ LIMIT 1;
 ```
 
 **Expected results:**
+
 - `status`: COMPLETED
 - `duration_seconds`: 90-120
 - `result_length`: 10000+ (full blog content)
@@ -195,13 +204,15 @@ LIMIT 1;
 ## 🎉 Success!
 
 If you see:
+
 - ✅ Health endpoint returns 200
 - ✅ Inngest functions are synced
 - ✅ Blog generation completes
 - ✅ Job status is COMPLETED
 - ✅ Blog appears in admin panel
 
-**You're done!** Your Inngest functions now run on Railway with no timeout limits!
+**You're done!** Your Inngest functions now run on Railway with no timeout
+limits!
 
 ---
 
@@ -210,32 +221,38 @@ If you see:
 ### Issue: Build fails on Railway
 
 **Check:**
+
 1. Root directory is set to `inngest-server`
 2. All environment variables are added
 3. GitHub repo is accessible
 
 **Fix:**
+
 - Check Railway build logs for specific error
 - Verify package.json is in inngest-server directory
 
 ### Issue: Server starts but health check fails
 
 **Check:**
+
 1. PORT environment variable (Railway sets this automatically)
 2. Health endpoint path: `/health`
 
 **Fix:**
+
 - Check Railway logs for startup errors
 - Verify server.js is starting correctly
 
 ### Issue: Inngest functions not syncing
 
 **Check:**
+
 1. Railway URL is correct in Inngest dashboard
 2. INNGEST_SIGNING_KEY matches in both places
 3. Functions are exported correctly
 
 **Fix:**
+
 - Click "Sync" again in Inngest dashboard
 - Check Railway logs for Inngest connection errors
 - Verify signing key is exact match
@@ -243,11 +260,13 @@ If you see:
 ### Issue: Blog generation still times out
 
 **Check:**
+
 1. Inngest dashboard shows Railway URL (not Vercel)
 2. AI_PRIMARY_MODEL is set to gpt-4o-mini
 3. OPENAI_API_KEY has sufficient credits
 
 **Fix:**
+
 - Verify environment variables in Railway
 - Check Railway logs for actual execution time
 - Test OPENAI_API_KEY directly
@@ -255,11 +274,13 @@ If you see:
 ### Issue: Database connection error
 
 **Check:**
+
 1. DATABASE_URL is accessible from Railway
 2. Neon allows connections from Railway IP
 3. Database credentials are correct
 
 **Fix:**
+
 - Test database connection from Railway logs
 - Verify DATABASE_URL format
 - Check Neon dashboard for connection limits
@@ -269,20 +290,23 @@ If you see:
 ## 📊 Monitoring
 
 ### Railway Dashboard
+
 - **Logs:** Real-time server logs
 - **Metrics:** CPU, Memory, Network usage
 - **Deployments:** History of deploys
 
 ### Inngest Dashboard
+
 - **Stream:** Real-time function executions
 - **Functions:** Success rates, durations
 - **Logs:** Detailed execution logs
 
 ### Your Database
+
 ```sql
 -- Check recent jobs
-SELECT status, COUNT(*) 
-FROM "AiJob" 
+SELECT status, COUNT(*)
+FROM "AiJob"
 GROUP BY status;
 
 -- Check average duration
@@ -296,12 +320,14 @@ WHERE status = 'COMPLETED';
 ## 💰 Cost
 
 **Railway Free Tier:**
+
 - 500 hours/month
 - For your use case (~2 min per blog):
   - 30 blogs/month = 60 minutes used
   - Well within free tier! ✅
 
 **If you exceed free tier:**
+
 - Railway charges $5/month for unlimited usage
 - Still cheaper than Vercel Pro ($20/month)
 
@@ -319,7 +345,7 @@ To update the server:
 
 ## 📞 Need Help?
 
-**Stuck on a step?** 
+**Stuck on a step?**
 
 1. Check Railway logs for errors
 2. Check Inngest dashboard for sync status
@@ -328,7 +354,6 @@ To update the server:
 
 ---
 
-**Estimated Total Time:** 20-25 minutes
-**Difficulty:** Easy (mostly point-and-click)
-**Result:** Blog generation works perfectly with no timeouts! 🎉
-
+**Estimated Total Time:** 20-25 minutes **Difficulty:** Easy (mostly
+point-and-click) **Result:** Blog generation works perfectly with no timeouts!
+🎉
