@@ -54,7 +54,13 @@ async function findOrCreateBlogCategory(stemCategory: StemCategory) {
 }
 
 export const generateBlogJob = inngest.createFunction(
-  { id: "generate-blog", name: "Generate Blog with AI" },
+  { 
+    id: "generate-blog", 
+    name: "Generate Blog with AI",
+    timeouts: {
+      finish: "5m" // 5 minutes timeout for entire function
+    }
+  },
   { event: "blog/generate.requested" },
   async ({ event, step }) => {
     const { userId, prompt, options, jobId } = event.data;
@@ -126,7 +132,7 @@ export const generateBlogJob = inngest.createFunction(
           `🤖 [Inngest] Starting AI blog generation for job ${jobId}`
         );
         const blogService = new OptimizedBlogGenerationService({
-          primaryModel: "gpt-4o",
+          primaryModel: process.env.AI_PRIMARY_MODEL || "gpt-4o-mini",
           useSimplifiedPrompts: true,
           skipAIIfSlow: true,
           maxStage1Time: 90000,
