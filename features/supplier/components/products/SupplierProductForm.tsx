@@ -180,13 +180,44 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
 
   const fetchCategories = async () => {
     try {
+      console.log(
+        "[SupplierProductForm] Fetching categories from /api/categories"
+      );
       const response = await fetch("/api/categories");
+      console.log(
+        "[SupplierProductForm] Categories response status:",
+        response.status
+      );
+
       if (response.ok) {
         const data = await response.json();
+        console.log(
+          "[SupplierProductForm] Categories fetched:",
+          data.length,
+          "categories"
+        );
         setCategories(data);
+      } else {
+        const errorText = await response.text();
+        console.error(
+          "[SupplierProductForm] Failed to fetch categories:",
+          response.status,
+          errorText
+        );
+        toast({
+          title: "Warning",
+          description: "Could not load categories. Please refresh the page.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      console.error("[SupplierProductForm] Error fetching categories:", error);
+      toast({
+        title: "Error",
+        description:
+          "Failed to load categories. Please check your connection and try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -468,18 +499,36 @@ export function SupplierProductForm({ productId }: SupplierProductFormProps) {
                     <Select
                       value={watchedValues.categoryId || ""}
                       onValueChange={value => setValue("categoryId", value)}
+                      disabled={categories.length === 0}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue
+                          placeholder={
+                            categories.length === 0
+                              ? "Loading categories..."
+                              : "Select category"
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {categories.map(category => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
+                        {categories.length === 0 ? (
+                          <div className="px-2 py-3 text-sm text-muted-foreground text-center">
+                            No categories available
+                          </div>
+                        ) : (
+                          categories.map(category => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
+                    {categories.length === 0 && !loading && (
+                      <p className="text-xs text-amber-600">
+                        Categories failed to load. Please refresh the page.
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="ageGroup">Age Group</Label>

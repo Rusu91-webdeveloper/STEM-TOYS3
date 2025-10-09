@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-
-import { ProductSchemaHelp } from "@/features/supplier/components/products/ProductSchemaHelp";
+import { ProductMetrics } from "@/features/supplier/components/products/ProductMetrics";
+import { ProductQuickActions } from "@/features/supplier/components/products/ProductQuickActions";
 import { SupplierProductList } from "@/features/supplier/components/products/SupplierProductList";
 
 export const metadata: Metadata = {
@@ -10,18 +10,28 @@ export const metadata: Metadata = {
 
 export default function SupplierProductsPage() {
   return (
-    <div className="container mx-auto py-6">
-      <div className="mb-6">
+    <div className="container mx-auto py-6 space-y-8">
+      {/* Page Header */}
+      <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Products</h1>
         <p className="text-muted-foreground">
           Manage your product catalog and track performance
         </p>
       </div>
-      
-      <SupplierProductList />
-      
-      <div className="mt-12">
-        <ProductSchemaHelp />
+
+      {/* Summary Metrics */}
+      <ProductMetrics />
+
+      {/* Quick Actions */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Quick Actions</h2>
+        <ProductQuickActions />
+      </div>
+
+      {/* Product List with Filters */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Your Products</h2>
+        <SupplierProductList />
       </div>
     </div>
   );

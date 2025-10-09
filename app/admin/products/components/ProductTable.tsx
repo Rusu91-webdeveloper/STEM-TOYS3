@@ -21,6 +21,11 @@ interface Product {
   stockQuantity?: number;
   isActive: boolean;
   images: string[];
+  supplier?: {
+    id: string;
+    name?: string;
+    companyName?: string;
+  } | null;
 }
 
 export function ProductTable({ products }: { products: Product[] }) {
@@ -41,6 +46,12 @@ export function ProductTable({ products }: { products: Product[] }) {
               <th className="h-12 px-4 text-left align-middle font-medium">
                 <div className="flex items-center gap-1">
                   Category
+                  <ArrowUpDown className="h-3 w-3" />
+                </div>
+              </th>
+              <th className="h-12 px-4 text-left align-middle font-medium">
+                <div className="flex items-center gap-1">
+                  Supplier
                   <ArrowUpDown className="h-3 w-3" />
                 </div>
               </th>
@@ -71,7 +82,7 @@ export function ProductTable({ products }: { products: Product[] }) {
             {products.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="py-8 text-center text-muted-foreground"
                 >
                   No products found
@@ -108,6 +119,24 @@ export function ProductTable({ products }: { products: Product[] }) {
                   </td>
                   <td className="px-4 py-4">
                     {product.category?.name || "N/A"}
+                  </td>
+                  <td className="px-4 py-4">
+                    {product.supplier ? (
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className="bg-blue-50 text-blue-700 border-blue-200"
+                        >
+                          {product.supplier.companyName ||
+                            product.supplier.name ||
+                            "Supplier"}
+                        </Badge>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">
+                        Direct
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-4">
                     <div className="space-y-1">

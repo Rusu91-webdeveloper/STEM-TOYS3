@@ -78,6 +78,11 @@ const navigation = [
             href: "/supplier/products/bulk-upload",
             icon: Upload,
           },
+          {
+            name: "Help & Docs",
+            href: "/supplier/products/help",
+            icon: HelpCircle,
+          },
         ],
       },
       {

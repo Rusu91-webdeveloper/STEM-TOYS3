@@ -209,10 +209,30 @@ export async function PUT(
       validatedData.slug = newSlug;
     }
 
+    // Separate fields that go into metadata vs direct fields
+    const {
+      learningOutcomes,
+      specialCategories,
+      productType,
+      ...directFields
+    } = validatedData as any;
+
+    // Update existing metadata or create new
+    const currentMetadata = (existingProduct.metadata as any) || {};
+    const updatedMetadata = {
+      ...currentMetadata,
+      ...(learningOutcomes !== undefined && { learningOutcomes }),
+      ...(specialCategories !== undefined && { specialCategories }),
+      ...(productType !== undefined && { productType }),
+    };
+
     // Update product
     const updatedProduct = await db.product.update({
       where: { id },
-      data: validatedData,
+      data: {
+        ...directFields,
+        metadata: updatedMetadata,
+      },
       include: {
         category: {
           select: {

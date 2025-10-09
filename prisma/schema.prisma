@@ -76,6 +76,7 @@ model User {
   replicaId               String?
   shardId                 String?
   addresses               Address[]
+  aiJobs                  AiJob[]
   blogs                   Blog[]
   campaignApplications    CampaignApplication[]
   consentLogs             ConsentLog[]
@@ -101,7 +102,6 @@ model User {
   organization            Organization?            @relation(fields: [organizationId], references: [id])
   shard                   UserShard?               @relation(fields: [shardId], references: [shardId])
   tenant                  Tenant?                  @relation(fields: [tenantId], references: [id])
-  aiJobs                  AiJob[]
   wishlistItems           Wishlist[]
 
   @@index([email])
@@ -904,6 +904,8 @@ model SupplierOrder {
   quantity          Int
   unitCost          Float
   totalCost         Float
+  supplierRevenue   Float                  @default(0)
+  commission        Float                  @default(0)
   status            String                 @default("PENDING")
   notes             String?
   createdAt         DateTime               @default(now())
@@ -913,10 +915,12 @@ model SupplierOrder {
   orderItemId       String
   shippedAt         DateTime?
   trackingNumber    String?
+  supplierInvoiceId String?
   order             Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderItem         OrderItem              @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
   product           Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
   supplier          Supplier               @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  supplierInvoice   SupplierInvoice?       @relation(fields: [supplierInvoiceId], references: [id], onDelete: SetNull)
   tracking          SupplierOrderTracking?
 
   @@index([orderId])
@@ -926,6 +930,7 @@ model SupplierOrder {
   @@index([status])
   @@index([trackingNumber])
   @@index([shippedAt])
+  @@index([supplierInvoiceId])
 }
 
 model Supplier {
@@ -982,7 +987,7 @@ model Supplier {
   taxId                    String?
   termsAccepted            Boolean                      @default(false)
   trackingUrl              String?
-  userId                   String?
+  userId                   String?                      @unique
   vatNumber                String?
   website                  String?
   yearEstablished          Int?
@@ -992,6 +997,7 @@ model Supplier {
   messages                 SupplierMessage[]
   notifications            SupplierNotification[]
   orders                   SupplierOrder[]
+  payments                 SupplierPayment[]
   performanceMetrics       SupplierPerformanceMetrics[]
   supportTickets           SupplierSupportTicket[]
 
@@ -1329,27 +1335,55 @@ model SupplierAnnouncement {
 }
 
 model SupplierInvoice {
-  id            String        @id @default(cuid())
-  supplierId    String
-  invoiceNumber String        @unique
-  periodStart   DateTime
-  periodEnd     DateTime
-  subtotal      Float
-  commission    Float
-  totalAmount   Float
-  status        InvoiceStatus @default(DRAFT)
-  dueDate       DateTime
-  paidAt        DateTime?
-  paymentMethod String?
-  notes         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  supplier      Supplier      @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  id             String            @id @default(cuid())
+  supplierId     String
+  invoiceNumber  String            @unique
+  periodStart    DateTime
+  periodEnd      DateTime
+  subtotal       Float
+  commission     Float
+  totalAmount    Float
+  status         InvoiceStatus     @default(DRAFT)
+  dueDate        DateTime
+  paidAt         DateTime?
+  paymentMethod  String?
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  supplier       Supplier          @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  payments       SupplierPayment[]
+  supplierOrders SupplierOrder[]
 
   @@index([supplierId])
   @@index([invoiceNumber])
   @@index([status])
   @@index([dueDate])
+}
+
+model SupplierPayment {
+  id             String        @id @default(cuid())
+  supplierId     String
+  invoiceId      String?
+  amount         Float
+  currency       String        @default("RON")
+  status         PaymentStatus @default(PENDING)
+  paymentMethod  String        @default("BANK_TRANSFER")
+  transactionId  String?       @unique
+  notes          String?
+  fee            Float?        @default(0)
+  processedAt    DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  supplier       Supplier      @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  invoice        SupplierInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([supplierId])
+  @@index([invoiceId])
+  @@index([status])
+  @@index([transactionId])
+  @@index([createdAt])
+  @@index([completedAt])
 }
 
 model SupplierMessage {
@@ -1642,12 +1676,12 @@ model ImageProcessingLog {
 
 model AiJob {
   id          String    @id @default(cuid())
-  type        String    // "BLOG_GENERATION"
-  status      String    // "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED"
+  type        String
+  status      String
   userId      String
-  input       String    @db.Text
-  result      String?   @db.Text
-  error       String?   @db.Text
+  input       String
+  result      String?
+  error       String?
   createdAt   DateTime  @default(now())
   startedAt   DateTime?
   completedAt DateTime?
@@ -1746,6 +1780,9 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+  PROCESSING
+  COMPLETED
+  CANCELLED
 }
 
 enum ReturnReason {

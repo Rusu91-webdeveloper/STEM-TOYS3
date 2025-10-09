@@ -419,6 +419,10 @@ export async function POST(request: NextRequest) {
       priceCurrency: inputCurrency,
       compareAtPrice: inputComparePrice,
       compareAtPriceCurrency: inputCompareCurrency,
+      // Exclude fields that go into metadata
+      learningOutcomes,
+      specialCategories,
+      productType,
       ...restValidated
     } = (validatedData as any) || {};
 
@@ -434,13 +438,21 @@ export async function POST(request: NextRequest) {
         ? inputComparePrice * 5
         : inputComparePrice;
 
+    // Prepare metadata with fields that don't exist in schema
+    const productMetadata = {
+      ...(restValidated.metadata || {}),
+      learningOutcomes: (validatedData as any).learningOutcomes ?? [],
+      specialCategories: (validatedData as any).specialCategories ?? [],
+      productType: (validatedData as any).productType,
+      priceCurrency: inputCurrency || "RON",
+      compareAtPriceCurrency: inputCompareCurrency || "RON",
+    };
+
     const product = await db.product.create({
       data: {
         ...(restValidated as any),
         price: finalPrice, // Always store in RON
-        priceCurrency: "RON", // Always store as RON
         compareAtPrice: finalComparePrice, // Always store in RON
-        compareAtPriceCurrency: finalComparePrice ? "RON" : undefined, // Always store as RON
         ...(normalizedSku ? { sku: normalizedSku } : {}),
         ...(createCategoryId
           ? {
@@ -451,10 +463,7 @@ export async function POST(request: NextRequest) {
           : {}),
         images: processedImages, // Use the processed images
         ageGroup: ((validatedData as any).ageGroup ?? null) as any,
-        learningOutcomes: ((validatedData as any).learningOutcomes ??
-          []) as any,
-        specialCategories: ((validatedData as any).specialCategories ??
-          []) as any,
+        metadata: productMetadata,
         slug,
         supplier: { connect: { id: supplier.id } },
       },

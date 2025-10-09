@@ -1,0 +1,7 @@
+name,price,category,images,description,stockQuantity,sku
+"Snap Circuits Electronics Exploration Kit",89.99,"Electronics","https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=600&fit=crop","Learn electronics with over 750 experiments using snap-together components. Build radios, alarms, and more with no soldering required","42","SNAP-SC750"
+"Osmo Coding Starter Kit for iPad",99.99,"Programming","https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop","Interactive coding game system that teaches programming logic through hands-on play. Includes physical blocks and iPad games","35","OSMO-CODE-01"
+"Thames & Kosmos Chemistry C3000 Set",179.99,"Science Kits","https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&h=600&fit=crop","Complete chemistry laboratory with 333 experiments covering reactions, organic chemistry, electrochemistry, and more","20","TK-CHEM-C3000"
+"Makeblock mBot Neo Robot Kit",129.99,"Robotics","https://images.unsplash.com/photo-1561144257-e32e9e866cf9?w=600&h=600&fit=crop","Educational robot kit with AI capabilities, WiFi connectivity, and Scratch/Python programming support for beginners","30","MAKE-MBOT-NEO"
+"National Geographic Rock Tumbler Kit",79.99,"Geology","https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&h=600&fit=crop","Professional-grade rock tumbler with rough gemstones, polishing grit, and jewelry fastenings. Complete geology learning kit","28","NATGEO-TUMBLE-01"
+

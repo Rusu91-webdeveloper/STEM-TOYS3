@@ -57,8 +57,9 @@ interface Product {
   status?: string;
   supplier?: {
     id: string;
-    name: string;
-  };
+    name?: string;
+    companyName?: string;
+  } | null;
   _count: {
     orderItems: number;
   };
@@ -108,11 +109,7 @@ async function getProducts(filters?: {
     if (filters) {
       if (filters.status) where.status = filters.status;
       if (filters.supplierId) {
-        where.supplierOrders = {
-          some: {
-            supplierId: filters.supplierId,
-          },
-        };
+        where.supplierId = filters.supplierId;
       }
       if (filters.categoryId) where.categoryId = filters.categoryId;
       if (filters.priceMin != null || filters.priceMax != null) {
@@ -135,7 +132,7 @@ async function getProducts(filters?: {
         include: {
           category: true,
           supplier: {
-            select: { id: true, name: true },
+            select: { id: true, name: true, companyName: true },
           },
           _count: { select: { orderItems: true } },
         },
@@ -177,13 +174,13 @@ async function getSuppliers() {
   try {
     const suppliers = await db.supplier.findMany({
       where: { isActive: true },
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
+      select: { id: true, name: true, companyName: true },
+      orderBy: { companyName: "asc" },
     });
     return suppliers;
   } catch (error) {
     console.error("Error fetching suppliers:", error);
-    return [] as { id: string; name: string }[];
+    return [] as { id: string; name: string; companyName?: string }[];
   }
 }
 
@@ -342,7 +339,7 @@ export default async function AdminProductsPage({
           />
 
           <ProductGrid products={products} status="REJECTED" title="Respinse" />
-          
+
           <ProductGrid products={products} status="DENIED" title="Refuzate" />
 
           {pagination.totalPages > 1 && (

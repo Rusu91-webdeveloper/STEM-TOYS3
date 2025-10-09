@@ -88,11 +88,7 @@ const bulkUploadSchema = z.object({
             "MIDDLE_SCHOOL_9_12",
             "TEENS_13_PLUS",
           ])
-          .optional()
-          .refine(
-            age => !age || age.trim().length > 0,
-            "Age group cannot be empty if provided"
-          ),
+          .optional(),
         stemDiscipline: z
           .enum([
             "SCIENCE",
@@ -101,6 +97,7 @@ const bulkUploadSchema = z.object({
             "MATHEMATICS",
             "GENERAL",
           ])
+          .optional()
           .default("GENERAL"),
         productType: z
           .enum([
@@ -110,11 +107,7 @@ const bulkUploadSchema = z.object({
             "EXPERIMENT_KITS",
             "BOARD_GAMES",
           ])
-          .optional()
-          .refine(
-            type => !type || type.trim().length > 0,
-            "Product type cannot be empty if provided"
-          ),
+          .optional(),
         learningOutcomes: z
           .string()
           .max(500, "Learning outcomes must be 500 characters or less")
@@ -142,7 +135,7 @@ const bulkUploadSchema = z.object({
       })
     )
     .min(1, "At least one product is required")
-    .max(1000, "Cannot upload more than 1000 products at once"),
+    .max(5, "Suppliers can upload maximum 5 products at once"),
 });
 
 // Enhanced validation for learning outcomes and special categories
@@ -225,6 +218,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = bulkUploadSchema.parse(body);
 
+    console.log(
+      `Processing bulk upload for ${validatedData.products.length} products...`
+    );
+
+    // Process products synchronously
     const results = {
       success: 0,
       failed: 0,
@@ -371,7 +369,7 @@ export async function POST(request: NextRequest) {
             });
           }
 
-          // Create product
+          // Create product with IN_PENDING status (awaiting approval)
           await db.product.create({
             data: {
               name: productData.name,
@@ -383,28 +381,32 @@ export async function POST(request: NextRequest) {
               stockQuantity: productData.stockQuantity,
               reorderPoint: productData.reorderPoint,
               weight: productData.weight,
-              categoryId,
+              // Connect category using Prisma relation
+              ...(categoryId && {
+                category: {
+                  connect: { id: categoryId },
+                },
+              }),
               tags,
               ageGroup: productData.ageGroup,
-              stemDiscipline: productData.stemDiscipline,
-              productType: productData.productType,
-              learningOutcomes,
-              specialCategories,
+              stemDiscipline: productData.stemDiscipline || "GENERAL",
               images,
-              supplierId: supplier.id,
+              // Connect supplier using Prisma relation
+              supplier: {
+                connect: { id: supplier.id },
+              },
+              status: "IN_PENDING", // Supplier products require approval
               isActive: true,
               featured: false,
 
-              // Romanian educational fields with defaults
-              romanianMinistryApproval: true,
-
-              // Metadata field for tracking
+              // Metadata field for tracking - store learningOutcomes, specialCategories, and other data here
               metadata: {
                 createdViaSupplierBulkUpload: true,
                 supplierBulkUploadTimestamp: new Date().toISOString(),
                 supplierId: supplier.id,
-                ministryApproved: true,
-                isActive: true,
+                productType: productData.productType,
+                learningOutcomes,
+                specialCategories,
               },
             },
           });

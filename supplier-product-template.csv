@@ -1,0 +1,7 @@
+name,price,category,images,description,stockQuantity,sku
+"LEGO Mindstorms Robot Inventor",359.99,"Robotics","https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=600&h=600&fit=crop","Build and program robots with this advanced LEGO robotics kit featuring sensors, motors and programmable hub",25,"LEGO-51515"
+"Arduino Starter Kit",89.99,"Electronics","https://images.unsplash.com/photo-1553406830-ef2513450d76?w=600&h=600&fit=crop","Complete electronics kit for learning Arduino programming and building electronic projects",50,"ARD-START-001"
+"Snap Circuits Jr. SC-100",24.99,"Electronics","https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=600&fit=crop","Hands-on introduction to electronics with 100+ projects using snap-together components",75,"SNAP-SC100"
+"Thames & Kosmos Chemistry Set",129.99,"Science Kits","https://images.unsplash.com/photo-1532634993-15f421e42ec0?w=600&h=600&fit=crop","Comprehensive chemistry lab kit with 125 experiments covering fundamental chemistry concepts",30,"TK-CHEM-125"
+"K'NEX Education Set",199.99,"Construction Sets","https://images.unsplash.com/photo-1545665225-b23b99e4d45e?w=600&h=600&fit=crop","Engineering and building set for creating moving structures and learning STEM principles",40,"KNEX-EDU-500"
+

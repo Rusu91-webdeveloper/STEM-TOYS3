@@ -4,19 +4,15 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Plus,
   Search,
-  Filter,
   MoreHorizontal,
   Edit,
   Trash2,
   Eye,
   Package,
   TrendingUp,
-  AlertCircle,
   CheckCircle,
   XCircle,
-  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,11 +52,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { type SupplierProduct } from "@/features/supplier/types/supplier";
 import { formatPriceWithCurrency } from "@/lib/currency-converter";
+import { ProductFiltersAdvanced } from "./ProductFiltersAdvanced";
+import { ProductEmptyState } from "./ProductEmptyState";
 
 interface ProductFilters {
   search?: string;
   status?: string;
-  category?: string;
   sortBy?: string;
   lowStock?: boolean;
   lowStockThreshold?: number;
@@ -113,7 +110,6 @@ export function SupplierProductList() {
       if (filters.search) queryParams.append("search", filters.search);
       if (filters.status && filters.status !== "all")
         queryParams.append("status", filters.status);
-      if (filters.category) queryParams.append("category", filters.category);
       if (filters.sortBy) queryParams.append("sortBy", filters.sortBy);
       if (filters.lowStock) queryParams.append("lowStock", "true");
       if (filters.lowStockThreshold && filters.lowStock)
@@ -230,78 +226,40 @@ export function SupplierProductList() {
     );
   };
 
+  // Extract advanced filters
+  const advancedFilters = {
+    lowStock: filters.lowStock,
+    lowStockThreshold: filters.lowStockThreshold,
+    minPrice: filters.minPrice,
+    maxPrice: filters.maxPrice,
+    tags: filters.tags,
+  };
+
   if (error) {
     return (
       <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
         <AlertDescription>{error}</AlertDescription>
       </Alert>
     );
   }
 
+  // Show empty state if no products and no filters applied
+  if (
+    !loading &&
+    products.length === 0 &&
+    !filters.search &&
+    (!filters.status || filters.status === "all")
+  ) {
+    return <ProductEmptyState />;
+  }
+
   return (
     <div className="space-y-6">
-      {/* Header with Actions */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold">Your Products</h2>
-          <p className="text-muted-foreground">
-            Manage your product catalog and track performance
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button asChild variant="outline">
-            <Link href="/supplier/products/bulk-upload">
-              <Upload className="w-4 h-4 mr-2" />
-              Bulk Upload
-            </Link>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              const params = new URLSearchParams();
-              params.append("page", pagination.page.toString());
-              params.append("limit", pagination.limit.toString());
-              if (filters.search) params.append("search", filters.search);
-              if (filters.status && filters.status !== "all")
-                params.append("status", filters.status);
-              if (filters.category) params.append("category", filters.category);
-              if (filters.sortBy) params.append("sortBy", filters.sortBy);
-              if (filters.lowStock) params.append("lowStock", "true");
-              if (filters.lowStockThreshold && filters.lowStock)
-                params.append(
-                  "lowStockThreshold",
-                  String(filters.lowStockThreshold)
-                );
-              if (filters.minPrice !== undefined)
-                params.append("minPrice", String(filters.minPrice));
-              if (filters.maxPrice !== undefined)
-                params.append("maxPrice", String(filters.maxPrice));
-              if (filters.tags) params.append("tags", String(filters.tags));
-              window.location.href = `/api/supplier/products/export?${params.toString()}`;
-            }}
-          >
-            Export CSV
-          </Button>
-          <Button asChild>
-            <Link href="/supplier/products/new">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Product
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {/* Filters */}
+      {/* Basic Filters - Always Visible */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="w-4 h-4" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -313,6 +271,8 @@ export function SupplierProductList() {
                 className="pl-10"
               />
             </div>
+
+            {/* Status Filter */}
             <Select
               value={filters.status || "all"}
               onValueChange={value =>
@@ -328,6 +288,8 @@ export function SupplierProductList() {
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Sort */}
             <Select
               value={filters.sortBy || ""}
               onValueChange={value =>
@@ -346,82 +308,17 @@ export function SupplierProductList() {
                 <SelectItem value="price-desc">Price High-Low</SelectItem>
               </SelectContent>
             </Select>
-            <div className="flex items-center space-x-2">
-              <label className="text-sm text-muted-foreground">
-                <input
-                  type="checkbox"
-                  className="mr-2"
-                  checked={!!filters.lowStock}
-                  onChange={e =>
-                    setFilters(prev => ({
-                      ...prev,
-                      lowStock: e.target.checked,
-                    }))
-                  }
-                />
-                Low stock
-              </label>
-              <Input
-                type="number"
-                min={0}
-                value={filters.lowStockThreshold ?? 5}
-                onChange={e =>
-                  setFilters(prev => ({
-                    ...prev,
-                    lowStockThreshold: Number(e.target.value),
-                  }))
-                }
-                className="w-24"
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Input
-                type="number"
-                placeholder="Min RON"
-                value={filters.minPrice ?? ""}
-                onChange={e =>
-                  setFilters(prev => ({
-                    ...prev,
-                    minPrice: e.target.value
-                      ? Number(e.target.value)
-                      : undefined,
-                  }))
-                }
-                className="w-24"
-              />
-              <span className="text-muted-foreground">-</span>
-              <Input
-                type="number"
-                placeholder="Max RON"
-                value={filters.maxPrice ?? ""}
-                onChange={e =>
-                  setFilters(prev => ({
-                    ...prev,
-                    maxPrice: e.target.value
-                      ? Number(e.target.value)
-                      : undefined,
-                  }))
-                }
-                className="w-24"
-              />
-            </div>
-            <Input
-              placeholder="Tags (comma separated)"
-              value={filters.tags || ""}
-              onChange={e =>
-                setFilters(prev => ({ ...prev, tags: e.target.value }))
-              }
-            />
-            <Button
-              variant="outline"
-              onClick={() => setFilters({})}
-              className="w-full"
-            >
-              Clear Filters
-            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Advanced Filters - Collapsible */}
+      <ProductFiltersAdvanced
+        filters={advancedFilters}
+        onFiltersChange={newFilters =>
+          setFilters(prev => ({ ...prev, ...newFilters }))
+        }
+      />
 
       {/* Products Table */}
       <Card>
@@ -447,92 +344,81 @@ export function SupplierProductList() {
               <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No products found</h3>
               <p className="text-muted-foreground mb-4">
-                {filters.search ||
-                (filters.status && filters.status !== "all") ||
-                filters.category
-                  ? "Try adjusting your filters"
-                  : "Get started by adding your first product"}
+                Try adjusting your filters or search terms
               </p>
-              {!filters.search &&
-                (!filters.status || filters.status === "all") &&
-                !filters.category && (
-                  <Button asChild>
-                    <Link href="/supplier/products/new">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Your First Product
-                    </Link>
-                  </Button>
-                )}
+              <Button variant="outline" onClick={() => setFilters({})}>
+                Clear All Filters
+              </Button>
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Sales</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products.map(product => (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100">
-                            {product.images && product.images.length > 0 ? (
-                              <img
-                                src={product.images[0]}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Package className="w-6 h-6 text-gray-400" />
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Stock</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Sales</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {products.map(product => (
+                      <TableRow key={product.id} className="hover:bg-muted/50">
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                              {product.images && product.images.length > 0 ? (
+                                <img
+                                  src={product.images[0]}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Package className="w-6 h-6 text-gray-400" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-medium truncate">
+                                {product.name}
                               </div>
-                            )}
-                          </div>
-                          <div>
-                            <div className="font-medium">{product.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {product.category?.name || "Uncategorized"}
+                              <div className="text-sm text-muted-foreground truncate">
+                                {product.category?.name || "Uncategorized"}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {product.sku || "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">
-                          {formatPriceWithCurrency(product.price, "RON")}
-                        </div>
-                        {product.compareAtPrice && (
-                          <div className="text-sm text-muted-foreground line-through">
-                            {formatPriceWithCurrency(
-                              product.compareAtPrice,
-                              "RON"
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            {formatPriceWithCurrency(product.price, "RON")}
+                          </div>
+                          {product.compareAtPrice && (
+                            <div className="text-sm text-muted-foreground line-through">
+                              {formatPriceWithCurrency(
+                                product.compareAtPrice,
+                                "RON"
+                              )}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">
+                              {product.stockQuantity}
+                            </span>
+                            {product.stockQuantity <=
+                              (product.reorderPoint || 5) && (
+                              <Badge variant="destructive" className="text-xs">
+                                Low
+                              </Badge>
                             )}
                           </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium">
-                            {product.stockQuantity}
-                          </span>
-                          {product.stockQuantity <=
-                            (product.reorderPoint || 5) && (
-                            <Badge variant="destructive" className="text-xs">
-                              Low Stock
-                            </Badge>
-                          )}
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
                             onClick={() =>
                               setStockDialog({
@@ -541,83 +427,89 @@ export function SupplierProductList() {
                                 current: product.stockQuantity,
                               })
                             }
+                            className="h-6 text-xs mt-1"
                           >
                             Adjust
                           </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(product.isActive)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <TrendingUp className="w-4 h-4 text-green-600" />
-                          <span className="font-medium">
-                            {product.totalSold}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/products/${product.slug}`}>
-                                <Eye className="w-4 h-4 mr-2" />
-                                View
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link
-                                href={`/supplier/products/${product.id}/edit`}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(product.isActive)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <TrendingUp className="w-4 h-4 text-green-600" />
+                            <span className="font-medium">
+                              {product.totalSold}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <Link href={`/products/${product.slug}`}>
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  View
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link
+                                  href={`/supplier/products/${product.id}/edit`}
+                                >
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Edit
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleStatusToggle(
+                                    product.id,
+                                    product.isActive
+                                  )
+                                }
                               >
-                                <Edit className="w-4 h-4 mr-2" />
-                                Edit
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleStatusToggle(product.id, product.isActive)
-                              }
-                            >
-                              {product.isActive ? (
-                                <>
-                                  <XCircle className="w-4 h-4 mr-2" />
-                                  Deactivate
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Activate
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                setDeleteDialog({
-                                  open: true,
-                                  productId: product.id,
-                                  productName: product.name,
-                                })
-                              }
-                              className="text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                                {product.isActive ? (
+                                  <>
+                                    <XCircle className="w-4 h-4 mr-2" />
+                                    Deactivate
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    Activate
+                                  </>
+                                )}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setDeleteDialog({
+                                    open: true,
+                                    productId: product.id,
+                                    productName: product.name,
+                                  })
+                                }
+                                className="text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
               {/* Pagination */}
               {pagination.pages > 1 && (
-                <div className="flex items-center justify-between space-x-2 py-4">
+                <div className="flex items-center justify-between space-x-2 py-4 mt-4 border-t">
                   <div className="text-sm text-muted-foreground">
                     Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
                     {Math.min(

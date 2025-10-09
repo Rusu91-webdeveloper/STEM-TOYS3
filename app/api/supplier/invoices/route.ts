@@ -34,10 +34,16 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            orders: true,
+            supplierOrders: true,
           },
         },
       },
+    });
+
+    logger.info("Supplier invoices retrieved", {
+      supplierId: supplier.id,
+      userId: session.user.id,
+      invoiceCount: invoices.length,
     });
 
     // Transform invoices for frontend
@@ -54,16 +60,46 @@ export async function GET(request: NextRequest) {
       paidAt: invoice.paidAt?.toISOString(),
       notes: invoice.notes,
       createdAt: invoice.createdAt.toISOString(),
-      orderCount: invoice._count.orders,
+      orderCount: invoice._count.supplierOrders,
       totalOrdersValue: invoice.subtotal, // Assuming subtotal is the orders value
     }));
 
     // Calculate stats
+    const paidInvoices = invoices.filter(inv => inv.status === "PAID");
+    const pendingInvoices = invoices.filter(
+      inv => inv.status === "SENT" || inv.status === "DRAFT"
+    );
+    const overdueInvoices = invoices.filter(inv => inv.status === "OVERDUE");
+
+    // Calculate average payment time for paid invoices
+    const paymentTimes = paidInvoices
+      .filter(inv => inv.paidAt)
+      .map(inv => {
+        const created = new Date(inv.createdAt).getTime();
+        const paid = new Date(inv.paidAt!).getTime();
+        return Math.round((paid - created) / (1000 * 60 * 60 * 24)); // days
+      });
+
+    const averagePaymentTime =
+      paymentTimes.length > 0
+        ? Math.round(
+            paymentTimes.reduce((sum, time) => sum + time, 0) /
+              paymentTimes.length
+          )
+        : 0;
+
     const stats = {
       totalInvoices: invoices.length,
-      totalSubtotal: invoices.reduce((sum, inv) => sum + inv.subtotal, 0),
-      totalCommission: invoices.reduce((sum, inv) => sum + inv.commission, 0),
-      totalAmount: invoices.reduce((sum, inv) => sum + inv.totalAmount, 0),
+      totalPaid: paidInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0),
+      totalPending: pendingInvoices.reduce(
+        (sum, inv) => sum + inv.totalAmount,
+        0
+      ),
+      totalOverdue: overdueInvoices.reduce(
+        (sum, inv) => sum + inv.totalAmount,
+        0
+      ),
+      averagePaymentTime,
     };
 
     logger.info("Supplier invoices retrieved", {

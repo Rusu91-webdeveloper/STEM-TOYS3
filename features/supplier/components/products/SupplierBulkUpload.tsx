@@ -4,14 +4,11 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Upload,
-  Download,
-  FileText,
   CheckCircle,
   AlertCircle,
   X,
   ArrowLeft,
   FileSpreadsheet,
-  FileX,
   Eye,
   EyeOff,
   RefreshCw,
@@ -24,6 +21,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
 import { formatPriceWithCurrency } from "@/lib/currency-converter";
+import { CSVFormatGuide } from "./CSVFormatGuide";
 
 interface ProductRow {
   name: string;
@@ -36,9 +34,9 @@ interface ProductRow {
   weight?: number;
   category?: string;
   tags?: string;
-  ageGroup?: string;
-  stemDiscipline?: string;
-  productType?: string;
+  ageGroup?: string | undefined;
+  stemDiscipline?: string | undefined;
+  productType?: string | undefined;
   learningOutcomes?: string;
   specialCategories?: string;
   images?: string;
@@ -106,6 +104,24 @@ export function SupplierBulkUpload() {
     try {
       const data = await readFile(file);
       const parsedProducts = parseProducts(data);
+
+      // Enforce 5-product limit for suppliers
+      if (parsedProducts.length > 5) {
+        toast({
+          title: "Too many products",
+          description: `Suppliers can upload maximum 5 products at once. Your file contains ${parsedProducts.length} products. Please reduce to 5 or fewer.`,
+          variant: "destructive",
+        });
+        setFile(null);
+        setFileName("");
+        setProducts([]);
+        setValidationErrors([]);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return;
+      }
+
       setProducts(parsedProducts);
 
       // Validate the parsed data
@@ -208,6 +224,20 @@ export function SupplierBulkUpload() {
         return isNaN(parsed) ? defaultValue : parsed;
       };
 
+      // Helper to normalize enum values (convert empty strings to undefined)
+      const normalizeEnum = (value: any): string | undefined => {
+        const normalized = String(value || "")
+          .trim()
+          .toUpperCase();
+        return normalized === "" ? undefined : normalized;
+      };
+
+      // Helper to normalize SKU (trim to 50 characters max)
+      const normalizeSKU = (value: any): string | undefined => {
+        const sku = String(value || "").trim();
+        return sku === "" ? undefined : sku.substring(0, 50);
+      };
+
       return {
         name: row.name || row.Name || row.NAME || "",
         description:
@@ -224,7 +254,7 @@ export function SupplierBulkUpload() {
                   "0"
               )
             : undefined,
-        sku: row.sku || row.SKU || row.Sku || "",
+        sku: normalizeSKU(row.sku || row.SKU || row.Sku || ""),
         stockQuantity: safeParseInt(
           row.stockQuantity ||
             row["Stock Quantity"] ||
@@ -247,24 +277,18 @@ export function SupplierBulkUpload() {
             : undefined,
         category: row.category || row.Category || row.CATEGORY || "",
         tags: row.tags || row.Tags || row.TAGS || "",
-        ageGroup: (
-          row.ageGroup ||
-          row["Age Group"] ||
-          row["age_group"] ||
-          ""
-        ).toUpperCase(),
-        stemDiscipline: (
+        ageGroup: normalizeEnum(
+          row.ageGroup || row["Age Group"] || row["age_group"] || ""
+        ),
+        stemDiscipline: normalizeEnum(
           row.stemDiscipline ||
-          row["STEM Discipline"] ||
-          row["stem_discipline"] ||
-          ""
-        ).toUpperCase(),
-        productType: (
-          row.productType ||
-          row["Product Type"] ||
-          row["product_type"] ||
-          ""
-        ).toUpperCase(),
+            row["STEM Discipline"] ||
+            row["stem_discipline"] ||
+            ""
+        ),
+        productType: normalizeEnum(
+          row.productType || row["Product Type"] || row["product_type"] || ""
+        ),
         learningOutcomes:
           row.learningOutcomes ||
           row["Learning Outcomes"] ||
@@ -362,7 +386,7 @@ export function SupplierBulkUpload() {
         });
       }
 
-      // Validate enums with enhanced error messages
+      // Validate enums with enhanced error messages (optional fields, skip if undefined)
       const validAgeGroups = [
         "TODDLERS_1_3",
         "PRESCHOOL_3_5",
@@ -371,9 +395,8 @@ export function SupplierBulkUpload() {
         "TEENS_13_PLUS",
       ];
       if (
-        product.ageGroup &&
-        product.ageGroup.trim() !== "" &&
-        !validAgeGroups.includes(product.ageGroup.toUpperCase())
+        product.ageGroup !== undefined &&
+        !validAgeGroups.includes(product.ageGroup)
       ) {
         errors.push({
           row: rowNumber,
@@ -390,14 +413,13 @@ export function SupplierBulkUpload() {
         "GENERAL",
       ];
       if (
-        product.stemDiscipline &&
-        product.stemDiscipline.trim() !== "" &&
-        !validStemDisciplines.includes(product.stemDiscipline.toUpperCase())
+        product.stemDiscipline !== undefined &&
+        !validStemDisciplines.includes(product.stemDiscipline)
       ) {
         errors.push({
           row: rowNumber,
           field: "stemDiscipline",
-          message: `Invalid STEM discipline. Must be one of: ${validStemDisciplines.join(", ")}`,
+          message: `Invalid STEM discipline "${product.stemDiscipline}". Must be one of: ${validStemDisciplines.join(", ")}`,
         });
       }
 
@@ -409,14 +431,13 @@ export function SupplierBulkUpload() {
         "BOARD_GAMES",
       ];
       if (
-        product.productType &&
-        product.productType.trim() !== "" &&
-        !validProductTypes.includes(product.productType.toUpperCase())
+        product.productType !== undefined &&
+        !validProductTypes.includes(product.productType)
       ) {
         errors.push({
           row: rowNumber,
           field: "productType",
-          message: `Invalid product type. Must be one of: ${validProductTypes.join(", ")}`,
+          message: `Invalid product type "${product.productType}". Must be one of: ${validProductTypes.join(", ")}`,
         });
       }
     });
@@ -545,12 +566,25 @@ export function SupplierBulkUpload() {
     setUploadProgress(0);
 
     try {
+      // Normalize products before sending to API
+      const normalizedProducts = products.map(product => ({
+        ...product,
+        // Convert empty strings to undefined for enum fields
+        ageGroup: product.ageGroup === "" ? undefined : product.ageGroup,
+        stemDiscipline:
+          product.stemDiscipline === "" ? undefined : product.stemDiscipline,
+        productType:
+          product.productType === "" ? undefined : product.productType,
+        // Trim SKU to 50 characters max
+        sku: product.sku ? product.sku.substring(0, 50) : undefined,
+      }));
+
       const response = await fetch("/api/supplier/products/bulk-upload", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ products }),
+        body: JSON.stringify({ products: normalizedProducts }),
       });
 
       if (!response.ok) {
@@ -563,7 +597,7 @@ export function SupplierBulkUpload() {
       if (result.success > 0) {
         toast({
           title: "Upload successful",
-          description: `Successfully uploaded ${result.success} products. ${result.failed} failed.`,
+          description: `Successfully uploaded ${result.success} products. Products are pending admin approval and will be reviewed shortly.`,
         });
       } else {
         toast({
@@ -613,15 +647,14 @@ export function SupplierBulkUpload() {
           <div>
             <h2 className="text-2xl font-semibold">Bulk Upload Products</h2>
             <p className="text-muted-foreground">
-              Upload multiple products using CSV or Excel files
+              Upload maximum 5 products at once using CSV format
             </p>
           </div>
         </div>
-        <Button onClick={downloadTemplate} variant="outline">
-          <Download className="w-4 h-4 mr-2" />
-          Download Template
-        </Button>
       </div>
+
+      {/* CSV Format Guide */}
+      <CSVFormatGuide />
 
       {/* Upload Area */}
       <Card>
@@ -699,7 +732,8 @@ export function SupplierBulkUpload() {
                   <CheckCircle className="h-4 w-4" />
                   <AlertDescription>
                     Upload completed: {uploadResult.success} successful,{" "}
-                    {uploadResult.failed} failed
+                    {uploadResult.failed} failed. Products are pending admin
+                    approval and will be reviewed shortly.
                   </AlertDescription>
                 </Alert>
               )}
