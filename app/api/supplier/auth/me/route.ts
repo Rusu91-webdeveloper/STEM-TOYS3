@@ -25,6 +25,26 @@ export const GET = async (request: NextRequest) => {
       );
     }
 
+    // For VISITOR users, return demo supplier data
+    if (session.user.role === "VISITOR") {
+      return NextResponse.json({
+        id: "demo-visitor-supplier",
+        companyName: "Demo Supplier (Visitor Mode)",
+        description: "This is a demonstration account with sample data",
+        status: "APPROVED",
+        commissionRate: 15,
+        paymentTerms: 30,
+        minimumOrderValue: 0,
+        user: {
+          id: session.user.id,
+          name: session.user.name,
+          email: session.user.email,
+          role: session.user.role,
+          isActive: true,
+        },
+      });
+    }
+
     // Check if user has a supplier profile
     const supplier = await db.supplier.findUnique({
       where: { userId: session.user.id },
