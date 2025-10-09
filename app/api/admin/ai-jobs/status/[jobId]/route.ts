@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { jobId: string } }
+  { params }: { params: Promise<{ jobId: string }> }
 ) {
   try {
     const session = await auth();
@@ -12,8 +12,10 @@ export async function GET(
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
+    const { jobId } = await params;
+
     const job = await db.aiJob.findUnique({
-      where: { id: params.jobId },
+      where: { id: jobId },
     });
 
     if (!job) {

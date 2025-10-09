@@ -284,6 +284,10 @@ export class DualProviderProductEnhancementService {
     if (this.config!.primaryModel !== "gpt-4o") {
       console.log("🔍 Product Enhancement Debug (fallback used):");
       console.log("- Response content length:", response?.length || 0);
+      console.log(
+        "- Response preview (first 800 chars):",
+        response?.substring(0, 800) || ""
+      );
     }
 
     return this.parseEnhancementResponse(response || "");
@@ -294,10 +298,35 @@ export class DualProviderProductEnhancementService {
    */
   private parseEnhancementResponse(response: string): any {
     try {
-      // Try to parse as JSON first
-      const parsed = JSON.parse(response);
+      // First, try to extract JSON from markdown code blocks
+      let jsonStr = response;
+
+      // Remove markdown code blocks if present
+      const codeBlockMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (codeBlockMatch) {
+        jsonStr = codeBlockMatch[1];
+      }
+
+      // Try to parse as JSON
+      const parsed = JSON.parse(jsonStr.trim());
+
+      console.log(`🔍 Product Enhancement Debug (JSON parsed successfully):`);
+      console.log(
+        `- Has tags: ${Array.isArray(parsed.tags) ? parsed.tags.length : 0}`
+      );
+      console.log(`- Has metadata.seo: ${!!parsed.metadata?.seo}`);
+      console.log(`- Has attributes.specs: ${!!parsed.attributes?.specs}`);
+      console.log(
+        `- Has learningOutcomes: ${Array.isArray(parsed.learningOutcomes) ? parsed.learningOutcomes.length : 0}`
+      );
+
       return parsed || {};
-    } catch {
+    } catch (error) {
+      console.warn(
+        "⚠️ JSON parsing failed, using fallback extraction:",
+        error instanceof Error ? error.message : "Unknown error"
+      );
+
       // If not JSON, try to extract key-value pairs
       const result: any = {};
 
@@ -335,7 +364,7 @@ export class DualProviderProductEnhancementService {
 
       // Extract learning outcomes
       const learningOutcomesMatch = response.match(
-        /learningOutcomes["\s]*:[\s]*\[(.*?)\]/i
+        /learningOutcomes["\s]*:[\s]*\[(.*?)\]/is
       );
       if (learningOutcomesMatch) {
         result.learningOutcomes = learningOutcomesMatch[1]
@@ -344,11 +373,29 @@ export class DualProviderProductEnhancementService {
           .filter(outcome => outcome.length > 0);
       }
 
+      // Extract tags
+      const tagsMatch = response.match(/tags["\s]*:[\s]*\[(.*?)\]/is);
+      if (tagsMatch) {
+        result.tags = tagsMatch[1]
+          .split(",")
+          .map(tag => tag.trim().replace(/['"]/g, ""))
+          .filter(tag => tag.length > 0);
+      }
+
       // Extract description if enhanced
-      const descMatch = response.match(/description["\s]*:[\s]*["'](.*?)["']/i);
+      const descMatch = response.match(
+        /description["\s]*:[\s]*["'](.*?)["']/is
+      );
       if (descMatch) {
         result.description = descMatch[1];
       }
+
+      console.log("📝 Fallback extraction results:", {
+        ageGroup: !!result.ageGroup,
+        productType: !!result.productType,
+        tags: result.tags?.length || 0,
+        learningOutcomes: result.learningOutcomes?.length || 0,
+      });
 
       return result;
     }

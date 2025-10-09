@@ -51,19 +51,17 @@
     "seed:books": "npx ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed-books-romanian.ts",
     "seed:admin": "npx ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed-admin.ts",
     "seo-analytics:daily": "npx tsx scripts/save-daily-seo-analytics.ts",
-    "seo-analytics:manual": "curl -X POST http://localhost:3000/api/cron/daily-seo-analytics -H \"Authorization: Bearer ${CRON_SECRET_TOKEN}\""
+    "seo-analytics:manual": "curl -X POST http://localhost:3000/api/cron/daily-seo-analytics -H \"Authorization: Bearer ${CRON_SECRET_TOKEN}\"",
+    "recover:products": "npx tsx scripts/recover-enhanced-products.ts",
+    "ai:switch-to-gemini": "./scripts/switch-to-gemini.sh",
+    "seo:analyze": "npx tsx scripts/analyze-product-seo.ts"
   },
   "prisma": {
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,yaml,yml}": [
-      "prettier --write"
-    ]
+    "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,md,yaml,yml}": ["prettier --write"]
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

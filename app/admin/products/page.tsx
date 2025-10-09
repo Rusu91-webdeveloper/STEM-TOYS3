@@ -337,11 +337,13 @@ export default async function AdminProductsPage({
 
           <ProductGrid
             products={products}
-            status="PENDING_APPROVAL"
+            status="IN_PENDING"
             title="În Așteptare"
           />
 
           <ProductGrid products={products} status="REJECTED" title="Respinse" />
+          
+          <ProductGrid products={products} status="DENIED" title="Refuzate" />
 
           {pagination.totalPages > 1 && (
             <div className="mt-8 flex justify-center">

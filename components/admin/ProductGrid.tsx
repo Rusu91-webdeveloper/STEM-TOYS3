@@ -78,9 +78,11 @@ function ProductCard({ product }: { product: Product }) {
     switch (status) {
       case "APPROVED":
         return <Badge variant="default">Aprobat</Badge>;
+      case "IN_PENDING":
       case "PENDING_APPROVAL":
         return <Badge variant="secondary">În așteptare</Badge>;
       case "REJECTED":
+      case "DENIED":
         return <Badge variant="destructive">Respins</Badge>;
       case "DRAFT":
         return <Badge variant="outline">Draft</Badge>;
