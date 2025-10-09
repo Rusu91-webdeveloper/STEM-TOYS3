@@ -238,6 +238,20 @@ export async function POST(request: NextRequest) {
     const session = await auth();
     console.warn("Auth session in POST /api/admin/products:", session);
 
+    // Block VISITOR role from write operations
+    if (session?.user?.role === "VISITOR") {
+      console.warn("Visitor access attempt blocked");
+      return NextResponse.json(
+        {
+          error: "Demo Mode - Read Only Access",
+          message:
+            "This is a demonstration account. Write operations are disabled.",
+          isDemo: true,
+        },
+        { status: 403 }
+      );
+    }
+
     if (session?.user?.role !== "ADMIN") {
       console.warn("Unauthorized access attempt: User is not an admin");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

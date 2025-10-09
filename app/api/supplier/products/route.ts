@@ -252,6 +252,20 @@ export async function POST(request: NextRequest) {
   try {
     // Check authentication
     const session = await auth();
+
+    // Block VISITOR role from write operations
+    if (session?.user?.role === "VISITOR") {
+      return NextResponse.json(
+        {
+          error: "Demo Mode - Read Only Access",
+          message:
+            "This is a demonstration account. Write operations are disabled.",
+          isDemo: true,
+        },
+        { status: 403 }
+      );
+    }
+
     if (!session?.user || session.user.role !== "SUPPLIER") {
       return NextResponse.json(
         {

@@ -102,6 +102,20 @@ export async function DELETE(
   try {
     // Check authentication
     const session = await auth();
+
+    // Block VISITOR role from write operations
+    if (session?.user?.role === "VISITOR") {
+      return NextResponse.json(
+        {
+          error: "Demo Mode - Read Only Access",
+          message:
+            "This is a demonstration account. Write operations are disabled.",
+          isDemo: true,
+        },
+        { status: 403 }
+      );
+    }
+
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -210,6 +224,20 @@ export async function PATCH(
   try {
     // Check authentication
     const session = await auth();
+
+    // Block VISITOR role from write operations
+    if (session?.user?.role === "VISITOR") {
+      return NextResponse.json(
+        {
+          error: "Demo Mode - Read Only Access",
+          message:
+            "This is a demonstration account. Write operations are disabled.",
+          isDemo: true,
+        },
+        { status: 403 }
+      );
+    }
+
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -385,6 +413,20 @@ export async function PUT(
   try {
     // Check authentication
     const session = await auth();
+
+    // Block VISITOR role from write operations
+    if (session?.user?.role === "VISITOR") {
+      return NextResponse.json(
+        {
+          error: "Demo Mode - Read Only Access",
+          message:
+            "This is a demonstration account. Write operations are disabled.",
+          isDemo: true,
+        },
+        { status: 403 }
+      );
+    }
+
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

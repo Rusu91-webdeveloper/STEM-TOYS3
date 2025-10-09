@@ -36,11 +36,21 @@ export function isAuthorized(
 }
 
 /**
- * Checks if the user is an admin
+ * Checks if the user is an admin or visitor (for read access)
  * @param session The current user session
- * @returns True if the user is an admin, false otherwise
+ * @returns True if the user is an admin or visitor, false otherwise
  */
 export function isAdmin(session: Session | null): boolean {
+  return isAuthorized(session, "ADMIN") || isAuthorized(session, "VISITOR");
+}
+
+/**
+ * Checks if the user is an admin only (excludes VISITOR)
+ * Use this for operations requiring true admin privileges
+ * @param session The current user session
+ * @returns True if the user is an admin (not visitor), false otherwise
+ */
+export function isAdminOnly(session: Session | null): boolean {
   return isAuthorized(session, "ADMIN");
 }
 
@@ -51,6 +61,25 @@ export function isAdmin(session: Session | null): boolean {
  */
 export function isSupplier(session: Session | null): boolean {
   return isAuthorized(session, "SUPPLIER");
+}
+
+/**
+ * Checks if the user is a supplier only (excludes VISITOR)
+ * Use this for operations requiring true supplier privileges
+ * @param session The current user session
+ * @returns True if the user is a supplier (not visitor), false otherwise
+ */
+export function isSupplierOnly(session: Session | null): boolean {
+  return isAuthorized(session, "SUPPLIER");
+}
+
+/**
+ * Checks if the user is a visitor (demo mode)
+ * @param session The current user session
+ * @returns True if the user is a visitor, false otherwise
+ */
+export function isVisitor(session: Session | null): boolean {
+  return isAuthorized(session, "VISITOR");
 }
 
 /**

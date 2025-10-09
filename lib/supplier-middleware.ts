@@ -105,9 +105,9 @@ export async function protectAdminSupplierRoute(
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
-    // Check if user has admin role
-    if (session.user.role !== "ADMIN") {
-      logger.warn("Non-admin access attempt to admin supplier route", {
+    // Check if user has admin or visitor role
+    if (session.user.role !== "ADMIN" && session.user.role !== "VISITOR") {
+      logger.warn("Non-admin/visitor access attempt to admin supplier route", {
         path: request.nextUrl.pathname,
         userId: session.user.id,
         role: session.user.role,

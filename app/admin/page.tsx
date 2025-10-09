@@ -24,6 +24,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DemoModeBanner } from "@/components/admin/DemoModeBanner";
 import { getDashboardData } from "@/lib/admin/api";
 import type { DashboardStat, RecentOrder, TopProduct } from "@/lib/admin/api";
 import { useCurrency } from "@/lib/currency";
@@ -220,6 +221,9 @@ export default function AdminDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Demo Mode Banner for VISITOR users */}
+      <DemoModeBanner />
 
       {/* Stats Grid - Enhanced */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

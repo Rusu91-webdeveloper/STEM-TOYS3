@@ -1695,6 +1695,8 @@ enum OrderItemReturnStatus {
 enum Role {
   CUSTOMER
   ADMIN
+  SUPPLIER
+  VISITOR
 }
 
 enum UserSegment {

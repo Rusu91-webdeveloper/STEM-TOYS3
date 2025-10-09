@@ -58,7 +58,7 @@ components:
           example: '+40712345678'
         role:
           type: string
-          enum: [CUSTOMER, ADMIN, SUPPLIER]
+          enum: [CUSTOMER, ADMIN, SUPPLIER, VISITOR]
           description: User role in the system
           default: CUSTOMER
         emailVerified:
