@@ -228,31 +228,69 @@ Secțiunea finală (50-100 cuvinte) - CONVERSIE:
 **2. SEO METADATA - OPTIMIZAT PENTRU CĂUTĂRI ROMÂNEȘTI:**
 
 **metaTitle** (50-60 caractere - NUMĂRĂ EXACT - MAXIM 60!)
-Formula: [Brand] [Produs] - [Beneficiu Cheie] | [Vârstă] | România
-Exemple:
-- "LEGO Mindstorms - Robotică & Programare | 10+ Ani | România" (60 chars)
-- "VEX Robotics - Kit Robotică Profesional | 12+ | România" (58 chars)
 
-CERINȚE metaTitle:
-- Include primary keyword natural
-- Adaugă "România" pentru SEO local
-- Specifică vârsta target
-- Create curiozitate/beneficiu
-- MANDATORY: 50-60 caractere (nu mai mult, nu mai puțin!)
+⚠️  CRITICAL: This will be AUTOMATICALLY VALIDATED. If not 50-60 chars, SYSTEM WILL REJECT!
+
+Formula: [Brand] [Produs] - [Beneficiu Cheie] | [Vârstă] | România
+
+EXACT CHARACTER COUNT EXAMPLES (COUNT EVERY CHARACTER INCLUDING SPACES):
+- "LEGO Mindstorms - Robotică & Programare | 10+ Ani | România" (60 chars) ✅ PERFECT!
+- "VEX Robotics - Kit Robotică Profesional | 12+ | România" (58 chars) ✅ PERFECT!
+- "Arduino Kit STEM - Programare Copii | 8+ Ani | România" (56 chars) ✅ PERFECT!
+
+MANDATORY REQUIREMENTS (AUTO-VALIDATED):
+✅ EXACTLY 50-60 characters (not 49, not 61!)
+✅ Include brand name at the beginning
+✅ Add primary keyword naturally
+✅ Specify target age group
+✅ Include "România" for local SEO
+✅ Use separator " | " for readability
+
+❌ AUTOMATIC REJECTION IF:
+- Less than 50 characters → Too short for SEO → SCORE -10 points → RE-GENERATION REQUIRED
+- More than 60 characters → Google will TRUNCATE → SCORE -10 points → RE-GENERATION REQUIRED
+- Missing "România" → Poor local SEO → SCORE -2 points
+
+🔢 HOW TO COUNT CHARACTERS:
+1. Write your meta title
+2. Count EVERY character including spaces, |, and diacritics
+3. Verify: length >= 50 AND length <= 60
+4. If not in range, REWRITE until perfect
+
+💡 PRO TIP: Aim for 58-60 characters to maximize Google SERP display
 
 **metaDescription** (150-160 caractere - NUMĂRĂ EXACT - OBLIGATORIU!)
-Formula: [Hook de durere] + [Soluție unică] + [Social proof] + [CTA urgent] + [Locație]
-Exemple:
-- "Copilul tău evită matematica? LEGO Mindstorms transformă învățarea în joacă. 10,000+ părinți români au văzut rezultate. Comenzi azi, livrare gratuită! România" (158 chars)
-- "Pregătește-l pentru viitor cu VEX Robotics. Kit complet programare & robotică. 5,000+ școlari români îl folosesc. Comandă acum cu -20%! Livrare România" (157 chars)
 
-CERINȚE metaDescription:
-- OBLIGATORIU: 150-160 caractere (verificare automată!)
-- Include keyword principal
-- Adaugă emotional hook
-- Menționează social proof cu NUMERE
-- CTA clar și urgent
-- Include "România" sau oraș major
+⚠️  CRITICAL: This will be AUTOMATICALLY VALIDATED. If not 150-160 chars, SYSTEM WILL REJECT!
+
+Formula: [Hook de durere] + [Soluție unică] + [Social proof] + [CTA urgent] + [Locație]
+
+EXACT CHARACTER COUNT EXAMPLES (COUNT EVERY CHARACTER INCLUDING SPACES):
+- "Copilul tău evită matematica? LEGO Mindstorms transformă învățarea în joacă. 10,000+ părinți români au văzut rezultate. Comenzi azi, livrare gratuită! România" (158 chars) ✅
+- "Pregătește-l pentru viitor cu VEX Robotics. Kit complet programare & robotică. 5,000+ școlari români îl folosesc. Comandă acum cu -20%! Livrare România" (157 chars) ✅
+- "STEM toys pentru copii 10+. Jucării educaționale robotică. Livrare gratuită România. 24 luni garanție. Comandă online. 5,000+ clienți mulțumiți în 2024!" (155 chars) ✅
+
+MANDATORY REQUIREMENTS (AUTO-VALIDATED):
+✅ EXACTLY 150-160 characters (not 149, not 161!)
+✅ Include primary keyword naturally
+✅ Add emotional hook that triggers parent's concern
+✅ Mention social proof with specific NUMBERS
+✅ Clear, urgent CTA ("Comandă", "Cumpără", etc.)
+✅ Include "România" or major city for local SEO
+
+❌ AUTOMATIC REJECTION IF:
+- Less than 150 characters → SCORE -10 points → RE-GENERATION REQUIRED
+- More than 160 characters → Google will TRUNCATE → SCORE -10 points → RE-GENERATION REQUIRED
+- Missing "România" → Poor local SEO → SCORE -2 points
+- No numbers/social proof → Lower credibility → SCORE -3 points
+
+🔢 HOW TO COUNT CHARACTERS (USE EXACT METHOD):
+1. Write your meta description
+2. Count EVERY character including spaces, punctuation, diacritics
+3. Verify: length >= 150 AND length <= 160
+4. If not in range, REWRITE until perfect
+
+💡 PRO TIP: Aim for 155-158 characters for perfect balance
 
 **metaKeywords** (25-35 keywords - COMPREHENSIVE!)
 

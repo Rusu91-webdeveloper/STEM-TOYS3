@@ -25,6 +25,8 @@ import {
   ProductEnhancementProgress,
 } from "./product-types";
 
+import { SEOPerfectionValidator } from "./seo-perfection-validator";
+
 /**
  * Configuration for the product enhancement pipeline
  */
@@ -179,10 +181,62 @@ export class DualProviderProductEnhancementService {
       });
 
       // Validate and clean the enhanced data
-      const validatedData = this.validateEnhancedData(
+      let validatedData = this.validateEnhancedData(
         enhancedData,
         productData
       );
+
+      // ===== SEO PERFECTION VALIDATION & AUTO-FIX =====
+      console.log('\n🔍 Validating SEO quality for 100/100 score...');
+      
+      const seoData = {
+        metaTitle: validatedData.metadata?.seo?.metaTitle,
+        metaDescription: validatedData.metadata?.seo?.metaDescription,
+        metaKeywords: validatedData.metadata?.seo?.metaKeywords,
+        tags: validatedData.tags,
+        description: validatedData.description,
+        learningOutcomes: validatedData.metadata?.learningOutcomes,
+        romanianCompetencies: validatedData.metadata?.romanianCompetencies,
+        romanianCurriculumAlignment: validatedData.metadata?.romanianCurriculumAlignment,
+        attributes: validatedData.attributes,
+      };
+
+      let seoValidation = SEOPerfectionValidator.validate(seoData);
+      
+      console.log(`📊 Initial SEO Score: ${seoValidation.score}/100`);
+      
+      // If not perfect, try auto-fix
+      if (seoValidation.score < 100) {
+        console.log('🔧 Auto-fixing SEO issues...');
+        const fixedSEOData = SEOPerfectionValidator.autoFix(seoData);
+        
+        // Apply fixes back to validated data
+        if (validatedData.metadata?.seo) {
+          validatedData.metadata.seo.metaTitle = fixedSEOData.metaTitle;
+          validatedData.metadata.seo.metaDescription = fixedSEOData.metaDescription;
+          validatedData.metadata.seo.metaKeywords = fixedSEOData.metaKeywords;
+        }
+        validatedData.tags = fixedSEOData.tags;
+        
+        // Re-validate after fixes
+        seoValidation = SEOPerfectionValidator.validate({
+          ...fixedSEOData,
+          description: validatedData.description,
+          learningOutcomes: validatedData.metadata?.learningOutcomes,
+          romanianCompetencies: validatedData.metadata?.romanianCompetencies,
+          romanianCurriculumAlignment: validatedData.metadata?.romanianCurriculumAlignment,
+          attributes: validatedData.attributes,
+        });
+        
+        console.log(`📊 After Auto-Fix SEO Score: ${seoValidation.score}/100`);
+      }
+      
+      // Log final validation report
+      if (seoValidation.score === 100) {
+        console.log('🎉 PERFECT! SEO Score: 100/100 - Top rankings expected!');
+      } else {
+        console.warn(SEOPerfectionValidator.generateReport(seoValidation));
+      }
 
       onProgress?.({
         stage: "complete",
@@ -197,6 +251,7 @@ export class DualProviderProductEnhancementService {
         enhancedProduct: validatedData,
         processingTime,
         fallbackUsed: this.config!.primaryModel !== "gpt-4o", // Mark if fallback was used
+        seoScore: seoValidation.score, // Add SEO score to result
       };
     } catch (error) {
       console.error("Product enhancement failed:", error);
