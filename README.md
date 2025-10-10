@@ -5,6 +5,21 @@ specifically for STEM educational products. The application provides a seamless
 shopping experience with fast page loads, SEO optimization, and responsive
 design.
 
+## 📚 Documentation
+
+Comprehensive documentation for the entire project:
+
+- **[DATABASE_SAFETY.md](./DATABASE_SAFETY.md)** - Complete database protection
+  guide, backup/restore procedures
+- **[PROJECT_ARCHITECTURE.md](./PROJECT_ARCHITECTURE.md)** - Codebase structure,
+  tech stack, and architecture patterns
+- **[API_REFERENCE.md](./API_REFERENCE.md)** - All API endpoints with
+  request/response examples
+- **[FEATURES_GUIDE.md](./FEATURES_GUIDE.md)** - Detailed features guide with
+  technical implementation
+- **[ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md)** - Environment variables,
+  development setup, and deployment guide
+
 ## 🚀 Features
 
 ### Core E-commerce Features
@@ -307,4 +322,5 @@ for details.
 ---
 
 **Built with ❤️ for STEM education**
+
 # Test deployment - Thu Sep 11 08:37:15 EEST 2025

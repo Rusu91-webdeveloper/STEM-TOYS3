@@ -1,0 +1,32 @@
+# =============================================================================
+# DATABASE SAFETY - CRITICAL FILES TO NEVER COMMIT
+# =============================================================================
+# Add these to your main .gitignore file
+
+# Environment files with database credentials
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Database backups (contain production data!)
+backups/
+backup_*.sql
+backup_*.sql.gz
+*.backup
+*.dump
+
+# Database files (if using SQLite locally)
+*.db
+*.sqlite
+*.sqlite3
+
+# Prisma Client (generated)
+node_modules/.prisma/
+prisma/generated/
+
+# Database connection logs
+database-connections.log
+db-debug.log
+

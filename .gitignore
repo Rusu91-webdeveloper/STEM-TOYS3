@@ -72,3 +72,8 @@ storybook-static
 
 # Large migration reports
 *_MIGRATION_REPORT.md
+
+# Database backups
+backups/
+*.sql
+*.sql.gz

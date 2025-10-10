@@ -28,6 +28,9 @@ import {
 } from "./ProductCardSkeleton";
 import { ProductDeleteButton } from "@/app/admin/products/components/ProductDeleteButton";
 import { ProductStatusActions } from "@/app/admin/products/components/ProductStatusActions";
+import { ProductEnhancementModal } from "./ProductEnhancementModal";
+import { Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface Product {
   id: string;
@@ -67,6 +70,9 @@ interface ProductGridProps {
 }
 
 function ProductCard({ product }: { product: Product }) {
+  const router = useRouter();
+  const [showEnhancementModal, setShowEnhancementModal] = useState(false);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("ro-RO", {
       style: "currency",
@@ -89,6 +95,13 @@ function ProductCard({ product }: { product: Product }) {
       default:
         return <Badge variant="outline">Necunoscut</Badge>;
     }
+  };
+
+  const isPendingProduct =
+    product.status === "IN_PENDING" || product.status === "PENDING_APPROVAL";
+
+  const handleEnhancementSuccess = () => {
+    router.refresh();
   };
 
   return (
@@ -221,6 +234,20 @@ function ProductCard({ product }: { product: Product }) {
           {/* Action Buttons */}
           <div className="flex flex-col gap-2">
             <ProductStatusActions productId={product.id} />
+
+            {/* Enhance Button for Pending Products */}
+            {isPendingProduct && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowEnhancementModal(true)}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Enhance with AI
+              </Button>
+            )}
+
             <Button asChild variant="default" size="sm" className="flex-1">
               <Link href={`/admin/products/${product.id}`}>Editează</Link>
             </Button>
@@ -243,6 +270,14 @@ function ProductCard({ product }: { product: Product }) {
           </p>
         </div>
       </CardContent>
+
+      {/* Enhancement Modal */}
+      <ProductEnhancementModal
+        product={product}
+        open={showEnhancementModal}
+        onOpenChange={setShowEnhancementModal}
+        onSuccess={handleEnhancementSuccess}
+      />
     </Card>
   );
 }

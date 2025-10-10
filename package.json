@@ -20,15 +20,22 @@
     "lint:production": "NODE_ENV=production eslint --max-warnings 0 --cache --cache-location .next/cache/eslint src/**/*.{ts,tsx,js,jsx}",
     "performance:check": "node scripts/performance-check.js",
     "setup:env": "node scripts/setup-env.js",
+    "setup:env:update-example": "node scripts/setup-env.js --update-example",
     "check:auth": "node scripts/check-auth.js",
     "check:auth-config": "node scripts/check-auth-config.js",
     "check:env": "node scripts/check-env.js",
     "check:ai-env": "node scripts/check-ai-env.js",
     "backup": "npx tsx scripts/backup-database.ts",
     "backup:auto": "npx tsx scripts/backup-database.ts && echo '✅ Backup completed at $(date)' >> backups/backup-log.txt",
+    "backup:production": "chmod +x scripts/backup-database.sh && ./scripts/backup-database.sh production",
+    "backup:local": "chmod +x scripts/backup-database.sh && ./scripts/backup-database.sh local",
+    "backup:now": "chmod +x scripts/quick-backup-now.sh && ./scripts/quick-backup-now.sh",
     "restore": "npx tsx scripts/restore-database.ts",
     "restore:fresh": "npx tsx scripts/restore-database.ts --clear",
     "restore:file": "npx tsx scripts/restore-database.ts",
+    "db:check-safety": "node scripts/check-database-safety.js",
+    "db:setup-safe": "chmod +x scripts/setup-safe-databases.sh && ./scripts/setup-safe-databases.sh",
+    "migrate:safe": "npm run db:check-safety && npx prisma migrate dev",
     "db:studio": "./scripts/db-studio.sh",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -60,13 +67,8 @@
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,yaml,yml}": [
-      "prettier --write"
-    ]
+    "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,md,yaml,yml}": ["prettier --write"]
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
