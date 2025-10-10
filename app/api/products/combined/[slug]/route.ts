@@ -23,9 +23,6 @@ export async function GET(
           supplier: {
             select: { id: true, companyName: true, companySlug: true },
           },
-          imageMetadata: {
-            select: { originalUrl: true, alt: true, tags: true },
-          },
         },
       }),
       db.book.findFirst({
@@ -86,13 +83,6 @@ export async function GET(
               companyName: dbProduct.supplier.companyName,
               companySlug: dbProduct.supplier.companySlug,
             }
-          : undefined,
-        imageMetadata: Array.isArray(dbProduct.imageMetadata)
-          ? dbProduct.imageMetadata.map((m: any) => ({
-              originalUrl: m.originalUrl,
-              alt: m.alt ?? undefined,
-              tags: m.tags ?? [],
-            }))
           : undefined,
         ageRange: attributes?.age as string | undefined,
         ageGroup: dbProduct.ageGroup as any,

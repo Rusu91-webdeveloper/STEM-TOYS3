@@ -6,7 +6,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { inngest } from "@/inngest/client";
 import { z } from "zod";
 
 const enhancementSchema = z.object({
@@ -62,7 +61,8 @@ export async function POST(
       },
     });
 
-    // Trigger Inngest event
+    // Trigger Inngest event - using dynamic import for serverless environment compatibility
+    const { inngest } = await import("@/inngest/client");
     await inngest.send({
       name: "products/single-product-enhancement.requested",
       data: {
