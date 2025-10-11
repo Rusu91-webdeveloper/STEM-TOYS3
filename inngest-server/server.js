@@ -12,17 +12,49 @@
  * - single-product-enhancement: Single product AI enhancement with preview (30-60s)
  */
 
+// Add startup logging
+console.log("🔄 Starting Inngest Server...");
+console.log("📦 Loading environment variables...");
+
 import "dotenv/config";
 import express from "express";
 import { serve } from "inngest/express";
 
+console.log("📦 Loading Inngest functions...");
+
 // Import from parent directory (main app)
-import { inngest } from "../inngest/client.js";
-import { generateBlogJob } from "../inngest/functions/generate-blog.js";
-import { enhanceProductsJob } from "../inngest/functions/enhance-products.js";
-import { bulkUploadProductsJob } from "../inngest/functions/bulk-upload-products.js";
-import { supplierBulkUploadProductsJob } from "../inngest/functions/supplier-bulk-upload-products.js";
-import { singleProductEnhancementJob } from "../inngest/functions/single-product-enhancement.js";
+let inngest, generateBlogJob, enhanceProductsJob, bulkUploadProductsJob, supplierBulkUploadProductsJob, singleProductEnhancementJob;
+
+try {
+  const clientModule = await import("../inngest/client.js");
+  inngest = clientModule.inngest;
+  console.log("✅ Loaded inngest client");
+
+  const generateBlogModule = await import("../inngest/functions/generate-blog.js");
+  generateBlogJob = generateBlogModule.generateBlogJob;
+  console.log("✅ Loaded generate-blog function");
+
+  const enhanceProductsModule = await import("../inngest/functions/enhance-products.js");
+  enhanceProductsJob = enhanceProductsModule.enhanceProductsJob;
+  console.log("✅ Loaded enhance-products function");
+
+  const bulkUploadModule = await import("../inngest/functions/bulk-upload-products.js");
+  bulkUploadProductsJob = bulkUploadModule.bulkUploadProductsJob;
+  console.log("✅ Loaded bulk-upload-products function");
+
+  const supplierBulkModule = await import("../inngest/functions/supplier-bulk-upload-products.js");
+  supplierBulkUploadProductsJob = supplierBulkModule.supplierBulkUploadProductsJob;
+  console.log("✅ Loaded supplier-bulk-upload-products function");
+
+  const singleProductModule = await import("../inngest/functions/single-product-enhancement.js");
+  singleProductEnhancementJob = singleProductModule.singleProductEnhancementJob;
+  console.log("✅ Loaded single-product-enhancement function");
+} catch (error) {
+  console.error("❌ Failed to load Inngest functions:", error);
+  console.error("Error details:", error.message);
+  console.error("Stack trace:", error.stack);
+  process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -84,13 +116,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Start server - MUST bind to 0.0.0.0 for Railway
+app.listen(PORT, "0.0.0.0", () => {
   console.log("🚀 Inngest Server Started");
   console.log(`📍 Port: ${PORT}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`💚 Health: http://localhost:${PORT}/health`);
-  console.log(`🔧 Inngest: http://localhost:${PORT}/api/inngest`);
+  console.log(`💚 Health: http://0.0.0.0:${PORT}/health`);
+  console.log(`🔧 Inngest: http://0.0.0.0:${PORT}/api/inngest`);
   console.log("");
   console.log("📦 Registered 5 Inngest Functions:");
   console.log("  - generate-blog: Generate Blog with AI");
