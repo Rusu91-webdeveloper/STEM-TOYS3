@@ -1,7 +1,7 @@
 # Complete Railway Deployment Guide - From Scratch
 
-**Last Updated:** October 11, 2025  
-**Status:** Ready for deployment (all fixes applied)
+**Last Updated:** October 11, 2025 - 04:15 AM  
+**Status:** Ready for deployment (TypeScript fixes applied - server.ts)
 
 ---
 
@@ -9,13 +9,15 @@
 
 ### What We're Deploying:
 
-A **standalone Inngest server** (`inngest-server/`) that runs 5 AI-powered background jobs:
+A **standalone Inngest server** (`inngest-server/`) that runs 5 AI-powered
+background jobs:
 
 1. **`generate-blog`** - AI blog generation (90-120s)
 2. **`enhance-products`** - Batch product enhancement (60-90s)
 3. **`bulk-upload-products`** - Admin bulk uploads with AI
 4. **`supplier-bulk-upload-products`** - Supplier bulk uploads with AI
-5. **`single-product-enhancement`** - Single product AI enhancement with preview (30-60s)
+5. **`single-product-enhancement`** - Single product AI enhancement with preview
+   (30-60s)
 
 ### Why Railway?
 
@@ -46,19 +48,23 @@ A **standalone Inngest server** (`inngest-server/`) that runs 5 AI-powered backg
 ### Critical Environment Variables Required:
 
 **Database (MUST HAVE):**
+
 - `DATABASE_URL` - PostgreSQL connection (Neon/Vercel Postgres)
 - `DIRECT_URL` - Direct database connection (same as DATABASE_URL for Neon)
 
 **Inngest (MUST HAVE):**
+
 - `INNGEST_EVENT_KEY` - For sending events (starts with `evt_`)
 - `INNGEST_SIGNING_KEY` - For webhook verification (starts with `signkey_`)
 
 **AI Services (MUST HAVE at least one):**
+
 - `OPENAI_API_KEY` - For AI enhancements (starts with `sk-`)
 - `ANTHROPIC_API_KEY` - Optional alternative (starts with `sk-ant-`)
 - `GEMINI_API_KEY` - Optional alternative
 
 **AI Configuration (REQUIRED):**
+
 - `AI_PRIMARY_PROVIDER` - Main AI provider (`openai`, `anthropic`, or `gemini`)
 - `AI_PRIMARY_MODEL` - Model to use (e.g., `gpt-4o-mini`)
 - `AI_SECONDARY_PROVIDER` - Fallback provider
@@ -66,6 +72,7 @@ A **standalone Inngest server** (`inngest-server/`) that runs 5 AI-powered backg
 - `AI_FALLBACK_MODEL` - Final fallback
 
 **Environment:**
+
 - `NODE_ENV` - Set to `production`
 - `PORT` - Railway sets automatically, defaults to `3001`
 
@@ -123,7 +130,8 @@ DATABASE_URL=postgresql://username:password@ep-xxxx.us-east-2.aws.neon.tech/data
 DIRECT_URL=postgresql://username:password@ep-xxxx.us-east-2.aws.neon.tech/database?sslmode=require
 ```
 
-**⚠️ IMPORTANT:** 
+**⚠️ IMPORTANT:**
+
 - Must end with `?sslmode=require`
 - Both URLs can be the same for Neon
 - Railway MUST be able to reach this database
@@ -194,14 +202,17 @@ NODE_ENV=production
 ### Step 5: Trigger Deployment
 
 **Option A: Automatic (Recommended)**
+
 - Railway auto-deploys when you push to GitHub
 - Should already be deploying from Step 1
 
 **Option B: Manual**
+
 - Click **"Deployments"** tab
 - Click **"Deploy"** button
 
 **Watch the deployment:**
+
 - **Build Phase:** 3-5 minutes (building Docker image)
 - **Deploy Phase:** 30 seconds (starting container)
 - **Healthcheck:** 10 seconds (checking `/health` endpoint)
@@ -249,6 +260,7 @@ curl https://your-railway-url.railway.app/health
 ```
 
 **Expected Response:**
+
 ```json
 {
   "status": "ok",
@@ -265,6 +277,7 @@ curl https://your-railway-url.railway.app/
 ```
 
 **Expected Response:**
+
 ```json
 {
   "name": "Inngest Server",
@@ -287,7 +300,8 @@ curl https://your-railway-url.railway.app/
 
 ### Step 7: Connect Inngest to Railway
 
-**IMPORTANT:** This step switches Inngest from Vercel (60s timeout) to Railway (unlimited).
+**IMPORTANT:** This step switches Inngest from Vercel (60s timeout) to Railway
+(unlimited).
 
 1. **Go to Inngest Dashboard:**
    - https://app.inngest.com/
@@ -300,11 +314,13 @@ curl https://your-railway-url.railway.app/
 3. **Update Serve API URL:**
 
    **OLD (Vercel - Remove):**
+
    ```
    https://www.techtots.ro/api/inngest
    ```
 
    **NEW (Railway - Add):**
+
    ```
    https://your-railway-url.railway.app/api/inngest
    ```
@@ -328,6 +344,7 @@ curl https://your-railway-url.railway.app/
 ### Step 8: Test End-to-End
 
 1. **Go to Production:**
+
    ```
    https://www.techtots.ro/admin/products
    ```
@@ -356,6 +373,7 @@ curl https://your-railway-url.railway.app/
 ### Issue 1: Healthcheck Fails (Most Common)
 
 **Symptoms:**
+
 - Build succeeds
 - Deployment shows "Application Error"
 - Healthcheck times out
@@ -363,13 +381,17 @@ curl https://your-railway-url.railway.app/
 **Causes & Fixes:**
 
 #### A. Server Not Binding to 0.0.0.0
+
 ✅ **Already Fixed** in `inngest-server/server.js` (line 88)
+
 ```javascript
 app.listen(PORT, "0.0.0.0", () => { ... });
 ```
 
 #### B. Missing Environment Variables
+
 Check Railway logs for:
+
 ```
 ❌ Failed to load Inngest functions:
 Error: INNGEST_SIGNING_KEY is not defined
@@ -378,23 +400,29 @@ Error: INNGEST_SIGNING_KEY is not defined
 **Fix:** Add missing variable in Railway Dashboard → Variables
 
 #### C. Database Connection Failed
+
 Check Railway logs for:
+
 ```
 Error: P1001: Can't reach database server
 ```
 
-**Fix:** 
+**Fix:**
+
 1. Verify DATABASE_URL is correct
 2. Check if Neon database is accessible
 3. Ensure Railway IP is not blocked
 
 #### D. OpenAI API Key Invalid
+
 Check Railway logs for:
+
 ```
 Error: OpenAI API key not configured
 ```
 
 **Fix:**
+
 1. Verify OPENAI_API_KEY is set
 2. Check key is valid: https://platform.openai.com/api-keys
 3. Ensure key has sufficient credits
@@ -404,6 +432,7 @@ Error: OpenAI API key not configured
 ### Issue 2: Functions Not Appearing in Inngest
 
 **Symptoms:**
+
 - Railway deployment successful
 - Inngest sync completes
 - But only shows 0-3 functions instead of 5
@@ -411,7 +440,9 @@ Error: OpenAI API key not configured
 **Causes & Fixes:**
 
 #### A. Inngest Pointing to Vercel
+
 Check Inngest Dashboard → Apps → Your App → Serve API
+
 ```
 OLD: https://www.techtots.ro/api/inngest
 NEW: https://your-railway-url.railway.app/api/inngest
@@ -420,7 +451,9 @@ NEW: https://your-railway-url.railway.app/api/inngest
 **Fix:** Update Serve API URL to Railway
 
 #### B. Signing Key Mismatch
+
 **Fix:**
+
 1. Get signing key from Inngest Dashboard
 2. Copy EXACT value to Railway variables
 3. Restart Railway service
@@ -430,6 +463,7 @@ NEW: https://your-railway-url.railway.app/api/inngest
 ### Issue 3: Functions Timeout During Execution
 
 **Symptoms:**
+
 - Function starts
 - Runs for 60 seconds
 - Then fails with timeout
@@ -443,13 +477,16 @@ NEW: https://your-railway-url.railway.app/api/inngest
 ### Issue 4: Build Fails
 
 **Symptoms:**
+
 - Railway shows build error
 - Docker build fails
 
 **Common Causes:**
 
 #### A. Prisma Generation Failed
+
 Check logs for:
+
 ```
 Error: Cannot find module '@prisma/client'
 ```
@@ -457,12 +494,15 @@ Error: Cannot find module '@prisma/client'
 ✅ **Already Fixed** in `Dockerfile.railway` (lines 17-18)
 
 #### B. Missing Dependencies
+
 Check logs for:
+
 ```
 Cannot find module 'inngest'
 ```
 
 **Fix:**
+
 1. Verify `inngest-server/package.json` has all deps
 2. Check root `package.json` has Prisma
 
@@ -510,7 +550,8 @@ Cannot find module 'inngest'
 Before considering deployment complete:
 
 - [ ] Railway deployment shows **"Active"** status
-- [ ] Railway URL is accessible: `https://your-url.railway.app/health` returns 200
+- [ ] Railway URL is accessible: `https://your-url.railway.app/health` returns
+      200
 - [ ] Railway logs show "📦 Registered 5 Inngest Functions"
 - [ ] All 5 functions listed in Railway logs startup
 - [ ] Inngest Dashboard points to Railway URL (not Vercel)
@@ -556,18 +597,22 @@ NODE_ENV=production
 ## 🔗 Important URLs
 
 **Railway:**
+
 - Dashboard: https://railway.app/dashboard
 - Docs: https://docs.railway.app/
 
 **Inngest:**
+
 - Dashboard: https://app.inngest.com/
 - Docs: https://www.inngest.com/docs
 
 **Neon:**
+
 - Console: https://console.neon.tech/
 - Docs: https://neon.tech/docs
 
 **OpenAI:**
+
 - API Keys: https://platform.openai.com/api-keys
 - Docs: https://platform.openai.com/docs
 
@@ -600,6 +645,7 @@ If deployment still fails after following this guide:
 ## ✅ What's Different from Previous Attempts
 
 **Previous Setup (Failed):**
+
 ```
 ❌ Server bound to localhost only
 ❌ No detailed startup logging
@@ -608,6 +654,7 @@ If deployment still fails after following this guide:
 ```
 
 **Current Setup (Fixed):**
+
 ```
 ✅ Server binds to 0.0.0.0 (Railway requirement)
 ✅ Detailed logging at every step
@@ -618,5 +665,5 @@ If deployment still fails after following this guide:
 
 ---
 
-**Ready to deploy?** Start with Step 1 and follow each step carefully. Good luck! 🚀
-
+**Ready to deploy?** Start with Step 1 and follow each step carefully. Good
+luck! 🚀
