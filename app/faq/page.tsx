@@ -75,15 +75,24 @@ export default function FAQPage() {
 
         {/* Social Proof Badges - Compact on Mobile */}
         <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
-          <Badge variant="secondary" className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs md:text-sm">
+          <Badge
+            variant="secondary"
+            className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs md:text-sm"
+          >
             <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-1 sm:mr-1.5 md:mr-2" />
             10,000+ Parents Transformed
           </Badge>
-          <Badge variant="secondary" className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs md:text-sm">
+          <Badge
+            variant="secondary"
+            className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs md:text-sm"
+          >
             <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-1 sm:mr-1.5 md:mr-2" />
             4.9/5 Stars Rating
           </Badge>
-          <Badge variant="secondary" className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs md:text-sm">
+          <Badge
+            variant="secondary"
+            className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs md:text-sm"
+          >
             <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-1 sm:mr-1.5 md:mr-2" />
             30-Day Guarantee
           </Badge>
@@ -100,7 +109,12 @@ export default function FAQPage() {
               {t("faqGetPersonalizedRecommendations")}
             </Link>
           </Button>
-          <Button asChild variant="outline" size="lg" className="text-sm sm:text-base py-2 sm:py-2.5 md:py-3">
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="text-sm sm:text-base py-2 sm:py-2.5 md:py-3"
+          >
             <Link href="/products">{t("faqSeeSuccessStories")}</Link>
           </Button>
         </div>
@@ -176,19 +190,27 @@ export default function FAQPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm">
                   <div className="text-center">
                     <div className="font-semibold">CE Certified</div>
-                    <div className="text-gray-600 text-[10px] sm:text-xs">European Standards</div>
+                    <div className="text-gray-600 text-[10px] sm:text-xs">
+                      European Standards
+                    </div>
                   </div>
                   <div className="text-center">
                     <div className="font-semibold">ASTM F963</div>
-                    <div className="text-gray-600 text-[10px] sm:text-xs">US Safety Standard</div>
+                    <div className="text-gray-600 text-[10px] sm:text-xs">
+                      US Safety Standard
+                    </div>
                   </div>
                   <div className="text-center">
                     <div className="font-semibold">EN71</div>
-                    <div className="text-gray-600 text-[10px] sm:text-xs">EU Toy Safety</div>
+                    <div className="text-gray-600 text-[10px] sm:text-xs">
+                      EU Toy Safety
+                    </div>
                   </div>
                   <div className="text-center">
                     <div className="font-semibold">0 Incidents</div>
-                    <div className="text-gray-600 text-[10px] sm:text-xs">50,000+ Toys Sold</div>
+                    <div className="text-gray-600 text-[10px] sm:text-xs">
+                      50,000+ Toys Sold
+                    </div>
                   </div>
                 </div>
               </div>
@@ -281,12 +303,12 @@ export default function FAQPage() {
         </section>
       </div>
 
-      {/* Final CTA Section - Compact on Mobile */}
-      <div className="mt-6 sm:mt-10 md:mt-16 text-center bg-gradient-to-r from-blue-600 to-green-600 text-white p-6 sm:p-8 md:p-12 rounded-xl sm:rounded-2xl">
-        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4">
+      {/* Final CTA Section - Ultra Compact on Mobile */}
+      <div className="mt-4 sm:mt-6 md:mt-12 lg:mt-16 text-center bg-gradient-to-r from-blue-600 to-green-600 text-white p-4 sm:p-6 md:p-8 lg:p-12 rounded-lg sm:rounded-xl md:rounded-2xl">
+        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-2 sm:mb-3 md:mb-4">
           Ready to Transform Your Child's Learning?
         </h2>
-        <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-4 sm:mb-6 md:mb-8 opacity-90">
+        <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl mb-3 sm:mb-4 md:mb-6 lg:mb-8 opacity-90 leading-snug sm:leading-normal">
           Join 10,000+ parents who've already seen the transformation. Start
           today with our risk-free guarantee.
         </p>
@@ -295,20 +317,19 @@ export default function FAQPage() {
             asChild
             size="lg"
             variant="secondary"
-            className="text-blue-600 hover:text-blue-700 text-sm sm:text-base py-2 sm:py-2.5 md:py-3"
+            className="bg-white text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-semibold text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6"
           >
             <Link href="/products">{t("faqStartTransformation")}</Link>
           </Button>
           <Button
             asChild
             size="lg"
-            variant="outline"
-            className="border-white text-white hover:bg-white hover:text-blue-600 text-sm sm:text-base py-2 sm:py-2.5 md:py-3"
+            className="bg-white/90 backdrop-blur-sm border-2 border-white text-blue-600 hover:bg-white hover:text-blue-700 font-semibold text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6 shadow-lg"
           >
             <Link href="/contact">{t("faqBookFreeConsultation")}</Link>
           </Button>
         </div>
-        <p className="text-xs sm:text-sm mt-3 sm:mt-4 opacity-75">
+        <p className="text-[10px] sm:text-xs md:text-sm mt-2 sm:mt-3 md:mt-4 opacity-75">
           ⚡ Limited time: Free consultation worth €50 - Only 50 spots this
           month
         </p>
