@@ -233,7 +233,7 @@ export function UserPreferencesSettings({
     } catch (error) {
       console.error("Failed to load user settings:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t("failedToLoadSettings", "Failed to load settings"),
         variant: "destructive",
       });
@@ -264,7 +264,7 @@ export function UserPreferencesSettings({
     } catch (error) {
       console.error("Failed to save settings:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t("failedToSaveSettings", "Failed to save settings"),
         variant: "destructive",
       });
@@ -276,7 +276,7 @@ export function UserPreferencesSettings({
   const handlePasswordChange = async () => {
     if (passwordForm.new !== passwordForm.confirm) {
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t("passwordsDoNotMatch", "Passwords do not match"),
         variant: "destructive",
       });
@@ -306,7 +306,7 @@ export function UserPreferencesSettings({
     } catch (error) {
       console.error("Failed to change password:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t("failedToChangePassword", "Failed to change password"),
         variant: "destructive",
       });
@@ -340,7 +340,7 @@ export function UserPreferencesSettings({
     } catch (error) {
       console.error("Failed to upload avatar:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t("failedToUploadAvatar", "Failed to upload avatar"),
         variant: "destructive",
       });
@@ -373,7 +373,7 @@ export function UserPreferencesSettings({
     } catch (error) {
       console.error("Failed to export data:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t("failedToExportData", "Failed to export data"),
         variant: "destructive",
       });
@@ -400,7 +400,7 @@ export function UserPreferencesSettings({
     } catch (error) {
       console.error("Failed to delete account:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t("failedToDeleteAccount", "Failed to delete account"),
         variant: "destructive",
       });

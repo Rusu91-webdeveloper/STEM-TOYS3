@@ -922,7 +922,7 @@ export function UserOnboarding({
     } catch (error) {
       console.error("Failed to complete onboarding:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t(
           "failedToCompleteSetup",
           "Failed to complete setup. Please try again."

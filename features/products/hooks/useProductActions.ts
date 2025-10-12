@@ -133,7 +133,7 @@ export function useProductActions(
       } catch (fallbackError) {
         console.error("All share methods failed:", fallbackError);
         toast({
-          title: t("error", "Eroare"),
+          title: "Eroare",
           description: t(
             "sharingNotSupported",
             "Partajarea nu este disponibilă în acest moment."
@@ -144,10 +144,10 @@ export function useProductActions(
     } catch (error) {
       console.error("Share failed:", error);
       toast({
-        title: t("error", "Eroare"),
+        title: "Eroare",
         description: t(
-          "sharingNotSupported",
-          "Partajarea nu este disponibilă în acest moment."
+            "sharingNotSupported",
+            "Partajarea nu este disponibilă în acest moment."
         ),
         variant: "destructive",
       });
@@ -328,7 +328,7 @@ export function useProductActions(
       }
 
       toast({
-        title: t("error", "Eroare"),
+        title: "Eroare",
         description: errorDescription,
         variant: "destructive",
       });
@@ -392,7 +392,7 @@ export function useProductActions(
     } catch (error) {
       console.error("Error adding to cart:", error);
       toast({
-        title: t("error", "Eroare"),
+        title: "Eroare",
         description: t(
           "addToCartError",
           "Nu s-a putut adăuga produsul în coș."

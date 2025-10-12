@@ -300,7 +300,7 @@ function ResetPasswordContent() {
         <div className="p-6 bg-card rounded-lg border shadow-sm space-y-6">
           {error && (
             <div className="p-4 rounded-md bg-destructive/15 text-destructive border border-destructive/30">
-              <p className="font-medium">{t("error")}</p>
+              <p className="font-medium">Eroare</p>
               <p className="text-sm">{error}</p>
             </div>
           )}

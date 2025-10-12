@@ -93,7 +93,7 @@ export function Wishlist({ initialItems }: WishlistProps) {
       });
     } catch (_error) {
       toast({
-        title: t("error", "Eroare"),
+        title: "Eroare",
         description: t(
           "removeWishlistError",
           "Nu s-a putut elimina articolul din lista de dorințe."
@@ -123,7 +123,7 @@ export function Wishlist({ initialItems }: WishlistProps) {
       });
     } catch (_error) {
       toast({
-        title: t("error", "Eroare"),
+        title: "Eroare",
         description: t(
           "addToCartError",
           "Nu s-a putut adăuga articolul în coș."
@@ -151,7 +151,7 @@ export function Wishlist({ initialItems }: WishlistProps) {
         })
         .catch(() => {
           toast({
-            title: t("error", "Eroare"),
+            title: "Eroare",
             description: t("copyLinkError", "Nu s-a putut copia link-ul."),
             variant: "destructive",
           });

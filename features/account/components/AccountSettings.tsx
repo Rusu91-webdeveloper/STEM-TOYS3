@@ -61,7 +61,7 @@ export function AccountSettings() {
       });
     } catch (error) {
       toast({
-        title: t("error", "Eroare"),
+        title: "Eroare",
         description: t(
           "failedToUpdateSettings",
           "Nu s-au putut actualiza setările. Te rugăm să încerci din nou."
@@ -101,7 +101,7 @@ export function AccountSettings() {
       });
     } catch (error) {
       toast({
-        title: t("error", "Eroare"),
+        title: "Eroare",
         description: t(
           "failedToUpdatePreferences",
           "Nu s-au putut actualiza preferințele. Te rugăm să încerci din nou."

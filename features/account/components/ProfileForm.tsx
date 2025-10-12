@@ -130,7 +130,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
         });
       } else {
         toast({
-          title: t("error", "Eroare"),
+          title: "Eroare",
           description:
             error instanceof Error
               ? error.message

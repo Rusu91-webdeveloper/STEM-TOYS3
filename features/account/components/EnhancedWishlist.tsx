@@ -271,7 +271,7 @@ export function EnhancedWishlist({
     } catch (error) {
       console.error("Failed to remove item:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t("failedToRemoveItem", "Failed to remove item."),
         variant: "destructive",
       });
@@ -306,7 +306,7 @@ export function EnhancedWishlist({
     } catch (error) {
       console.error("Failed to update item:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t("failedToUpdateItem", "Failed to update item."),
         variant: "destructive",
       });
@@ -347,7 +347,7 @@ export function EnhancedWishlist({
     } catch (error) {
       console.error("Failed to create collection:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t(
           "failedToCreateCollection",
           "Failed to create collection."
@@ -388,7 +388,7 @@ export function EnhancedWishlist({
     } catch (error) {
       console.error("Failed to create share link:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t(
           "failedToCreateShareLink",
           "Failed to create share link."

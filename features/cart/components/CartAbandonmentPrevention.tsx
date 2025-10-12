@@ -335,7 +335,7 @@ export function CartAbandonmentPrevention({
     } catch (error) {
       console.error("Failed to apply offer:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t(
           "failedToApplyOffer",
           "Failed to apply offer. Please try again."
@@ -391,7 +391,7 @@ export function CartAbandonmentPrevention({
     } catch (error) {
       console.error("Failed to save cart for recovery:", error);
       toast({
-        title: t("error", "Error"),
+        title: "Error",
         description: t(
           "failedToSaveCart",
           "Failed to save cart. Please try again."
