@@ -61,69 +61,69 @@ export default function FAQPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-10">
+    <div className="container mx-auto max-w-4xl px-3 sm:px-4 py-4 sm:py-6 md:py-10">
       {/* Add FAQ Schema for AI visibility */}
       <SeoJsonLd data={faqStructuredData} />
-      {/* Hero Section with Transformation Focus */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+      {/* Hero Section with Transformation Focus - Compact on Mobile */}
+      <div className="text-center mb-4 sm:mb-6 md:mb-12">
+        <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 md:mb-6 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
           {t("faqH1")}
         </h1>
-        <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+        <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto">
           {t("faqSubtitle")}
         </p>
 
-        {/* Social Proof Badges */}
-        <div className="flex flex-wrap justify-center gap-4 mb-8">
-          <Badge variant="secondary" className="px-4 py-2 text-sm">
-            <Users className="w-4 h-4 mr-2" />
+        {/* Social Proof Badges - Compact on Mobile */}
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
+          <Badge variant="secondary" className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs md:text-sm">
+            <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-1 sm:mr-1.5 md:mr-2" />
             10,000+ Parents Transformed
           </Badge>
-          <Badge variant="secondary" className="px-4 py-2 text-sm">
-            <Star className="w-4 h-4 mr-2" />
+          <Badge variant="secondary" className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs md:text-sm">
+            <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-1 sm:mr-1.5 md:mr-2" />
             4.9/5 Stars Rating
           </Badge>
-          <Badge variant="secondary" className="px-4 py-2 text-sm">
-            <Shield className="w-4 h-4 mr-2" />
+          <Badge variant="secondary" className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs md:text-sm">
+            <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-1 sm:mr-1.5 md:mr-2" />
             30-Day Guarantee
           </Badge>
         </div>
 
-        {/* Primary CTA */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        {/* Primary CTA - Compact on Mobile */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center">
           <Button
             asChild
             size="lg"
-            className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+            className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-sm sm:text-base py-2 sm:py-2.5 md:py-3"
           >
             <Link href="/contact">
               {t("faqGetPersonalizedRecommendations")}
             </Link>
           </Button>
-          <Button asChild variant="outline" size="lg">
+          <Button asChild variant="outline" size="lg" className="text-sm sm:text-base py-2 sm:py-2.5 md:py-3">
             <Link href="/products">{t("faqSeeSuccessStories")}</Link>
           </Button>
         </div>
       </div>
 
-      {/* FAQ Sections with Hormozi Principles */}
-      <div className="space-y-12">
+      {/* FAQ Sections with Hormozi Principles - Compact on Mobile */}
+      <div className="space-y-4 sm:space-y-6 md:space-y-12">
         {/* Question 1: Will STEM toys actually help? */}
-        <section className="bg-gradient-to-r from-blue-50 to-green-50 p-8 rounded-2xl border border-blue-100">
-          <div className="flex items-start gap-4">
-            <CheckCircle className="w-8 h-8 text-green-600 mt-1 flex-shrink-0" />
+        <section className="bg-gradient-to-r from-blue-50 to-green-50 p-4 sm:p-5 md:p-8 rounded-xl sm:rounded-2xl border border-blue-100">
+          <div className="flex items-start gap-2 sm:gap-3 md:gap-4">
+            <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-green-600 mt-0.5 sm:mt-1 flex-shrink-0" />
             <div>
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">
+              <h2 className="text-base sm:text-lg md:text-2xl font-bold mb-2 sm:mb-3 md:mb-4 text-gray-900">
                 {t("faqWhatAreStemH2")}
               </h2>
-              <p className="text-lg leading-relaxed text-gray-700 mb-6">
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed text-gray-700 mb-3 sm:mb-4 md:mb-6">
                 {t("faqWhatAreStemAnswer")}
               </p>
-              <div className="bg-white p-4 rounded-lg border border-green-200">
-                <p className="font-semibold text-green-800 mb-2">
+              <div className="bg-white p-3 sm:p-4 rounded-lg border border-green-200">
+                <p className="text-xs sm:text-sm md:text-base font-semibold text-green-800 mb-1 sm:mb-2">
                   🎯 Real Results:
                 </p>
-                <p className="text-gray-700">
+                <p className="text-xs sm:text-sm md:text-base text-gray-700">
                   "My 8-year-old went from crying over math homework to asking
                   for more experiments. The transformation happened in just 3
                   weeks!" - Sarah M., Parent
@@ -134,21 +134,21 @@ export default function FAQPage() {
         </section>
 
         {/* Question 2: Choosing the right toy */}
-        <section className="bg-gradient-to-r from-orange-50 to-red-50 p-8 rounded-2xl border border-orange-100">
-          <div className="flex items-start gap-4">
-            <Shield className="w-8 h-8 text-orange-600 mt-1 flex-shrink-0" />
+        <section className="bg-gradient-to-r from-orange-50 to-red-50 p-4 sm:p-5 md:p-8 rounded-xl sm:rounded-2xl border border-orange-100">
+          <div className="flex items-start gap-2 sm:gap-3 md:gap-4">
+            <Shield className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-orange-600 mt-0.5 sm:mt-1 flex-shrink-0" />
             <div>
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">
+              <h2 className="text-base sm:text-lg md:text-2xl font-bold mb-2 sm:mb-3 md:mb-4 text-gray-900">
                 {t("faqAgeAppropriateH2")}
               </h2>
-              <p className="text-lg leading-relaxed text-gray-700 mb-6">
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed text-gray-700 mb-3 sm:mb-4 md:mb-6">
                 {t("faqAgeAppropriateAnswer")}
               </p>
-              <div className="bg-white p-4 rounded-lg border border-orange-200">
-                <p className="font-semibold text-orange-800 mb-2">
+              <div className="bg-white p-3 sm:p-4 rounded-lg border border-orange-200">
+                <p className="text-xs sm:text-sm md:text-base font-semibold text-orange-800 mb-1 sm:mb-2">
                   🛡️ Our Promise:
                 </p>
-                <p className="text-gray-700">
+                <p className="text-xs sm:text-sm md:text-base text-gray-700">
                   If you're not 100% satisfied with your choice, we'll not only
                   refund you but also personally help you find the perfect toy
                   for your child's specific needs.
@@ -159,36 +159,36 @@ export default function FAQPage() {
         </section>
 
         {/* Question 3: Safety concerns */}
-        <section className="bg-gradient-to-r from-green-50 to-blue-50 p-8 rounded-2xl border border-green-100">
-          <div className="flex items-start gap-4">
-            <Shield className="w-8 h-8 text-green-600 mt-1 flex-shrink-0" />
+        <section className="bg-gradient-to-r from-green-50 to-blue-50 p-4 sm:p-5 md:p-8 rounded-xl sm:rounded-2xl border border-green-100">
+          <div className="flex items-start gap-2 sm:gap-3 md:gap-4">
+            <Shield className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-green-600 mt-0.5 sm:mt-1 flex-shrink-0" />
             <div>
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">
+              <h2 className="text-base sm:text-lg md:text-2xl font-bold mb-2 sm:mb-3 md:mb-4 text-gray-900">
                 {t("faqSafetyH2")}
               </h2>
-              <p className="text-lg leading-relaxed text-gray-700 mb-6">
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed text-gray-700 mb-3 sm:mb-4 md:mb-6">
                 {t("faqSafetyAnswer")}
               </p>
-              <div className="bg-white p-4 rounded-lg border border-green-200">
-                <p className="font-semibold text-green-800 mb-2">
+              <div className="bg-white p-3 sm:p-4 rounded-lg border border-green-200">
+                <p className="text-xs sm:text-sm md:text-base font-semibold text-green-800 mb-2">
                   🔒 Safety Certifications:
                 </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm">
                   <div className="text-center">
                     <div className="font-semibold">CE Certified</div>
-                    <div className="text-gray-600">European Standards</div>
+                    <div className="text-gray-600 text-[10px] sm:text-xs">European Standards</div>
                   </div>
                   <div className="text-center">
                     <div className="font-semibold">ASTM F963</div>
-                    <div className="text-gray-600">US Safety Standard</div>
+                    <div className="text-gray-600 text-[10px] sm:text-xs">US Safety Standard</div>
                   </div>
                   <div className="text-center">
                     <div className="font-semibold">EN71</div>
-                    <div className="text-gray-600">EU Toy Safety</div>
+                    <div className="text-gray-600 text-[10px] sm:text-xs">EU Toy Safety</div>
                   </div>
                   <div className="text-center">
                     <div className="font-semibold">0 Incidents</div>
-                    <div className="text-gray-600">50,000+ Toys Sold</div>
+                    <div className="text-gray-600 text-[10px] sm:text-xs">50,000+ Toys Sold</div>
                   </div>
                 </div>
               </div>
@@ -197,42 +197,42 @@ export default function FAQPage() {
         </section>
 
         {/* Question 4: Educational effectiveness */}
-        <section className="bg-gradient-to-r from-purple-50 to-pink-50 p-8 rounded-2xl border border-purple-100">
-          <div className="flex items-start gap-4">
-            <Star className="w-8 h-8 text-purple-600 mt-1 flex-shrink-0" />
+        <section className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 sm:p-5 md:p-8 rounded-xl sm:rounded-2xl border border-purple-100">
+          <div className="flex items-start gap-2 sm:gap-3 md:gap-4">
+            <Star className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-purple-600 mt-0.5 sm:mt-1 flex-shrink-0" />
             <div>
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">
+              <h2 className="text-base sm:text-lg md:text-2xl font-bold mb-2 sm:mb-3 md:mb-4 text-gray-900">
                 {t("faqEducationalH2")}
               </h2>
-              <p className="text-lg leading-relaxed text-gray-700 mb-6">
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed text-gray-700 mb-3 sm:mb-4 md:mb-6">
                 {t("faqEducationalAnswer")}
               </p>
-              <div className="bg-white p-4 rounded-lg border border-purple-200">
-                <p className="font-semibold text-purple-800 mb-2">
+              <div className="bg-white p-3 sm:p-4 rounded-lg border border-purple-200">
+                <p className="text-xs sm:text-sm md:text-base font-semibold text-purple-800 mb-2">
                   📈 Proven Results:
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 text-center">
                   <div>
-                    <div className="text-2xl font-bold text-purple-600">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-purple-600">
                       87%
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-[10px] sm:text-xs md:text-sm text-gray-600">
                       Improved Math Scores
                     </div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-purple-600">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-purple-600">
                       92%
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-[10px] sm:text-xs md:text-sm text-gray-600">
                       Increased Engagement
                     </div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-purple-600">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-purple-600">
                       30 Days
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-[10px] sm:text-xs md:text-sm text-gray-600">
                       Average Transformation
                     </div>
                   </div>
@@ -243,35 +243,35 @@ export default function FAQPage() {
         </section>
 
         {/* Question 5: Guarantee and satisfaction */}
-        <section className="bg-gradient-to-r from-red-50 to-orange-50 p-8 rounded-2xl border border-red-100">
-          <div className="flex items-start gap-4">
-            <Clock className="w-8 h-8 text-red-600 mt-1 flex-shrink-0" />
+        <section className="bg-gradient-to-r from-red-50 to-orange-50 p-4 sm:p-5 md:p-8 rounded-xl sm:rounded-2xl border border-red-100">
+          <div className="flex items-start gap-2 sm:gap-3 md:gap-4">
+            <Clock className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-red-600 mt-0.5 sm:mt-1 flex-shrink-0" />
             <div>
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">
+              <h2 className="text-base sm:text-lg md:text-2xl font-bold mb-2 sm:mb-3 md:mb-4 text-gray-900">
                 {t("faqPurchaseH2")}
               </h2>
-              <p className="text-lg leading-relaxed text-gray-700 mb-6">
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed text-gray-700 mb-3 sm:mb-4 md:mb-6">
                 {t("faqReturnPolicyAnswer")}
               </p>
-              <div className="bg-white p-4 rounded-lg border border-red-200">
-                <p className="font-semibold text-red-800 mb-2">
+              <div className="bg-white p-3 sm:p-4 rounded-lg border border-red-200">
+                <p className="text-xs sm:text-sm md:text-base font-semibold text-red-800 mb-2">
                   💯 Risk-Free Guarantee:
                 </p>
-                <div className="space-y-2 text-gray-700">
+                <div className="space-y-1.5 sm:space-y-2 text-gray-700 text-xs sm:text-sm md:text-base">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600 flex-shrink-0" />
                     <span>Full refund within 30 days</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600 flex-shrink-0" />
                     <span>Keep the toy even if you return</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600 flex-shrink-0" />
                     <span>Personal consultation to find perfect fit</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600 flex-shrink-0" />
                     <span>No questions asked policy</span>
                   </div>
                 </div>
@@ -281,21 +281,21 @@ export default function FAQPage() {
         </section>
       </div>
 
-      {/* Final CTA Section */}
-      <div className="mt-16 text-center bg-gradient-to-r from-blue-600 to-green-600 text-white p-12 rounded-2xl">
-        <h2 className="text-3xl font-bold mb-4">
+      {/* Final CTA Section - Compact on Mobile */}
+      <div className="mt-6 sm:mt-10 md:mt-16 text-center bg-gradient-to-r from-blue-600 to-green-600 text-white p-6 sm:p-8 md:p-12 rounded-xl sm:rounded-2xl">
+        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4">
           Ready to Transform Your Child's Learning?
         </h2>
-        <p className="text-xl mb-8 opacity-90">
+        <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-4 sm:mb-6 md:mb-8 opacity-90">
           Join 10,000+ parents who've already seen the transformation. Start
           today with our risk-free guarantee.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center">
           <Button
             asChild
             size="lg"
             variant="secondary"
-            className="text-blue-600 hover:text-blue-700"
+            className="text-blue-600 hover:text-blue-700 text-sm sm:text-base py-2 sm:py-2.5 md:py-3"
           >
             <Link href="/products">{t("faqStartTransformation")}</Link>
           </Button>
@@ -303,12 +303,12 @@ export default function FAQPage() {
             asChild
             size="lg"
             variant="outline"
-            className="border-white text-white hover:bg-white hover:text-blue-600"
+            className="border-white text-white hover:bg-white hover:text-blue-600 text-sm sm:text-base py-2 sm:py-2.5 md:py-3"
           >
             <Link href="/contact">{t("faqBookFreeConsultation")}</Link>
           </Button>
         </div>
-        <p className="text-sm mt-4 opacity-75">
+        <p className="text-xs sm:text-sm mt-3 sm:mt-4 opacity-75">
           ⚡ Limited time: Free consultation worth €50 - Only 50 spots this
           month
         </p>
