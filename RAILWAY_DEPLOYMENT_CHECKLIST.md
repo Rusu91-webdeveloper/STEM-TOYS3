@@ -27,14 +27,17 @@ Quick reference checklist for deploying Inngest server to Railway.
 ### Environment Variables
 
 **Database:**
+
 - [ ] `DATABASE_URL` added (from Neon, ends with `?sslmode=require`)
 - [ ] `DIRECT_URL` added (same as DATABASE_URL for Neon)
 
 **Inngest:**
+
 - [ ] `INNGEST_EVENT_KEY` added (starts with `evt_`)
 - [ ] `INNGEST_SIGNING_KEY` added (starts with `signkey_`)
 
 **AI:**
+
 - [ ] `OPENAI_API_KEY` added (starts with `sk-`)
 - [ ] `AI_PRIMARY_PROVIDER` set to `openai`
 - [ ] `AI_PRIMARY_MODEL` set to `gpt-4o-mini`
@@ -44,6 +47,7 @@ Quick reference checklist for deploying Inngest server to Railway.
 - [ ] `AI_ENHANCEMENT_ENABLED` set to `true`
 
 **Environment:**
+
 - [ ] `NODE_ENV` set to `production`
 
 ---
@@ -78,7 +82,8 @@ Quick reference checklist for deploying Inngest server to Railway.
 
 - [ ] Opened Inngest Dashboard: https://app.inngest.com/
 - [ ] Found app: `stem-toys-blog-generation`
-- [ ] Updated Serve API URL to Railway: `https://your-url.railway.app/api/inngest`
+- [ ] Updated Serve API URL to Railway:
+      `https://your-url.railway.app/api/inngest`
 - [ ] Clicked "Sync" button
 - [ ] Sync completed successfully
 - [ ] Functions tab shows all 5 functions:
@@ -138,17 +143,20 @@ Quick reference checklist for deploying Inngest server to Railway.
 ## 📊 Post-Deployment Monitoring
 
 ### First Hour
+
 - [ ] Check Railway logs every 10 minutes
 - [ ] Monitor memory usage
 - [ ] Verify functions executing successfully
 
 ### First Day
+
 - [ ] Test all AI features at least once
 - [ ] Check for any error patterns in logs
 - [ ] Verify no timeout issues
 - [ ] Confirm Inngest showing all successful runs
 
 ### First Week
+
 - [ ] Monitor Railway usage (stay under 500 hours/month)
 - [ ] Check for any memory leaks
 - [ ] Verify consistent performance
@@ -159,12 +167,15 @@ Quick reference checklist for deploying Inngest server to Railway.
 ## 🚨 If Something Goes Wrong
 
 ### Build Failed
+
 1. [ ] Check Railway build logs for exact error
 2. [ ] Verify Dockerfile.railway exists
-3. [ ] Check package.json dependencies
-4. [ ] Try redeploying
+3. [ ] Verify tsconfig.json is copied to container
+4. [ ] Check package.json dependencies
+5. [ ] Try redeploying
 
 ### Healthcheck Failed
+
 1. [ ] Check Railway **runtime logs** (not build logs)
 2. [ ] Look for startup error messages
 3. [ ] Verify all environment variables are set
@@ -172,12 +183,14 @@ Quick reference checklist for deploying Inngest server to Railway.
 5. [ ] Verify OpenAI API key is valid
 
 ### Functions Not Appearing in Inngest
+
 1. [ ] Verify Inngest Serve API URL points to Railway
 2. [ ] Check INNGEST_SIGNING_KEY matches exactly
 3. [ ] Try re-syncing in Inngest Dashboard
 4. [ ] Check Railway logs for registration messages
 
 ### Functions Timeout
+
 1. [ ] Verify Inngest pointing to Railway (not Vercel)
 2. [ ] Check Railway logs for actual execution time
 3. [ ] Verify OpenAI API not rate-limited
@@ -217,7 +230,16 @@ When all checkboxes above are checked:
 ## 📞 Need Help?
 
 If any checkbox fails, refer to:
+
 - **Full guide:** `RAILWAY_DEPLOYMENT_COMPLETE_GUIDE.md`
 - **Troubleshooting:** `TROUBLESHOOTING_INNGEST_PRODUCTION.md`
 - **Quick reference:** `RAILWAY_DEPLOYMENT_GUIDE.md`
 
+AI_PRIMARY_PROVIDER="openai" AI_SECONDARY_PROVIDER="openai"
+DIRECT_URL="postgres://neondb_owner:npg_kfr3JCK0uTqg@ep-small-union-a2e4pe5c-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+OPENAI_API_KEY="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"
+AI_PRIMARY_MODEL="gpt-4o-mini" AI_SECONDARY_MODEL="gpt-4o-mini"
+NODE_ENV="production"
+DATABASE_URL="postgres://neondb_owner:npg_kfr3JCK0uTqg@ep-small-union-a2e4pe5c-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+AI_FALLBACK_MODEL="gpt-4o-mini" AI_ENHANCEMENT_ENABLED="true"
+AI_MAX_TOKENS="2000" AI_TEMPERATURE="0.7"
