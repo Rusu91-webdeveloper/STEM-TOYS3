@@ -1,7 +1,8 @@
-# Dockerfile for Railway deployment of Inngest Server
-# This runs the standalone Inngest endpoint to bypass Vercel timeouts
+# Multi-stage Dockerfile for Railway deployment of Inngest Server
+# Optimized to stay under 4GB limit
 
-FROM node:18-alpine
+# Build stage - for installing dependencies and preparing files
+FROM node:18-alpine AS builder
 
 # Install OpenSSL for Prisma
 RUN apk add --no-cache openssl libc6-compat
@@ -9,40 +10,62 @@ RUN apk add --no-cache openssl libc6-compat
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy only necessary files for Prisma generation
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install root dependencies (includes TypeScript, Prisma, tsx, etc.)
-RUN npm install --production=false
+# Install minimal dependencies for Prisma generation
+RUN npm ci --only=production && npm cache clean --force
 
 # Generate Prisma client
 RUN npx prisma generate
 
-# Copy TypeScript config
-COPY tsconfig*.json ./
-
-# Copy necessary source directories (TypeScript files)
+# Copy only the files needed for Inngest server
 COPY inngest ./inngest/
 COPY lib ./lib/
 COPY types ./types/
-
-# Copy inngest-server
 COPY inngest-server ./inngest-server/
 
-# Install inngest-server dependencies (keep dev dependencies for tsx)
+# Install inngest-server dependencies
 WORKDIR /app/inngest-server
-RUN npm install
+RUN npm ci && npm cache clean --force
 
-# Back to root for runtime
+# Runtime stage - minimal image with only what's needed
+FROM node:18-alpine AS runtime
+
+# Install only essential runtime dependencies
+RUN apk add --no-cache openssl libc6-compat dumb-init
+
+# Create app user for security
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+
+# Set working directory
 WORKDIR /app
+
+# Copy Prisma client and schema from builder
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma/
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules/
+
+# Copy inngest and lib directories
+COPY --from=builder --chown=nextjs:nodejs /app/inngest ./inngest/
+COPY --from=builder --chown=nextjs:nodejs /app/lib ./lib/
+COPY --from=builder --chown=nextjs:nodejs /app/types ./types/
+
+# Copy inngest-server with its node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/inngest-server ./inngest-server/
+
+# Switch to non-root user
+USER nextjs
 
 # Expose port (Railway will override with PORT env var)
 EXPOSE ${PORT:-3001}
 
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
+
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:${PORT:-3001}/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1); });"
+  CMD node -e "require('http').get('http://localhost:\${PORT:-3001}/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1); });"
 
 # Start the server using tsx to handle TypeScript imports
 CMD ["npx", "tsx", "inngest-server/server.ts"]
