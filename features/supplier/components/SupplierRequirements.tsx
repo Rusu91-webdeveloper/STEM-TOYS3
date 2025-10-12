@@ -360,53 +360,53 @@ export function SupplierRequirements() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Floating Language Toggle */}
-      <div className="fixed top-24 right-4 z-50">
+      {/* Floating Language Toggle - Compact on Mobile */}
+      <div className="fixed top-20 sm:top-24 right-2 sm:right-4 z-50">
         <Button
           variant="outline"
           size="sm"
           onClick={() => setLanguage(language === "ro" ? "en" : "ro")}
-          className="flex items-center gap-2 border-2 bg-white/90 backdrop-blur-sm hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl"
+          className="flex items-center gap-1 sm:gap-2 border-2 bg-white/90 backdrop-blur-sm hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm"
         >
-          <Languages className="w-4 h-4" />
+          <Languages className="w-3 h-3 sm:w-4 sm:h-4" />
           {language === "ro" ? "🇬🇧 EN" : "🇷🇴 RO"}
         </Button>
       </div>
-      {/* Hero Section */}
+      {/* Hero Section - Compact on Mobile */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
-        <div className="relative container mx-auto px-4 py-20 lg:py-32">
+        <div className="relative container mx-auto px-3 sm:px-4 py-8 sm:py-12 md:py-16 lg:py-24 xl:py-32">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="flex justify-center items-center gap-4 mb-6">
-              <Badge variant="secondary">
-                <Shield className="w-4 h-4 mr-2" />
+            <div className="flex justify-center items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4 md:mb-6">
+              <Badge variant="secondary" className="text-[10px] sm:text-xs px-2 py-1">
+                <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 {t("qualityStandards")} 2025
               </Badge>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setLanguage(language === "ro" ? "en" : "ro")}
-                className="flex items-center gap-2 border-2 hover:bg-blue-50 transition-colors"
+                className="hidden sm:flex items-center gap-2 border-2 hover:bg-blue-50 transition-colors text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2"
               >
-                <Languages className="w-4 h-4" />
+                <Languages className="w-3 h-3 sm:w-4 sm:h-4" />
                 {language === "ro" ? "🇬🇧 English" : "🇷🇴 Română"}
               </Button>
             </div>
-            <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-3 sm:mb-4 md:mb-6">
               {t("supplierRequirements")}{" "}
               <span className="text-blue-600">2025</span>
             </h1>
-            <p className="text-xl lg:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-gray-600 mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto leading-snug sm:leading-normal">
               {t("supplierRequirements2025Description")}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center">
+              <Button size="lg" asChild className="text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6">
                 <Link href="/supplier/apply">
                   {t("startApplication")}
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1.5 sm:ml-2" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
+              <Button size="lg" variant="outline" asChild className="text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6">
                 <Link href="/supplier/benefits">{t("viewBenefits")}</Link>
               </Button>
             </div>
@@ -414,66 +414,66 @@ export function SupplierRequirements() {
         </div>
       </section>
 
-      {/* Key Requirements Summary */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+      {/* Key Requirements Summary - Compact on Mobile */}
+      <section className="py-6 sm:py-10 md:py-16 bg-white">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="text-center mb-6 sm:mb-8 md:mb-12">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
               {t("keyRequirements2025")}
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
               {t("keyRequirementsDescription")}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             <Card className="border-0 shadow-lg text-center">
-              <CardContent className="p-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="w-8 h-8 text-blue-600" />
+              <CardContent className="p-3 sm:p-4 md:p-6">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                  <MapPin className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
                   {t("euBased")}
                 </h3>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 text-xs sm:text-sm">
                   {t("euBasedDescription")}
                 </p>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-lg text-center">
-              <CardContent className="p-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Truck className="w-8 h-8 text-green-600" />
+              <CardContent className="p-3 sm:p-4 md:p-6">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                  <Truck className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-green-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
                   {t("sevenDayShipping")}
                 </h3>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 text-xs sm:text-sm">
                   {t("sevenDayShippingDescription")}
                 </p>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-lg text-center">
-              <CardContent className="p-6">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Award className="w-8 h-8 text-purple-600" />
+              <CardContent className="p-3 sm:p-4 md:p-6">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                  <Award className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-purple-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
                   {t("premiumQuality")}
                 </h3>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 text-xs sm:text-sm">
                   {t("premiumQualityDescription")}
                 </p>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-lg text-center">
-              <CardContent className="p-6">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Shield className="w-8 h-8 text-orange-600" />
+              <CardContent className="p-3 sm:p-4 md:p-6">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                  <Shield className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-orange-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
                   {t("fullCompliance")}
                 </h3>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 text-xs sm:text-sm">
                   {t("fullComplianceDescription")}
                 </p>
               </CardContent>
@@ -482,41 +482,41 @@ export function SupplierRequirements() {
         </div>
       </section>
 
-      {/* Eligibility Criteria */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+      {/* Eligibility Criteria - Compact on Mobile */}
+      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gray-50">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="text-center mb-6 sm:mb-10 md:mb-16">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
               {t("eligibilityCriteria")}
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
               {t("eligibilityCriteriaDescription")}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 md:gap-8">
             {eligibilityCriteria.map((criterion, index) => (
               <Card
                 key={index}
                 className="border-0 shadow-lg hover:shadow-xl transition-shadow"
               >
-                <CardHeader className="text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <criterion.icon className="w-8 h-8 text-blue-600" />
+                <CardHeader className="text-center p-3 sm:p-4 md:p-6">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                    <criterion.icon className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-600" />
                   </div>
-                  <CardTitle className="text-xl flex items-center justify-center gap-2">
+                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl flex items-center justify-center gap-1 sm:gap-2">
                     {criterion.title}
                     {criterion.required && (
-                      <Badge variant="destructive" className="text-xs">
+                      <Badge variant="destructive" className="text-[10px] sm:text-xs px-1 py-0.5 sm:px-2">
                         {t("required")}
                       </Badge>
                     )}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base text-gray-600 mb-3">
+                <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+                  <CardDescription className="text-xs sm:text-sm md:text-base text-gray-600 mb-2 sm:mb-3">
                     {criterion.description}
                   </CardDescription>
-                  <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-500 bg-gray-50 p-2 sm:p-3 rounded-lg">
                     <strong>{t("details")}:</strong> {criterion.details}
                   </div>
                 </CardContent>
@@ -805,40 +805,40 @@ export function SupplierRequirements() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 relative overflow-hidden">
+      {/* CTA Section - Compact on Mobile with Visible Buttons */}
+      <section className="py-6 sm:py-10 md:py-16 lg:py-20 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
 
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+        <div className="container mx-auto px-3 sm:px-4 text-center relative z-10">
+          <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white mb-2 sm:mb-3 md:mb-4">
             {t("readyToJoinPremium")}
           </h2>
-          <p className="text-xl text-emerald-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-emerald-100 mb-4 sm:mb-6 md:mb-8 max-w-2xl mx-auto">
             {t("readyToJoinDescription")}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center">
             <Button
               size="lg"
-              className="bg-white text-emerald-700 hover:bg-emerald-50 border-2 border-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-white text-emerald-700 hover:bg-emerald-50 border-2 border-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6"
               asChild
             >
               <Link href="/supplier/apply">
                 {t("startApplication")}
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1.5 sm:ml-2" />
               </Link>
             </Button>
             <Button
               size="lg"
-              className="bg-transparent text-white border-2 border-white hover:bg-white hover:text-emerald-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-white/90 backdrop-blur-sm text-emerald-700 border-2 border-white hover:bg-white hover:text-emerald-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6"
               asChild
             >
               <Link href="/supplier/benefits">{t("viewBenefits")}</Link>
             </Button>
             <Button
               size="lg"
-              className="bg-transparent text-white border-2 border-white hover:bg-white hover:text-emerald-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-white/90 backdrop-blur-sm text-emerald-700 border-2 border-white hover:bg-white hover:text-emerald-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6"
               asChild
             >
               <Link href="/contact">{t("contactUs")}</Link>
