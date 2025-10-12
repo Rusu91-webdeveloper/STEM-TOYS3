@@ -283,15 +283,6 @@ export default function ProfessionalBlogTemplate({
                 <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 {post.readingTime || 5} min
               </div>
-
-              {/* Language Toggle - Smaller on Mobile */}
-              {hasMultilingual && (
-                <BlogLanguageToggle
-                  onLanguageChange={handleLanguageChange}
-                  currentLanguage={currentLanguage}
-                  className="bg-white/20 backdrop-blur-sm border border-white/30 text-xs sm:text-sm"
-                />
-              )}
             </div>
           </div>
         </div>
