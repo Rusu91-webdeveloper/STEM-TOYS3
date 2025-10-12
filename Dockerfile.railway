@@ -2,7 +2,7 @@
 # Optimized to stay under 4GB limit
 
 # Build stage - for installing dependencies and preparing files
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Install OpenSSL for Prisma
 RUN apk add --no-cache openssl libc6-compat
@@ -28,10 +28,10 @@ COPY inngest-server ./inngest-server/
 
 # Install inngest-server dependencies
 WORKDIR /app/inngest-server
-RUN npm ci && npm cache clean --force
+RUN npm install --no-package-lock && npm cache clean --force
 
 # Runtime stage - minimal image with only what's needed
-FROM node:18-alpine AS runtime
+FROM node:20-alpine AS runtime
 
 # Install only essential runtime dependencies
 RUN apk add --no-cache openssl libc6-compat dumb-init
