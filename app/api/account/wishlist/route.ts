@@ -25,7 +25,7 @@ export async function GET() {
         return NextResponse.json([]);
       }
 
-      // Fetch user's wishlist items
+      // Fetch user's wishlist items (both products and books)
       // @ts-ignore - Ignore TypeScript errors for dynamic schema access
       const wishlistItems = await db.wishlist.findMany({
         where: {
@@ -42,6 +42,16 @@ export async function GET() {
               stockQuantity: true,
             },
           },
+          book: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              slug: true,
+              coverImage: true,
+              author: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
@@ -49,16 +59,41 @@ export async function GET() {
       });
 
       // Format data for frontend consumption
-      const formattedItems = wishlistItems.map(item => ({
-        id: item.id,
-        productId: item.productId,
-        name: item.product.name,
-        price: item.product.price,
-        image: item.product.images?.[0] || "/images/product-placeholder.jpg",
-        slug: item.product.slug,
-        inStock: item.product.stockQuantity > 0,
-        dateAdded: new Date(item.createdAt).toISOString(),
-      }));
+      const formattedItems = wishlistItems
+        .map(item => {
+          // Check if it's a product or book
+          if (item.product) {
+            return {
+              id: item.id,
+              productId: item.productId,
+              bookId: null,
+              name: item.product.name,
+              price: item.product.price,
+              image:
+                item.product.images?.[0] || "/images/product-placeholder.jpg",
+              slug: item.product.slug,
+              inStock: item.product.stockQuantity > 0,
+              isBook: false,
+              dateAdded: new Date(item.createdAt).toISOString(),
+            };
+          } else if (item.book) {
+            return {
+              id: item.id,
+              productId: null,
+              bookId: item.bookId,
+              name: item.book.name,
+              price: item.book.price,
+              image: item.book.coverImage || "/images/book-placeholder.jpg",
+              slug: item.book.slug,
+              inStock: true, // Books are always available (digital)
+              isBook: true,
+              author: item.book.author,
+              dateAdded: new Date(item.createdAt).toISOString(),
+            };
+          }
+          return null;
+        })
+        .filter(Boolean);
 
       return NextResponse.json(formattedItems);
     } catch (dbError) {
@@ -86,11 +121,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const { productId } = await req.json();
+    const { productId, bookId, isBook } = await req.json();
 
-    if (!productId) {
+    // Validate that either productId or bookId is provided
+    if (!productId && !bookId) {
       return NextResponse.json(
-        { error: "Product ID is required" },
+        { error: "Product ID or Book ID is required" },
         { status: 400 }
       );
     }
@@ -101,28 +137,34 @@ export async function POST(req: Request) {
       const existingItem = await db.wishlist.findFirst({
         where: {
           userId: session.user.id,
-          productId,
+          ...(productId ? { productId } : {}),
+          ...(bookId ? { bookId } : {}),
         },
       });
 
       if (existingItem) {
         return NextResponse.json(
-          { message: "Product already in wishlist" },
+          { message: "Item already in wishlist" },
           { status: 200 }
         );
       }
 
-      // Add to wishlist
+      // Add to wishlist (either product or book)
       // @ts-ignore - Ignore TypeScript errors for dynamic schema access
       await db.wishlist.create({
         data: {
           userId: session.user.id,
-          productId,
+          ...(productId ? { productId } : {}),
+          ...(bookId ? { bookId } : {}),
         },
       });
 
       return NextResponse.json(
-        { message: "Product added to wishlist" },
+        {
+          message: isBook
+            ? "Book added to wishlist"
+            : "Product added to wishlist",
+        },
         { status: 201 }
       );
     } catch (dbError) {

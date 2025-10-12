@@ -479,14 +479,18 @@ model MarketingCost {
 model Wishlist {
   id        String   @id @default(cuid())
   userId    String
-  productId String
+  productId String?  // Made optional to support books
+  bookId    String?  // Added for book support
   createdAt DateTime @default(now())
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  book      Book?    @relation(fields: [bookId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
+  @@unique([userId, bookId])
   @@index([userId])
   @@index([productId])
+  @@index([bookId])
 }
 
 model Blog {
@@ -532,6 +536,7 @@ model Book {
   digitalFiles DigitalFile[]
   orderItems   OrderItem[]
   languages    Language[]    @relation("BookToLanguage")
+  wishlists    Wishlist[]    // Added wishlist relation
 }
 
 model DigitalFile {
