@@ -21,6 +21,7 @@ RUN npm install --omit=dev --no-package-lock && npm cache clean --force
 RUN npx prisma generate
 
 # Copy only the files needed for Inngest server
+COPY tsconfig.json ./tsconfig.json
 COPY inngest ./inngest/
 COPY lib ./lib/
 COPY types ./types/
@@ -41,6 +42,9 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
 # Set working directory
 WORKDIR /app
+
+# Copy tsconfig.json for path alias resolution
+COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 
 # Copy Prisma client and schema from builder
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma/
