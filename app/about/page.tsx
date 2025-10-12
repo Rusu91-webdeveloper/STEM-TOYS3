@@ -200,8 +200,8 @@ export default function AboutPage() {
         }}
       />
       <div className="flex flex-col">
-        {/* Hormozi-Style Hero Section */}
-        <section className="relative bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 py-16 sm:py-20 md:py-24">
+        {/* Hormozi-Style Hero Section - Compact on Mobile */}
+        <section className="relative bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-5">
             <div
@@ -214,22 +214,22 @@ export default function AboutPage() {
 
           <div className="container relative z-10 px-3 sm:px-4 lg:px-8">
             <div className="max-w-5xl mx-auto text-center">
-              {/* Social Proof Badge */}
-              <div className="mb-6">
-                <span className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 text-green-800 text-sm font-medium">
+              {/* Social Proof Badge - Compact on Mobile */}
+              <div className="mb-3 sm:mb-4 md:mb-6">
+                <span className="inline-flex items-center px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-full bg-green-100 text-green-800 text-xs sm:text-sm font-medium">
                   <Image
                     src="/TechTots_LOGO.png"
                     alt="TechTots Logo"
-                    width={24}
-                    height={24}
-                    className="mr-2"
+                    width={20}
+                    height={20}
+                    className="mr-1.5 sm:mr-2 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
                   />
                   {t("aboutHeroSocialProof")}
                 </span>
               </div>
 
-              {/* Hormozi-Style Headline */}
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gray-900 leading-tight">
+              {/* Hormozi-Style Headline - Compact on Mobile */}
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold mb-3 sm:mb-4 md:mb-6 text-gray-900 leading-tight">
                 {t("aboutHeroHeadline")}{" "}
                 <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
                   {t("aboutHeroHeadlineStruggling")}
@@ -240,51 +240,51 @@ export default function AboutPage() {
                 </span>
               </h1>
 
-              {/* Transformation-Focused Subheadline */}
-              <p className="text-lg sm:text-xl md:text-2xl mb-8 text-gray-700 max-w-4xl mx-auto leading-relaxed">
+              {/* Transformation-Focused Subheadline - Compact on Mobile */}
+              <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl mb-4 sm:mb-6 md:mb-8 text-gray-700 max-w-4xl mx-auto leading-relaxed">
                 {t("aboutHeroSubheadline")}
               </p>
 
-              {/* Results Proof */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
-                <div className="bg-white/80 backdrop-blur rounded-xl p-6 shadow-lg">
-                  <div className="text-4xl font-bold text-green-600 mb-2">
+              {/* Results Proof - Compact on Mobile */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-12">
+                <div className="bg-white/80 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 shadow-lg">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-600 mb-1 sm:mb-2">
                     87%
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-xs sm:text-sm text-gray-600">
                     {t("aboutHeroMathImprovement")}
                   </div>
                 </div>
 
-                <div className="bg-white/80 backdrop-blur rounded-xl p-6 shadow-lg">
-                  <div className="text-4xl font-bold text-blue-600 mb-2">
+                <div className="bg-white/80 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 shadow-lg">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600 mb-1 sm:mb-2">
                     30
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-xs sm:text-sm text-gray-600">
                     {t("aboutHeroTransformationDays")}
                   </div>
                 </div>
 
-                <div className="bg-white/80 backdrop-blur rounded-xl p-6 shadow-lg">
-                  <div className="text-4xl font-bold text-purple-600 mb-2">
+                <div className="bg-white/80 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 shadow-lg">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-purple-600 mb-1 sm:mb-2">
                     99%
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-xs sm:text-sm text-gray-600">
                     {t("aboutHeroSatisfiedParents")}
                   </div>
                 </div>
               </div>
 
-              {/* CTA Section */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {/* CTA Section - Compact on Mobile */}
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center">
                 <Button
                   asChild
                   size="lg"
-                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
                 >
                   <Link href="/contact">
                     {t("aboutHeroFreeConsultation")}
-                    <ArrowRight className="w-5 h-5 ml-2" />
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1.5 sm:ml-2" />
                   </Link>
                 </Button>
 
@@ -292,18 +292,18 @@ export default function AboutPage() {
                   asChild
                   variant="outline"
                   size="lg"
-                  className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg font-semibold"
+                  className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 text-sm sm:text-base md:text-lg font-semibold"
                 >
                   <Link href="/products">{t("aboutHeroSeeToys")}</Link>
                 </Button>
               </div>
 
-              {/* Guarantee */}
-              <div className="mt-8 text-center">
-                <p className="text-sm text-gray-600 mb-2">
+              {/* Guarantee - Compact on Mobile */}
+              <div className="mt-4 sm:mt-6 md:mt-8 text-center">
+                <p className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">
                   🛡️ Garanție de Transformare 30 Zile sau Îți Returnăm Banii
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-[10px] sm:text-xs text-gray-500">
                   Peste 10,000 de părinți au încredere în noi. Alătură-te și tu!
                 </p>
               </div>
@@ -489,16 +489,16 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Our Team */}
-        <section className="py-6 sm:py-8 md:py-12 lg:py-16 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50">
+        {/* Our Team - Compact on Mobile */}
+        <section className="py-4 sm:py-6 md:py-10 lg:py-12 xl:py-16 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50">
           <div className="container px-3 sm:px-4 lg:px-8">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 md:mb-8 text-center text-indigo-900">
+            <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-3 sm:mb-4 md:mb-6 lg:mb-8 text-center text-indigo-900">
               {t("ourTeam")}
             </h2>
             <div className="flex justify-center">
-              {/* Rusu Emanuel Marius profile */}
+              {/* Rusu Emanuel Marius profile - Compact on Mobile */}
               <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all border border-indigo-200 transform hover:-translate-y-1 duration-300 max-w-sm sm:max-w-md md:max-w-lg w-full">
-                <div className="relative h-48 sm:h-56 md:h-64 w-full group">
+                <div className="relative h-32 sm:h-40 md:h-48 lg:h-56 xl:h-64 w-full group">
                   <Image
                     src="/images/category_banner_math_01.png"
                     alt="RUSU EMANUEL MARIUS"
@@ -508,14 +508,14 @@ export default function AboutPage() {
                     className="transition-transform group-hover:scale-105 duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                  <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 text-white">
-                    <p className="text-sm sm:text-base font-medium text-indigo-200 drop-shadow-md">
+                  <div className="absolute bottom-2 sm:bottom-3 md:bottom-4 left-2 sm:left-3 md:left-4 right-2 sm:right-3 md:right-4 text-white">
+                    <p className="text-xs sm:text-sm md:text-base font-medium text-indigo-200 drop-shadow-md">
                       {"Fondator și Director Executiv"}
                     </p>
                   </div>
                 </div>
                 <div className="p-3 sm:p-4 md:p-6">
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold mb-2 sm:mb-3 text-indigo-900 border-b border-indigo-200 pb-2">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold mb-1.5 sm:mb-2 md:mb-3 text-indigo-900 border-b border-indigo-200 pb-1.5 sm:pb-2">
                     RUSU EMANUEL MARIUS
                   </h3>
                   <p className="text-gray-700 leading-relaxed text-xs sm:text-sm md:text-base">
@@ -524,7 +524,7 @@ export default function AboutPage() {
                       "Visionary entrepreneur with extensive expertise in development, design, and marketing. Passionate about creating educational technology that empowers children to explore, learn, and grow. Founded TechTots with the mission to revolutionize how children interact with STEM subjects through thoughtfully designed educational toys."
                     )}
                   </p>
-                  <div className="mt-3 sm:mt-4 flex gap-1.5 sm:gap-2 flex-wrap">
+                  <div className="mt-2 sm:mt-3 md:mt-4 flex gap-1.5 sm:gap-2 flex-wrap">
                     <Button className="bg-indigo-600 hover:bg-indigo-700 text-xs h-7 sm:h-8 px-2 sm:px-3">
                       {t("contact", "Contact")}
                     </Button>
@@ -550,10 +550,10 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="py-6 sm:py-8 md:py-12 lg:py-16 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 text-white">
+        {/* CTA - Compact on Mobile */}
+        <section className="py-6 sm:py-8 md:py-10 lg:py-12 xl:py-16 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 text-white">
           <div className="container text-center px-3 sm:px-4 lg:px-8">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-2 sm:mb-3 md:mb-4 drop-shadow-md">
+            <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-2 sm:mb-3 md:mb-4 drop-shadow-md">
               {t("joinStemJourney")}
             </h2>
             <p className="text-xs sm:text-sm md:text-base lg:text-lg mb-3 sm:mb-4 md:mb-6 max-w-2xl mx-auto leading-relaxed drop-shadow-sm">
@@ -563,7 +563,7 @@ export default function AboutPage() {
             <Button
               asChild
               size="lg"
-              className="bg-white hover:bg-white/90 text-indigo-700 border-none shadow-md transition-all hover:shadow-lg text-xs sm:text-sm md:text-base h-8 sm:h-9 md:h-10"
+              className="bg-white hover:bg-white/90 text-indigo-700 border-none shadow-md transition-all hover:shadow-lg text-xs sm:text-sm md:text-base h-8 sm:h-9 md:h-10 px-4 sm:px-6"
             >
               <Link href="/products">{t("shopCollection")}</Link>
             </Button>
