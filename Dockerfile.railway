@@ -10,12 +10,12 @@ RUN apk add --no-cache openssl libc6-compat
 # Set working directory
 WORKDIR /app
 
-# Copy only necessary files for Prisma generation
+# Copy package files and prisma schema
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install minimal dependencies for Prisma generation
-RUN npm ci --only=production && npm cache clean --force
+# Install production dependencies only (for Prisma client generation)
+RUN npm install --omit=dev --no-package-lock && npm cache clean --force
 
 # Generate Prisma client
 RUN npx prisma generate
