@@ -1,7 +1,7 @@
 import { inngest } from "../client";
-import { DualProviderProductEnhancementService } from "@/lib/ai/dual-provider-product-enhancement-service";
-import { SmartFallbackEnhancement } from "@/lib/ai/smart-fallback-enhancement";
-import { db } from "@/lib/db";
+import { DualProviderProductEnhancementService } from "../../lib/ai/dual-provider-product-enhancement-service";
+import { SmartFallbackEnhancement } from "../../lib/ai/smart-fallback-enhancement";
+import { db } from "../../lib/db";
 
 // Helper function to generate unique slug
 async function generateUniqueSlug(baseName: string): Promise<string> {

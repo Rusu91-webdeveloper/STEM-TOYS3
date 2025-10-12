@@ -1,6 +1,6 @@
 import { inngest } from "../client";
-import { OptimizedBlogGenerationService } from "@/lib/ai/optimized-blog-generation-service";
-import { db } from "@/lib/db";
+import { OptimizedBlogGenerationService } from "../../lib/ai/optimized-blog-generation-service";
+import { db } from "../../lib/db";
 import { StemCategory } from "@prisma/client";
 
 // Helper function to generate slug from title

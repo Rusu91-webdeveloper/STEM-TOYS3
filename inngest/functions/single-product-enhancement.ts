@@ -3,9 +3,9 @@
  * Handles AI enhancement for individual products with preview generation
  */
 
-import { inngest } from "@/inngest/client";
-import { db } from "@/lib/db";
-import { DualProviderProductEnhancementService } from "@/lib/ai/dual-provider-product-enhancement-service";
+import { inngest } from "../client";
+import { db } from "../../lib/db";
+import { DualProviderProductEnhancementService } from "../../lib/ai/dual-provider-product-enhancement-service";
 
 export const singleProductEnhancementJob = inngest.createFunction(
   {
