@@ -9,11 +9,15 @@ export default function StemGuide2025Page() {
 
   return (
     <div className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 md:py-10">
-      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 md:mb-6">{t("guide2025H1")}</h1>
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 md:mb-6">
+        {t("guide2025H1")}
+      </h1>
       <p className="text-[10px] sm:text-xs text-muted-foreground mb-3 sm:mb-4 md:mb-6">
         {t("guide2025Byline")} {new Date().toLocaleDateString("ro-RO")}
       </p>
-      <p className="text-xs sm:text-sm md:text-base text-muted-foreground mb-4 sm:mb-6 md:mb-8">{t("guide2025Description")}</p>
+      <p className="text-xs sm:text-sm md:text-base text-muted-foreground mb-4 sm:mb-6 md:mb-8">
+        {t("guide2025Description")}
+      </p>
 
       <div className="mb-4 sm:mb-6 md:mb-8 rounded-md border bg-white p-3 sm:p-4">
         <h2 className="text-sm sm:text-base md:text-lg font-semibold mb-1.5 sm:mb-2">
@@ -32,7 +36,9 @@ export default function StemGuide2025Page() {
         aria-label={t("guide2025TableOfContents")}
         className="mb-4 sm:mb-6 md:mb-10 border rounded-md p-3 sm:p-4"
       >
-        <h2 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3">{t("guide2025TableOfContents")}</h2>
+        <h2 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3">
+          {t("guide2025TableOfContents")}
+        </h2>
         <ol className="list-decimal ml-4 sm:ml-5 space-y-1 sm:space-y-2 text-xs sm:text-sm">
           <li>
             <a className="underline" href="#ce-sunt-stem">
@@ -67,7 +73,10 @@ export default function StemGuide2025Page() {
         </ol>
       </nav>
 
-      <section id="ce-sunt-stem" className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10">
+      <section
+        id="ce-sunt-stem"
+        className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10"
+      >
         <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
           {t("guide2025WhatAreStemH2")}
         </h2>
@@ -79,8 +88,13 @@ export default function StemGuide2025Page() {
         </p>
       </section>
 
-      <section id="categorii" className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 md:mb-10">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{t("guide2025CategoriesH2")}</h2>
+      <section
+        id="categorii"
+        className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 md:mb-10"
+      >
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
+          {t("guide2025CategoriesH2")}
+        </h2>
         <div className="space-y-3 sm:space-y-4">
           <div>
             <h3 className="text-base sm:text-lg md:text-xl font-semibold">
@@ -133,7 +147,10 @@ export default function StemGuide2025Page() {
         </div>
       </section>
 
-      <section id="varsta" className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 md:mb-10">
+      <section
+        id="varsta"
+        className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 md:mb-10"
+      >
         <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
           {t("guide2025AgeRecommendationsH2")}
         </h2>
@@ -155,7 +172,10 @@ export default function StemGuide2025Page() {
         </p>
       </section>
 
-      <section id="alegere" className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10">
+      <section
+        id="alegere"
+        className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10"
+      >
         <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
           {t("guide2025HowToChooseH2")}
         </h2>
@@ -170,7 +190,10 @@ export default function StemGuide2025Page() {
         </p>
       </section>
 
-      <section id="top" className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10">
+      <section
+        id="top"
+        className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10"
+      >
         <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
           {t("guide2025TopRecommendationsH2")}
         </h2>
@@ -183,8 +206,13 @@ export default function StemGuide2025Page() {
         </p>
       </section>
 
-      <section id="faq" className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{t("guide2025Faq")}</h2>
+      <section
+        id="faq"
+        className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10"
+      >
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
+          {t("guide2025Faq")}
+        </h2>
         <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
           {t("guide2025FaqContent")}{" "}
           <a className="underline" href="/faq">

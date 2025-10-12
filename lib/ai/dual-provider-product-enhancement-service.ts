@@ -11,7 +11,7 @@
 import { AIServiceFactory } from "./ai-service-factory";
 import { BaseAIService } from "./base-ai-service";
 import { AIConfig } from "./config";
-import { getAIConfig } from "../config/environment";
+import { getAIConfig } from "@/lib/config/environment";
 import { simpleAIMonitoring } from "./monitoring-simple";
 import {
   PRODUCT_STRUCTURE_PROMPT,
@@ -181,14 +181,11 @@ export class DualProviderProductEnhancementService {
       });
 
       // Validate and clean the enhanced data
-      let validatedData = this.validateEnhancedData(
-        enhancedData,
-        productData
-      );
+      let validatedData = this.validateEnhancedData(enhancedData, productData);
 
       // ===== SEO PERFECTION VALIDATION & AUTO-FIX =====
-      console.log('\n🔍 Validating SEO quality for 100/100 score...');
-      
+      console.log("\n🔍 Validating SEO quality for 100/100 score...");
+
       const seoData = {
         metaTitle: validatedData.metadata?.seo?.metaTitle,
         metaDescription: validatedData.metadata?.seo?.metaDescription,
@@ -197,43 +194,46 @@ export class DualProviderProductEnhancementService {
         description: validatedData.description,
         learningOutcomes: validatedData.metadata?.learningOutcomes,
         romanianCompetencies: validatedData.metadata?.romanianCompetencies,
-        romanianCurriculumAlignment: validatedData.metadata?.romanianCurriculumAlignment,
+        romanianCurriculumAlignment:
+          validatedData.metadata?.romanianCurriculumAlignment,
         attributes: validatedData.attributes,
       };
 
       let seoValidation = SEOPerfectionValidator.validate(seoData);
-      
+
       console.log(`📊 Initial SEO Score: ${seoValidation.score}/100`);
-      
+
       // If not perfect, try auto-fix
       if (seoValidation.score < 100) {
-        console.log('🔧 Auto-fixing SEO issues...');
+        console.log("🔧 Auto-fixing SEO issues...");
         const fixedSEOData = SEOPerfectionValidator.autoFix(seoData);
-        
+
         // Apply fixes back to validated data
         if (validatedData.metadata?.seo) {
           validatedData.metadata.seo.metaTitle = fixedSEOData.metaTitle;
-          validatedData.metadata.seo.metaDescription = fixedSEOData.metaDescription;
+          validatedData.metadata.seo.metaDescription =
+            fixedSEOData.metaDescription;
           validatedData.metadata.seo.metaKeywords = fixedSEOData.metaKeywords;
         }
         validatedData.tags = fixedSEOData.tags;
-        
+
         // Re-validate after fixes
         seoValidation = SEOPerfectionValidator.validate({
           ...fixedSEOData,
           description: validatedData.description,
           learningOutcomes: validatedData.metadata?.learningOutcomes,
           romanianCompetencies: validatedData.metadata?.romanianCompetencies,
-          romanianCurriculumAlignment: validatedData.metadata?.romanianCurriculumAlignment,
+          romanianCurriculumAlignment:
+            validatedData.metadata?.romanianCurriculumAlignment,
           attributes: validatedData.attributes,
         });
-        
+
         console.log(`📊 After Auto-Fix SEO Score: ${seoValidation.score}/100`);
       }
-      
+
       // Log final validation report
       if (seoValidation.score === 100) {
-        console.log('🎉 PERFECT! SEO Score: 100/100 - Top rankings expected!');
+        console.log("🎉 PERFECT! SEO Score: 100/100 - Top rankings expected!");
       } else {
         console.warn(SEOPerfectionValidator.generateReport(seoValidation));
       }

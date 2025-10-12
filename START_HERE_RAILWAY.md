@@ -6,11 +6,13 @@
 
 ## ⚡ What You're Deploying
 
-A **standalone Inngest server** that runs your AI-powered background jobs without Vercel's 60-second timeout limit.
+A **standalone Inngest server** that runs your AI-powered background jobs
+without Vercel's 60-second timeout limit.
 
 **5 Functions:**
+
 1. Blog generation (90-120s)
-2. Product enhancement (60-90s)  
+2. Product enhancement (60-90s)
 3. Bulk uploads (60-180s)
 4. Supplier uploads (60-180s)
 5. Single product enhancement (30-60s)
@@ -22,6 +24,7 @@ A **standalone Inngest server** that runs your AI-powered background jobs withou
 I've created 4 guides for you:
 
 ### 1. **RAILWAY_DEPLOYMENT_COMPLETE_GUIDE.md** ⭐ START HERE
+
 - Full step-by-step instructions
 - Complete project analysis
 - All environment variables explained
@@ -29,18 +32,21 @@ I've created 4 guides for you:
 - **📖 READ THIS FIRST**
 
 ### 2. **RAILWAY_DEPLOYMENT_CHECKLIST.md** ✅ USE WHILE DEPLOYING
+
 - Quick checklist format
 - Check boxes for each step
 - Perfect for tracking progress
 - **📋 USE THIS DURING DEPLOYMENT**
 
 ### 3. **TROUBLESHOOTING_INNGEST_PRODUCTION.md** 🔧 IF PROBLEMS
+
 - Runtime log analysis
 - Common error patterns
 - Quick fixes
 - **🆘 USE IF HEALTHCHECK FAILS**
 
 ### 4. **RAILWAY_DEPLOYMENT_GUIDE.md** 📝 REFERENCE
+
 - Original deployment guide
 - Additional troubleshooting
 - Railway-specific tips
@@ -51,6 +57,7 @@ I've created 4 guides for you:
 ## 🎯 Quick Start (3 Steps)
 
 ### Step 1: Open the Complete Guide
+
 ```
 Open: RAILWAY_DEPLOYMENT_COMPLETE_GUIDE.md
 ```
@@ -60,14 +67,17 @@ Open: RAILWAY_DEPLOYMENT_COMPLETE_GUIDE.md
 Gather these before starting:
 
 **Database (Neon):**
+
 - https://console.neon.tech/ → Your project → Connection string
 - Copy BOTH pooled and direct URLs
 
 **Inngest:**
+
 - https://app.inngest.com/ → Settings → Keys
 - Copy Event Key and Signing Key
 
 **OpenAI:**
+
 - https://platform.openai.com/api-keys
 - Copy or create API key
 
@@ -85,12 +95,14 @@ Gather these before starting:
 Your code already has these critical fixes applied:
 
 ✅ **Server binding to 0.0.0.0** (Railway requirement)
+
 ```javascript
 // inngest-server/server.js line 88
 app.listen(PORT, "0.0.0.0", () => { ... });
 ```
 
 ✅ **Detailed startup logging** (catches errors)
+
 ```javascript
 console.log("🔄 Starting Inngest Server...");
 console.log("✅ Loaded inngest client");
@@ -98,6 +110,7 @@ console.log("✅ Loaded inngest client");
 ```
 
 ✅ **Proper error handling** (shows exact errors)
+
 ```javascript
 try {
   // Load functions
@@ -108,6 +121,7 @@ try {
 ```
 
 ✅ **Docker configuration** (Dockerfile.railway)
+
 - Prisma client generation
 - All dependencies installed
 - Correct build order
@@ -181,6 +195,7 @@ NODE_ENV=production
 ## ✅ Success Indicators
 
 **Railway Logs Should Show:**
+
 ```
 ✅ Loaded inngest client
 ✅ Loaded generate-blog function
@@ -194,11 +209,13 @@ NODE_ENV=production
 ```
 
 **Inngest Dashboard Should Show:**
+
 - All 5 functions listed
 - Serve API URL: `https://your-railway-url.railway.app/api/inngest`
 - Functions status: Active
 
 **Tests Should Pass:**
+
 ```bash
 curl https://your-url.railway.app/health
 # Returns: {"status":"ok"}
@@ -226,6 +243,7 @@ curl https://your-url.railway.app/
    - Check account has credits
 
 **How to debug:**
+
 1. Open `TROUBLESHOOTING_INNGEST_PRODUCTION.md`
 2. Go to Railway Dashboard → Logs tab
 3. Look for error messages
@@ -248,12 +266,14 @@ curl https://your-url.railway.app/
 ## 🎯 Your Action Items
 
 ### Right Now:
+
 1. ✅ Read this file (you're here!)
 2. 📖 Open `RAILWAY_DEPLOYMENT_COMPLETE_GUIDE.md`
 3. 📋 Open `RAILWAY_DEPLOYMENT_CHECKLIST.md`
 4. 🔑 Gather your API keys (Neon, Inngest, OpenAI)
 
 ### Then:
+
 5. 🚀 Follow the guide step by step
 6. ✅ Check off each item in the checklist
 7. 🧪 Test everything works
@@ -308,9 +328,9 @@ curl https://your-url.railway.app/
 ## 📞 Questions?
 
 All answers are in:
+
 - `RAILWAY_DEPLOYMENT_COMPLETE_GUIDE.md` - Complete instructions
-- `TROUBLESHOOTING_INNGEST_PRODUCTION.md` - Error solutions  
+- `TROUBLESHOOTING_INNGEST_PRODUCTION.md` - Error solutions
 - `RAILWAY_DEPLOYMENT_CHECKLIST.md` - Quick checklist
 
 **Good luck! You've got this! 💪**
-

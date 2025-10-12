@@ -91,7 +91,9 @@ export default function WarrantyPage() {
 
               <div className="grid sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
                 <div>
-                  <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3">📞 Suport Garanție</h3>
+                  <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3">
+                    📞 Suport Garanție
+                  </h3>
                   <div className="space-y-1.5 sm:space-y-2 text-blue-100 text-xs sm:text-sm">
                     <p>
                       📧 Email:{" "}
@@ -115,7 +117,9 @@ export default function WarrantyPage() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3">📍 Centrul de Service</h3>
+                  <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3">
+                    📍 Centrul de Service
+                  </h3>
                   <div className="text-blue-100 text-xs sm:text-sm">
                     <p>TechTots Educational Solutions</p>
                     <p>Departamentul Garanții</p>

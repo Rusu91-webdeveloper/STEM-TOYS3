@@ -370,7 +370,8 @@ Look for:
 
 ### ⚠️ MOST COMMON ISSUE: Healthcheck Fails But Build Succeeds
 
-**Symptom:** Build completes successfully, but healthcheck keeps failing with "service unavailable"
+**Symptom:** Build completes successfully, but healthcheck keeps failing with
+"service unavailable"
 
 **Cause:** Server not binding to `0.0.0.0` (Railway requirement)
 
@@ -385,6 +386,7 @@ app.listen(PORT, () => { ... }); // Defaults to localhost
 ```
 
 **Next Steps:**
+
 1. Push latest code (already done)
 2. Check Railway **RUNTIME logs** (not build logs)
 3. Look for startup messages: "🔄 Starting Inngest Server..."
@@ -397,7 +399,7 @@ Check these in order:
 1. **Server Binding (MOST COMMON):**
 
    **Symptom:** Healthcheck fails, logs show no errors
-   
+
    **Fix:** Ensure server binds to `0.0.0.0` (already fixed in latest code)
 
 2. **Missing Environment Variables:**
@@ -408,7 +410,8 @@ Check these in order:
    "Error: DATABASE_URL is not defined"
    ```
 
-   **Fix:** Add ALL required environment variables in Railway Dashboard → Variables
+   **Fix:** Add ALL required environment variables in Railway Dashboard →
+   Variables
 
 3. **Database Connection:**
 

@@ -9,11 +9,15 @@ export default function StemByAgePage() {
 
   return (
     <div className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 md:py-10">
-      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 md:mb-6">{t("stemByAgeH2")}</h1>
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 md:mb-6">
+        {t("stemByAgeH2")}
+      </h1>
       <p className="text-[10px] sm:text-xs text-muted-foreground mb-3 sm:mb-4 md:mb-6">
         {t("guide2025Byline")} {new Date().toLocaleDateString("ro-RO")}
       </p>
-      <p className="text-xs sm:text-sm md:text-base text-muted-foreground mb-4 sm:mb-6 md:mb-8">{t("byAgeDescription")}</p>
+      <p className="text-xs sm:text-sm md:text-base text-muted-foreground mb-4 sm:mb-6 md:mb-8">
+        {t("byAgeDescription")}
+      </p>
       <div className="mb-4 sm:mb-6 md:mb-8 rounded-md border bg-white p-3 sm:p-4">
         <h2 className="text-sm sm:text-base md:text-lg font-semibold mb-1.5 sm:mb-2">
           {t("guide2025QuickSummary")}
@@ -31,7 +35,9 @@ export default function StemByAgePage() {
         aria-label={t("byAgeTableOfContents")}
         className="mb-4 sm:mb-6 md:mb-10 border rounded-md p-3 sm:p-4"
       >
-        <h2 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3">{t("byAgeTableOfContents")}</h2>
+        <h2 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3">
+          {t("byAgeTableOfContents")}
+        </h2>
         <ol className="list-decimal ml-4 sm:ml-5 space-y-1 sm:space-y-2 text-xs sm:text-sm">
           <li>
             <a className="underline" href="#3-5">
@@ -61,8 +67,13 @@ export default function StemByAgePage() {
         </ol>
       </nav>
 
-      <section id="3-5" className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{t("age3to5H2")}</h2>
+      <section
+        id="3-5"
+        className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10"
+      >
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
+          {t("age3to5H2")}
+        </h2>
         <ul className="list-disc ml-4 sm:ml-5 md:ml-6 text-xs sm:text-sm md:text-base text-muted-foreground space-y-0.5 sm:space-y-1">
           <li>{t("byAge3to5Content1")}</li>
           <li>{t("byAge3to5Content2")}</li>
@@ -79,11 +90,18 @@ export default function StemByAgePage() {
           </a>
           .
         </p>
-        <p className="text-xs sm:text-sm md:text-base text-muted-foreground">{t("byAge3to5Content4")}</p>
+        <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+          {t("byAge3to5Content4")}
+        </p>
       </section>
 
-      <section id="6-8" className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{t("age6to8H2")}</h2>
+      <section
+        id="6-8"
+        className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10"
+      >
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
+          {t("age6to8H2")}
+        </h2>
         <ul className="list-disc ml-4 sm:ml-5 md:ml-6 text-xs sm:text-sm md:text-base text-muted-foreground space-y-0.5 sm:space-y-1">
           <li>{t("byAge6to8Content1")}</li>
           <li>{t("byAge6to8Content2")}</li>
@@ -100,11 +118,18 @@ export default function StemByAgePage() {
           </a>
           .
         </p>
-        <p className="text-xs sm:text-sm md:text-base text-muted-foreground">{t("byAge6to8Content4")}</p>
+        <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+          {t("byAge6to8Content4")}
+        </p>
       </section>
 
-      <section id="9-12" className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{t("age9to12H2")}</h2>
+      <section
+        id="9-12"
+        className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10"
+      >
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
+          {t("age9to12H2")}
+        </h2>
         <ul className="list-disc ml-4 sm:ml-5 md:ml-6 text-xs sm:text-sm md:text-base text-muted-foreground space-y-0.5 sm:space-y-1">
           <li>{t("byAge9to12Content1")}</li>
           <li>{t("byAge9to12Content2")}</li>
@@ -121,11 +146,18 @@ export default function StemByAgePage() {
           </a>
           .
         </p>
-        <p className="text-xs sm:text-sm md:text-base text-muted-foreground">{t("byAge9to12Content4")}</p>
+        <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+          {t("byAge9to12Content4")}
+        </p>
       </section>
 
-      <section id="13plus" className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{t("age13plusH2")}</h2>
+      <section
+        id="13plus"
+        className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10"
+      >
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
+          {t("age13plusH2")}
+        </h2>
         <ul className="list-disc ml-4 sm:ml-5 md:ml-6 text-xs sm:text-sm md:text-base text-muted-foreground space-y-0.5 sm:space-y-1">
           <li>{t("byAge13plusContent1")}</li>
           <li>{t("byAge13plusContent2")}</li>
@@ -142,11 +174,18 @@ export default function StemByAgePage() {
           </a>
           .
         </p>
-        <p className="text-xs sm:text-sm md:text-base text-muted-foreground">{t("byAge13plusContent4")}</p>
+        <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+          {t("byAge13plusContent4")}
+        </p>
       </section>
 
-      <section id="sfaturi" className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{t("byAgeSelectionTips")}</h2>
+      <section
+        id="sfaturi"
+        className="space-y-2 sm:space-y-3 mb-6 sm:mb-8 md:mb-10"
+      >
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
+          {t("byAgeSelectionTips")}
+        </h2>
         <ol className="list-decimal ml-4 sm:ml-5 md:ml-6 text-xs sm:text-sm md:text-base text-muted-foreground space-y-1 sm:space-y-2">
           <li>{t("byAgeSelectionTipsContent1")}</li>
           <li>{t("byAgeSelectionTipsContent2")}</li>

@@ -3,7 +3,7 @@
  * Abstract base class for AI service implementations
  */
 
-import { ApiError, ApiErrors } from "../api-error-handler";
+import { ApiError, ApiErrors } from "@/lib/api-error-handler";
 
 export interface AIRequestOptions {
   maxTokens?: number;

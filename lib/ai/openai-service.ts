@@ -5,7 +5,7 @@
 
 import { BaseAIService, AIRequestOptions, AIResponse } from "./base-ai-service";
 import { AIConfig } from "./config";
-import { ApiErrors } from "../api-error-handler";
+import { ApiErrors } from "@/lib/api-error-handler";
 import { simpleAIMonitoring } from "./monitoring-simple";
 
 const aiMonitoring = simpleAIMonitoring;

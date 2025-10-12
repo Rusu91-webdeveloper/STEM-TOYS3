@@ -559,8 +559,13 @@ export function SupplierRequirements() {
                   <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
                     <Truck className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-green-600" />
                   </div>
-                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl">{region.region}</CardTitle>
-                  <Badge variant="secondary" className="w-fit mx-auto text-[10px] sm:text-xs px-1.5 py-0.5">
+                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl">
+                    {region.region}
+                  </CardTitle>
+                  <Badge
+                    variant="secondary"
+                    className="w-fit mx-auto text-[10px] sm:text-xs px-1.5 py-0.5"
+                  >
                     <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
                     {t("maxDays")} {region.maxDays}
                   </Badge>
@@ -607,9 +612,14 @@ export function SupplierRequirements() {
                 <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
                   <ul className="space-y-1.5 sm:space-y-2 md:space-y-3">
                     {standard.requirements.map((requirement, reqIndex) => (
-                      <li key={reqIndex} className="flex items-start gap-1.5 sm:gap-2 md:gap-3">
+                      <li
+                        key={reqIndex}
+                        className="flex items-start gap-1.5 sm:gap-2 md:gap-3"
+                      >
                         <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-xs sm:text-sm md:text-base text-gray-700">{requirement}</span>
+                        <span className="text-xs sm:text-sm md:text-base text-gray-700">
+                          {requirement}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -679,14 +689,21 @@ export function SupplierRequirements() {
                       {step.step}
                     </span>
                   </div>
-                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl">{step.title}</CardTitle>
-                  <Badge variant="secondary" className="w-fit mx-auto text-[10px] sm:text-xs px-1.5 py-0.5">
+                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl">
+                    {step.title}
+                  </CardTitle>
+                  <Badge
+                    variant="secondary"
+                    className="w-fit mx-auto text-[10px] sm:text-xs px-1.5 py-0.5"
+                  >
                     <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
                     {step.duration}
                   </Badge>
                 </CardHeader>
                 <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
-                  <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-2 sm:mb-3 md:mb-4">{step.description}</p>
+                  <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-2 sm:mb-3 md:mb-4">
+                    {step.description}
+                  </p>
                   <div className="bg-blue-50 p-2 sm:p-3 rounded-lg">
                     <h4 className="font-semibold text-blue-900 mb-1 sm:mb-2 text-xs sm:text-sm">
                       {t("requirements")}
@@ -728,7 +745,9 @@ export function SupplierRequirements() {
                 className={`border-0 shadow-lg ${tier.color} ${index === 1 ? "ring-2 ring-blue-500" : ""}`}
               >
                 <CardHeader className="text-center p-3 sm:p-4 md:p-6">
-                  <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl">{tier.tier}</CardTitle>
+                  <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl">
+                    {tier.tier}
+                  </CardTitle>
                   <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600">
                     {tier.rate}
                   </div>

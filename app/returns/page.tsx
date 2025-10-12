@@ -268,7 +268,9 @@ export default function ReturnsPage() {
                   <div className="bg-green-100 rounded-full w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
                     <span className="text-xl sm:text-2xl">🔄</span>
                   </div>
-                  <h3 className="text-xs sm:text-sm md:text-base font-semibold mb-1 sm:mb-2">2. Inițiază Returnarea</h3>
+                  <h3 className="text-xs sm:text-sm md:text-base font-semibold mb-1 sm:mb-2">
+                    2. Inițiază Returnarea
+                  </h3>
                   <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">
                     Apasă butonul "Returnează Produs" și completează formularul
                   </p>
@@ -277,7 +279,9 @@ export default function ReturnsPage() {
                   <div className="bg-yellow-100 rounded-full w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
                     <span className="text-xl sm:text-2xl">📧</span>
                   </div>
-                  <h3 className="text-xs sm:text-sm md:text-base font-semibold mb-1 sm:mb-2">3. Primește Eticheta</h3>
+                  <h3 className="text-xs sm:text-sm md:text-base font-semibold mb-1 sm:mb-2">
+                    3. Primește Eticheta
+                  </h3>
                   <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">
                     Vei primi automat un email cu eticheta de returnare
                   </p>
@@ -344,27 +348,39 @@ export default function ReturnsPage() {
               <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-start">
-                    <span className="text-red-500 mr-2 mt-0.5 sm:mt-1 text-sm sm:text-base">❌</span>
+                    <span className="text-red-500 mr-2 mt-0.5 sm:mt-1 text-sm sm:text-base">
+                      ❌
+                    </span>
                     <div>
-                      <p className="text-xs sm:text-sm md:text-base font-medium">Produse personalizate</p>
+                      <p className="text-xs sm:text-sm md:text-base font-medium">
+                        Produse personalizate
+                      </p>
                       <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">
                         Jucării gravate sau customizate la cerere
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start">
-                    <span className="text-red-500 mr-2 mt-0.5 sm:mt-1 text-sm sm:text-base">❌</span>
+                    <span className="text-red-500 mr-2 mt-0.5 sm:mt-1 text-sm sm:text-base">
+                      ❌
+                    </span>
                     <div>
-                      <p className="text-xs sm:text-sm md:text-base font-medium">Produse perisabile</p>
+                      <p className="text-xs sm:text-sm md:text-base font-medium">
+                        Produse perisabile
+                      </p>
                       <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">
                         Articole cu durată limitată de viață
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start">
-                    <span className="text-red-500 mr-2 mt-0.5 sm:mt-1 text-sm sm:text-base">❌</span>
+                    <span className="text-red-500 mr-2 mt-0.5 sm:mt-1 text-sm sm:text-base">
+                      ❌
+                    </span>
                     <div>
-                      <p className="text-xs sm:text-sm md:text-base font-medium">Software desigilat</p>
+                      <p className="text-xs sm:text-sm md:text-base font-medium">
+                        Software desigilat
+                      </p>
                       <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">
                         Aplicații sau jocuri educaționale activate
                       </p>
@@ -373,18 +389,26 @@ export default function ReturnsPage() {
                 </div>
                 <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-start">
-                    <span className="text-red-500 mr-2 mt-0.5 sm:mt-1 text-sm sm:text-base">❌</span>
+                    <span className="text-red-500 mr-2 mt-0.5 sm:mt-1 text-sm sm:text-base">
+                      ❌
+                    </span>
                     <div>
-                      <p className="text-xs sm:text-sm md:text-base font-medium">Conținut digital descarcat</p>
+                      <p className="text-xs sm:text-sm md:text-base font-medium">
+                        Conținut digital descarcat
+                      </p>
                       <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">
                         Cărți digitale sau resurse educaționale accesate
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start">
-                    <span className="text-red-500 mr-2 mt-0.5 sm:mt-1 text-sm sm:text-base">❌</span>
+                    <span className="text-red-500 mr-2 mt-0.5 sm:mt-1 text-sm sm:text-base">
+                      ❌
+                    </span>
                     <div>
-                      <p className="text-xs sm:text-sm md:text-base font-medium">Produse igienice desigilate</p>
+                      <p className="text-xs sm:text-sm md:text-base font-medium">
+                        Produse igienice desigilate
+                      </p>
                       <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">
                         Pentru siguranța și sănătatea tuturor
                       </p>
@@ -425,7 +449,8 @@ export default function ReturnsPage() {
               <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                 <div className="bg-green-50 rounded-lg p-3 sm:p-4">
                   <h3 className="text-xs sm:text-sm md:text-base font-semibold text-green-800 mb-1 sm:mb-2 flex items-center">
-                    <span className="mr-1 sm:mr-2">♻️</span> Reparare și Recondiționare
+                    <span className="mr-1 sm:mr-2">♻️</span> Reparare și
+                    Recondiționare
                   </h3>
                   <p className="text-green-700 text-[10px] sm:text-xs md:text-sm">
                     Produsele returnate sunt evaluate pentru reparare și
@@ -434,7 +459,8 @@ export default function ReturnsPage() {
                 </div>
                 <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
                   <h3 className="text-xs sm:text-sm md:text-base font-semibold text-blue-800 mb-1 sm:mb-2 flex items-center">
-                    <span className="mr-1 sm:mr-2">📦</span> Ambalaje Reutilizabile
+                    <span className="mr-1 sm:mr-2">📦</span> Ambalaje
+                    Reutilizabile
                   </h3>
                   <p className="text-blue-700 text-[10px] sm:text-xs md:text-sm">
                     Folosim ambalaje care pot fi reutilizate pentru returnări și
@@ -444,7 +470,8 @@ export default function ReturnsPage() {
                 </div>
                 <div className="bg-purple-50 rounded-lg p-3 sm:p-4">
                   <h3 className="text-xs sm:text-sm md:text-base font-semibold text-purple-800 mb-1 sm:mb-2 flex items-center">
-                    <span className="mr-1 sm:mr-2">🚚</span> Transport Consolidat
+                    <span className="mr-1 sm:mr-2">🚚</span> Transport
+                    Consolidat
                   </h3>
                   <p className="text-purple-700 text-[10px] sm:text-xs md:text-sm">
                     Colectăm returnările regional pentru a reduce amprenta de

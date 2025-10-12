@@ -3,7 +3,7 @@
  * Specialized caching for AI responses and product enhancement data
  */
 
-import { cache, getCached, CacheKeys, cacheUtils } from "../cache";
+import { cache, getCached, CacheKeys, cacheUtils } from "@/lib/cache";
 import { BasicProduct, EnhancedProduct, EnhancementResult } from "./types";
 import crypto from "crypto";
 

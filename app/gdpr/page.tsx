@@ -166,7 +166,11 @@ export default function GDPRPage() {
               <p className="text-sm sm:text-base md:text-lg font-medium text-center">
                 Aveți nevoie de ajutor sau clarificări suplimentare?
               </p>
-              <Button asChild size="lg" className="mt-1.5 sm:mt-2 text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6">
+              <Button
+                asChild
+                size="lg"
+                className="mt-1.5 sm:mt-2 text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6"
+              >
                 <Link href="/contact">Contactați Suportul TechTots</Link>
               </Button>
             </div>
