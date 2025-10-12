@@ -378,7 +378,10 @@ export function SupplierRequirements() {
         <div className="relative container mx-auto px-3 sm:px-4 py-8 sm:py-12 md:py-16 lg:py-24 xl:py-32">
           <div className="max-w-4xl mx-auto text-center">
             <div className="flex justify-center items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4 md:mb-6">
-              <Badge variant="secondary" className="text-[10px] sm:text-xs px-2 py-1">
+              <Badge
+                variant="secondary"
+                className="text-[10px] sm:text-xs px-2 py-1"
+              >
                 <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 {t("qualityStandards")} 2025
               </Badge>
@@ -400,13 +403,22 @@ export function SupplierRequirements() {
               {t("supplierRequirements2025Description")}
             </p>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center">
-              <Button size="lg" asChild className="text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6">
+              <Button
+                size="lg"
+                asChild
+                className="text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6"
+              >
                 <Link href="/supplier/apply">
                   {t("startApplication")}
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1.5 sm:ml-2" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6">
+              <Button
+                size="lg"
+                variant="outline"
+                asChild
+                className="text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6"
+              >
                 <Link href="/supplier/benefits">{t("viewBenefits")}</Link>
               </Button>
             </div>
@@ -506,7 +518,10 @@ export function SupplierRequirements() {
                   <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl flex items-center justify-center gap-1 sm:gap-2">
                     {criterion.title}
                     {criterion.required && (
-                      <Badge variant="destructive" className="text-[10px] sm:text-xs px-1 py-0.5 sm:px-2">
+                      <Badge
+                        variant="destructive"
+                        className="text-[10px] sm:text-xs px-1 py-0.5 sm:px-2"
+                      >
                         {t("required")}
                       </Badge>
                     )}
@@ -526,38 +541,38 @@ export function SupplierRequirements() {
         </div>
       </section>
 
-      {/* Shipping Requirements */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+      {/* Shipping Requirements - Compact on Mobile */}
+      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-white">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="text-center mb-6 sm:mb-10 md:mb-16">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
               {t("shippingRequirements")}
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
               {t("shippingRequirementsDescription")}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5 md:gap-8">
             {shippingRequirements.map((region, index) => (
               <Card key={index} className="border-0 shadow-lg">
-                <CardHeader className="text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Truck className="w-8 h-8 text-green-600" />
+                <CardHeader className="text-center p-3 sm:p-4 md:p-6">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                    <Truck className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-green-600" />
                   </div>
-                  <CardTitle className="text-xl">{region.region}</CardTitle>
-                  <Badge variant="secondary" className="w-fit mx-auto">
-                    <Clock className="w-3 h-3 mr-1" />
+                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl">{region.region}</CardTitle>
+                  <Badge variant="secondary" className="w-fit mx-auto text-[10px] sm:text-xs px-1.5 py-0.5">
+                    <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
                     {t("maxDays")} {region.maxDays}
                   </Badge>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
+                <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+                  <ul className="space-y-1 sm:space-y-2">
                     {region.requirements.map((requirement, reqIndex) => (
                       <li
                         key={reqIndex}
-                        className="flex items-start gap-2 text-sm"
+                        className="flex items-start gap-1.5 sm:gap-2 text-xs sm:text-sm"
                       >
-                        <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600 mt-0.5 flex-shrink-0" />
                         <span className="text-gray-700">{requirement}</span>
                       </li>
                     ))}
@@ -569,32 +584,32 @@ export function SupplierRequirements() {
         </div>
       </section>
 
-      {/* Quality Standards */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+      {/* Quality Standards - Compact on Mobile */}
+      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gray-50">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="text-center mb-6 sm:mb-10 md:mb-16">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
               {t("qualityStandardsSection")}
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
               {t("qualityStandardsSectionDescription")}
             </p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-5 md:gap-8">
             {qualityStandards.map((standard, index) => (
               <Card key={index} className="border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <standard.icon className="w-5 h-5 text-blue-600" />
+                <CardHeader className="p-3 sm:p-4 md:p-6">
+                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl flex items-center gap-1.5 sm:gap-2">
+                    <standard.icon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                     {standard.category}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
+                <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+                  <ul className="space-y-1.5 sm:space-y-2 md:space-y-3">
                     {standard.requirements.map((requirement, reqIndex) => (
-                      <li key={reqIndex} className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">{requirement}</span>
+                      <li key={reqIndex} className="flex items-start gap-1.5 sm:gap-2 md:gap-3">
+                        <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-xs sm:text-sm md:text-base text-gray-700">{requirement}</span>
                       </li>
                     ))}
                   </ul>
@@ -605,34 +620,34 @@ export function SupplierRequirements() {
         </div>
       </section>
 
-      {/* Compliance Requirements */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+      {/* Compliance Requirements - Compact on Mobile */}
+      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-white">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="text-center mb-6 sm:mb-10 md:mb-16">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
               {t("complianceRequirements")}
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
               {t("complianceRequirementsDescription")}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5 md:gap-8">
             {complianceRequirements.map((compliance, index) => (
               <Card key={index} className="border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-blue-600" />
+                <CardHeader className="p-3 sm:p-4 md:p-6">
+                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl flex items-center gap-1.5 sm:gap-2">
+                    <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                     {compliance.category}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
+                <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+                  <ul className="space-y-1 sm:space-y-2">
                     {compliance.requirements.map((requirement, reqIndex) => (
                       <li
                         key={reqIndex}
-                        className="flex items-start gap-2 text-sm"
+                        className="flex items-start gap-1.5 sm:gap-2 text-xs sm:text-sm"
                       >
-                        <CheckSquare className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <CheckSquare className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                         <span className="text-gray-700">{requirement}</span>
                       </li>
                     ))}
@@ -644,45 +659,45 @@ export function SupplierRequirements() {
         </div>
       </section>
 
-      {/* Application Process */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+      {/* Application Process - Compact on Mobile */}
+      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gray-50">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="text-center mb-6 sm:mb-10 md:mb-16">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
               {t("applicationProcess")}
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
               {t("applicationProcessDescription")}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 md:gap-8">
             {applicationProcess.map((step, index) => (
               <Card key={index} className="border-0 shadow-lg">
-                <CardHeader className="text-center">
-                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white font-bold text-xl">
+                <CardHeader className="text-center p-3 sm:p-4 md:p-6">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                    <span className="text-white font-bold text-base sm:text-lg md:text-xl">
                       {step.step}
                     </span>
                   </div>
-                  <CardTitle className="text-xl">{step.title}</CardTitle>
-                  <Badge variant="secondary" className="w-fit mx-auto">
-                    <Clock className="w-3 h-3 mr-1" />
+                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl">{step.title}</CardTitle>
+                  <Badge variant="secondary" className="w-fit mx-auto text-[10px] sm:text-xs px-1.5 py-0.5">
+                    <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
                     {step.duration}
                   </Badge>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">{step.description}</p>
-                  <div className="bg-blue-50 p-3 rounded-lg">
-                    <h4 className="font-semibold text-blue-900 mb-2">
+                <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+                  <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-2 sm:mb-3 md:mb-4">{step.description}</p>
+                  <div className="bg-blue-50 p-2 sm:p-3 rounded-lg">
+                    <h4 className="font-semibold text-blue-900 mb-1 sm:mb-2 text-xs sm:text-sm">
                       {t("requirements")}
                     </h4>
-                    <ul className="space-y-1">
+                    <ul className="space-y-0.5 sm:space-y-1">
                       {step.requirements.map((req, reqIndex) => (
                         <li
                           key={reqIndex}
-                          className="flex items-center gap-2 text-sm text-blue-800"
+                          className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-blue-800"
                         >
-                          <CheckCircle className="w-3 h-3" />
+                          <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                           {req}
                         </li>
                       ))}
@@ -695,40 +710,40 @@ export function SupplierRequirements() {
         </div>
       </section>
 
-      {/* Commission Structure */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+      {/* Commission Structure - Compact on Mobile */}
+      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-white">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="text-center mb-6 sm:mb-10 md:mb-16">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
               {t("commissionStructure")}
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
               {t("commissionStructureDescription")}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5 md:gap-8">
             {commissionStructure.map((tier, index) => (
               <Card
                 key={index}
                 className={`border-0 shadow-lg ${tier.color} ${index === 1 ? "ring-2 ring-blue-500" : ""}`}
               >
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl">{tier.tier}</CardTitle>
-                  <div className="text-4xl font-bold text-blue-600">
+                <CardHeader className="text-center p-3 sm:p-4 md:p-6">
+                  <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl">{tier.tier}</CardTitle>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600">
                     {tier.rate}
                   </div>
-                  <CardDescription className="text-sm">
+                  <CardDescription className="text-[10px] sm:text-xs md:text-sm">
                     {tier.requirements}
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
+                <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+                  <ul className="space-y-1 sm:space-y-2">
                     {tier.features.map((feature, featureIndex) => (
                       <li
                         key={featureIndex}
-                        className="flex items-center gap-2 text-sm"
+                        className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
                       >
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600" />
                         {feature}
                       </li>
                     ))}
@@ -740,62 +755,62 @@ export function SupplierRequirements() {
         </div>
       </section>
 
-      {/* Important Notes */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
+      {/* Important Notes - Compact on Mobile */}
+      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gray-50">
+        <div className="container mx-auto px-3 sm:px-4">
           <div className="max-w-4xl mx-auto">
             <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
-              <CardHeader>
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  <AlertTriangle className="w-6 h-6 text-orange-600" />
+              <CardHeader className="p-3 sm:p-4 md:p-6">
+                <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl flex items-center gap-1.5 sm:gap-2">
+                  <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
                   {t("importantNotes2025")}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <CardContent className="space-y-3 sm:space-y-4 md:space-y-6 p-3 sm:p-4 md:p-6 pt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
+                    <h4 className="font-semibold text-gray-900 mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base">
+                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                       {t("applicationTimeline")}
                     </h4>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-gray-600 text-[10px] sm:text-xs md:text-sm">
                       {t("applicationTimelineDescription")}
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                      <Target className="w-4 h-4" />
+                    <h4 className="font-semibold text-gray-900 mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base">
+                      <Target className="w-3 h-3 sm:w-4 sm:h-4" />
                       {t("qualityAssurance")}
                     </h4>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-gray-600 text-[10px] sm:text-xs md:text-sm">
                       {t("qualityAssuranceDescription")}
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                      <Euro className="w-4 h-4" />
+                    <h4 className="font-semibold text-gray-900 mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base">
+                      <Euro className="w-3 h-3 sm:w-4 sm:h-4" />
                       {t("euCompliance")}
                     </h4>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-gray-600 text-[10px] sm:text-xs md:text-sm">
                       {t("euComplianceDescription")}
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                      <Truck className="w-4 h-4" />
+                    <h4 className="font-semibold text-gray-900 mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base">
+                      <Truck className="w-3 h-3 sm:w-4 sm:h-4" />
                       {t("shippingStandards")}
                     </h4>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-gray-600 text-[10px] sm:text-xs md:text-sm">
                       {t("shippingStandardsDescription")}
                     </p>
                   </div>
                 </div>
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
-                    <Info className="w-4 h-4" />
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 sm:p-3 md:p-4">
+                  <h4 className="font-semibold text-orange-900 mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base">
+                    <Info className="w-3 h-3 sm:w-4 sm:h-4" />
                     {t("newFor2025")}
                   </h4>
-                  <p className="text-orange-800 text-sm">
+                  <p className="text-orange-800 text-[10px] sm:text-xs md:text-sm">
                     {t("newFor2025Description")}
                   </p>
                 </div>
