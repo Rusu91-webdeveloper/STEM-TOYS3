@@ -13,8 +13,12 @@
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": "..",
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["../**/*.ts", "../**/*.tsx"],
+  "exclude": ["../node_modules", "node_modules"]
 }

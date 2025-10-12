@@ -11,7 +11,7 @@
 import { AIServiceFactory } from "./ai-service-factory";
 import { BaseAIService } from "./base-ai-service";
 import { AIConfig } from "./config";
-import { getAIConfig } from "@/lib/config/environment";
+import { getAIConfig } from "../config/environment";
 import { simpleAIMonitoring } from "./monitoring-simple";
 import {
   PRODUCT_STRUCTURE_PROMPT,

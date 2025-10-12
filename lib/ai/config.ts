@@ -3,7 +3,7 @@
  * Provides centralized configuration management for AI services
  */
 
-import { getAIConfig } from "@/lib/config/environment";
+import { getAIConfig } from "../config/environment";
 
 export type AIProvider = "openai" | "anthropic" | "gemini";
 

@@ -1,7 +1,7 @@
-import { inngest } from "../client";
-import { DualProviderProductEnhancementService } from "../../lib/ai/dual-provider-product-enhancement-service";
-import { EnhancedProductProcessor } from "../../lib/ai/enhanced-product-processor";
-import { db } from "../../lib/db";
+import { inngest } from "@/inngest/client";
+import { DualProviderProductEnhancementService } from "@/lib/ai/dual-provider-product-enhancement-service";
+import { EnhancedProductProcessor } from "@/lib/ai/enhanced-product-processor";
+import { db } from "@/lib/db";
 
 // Helper function to extract SEO fields
 function extractSeoFields(input: any): {

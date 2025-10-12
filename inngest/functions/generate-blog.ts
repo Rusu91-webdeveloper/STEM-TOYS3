@@ -1,6 +1,6 @@
-import { inngest } from "../client";
-import { OptimizedBlogGenerationService } from "../../lib/ai/optimized-blog-generation-service";
-import { db } from "../../lib/db";
+import { inngest } from "@/inngest/client";
+import { OptimizedBlogGenerationService } from "@/lib/ai/optimized-blog-generation-service";
+import { db } from "@/lib/db";
 import { StemCategory } from "@prisma/client";
 
 // Helper function to generate slug from title
@@ -54,12 +54,12 @@ async function findOrCreateBlogCategory(stemCategory: StemCategory) {
 }
 
 export const generateBlogJob = inngest.createFunction(
-  { 
-    id: "generate-blog", 
+  {
+    id: "generate-blog",
     name: "Generate Blog with AI",
     timeouts: {
-      finish: "5m" // 5 minutes timeout for entire function
-    }
+      finish: "5m", // 5 minutes timeout for entire function
+    },
   },
   { event: "blog/generate.requested" },
   async ({ event, step }) => {

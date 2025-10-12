@@ -7,7 +7,7 @@ import { BaseAIService } from "./base-ai-service";
 import { OpenAIService } from "./openai-service";
 import { GeminiService } from "./gemini-service";
 import { AIConfig, AIProvider } from "./config";
-import { ApiErrors } from "@/lib/api-error-handler";
+import { ApiErrors } from "../api-error-handler";
 
 export class AIServiceFactory {
   private static instances: Map<AIProvider, BaseAIService> = new Map();

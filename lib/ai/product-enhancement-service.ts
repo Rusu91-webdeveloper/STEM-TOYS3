@@ -5,7 +5,7 @@
 
 import { AIServiceFactory } from "./ai-service-factory";
 import { AIConfig } from "./config";
-import { cache } from "@/lib/cache";
+import { cache } from "../cache";
 import { ApiErrors } from "@/lib/api-error-handler";
 import {
   BasicProduct,
