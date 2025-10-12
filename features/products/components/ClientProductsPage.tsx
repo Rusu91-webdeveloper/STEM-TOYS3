@@ -608,14 +608,17 @@ function ClientProductsPageContent({
   const content = (
     <ProductsErrorBoundary>
       <ProductVariantProvider>
-        <ProductsHeroSection
-          categoryImagePath={getCategoryImagePath()}
-          activeCategory={activeCategory}
-          activeCategoryInfo={activeCategoryInfo}
-          getCategoryTitle={getCategoryTitle}
-          getCategoryDescription={getCategoryDescription}
-          t={t}
-        />
+        {/* Hide hero section on mobile devices to save space and show products immediately */}
+        <div className="hidden md:block">
+          <ProductsHeroSection
+            categoryImagePath={getCategoryImagePath()}
+            activeCategory={activeCategory}
+            activeCategoryInfo={activeCategoryInfo}
+            getCategoryTitle={getCategoryTitle}
+            getCategoryDescription={getCategoryDescription}
+            t={t}
+          />
+        </div>
 
         {/* Removed redundant category quick buttons to avoid duplication with sidebar and mobile filters */}
 

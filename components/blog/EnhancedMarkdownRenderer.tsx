@@ -46,42 +46,42 @@ export default function EnhancedMarkdownRenderer({
         remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => (
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8 mt-12 first:mt-0 leading-tight bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 md:mb-8 mt-6 sm:mt-8 md:mt-12 first:mt-0 leading-tight bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 mt-16 first:mt-0 leading-tight border-l-4 border-blue-500 pl-6">
+            <h2 className="text-lg sm:text-xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 md:mb-6 mt-8 sm:mt-10 md:mt-16 first:mt-0 leading-tight border-l-4 border-blue-500 pl-3 sm:pl-4 md:pl-6">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6 mt-12 leading-tight">
+            <h3 className="text-base sm:text-lg md:text-2xl lg:text-3xl font-semibold text-gray-800 mb-3 sm:mb-4 md:mb-6 mt-6 sm:mt-8 md:mt-12 leading-tight">
               {children}
             </h3>
           ),
           h4: ({ children }) => (
-            <h4 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4 mt-10 leading-tight">
+            <h4 className="text-[15px] sm:text-base md:text-xl lg:text-2xl font-semibold text-gray-800 mb-2 sm:mb-3 md:mb-4 mt-5 sm:mt-6 md:mt-10 leading-tight">
               {children}
             </h4>
           ),
           h5: ({ children }) => (
-            <h5 className="text-lg md:text-xl font-semibold text-gray-800 mb-4 mt-8 leading-tight">
+            <h5 className="text-sm sm:text-[15px] md:text-lg lg:text-xl font-semibold text-gray-800 mb-2 sm:mb-3 md:mb-4 mt-4 sm:mt-5 md:mt-8 leading-tight">
               {children}
             </h5>
           ),
           h6: ({ children }) => (
-            <h6 className="text-base md:text-lg font-semibold text-gray-800 mb-3 mt-6 leading-tight">
+            <h6 className="text-[13px] sm:text-sm md:text-base lg:text-lg font-semibold text-gray-800 mb-2 sm:mb-2.5 md:mb-3 mt-3 sm:mt-4 md:mt-6 leading-tight">
               {children}
             </h6>
           ),
           p: ({ children }) => (
-            <p className="text-gray-700 leading-8 mb-8 text-lg font-normal">
+            <p className="text-gray-700 text-[13px] sm:text-sm md:text-base lg:text-lg leading-relaxed sm:leading-7 md:leading-8 mb-3 sm:mb-4 md:mb-8 font-normal">
               {children}
             </p>
           ),
           strong: ({ children }) => (
-            <strong className="font-bold text-gray-900 bg-gradient-to-r from-blue-50 to-indigo-50 px-1 rounded">
+            <strong className="font-bold text-gray-900 bg-gradient-to-r from-blue-50 to-indigo-50 px-0.5 sm:px-1 rounded">
               {children}
             </strong>
           ),
@@ -89,21 +89,23 @@ export default function EnhancedMarkdownRenderer({
             <em className="italic text-gray-800 font-medium">{children}</em>
           ),
           ul: ({ children }) => (
-            <ul className="my-8 space-y-4 list-disc list-inside marker:text-blue-500 marker:text-lg">
+            <ul className="my-3 sm:my-4 md:my-8 space-y-2 sm:space-y-3 md:space-y-4 list-disc list-inside marker:text-blue-500 marker:text-sm sm:marker:text-base">
               {children}
             </ul>
           ),
           ol: ({ children }) => (
-            <ol className="my-8 space-y-4 list-decimal list-inside marker:text-blue-500 marker:font-bold">
+            <ol className="my-3 sm:my-4 md:my-8 space-y-2 sm:space-y-3 md:space-y-4 list-decimal list-inside marker:text-blue-500 marker:font-bold">
               {children}
             </ol>
           ),
           li: ({ children }) => (
-            <li className="text-gray-700 leading-7 text-lg">{children}</li>
+            <li className="text-gray-700 text-[13px] sm:text-sm md:text-base lg:text-lg leading-relaxed sm:leading-7">
+              {children}
+            </li>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-blue-500 pl-8 py-6 my-12 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-r-2xl italic text-gray-800 text-xl font-medium relative">
-              <div className="absolute top-4 right-6 text-blue-400 text-4xl">
+            <blockquote className="border-l-2 sm:border-l-4 border-blue-500 pl-3 sm:pl-5 md:pl-8 py-3 sm:py-4 md:py-6 my-4 sm:my-6 md:my-12 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-r-lg sm:rounded-r-xl md:rounded-r-2xl italic text-gray-800 text-sm sm:text-base md:text-lg lg:text-xl font-medium relative">
+              <div className="hidden md:block absolute top-4 right-6 text-blue-400 text-4xl">
                 "
               </div>
               {children}
@@ -113,26 +115,26 @@ export default function EnhancedMarkdownRenderer({
             const isInline = !className;
             if (isInline) {
               return (
-                <code className="bg-gray-100 px-3 py-1 rounded-lg text-sm font-mono text-gray-800 border border-gray-200">
+                <code className="bg-gray-100 px-1 sm:px-1.5 md:px-3 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[11px] sm:text-xs md:text-sm font-mono text-gray-800 border border-gray-200">
                   {children}
                 </code>
               );
             }
             return (
-              <code className="bg-gray-100 px-3 py-1 rounded-lg text-sm font-mono text-gray-800 border border-gray-200">
+              <code className="bg-gray-100 px-1 sm:px-1.5 md:px-3 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[11px] sm:text-xs md:text-sm font-mono text-gray-800 border border-gray-200">
                 {children}
               </code>
             );
           },
           pre: ({ children }) => (
-            <pre className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-6 rounded-2xl overflow-x-auto my-8 font-mono text-sm shadow-2xl border border-gray-700">
+            <pre className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl md:rounded-2xl overflow-x-auto my-3 sm:my-4 md:my-8 font-mono text-[11px] sm:text-xs md:text-sm shadow-lg sm:shadow-xl md:shadow-2xl border border-gray-700">
               {children}
             </pre>
           ),
           a: ({ children, href }) => (
             <a
               href={href}
-              className="text-blue-600 hover:text-blue-800 underline decoration-blue-300 hover:decoration-blue-600 transition-all duration-300 font-medium"
+              className="text-blue-600 hover:text-blue-800 underline decoration-blue-300 hover:decoration-blue-600 transition-all duration-300 font-medium text-[13px] sm:text-sm md:text-base"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -148,15 +150,15 @@ export default function EnhancedMarkdownRenderer({
               `Ilustrație pentru articolul: ${blogTitle || "TechTots"}`;
 
             return (
-              <div className="my-12">
+              <div className="my-4 sm:my-6 md:my-12">
                 <img
                   src={src}
                   alt={optimizedAlt}
-                  className="rounded-2xl shadow-2xl max-w-full h-auto mx-auto border-4 border-white"
+                  className="rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg sm:shadow-xl md:shadow-2xl max-w-full h-auto mx-auto border-2 sm:border-4 border-white"
                   loading="lazy"
                 />
                 {alt && (
-                  <p className="text-center text-gray-600 mt-4 text-sm italic">
+                  <p className="text-center text-gray-600 mt-2 sm:mt-3 md:mt-4 text-[11px] sm:text-xs md:text-sm italic">
                     {alt}
                   </p>
                 )}
@@ -164,19 +166,19 @@ export default function EnhancedMarkdownRenderer({
             );
           },
           table: ({ children }) => (
-            <div className="overflow-x-auto my-12">
-              <table className="w-full border-collapse border border-gray-300 rounded-2xl overflow-hidden shadow-lg">
+            <div className="overflow-x-auto my-3 sm:my-4 md:my-12">
+              <table className="w-full border-collapse border border-gray-300 rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden shadow-md sm:shadow-lg">
                 {children}
               </table>
             </div>
           ),
           th: ({ children }) => (
-            <th className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-900 font-bold px-6 py-4 text-left border-b border-gray-300">
+            <th className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-900 font-bold px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-left text-[11px] sm:text-xs md:text-sm border-b border-gray-300">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="px-6 py-4 border-b border-gray-200 text-gray-700">
+            <td className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 border-b border-gray-200 text-gray-700 text-[12px] sm:text-[13px] md:text-base">
               {children}
             </td>
           ),
@@ -189,7 +191,7 @@ export default function EnhancedMarkdownRenderer({
             </tr>
           ),
           hr: () => (
-            <hr className="my-16 border-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+            <hr className="my-6 sm:my-8 md:my-16 border-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
           ),
         }}
       >

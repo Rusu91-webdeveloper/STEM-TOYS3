@@ -9,6 +9,7 @@ import {
   RotateCcw,
   Star,
   ShoppingCart,
+  Check,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,8 @@ import { ProductImageGallery } from "./ProductImageGallery";
 import ProductSpecs from "./ProductSpecs";
 import ProductEducation from "./ProductEducation";
 import ProductFAQ from "./ProductFAQ";
+import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
+import type { CartItem } from "@/features/cart/context/CartContext";
 
 interface ProductDetailClientProps {
   product: any;
@@ -32,6 +35,7 @@ export default function ProductDetailClient({
 }: ProductDetailClientProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { addItem } = useShoppingCart();
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<
     number | null
   >(null);
@@ -39,6 +43,8 @@ export default function ProductDetailClient({
   const [isFavorited, setIsFavorited] = useState(false);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
   const [wishlistItemId, setWishlistItemId] = useState<string | null>(null);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [justAddedToCart, setJustAddedToCart] = useState(false);
 
   // Fetch free shipping settings on component mount
   useEffect(() => {
@@ -244,6 +250,74 @@ export default function ProductDetailClient({
     }
   };
 
+  // Quick add to cart handler for mobile button
+  const handleQuickAddToCart = async () => {
+    if (isAddingToCart || justAddedToCart) return;
+
+    // Check if product is out of stock (books are always available)
+    const isBook = Boolean(
+      product.isBook ||
+        product.attributes?.author ||
+        product.tags?.includes("book")
+    );
+    const isOutOfStock = !isBook && (product.stockQuantity ?? 0) <= 0;
+
+    if (isOutOfStock) {
+      toast({
+        title: t("outOfStock", "Stoc epuizat"),
+        description: t(
+          "productOutOfStock",
+          "Acest produs nu este momentan în stoc."
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAddingToCart(true);
+
+    try {
+      const item: Omit<CartItem, "id"> = {
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        image: product.images?.[0],
+        isBook,
+        slug: product.slug,
+      };
+
+      addItem(item, 1);
+
+      // Show success state
+      setJustAddedToCart(true);
+      toast({
+        title: t("addedToCart", "Adăugat în coș"),
+        description: t(
+          "productAddedToCart",
+          "Produsul a fost adăugat în coșul tău."
+        ),
+      });
+
+      // Reset success state after 2 seconds
+      setTimeout(() => {
+        setJustAddedToCart(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast({
+        title: t("error", "Eroare"),
+        description: t(
+          "addToCartError",
+          "Nu s-a putut adăuga produsul în coș."
+        ),
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8">
@@ -338,6 +412,28 @@ export default function ProductDetailClient({
                       title={t("share", "Partajează")}
                     >
                       <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                    <Button
+                      variant={justAddedToCart ? "default" : "outline"}
+                      size="icon"
+                      className={`h-7 w-7 sm:h-8 sm:w-8 transition-all ${
+                        justAddedToCart
+                          ? "bg-green-600 hover:bg-green-700 border-green-600"
+                          : ""
+                      }`}
+                      onClick={handleQuickAddToCart}
+                      disabled={isAddingToCart || justAddedToCart}
+                      title={
+                        justAddedToCart
+                          ? t("addedToCart", "Adăugat în coș")
+                          : t("addToCart", "Adaugă în coș")
+                      }
+                    >
+                      {justAddedToCart ? (
+                        <Check className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                      ) : (
+                        <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
