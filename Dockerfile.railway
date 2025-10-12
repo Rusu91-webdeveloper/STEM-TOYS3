@@ -30,9 +30,9 @@ COPY types ./types/
 # Copy inngest-server
 COPY inngest-server ./inngest-server/
 
-# Install inngest-server dependencies
+# Install inngest-server dependencies (keep dev dependencies for tsx)
 WORKDIR /app/inngest-server
-RUN npm install --production
+RUN npm install
 
 # Back to root for runtime
 WORKDIR /app

@@ -31,37 +31,37 @@ let inngest,
   singleProductEnhancementJob;
 
 try {
-  const clientModule = await import("../inngest/client.ts");
+  const clientModule = await import("../inngest/client.js");
   inngest = clientModule.inngest;
   console.log("✅ Loaded inngest client");
 
   const generateBlogModule = await import(
-    "../inngest/functions/generate-blog.ts"
+    "../inngest/functions/generate-blog.js"
   );
   generateBlogJob = generateBlogModule.generateBlogJob;
   console.log("✅ Loaded generate-blog function");
 
   const enhanceProductsModule = await import(
-    "../inngest/functions/enhance-products.ts"
+    "../inngest/functions/enhance-products.js"
   );
   enhanceProductsJob = enhanceProductsModule.enhanceProductsJob;
   console.log("✅ Loaded enhance-products function");
 
   const bulkUploadModule = await import(
-    "../inngest/functions/bulk-upload-products.ts"
+    "../inngest/functions/bulk-upload-products.js"
   );
   bulkUploadProductsJob = bulkUploadModule.bulkUploadProductsJob;
   console.log("✅ Loaded bulk-upload-products function");
 
   const supplierBulkModule = await import(
-    "../inngest/functions/supplier-bulk-upload-products.ts"
+    "../inngest/functions/supplier-bulk-upload-products.js"
   );
   supplierBulkUploadProductsJob =
     supplierBulkModule.supplierBulkUploadProductsJob;
   console.log("✅ Loaded supplier-bulk-upload-products function");
 
   const singleProductModule = await import(
-    "../inngest/functions/single-product-enhancement.ts"
+    "../inngest/functions/single-product-enhancement.js"
   );
   singleProductEnhancementJob = singleProductModule.singleProductEnhancementJob;
   console.log("✅ Loaded single-product-enhancement function");
