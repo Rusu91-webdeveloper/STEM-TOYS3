@@ -33,9 +33,9 @@ export default function TermsPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-12">
-      {/* Hero Section */}
-      <div className="relative h-[220px] sm:h-[280px] md:h-[320px] w-full mb-8">
+    <div className="bg-gray-50 min-h-screen pb-6 sm:pb-8 md:pb-12">
+      {/* Hero Section - Compact on Mobile */}
+      <div className="relative h-[120px] sm:h-[180px] md:h-[240px] lg:h-[280px] xl:h-[320px] w-full mb-4 sm:mb-6 md:mb-8">
         <Image
           src="/images/homepage_hero_banner_01.png"
           alt="Termeni și Condiții"
@@ -43,37 +43,38 @@ export default function TermsPage() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/70 to-indigo-600/60 flex flex-col items-center justify-center text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/70 to-indigo-600/60 flex flex-col items-center justify-center text-center px-3 sm:px-4">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white drop-shadow-lg">
             {t("termsH1")}
           </h1>
-          <p className="mt-2 text-lg sm:text-xl text-indigo-100 max-w-2xl mx-auto">
+          <p className="mt-1 sm:mt-2 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-indigo-100 max-w-2xl mx-auto">
             Reguli și condiții pentru utilizarea platformei TechTots și
             achiziționarea produselor noastre educaționale.
           </p>
         </div>
       </div>
 
-      <Container>
+      <Container className="px-3 sm:px-4">
         <Card className="max-w-4xl mx-auto shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-2xl font-semibold flex items-center gap-2">
+          <CardHeader className="pb-2 p-3 sm:p-4 md:p-6">
+            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold flex items-center gap-1.5 sm:gap-2">
               <Icon
                 icon={StatusIcons.Info}
                 variant="info"
                 size="lg"
                 decorative
+                className="w-5 h-5 sm:w-6 sm:h-6"
               />
               Termeni și Condiții
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground mt-1">
               Ultima actualizare: 9 august 2024
             </p>
           </CardHeader>
-          <CardContent>
-            {/* Table of Contents */}
-            <nav aria-label="Cuprins" className="mb-6">
-              <ul className="flex flex-wrap gap-2 sm:gap-4 text-sm">
+          <CardContent className="p-3 sm:p-4 md:p-6">
+            {/* Table of Contents - Compact on Mobile */}
+            <nav aria-label="Cuprins" className="mb-3 sm:mb-4 md:mb-6">
+              <ul className="flex flex-wrap gap-1.5 sm:gap-2 md:gap-4 text-[10px] sm:text-xs md:text-sm">
                 {toc.map(item => (
                   <li key={item.id}>
                     <a
@@ -86,7 +87,7 @@ export default function TermsPage() {
                 ))}
               </ul>
             </nav>
-            <div className="prose prose-indigo prose-lg max-w-none">
+            <div className="prose prose-indigo prose-sm sm:prose-base md:prose-lg max-w-none">
               <section id="intro">
                 <h2>1. Introducere</h2>
                 <p>
@@ -100,7 +101,7 @@ export default function TermsPage() {
                   sunteți de acord, vă rugăm să nu utilizați serviciile noastre.
                 </p>
               </section>
-              <Separator className="my-6" />
+              <Separator className="my-3 sm:my-4 md:my-6" />
               <section id="utilizare">
                 <h2>2. Utilizarea Serviciilor</h2>
                 <ul>
@@ -117,7 +118,7 @@ export default function TermsPage() {
                   </li>
                 </ul>
               </section>
-              <Separator className="my-6" />
+              <Separator className="my-3 sm:my-4 md:my-6" />
               <section id="conturi">
                 <h2>3. Conturi Utilizator</h2>
                 <p>
@@ -130,7 +131,7 @@ export default function TermsPage() {
                   termeni.
                 </p>
               </section>
-              <Separator className="my-6" />
+              <Separator className="my-3 sm:my-4 md:my-6" />
               <section id="ip">
                 <h2>4. Proprietate Intelectuală</h2>
                 <p>
@@ -139,7 +140,7 @@ export default function TermsPage() {
                   protejate de lege.
                 </p>
               </section>
-              <Separator className="my-6" />
+              <Separator className="my-3 sm:my-4 md:my-6" />
               <section id="produse">
                 <h2>5. Produse și Comenzi</h2>
                 <p>
@@ -152,7 +153,7 @@ export default function TermsPage() {
                   discreția noastră.
                 </p>
               </section>
-              <Separator className="my-6" />
+              <Separator className="my-3 sm:my-4 md:my-6" />
               <section id="livrare">
                 <h2>6. Livrare</h2>
                 <p>
@@ -160,7 +161,7 @@ export default function TermsPage() {
                   pentru întârzieri cauzate de factori externi.
                 </p>
               </section>
-              <Separator className="my-6" />
+              <Separator className="my-3 sm:my-4 md:my-6" />
               <section id="retur">
                 <h2>7. Retururi și Rambursări</h2>
                 <p>
@@ -168,7 +169,7 @@ export default function TermsPage() {
                   dvs. Consultați pagina dedicată pentru detalii.
                 </p>
               </section>
-              <Separator className="my-6" />
+              <Separator className="my-3 sm:my-4 md:my-6" />
               <section id="garantii">
                 <h2>8. Declarație de Garanție</h2>
                 <p>
@@ -183,7 +184,7 @@ export default function TermsPage() {
                   explicite sau implicite.
                 </p>
               </section>
-              <Separator className="my-6" />
+              <Separator className="my-3 sm:my-4 md:my-6" />
               <section id="raspundere">
                 <h2>9. Limitarea Răspunderii</h2>
                 <p>
@@ -198,7 +199,7 @@ export default function TermsPage() {
                   rezultate din utilizarea serviciilor sau produselor.
                 </p>
               </section>
-              <Separator className="my-6" />
+              <Separator className="my-3 sm:my-4 md:my-6" />
               <section id="modificari">
                 <h2>10. Modificări ale Termenilor</h2>
                 <p>
@@ -206,7 +207,7 @@ export default function TermsPage() {
                   serviciilor reprezintă acceptul dvs. pentru modificări.
                 </p>
               </section>
-              <Separator className="my-6" />
+              <Separator className="my-3 sm:my-4 md:my-6" />
               <section id="lege">
                 <h2>11. Lege Aplicabilă</h2>
                 <p>
@@ -214,7 +215,7 @@ export default function TermsPage() {
                   va fi soluționat de instanțele competente din România.
                 </p>
               </section>
-              <Separator className="my-6" />
+              <Separator className="my-3 sm:my-4 md:my-6" />
               <section id="contact">
                 <h2>12. Contact</h2>
                 <p>
@@ -223,19 +224,20 @@ export default function TermsPage() {
                 </p>
               </section>
             </div>
-            {/* CTA */}
-            <Separator className="my-8" />
-            <div className="flex flex-col items-center gap-2 mt-6">
+            {/* CTA - Compact on Mobile */}
+            <Separator className="my-4 sm:my-6 md:my-8" />
+            <div className="flex flex-col items-center gap-1.5 sm:gap-2 mt-3 sm:mt-4 md:mt-6">
               <Icon
                 icon={StatusIcons.Help}
                 variant="primary"
                 size="lg"
                 decorative
+                className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12"
               />
-              <p className="text-lg font-medium text-center">
+              <p className="text-sm sm:text-base md:text-lg font-medium text-center">
                 Aveți nevoie de ajutor sau clarificări suplimentare?
               </p>
-              <Button asChild size="lg" className="mt-2">
+              <Button asChild size="lg" className="mt-1.5 sm:mt-2 text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6">
                 <Link href="/contact">Contactați Suportul TechTots</Link>
               </Button>
             </div>
