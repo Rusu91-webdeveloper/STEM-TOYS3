@@ -5,7 +5,7 @@
   "type": "module",
   "main": "server.ts",
   "scripts": {
-    "start": "tsx server.ts"
+    "start": "node --import tsx/esm --tsconfig ../tsconfig.json server.ts"
   },
   "dependencies": {
     "express": "^4.18.2",

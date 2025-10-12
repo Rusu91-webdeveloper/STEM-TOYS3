@@ -67,6 +67,6 @@ ENTRYPOINT ["dumb-init", "--"]
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:\${PORT:-3001}/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1); });"
 
-# Start the server using tsx to handle TypeScript imports
-CMD ["npx", "tsx", "--tsconfig", "inngest-server/tsconfig.json", "inngest-server/server.ts"]
+# Start the server using node with tsx/esm loader for TypeScript + path aliases
+CMD ["node", "--import", "tsx/esm", "inngest-server/server.ts"]
 
