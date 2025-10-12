@@ -162,23 +162,23 @@ async function RelatedBlogs({ slug }: { slug: string }) {
 
   if (!blogs || blogs.length === 0) {
     return (
-      <section className="container mx-auto px-4 py-8 sm:py-12">
-        <div className="flex items-center gap-3 mb-6">
-          <BookOpen className="w-6 h-6 text-primary" />
-          <h3 className="text-xl sm:text-2xl font-bold">
+      <section className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 lg:py-12">
+        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6">
+          <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+          <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
             Articole recomandate
           </h3>
         </div>
-        <div className="text-center py-12 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/10">
-          <BookOpen className="w-16 h-16 text-primary/40 mx-auto mb-4" />
-          <p className="text-muted-foreground mb-4">
+        <div className="text-center py-6 sm:py-8 md:py-12 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg sm:rounded-xl border border-primary/10">
+          <BookOpen className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-primary/40 mx-auto mb-3 sm:mb-4" />
+          <p className="text-muted-foreground mb-3 sm:mb-4 text-xs sm:text-sm">
             Nu există încă articole pentru această categorie.
           </p>
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl text-sm sm:text-base"
           >
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Vezi toate articolele
           </Link>
         </div>
@@ -187,33 +187,33 @@ async function RelatedBlogs({ slug }: { slug: string }) {
   }
 
   return (
-    <section className="container mx-auto px-4 py-8 sm:py-12">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <BookOpen className="w-6 h-6 text-primary" />
-          <h3 className="text-xl sm:text-2xl font-bold">
+    <section className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 lg:py-12">
+      <div className="flex items-center justify-between mb-4 sm:mb-6 md:mb-8">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+          <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
             Articole recomandate pentru {getCategoryName(slug, "ro")}
           </h3>
         </div>
         <Link
           href="/blog"
-          className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors group"
+          className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors group"
         >
           Vezi toate articolele
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
         {blogs.map((blog, index) => {
           const IconComponent = blogIcons[index % blogIcons.length];
           return (
             <Link
               key={blog.id}
               href={`/blog/${blog.slug}`}
-              className="group rounded-xl border border-border/50 p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-background hover:border-primary/20 hover:bg-gradient-to-br hover:from-primary/5 hover:to-secondary/5"
+              className="group rounded-lg sm:rounded-xl border border-border/50 p-3 sm:p-4 md:p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-background hover:border-primary/20 hover:bg-gradient-to-br hover:from-primary/5 hover:to-secondary/5"
             >
               {blog.coverImage ? (
-                <div className="relative w-full h-48 mb-4 overflow-hidden rounded-lg">
+                <div className="relative w-full h-32 sm:h-40 md:h-48 mb-2 sm:mb-3 md:mb-4 overflow-hidden rounded-lg">
                   <Image
                     src={blog.coverImage}
                     alt={blog.title}
@@ -223,31 +223,31 @@ async function RelatedBlogs({ slug }: { slug: string }) {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               ) : (
-                <div className="w-full h-48 mb-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center group-hover:from-primary/20 group-hover:to-secondary/20 transition-all duration-300">
-                  <IconComponent className="w-12 h-12 text-primary/60" />
+                <div className="w-full h-32 sm:h-40 md:h-48 mb-2 sm:mb-3 md:mb-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center group-hover:from-primary/20 group-hover:to-secondary/20 transition-all duration-300">
+                  <IconComponent className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-primary/60" />
                 </div>
               )}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Calendar className="w-3 h-3" />
+              <div className="space-y-1.5 sm:space-y-2 md:space-y-3">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
+                  <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   <span>{blog.author?.name ?? "TechTots Team"}</span>
                   {blog.readingTime && (
                     <>
                       <span>•</span>
-                      <Clock className="w-3 h-3" />
+                      <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       <span>{blog.readingTime} min citire</span>
                     </>
                   )}
                 </div>
-                <h4 className="font-semibold text-base sm:text-lg line-clamp-2 group-hover:text-primary transition-colors">
+                <h4 className="font-semibold text-sm sm:text-base md:text-lg line-clamp-2 group-hover:text-primary transition-colors">
                   {blog.title}
                 </h4>
-                <p className="text-sm text-muted-foreground line-clamp-3">
+                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-3">
                   {blog.excerpt}
                 </p>
-                <div className="flex items-center gap-2 text-xs text-primary font-medium">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-primary font-medium">
                   <span>Citește mai mult</span>
-                  <ArrowUpRight className="w-3 h-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                  <ArrowUpRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                 </div>
               </div>
             </Link>
@@ -486,29 +486,29 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
   const testimonialIcons = [User, Quote, Star, Award, Heart, MessageCircle];
 
   return (
-    <section className="container mx-auto px-4 py-8 sm:py-12">
-      <div className="flex items-center gap-3 mb-8">
-        <Quote className="w-6 h-6 text-primary" />
-        <h3 className="text-xl sm:text-2xl font-bold">
+    <section className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 lg:py-12">
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 md:mb-8">
+        <Quote className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+        <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
           Ce spun părinții și educatorii
         </h3>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
         {items.map((t, idx) => {
           const IconComponent = testimonialIcons[idx % testimonialIcons.length];
           return (
             <blockquote
               key={idx}
-              className="relative rounded-xl border border-border/50 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group"
+              className="relative rounded-lg sm:rounded-xl border border-border/50 p-3 sm:p-4 md:p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group"
             >
-              <div className="absolute top-4 right-4 opacity-20 group-hover:opacity-40 transition-opacity">
-                <IconComponent className="w-8 h-8 text-primary" />
+              <div className="absolute top-2 sm:top-3 md:top-4 right-2 sm:right-3 md:right-4 opacity-20 group-hover:opacity-40 transition-opacity">
+                <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-primary" />
               </div>
-              <div className="flex items-center gap-1 mb-3">
+              <div className="flex items-center gap-0.5 sm:gap-1 mb-2 sm:mb-3">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`w-4 h-4 ${
+                    className={`w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 ${
                       i < (t.rating || 5)
                         ? "text-yellow-400 fill-current"
                         : "text-gray-300"
@@ -516,18 +516,18 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
                   />
                 ))}
               </div>
-              <p className="italic mb-4 text-foreground/80 leading-relaxed">
+              <p className="italic mb-2 sm:mb-3 md:mb-4 text-foreground/80 leading-relaxed text-xs sm:text-sm">
                 "{t.quote}"
               </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-primary" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 text-primary" />
                 </div>
-                <div className="text-sm">
+                <div className="text-xs sm:text-sm">
                   <div className="font-semibold text-foreground">
                     {t.author}
                   </div>
-                  <div className="text-muted-foreground">{t.role}</div>
+                  <div className="text-muted-foreground text-[10px] sm:text-xs">{t.role}</div>
                 </div>
               </div>
             </blockquote>
@@ -668,43 +668,43 @@ function Overview({ slug, locale }: { slug: string; locale: string }) {
   const benefits = benefitsBySlug[slug] || benefitsBySlug["science"];
 
   return (
-    <section className="container mx-auto px-4 py-8 sm:py-12">
-      <div className="flex items-center gap-3 mb-6">
-        <Target className="w-6 h-6 text-primary" />
-        <h2 className="text-2xl sm:text-3xl font-bold">{title}</h2>
+    <section className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 lg:py-12">
+      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6">
+        <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold">{title}</h2>
       </div>
-      <p className="text-muted-foreground max-w-3xl mb-8 text-lg leading-relaxed">
+      <p className="text-muted-foreground max-w-3xl mb-4 sm:mb-6 md:mb-8 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed">
         {copy[slug] ??
           "Descoperiți resurse care stârnesc pasiunea pentru învățare în rândul copiilor."}
       </p>
 
-      {/* Enhanced Educational Benefits Section */}
-      <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl border border-primary/10 p-6 mb-8">
-        <div className="flex items-center gap-3 mb-6">
-          <Sparkles className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold text-foreground/80">
+      {/* Enhanced Educational Benefits Section - Compact on Mobile */}
+      <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg sm:rounded-xl border border-primary/10 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
+        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6">
+          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+          <h3 className="text-sm sm:text-base md:text-lg font-semibold text-foreground/80">
             Beneficii Educaționale:
           </h3>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           {benefits.map((benefit, index) => {
             const IconComponent = benefit.icon;
             return (
-              <div key={index} className="flex items-start gap-4 group">
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                  <IconComponent className="w-5 h-5 text-primary" />
+              <div key={index} className="flex items-start gap-2 sm:gap-3 md:gap-4 group">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                  <IconComponent className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-muted-foreground mb-2 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1.5 sm:mb-2 leading-relaxed">
                     {benefit.text}
                   </p>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2">
                     <div
-                      className="bg-gradient-to-r from-primary to-primary/70 h-2 rounded-full transition-all duration-1000 ease-out"
+                      className="bg-gradient-to-r from-primary to-primary/70 h-1.5 sm:h-2 rounded-full transition-all duration-1000 ease-out"
                       style={{ width: `${benefit.progress}%` }}
                     />
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
                     {benefit.progress}% eficiență
                   </div>
                 </div>
@@ -714,41 +714,41 @@ function Overview({ slug, locale }: { slug: string; locale: string }) {
         </div>
       </div>
 
-      {/* Enhanced Info Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-border/50 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group">
-          <div className="flex items-center gap-3 mb-3">
-            <Target className="w-5 h-5 text-primary" />
-            <h4 className="font-semibold">Beneficii</h4>
+      {/* Enhanced Info Cards - Compact on Mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="rounded-lg sm:rounded-xl border border-border/50 p-3 sm:p-4 md:p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+            <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            <h4 className="font-semibold text-sm sm:text-base">Beneficii</h4>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Curiozitate, gândire critică, creativitate
           </p>
         </div>
-        <div className="rounded-xl border border-border/50 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group">
-          <div className="flex items-center gap-3 mb-3">
-            <Play className="w-5 h-5 text-primary" />
-            <h4 className="font-semibold">Activități</h4>
+        <div className="rounded-lg sm:rounded-xl border border-border/50 p-3 sm:p-4 md:p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+            <Play className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            <h4 className="font-semibold text-sm sm:text-base">Activități</h4>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Proiecte practice, jocuri logice, explorare ghidată
           </p>
         </div>
-        <div className="rounded-xl border border-border/50 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group">
-          <div className="flex items-center gap-3 mb-3">
-            <Users className="w-5 h-5 text-primary" />
-            <h4 className="font-semibold">Recomandat pentru</h4>
+        <div className="rounded-lg sm:rounded-xl border border-border/50 p-3 sm:p-4 md:p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            <h4 className="font-semibold text-sm sm:text-base">Recomandat pentru</h4>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Părinți, educatori, cluburi STEM
           </p>
         </div>
-        <div className="rounded-xl border border-border/50 p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group">
-          <div className="flex items-center gap-3 mb-3">
-            <BookOpen className="w-5 h-5 text-primary" />
-            <h4 className="font-semibold">Resurse</h4>
+        <div className="rounded-lg sm:rounded-xl border border-border/50 p-3 sm:p-4 md:p-6 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 hover:shadow-lg group">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            <h4 className="font-semibold text-sm sm:text-base">Resurse</h4>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Ghiduri, seturi tematice, cărți complementare
           </p>
         </div>
@@ -972,8 +972,8 @@ export default async function CategoryDetailPage({
           ],
         }}
       />
-      {/* Enhanced Hero Section */}
-      <section className="relative h-[220px] sm:h-[320px] w-full overflow-hidden">
+      {/* Enhanced Hero Section - Compact on Mobile */}
+      <section className="relative h-[140px] sm:h-[200px] md:h-[260px] lg:h-[320px] w-full overflow-hidden">
         <Image
           src={heroImg}
           alt={heroTitle}
@@ -983,8 +983,8 @@ export default async function CategoryDetailPage({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
-        {/* Floating Icons Overlay */}
-        <div className="absolute inset-0 pointer-events-none">
+        {/* Floating Icons Overlay - Hidden on very small screens */}
+        <div className="absolute inset-0 pointer-events-none hidden sm:block">
           {categoryIcons.map((IconComponent, index) => (
             <div
               key={index}
@@ -1001,21 +1001,21 @@ export default async function CategoryDetailPage({
           ))}
         </div>
 
-        <div className="absolute inset-0 container mx-auto px-4 flex items-end pb-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
+        <div className="absolute inset-0 container mx-auto px-3 sm:px-4 flex items-end pb-3 sm:pb-4 md:pb-6">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 bg-primary/20 backdrop-blur-sm rounded-lg sm:rounded-xl flex items-center justify-center border border-white/20">
               {(() => {
                 const IconComponent = categoryIcons[0];
                 return (
-                  <IconComponent className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10 text-white" />
                 );
               })()}
             </div>
             <div>
-              <h1 className="text-2xl sm:text-4xl font-bold text-white drop-shadow-lg mb-2">
+              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white drop-shadow-lg mb-1 sm:mb-2">
                 {heroTitle}
               </h1>
-              <p className="text-white/90 text-sm sm:text-base max-w-md drop-shadow">
+              <p className="text-white/90 text-xs sm:text-sm md:text-base max-w-md drop-shadow hidden sm:block">
                 Descoperă lumea fascinantă a {heroTitle.toLowerCase()} prin
                 jucării interactive și educaționale
               </p>
@@ -1023,13 +1023,13 @@ export default async function CategoryDetailPage({
           </div>
         </div>
 
-        {/* Call to Action Buttons */}
-        <div className="absolute bottom-4 right-4 flex gap-3">
+        {/* Call to Action Buttons - Compact on Mobile */}
+        <div className="absolute bottom-2 sm:bottom-3 md:bottom-4 right-2 sm:right-3 md:right-4 flex gap-2 sm:gap-3">
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl text-sm"
+            className="inline-flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 bg-primary text-primary-foreground rounded-md sm:rounded-lg hover:bg-primary/90 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl text-xs sm:text-sm"
           >
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
             Vezi produsele
           </Link>
         </div>
@@ -1038,16 +1038,16 @@ export default async function CategoryDetailPage({
       {/* Overview */}
       <Overview slug={slug} locale={locale} />
 
-      {/* Helpful Resources */}
-      <section className="container mx-auto px-4 my-8">
-        <div className="rounded-lg border bg-white p-4 sm:p-6 shadow-sm">
-          <h2 className="text-lg sm:text-xl font-semibold mb-2">
+      {/* Helpful Resources - Compact on Mobile */}
+      <section className="container mx-auto px-3 sm:px-4 my-4 sm:my-6 md:my-8">
+        <div className="rounded-lg border bg-white p-3 sm:p-4 md:p-6 shadow-sm">
+          <h2 className="text-base sm:text-lg md:text-xl font-semibold mb-1.5 sm:mb-2">
             Resurse utile
           </h2>
-          <p className="text-sm text-muted-foreground mb-3">
+          <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
             Nu ești sigur ce să alegi? Consultă ghidurile noastre:
           </p>
-          <div className="flex flex-wrap gap-2 text-sm">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 text-xs sm:text-sm">
             <Link
               href="/ghid-jucarii-stem-2025"
               className="underline"
