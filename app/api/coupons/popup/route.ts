@@ -86,6 +86,11 @@ export async function GET(request: NextRequest) {
 
     const coupon = promotionalCoupons[0];
 
+    // **FIX**: Convert expiresAt back to Date object if it's a string (from Redis cache)
+    if (coupon.expiresAt && typeof coupon.expiresAt === "string") {
+      coupon.expiresAt = new Date(coupon.expiresAt);
+    }
+
     // **PERFORMANCE**: Reduce logging in production
     if (process.env.NODE_ENV === "development") {
       console.log(
