@@ -57,13 +57,16 @@ export async function PATCH(
         const { invalidateCachePattern } = await import("@/lib/cache");
         const { revalidateTag, revalidatePath } = await import("next/cache");
 
-        // Clear Redis cache
-        await invalidateCachePattern("products");
-        await invalidateCachePattern("category-*");
+        // Clear Redis cache with proper wildcard patterns
+        await invalidateCachePattern("products*");
+        await invalidateCachePattern("product:*");
+        await invalidateCachePattern("category*");
 
         // Clear Next.js cache
         revalidateTag("products");
+        revalidateTag("categories");
         revalidatePath("/products");
+        revalidatePath("/");
 
         console.log(
           `✅ Cache invalidated for approved product: ${existing.name}`

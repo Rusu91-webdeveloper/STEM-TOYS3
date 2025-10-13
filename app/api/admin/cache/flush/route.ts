@@ -2,8 +2,12 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
-import { invalidateCachePattern } from "@/lib/cache";
+import { cache } from "@/lib/cache";
 
+/**
+ * FLUSH ALL CACHE - Use this to completely clear all cached data
+ * This is a nuclear option for when cache becomes corrupted or stale
+ */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -11,11 +15,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { pattern } = await request.json();
+    console.log("🔥 FLUSHING ALL CACHE - This will clear ALL cached data");
 
-    // Clear Redis cache with proper wildcards
-    await invalidateCachePattern(pattern ? `${pattern}*` : "products*");
-    await invalidateCachePattern("product:*");
+    // Clear Redis cache completely
+    await cache.flush();
 
     // Clear Next.js cache
     revalidateTag("products");
@@ -24,19 +27,18 @@ export async function POST(request: NextRequest) {
     revalidatePath("/products");
     revalidatePath("/");
 
-    console.log(
-      `✅ Admin manually cleared cache for pattern: ${pattern || "products"}`
-    );
+    console.log("✅ ALL CACHE FLUSHED SUCCESSFULLY");
 
     return NextResponse.json({
       success: true,
-      message: "Cache cleared successfully",
+      message: "All cache flushed successfully. Fresh data will be loaded on next request.",
     });
   } catch (error) {
-    console.error("Error clearing cache:", error);
+    console.error("Error flushing cache:", error);
     return NextResponse.json(
-      { error: "Failed to clear cache" },
+      { error: "Failed to flush cache" },
       { status: 500 }
     );
   }
 }
+
