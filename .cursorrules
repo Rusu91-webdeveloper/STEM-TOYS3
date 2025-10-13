@@ -1,0 +1,195 @@
+# Cursor AI Rules for STEM-TOYS3 Project
+
+## 🔒 DATABASE SAFETY - CRITICAL & MANDATORY
+
+**BEFORE ANY DATABASE OPERATION (schema changes, migrations, Prisma commands):**
+
+1. **MUST read and follow**: `CURSOR_DATABASE_SAFETY_RULE.md`
+2. **MUST run safety check**: `pnpm run db:check-safety`
+3. **MUST verify**: Using local database (localhost), NOT production
+4. **MUST ensure**: Only additive changes (no DROP TABLE, DROP COLUMN, or data deletion)
+5. **MUST backup**: Production before deploying (`pnpm run backup:production`)
+
+**The AI is FORBIDDEN from:**
+
+- Making database changes without reading `CURSOR_DATABASE_SAFETY_RULE.md`
+- Creating migrations with destructive operations (DROP, DELETE, TRUNCATE)
+- Using production database URL in local development
+- Deploying schema changes without production backup
+- Skipping the safety check workflow
+
+**For ANY database-related request, the AI MUST:**
+
+1. First read `CURSOR_DATABASE_SAFETY_RULE.md` to refresh the safety protocol
+2. Run `pnpm run db:check-safety` to verify environment
+3. Follow the mandatory workflow exactly as specified
+4. Ask for user confirmation before risky operations
+
+---
+
+## 📖 Project Setup & Context
+
+- **Always read `PLANNING.md`** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
+- **Check `TASKS.md`** before starting a new task. If the task isn't listed, add it with a brief description, estimated time, and today's date.
+- **Review `PROJECT_CONTEXT.md`** to understand the broader context, data models, and API endpoints.
+- **Examine existing code patterns** before implementing new features to maintain consistency.
+
+## 🏗️ Architecture & File Structure
+
+- **Follow Next.js App Router conventions** for routing, layouts, and server/client components.
+- **Use the feature-first organization pattern**:
+  ```
+  /app
+    /features
+      /auth
+        /components
+        /hooks
+        /lib
+        /types
+      /products
+        /components
+        /hooks
+        /lib
+        /types
+    /api
+    /lib
+    /components (shared)
+    /hooks (shared)
+    /types (shared)
+  ```
+- **Separate concerns** between UI components, data fetching, and business logic.
+- **Use appropriate component boundaries**:
+  - Server Components for data fetching and rendering
+  - Client Components for interactivity
+  - Layout Components for page structure
+
+## 🧱 Code Structure & Modularity
+
+- **Never create a file longer than 300 lines of code.** If a file approaches this limit, refactor by splitting it into modules or helper files.
+- **Organize code into clearly separated modules**, grouped by feature or responsibility.
+- **Use absolute imports** with path aliases (e.g., `@/components/ui/button` instead of `../../../../components/ui/button`).
+- **Implement proper component composition** to avoid prop drilling and excessive re-renders.
+- **Extract reusable hooks** for shared logic across components.
+- **Use TypeScript interfaces and types** for all data structures and component props.
+
+## 🧪 Testing & Reliability
+
+- **Create tests for all new features** using the appropriate testing strategy:
+  - Unit tests for utility functions and hooks (Vitest)
+  - Component tests for UI components (React Testing Library)
+  - Integration tests for complex features (Playwright)
+  - API tests for endpoints (Supertest)
+- **Tests should live in a `__tests__` folder** adjacent to the code being tested.
+- **Include at least**:
+  - 1 test for expected use
+  - 1 edge case
+  - 1 failure case
+- **Use mock data and services** for external dependencies.
+- **Implement E2E tests** for critical user flows using Playwright.
+
+## ✅ Task Completion
+
+- **Mark completed tasks in `TASKS.md`** immediately after finishing them, including:
+  - Completion date
+  - Time spent
+  - Any issues encountered
+  - Links to relevant PRs or commits
+- **Add new sub-tasks or TODOs** discovered during development to `TASKS.md` under a "Discovered During Work" section.
+- **Update project status** in `PLANNING.md` when milestones are reached.
+
+## 📎 Style & Conventions
+
+- **Use TypeScript** as the primary language with strict type checking.
+- **Follow the project's ESLint and Prettier configuration**.
+- **Use `zod` for data validation and runtime type checking**.
+- **Implement proper error handling** with custom error classes and meaningful error messages.
+- **Use Next.js data fetching patterns**:
+  - Server Components for initial data loading
+  - Project's existing data fetching pattern (NOT React Query - user preference)
+  - Server Actions for form submissions and mutations
+- **Follow accessibility best practices** (ARIA attributes, semantic HTML, keyboard navigation).
+
+## 🔒 Security Considerations
+
+- **Validate and sanitize all user inputs** using zod schemas.
+- **Implement proper authentication checks** on all protected routes and API endpoints.
+- **Use environment variables** for all sensitive information.
+- **Implement CSRF protection** for all forms and mutations.
+- **Follow Content Security Policy best practices**.
+- **Regularly audit dependencies** for vulnerabilities.
+- **Use parameterized queries** when working with databases to prevent injection attacks.
+
+## ⚡ Performance Optimization
+
+- **Implement proper code splitting** using Next.js dynamic imports.
+- **Optimize images** using Next.js Image component with proper sizing and formats.
+- **Minimize client-side JavaScript** by leveraging Server Components where possible.
+- **Implement proper caching strategies**:
+  - Static Generation for content that rarely changes
+  - ISR for content that changes occasionally
+  - On-demand revalidation for content that needs immediate updates
+- **Monitor and optimize Core Web Vitals** (LCP, FID, CLS).
+- **Use React.memo, useMemo, and useCallback** judiciously to prevent unnecessary re-renders.
+
+## 📚 Documentation & Explainability
+
+- **Update documentation** when new features are added:
+  - `README.md` for setup and overview
+  - `PLANNING.md` for architectural changes
+  - Component JSDoc comments for API documentation
+- **Comment non-obvious code** and ensure everything is understandable to a mid-level developer.
+- **Add inline comments for complex logic** explaining the reasoning, not just the implementation.
+- **Create or update Storybook stories** for UI components.
+- **Document API endpoints** with OpenAPI/Swagger specifications.
+
+## 🎨 UI/UX Preferences
+
+- **Use advanced, modern UI design** - NOT classic website styles
+- **Implement contemporary design patterns** with modern aesthetics
+- **Prioritize user experience** with smooth interactions and transitions
+
+## 🧠 AI Behavior Rules
+
+- **Never assume missing context. Ask questions if uncertain.**
+- **Only use verified npm packages** that are compatible with Next.js.
+- **Always confirm file paths and module names** exist before referencing them.
+- **Never delete or overwrite existing code** unless explicitly instructed to or if part of a task from `TASKS.md`.
+- **Suggest optimizations and best practices** when reviewing code.
+- **Provide explanations for complex implementations**.
+- **Consider edge cases and error states** in all implementations.
+- **Respect the project's existing patterns** even when suggesting improvements.
+
+## 🔧 Development Workflow
+
+- **Thoroughly analyze and understand the entire context** before starting work
+- **Take notes and check existing code** to avoid duplication
+- **Generate a to-do list** presenting the full plan
+- **Track completed tasks** as you progress
+- **Proceed step by step**, testing after each step
+- **Present full set of improvements** all at once, then transform step by step
+- **Thoroughly check fixes** before making changes
+- **Only push to GitHub** when sure the fix is correct
+
+## 📦 Package Management
+
+- **Use `pnpm`** as the package manager for this project
+- **Run `pnpm install`** to install dependencies
+- **Run `pnpm run dev`** to start the development server
+
+## 🗑️ Code Cleanup
+
+- **Comment out unused variables** rather than removing them (user preference)
+- **Keep unused code** for potential future reference
+
+## 🚨 Critical Reminders
+
+1. **Database Safety**: Always read `CURSOR_DATABASE_SAFETY_RULE.md` before ANY database operation
+2. **Testing**: Test after each step before moving forward
+3. **Context First**: Understand the full context before starting work
+4. **Planning**: Create comprehensive to-do lists for complex tasks
+5. **Quality**: Never rush - thoroughness over speed
+6. **User Preferences**: Follow user's specific preferences even if they differ from common practices
+
+---
+
+**MOST IMPORTANT: For ANY database-related work, ALWAYS start by reading `CURSOR_DATABASE_SAFETY_RULE.md`**

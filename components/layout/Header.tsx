@@ -27,8 +27,6 @@ import { createPortal } from "react-dom";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
-import { CurrencySwitcher } from "@/components/ui/currency-switcher";
-import { MobileCurrencySelector } from "@/components/ui/mobile-currency-selector";
 import { MobileLanguageSelector } from "@/components/ui/mobile-language-selector";
 import { CartButton } from "@/features/cart";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
@@ -431,9 +429,8 @@ export default function Header() {
 
             {/* Right Section: Utilities + User Actions */}
             <div className="flex items-center space-x-4 2xl:space-x-6">
-              {/* Currency and Language Switchers */}
+              {/* Language Switcher */}
               <div className="flex items-center space-x-2 2xl:space-x-3">
-                <CurrencySwitcher />
                 <LanguageSwitcher />
               </div>
 
@@ -1026,7 +1023,7 @@ export default function Header() {
                             {/* Active indicator badge - COMPACT */}
                             {isActive && (
                               <div className="ml-auto bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse border border-indigo-400/30">
-                                Active
+                                {t("active")}
                               </div>
                             )}
 
@@ -1182,10 +1179,9 @@ export default function Header() {
                         <div className="h-[1.5px] flex-1 bg-gradient-to-r from-indigo-200 via-purple-200 to-transparent ml-2 rounded-full"></div>
                       </div>
 
-                      {/* Enhanced mobile selectors */}
+                      {/* Enhanced mobile selector */}
                       <div className="space-y-2">
                         <MobileLanguageSelector />
-                        <MobileCurrencySelector allowedCodes={["RON", "EUR"]} />
                       </div>
                     </div>
                   </div>
