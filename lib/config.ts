@@ -220,8 +220,17 @@ export const serviceConfig = {
       _env.NODE_ENV === "production" || _env.ENABLE_PINO === "true";
     return _env.DISABLE_PINO !== "true" && isProductionOrExplicitlyEnabled;
   },
-  isEmailServiceEnabled: () =>
-    !!process.env.BREVO_API_KEY || !!process.env.BREVO_SMTP_KEY,
+  isEmailServiceEnabled: () => {
+    const hasResend = !!process.env.RESEND_API_KEY;
+    const hasBrevo =
+      !!process.env.BREVO_API_KEY || !!process.env.BREVO_SMTP_KEY;
+    const hasGmail = !!(
+      process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD
+    );
+    const hasEmailFrom = !!process.env.EMAIL_FROM;
+
+    return (hasResend || hasBrevo || hasGmail) && hasEmailFrom;
+  },
 } as const;
 
 // Log configuration status (only in development)

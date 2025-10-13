@@ -245,9 +245,14 @@ export async function sendCouponEmail({
   );
 
   const emailService = getEmailService();
-  await emailService.sendEmail({
+  const result = await emailService.sendEmail({
     to,
     subject,
     html,
   });
+
+  // Check if email actually sent successfully
+  if (!result.success) {
+    throw new Error(result.error || "Failed to send coupon email");
+  }
 }

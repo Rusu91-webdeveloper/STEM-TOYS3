@@ -112,6 +112,8 @@ export async function POST(
     let successCount = 0;
     let failureCount = 0;
 
+    const failedEmails: { email: string; error: string }[] = [];
+
     for (const batch of batches) {
       const emailPromises = batch.map(async email => {
         try {
@@ -121,10 +123,16 @@ export async function POST(
             subject: validatedData.subject,
             message: validatedData.message,
           });
+          console.log(`✅ Successfully sent coupon email to ${email}`);
           return { email, success: true };
         } catch (error) {
-          console.error(`Failed to send email to ${email}:`, error);
-          return { email, success: false, error };
+          const errorMsg =
+            error instanceof Error ? error.message : String(error);
+          console.error(
+            `❌ Failed to send coupon email to ${email}:`,
+            errorMsg
+          );
+          return { email, success: false, error: errorMsg };
         }
       });
 
@@ -135,6 +143,14 @@ export async function POST(
           successCount++;
         } else {
           failureCount++;
+          const failedResult =
+            result.status === "fulfilled" ? result.value : null;
+          if (failedResult && !failedResult.success) {
+            failedEmails.push({
+              email: failedResult.email,
+              error: String(failedResult.error),
+            });
+          }
         }
       });
 
@@ -144,13 +160,29 @@ export async function POST(
       }
     }
 
+    // Log summary
+    console.log(`📊 Coupon email sending complete:`, {
+      totalRecipients: recipients.length,
+      successCount,
+      failureCount,
+      couponCode: coupon.code,
+    });
+
+    if (failureCount > 0) {
+      console.error(`⚠️ Failed emails:`, failedEmails);
+    }
+
     return NextResponse.json({
-      message: "Coupon emails sent successfully",
+      message:
+        failureCount === 0
+          ? "Coupon emails sent successfully"
+          : `Sent ${successCount} emails, ${failureCount} failed`,
       stats: {
         totalRecipients: recipients.length,
         successCount,
         failureCount,
         couponCode: coupon.code,
+        failedEmails: failureCount > 0 ? failedEmails : undefined,
       },
     });
   } catch (error) {
