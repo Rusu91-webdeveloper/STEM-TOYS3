@@ -291,7 +291,27 @@ export async function PATCH(
 
     // Use Prisma relation syntax instead of direct categoryId
     if (updatedData.categoryId) {
-      updateData.category = { connect: { id: updatedData.categoryId } };
+      let resolvedCategoryId = updatedData.categoryId;
+      
+      // Check if it looks like a slug vs a cuid
+      if (!updatedData.categoryId.match(/^c[a-z0-9]{24,}$/i)) {
+        // Treat as slug, look up the actual category ID
+        const category = await db.category.findUnique({
+          where: { slug: updatedData.categoryId },
+          select: { id: true },
+        });
+        
+        if (!category) {
+          return NextResponse.json(
+            { error: "Category not found", details: `No category exists with slug "${updatedData.categoryId}"` },
+            { status: 400 }
+          );
+        }
+        
+        resolvedCategoryId = category.id;
+      }
+      
+      updateData.category = { connect: { id: resolvedCategoryId } };
     }
 
     if (updatedData.isActive !== undefined) {

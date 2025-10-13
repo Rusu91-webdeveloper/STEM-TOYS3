@@ -290,6 +290,35 @@ export async function POST(request: NextRequest) {
     // Create product in database
     try {
       console.warn("Attempting to create product in database");
+      
+      // Resolve category ID - handle both cuid IDs and slugs
+      let resolvedCategoryId = data.categoryId;
+      
+      // Check if it looks like a slug (no dashes at start, lowercase letters/numbers with dashes)
+      // vs a cuid (starts with 'c' followed by alphanumeric)
+      if (!data.categoryId.match(/^c[a-z0-9]{24,}$/i)) {
+        // Treat as slug, look up the actual category ID
+        console.warn(`Category value "${data.categoryId}" appears to be a slug, looking up ID...`);
+        const category = await db.category.findUnique({
+          where: { slug: data.categoryId },
+          select: { id: true, name: true },
+        });
+        
+        if (!category) {
+          console.error(`Category with slug "${data.categoryId}" not found`);
+          return NextResponse.json(
+            { 
+              error: "Category not found", 
+              details: `No category exists with slug "${data.categoryId}". Available categories can be found at /api/admin/categories` 
+            },
+            { status: 400 }
+          );
+        }
+        
+        resolvedCategoryId = category.id;
+        console.warn(`Resolved slug "${data.categoryId}" to ID "${resolvedCategoryId}" (${category.name})`);
+      }
+      
       const { seo, legacy } = extractSeoFields(data);
       const cleanedAttributes = stripSeoFromAttributes(data.attributes);
       const metadata: Record<string, unknown> = {
@@ -313,9 +342,9 @@ export async function POST(request: NextRequest) {
           price: data.price,
           compareAtPrice: data.compareAtPrice ?? null,
           images: data.images,
-          // Use Prisma relation syntax instead of direct categoryId
+          // Use Prisma relation syntax with resolved category ID
           category: {
-            connect: { id: data.categoryId },
+            connect: { id: resolvedCategoryId },
           },
           tags: data.tags ?? [],
           stockQuantity: data.stock ?? 0,
@@ -441,7 +470,27 @@ export async function PUT(request: NextRequest) {
     if (data.images !== undefined) updateData.images = data.images;
     // Use Prisma relation syntax instead of direct categoryId
     if (data.categoryId !== undefined) {
-      updateData.category = { connect: { id: data.categoryId } };
+      let resolvedCategoryId = data.categoryId;
+      
+      // Check if it looks like a slug vs a cuid
+      if (!data.categoryId.match(/^c[a-z0-9]{24,}$/i)) {
+        // Treat as slug, look up the actual category ID
+        const category = await db.category.findUnique({
+          where: { slug: data.categoryId },
+          select: { id: true },
+        });
+        
+        if (!category) {
+          return NextResponse.json(
+            { error: "Category not found", details: `No category exists with slug "${data.categoryId}"` },
+            { status: 400 }
+          );
+        }
+        
+        resolvedCategoryId = category.id;
+      }
+      
+      updateData.category = { connect: { id: resolvedCategoryId } };
     }
     if (data.tags !== undefined) updateData.tags = data.tags;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
