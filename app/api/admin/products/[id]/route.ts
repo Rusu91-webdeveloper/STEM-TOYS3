@@ -289,8 +289,9 @@ export async function PATCH(
       updateData.stockQuantity = parseInt(updatedData.stock, 10);
     }
 
+    // Use Prisma relation syntax instead of direct categoryId
     if (updatedData.categoryId) {
-      updateData.categoryId = updatedData.categoryId;
+      updateData.category = { connect: { id: updatedData.categoryId } };
     }
 
     if (updatedData.isActive !== undefined) {

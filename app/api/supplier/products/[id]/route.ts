@@ -214,6 +214,7 @@ export async function PUT(
       learningOutcomes,
       specialCategories,
       productType,
+      categoryId,
       ...directFields
     } = validatedData as any;
 
@@ -231,6 +232,8 @@ export async function PUT(
       where: { id },
       data: {
         ...directFields,
+        // Use Prisma relation syntax if categoryId is being updated
+        ...(categoryId ? { category: { connect: { id: categoryId } } } : {}),
         metadata: updatedMetadata,
       },
       include: {
@@ -331,10 +334,17 @@ export async function PATCH(
     const partialSchema = updateProductSchema.partial();
     const validatedPartial = partialSchema.parse(body);
 
+    // Extract categoryId if present and prepare update data
+    const { categoryId, ...updateData } = body;
+
     // Update product
     const updatedProduct = await db.product.update({
       where: { id },
-      data: body,
+      data: {
+        ...updateData,
+        // Use Prisma relation syntax if categoryId is being updated
+        ...(categoryId ? { category: { connect: { id: categoryId } } } : {}),
+      },
       include: {
         category: {
           select: {

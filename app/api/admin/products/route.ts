@@ -305,7 +305,10 @@ export async function POST(request: NextRequest) {
           price: data.price,
           compareAtPrice: data.compareAtPrice ?? null,
           images: data.images,
-          categoryId: data.categoryId,
+          // Use Prisma relation syntax instead of direct categoryId
+          category: {
+            connect: { id: data.categoryId },
+          },
           tags: data.tags ?? [],
           stockQuantity: data.stock ?? 0,
           // New categorization fields
@@ -431,7 +434,10 @@ export async function PUT(request: NextRequest) {
     if (data.compareAtPrice !== undefined)
       updateData.compareAtPrice = data.compareAtPrice;
     if (data.images !== undefined) updateData.images = data.images;
-    if (data.categoryId !== undefined) updateData.categoryId = data.categoryId;
+    // Use Prisma relation syntax instead of direct categoryId
+    if (data.categoryId !== undefined) {
+      updateData.category = { connect: { id: data.categoryId } };
+    }
     if (data.tags !== undefined) updateData.tags = data.tags;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
     if (data.stock !== undefined) updateData.stockQuantity = data.stock;

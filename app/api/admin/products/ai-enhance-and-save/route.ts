@@ -431,7 +431,10 @@ export async function POST_OLD(request: NextRequest) {
                 price: enhancedProduct.price * 1.2,
                 sku: enhancedProduct.sku,
                 images: enhancedProduct.images || [],
-                categoryId: category.id,
+                // Use Prisma relation syntax instead of direct categoryId
+                category: {
+                  connect: { id: category.id },
+                },
                 tags: enhancedProduct.tags || [],
                 stockQuantity: enhancedProduct.stockQuantity || 0,
                 weight: enhancedProduct.weight || 0.8,

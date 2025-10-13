@@ -949,7 +949,10 @@ export async function POST_OLD(request: NextRequest) {
               compareAtPrice: correctedProduct.compareAtPrice,
               sku: correctedProduct.sku,
               images: correctedProduct.images,
-              categoryId: category.id,
+              // Use Prisma relation syntax instead of direct categoryId
+              category: {
+                connect: { id: category.id },
+              },
               tags: correctedProduct.tags,
               stockQuantity: correctedProduct.stockQuantity,
               reservedQuantity: correctedProduct.reservedQuantity || 0,
