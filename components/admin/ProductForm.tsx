@@ -69,6 +69,7 @@ const formSchema = z.object({
       message:
         "Slug must contain only lowercase letters, numbers, and hyphens.",
     }),
+  sku: z.string().optional(),
   description: z.string().min(10, {
     message: "Description must be at least 10 characters.",
   }),
@@ -160,6 +161,7 @@ export default function ProductForm({
     defaultValues: initialData || {
       name: "",
       slug: "",
+      sku: "",
       description: "",
       price: 0,
       compareAtPrice: null,
@@ -486,6 +488,23 @@ export default function ProductForm({
                         </FormControl>
                         <FormDescription>
                           Used in the URL. Auto-generated from name.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="sku"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>SKU (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="PROD-001" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Stock Keeping Unit - unique product identifier for inventory.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
