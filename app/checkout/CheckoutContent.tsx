@@ -68,7 +68,10 @@ export function CheckoutContent() {
               <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span className="text-sm font-medium text-purple-700">
-              {t("tenThousandParentsTrust", "10,000+ Părinți Ne Încredințează")}
+              {t(
+                "tenThousandParentsTrust",
+                "Încredere de Familii din Întreaga Lume"
+              )}
             </span>
           </div>
         </div>

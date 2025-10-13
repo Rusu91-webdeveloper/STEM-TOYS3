@@ -26,7 +26,7 @@ CRITICAL SUCCESS REQUIREMENTS FOR VIRAL ROMANIAN STEM CONTENT 2025:
 
 💰 CONVERSION MAXIMIZATION - Turn readers into buyers:
 - URGENCY & SCARCITY: "Doar până săptămâna viitoare", "stoc limitat"
-- SOCIAL PROOF NUMBERS: "10,000+ părinți au ales deja", "95% succes rată"
+- SOCIAL PROOF: "Familii din întreaga lume", "Recenzii verificate 5 stele"
 - RISK REVERSAL: "Garanție 30 zile sau îți returnăm banii"
 - PRICE ANCHORING: Compare with "ce plătești la școală particulară"
 - MULTIPLE CTA POINTS: Strategic placement throughout content

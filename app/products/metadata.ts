@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title:
     "Transformă Copilul din 'Urăsc Matematica' în 'Vreau Să Experimentez!' - Jucării STEM Dovedite | TechTots România",
   description:
-    "Alătură-te celor 10,000+ părinți care au transformat copiii în 30 de zile! Jucăriile noastre STEM transformă luptele cu temele în sesiuni de experimentare pasionante. Garanție de transformare sau îți returnăm banii. Livrare rapidă în toată România.",
+    "Pe măsură ce AI și tehnologia transformă lumea, educația STEM este esențială pentru copiii tăi. Jucăriile noastre STEM transformă luptele cu temele în sesiuni de experimentare pasionante. Calitate garantată. Livrare rapidă în toată România.",
   keywords: [
     // Hormozi-focused transformation keywords
     "transformare copii matematică România",
@@ -40,9 +40,9 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title:
-      "Transformă Copilul în Geniu STEM - 10,000+ Părinți Mulțumiți | TechTots",
+      "Transformă Copilul în Geniu STEM - Educație pentru Era AI | TechTots",
     description:
-      "Descoperă secretul părinților care au transformat 'urăsc matematica' în 'când facem experimente?' în doar 30 de zile. Garanție de rezultate sau îți returnăm banii!",
+      "Descoperă secretul părinților care au transformat 'urăsc matematica' în 'când facem experimente?'. Produse de calitate garantată!",
     type: "website",
     images: [
       {
@@ -57,9 +57,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Transformă Copilul în Geniu STEM - Rezultate Garantate în 30 Zile",
+    title: "Transformă Copilul în Geniu STEM - Calitate Garantată",
     description:
-      "10,000+ părinți au transformat deja copiii cu jucăriile noastre STEM. Garanție de succes sau returnare completă!",
+      "Familii din întreaga lume transformă copiii cu jucăriile noastre STEM pentru era AI. Produse de calitate certificată!",
     site: "@TechTotsRO",
     creator: "@TechTotsRO",
   },

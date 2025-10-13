@@ -124,7 +124,7 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-                Garanție 30 zile
+                Calitate garantată
               </span>
             </div>
           </div>

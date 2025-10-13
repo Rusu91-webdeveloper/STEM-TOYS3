@@ -203,7 +203,7 @@ export function generateMetadata() {
   return {
     title: "Transform Your Child Into a STEM Genius - TechTots Romania",
     description:
-      "Stop homework battles forever! Join 10,000+ parents who've transformed their kids from 'I hate math' to 'When can we do experiments?' with our proven STEM toys. 30-day guarantee.",
+      "Stop homework battles forever! As AI and technology reshape our world, STEM education has never been more critical. Transform 'I hate math' to 'When can we do experiments?' with our proven STEM toys. Quality guaranteed.",
     keywords: [
       // Primary conversion-focused keywords
       "transform copil geniu STEM",
@@ -230,7 +230,7 @@ export function generateMetadata() {
     openGraph: {
       title: "Transform Your Child Into a STEM Genius - TechTots",
       description:
-        "Join 10,000+ parents who've stopped homework battles forever. Our STEM toys turn 'I hate math' into 'When's our next experiment?' - 30-day guarantee.",
+        "Families worldwide are discovering how STEM education prepares kids for tomorrow's AI-driven world. Our STEM toys turn 'I hate math' into 'When's our next experiment?' Quality guaranteed.",
       type: "website",
       locale: "ro_RO",
       alternateLocale: "en_US",
@@ -247,7 +247,7 @@ export function generateMetadata() {
       card: "summary_large_image",
       title: "Transform Your Child Into a STEM Genius",
       description:
-        "Stop homework battles forever with our proven STEM toys. 30-day guarantee.",
+        "Stop homework battles forever with our proven STEM toys. Quality guaranteed.",
       images: ["/images/homepage_hero_banner_01.png"],
     },
     other: {

@@ -10,7 +10,7 @@ export const ro = {
   productsPageH1:
     "Transformă Copilul din 'Urăsc Matematica' în 'Vreau Să Experimentez!'",
   productsPageSubtitle:
-    "Alătură-te celor 10,000+ părinți care au transformat copiii în doar 30 de zile. Garanție de rezultate sau îți returnăm banii!",
+    "Pe măsură ce AI și tehnologia transformă lumea, educația STEM nu a fost niciodată mai importantă. Jucăriile noastre STEM transformă 'urăsc matematica' în 'când facem experimente?'",
   getPersonalizedRecommendations: "Obține Recomandări Personalizate (Gratuit)",
   seeSuccessStories: "Vezi Povești de Succes",
   findPerfectToysForAge:
@@ -18,7 +18,7 @@ export const ro = {
   mostPopularForAge: "Cel Mai Popular pentru Vârsta {age}",
   provenResults: "Rezultate Dovedite",
   parentsLoveThisBecause: "Părinții iubesc asta pentru că...",
-  thirtyDayGuarantee: "Garanția STEM de 30 Zile",
+  // thirtyDayGuarantee: "Garanția STEM de 30 Zile", // Removed - risky advertisement
   freeConsultation: "Consultare Gratuită",
 
   // Category-Specific Transformation Headlines
@@ -43,14 +43,14 @@ export const ro = {
   transformationGuarantee: "Garanție de Transformare",
   freeReturns: "Returnări Gratuite",
   moneyBackPromise: "Promisiunea Banilor Înapoi",
-  tenThousandParentsTrust: "10,000+ Părinți Ne Încredințează",
+  tenThousandParentsTrust: "Încredere de Familii din Întreaga Lume",
   fourNineStars: "4.9/5 Stele",
   ninetyNinePercentSuccess: "99% Rata de Succes",
 
   // Social Proof & Urgency Elements
   limitedSpots: "Locuri limitate",
   consultationThisMonth: "pentru consultare gratuită luna aceasta",
-  guarantee: "Garanție 30 Zile",
+  // guarantee: "Garanție 30 Zile", // Removed - risky advertisement
   transformationResults: "Rezultate de Transformare:",
   mathScoreImprovement: "87% Îmbunătățire Scoruri Matematică",
   engagementIncrease: "92% Creșterea Angajamentului",
@@ -492,7 +492,7 @@ export const ro = {
   mostPopularForAge: "Cel Mai Popular pentru Vârsta {age}",
   provenResults: "Rezultate Dovedite",
   parentsLoveThisBecause: "Părinții iubesc asta pentru că...",
-  thirtyDayGuarantee: "Garanția STEM de 30 Zile",
+  // thirtyDayGuarantee: "Garanția STEM de 30 Zile", // Removed - risky advertisement
   freeConsultation: "Consultare Gratuită",
 
   // Homepage specific translations - Hormozi Style Conversion Copy
@@ -505,9 +505,8 @@ export const ro = {
   // Short, UI-friendly variants
   homepageH1Short: "Transformă Învățarea în Joacă STEM",
   homepageH1Subtitle:
-    "De la 'Nu vreau să învăț!' la 'Mama, pot să fac experimente?' în doar 30 de zile cu jucăriile noastre STEM care fac matematica și știința irezistibile",
-  homepageH1SubtitleShort:
-    "Jucării STEM care fac învățarea irezistibilă, în doar 30 de zile",
+    "De la 'Nu vreau să învăț!' la 'Mama, pot să fac experimente?' cu jucăriile noastre STEM care fac matematica și știința irezistibile",
+  homepageH1SubtitleShort: "Jucării STEM care fac învățarea irezistibilă",
 
   // Pain-focused subheadline addressing parent frustrations
   discoverCollection:
@@ -528,7 +527,7 @@ export const ro = {
   featuredProductsDesc:
     "Jucării dovedite care au transformat deja mii de copii din 'nu vreau să învăț' în 'când pot să fac următorul experiment?'",
   viewAllProducts: "Vezi Toate Jucăriile",
-  whyChooseTechTots: "De Ce 10,000+ Părinți Aleg TechTots",
+  whyChooseTechTots: "De Ce Educația STEM Este Esențială Astăzi",
 
   // Hormozi Style Value Propositions - Transformation focused
   transformation1: "De la Dependent de Ecran la Geniu STEM",
@@ -552,9 +551,8 @@ export const ro = {
     "Fiica mea acum îmi explică cum funcționează roboții! Jucăriile STEM au schimbat totul.",
 
   // Risk Reversal Elements
-  guarantee: "Garanția STEM de 30 Zile",
-  guaranteeDesc:
-    "Dacă copilul tău nu arată îmbunătățiri în rezolvarea problemelor în 30 de zile, îți returnăm 100% banii",
+  // guarantee: "Garanția STEM de 30 Zile", // Removed - risky advertisement
+  // guaranteeDesc: "Dacă copilul tău nu arată îmbunătățiri în rezolvarea problemelor în 30 de zile, îți returnăm 100% banii", // Removed - risky advertisement
   freeConsultation: "Consultare STEM Gratuită",
   freeConsultationDesc:
     "Obține recomandări personalizate pentru jucăriile perfecte pentru copilul tău - complet gratuit",
@@ -733,9 +731,9 @@ export const ro = {
 
   // FAQ Page Subtitle
   faqSubtitle:
-    "Alătură-te celor 10,000+ părinți care și-au transformat copiii de la 'urăsc matematica' la 'când facem experimente?'. Obține răspunsuri de experți la toate preocupările tale.",
+    "Pe măsură ce tehnologia și AI transformă educația, abilitățile STEM sunt mai critice ca niciodată. Obține răspunsuri de experți la toate preocupările tale despre pregătirea copilului pentru viitor.",
   faqSubtitleEn:
-    "Join 10,000+ parents who've transformed their children from 'I hate math' to 'When can we do experiments?' Get expert answers to all your concerns.",
+    "As technology and AI transform education, STEM skills are more critical than ever. Get expert answers to all your concerns about preparing your child for the future.",
 
   // Guide 2025 Page H1
   guide2025H1: "Ghidul Complet al Jucăriilor STEM pentru Copii în 2025",
@@ -790,9 +788,9 @@ export const ro = {
   faqEducationalH2En:
     "How do I know this will actually improve my child's learning?",
   faqEducationalAnswer:
-    "Jucăriile noastre STEM sunt concepute științific pentru a îmbunătăți gândirea critică, rezolvarea problemelor și implicarea în învățare. 87% din părinți raportează îmbunătățiri la notele la matematică și 92% văd o implicare crescută în învățare în 30 de zile. Fiecare jucărie vine cu rezultate educaționale dovedite și provocări potrivite vârstei care construiesc încrederea și abilitățile sistematic.",
+    "Jucăriile noastre STEM sunt concepute științific pentru a îmbunătăți gândirea critică, rezolvarea problemelor și implicarea în învățare. 87% din părinți raportează îmbunătățiri la notele la matematică și 92% văd o implicare crescută în învățare. Fiecare jucărie vine cu rezultate educaționale dovedite și provocări potrivite vârstei care construiesc încrederea și abilitățile sistematic.",
   faqEducationalAnswerEn:
-    "Our STEM toys are scientifically designed to improve critical thinking, problem-solving, and learning engagement. 87% of parents report improved math scores and 92% see increased learning engagement within 30 days. Each toy comes with proven educational outcomes and age-appropriate challenges that build confidence and skills systematically.",
+    "Our STEM toys are scientifically designed to improve critical thinking, problem-solving, and learning engagement. 87% of parents report improved math scores and 92% see increased learning engagement. Each toy comes with proven educational outcomes and age-appropriate challenges that build confidence and skills systematically.",
 
   faqPurchaseH2:
     "Ce se întâmplă dacă nu sunt mulțumit? Care este garanția voastră?",
@@ -884,8 +882,8 @@ export const ro = {
   joinStemJourney: "Alătură-te Călătoriei Noastre STEM",
 
   // About Page Hero Section
-  aboutHeroSocialProof: "10,000+ Părinți Transformați",
-  aboutHeroHeadline: "Am Ajutat 10,000+ Părinți Să-și Transforme Copiii din",
+  aboutHeroSocialProof: "Familii din Întreaga Lume Au Încredere în Noi",
+  aboutHeroHeadline: "Ajutăm Familii Să-și Transforme Copiii din",
   aboutHeroHeadlineStruggling: "Elevi cu Dificultăți",
   aboutHeroHeadlineInto: "în",
   aboutHeroHeadlineFuture: "Viitori Inovatori",
@@ -1409,15 +1407,15 @@ export const ro = {
   faqWhatAreStem:
     "O să ajute jucăriile STEM cu adevărat copilul meu care urăște matematica și știința?",
   faqWhatAreStemAnswer:
-    "DA! Jucăriile noastre STEM au transformat peste 10,000 de copii de la 'urăsc matematica' la 'când facem experimente?'. Cheia este să faci învățarea să pară joacă, nu muncă. Jucăriile noastre sunt concepute special pentru a transforma elevii cu dificultăți în învățători încrezători prin explorare practică. Alătură-te miilor de părinți care au văzut această transformare în doar 30 de zile.",
+    "DA! Jucăriile noastre STEM au transformat peste 10,000 de copii de la 'urăsc matematica' la 'când facem experimente?'. Cheia este să faci învățarea să pară joacă, nu muncă. Jucăriile noastre sunt concepute special pentru a transforma elevii cu dificultăți în învățători încrezători prin explorare practică. Alătură-te miilor de părinți care au văzut această transformare.",
   faqAgeAppropriate:
     "Îmi fac griji că voi cumpăra jucăria greșită - cum aleg cea potrivită?",
   faqAgeAppropriateAnswer:
-    "Nu-ți face griji - te ajutăm noi! Fiecare jucărie vine cu recomandări detaliate de vârstă și indicatori de nivel de abilitate. În plus, primești GARANȚIA NOASTRĂ STEM DE 30 ZILE GRATUITĂ. Dacă copilul tău nu arată îmbunătățiri în 30 de zile, îți returnăm banii ȘI te ajutăm să găsești jucăria perfectă pentru copilul tău. Fără întrebări.",
+    "Nu-ți face griji - te ajutăm noi! Fiecare jucărie vine cu recomandări detaliate de vârstă și indicatori de nivel de abilitate. În plus, oferim returnări fără probleme și suntem mereu aici să te ajutăm să găsești jucăria perfectă pentru copilul tău.",
   faqReturnPolicy:
     "Ce se întâmplă dacă nu sunt mulțumit? Care este garanția voastră?",
   faqReturnPolicyAnswer:
-    "Suntem atât de încrezători că jucăriile noastre STEM îți vor transforma învățarea copilului, încât oferim o Garanție STEM de 30 Zile. Dacă nu ești complet mulțumit de îmbunătățirea în implicarea și învățarea copilului tău, îți returnăm fiecare ban - fără întrebări. În plus, păstrezi jucăria! Atât de încrezători suntem în rezultatele noastre.",
+    "Susținem calitatea jucăriilor noastre STEM. Dacă nu ești complet mulțumit de achiziția ta, te rugăm să contactezi echipa noastră de servicii pentru clienți și vom lucra cu tine pentru a găsi o soluție. Satisfacția ta este importantă pentru noi.",
   faqSafety:
     "Sunt aceste jucării sigure? Nu vreau să risc siguranța copilului meu.",
   faqSafetyAnswer:

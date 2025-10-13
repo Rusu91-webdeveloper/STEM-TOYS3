@@ -409,14 +409,14 @@ export const en = {
   // Hormozi Products Page (Phase 1)
   productsPageH1: "Find the Exact STEM Toys That Will Transform Your Child",
   productsPageSubtitle:
-    "Join 10,000+ parents who've transformed their kids' learning. Our STEM toys turn 'I hate math' into 'When can we do experiments?' in just 30 days.",
+    "As AI and technology reshape our world, STEM education has never been more critical. Our STEM toys turn 'I hate math' into 'When can we do experiments?'",
   getPersonalizedRecommendations: "Get Personalized Recommendations (Free)",
   seeSuccessStories: "See Success Stories",
   findPerfectToysForAge: "Find Perfect Toys for Your Child's Age",
   mostPopularForAge: "Most Popular for Age {age}",
   provenResults: "Proven Results",
   parentsLoveThisBecause: "Parents Love This Because...",
-  thirtyDayGuarantee: "30-Day STEM Success Guarantee",
+  // thirtyDayGuarantee: "30-Day STEM Success Guarantee", // Removed - risky advertisement
   freeConsultation: "Free Consultation",
 
   // Homepage specific translations
@@ -429,13 +429,12 @@ export const en = {
   // Short, UI-friendly variants
   homepageH1Short: "Turn Learning Into Irresistible STEM",
   homepageH1Subtitle:
-    "From 'I don't want to learn!' to 'Mom, can I do experiments?' in just 30 days with our STEM toys that make math and science irresistible",
-  homepageH1SubtitleShort:
-    "STEM toys that make learning irresistible in 30 days",
+    "From 'I don't want to learn!' to 'Mom, can I do experiments?' with our STEM toys that make math and science irresistible",
+  homepageH1SubtitleShort: "STEM toys that make learning irresistible",
 
   // Pain-focused subheadline addressing parent frustrations
   discoverCollection:
-    "Replace screen time with active learning. Over 10,000 parents have already transformed their kids from 'phone addicts' to 'future inventors' with our STEM toys.",
+    "Replace screen time with active learning. Families worldwide are transforming their kids from 'phone addicts' to 'future inventors' with our STEM toys.",
 
   // Conversion-optimized CTAs
   shopAllProducts: "See How It Works (Free Demo)",
@@ -452,7 +451,7 @@ export const en = {
   featuredProductsDesc:
     "Proven toys that have already transformed thousands of kids from 'I don't want to learn' to 'when can I do the next experiment?'",
   viewAllProducts: "View All Toys",
-  whyChooseTechTots: "Why 10,000+ Parents Choose TechTots",
+  whyChooseTechTots: "Why STEM Education Matters Today",
 
   // Hormozi Style Value Propositions - Transformation focused
   transformation1: "From Screen Addict to STEM Genius",
@@ -476,9 +475,8 @@ export const en = {
     "My daughter now explains to me how robots work! STEM toys changed everything.",
 
   // Risk Reversal Elements
-  guarantee: "30-Day STEM Success Guarantee",
-  guaranteeDesc:
-    "If your child doesn't show improved problem-solving skills in 30 days, we'll refund 100% of your money",
+  // guarantee: "30-Day STEM Success Guarantee", // Removed - risky advertisement
+  // guaranteeDesc: "If your child doesn't show improved problem-solving skills in 30 days, we'll refund 100% of your money", // Removed - risky advertisement
   freeConsultation: "Free STEM Consultation",
   freeConsultationDesc:
     "Get personalized recommendations for the perfect toys for your child - completely free",
@@ -497,7 +495,7 @@ export const en = {
   // Hormozi Category Headlines
   scienceCategoryH1: "Transform Your Child Into a Future Scientist",
   scienceCategorySubtitle:
-    "From 'Science is Boring' to 'I Want to Be an Astronaut!' in just 30 days with our science toys.",
+    "From 'Science is Boring' to 'I Want to Be an Astronaut!' with our engaging science toys.",
   technologyCategoryH1: "Turn Your Child Into a Tech Genius",
   technologyCategorySubtitle:
     "Stop screen addiction, start building the future with our technology toys.",
@@ -506,7 +504,7 @@ export const en = {
     "From 'I Can't Do Math' to 'I Built This Robot!' with our engineering toys.",
   mathCategoryH1: "Make Math Your Child's Favorite Subject",
   mathCategorySubtitle:
-    "From tears to triumph in 30 days with our mathematics toys.",
+    "From tears to triumph with our engaging mathematics toys.",
   scienceCategoryDesc:
     "Discover the wonders of the natural world through hands-on experiments and captivating exploration! Our science toys introduce children to the fascinating world of physics, chemistry, biology, and astronomy. These educational tools promote natural curiosity, observational skills, and a deep understanding of the laws of science. Through interactive experiments, children learn to formulate hypotheses, make predictions, and understand cause and effect. Perfect for developing critical thinking and the spirit of scientific inquiry!",
   technologyCategoryDesc:
@@ -658,9 +656,9 @@ export const en = {
 
   // FAQ Page Subtitle
   faqSubtitle:
-    "Join 10,000+ parents who've transformed their children from 'I hate math' to 'When can we do experiments?' Get expert answers to all your concerns.",
+    "As technology and AI transform education, STEM skills are more critical than ever. Get expert answers to all your concerns about preparing your child for the future.",
   faqSubtitleRo:
-    "Alătură-te celor 10,000+ părinți care și-au transformat copiii de la 'urăsc matematica' la 'când facem experimente?'. Obține răspunsuri de experți la toate preocupările tale.",
+    "Pe măsură ce tehnologia și AI transformă educația, abilitățile STEM sunt mai critice ca niciodată. Obține răspunsuri de experți la toate preocupările tale.",
 
   // Guide 2025 Page H1
   guide2025H1: "Complete Guide to STEM Toys for Children in 2025",
@@ -715,7 +713,7 @@ export const en = {
   faqEducationalH2Ro:
     "Cum știu că asta va îmbunătăți cu adevărat învățarea copilului meu?",
   faqEducationalAnswer:
-    "Our STEM toys are scientifically designed to improve critical thinking, problem-solving, and learning engagement. 87% of parents report improved math scores and 92% see increased learning engagement within 30 days. Each toy comes with proven educational outcomes and age-appropriate challenges that build confidence and skills systematically.",
+    "Our STEM toys are scientifically designed to improve critical thinking, problem-solving, and learning engagement. 87% of parents report improved math scores and 92% see increased learning engagement. Each toy comes with proven educational outcomes and age-appropriate challenges that build confidence and skills systematically.",
   faqEducationalAnswerRo:
     "Jucăriile noastre STEM sunt concepute științific pentru a îmbunătăți gândirea critică, rezolvarea problemelor și implicarea în învățare. 87% din părinți raportează îmbunătățiri la notele la matematică și 92% văd o implicare crescută în învățare în 30 de zile. Fiecare jucărie vine cu rezultate educaționale dovedite și provocări potrivite vârstei care construiesc încrederea și abilitățile sistematic.",
 
@@ -808,13 +806,13 @@ export const en = {
   joinStemJourney: "Join Our STEM Journey",
 
   // About Page Hero Section
-  aboutHeroSocialProof: "10,000+ Parents Transformed",
-  aboutHeroHeadline: "We've Helped 10,000+ Parents Transform Their Kids from",
+  aboutHeroSocialProof: "Families Worldwide Trust Us",
+  aboutHeroHeadline: "We Help Families Transform Their Kids from",
   aboutHeroHeadlineStruggling: "Struggling Students",
   aboutHeroHeadlineInto: "into",
   aboutHeroHeadlineFuture: "Future Innovators",
   aboutHeroSubheadline:
-    "Our mission is simple: we transform 'I hate math' into 'when can we do experiments?' in just 30 days. We've proven that with the right STEM toys, any child can go from frustration to fascination.",
+    "Our mission is simple: we transform 'I hate math' into 'when can we do experiments?' We've proven that with the right STEM toys, any child can go from frustration to fascination.",
   aboutHeroMathImprovement: "Math Improvement",
   aboutHeroTransformationDays: "Average Transformation Days",
   aboutHeroSatisfiedParents: "Satisfied Parents",
@@ -1265,14 +1263,14 @@ export const en = {
   faqWhatAreStem:
     "Will STEM toys actually help my child who hates math and science?",
   faqWhatAreStemAnswer:
-    "YES! Our STEM toys have transformed 10,000+ children from 'I hate math' to 'When can we do experiments?' The key is making learning feel like play, not work. Our toys are specifically designed to turn struggling students into confident learners through hands-on exploration. Join thousands of parents who've seen this transformation in just 30 days.",
+    "YES! Our STEM toys have transformed 10,000+ children from 'I hate math' to 'When can we do experiments?' The key is making learning feel like play, not work. Our toys are specifically designed to turn struggling students into confident learners through hands-on exploration. Join thousands of parents who've seen this transformation.",
   faqAgeAppropriate:
     "I'm worried I'll buy the wrong toy - how do I choose the right one?",
   faqAgeAppropriateAnswer:
-    "Don't worry - we've got you covered! Every toy comes with detailed age recommendations and skill level indicators. Plus, you get our FREE 30-Day STEM Success Guarantee. If your child doesn't show improvement in 30 days, we'll refund your money AND help you find the perfect toy for your child. No questions asked.",
-  faqReturnPolicy: "What if I'm not satisfied? What's your guarantee?",
+    "Don't worry - we've got you covered! Every toy comes with detailed age recommendations and skill level indicators. Plus, we offer hassle-free returns and we're always here to help you find the perfect toy for your child.",
+  faqReturnPolicy: "What if I'm not satisfied? What's your return policy?",
   faqReturnPolicyAnswer:
-    "We're so confident our STEM toys will transform your child's learning that we offer a 30-Day STEM Success Guarantee. If you're not completely satisfied with the improvement in your child's engagement and learning, we'll refund every penny - no questions asked. Plus, you keep the toy! That's how confident we are in our results.",
+    "We stand behind the quality of our STEM toys. If you're not completely satisfied with your purchase, please contact our customer service team and we'll work with you to find a solution. Your satisfaction is important to us.",
   faqSafety: "Are these toys safe? I don't want to risk my child's safety.",
   faqSafetyAnswer:
     "Absolutely! Every toy in our collection meets or exceeds international safety standards (CE, ASTM, EN71). We personally test every product for safety and quality. Your child's safety is our #1 priority. We've sold over 50,000 toys with zero safety incidents. You can shop with complete confidence.",
@@ -1307,7 +1305,8 @@ export const en = {
 
   // Trust signals
   freeShippingOver50: "FREE shipping on orders over {threshold}",
-  thirtyDayReturns: "30-day hassle-free returns",
+  // thirtyDayReturns: "30-day hassle-free returns", // Removed - risky advertisement
+  hassleFreeReturns: "Hassle-free returns",
   freeReturnsOver50: "Free returns on orders over {threshold}",
   bankLevelSecurity: "Bank-level security & encryption",
   trustedEducators: "Trusted by 50,000+ educators worldwide",
@@ -1437,11 +1436,11 @@ export const en = {
   // Hormozi Checkout Trust & Social Proof
   checkoutPageH1: "Complete Your Child's Transformation",
   checkoutPageSubtitle:
-    "Join thousands of parents who've already transformed their kids' learning. Your child will thank you in 30 days.",
+    "Join thousands of parents who've already transformed their kids' learning. Your child will thank you.",
   secureCheckout: "Secure Checkout",
   freeReturns: "Free Returns",
   moneyBackPromise: "Money-Back Promise",
-  tenThousandParentsTrust: "10,000+ Parents Trust Us",
+  tenThousandParentsTrust: "Trusted by Families Worldwide",
   fourNineStars: "4.9/5 Stars",
   ninetyNinePercentSuccess: "99% Success Rate",
 

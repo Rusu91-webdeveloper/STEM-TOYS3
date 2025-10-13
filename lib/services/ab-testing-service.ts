@@ -611,9 +611,9 @@ export class ABTestingService {
         weight: 20,
       },
       {
-        name: "Social Proof - Numbers",
+        name: "Social Proof - Global",
         content:
-          "Alătură-te celor 10,000+ părinți mulțumiți! Vezi rezultatele →",
+          "Familii din întreaga lume au încredere în noi! Vezi rezultatele →",
         weight: 20,
       },
       {

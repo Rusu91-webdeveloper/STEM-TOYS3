@@ -384,9 +384,9 @@ Examples:
 - "VEX Robotics - Kit Profesional STEM | 12+ Ani | RO" (55 chars) ✅
 
 metaDescription FORMULA (150-160 chars - MANDATORY LENGTH!):
-[Hook Durere] + [Soluție] + [Social Proof] + [CTA] + [Locație]
+[Hook Durere] + [Soluție] + [Value AI] + [CTA] + [Locație]
 Examples:
-- "Copilul tău evită matematica? LEGO Mindstorms transformă învățarea în joacă distractivă. 10,000+ părinți români au văzut rezultate uimitoare. Comandă azi! România" (160 chars) ✅
+- "Copilul tău evită matematica? LEGO Mindstorms transformă învățarea în joacă distractivă. Esențial pentru era AI. Comandă azi! România" (137 chars) ✅
 - "Pregătește-l pentru viitorul digital cu VEX Robotics. Kit complet robotică & programare. 5,000+ școli românești îl folosesc. Livrare 24h! România" (154 chars) ✅
 
 metaKeywords CATEGORIES (25-35 total):
@@ -588,7 +588,7 @@ Return ONLY valid JSON (no markdown, no comments, no extra text) in this EXACT f
   "metadata": {
     "seo": {
       "metaTitle": "LEGO Mindstorms - Robotică & Programare | 10+ | RO",
-      "metaDescription": "Copilul tău evită matematica? LEGO Mindstorms transformă învățarea în joacă distractivă. 10,000+ părinți români văzut rezultate. Comandă! România",
+      "metaDescription": "Copilul tău evită matematica? LEGO Mindstorms transformă învățarea în joacă distractivă. Esențial pentru era AI. Comandă! România",
       "metaKeywords": ["jucării STEM România", "robotică copii", "jucării educaționale", "LEGO România", "kit robotică programare", "STEM curriculum", "dezvoltare logică", "jucării educative 10 ani", "cumpără STEM online", "cele mai bune robotică", "oferte jucării educaționale", "magazin STEM România", "jucării programare copii", "robotică educațională", "STEM toys online", "educational robotics", "coding toys", "București", "Cluj", "Timișoara", "Brașov", "Iași", "livrare rapidă România", "livrare 24h", "garanție 2 ani", "suport în română"],
       "ogImage": "https://images.unsplash.com/photo.jpg"
     },

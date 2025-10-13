@@ -54,7 +54,7 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
           {/* Simple subheading */}
           <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto">
             {t("provenResults", "Proven Results")} •{" "}
-            {t("thirtyDayGuarantee", "30-Day Guarantee")} •{" "}
+            {t("qualityProducts", "Quality Products")} •{" "}
             {t("parentsLoveThisBecause", "Parents Love This")}
           </p>
         </div>

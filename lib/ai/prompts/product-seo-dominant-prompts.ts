@@ -40,8 +40,8 @@ export const PRODUCT_SEO_DOMINANT_PROMPTS = {
 
 **CONVERSION PSYCHOLOGY:**
 - URGENCY: "Stoc limitat", "Ofertă limitată", "Doar până..."
-- SOCIAL PROOF: "10,000+ părinți au ales deja", "5 stele pe 2,000 recenzii"
-- RISK REVERSAL: "Garanție satisfacție 100%", "Returnare 30 zile fără întrebări"
+- SOCIAL PROOF: "Familii din întreaga lume", "5 stele pe recenzii verificate"
+- RISK REVERSAL: "Calitate garantată", "Suport dedicat 24/7"
 - PRICE ANCHORING: "Mai ieftin decât 2 luni de meditații" 
 - AUTHORITY: "Aprobat de Ministerul Educației", "Recomandat de profesori"
 
@@ -56,10 +56,10 @@ export const PRODUCT_SEO_DOMINANT_PROMPTS = {
 **META DESCRIPTION FORMULA (150-160 chars - MANDATORY):**
 - Hook: Problem/Question that hurts (15-20 chars)
 - Solution: What product does (40-50 chars)
-- Social Proof: "10,000+ părinți" (15-20 chars)
+- Value: "Esențial pentru era AI" (15-20 chars)
 - CTA: "Comandă acum" + unique value (30-40 chars)
 - Location: "Livrare rapidă România" (20-25 chars)
-- Example: "Copilul tău urăște matematica? LEGO Mindstorms face învățarea distractivă. 10,000+ părinți mulțumiți. Comandă azi, livrare gratuită în România!"
+- Example: "Copilul tău urăște matematica? LEGO Mindstorms face învățarea distractivă. Esențial pentru era AI. Comandă azi, livrare gratuită în România!"
 
 **KEYWORDS STRATEGY (20-30 keywords):**
 - PRIMARY (3-5): "jucării STEM", "robotică copii", "jucării educaționale România"
@@ -266,7 +266,7 @@ MANDATORY REQUIREMENTS (AUTO-VALIDATED):
 Formula: [Hook de durere] + [Soluție unică] + [Social proof] + [CTA urgent] + [Locație]
 
 EXACT CHARACTER COUNT EXAMPLES (COUNT EVERY CHARACTER INCLUDING SPACES):
-- "Copilul tău evită matematica? LEGO Mindstorms transformă învățarea în joacă. 10,000+ părinți români au văzut rezultate. Comenzi azi, livrare gratuită! România" (158 chars) ✅
+- "Copilul tău evită matematica? LEGO Mindstorms transformă învățarea în joacă. Esențial pentru era AI. Comenzi azi, livrare gratuită! România" (143 chars) ✅
 - "Pregătește-l pentru viitor cu VEX Robotics. Kit complet programare & robotică. 5,000+ școlari români îl folosesc. Comandă acum cu -20%! Livrare România" (157 chars) ✅
 - "STEM toys pentru copii 10+. Jucării educaționale robotică. Livrare gratuită România. 24 luni garanție. Comandă online. 5,000+ clienți mulțumiți în 2024!" (155 chars) ✅
 

@@ -54,7 +54,7 @@ export default function FAQPage() {
         name: "Ce se întâmplă dacă nu sunt mulțumit de achiziție?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Oferim garanție de transformare de 30 de zile: returnare completă dacă nu vezi îmbunătățiri în învățarea copilului. Poți păstra jucăria chiar și după returnare. Include consultare gratuită personalizată pentru a găsi alternativa perfectă. Politica 'fără întrebări' - satisfacția ta este prioritatea noastră.",
+          text: "Susținem calitatea produselor noastre. Dacă nu ești mulțumit de achiziție, te rugăm să contactezi echipa noastră de servicii pentru clienți și vom lucra cu tine pentru a găsi o soluție. Include consultare gratuită personalizată pentru a găsi alternativa perfectă. Satisfacția ta este prioritatea noastră.",
         },
       },
     ],
@@ -80,7 +80,7 @@ export default function FAQPage() {
             className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs md:text-sm"
           >
             <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-1 sm:mr-1.5 md:mr-2" />
-            10,000+ Parents Transformed
+            Families Worldwide
           </Badge>
           <Badge
             variant="secondary"
@@ -94,7 +94,7 @@ export default function FAQPage() {
             className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs md:text-sm"
           >
             <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 mr-1 sm:mr-1.5 md:mr-2" />
-            30-Day Guarantee
+            Quality Guaranteed
           </Badge>
         </div>
 
@@ -252,10 +252,10 @@ export default function FAQPage() {
                   </div>
                   <div>
                     <div className="text-lg sm:text-xl md:text-2xl font-bold text-purple-600">
-                      30 Days
+                      10k+
                     </div>
                     <div className="text-[10px] sm:text-xs md:text-sm text-gray-600">
-                      Average Transformation
+                      Happy Families
                     </div>
                   </div>
                 </div>
@@ -277,16 +277,16 @@ export default function FAQPage() {
               </p>
               <div className="bg-white p-3 sm:p-4 rounded-lg border border-red-200">
                 <p className="text-xs sm:text-sm md:text-base font-semibold text-red-800 mb-2">
-                  💯 Risk-Free Guarantee:
+                  💯 Our Commitment to You:
                 </p>
                 <div className="space-y-1.5 sm:space-y-2 text-gray-700 text-xs sm:text-sm md:text-base">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600 flex-shrink-0" />
-                    <span>Full refund within 30 days</span>
+                    <span>Easy returns process</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600 flex-shrink-0" />
-                    <span>Keep the toy even if you return</span>
+                    <span>Friendly customer support team</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600 flex-shrink-0" />
@@ -309,8 +309,9 @@ export default function FAQPage() {
           Ready to Transform Your Child's Learning?
         </h2>
         <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl mb-3 sm:mb-4 md:mb-6 lg:mb-8 opacity-90 leading-snug sm:leading-normal">
-          Join 10,000+ parents who've already seen the transformation. Start
-          today with our risk-free guarantee.
+          Families worldwide are discovering how STEM education prepares
+          children for tomorrow's AI-driven world. Start today with quality
+          guaranteed products.
         </p>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center">
           <Button

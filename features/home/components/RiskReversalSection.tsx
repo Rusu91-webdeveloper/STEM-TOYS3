@@ -13,9 +13,9 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
   const guaranteeFeatures = [
     {
       icon: "🛡️",
-      title: "Garanția STEM de 30 Zile",
+      title: "Calitate Garantată",
       description:
-        "Dacă copilul tău nu arată îmbunătățiri în 30 de zile, îți returnăm 100% banii",
+        "Produse testate și certificate care îndeplinesc standardele internaționale de siguranță",
     },
     {
       icon: "🎯",
@@ -67,7 +67,7 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
           <ul className="flex flex-wrap justify-center gap-2 text-xs sm:text-sm text-gray-700 max-w-3xl mx-auto">
             <li className="inline-flex items-center gap-1 bg-white/80 border border-gray-200 rounded-full px-3 py-1">
               <span>🛡️</span>
-              <span>{t("thirtyDayGuarantee", "30-Day Guarantee")}</span>
+              <span>{t("qualityGuaranteed", "Quality Guaranteed")}</span>
             </li>
             <li className="inline-flex items-center gap-1 bg-white/80 border border-gray-200 rounded-full px-3 py-1">
               <span>🎯</span>
@@ -149,11 +149,11 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
         {/* Simplified Final Risk Reversal CTA */}
         <div className="text-center bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-4 sm:p-6 text-white">
           <h3 className="text-lg sm:text-xl font-bold mb-2 leading-tight">
-            Începe Transformarea - Fără Riscuri
+            Începe Transformarea Copilului Tău
           </h3>
           <p className="text-xs sm:text-sm mb-3 sm:mb-4 text-white/90 max-w-md mx-auto">
-            Dacă copilul tău nu arată îmbunătățiri în 30 de zile, îți returnăm
-            100% banii.
+            Alătură-te miilor de părinți care au transformat învățarea copiilor
+            lor cu jucăriile noastre STEM de calitate.
           </p>
 
           <div className="flex gap-3 justify-center items-center">
@@ -173,7 +173,7 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-xs font-medium">Garanție 30 zile</span>
+              <span className="text-xs font-medium">Calitate Garantată</span>
             </div>
           </div>
         </div>

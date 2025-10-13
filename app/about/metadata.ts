@@ -3,7 +3,7 @@ import { createMetadata } from "@/lib/metadata";
 export const metadata = createMetadata({
   title: "Despre TechTots România - Jucării STEM pentru Minți Curioase",
   description:
-    "Descoperă povestea TechTots România - cum am ajutat 10,000+ părinți să-și transforme copiii din 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
+    "Descoperă povestea TechTots România - cum ajutăm familii să-și pregătească copiii pentru era AI transformând 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
   keywords: [
     "despre TechTots",
     "povestea TechTots România",
@@ -21,12 +21,12 @@ export const metadata = createMetadata({
     ro: {
       title: "Despre TechTots România - Jucării STEM pentru Minți Curioase",
       description:
-        "Descoperă povestea TechTots România - cum am ajutat 10,000+ părinți să-și transforme copiii din 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
+        "Descoperă povestea TechTots România - cum ajutăm familii să-și pregătească copiii pentru era AI transformând 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
     },
     en: {
       title: "About TechTots Romania - STEM Toys for Curious Minds",
       description:
-        "Discover the TechTots Romania story - how we helped 10,000+ parents transform their children from 'I hate math' to 'when can we do experiments?' with our proven STEM toys.",
+        "Discover the TechTots Romania story - how we help families prepare their children for the AI era by transforming 'I hate math' to 'when can we do experiments?' with our proven STEM toys.",
     },
   },
   structuredData: {
@@ -34,7 +34,7 @@ export const metadata = createMetadata({
     "@type": "AboutPage",
     name: "About TechTots România",
     description:
-      "Descoperă povestea TechTots România - cum am ajutat 10,000+ părinți să-și transforme copiii din 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
+      "Descoperă povestea TechTots România - cum ajutăm familii să-și pregătească copiii pentru era AI transformând 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
     url: "https://www.techtots.ro/about",
     mainEntity: {
       "@type": "Organization",

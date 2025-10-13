@@ -11,7 +11,7 @@ export default function TrustBadgesRow({ t }: TrustBadgesRowProps) {
   const items: Array<{ icon: string; label: string }> = [
     { icon: "🔒", label: t("secureCheckout", "Secure Checkout") },
     { icon: "⭐", label: t("fourNineStars", "4.9/5 Reviews") },
-    { icon: "🛡️", label: t("thirtyDayGuarantee", "30-Day Guarantee") },
+    { icon: "🚚", label: t("fastDelivery", "Fast Delivery") },
   ];
 
   return (

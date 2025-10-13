@@ -35,8 +35,9 @@ const mainKeywords = [
   // Brand and trust signals
   "TechTots România",
   "jucării STEM premium",
-  "garanție 30 zile",
+  // "garanție 30 zile", // Removed - risky advertisement
   "livrare gratuită România",
+  "calitate garantată",
 
   // Long-tail conversion keywords
   "care sunt cele mai bune jucării STEM pentru copii",
@@ -79,7 +80,7 @@ const structuredData = {
     "query-input": "required name=search_term_string",
   },
   description:
-    "Transformă copilul într-un geniu STEM! Jucării educative premium pentru dezvoltarea științifică. Livrare gratuită în România. Garanție 30 zile.",
+    "Transformă copilul într-un geniu STEM! Jucării educative premium pentru dezvoltarea științifică. Livrare gratuită în România. Calitate garantată.",
   publisher: {
     "@type": "Organization",
     name: "TechTots România",
@@ -261,7 +262,7 @@ const combinedStructuredData = [structuredData, organizationSchema];
 export const metadata = createMetadata({
   title: "Jucării STEM Premium România | Educație Știință Copii",
   description:
-    "Transformă copilul într-un geniu STEM! Jucării educative premium pentru dezvoltarea științifică. Livrare gratuită în România. Garanție 30 zile.",
+    "Transformă copilul într-un geniu STEM! Jucării educative premium pentru dezvoltarea științifică. Livrare gratuită în România. Calitate garantată.",
   keywords: mainKeywords,
   structuredData: combinedStructuredData,
   ogImage: "/opengraph-image.png",
@@ -279,12 +280,12 @@ export const metadata = createMetadata({
     ro: {
       title: "Jucării STEM Premium România | Educație Știință Copii",
       description:
-        "Transformă copilul într-un geniu STEM! Jucării educative premium pentru dezvoltarea științifică. Livrare gratuită în România. Garanție 30 zile.",
+        "Transformă copilul într-un geniu STEM! Jucării educative premium pentru dezvoltarea științifică. Livrare gratuită în România. Calitate garantată.",
     },
     en: {
       title: "Premium STEM Toys Romania | Science Education for Kids",
       description:
-        "Transform your child into a STEM genius! Premium educational toys for scientific development. Free delivery in Romania. 30-day guarantee.",
+        "Transform your child into a STEM genius! Premium educational toys for scientific development. Free delivery in Romania. Quality guaranteed.",
     },
   },
 });

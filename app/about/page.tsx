@@ -15,7 +15,7 @@ const aboutStructuredData = {
   "@type": "AboutPage",
   name: "About TechTots România",
   description:
-    "Descoperă povestea TechTots România - cum am ajutat 10,000+ părinți să-și transforme copiii din 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
+    "Descoperă povestea TechTots România - cum ajutăm familii să-și pregătească copiii pentru era AI transformând 'urăsc matematica' în 'când facem experimente?' cu jucăriile noastre STEM dovedite.",
   url: "https://www.techtots.ro/about",
   mainEntity: {
     "@type": "Organization",
@@ -301,7 +301,7 @@ export default function AboutPage() {
               {/* Guarantee - Compact on Mobile */}
               <div className="mt-4 sm:mt-6 md:mt-8 text-center">
                 <p className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">
-                  🛡️ Garanție de Transformare 30 Zile sau Îți Returnăm Banii
+                  🛡️ Calitate Garantată și Suport Dedicat
                 </p>
                 <p className="text-[10px] sm:text-xs text-gray-500">
                   Peste 10,000 de părinți au încredere în noi. Alătură-te și tu!

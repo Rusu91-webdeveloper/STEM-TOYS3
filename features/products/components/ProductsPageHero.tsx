@@ -83,7 +83,7 @@ export function ProductsPageHero({ t }: ProductsPageHeroProps) {
               className="px-4 py-2 text-sm bg-green-100 text-green-800 border-green-200"
             >
               <Users className="w-4 h-4 mr-2" />
-              10,000+ Părinți Transformați
+              Familii din Toată Lumea
             </Badge>
           </div>
 
@@ -96,7 +96,7 @@ export function ProductsPageHero({ t }: ProductsPageHeroProps) {
           <p className="text-lg sm:text-xl md:text-2xl mb-8 text-gray-700 max-w-4xl mx-auto leading-relaxed">
             {t(
               "productsPageSubtitle",
-              "Alătură-te celor 10,000+ părinți care au transformat copiii în doar 30 de zile. Garanție de rezultate sau îți returnăm banii!"
+              "Pe măsură ce AI și tehnologia transformă lumea, educația STEM este esențială. Produse de calitate garantată!"
             )}
           </p>
 
@@ -109,12 +109,12 @@ export function ProductsPageHero({ t }: ProductsPageHeroProps) {
 
             <div className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm">
               <Shield className="w-5 h-5 text-green-600" />
-              <span className="text-sm font-medium">Garanție 30 Zile</span>
+              <span className="text-sm font-medium">Calitate Garantată</span>
             </div>
 
             <div className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm">
               <Clock className="w-5 h-5 text-blue-600" />
-              <span className="text-sm font-medium">Rezultate în 30 Zile</span>
+              <span className="text-sm font-medium">Livrare Rapidă</span>
             </div>
           </div>
 
@@ -193,10 +193,10 @@ export function ProductsPageHero({ t }: ProductsPageHeroProps) {
 
               <div className="text-center">
                 <div className="text-3xl sm:text-4xl font-bold text-purple-600 mb-2">
-                  30
+                  10k+
                 </div>
                 <div className="text-sm text-gray-600">
-                  {t("averageTransformation", "Zile Transformare Medie")}
+                  {t("happyFamilies", "Familii Fericite")}
                 </div>
               </div>
             </div>
@@ -214,8 +214,8 @@ export function ProductsPageHero({ t }: ProductsPageHeroProps) {
             <div className="flex items-center justify-center gap-2 text-green-700">
               <Shield className="w-4 h-4" />
               <span className="text-sm font-medium">
-                {t("guarantee", "Garanție 30 Zile")} -{" "}
-                {t("riskFreeGuarantee", "Garanție Fără Risc")}
+                {t("qualityGuaranteed", "Calitate Garantată")} -{" "}
+                {t("trustedByThousands", "Încredere de Mii de Părinți")}
               </span>
             </div>
           </div>

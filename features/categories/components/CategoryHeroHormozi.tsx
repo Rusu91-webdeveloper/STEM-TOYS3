@@ -174,7 +174,9 @@ export function CategoryHeroHormozi({ slug, t }: CategoryHeroHormoziProps) {
 
                 <div className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-sm">
                   <Shield className="w-4 h-4 text-green-600" />
-                  <span className="text-sm font-medium">Garanție 30 Zile</span>
+                  <span className="text-sm font-medium">
+                    Calitate Garantată
+                  </span>
                 </div>
               </div>
 
