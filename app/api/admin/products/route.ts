@@ -295,6 +295,14 @@ export async function POST(request: NextRequest) {
       const metadata: Record<string, unknown> = {
         ...(legacy || {}),
         seo,
+        // Add fields that should be in metadata (not direct columns)
+        ...(data.learningOutcomes && {
+          learningOutcomes: data.learningOutcomes,
+        }),
+        ...(data.productType && { productType: data.productType }),
+        ...(data.specialCategories && {
+          specialCategories: data.specialCategories,
+        }),
       };
 
       const product = await db.product.create({
@@ -314,9 +322,6 @@ export async function POST(request: NextRequest) {
           // New categorization fields
           ageGroup: data.ageGroup,
           stemDiscipline: data.stemDiscipline,
-          learningOutcomes: data.learningOutcomes ?? [],
-          productType: data.productType,
-          specialCategories: data.specialCategories ?? [],
           // Specs only
           attributes: {
             difficultyLevel: data.difficultyLevel,
@@ -446,12 +451,20 @@ export async function PUT(request: NextRequest) {
     if (data.ageGroup !== undefined) updateData.ageGroup = data.ageGroup;
     if (data.stemDiscipline !== undefined)
       updateData.stemDiscipline = data.stemDiscipline;
-    if (data.learningOutcomes !== undefined)
-      updateData.learningOutcomes = data.learningOutcomes;
-    if (data.productType !== undefined)
-      updateData.productType = data.productType;
-    if (data.specialCategories !== undefined)
-      updateData.specialCategories = data.specialCategories;
+
+    // Handle metadata update for fields that belong in metadata
+    const currentMetadata = (existingProduct.metadata as any) || {};
+    const updatedMetadata = {
+      ...currentMetadata,
+      ...(data.learningOutcomes !== undefined && {
+        learningOutcomes: data.learningOutcomes,
+      }),
+      ...(data.productType !== undefined && { productType: data.productType }),
+      ...(data.specialCategories !== undefined && {
+        specialCategories: data.specialCategories,
+      }),
+    };
+    updateData.metadata = updatedMetadata;
 
     // Handle attributes update
     if (existingProduct.attributes) {

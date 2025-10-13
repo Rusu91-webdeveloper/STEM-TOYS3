@@ -936,6 +936,10 @@ export async function POST_OLD(request: NextRequest) {
             },
             ministryApproved: true,
             isActive: true,
+            // Add fields that should be in metadata (not direct columns)
+            ...(correctedProduct.learningOutcomes && { learningOutcomes: correctedProduct.learningOutcomes }),
+            ...(correctedProduct.productType && { productType: correctedProduct.productType }),
+            ...(correctedProduct.specialCategories && { specialCategories: correctedProduct.specialCategories || ["NEW_ARRIVALS"] }),
           };
 
           // Create product with all enhanced fields
@@ -968,11 +972,6 @@ export async function POST_OLD(request: NextRequest) {
               // Enhanced categorization fields
               ageGroup: correctedProduct.ageGroup,
               stemDiscipline: correctedProduct.stemDiscipline || "GENERAL",
-              learningOutcomes: correctedProduct.learningOutcomes || [],
-              productType: correctedProduct.productType,
-              specialCategories: correctedProduct.specialCategories || [
-                "NEW_ARRIVALS",
-              ],
               supplierId: correctedProduct.supplierId || null,
 
               // Romanian educational fields

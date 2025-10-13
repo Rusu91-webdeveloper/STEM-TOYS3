@@ -319,22 +319,36 @@ export async function PATCH(
       updateData.stemDiscipline = updatedData.stemDiscipline;
     }
 
+    // Handle metadata fields that belong in metadata JSON
+    const currentMetadata = (existingProduct.metadata as any) || {};
+    const metadataUpdates: any = {};
+
     if (updatedData.learningOutcomes !== undefined) {
-      updateData.learningOutcomes = Array.isArray(updatedData.learningOutcomes)
+      metadataUpdates.learningOutcomes = Array.isArray(
+        updatedData.learningOutcomes
+      )
         ? updatedData.learningOutcomes
         : JSON.parse(updatedData.learningOutcomes);
     }
 
     if (updatedData.productType !== undefined) {
-      updateData.productType = updatedData.productType;
+      metadataUpdates.productType = updatedData.productType;
     }
 
     if (updatedData.specialCategories !== undefined) {
-      updateData.specialCategories = Array.isArray(
+      metadataUpdates.specialCategories = Array.isArray(
         updatedData.specialCategories
       )
         ? updatedData.specialCategories
         : JSON.parse(updatedData.specialCategories);
+    }
+
+    // Merge metadata updates if any exist
+    if (Object.keys(metadataUpdates).length > 0) {
+      updateData.metadata = {
+        ...currentMetadata,
+        ...metadataUpdates,
+      };
     }
 
     // Handle attributes as JSON

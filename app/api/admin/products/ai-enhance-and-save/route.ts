@@ -403,6 +403,10 @@ export async function POST_OLD(request: NextRequest) {
                 fallbackUsed: Boolean(enhancedProduct.fallbackUsed),
                 enhancementTimestamp: new Date().toISOString(),
               },
+              // Add fields that should be in metadata (not direct columns)
+              ...(enhancedProduct.learningOutcomes && { learningOutcomes: enhancedProduct.learningOutcomes }),
+              ...(enhancedProduct.productType && { productType: enhancedProduct.productType }),
+              specialCategories: ["NEW_ARRIVALS"],
             };
 
             // Ensure attributes.specs exists with sensible defaults
@@ -445,10 +449,6 @@ export async function POST_OLD(request: NextRequest) {
                 ageGroup: enhancedProduct.ageGroup as any,
                 stemDiscipline: (enhancedProduct.stemDiscipline ||
                   "GENERAL") as any,
-                learningOutcomes: (enhancedProduct.learningOutcomes ||
-                  []) as any,
-                productType: enhancedProduct.productType as any,
-                specialCategories: ["NEW_ARRIVALS"],
 
                 // Romanian educational fields
                 romanianCompetencies:
