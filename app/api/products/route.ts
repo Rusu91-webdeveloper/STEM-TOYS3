@@ -20,11 +20,12 @@ import { getPaginationParams } from "@/lib/utils/pagination";
 // };
 
 // **PERFORMANCE**: Optimized cache durations for different query types
+// 🚨 TEMPORARY: Reduced cache durations to fix stale cache issues in production
 const CACHE_DURATIONS = {
-  FEATURED_PRODUCTS: TIME.CACHE_DURATION.LONG, // 1 hour for featured products
-  CATEGORY_PRODUCTS: TIME.CACHE_DURATION.MEDIUM, // 30 minutes for category products
-  SEARCH_RESULTS: TIME.CACHE_DURATION.SHORT, // 2 minutes for search results
-  GENERAL_LISTING: TIME.CACHE_DURATION.SHORT, // 2 minutes for general listings (reduced for faster product visibility)
+  FEATURED_PRODUCTS: TIME.CACHE_DURATION.MEDIUM, // 30 minutes for featured products (was 1 hour)
+  CATEGORY_PRODUCTS: 60 * 1000, // 1 minute for category products (was 30 minutes)
+  SEARCH_RESULTS: 30 * 1000, // 30 seconds for search results (was 2 minutes)
+  GENERAL_LISTING: 30 * 1000, // 30 seconds for general listings (was 2 minutes) - reduced for faster product visibility
 };
 
 // **PERFORMANCE**: Optimized includes to prevent over-fetching

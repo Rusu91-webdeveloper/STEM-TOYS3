@@ -28,8 +28,11 @@ interface ProductData extends Omit<Product, "category" | "stemDiscipline"> {
     | "GENERAL";
 }
 
-// 🚀 PERFORMANCE: Use ISR instead of force-dynamic for better caching
-export const revalidate = 300; // Revalidate every 5 minutes
+// 🚨 TEMPORARY FIX: Force dynamic to bypass cache issues in production
+// TODO: Revert to ISR after cache is properly working
+// Original: export const revalidate = 300; // Revalidate every 5 minutes
+export const dynamic = "force-dynamic";
+export const revalidate = 0; // No caching until cache issues are resolved
 
 // Metadata is exported from a separate file
 export default async function ProductsPage({
