@@ -206,7 +206,8 @@ export default function ProductForm({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("/api/categories");
+        // Use admin categories endpoint to get real category IDs from database
+        const response = await fetch("/api/admin/categories");
         if (response.ok) {
           const data = await response.json();
           setCategories(data);
