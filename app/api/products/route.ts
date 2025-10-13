@@ -24,7 +24,7 @@ const CACHE_DURATIONS = {
   FEATURED_PRODUCTS: TIME.CACHE_DURATION.LONG, // 1 hour for featured products
   CATEGORY_PRODUCTS: TIME.CACHE_DURATION.MEDIUM, // 30 minutes for category products
   SEARCH_RESULTS: TIME.CACHE_DURATION.SHORT, // 2 minutes for search results
-  GENERAL_LISTING: TIME.CACHE_DURATION.MEDIUM, // 30 minutes for general listings
+  GENERAL_LISTING: TIME.CACHE_DURATION.SHORT, // 2 minutes for general listings (reduced for faster product visibility)
 };
 
 // **PERFORMANCE**: Optimized includes to prevent over-fetching
@@ -678,6 +678,22 @@ async function fetchProductsFromDatabase(params: {
         limit,
         hasProducts: true,
         format: "paginated",
+      });
+
+      // Enhanced diagnostic logging for product visibility debugging
+      console.log("📦 Products API Response:", {
+        totalProducts: transformedProducts.length,
+        totalCount: combinedTotalCount,
+        page,
+        limit,
+        cacheKey: params.category || "all",
+        productIds: transformedProducts.slice(0, 5).map(p => ({
+          id: p.id,
+          name: p.name,
+          createdAt: p.createdAt,
+          status: (p as any).status,
+          isActive: p.isActive,
+        })),
       });
     }
 

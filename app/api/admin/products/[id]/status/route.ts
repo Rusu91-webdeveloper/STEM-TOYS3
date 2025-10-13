@@ -51,6 +51,29 @@ export async function PATCH(
       data: { status },
     });
 
+    // Invalidate all product-related caches when product is approved
+    if (status === "APPROVED") {
+      try {
+        const { invalidateCachePattern } = await import("@/lib/cache");
+        const { revalidateTag, revalidatePath } = await import("next/cache");
+
+        // Clear Redis cache
+        await invalidateCachePattern("products");
+        await invalidateCachePattern("category-*");
+
+        // Clear Next.js cache
+        revalidateTag("products");
+        revalidatePath("/products");
+
+        console.log(
+          `✅ Cache invalidated for approved product: ${existing.name}`
+        );
+      } catch (cacheError) {
+        console.error("Failed to invalidate cache:", cacheError);
+        // Don't fail the entire operation if cache invalidation fails
+      }
+    }
+
     // Notify supplier on approval/rejection
     try {
       const { sendEmailViaUnifiedSystem } = await import(

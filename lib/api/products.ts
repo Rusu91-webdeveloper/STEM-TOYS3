@@ -85,6 +85,9 @@ export async function getProducts(
     if (sort) params.append("sort", sort);
     if (limit) params.append("limit", limit.toString());
 
+    // Sort by newest first to show recently approved products
+    if (!sort) params.append("sort", "created");
+
     // IMPORTANT: Don't set featured=true by default to avoid the optimized query path
     // that might not include all fields
     params.append("featured", "false");
