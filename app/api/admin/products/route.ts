@@ -368,24 +368,22 @@ export async function POST(request: NextRequest) {
 
       console.warn("Product created successfully:", product.id);
 
-      // Revalidate caches to ensure new product is visible immediately
-      console.warn("Revalidating cache tags for new product creation");
+      // ⚡ SMART INVALIDATION: Clear all caches after product creation
+      console.warn("Invalidating all caches for new product creation");
+      try {
+        const { invalidateProductCaches } = await import("@/lib/cache-smart-invalidation");
+        
+        await invalidateProductCaches({
+          productId: product.id,
+          categoryId: product.categoryId || undefined,
+          reason: `New product created: ${product.name}`,
+        });
 
-      // Revalidate the products list
-      revalidateTag("products");
-      revalidatePath("/admin/products");
-
-      // Revalidate specific product
-      revalidateTag(`product-${data.slug}`);
-
-      // Revalidate category pages
-      if (data.categoryId) {
-        revalidateTag(`category-${data.categoryId}`);
+        console.log(`✅ All caches invalidated after creating product: ${product.name}`);
+      } catch (cacheError) {
+        console.error("Failed to invalidate cache:", cacheError);
+        // Don't fail product creation if cache invalidation fails
       }
-
-      // After any admin product mutation (POST, PUT, DELETE), add:
-      await invalidateCachePattern("products:");
-      await invalidateCachePattern("product:");
 
       return applyStandardHeaders(NextResponse.json(product), {
         cache: "private",
@@ -619,14 +617,20 @@ export async function PUT(request: NextRequest) {
       revalidateTag(`category-${categoryId}`);
     }
 
-    // If category was changed, revalidate the old category too
-    if (existingProduct.categoryId !== categoryId) {
-      revalidateTag(`category-${existingProduct.categoryId}`);
-    }
+    // ⚡ SMART INVALIDATION: Clear all caches after product update
+    try {
+      const { invalidateProductCaches } = await import("@/lib/cache-smart-invalidation");
+      
+      await invalidateProductCaches({
+        productId: updatedProduct.id,
+        categoryId: categoryId || undefined,
+        reason: `Product updated: ${updatedProduct.name}`,
+      });
 
-    // After any admin product mutation (POST, PUT, DELETE), add:
-    await invalidateCachePattern("products:");
-    await invalidateCachePattern("product:");
+      console.log(`✅ All caches invalidated after updating product: ${updatedProduct.name}`);
+    } catch (cacheError) {
+      console.error("Failed to invalidate cache:", cacheError);
+    }
 
     return applyStandardHeaders(NextResponse.json(updatedProduct), {
       cache: "private",

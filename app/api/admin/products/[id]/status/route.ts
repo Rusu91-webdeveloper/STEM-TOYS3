@@ -51,25 +51,19 @@ export async function PATCH(
       data: { status },
     });
 
-    // Invalidate all product-related caches when product is approved
-    if (status === "APPROVED") {
+    // ⚡ SMART INVALIDATION: Clear all caches when product status changes
+    if (status === "APPROVED" || status === "REJECTED") {
       try {
-        const { invalidateCachePattern } = await import("@/lib/cache");
-        const { revalidateTag, revalidatePath } = await import("next/cache");
-
-        // Clear Redis cache with proper wildcard patterns
-        await invalidateCachePattern("products*");
-        await invalidateCachePattern("product:*");
-        await invalidateCachePattern("category*");
-
-        // Clear Next.js cache
-        revalidateTag("products");
-        revalidateTag("categories");
-        revalidatePath("/products");
-        revalidatePath("/");
+        const { invalidateProductCaches } = await import("@/lib/cache-smart-invalidation");
+        
+        await invalidateProductCaches({
+          productId: existing.id,
+          categoryId: existing.categoryId || undefined,
+          reason: `Product ${status.toLowerCase()}: ${existing.name}`,
+        });
 
         console.log(
-          `✅ Cache invalidated for approved product: ${existing.name}`
+          `✅ All caches invalidated for ${status.toLowerCase()} product: ${existing.name}`
         );
       } catch (cacheError) {
         console.error("Failed to invalidate cache:", cacheError);

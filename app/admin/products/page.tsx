@@ -16,6 +16,7 @@ import { db } from "@/lib/db";
 
 import { EnhancedProductFilter } from "@/components/admin/EnhancedProductFilter";
 import { ProductGrid } from "@/components/admin/ProductGrid";
+import { ManualCacheClearButton } from "@/components/admin/ManualCacheClearButton";
 import { BulkUploadModal } from "./components/BulkUploadModal";
 
 // Force this page to be dynamic and not cached
@@ -256,6 +257,7 @@ export default async function AdminProductsPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ManualCacheClearButton />
           <BulkUploadModal />
           <Button asChild>
             <Link href="/admin/products/create">

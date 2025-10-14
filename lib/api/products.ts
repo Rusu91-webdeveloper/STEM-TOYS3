@@ -18,9 +18,11 @@ export async function getCombinedProduct(
     const url = buildApiUrl(`/api/products/combined/${encodedSlug}`);
 
     const response = await fetch(url, {
-      // 🔧 FIX: Use no-store to prevent stale product data in production
-      // This ensures individual product pages always show fresh data
-      cache: "no-store",
+      // ⚡ SMART CACHING: Use tags for precise invalidation
+      next: {
+        tags: [`product-${slug}`, "products", `book-${slug}`, "books"],
+        revalidate: 60, // 1 minute cache, cleared on product updates
+      },
     });
 
     if (!response.ok) {
@@ -94,10 +96,13 @@ export async function getProducts(
     const url = buildApiUrl(`/api/products${queryString}`);
 
     const response = await fetch(url, {
-      // 🔧 FIX: Use no-store to respect page-level force-dynamic setting
-      // This prevents stale data issues in production where the page says "force-dynamic"
-      // but fetch was forcing cache, creating a cache sandwich that never cleared
-      cache: "no-store",
+      // ⚡ SMART CACHING: Use tags for precise invalidation
+      next: {
+        tags: ["products", category ? `category-${category}` : ""].filter(
+          Boolean
+        ),
+        revalidate: 45, // 45 seconds cache, cleared on product updates
+      },
     });
 
     if (!response.ok) {

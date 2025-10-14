@@ -19,13 +19,13 @@ import { getPaginationParams } from "@/lib/utils/pagination";
 //   "educational-books": string[];
 // };
 
-// **PERFORMANCE**: Optimized cache durations for different query types
-// 🚨 TEMPORARY: Reduced cache durations to fix stale cache issues in production
+// ⚡ SMART CACHING: Optimized cache durations with proper invalidation
+// Cache is re-enabled with shorter TTLs and automatic invalidation on product updates
 const CACHE_DURATIONS = {
-  FEATURED_PRODUCTS: TIME.CACHE_DURATION.MEDIUM, // 30 minutes for featured products (was 1 hour)
-  CATEGORY_PRODUCTS: 60 * 1000, // 1 minute for category products (was 30 minutes)
-  SEARCH_RESULTS: 30 * 1000, // 30 seconds for search results (was 2 minutes)
-  GENERAL_LISTING: 30 * 1000, // 30 seconds for general listings (was 2 minutes) - reduced for faster product visibility
+  FEATURED_PRODUCTS: 60 * 1000, // 1 minute for featured products (fast refresh)
+  CATEGORY_PRODUCTS: 45 * 1000, // 45 seconds for category products
+  SEARCH_RESULTS: 30 * 1000, // 30 seconds for search results
+  GENERAL_LISTING: 45 * 1000, // 45 seconds for general listings
 };
 
 // **PERFORMANCE**: Optimized includes to prevent over-fetching
@@ -118,40 +118,81 @@ export async function GET(request: NextRequest) {
       cacheDuration = CACHE_DURATIONS.SEARCH_RESULTS;
     }
 
-    // 🔧 FIX: DISABLED featured products fast cache to prevent stale data
-    // **CRITICAL**: This was another caching layer that served stale data
-    // 
-    // PREVIOUS CODE (commented out to fix stale cache issue):
-    // if (featured === "true" && !category && !search && !ageGroup && !stemDiscipline) {
-    //   try {
-    //     const cachedResult = await getCached(`featured_products_${limit}_${page}`, () => fetchFeaturedProductsFast({ limit, page }), cacheDuration);
-    //     if (cachedResult && cachedResult.products?.length > 0) {
-    //       const response = NextResponse.json(cachedResult);
-    //       response.headers.set("X-Cache", "HIT-FAST");
-    //       response.headers.set("Cache-Control", "public, max-age=3600...");
-    //       return response;
-    //     }
-    //   } catch (cacheError) {
-    //     console.warn("Fast cache failed, falling back to normal query:", cacheError);
-    //   }
-    // }
+    // ⚡ SMART CACHING: Featured products with short TTL + auto-invalidation
+    if (
+      featured === "true" &&
+      !category &&
+      !search &&
+      !ageGroup &&
+      !stemDiscipline
+    ) {
+      try {
+        const cachedResult = await getCached(
+          `featured_products_${limit}_${page}`,
+          () => fetchFeaturedProductsFast({ limit, page }),
+          CACHE_DURATIONS.FEATURED_PRODUCTS // 1 minute cache
+        );
 
-    // 🔧 FIX: DISABLED Redis caching to prevent stale data in production
-    // **CRITICAL**: The page uses force-dynamic and fetch uses no-store
-    // So caching at API level creates stale data that never clears
-    // 
-    // PREVIOUS CODE (commented out to fix stale cache issue):
-    // try {
-    //   const cachedResult = await getCached(cacheKey, () => fetchProductsFromDatabase(...), cacheDuration);
-    //   const response = NextResponse.json(cachedResult);
-    //   response.headers.set("X-Cache", "HIT");
-    //   response.headers.set("Cache-Control", `public, max-age=${cacheSeconds}...`);
-    //   return response;
-    // } catch (cacheError) {
-    //   console.warn("Cache error, falling back to direct database query:", cacheError);
-    // }
+        if (cachedResult && cachedResult.products?.length > 0) {
+          const response = NextResponse.json(cachedResult);
+          response.headers.set("X-Cache", "HIT-FAST");
+          response.headers.set(
+            "Cache-Control",
+            "public, max-age=60, s-maxage=60, stale-while-revalidate=120"
+          );
+          return response;
+        }
+      } catch (cacheError) {
+        console.warn(
+          "Fast cache failed, falling back to normal query:",
+          cacheError
+        );
+      }
+    }
 
-    // **PERFORMANCE**: Direct database query as fallback
+    // ⚡ SMART CACHING: Redis cache with short TTL + auto-invalidation
+    // Cache is automatically cleared when products are created/updated/approved
+    try {
+      const cachedResult = await getCached(
+        cacheKey,
+        () =>
+          fetchProductsFromDatabase({
+            category,
+            featured,
+            minPrice,
+            maxPrice,
+            search,
+            sort,
+            limit,
+            page,
+            ageGroup,
+            stemDiscipline,
+            learningOutcomes,
+            productType,
+            specialCategories,
+          }),
+        cacheDuration
+      );
+
+      const response = NextResponse.json(cachedResult);
+      response.headers.set("X-Cache", "HIT");
+
+      // Short cache TTL for quick refresh
+      const cacheSeconds = Math.floor(cacheDuration / 1000);
+      response.headers.set(
+        "Cache-Control",
+        `public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds}, stale-while-revalidate=${cacheSeconds}`
+      );
+      return response;
+    } catch (cacheError) {
+      console.warn(
+        "Cache error, falling back to direct database query:",
+        cacheError
+      );
+      // Fall through to direct query
+    }
+
+    // **FALLBACK**: Direct database query if cache fails
     const result = await fetchProductsFromDatabase({
       category,
       featured,
@@ -170,13 +211,13 @@ export async function GET(request: NextRequest) {
     });
 
     const response = NextResponse.json(result);
-    response.headers.set("X-Cache", "DISABLED");
+    response.headers.set("X-Cache", "MISS");
     
-    // 🔧 FIX: Set no-cache headers to ensure fresh data
-    // This matches the page-level force-dynamic and fetch no-store settings
+    // ⚡ SMART CACHING: Set cache headers on MISS responses
+    const cacheSeconds = Math.floor(CACHE_DURATIONS.GENERAL_LISTING / 1000);
     response.headers.set(
       "Cache-Control",
-      "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+      `public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds}, stale-while-revalidate=${cacheSeconds}`
     );
 
     return response;
