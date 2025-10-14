@@ -27,10 +27,10 @@ export async function getBooks(
     const url = buildApiUrl(`/api/books${queryString}`);
 
     const response = await fetch(url, {
-      // ⚡ SMART CACHING: Use tags for precise invalidation
+      // ⚡ E-COMMERCE OPTIMIZED: Books/digital products cached moderately
       next: {
         tags: ["books"],
-        revalidate: 60, // 1 minute cache, cleared on blog updates
+        revalidate: 180, // 3 minutes cache, cleared on updates
       },
     });
 
@@ -70,10 +70,10 @@ export async function getBook(slug: string): Promise<Book | null> {
     const url = buildApiUrl(`/api/books?slug=${encodedSlug}`);
 
     const response = await fetch(url, {
-      // ⚡ SMART CACHING: Use tags for precise invalidation
+      // ⚡ E-COMMERCE OPTIMIZED: Individual books cached longer (stable data)
       next: {
         tags: [`book-${slug}`, "books"],
-        revalidate: 60, // 1 minute cache, cleared on blog updates
+        revalidate: 180, // 3 minutes cache, cleared on updates
       },
     });
 

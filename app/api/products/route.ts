@@ -19,13 +19,13 @@ import { getPaginationParams } from "@/lib/utils/pagination";
 //   "educational-books": string[];
 // };
 
-// ⚡ SMART CACHING: Optimized cache durations with proper invalidation
-// Cache is re-enabled with shorter TTLs and automatic invalidation on product updates
+// ⚡ E-COMMERCE OPTIMIZED CACHING: Balance between performance and freshness
+// Cache is re-enabled with e-commerce best practices and automatic invalidation
 const CACHE_DURATIONS = {
-  FEATURED_PRODUCTS: 60 * 1000, // 1 minute for featured products (fast refresh)
-  CATEGORY_PRODUCTS: 45 * 1000, // 45 seconds for category products
-  SEARCH_RESULTS: 30 * 1000, // 30 seconds for search results
-  GENERAL_LISTING: 45 * 1000, // 45 seconds for general listings
+  FEATURED_PRODUCTS: 3 * 60 * 1000, // 3 minutes - Homepage cached longer (high traffic)
+  CATEGORY_PRODUCTS: 2 * 60 * 1000, // 2 minutes - Category browsing pages
+  SEARCH_RESULTS: 1 * 60 * 1000, // 1 minute - Search needs fresher data for inventory
+  GENERAL_LISTING: 2 * 60 * 1000, // 2 minutes - General product listings
 };
 
 // **PERFORMANCE**: Optimized includes to prevent over-fetching

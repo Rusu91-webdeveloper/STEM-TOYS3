@@ -18,10 +18,10 @@ export async function getCombinedProduct(
     const url = buildApiUrl(`/api/products/combined/${encodedSlug}`);
 
     const response = await fetch(url, {
-      // ⚡ SMART CACHING: Use tags for precise invalidation
+      // ⚡ E-COMMERCE OPTIMIZED: Individual products cached longer (stable data)
       next: {
         tags: [`product-${slug}`, "products", `book-${slug}`, "books"],
-        revalidate: 60, // 1 minute cache, cleared on product updates
+        revalidate: 180, // 3 minutes cache, cleared on product updates
       },
     });
 
@@ -96,12 +96,12 @@ export async function getProducts(
     const url = buildApiUrl(`/api/products${queryString}`);
 
     const response = await fetch(url, {
-      // ⚡ SMART CACHING: Use tags for precise invalidation
+      // ⚡ E-COMMERCE OPTIMIZED: Product listings balanced for performance
       next: {
         tags: ["products", category ? `category-${category}` : ""].filter(
           Boolean
         ),
-        revalidate: 45, // 45 seconds cache, cleared on product updates
+        revalidate: 120, // 2 minutes cache, cleared on product updates
       },
     });
 
