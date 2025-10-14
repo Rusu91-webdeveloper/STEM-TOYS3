@@ -118,82 +118,38 @@ export async function GET(request: NextRequest) {
       cacheDuration = CACHE_DURATIONS.SEARCH_RESULTS;
     }
 
-    // **PERFORMANCE**: Ultra-fast cache check for featured products (highest priority)
-    if (
-      featured === "true" &&
-      !category &&
-      !search &&
-      !ageGroup &&
-      !stemDiscipline
-    ) {
-      // **PERFORMANCE**: For simple featured products query, use optimized fast path
-      try {
-        const cachedResult = await getCached(
-          `featured_products_${limit}_${page}`,
-          () => fetchFeaturedProductsFast({ limit, page }),
-          cacheDuration
-        );
+    // 🔧 FIX: DISABLED featured products fast cache to prevent stale data
+    // **CRITICAL**: This was another caching layer that served stale data
+    // 
+    // PREVIOUS CODE (commented out to fix stale cache issue):
+    // if (featured === "true" && !category && !search && !ageGroup && !stemDiscipline) {
+    //   try {
+    //     const cachedResult = await getCached(`featured_products_${limit}_${page}`, () => fetchFeaturedProductsFast({ limit, page }), cacheDuration);
+    //     if (cachedResult && cachedResult.products?.length > 0) {
+    //       const response = NextResponse.json(cachedResult);
+    //       response.headers.set("X-Cache", "HIT-FAST");
+    //       response.headers.set("Cache-Control", "public, max-age=3600...");
+    //       return response;
+    //     }
+    //   } catch (cacheError) {
+    //     console.warn("Fast cache failed, falling back to normal query:", cacheError);
+    //   }
+    // }
 
-        if (cachedResult && cachedResult.products?.length > 0) {
-          const response = NextResponse.json(cachedResult);
-          response.headers.set("X-Cache", "HIT-FAST");
-          response.headers.set(
-            "Cache-Control",
-            "public, max-age=3600, s-maxage=3600, stale-while-revalidate=7200"
-          );
-          return response;
-        }
-      } catch (cacheError) {
-        console.warn(
-          "Fast cache failed, falling back to normal query:",
-          cacheError
-        );
-      }
-    }
-
-    // **PERFORMANCE**: Check cache first with distributed caching and optimized duration
-    try {
-      const cachedResult = await getCached(
-        cacheKey,
-        () =>
-          // This will only run if cache miss
-          fetchProductsFromDatabase({
-            category,
-            featured,
-            minPrice,
-            maxPrice,
-            search,
-            sort,
-            limit,
-            page,
-            // Pass new filters to database function
-            ageGroup,
-            stemDiscipline,
-            learningOutcomes,
-            productType,
-            specialCategories,
-          }),
-        cacheDuration
-      );
-
-      const response = NextResponse.json(cachedResult);
-      response.headers.set("X-Cache", "HIT");
-
-      // **PERFORMANCE**: Dynamic cache headers based on content type
-      const cacheSeconds = Math.floor(cacheDuration / 1000);
-      const staleWhileRevalidate = cacheSeconds * 2;
-      response.headers.set(
-        "Cache-Control",
-        `public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds}, stale-while-revalidate=${staleWhileRevalidate}`
-      );
-      return response;
-    } catch (cacheError) {
-      console.warn(
-        "Cache error, falling back to direct database query:",
-        cacheError
-      );
-      // Fall back to direct database query if cache fails
-    }
+    // 🔧 FIX: DISABLED Redis caching to prevent stale data in production
+    // **CRITICAL**: The page uses force-dynamic and fetch uses no-store
+    // So caching at API level creates stale data that never clears
+    // 
+    // PREVIOUS CODE (commented out to fix stale cache issue):
+    // try {
+    //   const cachedResult = await getCached(cacheKey, () => fetchProductsFromDatabase(...), cacheDuration);
+    //   const response = NextResponse.json(cachedResult);
+    //   response.headers.set("X-Cache", "HIT");
+    //   response.headers.set("Cache-Control", `public, max-age=${cacheSeconds}...`);
+    //   return response;
+    // } catch (cacheError) {
+    //   console.warn("Cache error, falling back to direct database query:", cacheError);
+    // }
 
     // **PERFORMANCE**: Direct database query as fallback
     const result = await fetchProductsFromDatabase({
@@ -214,13 +170,13 @@ export async function GET(request: NextRequest) {
     });
 
     const response = NextResponse.json(result);
-    response.headers.set("X-Cache", "MISS");
-
-    // **PERFORMANCE**: Conservative cache headers for uncached responses
-    const cacheSeconds = Math.floor(CACHE_DURATIONS.SEARCH_RESULTS / 1000); // Use search duration as conservative default
+    response.headers.set("X-Cache", "DISABLED");
+    
+    // 🔧 FIX: Set no-cache headers to ensure fresh data
+    // This matches the page-level force-dynamic and fetch no-store settings
     response.headers.set(
       "Cache-Control",
-      `public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds}, stale-while-revalidate=${cacheSeconds * 2}`
+      "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
     );
 
     return response;
