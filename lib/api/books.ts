@@ -27,13 +27,9 @@ export async function getBooks(
     const url = buildApiUrl(`/api/books${queryString}`);
 
     const response = await fetch(url, {
-      next: {
-        // Use tags for more precise invalidation
-        tags: ["books"],
-        revalidate: 300, // 🚀 PERFORMANCE: Increase cache time to 5 minutes
-      },
-      // 🚀 PERFORMANCE: Add browser cache for better performance
-      cache: "force-cache",
+      // 🔧 FIX: Use no-store to prevent stale book data in production
+      // This ensures books list always shows fresh data
+      cache: "no-store",
     });
 
     if (!response.ok) {
@@ -72,11 +68,8 @@ export async function getBook(slug: string): Promise<Book | null> {
     const url = buildApiUrl(`/api/books?slug=${encodedSlug}`);
 
     const response = await fetch(url, {
-      next: {
-        // Use tags for more precise invalidation
-        tags: [`book-${slug}`, "books"],
-        revalidate: 3600, // Revalidate every hour
-      },
+      // 🔧 FIX: Use no-store to prevent stale individual book data
+      cache: "no-store",
     });
 
     if (!response.ok) {

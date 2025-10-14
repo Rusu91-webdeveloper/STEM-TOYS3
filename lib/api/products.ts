@@ -18,13 +18,9 @@ export async function getCombinedProduct(
     const url = buildApiUrl(`/api/products/combined/${encodedSlug}`);
 
     const response = await fetch(url, {
-      next: {
-        // Use tags for more precise invalidation
-        tags: [`product-${slug}`, "products", `book-${slug}`, "books"],
-        revalidate: 300, // 🚀 PERFORMANCE: Cache for 5 minutes for better performance
-      },
-      // 🚀 PERFORMANCE: Add browser cache headers
-      cache: "force-cache",
+      // 🔧 FIX: Use no-store to prevent stale product data in production
+      // This ensures individual product pages always show fresh data
+      cache: "no-store",
     });
 
     if (!response.ok) {
@@ -98,15 +94,10 @@ export async function getProducts(
     const url = buildApiUrl(`/api/products${queryString}`);
 
     const response = await fetch(url, {
-      next: {
-        // Use tags for more precise invalidation
-        tags: ["products", category ? `category-${category}` : ""].filter(
-          Boolean
-        ),
-        revalidate: 300, // 🚀 PERFORMANCE: Increase cache time to 5 minutes
-      },
-      // 🚀 PERFORMANCE: Add browser cache for better performance
-      cache: "force-cache",
+      // 🔧 FIX: Use no-store to respect page-level force-dynamic setting
+      // This prevents stale data issues in production where the page says "force-dynamic"
+      // but fetch was forcing cache, creating a cache sandwich that never cleared
+      cache: "no-store",
     });
 
     if (!response.ok) {
