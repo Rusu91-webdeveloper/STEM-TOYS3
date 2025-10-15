@@ -286,7 +286,7 @@ export class DatabaseTemplateService {
   ): Promise<{ success: boolean; error?: string; messageId?: string }> {
     return this.sendEmailWithTemplate({
       to,
-      templateSlug: "email-verification",
+      templateSlug: "account-verification", // Fixed: Changed from "email-verification" to match database template
       data: {
         userName, // Use only userName instead of user.firstName
         verificationLink,

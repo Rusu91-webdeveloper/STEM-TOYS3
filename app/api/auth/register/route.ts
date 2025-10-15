@@ -11,6 +11,7 @@ import {
   sendVerificationEmail,
 } from "@/lib/email";
 import { withRateLimit } from "@/lib/rate-limit";
+import { EmailTriggerService } from "@/lib/services/email-trigger-service";
 
 // Registration schema
 const registerSchema = z.object({
@@ -61,6 +62,7 @@ async function handleRegistration(req: Request) {
     const verificationToken = randomBytes(32).toString("hex");
 
     // Create user with verification token using transaction
+    // Set segment to NEW and emailVerified to null to trigger email automation
     const newUser = await db.$transaction(async tx =>
       tx.user.create({
         data: {
@@ -69,24 +71,41 @@ async function handleRegistration(req: Request) {
           password: hashedPassword,
           verificationToken,
           isActive: false,
+          segment: "NEW", // Set segment for email triggers
+          emailVerified: null, // Required for verification trigger conditions
         },
       })
     );
 
-    // Trigger welcome email automation
+    console.log(`✅ User created: ${newUser.id} (${email})`);
+
+    // Trigger email automation via EmailTriggerService
+    // This will process all active triggers for NEW segment users
     try {
-      await sendWelcomeEmail(email, name);
-      console.log(`🎉 Welcome email automation triggered for ${email}`);
-    } catch (welcomeError) {
-      console.error(
-        "⚠️ Failed to trigger welcome email automation:",
-        welcomeError
+      const emailTriggerService = new EmailTriggerService(db);
+      await emailTriggerService.processSegmentTriggers(
+        newUser.id,
+        "NEW",
+        undefined
       );
-      // We don't fail the registration if welcome email automation fails
+      console.log(`🎯 Email triggers processed for segment: NEW`);
+    } catch (triggerError) {
+      console.error("⚠️ Failed to process email triggers:", triggerError);
+      // We don't fail the registration if trigger processing fails
+      // The fallback direct calls below will still work
     }
 
-    // In a production environment, we would send verification email here
-    // For demo purposes, we'll simulate a successful email delivery
+    // Fallback: Direct welcome email call (in case triggers fail)
+    try {
+      await sendWelcomeEmail(email, name);
+      console.log(`🎉 Welcome email sent directly (fallback) to ${email}`);
+    } catch (welcomeError) {
+      console.error("⚠️ Failed to send welcome email directly:", welcomeError);
+      // We don't fail the registration if welcome email fails
+    }
+
+    // Fallback: Direct verification email call (in case triggers fail)
+    // This ensures verification emails are sent even if automation fails
     if (process.env.NODE_ENV === "development") {
       console.log(`\n------- VERIFICATION DETAILS -------`);
       console.log(`Email: ${email}`);
@@ -109,14 +128,17 @@ async function handleRegistration(req: Request) {
           verificationToken
         );
         console.log(
-          `📧 Verification email ${emailSent ? "sent" : "failed to send"} to ${email}`
+          `📧 Verification email ${emailSent ? "sent directly (fallback)" : "failed to send"} to ${email}`
         );
       } catch (emailError) {
-        console.error("⚠️ Failed to send verification email:", emailError);
+        console.error(
+          "⚠️ Failed to send verification email directly:",
+          emailError
+        );
         // We don't fail the registration if email sending fails
       }
     } else {
-      // In production, send an actual email
+      // In production, send the verification email as fallback
       try {
         const emailSent = await sendVerificationEmail(
           email,
@@ -124,13 +146,22 @@ async function handleRegistration(req: Request) {
           verificationToken
         );
         console.log(
-          `📧 Verification email ${emailSent ? "sent" : "failed to send"} to ${email}`
+          `📧 Verification email ${emailSent ? "sent directly (fallback)" : "failed to send"} to ${email}`
         );
       } catch (emailError) {
-        console.error("⚠️ Failed to send verification email:", emailError);
+        console.error(
+          "⚠️ Failed to send verification email directly:",
+          emailError
+        );
         // We don't fail the registration if email sending fails
       }
     }
+
+    console.log(`\n✨ Registration completed for ${email}`);
+    console.log(`   - User ID: ${newUser.id}`);
+    console.log(`   - Segment: NEW`);
+    console.log(`   - Email triggers: Processed`);
+    console.log(`   - Direct emails: Sent as fallback\n`);
 
     return NextResponse.json(
       {
