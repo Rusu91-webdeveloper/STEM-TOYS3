@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { performanceMonitor } from "../../../../lib/monitoring/performance-monitor";
+// import { performanceMonitor } from "../../../../lib/monitoring/performance-monitor";
 import {
   updateInventory,
   getInventoryItem,
@@ -65,7 +65,7 @@ export const GET = withSecurityHeaders(
           }
 
           // Record metric
-          performanceMonitor.recordMetric({
+          // performanceMonitor.recordMetric({
             operation: "inventory_get_item",
             duration: 0,
             timestamp: Date.now(),
@@ -137,7 +137,7 @@ export const POST = withSecurityHeaders(
           }
 
           // Record metric
-          performanceMonitor.recordMetric({
+          // performanceMonitor.recordMetric({
             operation: "inventory_update",
             duration: 0,
             timestamp: Date.now(),
@@ -227,7 +227,7 @@ export const PUT = withSecurityHeaders(
           const item = await getInventoryItem(productId);
 
           // Record metric
-          performanceMonitor.recordMetric({
+          // performanceMonitor.recordMetric({
             operation: "inventory_process_order",
             duration: 0,
             timestamp: Date.now(),
@@ -301,7 +301,7 @@ export const PATCH = withSecurityHeaders(
           const item = await getInventoryItem(productId);
 
           // Record metric
-          performanceMonitor.recordMetric({
+          // performanceMonitor.recordMetric({
             operation: "inventory_reserve",
             duration: 0,
             timestamp: Date.now(),

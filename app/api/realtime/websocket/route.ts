@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { performanceMonitor } from "../../../../lib/monitoring/performance-monitor";
+// import { performanceMonitor } from "../../../../lib/monitoring/performance-monitor";
 import { websocketManager } from "../../../../lib/realtime/websocket-server";
 
 export function GET(req: NextRequest) {
@@ -17,7 +17,7 @@ export function GET(req: NextRequest) {
     };
 
     // Record metric
-    performanceMonitor.recordMetric("websocket", "status_check", Date.now(), {
+    // performanceMonitor.recordMetric("websocket", "status_check", Date.now(), {
       userId,
       sessionId,
       connectedClients: status.connected,
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Record metric
-    performanceMonitor.recordMetric("websocket", "api_operation", Date.now(), {
+    // performanceMonitor.recordMetric("websocket", "api_operation", Date.now(), {
       operation: type,
       targetClient,
       targetChannel,

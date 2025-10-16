@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { performanceMonitor } from "../monitoring/performance-monitor";
+// import { performanceMonitor } from "../monitoring/performance-monitor";
 
 export interface ValidationConfig {
   body?: z.ZodSchema<any>;
@@ -328,7 +328,7 @@ class RequestValidator {
       }
 
       // Record validation performance
-      performanceMonitor.recordApiRequest(
+      // performanceMonitor.recordApiRequest(
         req.method,
         req.nextUrl?.pathname || "unknown",
         Date.now() - startTime,

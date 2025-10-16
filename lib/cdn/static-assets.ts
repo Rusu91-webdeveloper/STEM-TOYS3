@@ -1,4 +1,4 @@
-import { performanceMonitor } from "../monitoring/performance-monitor";
+// import { performanceMonitor } from "../monitoring/performance-monitor";
 
 export interface CDNConfig {
   provider: "cloudflare" | "aws-cloudfront" | "vercel" | "custom";
@@ -335,7 +335,7 @@ class CDNManager {
     }
     
     // Record to performance monitor
-    performanceMonitor.recordMetric("cdn", operation, Date.now(), {
+    // performanceMonitor.recordMetric("cdn", operation, Date.now(), {
       duration,
       operation,
       provider: this.config.provider,

@@ -2,7 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
 
-import { performanceMonitor } from "../monitoring/performance-monitor";
+// import { performanceMonitor } from "../monitoring/performance-monitor";
 
 export interface ErrorBoundaryState {
   hasError: boolean;
@@ -67,7 +67,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   private reportError(error: Error, errorInfo: ErrorInfo, errorId?: string) {
     try {
       // Record error in performance monitor
-      performanceMonitor.recordApiRequest(
+      // performanceMonitor.recordApiRequest(
         "ERROR",
         "error-boundary",
         Date.now(),
@@ -291,7 +291,7 @@ export function useErrorHandler() {
     setError(error);
 
     // Report error
-    performanceMonitor.recordApiRequest(
+    // performanceMonitor.recordApiRequest(
       "ERROR",
       "use-error-handler",
       Date.now(),

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { apiCache } from "../caching/api-cache";
 import { envConfig } from "../config/environment";
-import { performanceMonitor } from "../monitoring/performance-monitor";
+// import { performanceMonitor } from "../monitoring/performance-monitor";
 
 export interface MiddlewareConfig {
   enablePerformanceMonitoring: boolean;
@@ -65,7 +65,7 @@ class ApiMiddleware {
         const path = req.nextUrl.pathname;
         const method = req.method;
 
-        performanceMonitor.recordApiRequest(
+        // performanceMonitor.recordApiRequest(
           method,
           path,
           duration,
@@ -284,7 +284,7 @@ class ApiMiddleware {
 
         // Log error for monitoring
         if (this.config.enablePerformanceMonitoring) {
-          performanceMonitor.recordApiRequest(
+          // performanceMonitor.recordApiRequest(
             req.method,
             req.nextUrl.pathname,
             0,
@@ -388,7 +388,7 @@ class ApiMiddleware {
     try {
       const checks = {
         redis: await redisCache.healthCheck(),
-        performance: performanceMonitor.getMetrics(),
+        performance: // performanceMonitor.getMetrics(),
       };
 
       const isHealthy =
@@ -418,7 +418,7 @@ class ApiMiddleware {
   async getMetrics(_req: NextRequest): Promise<NextResponse> {
     try {
       const metrics = {
-        performance: performanceMonitor.getMetrics(),
+        performance: // performanceMonitor.getMetrics(),
         cache: await redisCache.getCacheStats(),
         timestamp: new Date().toISOString(),
       };

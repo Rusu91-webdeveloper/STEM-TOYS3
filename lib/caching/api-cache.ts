@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { performanceMonitor } from "../monitoring/performance-monitor";
+// import { performanceMonitor } from "../monitoring/performance-monitor";
 import { redisCache } from "../redis-enhanced";
 
 export interface CacheConfig {
@@ -148,7 +148,7 @@ class ApiCache {
         }
 
         // Record cache hit
-        performanceMonitor.recordCacheOperation(
+        // performanceMonitor.recordCacheOperation(
           "get",
           Date.now() - startTime,
           true,
@@ -161,7 +161,7 @@ class ApiCache {
       }
 
       // Record cache miss
-      performanceMonitor.recordCacheOperation(
+      // performanceMonitor.recordCacheOperation(
         "get",
         Date.now() - startTime,
         true,
@@ -172,7 +172,7 @@ class ApiCache {
 
       return null;
     } catch (error) {
-      performanceMonitor.recordCacheOperation(
+      // performanceMonitor.recordCacheOperation(
         "get",
         Date.now() - startTime,
         false,
@@ -215,7 +215,7 @@ class ApiCache {
 
       await redisCache.set(cacheKey, cachedResponse, ttl);
 
-      performanceMonitor.recordCacheOperation(
+      // performanceMonitor.recordCacheOperation(
         "set",
         Date.now() - startTime,
         true,
@@ -224,7 +224,7 @@ class ApiCache {
         { cacheKey, ttl }
       );
     } catch (error) {
-      performanceMonitor.recordCacheOperation(
+      // performanceMonitor.recordCacheOperation(
         "set",
         Date.now() - startTime,
         false,

@@ -1,5 +1,5 @@
 import { cdnManager } from "../cdn/static-assets";
-import { performanceMonitor } from "../monitoring/performance-monitor";
+// import { performanceMonitor } from "../monitoring/performance-monitor";
 
 export interface ImageOptimizationConfig {
   formats: {
@@ -407,7 +407,7 @@ class ImageOptimizer {
    * Record performance metrics
    */
   private recordPerformance(operation: string, duration: number): void {
-    performanceMonitor.recordMetric("image_optimization", operation, Date.now(), {
+    // performanceMonitor.recordMetric("image_optimization", operation, Date.now(), {
       duration,
       operation,
     });
@@ -460,12 +460,12 @@ class ImageOptimizer {
     const metadataSize = this.metadataCache.size;
     
     // Calculate hit rate from performance metrics
-    const totalRequests = performanceMonitor.getMetrics("image_optimization", "optimization")?.length || 0;
-    const cacheHits = performanceMonitor.getMetrics("image_optimization", "cache_hit")?.length || 0;
+    const totalRequests = // performanceMonitor.getMetrics("image_optimization", "optimization")?.length || 0;
+    const cacheHits = // performanceMonitor.getMetrics("image_optimization", "cache_hit")?.length || 0;
     const hitRate = totalRequests > 0 ? (cacheHits / totalRequests) * 100 : 0;
     
     // Calculate average optimization time
-    const optimizationTimes = performanceMonitor.getMetrics("image_optimization", "optimization") || [];
+    const optimizationTimes = // performanceMonitor.getMetrics("image_optimization", "optimization") || [];
     const avgTime = optimizationTimes.length > 0 
       ? optimizationTimes.reduce((a, b) => a + b.duration, 0) / optimizationTimes.length 
       : 0;

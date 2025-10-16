@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { performanceMonitor, getPerformanceMetrics, getSlowQueries, getOptimizationRecommendations, exportPerformanceData } from "../../../../lib/monitoring/performance-monitor";
+// import { performanceMonitor, getPerformanceMetrics, getSlowQueries, getOptimizationRecommendations, exportPerformanceData } from "../../../../lib/monitoring/performance-monitor";
 import { withRateLimiting } from "../../../../lib/security/rate-limiter";
 import { withSecurityHeaders } from "../../../../lib/security/security-middleware";
 
@@ -37,14 +37,14 @@ export const GET = withSecurityHeaders(
             });
 
           case "alerts":
-            const alerts = performanceMonitor.getActiveAlerts();
+            const alerts = // performanceMonitor.getActiveAlerts();
             return NextResponse.json({
               success: true,
               alerts,
             });
 
           case "summary":
-            const summary = performanceMonitor.getPerformanceSummary(timeRange);
+            const summary = // performanceMonitor.getPerformanceSummary(timeRange);
             return NextResponse.json({
               success: true,
               summary,
@@ -69,7 +69,7 @@ export const GET = withSecurityHeaders(
             });
 
           case "health":
-            const health = performanceMonitor.getHealthStatus();
+            const health = // performanceMonitor.getHealthStatus();
             return NextResponse.json({
               success: true,
               health,
@@ -78,7 +78,7 @@ export const GET = withSecurityHeaders(
           default:
             return NextResponse.json({
               success: true,
-              summary: performanceMonitor.getPerformanceSummary(timeRange),
+              summary: // performanceMonitor.getPerformanceSummary(timeRange),
               metrics: await getPerformanceMetrics(timeRange),
             });
         }
@@ -115,12 +115,12 @@ export const POST = withSecurityHeaders(
               );
             }
 
-            performanceMonitor.updateConfig(config);
+            // performanceMonitor.updateConfig(config);
 
             return NextResponse.json({
               success: true,
               message: "Performance monitoring configuration updated",
-              config: performanceMonitor.getConfig(),
+              config: // performanceMonitor.getConfig(),
             });
 
           case "set-thresholds":
@@ -131,7 +131,7 @@ export const POST = withSecurityHeaders(
               );
             }
 
-            performanceMonitor.setThresholds(thresholds);
+            // performanceMonitor.setThresholds(thresholds);
 
             return NextResponse.json({
               success: true,
@@ -146,7 +146,7 @@ export const POST = withSecurityHeaders(
               );
             }
 
-            performanceMonitor.configureAlerts(alerts);
+            // performanceMonitor.configureAlerts(alerts);
 
             return NextResponse.json({
               success: true,
@@ -154,7 +154,7 @@ export const POST = withSecurityHeaders(
             });
 
           case "start-monitoring":
-            performanceMonitor.startMonitoring();
+            // performanceMonitor.startMonitoring();
 
             return NextResponse.json({
               success: true,
@@ -162,7 +162,7 @@ export const POST = withSecurityHeaders(
             });
 
           case "stop-monitoring":
-            performanceMonitor.stopMonitoring();
+            // performanceMonitor.stopMonitoring();
 
             return NextResponse.json({
               success: true,
@@ -171,7 +171,7 @@ export const POST = withSecurityHeaders(
 
           case "clear-metrics":
             const { timeRange: clearTimeRange } = body;
-            performanceMonitor.clearMetrics(clearTimeRange);
+            // performanceMonitor.clearMetrics(clearTimeRange);
 
             return NextResponse.json({
               success: true,
@@ -217,7 +217,7 @@ export const PUT = withSecurityHeaders(
               );
             }
 
-            performanceMonitor.enableMetric(metric);
+            // performanceMonitor.enableMetric(metric);
 
             return NextResponse.json({
               success: true,
@@ -232,7 +232,7 @@ export const PUT = withSecurityHeaders(
               );
             }
 
-            performanceMonitor.disableMetric(metric);
+            // performanceMonitor.disableMetric(metric);
 
             return NextResponse.json({
               success: true,
@@ -247,7 +247,7 @@ export const PUT = withSecurityHeaders(
               );
             }
 
-            performanceMonitor.updateThreshold(metric, value);
+            // performanceMonitor.updateThreshold(metric, value);
 
             return NextResponse.json({
               success: true,
@@ -263,9 +263,9 @@ export const PUT = withSecurityHeaders(
             }
 
             if (enabled) {
-              performanceMonitor.startMonitoring();
+              // performanceMonitor.startMonitoring();
             } else {
-              performanceMonitor.stopMonitoring();
+              // performanceMonitor.stopMonitoring();
             }
 
             return NextResponse.json({
@@ -282,7 +282,7 @@ export const PUT = withSecurityHeaders(
               );
             }
 
-            performanceMonitor.acknowledgeAlert(alertId);
+            // performanceMonitor.acknowledgeAlert(alertId);
 
             return NextResponse.json({
               success: true,
@@ -322,16 +322,16 @@ export const DELETE = withSecurityHeaders(
 
         switch (type) {
           case "all":
-            performanceMonitor.clearAllData();
+            // performanceMonitor.clearAllData();
             break;
           case "metrics":
-            performanceMonitor.clearMetrics(timeRange);
+            // performanceMonitor.clearMetrics(timeRange);
             break;
           case "alerts":
-            performanceMonitor.clearAlerts();
+            // performanceMonitor.clearAlerts();
             break;
           case "thresholds":
-            performanceMonitor.resetThresholds();
+            // performanceMonitor.resetThresholds();
             break;
           default:
             return NextResponse.json(

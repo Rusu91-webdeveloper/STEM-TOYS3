@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { performanceMonitor } from "../monitoring/performance-monitor";
+// import { performanceMonitor } from "../monitoring/performance-monitor";
 import { redisCache } from "../redis-enhanced";
 
 export interface RateLimitConfig {
@@ -222,7 +222,7 @@ class RateLimiter {
       const info = await this.incrementRateLimit(key, finalConfig);
 
       // Record rate limit check
-      performanceMonitor.recordApiRequest(
+      // performanceMonitor.recordApiRequest(
         req.method,
         req.nextUrl?.pathname || "unknown",
         Date.now() - startTime,

@@ -5,7 +5,7 @@ import {
   withCaching,
   withErrorHandling,
 } from "../../../lib/middleware/api-middleware";
-import { performanceMonitor } from "../../../lib/monitoring/performance-monitor";
+// import { performanceMonitor } from "../../../lib/monitoring/performance-monitor";
 import { redisCache } from "../../../lib/redis-enhanced";
 import {
   withRateLimiting,
@@ -42,7 +42,7 @@ const secureHandler = withPerformanceMonitoring(
 
                     // Example of database operation with monitoring
                     const dbResult =
-                      await performanceMonitor.withDatabaseMonitoring(
+                      await // performanceMonitor.withDatabaseMonitoring(
                         "secure_example_query",
                         async () => {
                           // Simulate database query
@@ -64,7 +64,7 @@ const secureHandler = withPerformanceMonitoring(
                     );
 
                     // Record successful operation
-                    performanceMonitor.recordApiRequest(
+                    // performanceMonitor.recordApiRequest(
                       req.method,
                       req.nextUrl?.pathname || "unknown",
                       Date.now() - startTime,
@@ -104,7 +104,7 @@ const secureHandler = withPerformanceMonitoring(
                     });
                   } catch (error) {
                     // Record error
-                    performanceMonitor.recordApiRequest(
+                    // performanceMonitor.recordApiRequest(
                       req.method,
                       req.nextUrl?.pathname || "unknown",
                       Date.now() - startTime,
@@ -155,7 +155,7 @@ export const GET = withPerformanceMonitoring(
                 const cacheStats = await redisCache.healthCheck();
 
                 // Record successful operation
-                performanceMonitor.recordApiRequest(
+                // performanceMonitor.recordApiRequest(
                   req.method,
                   req.nextUrl?.pathname || "unknown",
                   Date.now() - startTime,
@@ -187,7 +187,7 @@ export const GET = withPerformanceMonitoring(
                 });
               } catch (error) {
                 // Record error
-                performanceMonitor.recordApiRequest(
+                // performanceMonitor.recordApiRequest(
                   req.method,
                   req.nextUrl?.pathname || "unknown",
                   Date.now() - startTime,
