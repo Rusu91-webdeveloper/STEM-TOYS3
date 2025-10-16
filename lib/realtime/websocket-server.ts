@@ -3,7 +3,7 @@ import { URL } from "url";
 
 import { WebSocketServer, WebSocket } from "ws";
 
-import { performanceMonitor } from "../monitoring/performance-monitor";
+// import { getPerformanceMonitor } from "../monitoring/performance-monitor";
 import { redisCache } from "../redis-enhanced";
 
 export interface WebSocketMessage {
@@ -89,10 +89,10 @@ class WebSocketManager {
       }
 
       // Record startup metric
-      performanceMonitor.recordMetric("websocket", "startup", Date.now(), {
-        port: this.config.port,
-        path: this.config.path,
-      });
+      // performanceMonitor.recordMetric("websocket", "startup", Date.now(), {
+      //   port: this.config.port,
+      //   path: this.config.path,
+      // });
     } catch (error) {
       console.error("Failed to start WebSocket server:", error);
       throw error;
@@ -108,9 +108,9 @@ class WebSocketManager {
 
     this.wss.on("error", error => {
       console.error("WebSocket server error:", error);
-      performanceMonitor.recordMetric("websocket", "error", Date.now(), {
-        error: error.message,
-      });
+      // performanceMonitor.recordMetric("websocket", "error", Date.now(), {
+      //   error: error.message,
+      // });
     });
   }
 
@@ -167,11 +167,11 @@ class WebSocketManager {
     });
 
     // Record connection metric
-    performanceMonitor.recordMetric("websocket", "connection", Date.now(), {
-      clientId,
-      userId,
-      totalClients: this.clients.size,
-    });
+    // performanceMonitor.recordMetric("websocket", "connection", Date.now(), {
+    //   clientId,
+    //   userId,
+    //   totalClients: this.clients.size,
+    // });
 
     if (this.config.enableLogging) {
       console.warn(
@@ -221,11 +221,11 @@ class WebSocketManager {
       }
 
       // Record message metric
-      performanceMonitor.recordMetric("websocket", "message", Date.now(), {
-        clientId,
-        messageType: message.type,
-        dataSize: data.length,
-      });
+      // performanceMonitor.recordMetric("websocket", "message", Date.now(), {
+      //   clientId,
+      //   messageType: message.type,
+      //   dataSize: data.length,
+      // });
     } catch (error) {
       console.error(`Error handling message from ${clientId}:`, error);
       this.sendToClient(clientId, {
@@ -342,11 +342,11 @@ class WebSocketManager {
     client.ws.terminate();
 
     // Record disconnection metric
-    performanceMonitor.recordMetric("websocket", "disconnection", Date.now(), {
-      clientId,
-      userId: client.userId,
-      totalClients: this.clients.size,
-    });
+    // performanceMonitor.recordMetric("websocket", "disconnection", Date.now(), {
+    //   clientId,
+    //   userId: client.userId,
+    //   totalClients: this.clients.size,
+    // });
 
     if (this.config.enableLogging) {
       console.warn(`WebSocket client disconnected: ${clientId}`);
@@ -404,11 +404,11 @@ class WebSocketManager {
     }
 
     // Record broadcast metric
-    performanceMonitor.recordMetric("websocket", "broadcast", Date.now(), {
-      channel,
-      subscriberCount,
-      messageType: message.type,
-    });
+    // performanceMonitor.recordMetric("websocket", "broadcast", Date.now(), {
+    //   channel,
+    //   subscriberCount,
+    //   messageType: message.type,
+    // });
   }
 
   broadcastToAll(message: WebSocketMessage): void {
@@ -427,10 +427,10 @@ class WebSocketManager {
     }
 
     // Record broadcast metric
-    performanceMonitor.recordMetric("websocket", "broadcast_all", Date.now(), {
-      recipientCount,
-      messageType: message.type,
-    });
+    // performanceMonitor.recordMetric("websocket", "broadcast_all", Date.now(), {
+    //   recipientCount,
+    //   messageType: message.type,
+    // });
   }
 
   getClientInfo(clientId: string): WebSocketClient | undefined {
