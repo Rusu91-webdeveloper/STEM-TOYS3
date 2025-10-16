@@ -17,6 +17,7 @@ import {
   Info,
   Check,
   Filter,
+  Database,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -458,6 +459,18 @@ export default function Header() {
                     >
                       <Settings className="h-4 w-4 2xl:h-5 2xl:w-5" />
                       <span>{t("admin")}</span>
+                    </Link>
+                  )}
+
+                  {/* Database Schema Showcase - For VISITOR and ADMIN roles */}
+                  {(session?.user?.role === "VISITOR" ||
+                    session?.user?.role === "ADMIN") && (
+                    <Link
+                      href="/database-showcase"
+                      className="flex items-center gap-2 px-3 2xl:px-4 py-2 rounded-md text-sm 2xl:text-base font-medium bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg border border-transparent transform hover:scale-105"
+                    >
+                      <Database className="h-4 w-4 2xl:h-5 2xl:w-5" />
+                      <span>Database Schema</span>
                     </Link>
                   )}
 
@@ -1083,6 +1096,61 @@ export default function Header() {
 
                         <span className="relative font-bold tracking-wide text-xs">
                           {t("admin")}
+                        </span>
+
+                        {/* Animated arrow - COMPACT */}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="ml-auto relative transform group-hover:translate-x-1 transition-transform duration-300"
+                        >
+                          <path d="M5 12h14"></path>
+                          <path d="m12 5 7 7-7 7"></path>
+                        </svg>
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* Database Schema Showcase - COMPACT PREMIUM */}
+                  {(session?.user?.role === "VISITOR" ||
+                    session?.user?.role === "ADMIN") && (
+                    <div
+                      className="mb-2 animate-fadeIn"
+                      style={{ animationDelay: "0.35s" }}
+                    >
+                      <Link
+                        href="/database-showcase"
+                        className="relative flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold 
+                          bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-600 
+                          text-white 
+                          hover:from-cyan-600 hover:via-blue-600 hover:to-cyan-700 
+                          transition-all duration-300 cursor-pointer 
+                          shadow-md shadow-cyan-300/50 
+                          hover:shadow-lg hover:shadow-cyan-400/50
+                          transform hover:scale-[1.01] active:scale-[0.99]
+                          border border-cyan-400/30
+                          overflow-hidden
+                          group"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {/* Animated background glow */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+
+                        {/* Icon - COMPACT */}
+                        <div className="relative bg-white/20 p-1.5 rounded-md backdrop-blur-sm shadow-inner">
+                          <div className="absolute inset-0 bg-white/30 rounded-md blur-sm"></div>
+                          <Database className="relative h-3.5 w-3.5 group-hover:scale-110 transition-transform duration-300" />
+                        </div>
+
+                        <span className="relative font-bold tracking-wide text-xs">
+                          Database Schema
                         </span>
 
                         {/* Animated arrow - COMPACT */}
