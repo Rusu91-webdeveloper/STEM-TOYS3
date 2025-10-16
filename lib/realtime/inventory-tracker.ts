@@ -1,4 +1,4 @@
-import { performanceMonitor } from "../monitoring/performance-monitor";
+// import { performanceMonitor } from "../monitoring/performance-monitor";
 import { redisCache } from "../redis-enhanced";
 
 import { websocketManager, WebSocketMessage } from "./websocket-server";
@@ -86,12 +86,12 @@ class InventoryTracker {
     }, this.config.checkInterval);
 
     // Record startup metric
-    performanceMonitor.recordMetric({
-      operation: "inventory_startup",
-      duration: 0,
-      timestamp: Date.now(),
-      success: true,
-    });
+    // performanceMonitor.recordMetric({
+    //   operation: "inventory_startup",
+    //   duration: 0,
+    //   timestamp: Date.now(),
+    //   success: true,
+    // });
 
     console.warn("Inventory tracker started");
     return Promise.resolve();
@@ -176,31 +176,31 @@ class InventoryTracker {
       }
 
       // Record performance metric
-      performanceMonitor.recordMetric({
-        operation: "inventory_update",
-        duration: Date.now() - startTime,
-        timestamp: Date.now(),
-        success: true,
-        metadata: {
-          productId: update.productId,
-          operation: update.operation,
-          quantity: update.quantity,
-        },
-      });
+      // performanceMonitor.recordMetric({
+      //   operation: "inventory_update",
+      //   duration: Date.now() - startTime,
+      //   timestamp: Date.now(),
+      //   success: true,
+      //   metadata: {
+      //     productId: update.productId,
+      //     operation: update.operation,
+      //     quantity: update.quantity,
+      //   },
+      // });
 
       return updatedItem;
     } catch (error) {
       console.error("Error updating inventory:", error);
-      performanceMonitor.recordMetric({
-        operation: "inventory_error",
-        duration: Date.now() - startTime,
-        timestamp: Date.now(),
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-        metadata: {
-          productId: update.productId,
-        },
-      });
+      // performanceMonitor.recordMetric({
+      //   operation: "inventory_error",
+      //   duration: Date.now() - startTime,
+      //   timestamp: Date.now(),
+      //   success: false,
+      //   error: error instanceof Error ? error.message : "Unknown error",
+      //   metadata: {
+      //     productId: update.productId,
+      //   },
+      // });
       return null;
     }
   }
@@ -395,15 +395,15 @@ class InventoryTracker {
       // This would check all inventory items for alerts
       // For now, we'll just log that the check was performed
       if (this.config.enableAnalytics) {
-        performanceMonitor.recordMetric({
-          operation: "inventory_periodic_check",
-          duration: 0,
-          timestamp: Date.now(),
-          success: true,
-          metadata: {
-            alertsCount: this.alerts.size,
-          },
-        });
+        // performanceMonitor.recordMetric({
+        //   operation: "inventory_periodic_check",
+        //   duration: 0,
+        //   timestamp: Date.now(),
+        //   success: true,
+        //   metadata: {
+        //     alertsCount: this.alerts.size,
+        //   },
+        // });
       }
       return Promise.resolve();
     } catch (error) {
