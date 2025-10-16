@@ -408,9 +408,9 @@ class ImageOptimizer {
    */
   private recordPerformance(operation: string, duration: number): void {
     // performanceMonitor.recordMetric("image_optimization", operation, Date.now(), {
-      duration,
-      operation,
-    });
+    //   duration,
+    //   operation,
+    // });
   }
 
   /**
@@ -460,12 +460,12 @@ class ImageOptimizer {
     const metadataSize = this.metadataCache.size;
     
     // Calculate hit rate from performance metrics
-    const totalRequests = // performanceMonitor.getMetrics("image_optimization", "optimization")?.length || 0;
-    const cacheHits = // performanceMonitor.getMetrics("image_optimization", "cache_hit")?.length || 0;
+    const totalRequests = 0; // performanceMonitor.getMetrics("image_optimization", "optimization")?.length || 0;
+    const cacheHits = 0; // performanceMonitor.getMetrics("image_optimization", "cache_hit")?.length || 0;
     const hitRate = totalRequests > 0 ? (cacheHits / totalRequests) * 100 : 0;
     
     // Calculate average optimization time
-    const optimizationTimes = // performanceMonitor.getMetrics("image_optimization", "optimization") || [];
+    const optimizationTimes: any[] = []; // performanceMonitor.getMetrics("image_optimization", "optimization") || [];
     const avgTime = optimizationTimes.length > 0 
       ? optimizationTimes.reduce((a, b) => a + b.duration, 0) / optimizationTimes.length 
       : 0;

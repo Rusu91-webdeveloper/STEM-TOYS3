@@ -149,37 +149,37 @@ class ApiCache {
 
         // Record cache hit
         // performanceMonitor.recordCacheOperation(
-          "get",
-          Date.now() - startTime,
-          true,
-          true,
-          undefined,
-          { cacheKey, age, isStale }
-        );
+        //   "get",
+        //   Date.now() - startTime,
+        //   true,
+        //   true,
+        //   undefined,
+        //   { cacheKey, age, isStale }
+        // );
 
         return cached;
       }
 
       // Record cache miss
       // performanceMonitor.recordCacheOperation(
-        "get",
-        Date.now() - startTime,
-        true,
-        false,
-        undefined,
-        { cacheKey }
-      );
+      //   "get",
+      //   Date.now() - startTime,
+      //   true,
+      //   false,
+      //   undefined,
+      //   { cacheKey }
+      // );
 
       return null;
     } catch (error) {
       // performanceMonitor.recordCacheOperation(
-        "get",
-        Date.now() - startTime,
-        false,
-        false,
-        error instanceof Error ? error.message : "Unknown error",
-        { cacheKey }
-      );
+      //   "get",
+      //   Date.now() - startTime,
+      //   false,
+      //   false,
+      //   error instanceof Error ? error.message : "Unknown error",
+      //   { cacheKey }
+      // );
       return null;
     }
   }
@@ -216,22 +216,22 @@ class ApiCache {
       await redisCache.set(cacheKey, cachedResponse, ttl);
 
       // performanceMonitor.recordCacheOperation(
-        "set",
-        Date.now() - startTime,
-        true,
-        undefined,
-        undefined,
-        { cacheKey, ttl }
-      );
+      //   "set",
+      //   Date.now() - startTime,
+      //   true,
+      //   undefined,
+      //   undefined,
+      //   { cacheKey, ttl }
+      // );
     } catch (error) {
       // performanceMonitor.recordCacheOperation(
-        "set",
-        Date.now() - startTime,
-        false,
-        undefined,
-        error instanceof Error ? error.message : "Unknown error",
-        { cacheKey, ttl }
-      );
+      //   "set",
+      //   Date.now() - startTime,
+      //   false,
+      //   undefined,
+      //   error instanceof Error ? error.message : "Unknown error",
+      //   { cacheKey, ttl }
+      // );
     }
   }
 

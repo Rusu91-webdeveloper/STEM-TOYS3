@@ -329,15 +329,15 @@ class RequestValidator {
 
       // Record validation performance
       // performanceMonitor.recordApiRequest(
-        req.method,
-        req.nextUrl?.pathname || "unknown",
-        Date.now() - startTime,
-        errors.length > 0 ? 400 : 200,
-        errors.length === 0,
-        undefined,
-        undefined,
-        { validationErrors: errors.length }
-      );
+      //   req.method,
+      //   req.nextUrl?.pathname || "unknown",
+      //   Date.now() - startTime,
+      //   errors.length > 0 ? 400 : 200,
+      //   errors.length === 0,
+      //   undefined,
+      //   undefined,
+      //   { validationErrors: errors.length }
+      // );
 
       // Return validation result
       if (errors.length > 0) {

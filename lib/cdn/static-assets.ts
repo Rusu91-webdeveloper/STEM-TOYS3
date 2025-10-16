@@ -336,10 +336,10 @@ class CDNManager {
     
     // Record to performance monitor
     // performanceMonitor.recordMetric("cdn", operation, Date.now(), {
-      duration,
-      operation,
-      provider: this.config.provider,
-    });
+    //   duration,
+    //   operation,
+    //   provider: this.config.provider,
+    // });
   }
 
   /**

@@ -18,10 +18,10 @@ export function GET(req: NextRequest) {
 
     // Record metric
     // performanceMonitor.recordMetric("websocket", "status_check", Date.now(), {
-      userId,
-      sessionId,
-      connectedClients: status.connected,
-    });
+    //   userId,
+    //   sessionId,
+    //   connectedClients: status.connected,
+    // });
 
     return NextResponse.json(status);
   } catch (error) {
@@ -102,10 +102,10 @@ export async function POST(req: NextRequest) {
 
     // Record metric
     // performanceMonitor.recordMetric("websocket", "api_operation", Date.now(), {
-      operation: type,
-      targetClient,
-      targetChannel,
-    });
+    //   operation: type,
+    //   targetClient,
+    //   targetChannel,
+    // });
 
     return NextResponse.json(result);
   } catch (error) {

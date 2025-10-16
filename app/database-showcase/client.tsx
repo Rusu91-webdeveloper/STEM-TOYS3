@@ -2,23 +2,54 @@
 
 import { useState } from "react";
 import { Database, Sparkles, BarChart3, Github } from "lucide-react";
+import { Node, Edge } from "@xyflow/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { SchemaVisualization } from "@/features/database-showcase/components/SchemaVisualization";
 import { FeatureHighlights } from "@/features/database-showcase/components/FeatureHighlights";
 import { DatabaseStats } from "@/features/database-showcase/components/DatabaseStats";
-import {
-  SchemaModel,
-  SchemaRelation,
-  SchemaEnum,
-  SchemaStatistics,
-} from "@/lib/database/schema-analyzer";
+
+interface SchemaModel {
+  name: string;
+  fields: any[];
+  indexes: string[];
+  uniqueConstraints: string[];
+  relations: any[];
+  domain: string;
+}
+
+interface SchemaRelation {
+  from: string;
+  to: string;
+  type: string;
+  fieldName: string;
+}
+
+interface SchemaEnum {
+  name: string;
+  values: string[];
+}
+
+interface SchemaStatistics {
+  totalModels: number;
+  totalRelations: number;
+  totalIndexes: number;
+  totalEnums: number;
+  totalFields: number;
+  jsonFields: number;
+  arrayFields: number;
+  uniqueConstraints: number;
+  securityFeatures: number;
+  automationFeatures: number;
+}
 
 interface DatabaseShowcaseClientProps {
   models: SchemaModel[];
   relations: SchemaRelation[];
   enums: SchemaEnum[];
   statistics: SchemaStatistics;
+  nodes: Node[];
+  edges: Edge[];
 }
 
 export function DatabaseShowcaseClient({
@@ -26,6 +57,8 @@ export function DatabaseShowcaseClient({
   relations,
   enums,
   statistics,
+  nodes,
+  edges,
 }: DatabaseShowcaseClientProps) {
   const [activeTab, setActiveTab] = useState("diagram");
 
@@ -147,7 +180,12 @@ export function DatabaseShowcaseClient({
               for navigation and search to find specific tables or fields.
             </p>
           </div>
-          <SchemaVisualization models={models} relations={relations} />
+          <SchemaVisualization 
+            models={models} 
+            relations={relations}
+            initialNodes={nodes}
+            initialEdges={edges}
+          />
 
           {/* Instructions */}
           <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 max-w-4xl mx-auto">

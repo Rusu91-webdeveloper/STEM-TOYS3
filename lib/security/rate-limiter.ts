@@ -223,15 +223,15 @@ class RateLimiter {
 
       // Record rate limit check
       // performanceMonitor.recordApiRequest(
-        req.method,
-        req.nextUrl?.pathname || "unknown",
-        Date.now() - startTime,
-        200,
-        true,
-        undefined,
-        undefined,
-        { rateLimitKey: key, rateLimitInfo: info }
-      );
+      //   req.method,
+      //   req.nextUrl?.pathname || "unknown",
+      //   Date.now() - startTime,
+      //   200,
+      //   true,
+      //   undefined,
+      //   undefined,
+      //   { rateLimitKey: key, rateLimitInfo: info }
+      // );
 
       if (info.remaining < 0) {
         // Rate limit exceeded

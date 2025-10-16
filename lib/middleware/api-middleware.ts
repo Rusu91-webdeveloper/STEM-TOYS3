@@ -66,14 +66,14 @@ class ApiMiddleware {
         const method = req.method;
 
         // performanceMonitor.recordApiRequest(
-          method,
-          path,
-          duration,
-          0, // We don't have status code in catch block
-          success,
-          undefined,
-          error
-        );
+        //   method,
+        //   path,
+        //   duration,
+        //   0, // We don't have status code in catch block
+        //   success,
+        //   undefined,
+        //   error
+        // );
       }
     };
   }
@@ -285,14 +285,14 @@ class ApiMiddleware {
         // Log error for monitoring
         if (this.config.enablePerformanceMonitoring) {
           // performanceMonitor.recordApiRequest(
-            req.method,
-            req.nextUrl.pathname,
-            0,
-            500,
-            false,
-            undefined,
-            error instanceof Error ? error.message : "Unknown error"
-          );
+          //   req.method,
+          //   req.nextUrl.pathname,
+          //   0,
+          //   500,
+          //   false,
+          //   undefined,
+          //   error instanceof Error ? error.message : "Unknown error"
+          // );
         }
 
         // Return appropriate error response
@@ -388,11 +388,10 @@ class ApiMiddleware {
     try {
       const checks = {
         redis: await redisCache.healthCheck(),
-        performance: // performanceMonitor.getMetrics(),
+        performance: {}, // performanceMonitor.getMetrics(),
       };
 
-      const isHealthy =
-        checks.redis && Object.keys(checks.performance).length > 0;
+      const isHealthy = checks.redis;
 
       return NextResponse.json(
         {
@@ -418,7 +417,7 @@ class ApiMiddleware {
   async getMetrics(_req: NextRequest): Promise<NextResponse> {
     try {
       const metrics = {
-        performance: // performanceMonitor.getMetrics(),
+        performance: {}, // performanceMonitor.getMetrics(),
         cache: await redisCache.getCacheStats(),
         timestamp: new Date().toISOString(),
       };

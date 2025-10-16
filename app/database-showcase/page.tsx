@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { auth } from "@/lib/server/auth";
 import { DatabaseShowcaseClient } from "./client";
 import { parseSchema } from "@/lib/database/schema-analyzer";
+import { transformToFlow, applyDagreLayout } from "@/lib/database/flow-transformer";
 
 export const metadata: Metadata = {
   title: "Database Architecture Showcase | TechTots",
@@ -28,6 +29,10 @@ export default async function DatabaseShowcasePage() {
 
   // Parse the schema on the server side
   const schemaData = parseSchema();
+  
+  // Transform to React Flow format on the server
+  const flow = transformToFlow(schemaData.models, schemaData.relations);
+  const layoutedNodes = applyDagreLayout(flow.nodes, flow.edges, "TB");
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -36,6 +41,8 @@ export default async function DatabaseShowcasePage() {
         relations={schemaData.relations}
         enums={schemaData.enums}
         statistics={schemaData.statistics}
+        nodes={layoutedNodes}
+        edges={flow.edges}
       />
     </div>
   );

@@ -16,18 +16,24 @@ import "@xyflow/react/dist/style.css";
 import { Search, Download, Maximize2 } from "lucide-react";
 import { TableNode } from "./nodes/TableNode";
 import { TableDetailsSidebar } from "./TableDetailsSidebar";
-import { SchemaModel } from "@/lib/database/schema-analyzer";
-import {
-  transformToFlow,
-  applyDagreLayout,
-} from "@/lib/database/flow-transformer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+interface SchemaModel {
+  name: string;
+  fields: any[];
+  indexes: string[];
+  uniqueConstraints: string[];
+  relations: any[];
+  domain: string;
+}
+
 interface SchemaVisualizationProps {
   models: SchemaModel[];
   relations: any[];
+  initialNodes: Node[];
+  initialEdges: Edge[];
 }
 
 const nodeTypes = {
@@ -37,17 +43,12 @@ const nodeTypes = {
 export function SchemaVisualization({
   models,
   relations,
+  initialNodes,
+  initialEdges,
 }: SchemaVisualizationProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTable, setSelectedTable] = useState<SchemaModel | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Transform data to React Flow format
-  const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
-    const flow = transformToFlow(models, relations);
-    const layoutedNodes = applyDagreLayout(flow.nodes, flow.edges, "TB");
-    return { nodes: layoutedNodes, edges: flow.edges };
-  }, [models, relations]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);

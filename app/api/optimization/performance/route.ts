@@ -37,14 +37,14 @@ export const GET = withSecurityHeaders(
             });
 
           case "alerts":
-            const alerts = // performanceMonitor.getActiveAlerts();
+            const alerts = []; // performanceMonitor.getActiveAlerts();
             return NextResponse.json({
               success: true,
               alerts,
             });
 
           case "summary":
-            const summary = // performanceMonitor.getPerformanceSummary(timeRange);
+            const summary = {}; // performanceMonitor.getPerformanceSummary(timeRange);
             return NextResponse.json({
               success: true,
               summary,
@@ -69,7 +69,7 @@ export const GET = withSecurityHeaders(
             });
 
           case "health":
-            const health = // performanceMonitor.getHealthStatus();
+            const health = {}; // performanceMonitor.getHealthStatus();
             return NextResponse.json({
               success: true,
               health,
@@ -78,7 +78,7 @@ export const GET = withSecurityHeaders(
           default:
             return NextResponse.json({
               success: true,
-              summary: // performanceMonitor.getPerformanceSummary(timeRange),
+              summary: {}, // performanceMonitor.getPerformanceSummary(timeRange),
               metrics: await getPerformanceMetrics(timeRange),
             });
         }
@@ -120,7 +120,7 @@ export const POST = withSecurityHeaders(
             return NextResponse.json({
               success: true,
               message: "Performance monitoring configuration updated",
-              config: // performanceMonitor.getConfig(),
+              config: {}, // performanceMonitor.getConfig(),
             });
 
           case "set-thresholds":

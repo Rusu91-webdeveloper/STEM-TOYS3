@@ -41,19 +41,15 @@ const secureHandler = withPerformanceMonitoring(
                     await new Promise(resolve => setTimeout(resolve, 100));
 
                     // Example of database operation with monitoring
-                    const dbResult =
-                      await // performanceMonitor.withDatabaseMonitoring(
-                        "secure_example_query",
-                        async () => {
-                          // Simulate database query
-                          await new Promise(resolve => setTimeout(resolve, 50));
-                          return {
-                            success: true,
-                            data: "Database operation completed",
-                          };
-                        },
-                        { operation: "secure_example", userId: "example" }
-                      );
+                    const dbResult = await (async () => {
+                      // Simulate database query
+                      await new Promise(resolve => setTimeout(resolve, 50));
+                      return {
+                        success: true,
+                        data: "Database operation completed",
+                      };
+                    })();
+                    // performanceMonitor.withDatabaseMonitoring("secure_example_query", ...);
 
                     // Example of cache operation
                     const cacheKey = `secure_example:${Date.now()}`;
@@ -65,19 +61,19 @@ const secureHandler = withPerformanceMonitoring(
 
                     // Record successful operation
                     // performanceMonitor.recordApiRequest(
-                      req.method,
-                      req.nextUrl?.pathname || "unknown",
-                      Date.now() - startTime,
-                      200,
-                      true,
-                      JSON.stringify({ success: true }).length,
-                      undefined,
-                      {
-                        operation: "secure_example",
-                        validatedData: validatedData.body,
-                        cacheKey,
-                      }
-                    );
+                    //   req.method,
+                    //   req.nextUrl?.pathname || "unknown",
+                    //   Date.now() - startTime,
+                    //   200,
+                    //   true,
+                    //   JSON.stringify({ success: true }).length,
+                    //   undefined,
+                    //   {
+                    //     operation: "secure_example",
+                    //     validatedData: validatedData.body,
+                    //     cacheKey,
+                    //   }
+                    // );
 
                     return NextResponse.json({
                       success: true,
@@ -105,15 +101,15 @@ const secureHandler = withPerformanceMonitoring(
                   } catch (error) {
                     // Record error
                     // performanceMonitor.recordApiRequest(
-                      req.method,
-                      req.nextUrl?.pathname || "unknown",
-                      Date.now() - startTime,
-                      500,
-                      false,
-                      undefined,
-                      error instanceof Error ? error.message : "Unknown error",
-                      { operation: "secure_example_error" }
-                    );
+                    //   req.method,
+                    //   req.nextUrl?.pathname || "unknown",
+                    //   Date.now() - startTime,
+                    //   500,
+                    //   false,
+                    //   undefined,
+                    //   error instanceof Error ? error.message : "Unknown error",
+                    //   { operation: "secure_example_error" }
+                    // );
 
                     throw error;
                   }
@@ -156,15 +152,15 @@ export const GET = withPerformanceMonitoring(
 
                 // Record successful operation
                 // performanceMonitor.recordApiRequest(
-                  req.method,
-                  req.nextUrl?.pathname || "unknown",
-                  Date.now() - startTime,
-                  200,
-                  true,
-                  undefined,
-                  undefined,
-                  { operation: "secure_example_get" }
-                );
+                //   req.method,
+                //   req.nextUrl?.pathname || "unknown",
+                //   Date.now() - startTime,
+                //   200,
+                //   true,
+                //   undefined,
+                //   undefined,
+                //   { operation: "secure_example_get" }
+                // );
 
                 return NextResponse.json({
                   success: true,
@@ -188,15 +184,15 @@ export const GET = withPerformanceMonitoring(
               } catch (error) {
                 // Record error
                 // performanceMonitor.recordApiRequest(
-                  req.method,
-                  req.nextUrl?.pathname || "unknown",
-                  Date.now() - startTime,
-                  500,
-                  false,
-                  undefined,
-                  error instanceof Error ? error.message : "Unknown error",
-                  { operation: "secure_example_get_error" }
-                );
+                //   req.method,
+                //   req.nextUrl?.pathname || "unknown",
+                //   Date.now() - startTime,
+                //   500,
+                //   false,
+                //   undefined,
+                //   error instanceof Error ? error.message : "Unknown error",
+                //   { operation: "secure_example_get_error" }
+                // );
 
                 throw error;
               }

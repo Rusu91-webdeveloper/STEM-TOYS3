@@ -66,15 +66,15 @@ export const GET = withSecurityHeaders(
 
           // Record metric
           // performanceMonitor.recordMetric({
-            operation: "inventory_get_item",
-            duration: 0,
-            timestamp: Date.now(),
-            success: true,
-            metadata: {
-              productId,
-              found: true,
-            },
-          });
+          //   operation: "inventory_get_item",
+          //   duration: 0,
+          //   timestamp: Date.now(),
+          //   success: true,
+          //   metadata: {
+          //     productId,
+          //     found: true,
+          //   },
+          // });
 
           return NextResponse.json({ success: true, item });
         } catch (error) {
@@ -138,16 +138,16 @@ export const POST = withSecurityHeaders(
 
           // Record metric
           // performanceMonitor.recordMetric({
-            operation: "inventory_update",
-            duration: 0,
-            timestamp: Date.now(),
-            success: true,
-            metadata: {
-              productId,
-              operation,
-              quantity,
-            },
-          });
+          //   operation: "inventory_update",
+          //   duration: 0,
+          //   timestamp: Date.now(),
+          //   success: true,
+          //   metadata: {
+          //     productId,
+          //     operation,
+          //     quantity,
+          //   },
+          // });
 
           return NextResponse.json({
             success: true,
@@ -228,16 +228,16 @@ export const PUT = withSecurityHeaders(
 
           // Record metric
           // performanceMonitor.recordMetric({
-            operation: "inventory_process_order",
-            duration: 0,
-            timestamp: Date.now(),
-            success: true,
-            metadata: {
-              productId,
-              quantity,
-              orderId,
-            },
-          });
+          //   operation: "inventory_process_order",
+          //   duration: 0,
+          //   timestamp: Date.now(),
+          //   success: true,
+          //   metadata: {
+          //     productId,
+          //     quantity,
+          //     orderId,
+          //   },
+          // });
 
           return NextResponse.json({
             success: true,
@@ -302,16 +302,16 @@ export const PATCH = withSecurityHeaders(
 
           // Record metric
           // performanceMonitor.recordMetric({
-            operation: "inventory_reserve",
-            duration: 0,
-            timestamp: Date.now(),
-            success: true,
-            metadata: {
-              productId,
-              quantity,
-              orderId,
-            },
-          });
+          //   operation: "inventory_reserve",
+          //   duration: 0,
+          //   timestamp: Date.now(),
+          //   success: true,
+          //   metadata: {
+          //     productId,
+          //     quantity,
+          //     orderId,
+          //   },
+          // });
 
           return NextResponse.json({
             success: true,
