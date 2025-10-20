@@ -1,4 +1,4 @@
-import crypto from "crypto";
+// Edge runtime: use Web Crypto API instead of Node's crypto
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -476,8 +476,8 @@ export async function middleware(request: NextRequest) {
     if (value) {
       // Dynamically set CSP for better security
       if (key === "Content-Security-Policy") {
-        // Generate a nonce for scripts
-        const nonce = crypto.randomBytes(16).toString("base64");
+        // Generate a nonce for scripts using Web Crypto API (Edge-safe)
+        const nonce = generateNonce();
         // Store nonce in request context for use in page templates
         response.headers.set("x-nonce", nonce);
         response.headers.set(key, getContentSecurityPolicy(nonce));
@@ -760,4 +760,17 @@ function getContentSecurityPolicy(nonce: string) {
       return `${key} ${values.join(" ")}`;
     })
     .join("; ");
+}
+
+// Edge-safe nonce generator (Web Crypto API)
+function generateNonce(): string {
+  const bytes = new Uint8Array(16);
+  // globalThis.crypto is available in Edge runtime
+  globalThis.crypto.getRandomValues(bytes);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  // btoa is available in Edge runtime to base64-encode the nonce
+  return btoa(binary);
 }
