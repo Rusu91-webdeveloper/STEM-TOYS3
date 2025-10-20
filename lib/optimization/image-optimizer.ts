@@ -94,7 +94,9 @@ class ImageOptimizer {
     this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
-  static getInstance(config?: Partial<ImageOptimizationConfig>): ImageOptimizer {
+  static getInstance(
+    config?: Partial<ImageOptimizationConfig>
+  ): ImageOptimizer {
     if (!ImageOptimizer.instance) {
       ImageOptimizer.instance = new ImageOptimizer(config);
     }
@@ -117,11 +119,11 @@ class ImageOptimizer {
     }
   ): Promise<OptimizedImage> {
     const startTime = Date.now();
-    
+
     try {
       // Generate cache key
       const cacheKey = this.generateCacheKey(src, options);
-      
+
       // Check cache first
       const cached = this.imageCache.get(cacheKey);
       if (cached) {
@@ -131,16 +133,20 @@ class ImageOptimizer {
 
       // Get image metadata
       const metadata = await this.getImageMetadata(src);
-      
+
       // Generate optimized image
-      const optimized = await this.generateOptimizedImage(src, metadata, options);
-      
+      const optimized = await this.generateOptimizedImage(
+        src,
+        metadata,
+        options
+      );
+
       // Cache the result
       this.imageCache.set(cacheKey, optimized);
-      
+
       // Record performance
       this.recordPerformance("optimization", Date.now() - startTime);
-      
+
       return optimized;
     } catch (error) {
       console.error("Error optimizing image:", error);
@@ -162,48 +168,58 @@ class ImageOptimizer {
     }
   ): Promise<OptimizedImage> {
     const startTime = Date.now();
-    
+
     try {
       // Get metadata
       const metadata = await this.getImageMetadata(src);
-      
+
       // Calculate sizes based on aspect ratio and max width
       const sizes = this.calculateResponsiveSizes(metadata, options);
-      
+
       // Generate srcSet
       const srcSetParts: string[] = [];
       const formats = this.getEnabledFormats();
-      
+
       for (const size of sizes) {
         for (const format of formats) {
           const url = cdnManager.getAssetUrl(src, {
             width: size,
             format,
-            quality: this.config.quality[format as keyof typeof this.config.quality],
+            quality:
+              this.config.quality[format as keyof typeof this.config.quality],
             optimize: true,
           });
           srcSetParts.push(`${url} ${size}w`);
         }
       }
-      
+
       const optimized: OptimizedImage = {
         src: cdnManager.getAssetUrl(src),
         srcSet: srcSetParts.join(", "),
-        sizes: options?.maxWidth ? `(max-width: ${options.maxWidth}px) 100vw, ${options.maxWidth}px` : "100vw",
+        sizes: options?.maxWidth
+          ? `(max-width: ${options.maxWidth}px) 100vw, ${options.maxWidth}px`
+          : "100vw",
         width: metadata.width,
         height: metadata.height,
         format: metadata.format,
         size: metadata.size,
-        loading: options?.priority ? "eager" : (options?.lazy !== false && this.config.lazyLoading.enabled ? "lazy" : "eager"),
+        loading: options?.priority
+          ? "eager"
+          : options?.lazy !== false && this.config.lazyLoading.enabled
+            ? "lazy"
+            : "eager",
       };
-      
+
       // Add placeholder if lazy loading is enabled
-      if (optimized.loading === "lazy" && this.config.lazyLoading.placeholder !== "none") {
+      if (
+        optimized.loading === "lazy" &&
+        this.config.lazyLoading.placeholder !== "none"
+      ) {
         optimized.placeholder = await this.generatePlaceholder(src, metadata);
       }
-      
+
       this.recordPerformance("responsive_generation", Date.now() - startTime);
-      
+
       return optimized;
     } catch (error) {
       console.error("Error generating responsive image:", error);
@@ -232,10 +248,10 @@ class ImageOptimizer {
         aspectRatio: 16 / 9,
         dominantColor: "#000000",
       };
-      
+
       // Cache metadata
       this.metadataCache.set(src, metadata);
-      
+
       return metadata;
     } catch (error) {
       console.error("Error getting image metadata:", error);
@@ -259,8 +275,10 @@ class ImageOptimizer {
     options?: any
   ): Promise<OptimizedImage> {
     const format = options?.format || this.getBestFormat(metadata.format);
-    const quality = options?.quality || this.config.quality[format as keyof typeof this.config.quality];
-    
+    const quality =
+      options?.quality ||
+      this.config.quality[format as keyof typeof this.config.quality];
+
     const optimizedSrc = cdnManager.getAssetUrl(src, {
       width: options?.width,
       height: options?.height,
@@ -268,7 +286,7 @@ class ImageOptimizer {
       quality,
       optimize: true,
     });
-    
+
     return {
       src: optimizedSrc,
       srcSet: optimizedSrc,
@@ -290,15 +308,15 @@ class ImageOptimizer {
   ): number[] {
     const maxWidth = options?.maxWidth || metadata.width;
     const aspectRatio = options?.aspectRatio || metadata.aspectRatio;
-    
+
     // Filter sizes that are smaller than max width
     const sizes = this.config.sizes.filter(size => size <= maxWidth);
-    
+
     // Add the original size if it's not already included
     if (!sizes.includes(maxWidth)) {
       sizes.push(maxWidth);
     }
-    
+
     return sizes.sort((a, b) => a - b);
   }
 
@@ -307,12 +325,12 @@ class ImageOptimizer {
    */
   private getEnabledFormats(): string[] {
     const formats: string[] = [];
-    
+
     if (this.config.formats.webp) formats.push("webp");
     if (this.config.formats.avif) formats.push("avif");
     if (this.config.formats.jpeg) formats.push("jpeg");
     if (this.config.formats.png) formats.push("png");
-    
+
     return formats;
   }
 
@@ -323,12 +341,14 @@ class ImageOptimizer {
     // Prefer modern formats
     if (this.config.formats.avif) return "avif";
     if (this.config.formats.webp) return "webp";
-    
+
     // Fall back to original format
-    if (this.config.formats[originalFormat as keyof typeof this.config.formats]) {
+    if (
+      this.config.formats[originalFormat as keyof typeof this.config.formats]
+    ) {
       return originalFormat;
     }
-    
+
     // Default to JPEG
     return "jpeg";
   }
@@ -338,7 +358,7 @@ class ImageOptimizer {
    */
   private getFormatFromUrl(url: string): string {
     const ext = url.split(".").pop()?.toLowerCase();
-    
+
     switch (ext) {
       case "jpg":
       case "jpeg":
@@ -375,7 +395,7 @@ class ImageOptimizer {
         `<svg width="${metadata.width}" height="${metadata.height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="${metadata.dominantColor || "#f0f0f0"}"/></svg>`
       ).toString("base64")}`;
     }
-    
+
     return "";
   }
 
@@ -418,15 +438,15 @@ class ImageOptimizer {
    */
   async preloadImages(images: string[]): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       await Promise.allSettled(
-        images.map(async (src) => {
+        images.map(async src => {
           const optimized = await this.optimizeImage(src, { priority: true });
           await this.preloadImage(optimized.src);
         })
       );
-      
+
       this.recordPerformance("preload", Date.now() - startTime);
     } catch (error) {
       console.error("Error preloading images:", error);
@@ -458,18 +478,20 @@ class ImageOptimizer {
   } {
     const cacheSize = this.imageCache.size;
     const metadataSize = this.metadataCache.size;
-    
+
     // Calculate hit rate from performance metrics
     const totalRequests = 0; // performanceMonitor.getMetrics("image_optimization", "optimization")?.length || 0;
     const cacheHits = 0; // performanceMonitor.getMetrics("image_optimization", "cache_hit")?.length || 0;
     const hitRate = totalRequests > 0 ? (cacheHits / totalRequests) * 100 : 0;
-    
+
     // Calculate average optimization time
     const optimizationTimes: any[] = []; // performanceMonitor.getMetrics("image_optimization", "optimization") || [];
-    const avgTime = optimizationTimes.length > 0 
-      ? optimizationTimes.reduce((a, b) => a + b.duration, 0) / optimizationTimes.length 
-      : 0;
-    
+    const avgTime =
+      optimizationTimes.length > 0
+        ? optimizationTimes.reduce((a, b) => a + b.duration, 0) /
+          optimizationTimes.length
+        : 0;
+
     return {
       cacheSize: cacheSize + metadataSize,
       cacheHitRate: hitRate,

@@ -311,64 +311,68 @@ export async function POST(request: Request) {
     const tax =
       orderData.tax || (applyTax ? subtotal - subtotal / (1 + taxRate) : 0);
 
-    // Handle coupon application
+    // Handle coupon application (one-discount-per-order with best selection)
     let appliedCoupon = null;
     let discountAmount = 0;
 
-    if (orderData.couponCode) {
-      try {
-        // Validate and apply coupon
-        const coupon = await db.coupon.findUnique({
-          where: { code: orderData.couponCode.toUpperCase() },
+    try {
+      const { AutoDiscountService } = await import(
+        "@/lib/services/discount-service"
+      );
+
+      // 1) Compute welcome discount eligibility for NEW users
+      const welcome = user?.id
+        ? await AutoDiscountService.getNewUserDiscount(user.id, subtotal)
+        : null;
+
+      // 2) If manual coupon provided, validate it
+      let manualCoupon: any = null;
+      if (orderData.couponCode) {
+        const candidate = await db.coupon.findUnique({
+          where: { code: (orderData.couponCode || "").toUpperCase() },
           include: {
             _count: {
               select: {
                 usages: {
-                  where: { userId: user.id },
+                  where: { userId: user?.id || "" },
                 },
               },
             },
           },
         });
 
-        if (coupon && coupon.isActive) {
-          // Check all coupon conditions
+        if (candidate && candidate.isActive) {
           const now = new Date();
           const isValidTime =
-            (!coupon.startsAt || now >= coupon.startsAt) &&
-            (!coupon.expiresAt || now <= coupon.expiresAt);
+            (!candidate.startsAt || now >= candidate.startsAt) &&
+            (!candidate.expiresAt || now <= candidate.expiresAt);
           const hasUsesLeft =
-            !coupon.maxUses || coupon.currentUses < coupon.maxUses;
+            !candidate.maxUses || candidate.currentUses < candidate.maxUses;
           const userCanUse =
-            !coupon.maxUsesPerUser ||
-            coupon._count.usages < coupon.maxUsesPerUser;
+            !candidate.maxUsesPerUser ||
+            (candidate._count?.usages || 0) < candidate.maxUsesPerUser;
           const meetsMinimum =
-            !coupon.minimumOrderValue || subtotal >= coupon.minimumOrderValue;
-
+            !candidate.minimumOrderValue ||
+            subtotal >= candidate.minimumOrderValue;
           if (isValidTime && hasUsesLeft && userCanUse && meetsMinimum) {
-            appliedCoupon = coupon;
-
-            // Calculate discount
-            if (coupon.type === "PERCENTAGE") {
-              discountAmount = (subtotal * coupon.value) / 100;
-              if (
-                coupon.maxDiscountAmount &&
-                discountAmount > coupon.maxDiscountAmount
-              ) {
-                discountAmount = coupon.maxDiscountAmount;
-              }
-            } else {
-              discountAmount = Math.min(coupon.value, subtotal);
-            }
-
-            // Round to 2 decimal places
-            discountAmount = Math.round(discountAmount * 100) / 100;
+            manualCoupon = candidate;
           }
         }
-      } catch (couponError) {
-        console.error("Error applying coupon:", couponError);
-        // Continue without coupon if there's an error
       }
+
+      // 3) Compare and select best discount
+      const selected = AutoDiscountService.compareDiscounts(
+        welcome,
+        manualCoupon,
+        subtotal
+      );
+      if (selected) {
+        appliedCoupon = selected.selectedCoupon;
+        discountAmount = selected.discountAmount;
+      }
+    } catch (couponError) {
+      console.error("Error selecting discounts:", couponError);
+      // Continue without discount if there's an error
     }
 
     // Use provided discount amount if available (from frontend validation)

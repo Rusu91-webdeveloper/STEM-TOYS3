@@ -44,7 +44,10 @@ const inventoryQuerySchema = z.object({
 export const GET = withSecurityHeaders(
   withRateLimiting(
     withValidation(
-      async (req: NextRequest, validatedData: { query?: { productId: string } }) => {
+      async (
+        req: NextRequest,
+        validatedData: { query?: { productId: string } }
+      ) => {
         try {
           const { productId } = validatedData.query || {};
 
@@ -104,7 +107,18 @@ export const GET = withSecurityHeaders(
 export const POST = withSecurityHeaders(
   withRateLimiting(
     withValidation(
-      async (req: NextRequest, validatedData: { body?: { productId: string; quantity: number; operation: "add" | "subtract" | "reserve" | "release" | "set"; reason: string; orderId?: string } }) => {
+      async (
+        req: NextRequest,
+        validatedData: {
+          body?: {
+            productId: string;
+            quantity: number;
+            operation: "add" | "subtract" | "reserve" | "release" | "set";
+            reason: string;
+            orderId?: string;
+          };
+        }
+      ) => {
         try {
           const { productId, quantity, operation, reason, orderId } =
             validatedData.body || {};
@@ -181,7 +195,12 @@ export const POST = withSecurityHeaders(
 export const PUT = withSecurityHeaders(
   withRateLimiting(
     withValidation(
-      async (req: NextRequest, validatedData: { body?: { productId: string; quantity: number; orderId: string } }) => {
+      async (
+        req: NextRequest,
+        validatedData: {
+          body?: { productId: string; quantity: number; orderId: string };
+        }
+      ) => {
         try {
           const { productId, quantity, orderId } = validatedData.body || {};
           const userId = req.headers.get("x-user-id") ?? "system";
@@ -271,7 +290,12 @@ export const PUT = withSecurityHeaders(
 export const PATCH = withSecurityHeaders(
   withRateLimiting(
     withValidation(
-      async (req: NextRequest, validatedData: { body?: { productId: string; quantity: number; orderId?: string } }) => {
+      async (
+        req: NextRequest,
+        validatedData: {
+          body?: { productId: string; quantity: number; orderId?: string };
+        }
+      ) => {
         try {
           const { productId, quantity, orderId } = validatedData.body || {};
           const userId = req.headers.get("x-user-id") ?? "system";

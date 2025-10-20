@@ -180,8 +180,8 @@ export function DatabaseShowcaseClient({
               for navigation and search to find specific tables or fields.
             </p>
           </div>
-          <SchemaVisualization 
-            models={models} 
+          <SchemaVisualization
+            models={models}
             relations={relations}
             initialNodes={nodes}
             initialEdges={edges}

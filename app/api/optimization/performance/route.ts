@@ -53,7 +53,7 @@ export const GET = withSecurityHeaders(
           case "export":
             const format = searchParams.get("format") ?? "json";
             const data = await exportPerformanceData(timeRange, format);
-            
+
             if (format === "csv") {
               return new NextResponse(data, {
                 headers: {
@@ -62,7 +62,7 @@ export const GET = withSecurityHeaders(
                 },
               });
             }
-            
+
             return NextResponse.json({
               success: true,
               data,

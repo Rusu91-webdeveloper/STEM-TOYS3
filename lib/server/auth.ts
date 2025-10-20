@@ -11,6 +11,7 @@ import { verifyPassword } from "../auth-utils";
 import { db } from "../db";
 import { withRetry } from "../db-helpers";
 import { logger } from "../logger";
+import { sendWelcomeEmail } from "@/lib/email";
 
 interface ExtendedUser {
   id: string;
@@ -463,6 +464,28 @@ const createAuthOptions = (): NextAuthConfig => {
                   }
                 );
                 return false;
+              }
+
+              // Send welcome email informing about automatic 10% discount (no code needed)
+              try {
+                await sendWelcomeEmail(
+                  profile.email!,
+                  newUser.name || profile.name || "User"
+                );
+                logger.info("Sent welcome email to new Google user", {
+                  userId: newUser.id,
+                  email: profile.email,
+                });
+              } catch (welcomeError) {
+                logger.error("Failed to send welcome email for Google user", {
+                  error:
+                    welcomeError instanceof Error
+                      ? welcomeError.message
+                      : String(welcomeError),
+                  userId: newUser.id,
+                  email: profile.email,
+                });
+                // Do not block sign-in if email fails
               }
             } catch (createError) {
               logger.error("Failed to create user after multiple attempts", {

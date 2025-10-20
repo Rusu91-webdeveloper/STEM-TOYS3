@@ -87,22 +87,25 @@ class CDNManager {
   /**
    * Generate CDN URL for static assets
    */
-  getAssetUrl(path: string, options?: {
-    width?: number;
-    height?: number;
-    format?: string;
-    quality?: number;
-    optimize?: boolean;
-  }): string {
+  getAssetUrl(
+    path: string,
+    options?: {
+      width?: number;
+      height?: number;
+      format?: string;
+      quality?: number;
+      optimize?: boolean;
+    }
+  ): string {
     const startTime = Date.now();
-    
+
     try {
       // Normalize path
       const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
-      
+
       // Generate cache key
       const cacheKey = this.generateCacheKey(normalizedPath, options);
-      
+
       // Check if we have a cached URL
       const cachedAsset = this.assetCache.get(cacheKey);
       if (cachedAsset) {
@@ -112,13 +115,13 @@ class CDNManager {
 
       // Build CDN URL based on provider
       const cdnUrl = this.buildUrl(normalizedPath, options);
-      
+
       // Add performance tracking
       this.recordPerformance("url_generation", Date.now() - startTime);
-      
+
       // Cache the asset info
       this.cacheAsset(normalizedPath, cacheKey, options);
-      
+
       return cdnUrl;
     } catch (error) {
       console.error("Error generating CDN URL:", error);
@@ -130,36 +133,39 @@ class CDNManager {
   /**
    * Build URL based on CDN provider
    */
-  private buildUrl(path: string, options?: {
-    width?: number;
-    height?: number;
-    format?: string;
-    quality?: number;
-    optimize?: boolean;
-  }): string {
+  private buildUrl(
+    path: string,
+    options?: {
+      width?: number;
+      height?: number;
+      format?: string;
+      quality?: number;
+      optimize?: boolean;
+    }
+  ): string {
     const baseUrl = this.config.domain || "";
-    
+
     if (!baseUrl) {
       return `/${path}`;
     }
 
     let url = `${baseUrl}/${path}`;
-    
+
     // Add image optimization parameters
     if (options && this.config.imageOptimization.enabled) {
       const params = new URLSearchParams();
-      
+
       if (options.width) params.append("w", options.width.toString());
       if (options.height) params.append("h", options.height.toString());
       if (options.format) params.append("f", options.format);
       if (options.quality) params.append("q", options.quality.toString());
       if (options.optimize) params.append("o", "1");
-      
+
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
     }
-    
+
     return url;
   }
 
@@ -183,7 +189,7 @@ class CDNManager {
       etag: this.generateEtag(path),
       cacheKey,
     };
-    
+
     this.assetCache.set(cacheKey, asset);
   }
 
@@ -192,8 +198,10 @@ class CDNManager {
    */
   private getAssetType(path: string): StaticAsset["type"] {
     const ext = path.split(".").pop()?.toLowerCase();
-    
-    if (["jpg", "jpeg", "png", "gif", "webp", "avif", "svg"].includes(ext || "")) {
+
+    if (
+      ["jpg", "jpeg", "png", "gif", "webp", "avif", "svg"].includes(ext || "")
+    ) {
       return "image";
     }
     if (["woff", "woff2", "ttf", "otf", "eot"].includes(ext || "")) {
@@ -229,7 +237,7 @@ class CDNManager {
   } {
     const baseUrl = this.getAssetUrl(path);
     const srcSetParts: string[] = [];
-    
+
     // Generate srcSet for each size and format
     for (const size of sizes) {
       for (const format of formats) {
@@ -242,7 +250,7 @@ class CDNManager {
         srcSetParts.push(`${url} ${size}w`);
       }
     }
-    
+
     return {
       src: baseUrl,
       srcSet: srcSetParts.join(", "),
@@ -255,15 +263,15 @@ class CDNManager {
    */
   async preloadAssets(assets: string[]): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       await Promise.allSettled(
-        assets.map(async (asset) => {
+        assets.map(async asset => {
           const url = this.getAssetUrl(asset);
           await this.preloadAsset(url);
         })
       );
-      
+
       this.recordPerformance("preload", Date.now() - startTime);
     } catch (error) {
       console.error("Error preloading assets:", error);
@@ -289,16 +297,18 @@ class CDNManager {
    */
   getCacheHeaders(assetType: StaticAsset["type"]): Record<string, string> {
     const headers: Record<string, string> = {};
-    
+
     if (!this.config.enableCaching) {
       return headers;
     }
-    
-    const { maxAge, staleWhileRevalidate, immutable } = this.config.cacheHeaders;
-    
+
+    const { maxAge, staleWhileRevalidate, immutable } =
+      this.config.cacheHeaders;
+
     // Set cache control headers
-    headers["Cache-Control"] = `public, max-age=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}${immutable ? ", immutable" : ""}`;
-    
+    headers["Cache-Control"] =
+      `public, max-age=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}${immutable ? ", immutable" : ""}`;
+
     // Set content type headers
     const contentTypeMap: Record<StaticAsset["type"], string> = {
       image: "image/webp, image/avif, image/jpeg, image/png, image/*",
@@ -307,14 +317,15 @@ class CDNManager {
       style: "text/css",
       document: "application/octet-stream",
     };
-    
+
     headers["Accept"] = contentTypeMap[assetType];
-    
+
     // Security headers
     if (this.config.security.enableHttps) {
-      headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+      headers["Strict-Transport-Security"] =
+        "max-age=31536000; includeSubDomains";
     }
-    
+
     return headers;
   }
 
@@ -325,15 +336,15 @@ class CDNManager {
     if (!this.performanceMetrics.has(operation)) {
       this.performanceMetrics.set(operation, []);
     }
-    
+
     this.performanceMetrics.get(operation)!.push(duration);
-    
+
     // Keep only last 100 measurements
     const metrics = this.performanceMetrics.get(operation)!;
     if (metrics.length > 100) {
       metrics.splice(0, metrics.length - 100);
     }
-    
+
     // Record to performance monitor
     // performanceMonitor.recordMetric("cdn", operation, Date.now(), {
     //   duration,
@@ -345,24 +356,27 @@ class CDNManager {
   /**
    * Get performance statistics
    */
-  getPerformanceStats(): Record<string, {
-    avg: number;
-    min: number;
-    max: number;
-    count: number;
-  }> {
+  getPerformanceStats(): Record<
+    string,
+    {
+      avg: number;
+      min: number;
+      max: number;
+      count: number;
+    }
+  > {
     const stats: Record<string, any> = {};
-    
+
     for (const [operation, metrics] of this.performanceMetrics.entries()) {
       if (metrics.length === 0) continue;
-      
+
       const avg = metrics.reduce((a, b) => a + b, 0) / metrics.length;
       const min = Math.min(...metrics);
       const max = Math.max(...metrics);
-      
+
       stats[operation] = { avg, min, max, count: metrics.length };
     }
-    
+
     return stats;
   }
 
@@ -396,10 +410,11 @@ class CDNManager {
     assets: StaticAsset[];
   } {
     const assets = Array.from(this.assetCache.values());
-    const totalRequests = this.performanceMetrics.get("url_generation")?.length || 0;
+    const totalRequests =
+      this.performanceMetrics.get("url_generation")?.length || 0;
     const cacheHits = this.performanceMetrics.get("cache_hit")?.length || 0;
     const hitRate = totalRequests > 0 ? (cacheHits / totalRequests) * 100 : 0;
-    
+
     return {
       size: this.assetCache.size,
       hitRate,
@@ -412,13 +427,16 @@ class CDNManager {
 export const cdnManager = CDNManager.getInstance();
 
 // Convenience functions
-export const getAssetUrl = (path: string, options?: any) => 
+export const getAssetUrl = (path: string, options?: any) =>
   cdnManager.getAssetUrl(path, options);
 
-export const getResponsiveImageUrl = (path: string, sizes?: number[], formats?: string[]) =>
-  cdnManager.getResponsiveImageUrl(path, sizes, formats);
+export const getResponsiveImageUrl = (
+  path: string,
+  sizes?: number[],
+  formats?: string[]
+) => cdnManager.getResponsiveImageUrl(path, sizes, formats);
 
-export const preloadAssets = (assets: string[]) => 
+export const preloadAssets = (assets: string[]) =>
   cdnManager.preloadAssets(assets);
 
 export const getCacheHeaders = (assetType: StaticAsset["type"]) =>
