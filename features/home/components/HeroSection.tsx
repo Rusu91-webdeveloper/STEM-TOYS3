@@ -68,7 +68,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
       case "variant_b":
         return "Începe Transformarea";
       default:
-        return t("shopAllProducts");
+        return t("ctaShopNow");
     }
   };
 
@@ -164,25 +164,25 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
             </svg>
           </Link>
 
-          {/* Secondary CTA - Personalized Recommendations */}
+          {/* Secondary CTA - Guides & Articles */}
           <Link
-            href="/categories"
-            aria-label={t("exploreCategories")}
+            href="/blog"
+            aria-label={t("ctaGuidesArticlesSTEM")}
             tabIndex={0}
             data-conversion="cta"
             data-conversion-type="click"
             data-conversion-category="cta"
-            data-conversion-action="personalized_recommendations"
+            data-conversion-action="guides_articles"
             data-conversion-element="hero_secondary_button"
             className="w-full xs:w-auto min-h-[48px] px-6 py-3 bg-white/20 text-white border border-white/30 hover:bg-white/30 rounded-lg text-sm sm:text-base font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent text-center flex items-center justify-center"
             onClick={() =>
               trackEvent("hero_secondary_click", {
                 element: "secondary_button",
-                label: t("exploreCategories"),
+                label: t("ctaGuidesArticlesSTEM"),
               })
             }
           >
-            {t("exploreCategories")}
+            {t("ctaGuidesArticlesSTEM")}
           </Link>
         </div>
 

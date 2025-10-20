@@ -4,12 +4,8 @@ test.describe("Homepage Hero", () => {
   test("CTAs are visible and clickable", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: /demo|transformare|vezi/i })
-    ).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: /recomandări|categories/i })
-    ).toBeVisible();
+    await expect(page.locator('a[href="/products"]')).toBeVisible();
+    await expect(page.locator('a[href="/blog"]')).toBeVisible();
   });
 
   test("LCP within budget on mobile conditions (smoke)", async ({ page }) => {

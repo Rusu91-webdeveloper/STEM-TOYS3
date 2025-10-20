@@ -91,43 +91,25 @@ export function ProductsMainDisplay({
   return (
     <div className="flex-1">
       {/* Premium product area header with enhanced mobile design */}
-      <div className="mb-4 sm:mb-6 px-2 sm:px-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl shadow-lg">
-            <ShoppingBag className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <p className="text-sm sm:text-base text-gray-700 font-bold">
-              {(() => {
-                const countStr = filteredProducts.length.toString();
-                const template = t(
-                  "showingProducts",
-                  `Showing {count} products`
-                );
-                return template
-                  .replace("{count}", countStr)
-                  .replace("{0}", countStr)
-                  .replace("{1}", countStr);
-              })()}
-            </p>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {t(
-                "findYourPerfectMatch",
-                "Find your perfect STEM learning companion"
-              )}
-            </p>
-          </div>
-        </div>
+      <div className="mb-2 sm:mb-4 px-2 sm:px-4 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          {filteredProducts.length > 0 && (
-            <div className="flex items-center gap-2 bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-2 rounded-2xl border border-indigo-200/50 shadow-lg">
-              <div className="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-black text-gray-800">
-                {filteredProducts.length} {t("items")}
-              </span>
-            </div>
-          )}
+          <ShoppingBag className="w-4 h-4 text-gray-700" />
+          <p className="text-sm sm:text-base text-gray-800 font-semibold">
+            {(() => {
+              const countStr = filteredProducts.length.toString();
+              const template = t("showingProducts", `Showing {count} products`);
+              return template
+                .replace("{count}", countStr)
+                .replace("{0}", countStr)
+                .replace("{1}", countStr);
+            })()}
+          </p>
         </div>
+        {filteredProducts.length > 0 && (
+          <span className="text-xs sm:text-sm text-gray-600">
+            {filteredProducts.length} {t("items")}
+          </span>
+        )}
       </div>
 
       {/* Premium educational categories banner with enhanced mobile design */}

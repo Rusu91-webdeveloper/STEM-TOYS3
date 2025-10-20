@@ -173,7 +173,8 @@ export function MobileFilterBar({
           {/* Divider */}
           <div className="flex-shrink-0 w-px h-8 bg-gray-200 mx-1"></div>
 
-          {/* Advanced Filters Button - Inline */}
+          {/* Advanced Filters Button - Inline (removed per request) */}
+          {/*
           <button
             onClick={onOpenFilters}
             className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800 transition-all shadow-sm"
@@ -188,6 +189,7 @@ export function MobileFilterBar({
               </span>
             )}
           </button>
+          */}
         </div>
       </div>
     </div>

@@ -61,19 +61,15 @@
     "seo-analytics:manual": "curl -X POST http://localhost:3000/api/cron/daily-seo-analytics -H \"Authorization: Bearer ${CRON_SECRET_TOKEN}\"",
     "recover:products": "npx tsx scripts/recover-enhanced-products.ts",
     "ai:switch-to-gemini": "./scripts/switch-to-gemini.sh",
-    "seo:analyze": "npx tsx scripts/analyze-product-seo.ts"
+    "seo:analyze": "npx tsx scripts/analyze-product-seo.ts",
+    "prod:sync": "chmod +x scripts/safe-sync-production.sh && ./scripts/safe-sync-production.sh"
   },
   "prisma": {
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,yaml,yml}": [
-      "prettier --write"
-    ]
+    "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,md,yaml,yml}": ["prettier --write"]
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

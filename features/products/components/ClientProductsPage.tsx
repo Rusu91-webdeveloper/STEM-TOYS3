@@ -30,6 +30,7 @@ import {
 import { ProductsHeroSection } from "./ProductsHeroSection";
 import AgeQuickFilters from "./AgeQuickFilters";
 import { MobileFilterBar } from "./MobileFilterBar";
+import MobileAgeBar from "./MobileAgeBar";
 import { ProductsMainDisplay } from "./ProductsMainDisplay";
 import { ProductsSidebar } from "./ProductsSidebar";
 import { StemBenefitsSection } from "./StemBenefitsSection";
@@ -645,6 +646,11 @@ function ClientProductsPageContent({
             onPriceQuickSelect={handlePriceQuickSelect}
             onOpenFilters={() => actions.setMobileFiltersOpen(true)}
             onClearFilters={handleClearFilters}
+            t={t}
+          />
+          <MobileAgeBar
+            selectedAgeGroup={state.selectedAgeGroup}
+            onSelectAgeGroup={age => actions.setAgeGroup(age)}
             t={t}
           />
         </div>

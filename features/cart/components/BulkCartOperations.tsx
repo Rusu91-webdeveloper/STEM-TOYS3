@@ -4,9 +4,7 @@ import {
   CheckSquare,
   Square,
   Trash2,
-  Heart,
   RotateCcw,
-  Edit3,
   ChevronDown,
   ChevronUp,
   ShoppingCart,
@@ -25,13 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+// Dropdown menu imports removed (no bulk quantity control)
 import { Separator } from "@/components/ui/separator";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
@@ -114,66 +106,6 @@ export function BulkCartOperations({ className }: BulkCartOperationsProps) {
 
           {hasSelection && (
             <div className="flex items-center gap-2">
-              {/* Quantity Update Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Edit3 className="w-3 h-3 mr-1" />
-                    Quantity
-                    <ChevronDown className="w-3 h-3 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => updateSelectedItemsQuantity(1)}
-                  >
-                    Set to 1
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => updateSelectedItemsQuantity(2)}
-                  >
-                    Set to 2
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => updateSelectedItemsQuantity(3)}
-                  >
-                    Set to 3
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => updateSelectedItemsQuantity(5)}
-                  >
-                    Set to 5
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => updateSelectedItemsQuantity(0)}
-                  >
-                    Remove All
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Save for Later */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={moveSelectedToSavedForLater}
-              >
-                <Heart className="w-3 h-3 mr-1" />
-                Save for Later
-              </Button>
-
-              {/* Remove Selected */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={removeSelectedItems}
-                className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
-              >
-                <Trash2 className="w-3 h-3 mr-1" />
-                Remove
-              </Button>
-
               {/* Clear Selection */}
               <Button
                 variant="ghost"
@@ -327,10 +259,7 @@ export function BulkCartOperations({ className }: BulkCartOperationsProps) {
       {hasItems && !hasSelection && (
         <div className="flex items-center justify-center gap-2 p-2 bg-blue-50 rounded-lg text-xs text-blue-700">
           <CheckSquare className="w-3 h-3" />
-          <span>
-            Tip: Select items to access bulk operations like quantity updates
-            and save for later
-          </span>
+          <span>Tip: Select items to clear selection</span>
         </div>
       )}
     </div>

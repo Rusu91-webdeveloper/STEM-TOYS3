@@ -438,7 +438,9 @@ export const en = {
 
   // Conversion-optimized CTAs
   shopAllProducts: "See How It Works (Free Demo)",
+  ctaShopNow: "Shop STEM Toys",
   exploreCategories: "Get Personalized Recommendations",
+  ctaGuidesArticlesSTEM: "STEM Guides & Articles",
   getPersonalizedRecommendations: "Get Personalized Recommendations",
   startStemJourney: "Start STEM Journey",
   seeSuccessStories: "See Success Stories",

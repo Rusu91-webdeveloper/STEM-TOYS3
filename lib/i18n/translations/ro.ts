@@ -514,7 +514,9 @@ export const ro = {
 
   // Conversion-optimized CTAs
   shopAllProducts: "Vezi Cum Funcționează (Demo Gratuit)",
+  ctaShopNow: "Cumpără Jucării STEM",
   exploreCategories: "Recomandări Personalizate",
+  ctaGuidesArticlesSTEM: "Ghiduri & Articole STEM",
   getPersonalizedRecommendations: "Obține Recomandări Personalizate",
   startStemJourney: "Începe Călătoria STEM",
   seeSuccessStories: "Vezi Povești de Succes",
