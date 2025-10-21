@@ -121,12 +121,15 @@ export function ProductGrid({
 
   // 1. Ensure grid is 2 columns on mobile (grid-cols-2)
   const gridColsClass = cn(
-    `grid-cols-2`, // Mobile-first: 2 columns
+    `grid-cols-2`,
     columns.sm && `sm:grid-cols-${columns.sm}`,
     columns.md && `md:grid-cols-${columns.md}`,
     columns.lg && `lg:grid-cols-${columns.lg}`,
     columns.xl && `xl:grid-cols-${columns.xl}`
   );
+
+  // If the effective visible columns is 1, prefer list layout for a more compact look
+  const isEffectivelySingleColumn = visibleColumns === 1;
 
   return (
     <div className={cn("space-y-2 sm:space-y-6", className)}>
@@ -216,7 +219,7 @@ export function ProductGrid({
         <div className="text-center py-6 sm:py-12 text-muted-foreground text-xs sm:text-sm bg-white rounded-xl shadow-sm border border-gray-100/80">
           {t("noProductsFound")}
         </div>
-      ) : layout === "grid" ? (
+      ) : layout === "grid" && !isEffectivelySingleColumn ? (
         <div className={`grid ${gridColsClass} gap-2 sm:gap-4 lg:gap-6`}>
           {sortedProducts.map((product, index) => (
             <div
