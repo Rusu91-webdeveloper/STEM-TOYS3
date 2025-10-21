@@ -288,7 +288,7 @@ export function StripePaymentForm({
         <Button
           type="submit"
           disabled={!stripe || isProcessing || isCalculatingTotal}
-          className="px-8"
+          className="px-8 stripe-submit-button"
         >
           {isProcessing ? (
             <>

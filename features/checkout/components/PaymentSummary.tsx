@@ -24,6 +24,10 @@ export const PaymentSummary = React.memo(function PaymentSummary({
   getCartTotal,
 }: PaymentSummaryProps) {
   const { t } = useTranslation();
+  const isNetopia = selectedPaymentMethod.startsWith("netopia_");
+  const isStripeSavedCard =
+    !isNetopia && !useNewCard && selectedPaymentMethod !== "new";
+  const isStripeNewCard = !isNetopia && useNewCard;
 
   return (
     <>
@@ -50,7 +54,26 @@ export const PaymentSummary = React.memo(function PaymentSummary({
       )}
 
       {/* Show the saved card or Stripe form */}
-      {!useNewCard && selectedPaymentMethod !== "new" ? (
+      {isNetopia && (
+        <div className="my-6">
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <p className="text-blue-700 text-sm">
+              {t(
+                "netopiaRedirectNotice",
+                "Plata va fi finalizată pe pagina securizată Netopia după ce confirmi comanda."
+              )}
+            </p>
+            <p className="text-xs text-blue-500 mt-2">
+              {t(
+                "netopiaMethods",
+                "Sunt acceptate cardurile Visa/Mastercard, rate bancare și portofelul mobilPay."
+              )}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {isStripeSavedCard && (
         <div className="my-6">
           <div className="bg-gray-50 rounded-lg p-4 border">
             <p className="text-gray-700">
@@ -58,7 +81,9 @@ export const PaymentSummary = React.memo(function PaymentSummary({
             </p>
           </div>
         </div>
-      ) : (
+      )}
+
+      {isStripeNewCard && (
         <div className="my-6">
           <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
             <p className="text-blue-700 text-sm">

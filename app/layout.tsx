@@ -11,6 +11,7 @@ import PerformanceMonitor from "@/components/analytics/PerformanceMonitor";
 import ClientLayout from "@/components/layout/ClientLayout";
 import { getStoreSettings } from "@/lib/utils/store-settings";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import StructuredDataInjector from "@/components/seo/StructuredDataInjector";
 import { Toaster } from "@/components/ui/toaster";
 import CartProviderWrapper from "@/features/cart/components/CartProviderWrapper.client";
 import { CentralizedSessionProvider } from "@/lib/auth/SessionContext";
@@ -121,6 +122,7 @@ export default async function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}
       >
+        <StructuredDataInjector />
         <SessionProvider>
           <CentralizedSessionProvider>
             <I18nProvider initialLanguage={initialLanguage}>

@@ -195,7 +195,11 @@ export function CheckoutFlow() {
       if (order && order.success) {
         // Store order ID for Netopia callback
         sessionStorage.setItem("pendingOrderId", order.orderId);
-        sessionStorage.setItem("paymentMethod", checkoutData.paymentMethod!);
+        sessionStorage.setItem(
+          "pendingPaymentMethod",
+          checkoutData.paymentMethod!
+        );
+        sessionStorage.setItem("pendingPaymentProvider", "netopia");
 
         // Now initiate Netopia payment with the order ID
         const netopiaData = {
@@ -204,7 +208,7 @@ export function CheckoutFlow() {
           currency: "RON",
           customerData: {
             name: orderData.billingAddress.fullName,
-            email: "", // Will be filled from user session
+            email: session?.user?.email || "",
             phone: orderData.billingAddress.phone,
           },
           paymentMethod: checkoutData.paymentMethod,
@@ -270,13 +274,14 @@ export function CheckoutFlow() {
           ? checkoutData.shippingAddress!
           : checkoutData.billingAddress!,
         shippingMethod: checkoutData.shippingMethod!,
-        paymentMethod: checkoutData.paymentMethod!,
+        paymentMethod: checkoutData.paymentMethod || "stripe_new",
         coupon: appliedCoupon,
         discountAmount,
         subtotal: subtotalExcludingVAT,
         tax,
         shippingCost,
         total,
+        paymentStatus: "PAID",
       };
 
       const order = await createOrder(orderData);
@@ -404,6 +409,7 @@ export function CheckoutFlow() {
             <div className="space-y-6">
               <PaymentForm
                 initialData={checkoutData.paymentDetails}
+                initialPaymentMethod={checkoutData.paymentMethod}
                 billingAddressSameAsShipping={
                   checkoutData.billingAddressSameAsShipping
                 }

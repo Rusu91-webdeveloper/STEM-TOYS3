@@ -1,7 +1,7 @@
 "use client";
 
 import { Edit } from "lucide-react";
-import React from "react";
+import React, { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/lib/currency";
@@ -49,6 +49,33 @@ export function OrderReview({
     const last4 = cardNumber.slice(-4);
     return `•••• •••• •••• ${last4}`;
   };
+
+  const paymentMethodLabel = useMemo(() => {
+    if (!checkoutData.paymentMethod) return null;
+
+    if (checkoutData.paymentMethod.startsWith("netopia_")) {
+      switch (checkoutData.paymentMethod) {
+        case "netopia_card":
+          return t("netopiaCard", "Card bancar (Netopia)");
+        case "netopia_sms":
+          return t("netopiaSms", "Plată prin SMS (Netopia)");
+        case "netopia_wallet":
+          return t("netopiaWallet", "Portofel mobilPay (Netopia)");
+        default:
+          return t("netopiaPayment", "Plată Netopia");
+      }
+    }
+
+    if (checkoutData.paymentMethod === "stripe_new") {
+      return t("stripeNewCard", "Card nou (Stripe)");
+    }
+
+    if (checkoutData.paymentDetails?.cardNumber) {
+      return t("savedCard", "Card salvat");
+    }
+
+    return checkoutData.paymentMethod;
+  }, [checkoutData.paymentDetails, checkoutData.paymentMethod, t]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -174,7 +201,17 @@ export function OrderReview({
             </Button>
           </div>
 
-          {checkoutData.paymentDetails ? (
+          {checkoutData.paymentMethod?.startsWith("netopia_") ? (
+            <div className="text-xs sm:text-sm space-y-1">
+              <p className="font-medium break-words">{paymentMethodLabel}</p>
+              <p className="text-gray-600">
+                {t(
+                  "netopiaReviewNotice",
+                  "Veți fi redirecționat către Netopia pentru a finaliza plata după ce confirmați comanda."
+                )}
+              </p>
+            </div>
+          ) : checkoutData.paymentDetails ? (
             <div className="text-xs sm:text-sm">
               <p className="break-words">
                 Credit Card:{" "}

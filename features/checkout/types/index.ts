@@ -24,6 +24,13 @@ export interface ShippingMethod {
   estimatedDelivery: string;
 }
 
+export type PaymentMethod =
+  | "netopia_card"
+  | "netopia_sms"
+  | "netopia_wallet"
+  | "stripe_new"
+  | string;
+
 export interface PaymentDetails {
   cardNumber: string;
   cardholderName: string;

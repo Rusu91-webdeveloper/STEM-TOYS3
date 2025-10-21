@@ -1,19 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/features/cart";
 import { useTranslation } from "@/lib/i18n";
 
-import { PaymentDetails, ShippingAddress, ShippingMethod } from "../types";
+import {
+  PaymentDetails,
+  PaymentMethod,
+  ShippingAddress,
+  ShippingMethod,
+} from "../types";
 
 import { BillingAddressForm } from "./BillingAddressForm";
 import { PaymentMethodSelector } from "./PaymentMethodSelector";
 import { PaymentSummary } from "./PaymentSummary";
-// import { StripePaymentForm } from "./StripePaymentForm"; // Commented out - Netopia only for now
-// import { StripeProvider } from "./StripeProvider"; // Commented out - Netopia only for now
-import { NetopiaPaymentForm } from "./NetopiaPaymentForm";
+import { StripePaymentForm } from "./StripePaymentForm";
+import { StripeProvider } from "./StripeProvider";
 import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
 
 interface PaymentCard {
@@ -29,6 +33,7 @@ interface PaymentCard {
 
 interface PaymentFormProps {
   initialData?: PaymentDetails;
+  initialPaymentMethod?: PaymentMethod;
   billingAddressSameAsShipping?: boolean;
   shippingAddress?: ShippingAddress;
   billingAddress?: ShippingAddress;
@@ -36,7 +41,8 @@ interface PaymentFormProps {
   appliedCoupon?: any;
   discountAmount?: number;
   onSubmit: (data: {
-    paymentDetails: PaymentDetails;
+    paymentMethod: PaymentMethod;
+    paymentDetails?: PaymentDetails;
     billingAddressSameAsShipping: boolean;
     billingAddress?: ShippingAddress;
   }) => void;
@@ -45,6 +51,7 @@ interface PaymentFormProps {
 
 export function PaymentForm({
   initialData,
+  initialPaymentMethod,
   billingAddressSameAsShipping = true,
   shippingAddress,
   billingAddress,
@@ -56,25 +63,33 @@ export function PaymentForm({
 }: PaymentFormProps) {
   const { getCartTotal } = useCart();
   const { t } = useTranslation();
+  const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
+
   const [useSameAddress, setUseSameAddress] = useState(
     billingAddressSameAsShipping
   );
-  const [currentBillingAddress, setCurrentBillingAddress] = useState(
-    billingAddress || shippingAddress
-  );
+  const [currentBillingAddress, setCurrentBillingAddress] = useState<
+    ShippingAddress | undefined
+  >(billingAddress || shippingAddress);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [savedCards, setSavedCards] = useState<PaymentCard[]>([]);
   const [isLoadingCards, setIsLoadingCards] = useState(true);
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<string>("new");
-  const [useNewCard, setUseNewCard] = useState(true);
+    useState<PaymentMethod>(initialPaymentMethod || "netopia_card");
+  const [useNewCard, setUseNewCard] = useState(
+    (initialPaymentMethod || "") === "stripe_new"
+  );
   const [totalAmount, setTotalAmount] = useState(0);
   const [isCalculatingTotal, setIsCalculatingTotal] = useState(true);
   const [userLocation, setUserLocation] = useState<string>("");
   const [userLocale, setUserLocale] = useState<string>("");
   const { settings } = useCheckoutSettings();
 
-  // Calculate the total amount including tax and shipping
+  const isNetopia = useMemo(
+    () => selectedPaymentMethod.startsWith("netopia_"),
+    [selectedPaymentMethod]
+  );
+
   useEffect(() => {
     function calculateTotal() {
       setIsCalculatingTotal(true);
@@ -82,41 +97,34 @@ export function PaymentForm({
         const subtotal = getCartTotal();
         let shippingCost = shippingMethod?.price || 0;
 
-        // Get tax settings from unified settings
         const taxRate = settings?.taxSettings?.active
           ? parseFloat(settings.taxSettings.rate) / 100
           : 0;
         const includeInPrice = settings?.taxSettings?.includeInPrice !== false;
 
-        // Get shipping settings for free shipping threshold (only for standard shipping)
-        const cartTotalIncludingVAT = subtotal; // Cart total already includes VAT
+        const cartTotalIncludingVAT = subtotal;
 
         if (
           settings?.shippingSettings?.freeThreshold?.active &&
           shippingMethod?.id === "standard"
         ) {
-          const freeShippingThreshold = parseFloat(
+          const threshold = parseFloat(
             settings.shippingSettings.freeThreshold.price
           );
-          if (cartTotalIncludingVAT >= freeShippingThreshold) {
+          if (cartTotalIncludingVAT >= threshold) {
             shippingCost = 0;
           }
         }
 
-        // For VAT-inclusive pricing, calculate VAT backwards for display
         const subtotalExcludingVAT = includeInPrice
           ? cartTotalIncludingVAT / (1 + taxRate)
           : cartTotalIncludingVAT;
-        const tax = includeInPrice
-          ? cartTotalIncludingVAT - subtotalExcludingVAT
-          : cartTotalIncludingVAT * taxRate;
+        const totalBeforeDiscount =
+          cartTotalIncludingVAT + shippingCost - discountAmount;
 
-        const totalBeforeDiscount = cartTotalIncludingVAT + shippingCost;
-        const total = Math.max(0, totalBeforeDiscount - discountAmount);
-        setTotalAmount(total);
+        setTotalAmount(Math.max(0, totalBeforeDiscount));
       } catch (error) {
         console.error("Error calculating total:", error);
-        // Fall back to subtotal if calculation fails
         setTotalAmount(getCartTotal());
       } finally {
         setIsCalculatingTotal(false);
@@ -126,22 +134,26 @@ export function PaymentForm({
     if (settings) {
       calculateTotal();
     }
-  }, [getCartTotal, shippingMethod, discountAmount, settings]);
+  }, [discountAmount, getCartTotal, settings, shippingMethod]);
 
-  // Fetch saved payment cards
   useEffect(() => {
     const fetchPaymentCards = async () => {
       try {
+        if (!stripeEnabled) {
+          return;
+        }
+
         const response = await fetch("/api/account/payment-cards");
         if (response.ok) {
-          const cards = await response.json();
+          const cards = (await response.json()) as PaymentCard[];
           setSavedCards(cards);
 
-          // If there's a default card, preselect it
-          const defaultCard = cards.find((card: PaymentCard) => card.isDefault);
-          if (defaultCard && !initialData) {
-            setSelectedPaymentMethod(defaultCard.id);
-            setUseNewCard(false);
+          if (!initialPaymentMethod) {
+            const defaultCard = cards.find(card => card.isDefault);
+            if (defaultCard) {
+              setSelectedPaymentMethod(defaultCard.id);
+              setUseNewCard(false);
+            }
           }
         }
       } catch (error) {
@@ -152,28 +164,20 @@ export function PaymentForm({
     };
 
     fetchPaymentCards();
-  }, [initialData]);
+  }, [initialPaymentMethod, stripeEnabled]);
 
-  // Detect user location and locale
   useEffect(() => {
-    const detectUserLocation = async () => {
-      try {
-        // Get locale from browser
-        setUserLocale(navigator.language);
+    try {
+      setUserLocale(navigator.language);
 
-        // Try to get location from IP (in production, use a geolocation service)
-        // For now, we'll use browser locale and billing address as indicators
-        if (billingAddress?.country) {
-          setUserLocation(billingAddress.country);
-        } else if (navigator.language.startsWith("ro")) {
-          setUserLocation("RO");
-        }
-      } catch (error) {
-        console.error("Error detecting user location:", error);
+      if (billingAddress?.country) {
+        setUserLocation(billingAddress.country);
+      } else if (navigator.language?.startsWith("ro")) {
+        setUserLocation("RO");
       }
-    };
-
-    detectUserLocation();
+    } catch (error) {
+      console.error("Error detecting user location:", error);
+    }
   }, [billingAddress]);
 
   const showBillingForm = !useSameAddress;
@@ -189,7 +193,7 @@ export function PaymentForm({
     const address = useSameAddress ? shippingAddress : currentBillingAddress;
     return {
       name: address?.fullName || "",
-      email: "", // We should have this from the user's account
+      email: "",
       address: {
         line1: address?.addressLine1 || "",
         line2: address?.addressLine2 || "",
@@ -202,23 +206,21 @@ export function PaymentForm({
   };
 
   const handlePaymentSuccess = (paymentDetails: PaymentDetails) => {
-    // If using a saved card, populate the payment details
-    if (!useNewCard && selectedPaymentMethod !== "new") {
+    if (!isNetopia && !useNewCard && selectedPaymentMethod !== "stripe_new") {
       const selectedCard = savedCards.find(
         card => card.id === selectedPaymentMethod
       );
       if (selectedCard) {
-        // Create payment details from the selected card
         const savedCardPaymentDetails: PaymentDetails = {
           cardholderName: selectedCard.cardholderName,
           cardNumber: `•••• •••• •••• ${selectedCard.lastFourDigits}`,
           savedCardId: selectedCard.id,
           expiryDate: `${selectedCard.expiryMonth}/${selectedCard.expiryYear}`,
           cardType: selectedCard.cardType,
-          // We don't need actual card details for a saved card
         };
 
         onSubmit({
+          paymentMethod: selectedPaymentMethod,
           paymentDetails: savedCardPaymentDetails,
           billingAddressSameAsShipping: useSameAddress,
           billingAddress: useSameAddress ? undefined : currentBillingAddress,
@@ -227,8 +229,8 @@ export function PaymentForm({
       }
     }
 
-    // Otherwise, use the new card details
     onSubmit({
+      paymentMethod: selectedPaymentMethod,
       paymentDetails,
       billingAddressSameAsShipping: useSameAddress,
       billingAddress: useSameAddress ? undefined : currentBillingAddress,
@@ -243,7 +245,66 @@ export function PaymentForm({
 
   const handlePaymentMethodChange = (value: string) => {
     setSelectedPaymentMethod(value);
-    setUseNewCard(value === "new");
+    setUseNewCard(value === "stripe_new");
+    setPaymentError(null);
+  };
+
+  const handleContinue = () => {
+    if (isNetopia) {
+      if (showBillingForm && !currentBillingAddress) {
+        setPaymentError(
+          t(
+            "billingAddressRequired",
+            "Te rugăm să completezi adresa de facturare."
+          )
+        );
+        return;
+      }
+
+      onSubmit({
+        paymentMethod: selectedPaymentMethod,
+        billingAddressSameAsShipping: useSameAddress,
+        billingAddress: useSameAddress ? undefined : currentBillingAddress,
+      });
+      return;
+    }
+
+    if (!useNewCard && selectedPaymentMethod !== "stripe_new") {
+      const selectedCard = savedCards.find(
+        card => card.id === selectedPaymentMethod
+      );
+      if (selectedCard) {
+        const savedCardPaymentDetails: PaymentDetails = {
+          cardholderName: selectedCard.cardholderName,
+          cardNumber: `•••• •••• •••• ${selectedCard.lastFourDigits}`,
+          savedCardId: selectedCard.id,
+          expiryDate: `${selectedCard.expiryMonth}/${selectedCard.expiryYear}`,
+          cardType: selectedCard.cardType,
+        };
+
+        onSubmit({
+          paymentMethod: selectedPaymentMethod,
+          paymentDetails: savedCardPaymentDetails,
+          billingAddressSameAsShipping: useSameAddress,
+          billingAddress: useSameAddress ? undefined : currentBillingAddress,
+        });
+        return;
+      }
+    }
+
+    if (showBillingForm && !currentBillingAddress) {
+      setPaymentError(
+        t("billingAddressRequired", "Te rugăm să completezi adresa de facturare.")
+      );
+      return;
+    }
+
+    const submitButton = document.querySelector(
+      ".stripe-submit-button"
+    ) as HTMLButtonElement | null;
+    if (submitButton) {
+      submitButton.click();
+    }
   };
 
   return (
@@ -266,80 +327,28 @@ export function PaymentForm({
         <PaymentSummary
           appliedCoupon={appliedCoupon}
           discountAmount={discountAmount}
-          useNewCard={false} // Netopia only - no card selection needed
+          useNewCard={useNewCard}
           selectedPaymentMethod={selectedPaymentMethod}
           isCalculatingTotal={isCalculatingTotal}
           totalAmount={totalAmount}
           getCartTotal={getCartTotal}
         />
 
-        {/* Show Netopia payment form - Netopia is the primary payment provider */}
-        {selectedPaymentMethod.startsWith("netopia_") ? (
-          // Netopia payment form
+        {stripeEnabled && selectedPaymentMethod === "stripe_new" && (
           <div className="my-6">
-            <NetopiaPaymentForm
-              order={{
-                id: `temp_${Date.now()}`, // This should be replaced with actual order ID
-                totalAmount: totalAmount,
-                customer: {
-                  name:
-                    billingAddress?.fullName || shippingAddress?.fullName || "",
-                  email: "", // Should come from user session
-                  phone: billingAddress?.phone || shippingAddress?.phone || "",
-                },
-              }}
-              paymentMethod={selectedPaymentMethod}
-              onSuccess={handlePaymentSuccess}
-              onError={handlePaymentError}
-            />
-          </div>
-        ) : (
-          // Fallback to Netopia card if no Netopia method selected (shouldn't happen)
-          <div className="my-6">
-            <NetopiaPaymentForm
-              order={{
-                id: `temp_${Date.now()}`,
-                totalAmount: totalAmount,
-                customer: {
-                  name:
-                    billingAddress?.fullName || shippingAddress?.fullName || "",
-                  email: "",
-                  phone: billingAddress?.phone || shippingAddress?.phone || "",
-                },
-              }}
-              paymentMethod="netopia_card"
-              onSuccess={handlePaymentSuccess}
-              onError={handlePaymentError}
-            />
+            <StripeProvider>
+              <StripePaymentForm
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+                billingDetails={getBillingDetails()}
+                amount={
+                  isCalculatingTotal ? getCartTotal() * 100 : totalAmount * 100
+                }
+                isCalculatingTotal={isCalculatingTotal}
+              />
+            </StripeProvider>
           </div>
         )}
-
-        {/* Commented out - Stripe payment forms for future use */}
-        {/*
-        {!useNewCard && selectedPaymentMethod !== "new" ? (
-          // Saved card (Stripe)
-          <div className="my-6">
-            <div className="bg-gray-50 rounded-lg p-4 border">
-              <p className="text-gray-700">
-                {t("proceedToReview", "Poți continua la verificarea comenzii.")}
-              </p>
-            </div>
-          </div>
-        ) : (
-          // New Stripe card
-          <StripeProvider>
-            <StripePaymentForm
-              onSuccess={handlePaymentSuccess}
-              onError={handlePaymentError}
-              billingDetails={getBillingDetails()}
-              amount={
-                isCalculatingTotal ? getCartTotal() * 100 : totalAmount * 100
-              } // Convert to cents for Stripe
-              isCalculatingTotal={isCalculatingTotal}
-            />
-          </StripeProvider>
-        )}
-        */}
 
         <BillingAddressForm
           useSameAddress={useSameAddress}
@@ -352,14 +361,12 @@ export function PaymentForm({
           }}
         />
 
-        {/* Payment Error */}
         {paymentError && (
           <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-md">
             {paymentError}
           </div>
         )}
 
-        {/* Navigation Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6">
           <Button
             variant="outline"
@@ -369,45 +376,9 @@ export function PaymentForm({
             {t("backToShippingMethod", "Înapoi la metoda de livrare")}
           </Button>
           <Button
-            onClick={() => {
-              // If using a saved card, handle submission here
-              if (!useNewCard && selectedPaymentMethod !== "new") {
-                const selectedCard = savedCards.find(
-                  card => card.id === selectedPaymentMethod
-                );
-                if (selectedCard) {
-                  // Create payment details from the selected card
-                  const savedCardPaymentDetails: PaymentDetails = {
-                    cardholderName: selectedCard.cardholderName,
-                    cardNumber: `•••• •••• •••• ${selectedCard.lastFourDigits}`,
-                    savedCardId: selectedCard.id,
-                    expiryDate: `${selectedCard.expiryMonth}/${selectedCard.expiryYear}`,
-                    cardType: selectedCard.cardType,
-                    // We don't need actual card details for a saved card
-                  };
-
-                  onSubmit({
-                    paymentDetails: savedCardPaymentDetails,
-                    billingAddressSameAsShipping: useSameAddress,
-                    billingAddress: useSameAddress
-                      ? undefined
-                      : currentBillingAddress,
-                  });
-                }
-              } else if (showBillingForm && !currentBillingAddress) {
-                // Scroll to the billing form if it's needed but empty
-                // In a real app, you'd want to validate the form first
-              } else {
-                // Otherwise, trigger the Stripe form submission
-                const submitButton = document.querySelector(
-                  ".stripe-submit-button"
-                ) as HTMLButtonElement;
-                if (submitButton) {
-                  submitButton.click();
-                }
-              }
-            }}
+            onClick={handleContinue}
             className="text-sm sm:text-base"
+            disabled={!selectedPaymentMethod}
           >
             {t("continueToReview", "Continuă la verificare")}
           </Button>

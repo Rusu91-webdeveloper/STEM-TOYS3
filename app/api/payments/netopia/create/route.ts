@@ -8,6 +8,7 @@ export async function POST(request: Request) {
       amount,
       currency = "RON",
       customerData,
+      paymentMethod,
     } = await request.json();
 
     // Validate required fields
@@ -56,7 +57,8 @@ export async function POST(request: Request) {
           netopiaTransactionId: paymentResult.transactionId,
           netopiaInvoiceId: paymentResult.invoiceId,
           netopiaPaymentUrl: paymentResult.paymentUrl,
-          paymentMethod: `netopia_${currency.toLowerCase()}`,
+          paymentMethod:
+            paymentMethod || `netopia_${currency.toLowerCase()}`,
           // Update payment status to pending
           paymentStatus: "PENDING",
         },

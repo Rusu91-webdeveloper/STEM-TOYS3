@@ -91,6 +91,19 @@ const orderSchema = z.object({
   discountAmount: z.number().optional(),
   guestInformation: guestInformationSchema.optional(),
   isGuestCheckout: z.boolean().optional(),
+  paymentMethod: z.string().optional(),
+  paymentStatus: z
+    .enum([
+      "PENDING",
+      "PAID",
+      "FAILED",
+      "REFUNDED",
+      "PROCESSING",
+      "COMPLETED",
+      "CANCELLED",
+    ])
+    .optional(),
+  paymentProvider: z.string().optional(),
   stripePaymentIntentId: z.string().optional(), // Accept payment intent ID
 });
 
@@ -460,9 +473,10 @@ export async function POST(request: Request) {
             discountAmount,
             couponCode: appliedCoupon?.code || null,
             couponId: appliedCoupon?.id || null,
-            paymentMethod: "card", // Default payment method
+            paymentMethod: orderData.paymentMethod || "card",
             status: "PROCESSING",
-            paymentStatus: "PAID", // In a real app, this would depend on payment processing
+            paymentStatus:
+              (orderData.paymentStatus as any) ?? "PAID",
             shippingAddressId,
             stripePaymentIntentId: orderData.stripePaymentIntentId || null,
           },

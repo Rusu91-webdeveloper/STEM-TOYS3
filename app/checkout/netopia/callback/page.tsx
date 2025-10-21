@@ -16,9 +16,10 @@ export default function NetopiaCallback() {
     const handleCallback = async () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        const orderId =
-          urlParams.get("orderId") ||
+        const storedPendingOrderId =
+          sessionStorage.getItem("pendingOrderId") ||
           sessionStorage.getItem("netopia_order_id");
+        const orderId = urlParams.get("orderId") || storedPendingOrderId;
         const paymentStatus = urlParams.get("status");
 
         if (!orderId) {
@@ -29,7 +30,10 @@ export default function NetopiaCallback() {
 
         // Verify payment status with our backend
         const response = await fetch(
-          `/api/payments/netopia/status?orderId=${orderId}`
+          `/api/payments/netopia/status?orderId=${orderId}`,
+          {
+            cache: "no-store",
+          }
         );
         const result = await response.json();
 
@@ -40,14 +44,26 @@ export default function NetopiaCallback() {
           // Clear session storage
           sessionStorage.removeItem("netopia_order_id");
           sessionStorage.removeItem("netopia_payment_method");
+          sessionStorage.removeItem("pendingOrderId");
+          sessionStorage.removeItem("pendingPaymentMethod");
+          sessionStorage.removeItem("pendingPaymentProvider");
+          sessionStorage.setItem("orderCompleted", "true");
+          sessionStorage.setItem("orderId", orderId);
 
           // Redirect to success page after a short delay
           setTimeout(() => {
-            router.push("/checkout/success");
+            router.push(`/checkout/confirmation?orderId=${orderId}`);
           }, 2000);
-        } else if (result.status === "failed") {
+        } else if (result.status === "failed" || paymentStatus === "failed") {
           setStatus("error");
           setMessage("Plata a eșuat. Vă rugăm să încercați din nou.");
+        } else if (result.status === "pending" || paymentStatus === "pending") {
+          setStatus("loading");
+          setMessage("Plata este în curs de confirmare. Vă rugăm să așteptați...");
+
+          setTimeout(() => {
+            handleCallback();
+          }, 4000);
         } else {
           setStatus("error");
           setMessage("Statusul plății este necunoscut. Contactați suportul.");

@@ -38,6 +38,33 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   billingCountry,
 }: PaymentMethodSelectorProps) {
   const { t } = useTranslation();
+  const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
+
+  // Get card logo or icon based on card type
+  const getCardIcon = (cardType: string) => {
+    switch (cardType.toLowerCase()) {
+      case "visa":
+        return (
+          <div className="bg-blue-500 text-white font-bold text-xs px-1.5 py-0.5 rounded">
+            VISA
+          </div>
+        );
+      case "mastercard":
+        return (
+          <div className="bg-red-500 text-white font-bold text-xs px-1.5 py-0.5 rounded">
+            MC
+          </div>
+        );
+      case "amex":
+        return (
+          <div className="bg-blue-700 text-white font-bold text-xs px-1.5 py-0.5 rounded">
+            AMEX
+          </div>
+        );
+      default:
+        return <CreditCard className="h-4 w-4 text-gray-500" />;
+    }
+  };
 
   // Determine if user should see Netopia options
   const isRomanianUser = useMemo(() => {
@@ -53,7 +80,15 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
 
   // Get available payment methods based on user location
   const paymentMethods = useMemo(() => {
-    const methods = [];
+    const methods: Array<{
+      id: string;
+      type: string;
+      name: string;
+      icon: React.ReactNode;
+      provider: "netopia" | "stripe";
+      fee?: string;
+      description?: string;
+    }> = [];
 
     // Netopia is the primary payment provider - show Netopia options for all users
     // Romanian users get priority with local payment methods
@@ -100,61 +135,51 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       });
     }
 
-    // Commented out - Stripe options for future use
-    /*
-    // Always show saved cards if available
-    if (savedCards.length > 0) {
-      savedCards.forEach(card => {
-        methods.push({
-          id: card.id,
-          type: "saved_card",
-          name: `•••• •••• •••• ${card.lastFourDigits}`,
-          icon: getCardIcon(card.cardType),
-          provider: "stripe",
-          fee: "2.9% + €0.25",
+    if (stripeEnabled) {
+      if (savedCards.length > 0) {
+        savedCards.forEach(card => {
+          methods.push({
+            id: card.id,
+            type: "saved_card",
+            name: `•••• •••• •••• ${card.lastFourDigits}`,
+            icon: getCardIcon(card.cardType),
+            provider: "stripe",
+            fee: "2.9% + €0.25",
+            description: card.cardholderName,
+          });
         });
+      }
+
+      methods.push({
+        id: "stripe_new",
+        type: "new_card",
+        name: t("useNewCard", "Folosește un card nou"),
+        icon: <CreditCard className="h-4 w-4 text-gray-500" />,
+        provider: "stripe",
+        fee: "2.9% + €0.25",
+        description: t(
+          "stripeSecurePayment",
+          "Plată securizată prin Stripe (Visa, Mastercard, Apple Pay)"
+        ),
       });
     }
 
-    // Add new card option for Stripe
-    methods.push({
-      id: "stripe_new",
-      type: "new_card",
-      name: t("useNewCard", "Folosește un card nou"),
-      icon: <CreditCard className="h-4 w-4 text-gray-500" />,
-      provider: "stripe",
-      fee: "2.9% + €0.25",
-    });
-    */
-
     return methods;
-  }, [isRomanianUser, t]);
+  }, [isRomanianUser, savedCards, stripeEnabled, t]);
 
-  // Get card logo or icon based on card type
-  const getCardIcon = (cardType: string) => {
-    switch (cardType.toLowerCase()) {
-      case "visa":
-        return (
-          <div className="bg-blue-500 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            VISA
-          </div>
-        );
-      case "mastercard":
-        return (
-          <div className="bg-red-500 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            MC
-          </div>
-        );
-      case "amex":
-        return (
-          <div className="bg-blue-700 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            AMEX
-          </div>
-        );
-      default:
-        return <CreditCard className="h-4 w-4 text-gray-500" />;
+  useEffect(() => {
+    if (paymentMethods.length === 0) {
+      return;
     }
-  };
+
+    const hasSelection = paymentMethods.some(
+      method => method.id === selectedPaymentMethod
+    );
+
+    if (!hasSelection) {
+      onPaymentMethodChange(paymentMethods[0].id);
+    }
+  }, [paymentMethods, selectedPaymentMethod, onPaymentMethodChange]);
 
   if (isLoadingCards) {
     return (

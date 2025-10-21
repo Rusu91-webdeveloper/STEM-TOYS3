@@ -2,6 +2,7 @@ import { Metadata } from "next";
 
 import { en } from "./i18n/translations/en";
 import { ro } from "./i18n/translations/ro";
+import { registerStructuredDataVariants } from "./structured-data-registry";
 
 // Define available languages for metadata
 export const metadataLanguages = [
@@ -157,6 +158,10 @@ export function createMetadata({
       ...metadata.other,
       structuredData: JSON.stringify(structuredData),
     };
+    if (pathWithoutLocale) {
+      const localeCodes = metadataLanguages.map(lang => lang.code);
+      registerStructuredDataVariants(pathWithoutLocale, localeCodes, structuredData);
+    }
   }
 
   // Add language-specific metadata for crawlers
