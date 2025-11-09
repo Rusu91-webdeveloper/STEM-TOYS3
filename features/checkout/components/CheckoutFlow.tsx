@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 import { useCart } from "@/features/cart/context/CartContext";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
@@ -40,9 +40,15 @@ export function CheckoutFlow() {
 
   // **COUPON STATE MANAGEMENT**
   const [appliedCoupon, setAppliedCoupon] = useState<{
+    id?: string;
     code: string;
-    type: string;
+    name?: string;
+    description?: string;
+    type: "PERCENTAGE" | "FIXED_AMOUNT";
     value: number;
+    discountAmount: number;
+    isInfluencer?: boolean;
+    influencerName?: string;
   } | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
 
@@ -52,10 +58,20 @@ export function CheckoutFlow() {
 
   // **COUPON HANDLERS**
   const handleCouponApplied = (
-    coupon: { code: string; type: string; value: number },
+    coupon: {
+      id?: string;
+      code: string;
+      name?: string;
+      description?: string;
+      type: "PERCENTAGE" | "FIXED_AMOUNT";
+      value: number;
+      discountAmount: number;
+      isInfluencer?: boolean;
+      influencerName?: string;
+    },
     discountAmount: number
   ) => {
-    setAppliedCoupon(coupon);
+    setAppliedCoupon({ ...coupon, discountAmount });
     setDiscountAmount(discountAmount);
   };
 
@@ -101,6 +117,113 @@ export function CheckoutFlow() {
     // Start with shipping-address step
     setCurrentStep("shipping-address");
   }, [status, session, cartItems.length, router]);
+
+  // Helper function to calculate discount amount locally
+  const calculateDiscountAmount = (
+    coupon: { type: string; value: number },
+    cartTotal: number
+  ): number => {
+    if (coupon.type === "PERCENTAGE") {
+      return Math.round((cartTotal * coupon.value) / 100 * 100) / 100;
+    } else {
+      return Math.min(coupon.value, cartTotal);
+    }
+  };
+
+  // Automatically fetch and apply welcome discount for new users
+  useEffect(() => {
+    // Only fetch if user is authenticated, cart has items, and no discount is already applied
+    if (
+      status !== "authenticated" ||
+      !session?.user ||
+      cartItems.length === 0 ||
+      appliedCoupon !== null
+    ) {
+      return;
+    }
+
+    const fetchAutoDiscount = async () => {
+      try {
+        const cartTotal = getCartTotal();
+        if (cartTotal <= 0) return;
+
+        const response = await fetch(
+          `/api/checkout/auto-discount?cartTotal=${cartTotal}`
+        );
+
+        if (!response.ok) {
+          console.warn("Failed to fetch auto discount:", response.statusText);
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data.eligible && data.discount) {
+          // Automatically apply the welcome discount
+          setAppliedCoupon({
+            id: data.discount.coupon.id,
+            code: data.discount.coupon.code,
+            name: data.discount.coupon.name,
+            description: data.discount.coupon.description,
+            type: data.discount.coupon.type as "PERCENTAGE" | "FIXED_AMOUNT",
+            value: data.discount.coupon.value,
+            discountAmount: data.discount.discountAmount,
+            isInfluencer: false,
+          });
+          setDiscountAmount(data.discount.discountAmount);
+
+          // Show a toast notification to inform the user
+          toast({
+            title: t("discountApplied", "Discount Applied!"),
+            description: t(
+              "welcomeDiscountApplied",
+              "You've received a {percentage}% welcome discount on your first order!",
+              { percentage: data.discount.coupon.value }
+            ),
+            variant: "default",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching auto discount:", error);
+        // Silently fail - don't show error to user as this is an automatic feature
+      }
+    };
+
+    fetchAutoDiscount();
+  }, [status, session, cartItems.length, getCartTotal, appliedCoupon, t]);
+
+  // Track previous cart total to avoid unnecessary recalculations
+  const prevCartTotalRef = useRef<number>(0);
+
+  // Recalculate discount amount when cart total changes (for auto-applied discounts)
+  useEffect(() => {
+    // Only recalculate if we have an applied coupon (auto-applied welcome discount)
+    if (!appliedCoupon || cartItems.length === 0) {
+      prevCartTotalRef.current = 0;
+      return;
+    }
+
+    const cartTotal = getCartTotal();
+    
+    // Skip if cart total hasn't changed significantly
+    if (Math.abs(cartTotal - prevCartTotalRef.current) < 0.01) {
+      return;
+    }
+    
+    prevCartTotalRef.current = cartTotal;
+
+    if (cartTotal <= 0) {
+      setDiscountAmount(0);
+      setAppliedCoupon({ ...appliedCoupon, discountAmount: 0 });
+      return;
+    }
+
+    // Recalculate discount amount based on current cart total
+    const newDiscountAmount = calculateDiscountAmount(appliedCoupon, cartTotal);
+    setDiscountAmount(newDiscountAmount);
+    // Update the discountAmount in the appliedCoupon object as well
+    setAppliedCoupon({ ...appliedCoupon, discountAmount: newDiscountAmount });
+  }, [getCartTotal, cartItems.length, appliedCoupon]);
 
   // Handle redirect to confirmation page
   useEffect(() => {
@@ -178,7 +301,7 @@ export function CheckoutFlow() {
           : checkoutData.billingAddress!,
         shippingMethod: checkoutData.shippingMethod!,
         paymentMethod: checkoutData.paymentMethod!,
-        coupon: appliedCoupon,
+        couponCode: appliedCoupon?.code || null,
         discountAmount,
         subtotal: subtotalExcludingVAT,
         tax,
@@ -275,7 +398,7 @@ export function CheckoutFlow() {
           : checkoutData.billingAddress!,
         shippingMethod: checkoutData.shippingMethod!,
         paymentMethod: checkoutData.paymentMethod || "stripe_new",
-        coupon: appliedCoupon,
+        couponCode: appliedCoupon?.code || null,
         discountAmount,
         subtotal: subtotalExcludingVAT,
         tax,

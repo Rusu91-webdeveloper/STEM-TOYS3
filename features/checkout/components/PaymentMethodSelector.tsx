@@ -1,11 +1,12 @@
 "use client";
 
 import { CreditCard, Loader2, Smartphone, Wallet } from "lucide-react";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { /* useState, */ useEffect, useMemo } from "react";
 
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useTranslation } from "@/lib/i18n";
+import { NetopiaLogoBadge } from "./NetopiaLogoBadge";
 
 interface PaymentCard {
   id: string;
@@ -247,16 +248,9 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
         ))}
       </RadioGroup>
 
-      {isRomanianUser && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <div className="flex items-center gap-2">
-            <div className="text-blue-600 text-sm">
-              <strong>🇷🇴 Netopia Payments:</strong> Plăți sigure pentru clienții
-              români cu comisioane mai mici și metode locale de plată.
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="mt-4">
+        <NetopiaLogoBadge />
+      </div>
     </div>
   );
 });

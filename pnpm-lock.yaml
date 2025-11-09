@@ -218,6 +218,9 @@ importers:
       nodemailer:
         specifier: ^6.10.1
         version: 6.10.1
+      ntp-logo-react:
+        specifier: ^1.0.0
+        version: 1.0.0(@types/react@19.1.8)(react@19.1.0)
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
@@ -6186,6 +6189,12 @@ packages:
   npm-run-path@5.3.0:
     resolution: {integrity: sha512-ppwTtiJZq0O/ai0z7yfudtBpWIoxM8yE6nHi1X47eFR2EWORqfbu6CnPlNsjeN683eT0qG6H/Pyf9fCcvjnnnQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
+  ntp-logo-react@1.0.0:
+    resolution: {integrity: sha512-TWMgcqbfGocJMlNzOdswULADNOhTv9GOzdE9u7r/qR4PgyAwmEWuLBioSKybJQOrvSMLS3Mrs8tx8rq+cl9zQA==}
+    peerDependencies:
+      '@types/react': '>= 16.9.0'
+      react: '>= 16.9.0'
 
   nwsapi@2.2.20:
     resolution: {integrity: sha512-/ieB+mDe4MrrKMT8z+mQL8klXydZWGR5Dowt4RAGKbJ3kIGEx3X4ljUo+6V73IXtUPWgfOlU5B9MlGxFO5T+cA==}
@@ -14644,6 +14653,11 @@ snapshots:
   npm-run-path@5.3.0:
     dependencies:
       path-key: 4.0.0
+
+  ntp-logo-react@1.0.0(@types/react@19.1.8)(react@19.1.0):
+    dependencies:
+      '@types/react': 19.1.8
+      react: 19.1.0
 
   nwsapi@2.2.20: {}
 
