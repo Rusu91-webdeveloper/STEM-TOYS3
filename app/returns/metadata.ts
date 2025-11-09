@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     description:
       "Returnări simple și sigure în 14 zile. Garanție legală de 2 ani pentru toate produsele STEM educaționale.",
     type: "website",
-    url: "/returns",
+    url: "https://www.techtots.ro/returns",
   },
   twitter: {
     card: "summary",
@@ -32,8 +32,15 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
   alternates: {
-    canonical: "/returns",
+    canonical: "https://www.techtots.ro/returns",
   },
 };

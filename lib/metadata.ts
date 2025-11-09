@@ -141,7 +141,7 @@ export function createMetadata({
       ICBM: "44.4268, 26.1025", // Bucharest coordinates
     },
     verification: {
-      google: "your-google-verification-code", // Replace with your actual Google verification code
+      google: "46d30c56bd33dcae", // Google Search Console verification code
       yandex: "your-yandex-verification-code", // Replace with your actual Yandex verification code
     },
     authors: [{ name: "TechTots Team", url: `${baseUrl}/about` }],

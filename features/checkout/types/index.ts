@@ -38,6 +38,7 @@ export interface PaymentDetails {
   cvv?: string;
   savedCardId?: string;
   cardType?: string;
+  stripePaymentIntentId?: string;
 }
 
 export interface GuestInformation {
@@ -61,4 +62,5 @@ export interface CheckoutData {
     type: string;
     value: number;
   } | null;
+  stripePaymentIntentId?: string;
 }

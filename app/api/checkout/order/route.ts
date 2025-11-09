@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 import { z } from "zod";
 
 import type { CartItem } from "@/features/cart/context/CartContext";
@@ -21,6 +22,11 @@ import {
   shouldAlertHighValueOrder,
   getNotificationSettings,
 } from "@/lib/utils/order-processing";
+
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripeClient = stripeSecretKey
+  ? new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" })
+  : null;
 
 // Order validation schema - more lenient version
 const shippingAddressSchema = z
@@ -699,6 +705,32 @@ export async function POST(request: Request) {
       console.log(
         `Successfully created order ${dbOrder.id} with ${items.length} items`
       );
+
+      if (stripeClient && orderData.stripePaymentIntentId) {
+        const metadata: Record<string, string> = {
+          orderId: dbOrder.id,
+          orderNumber: dbOrder.orderNumber || orderNumber,
+          userId: user?.id ?? "guest",
+        };
+
+        const customerEmail =
+          user?.email || orderData.guestInformation?.email || "";
+        if (customerEmail) {
+          metadata.userEmail = customerEmail;
+        }
+
+        try {
+          await stripeClient.paymentIntents.update(
+            orderData.stripePaymentIntentId,
+            { metadata }
+          );
+        } catch (stripeError) {
+          console.error(
+            `Failed to update payment intent ${orderData.stripePaymentIntentId} metadata:`,
+            stripeError
+          );
+        }
+      }
 
       // Send order processing notifications
       try {

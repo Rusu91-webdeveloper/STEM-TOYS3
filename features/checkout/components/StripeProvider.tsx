@@ -1,15 +1,16 @@
 "use client";
 
-import { Elements } from "@stripe/react-stripe-js";
+import { Elements, type StripeElementsOptions } from "@stripe/react-stripe-js";
 import React, { ReactNode, useState, useEffect } from "react";
 
 import { getStripe } from "@/lib/stripe";
 
 interface StripeProviderProps {
   children: ReactNode;
+  options?: StripeElementsOptions;
 }
 
-export function StripeProvider({ children }: StripeProviderProps) {
+export function StripeProvider({ children, options }: StripeProviderProps) {
   const [stripePromise, setStripePromise] = useState<Promise<any> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,5 +63,9 @@ export function StripeProvider({ children }: StripeProviderProps) {
     );
   }
 
-  return <Elements stripe={stripePromise}>{children}</Elements>;
+  return (
+    <Elements stripe={stripePromise} options={options}>
+      {children}
+    </Elements>
+  );
 }

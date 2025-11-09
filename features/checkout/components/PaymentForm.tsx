@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ interface PaymentFormProps {
     paymentDetails?: PaymentDetails;
     billingAddressSameAsShipping: boolean;
     billingAddress?: ShippingAddress;
+    stripePaymentIntentId?: string;
   }) => void;
   onBack: () => void;
 }
@@ -84,6 +86,19 @@ export function PaymentForm({
   const [userLocation, setUserLocation] = useState<string>("");
   const [userLocale, setUserLocale] = useState<string>("");
   const { settings } = useCheckoutSettings();
+  const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(
+    null
+  );
+  const [stripePaymentIntentId, setStripePaymentIntentId] = useState<
+    string | undefined
+  >(undefined);
+  const [isCreatingStripeIntent, setIsCreatingStripeIntent] = useState(false);
+  const [stripeIntentError, setStripeIntentError] = useState<string | null>(
+    null
+  );
+  const [stripeIntentAmount, setStripeIntentAmount] = useState<number | null>(
+    null
+  );
 
   const isNetopia = useMemo(
     () => selectedPaymentMethod.startsWith("netopia_"),
@@ -180,6 +195,111 @@ export function PaymentForm({
     }
   }, [billingAddress]);
 
+  useEffect(() => {
+    const clearStripeIntent = () => {
+      setStripeClientSecret(null);
+      setStripePaymentIntentId(undefined);
+      setStripeIntentAmount(null);
+    };
+
+    if (!stripeEnabled) {
+      clearStripeIntent();
+      setStripeIntentError(null);
+      setIsCreatingStripeIntent(false);
+      return;
+    }
+
+    if (selectedPaymentMethod !== "stripe_new") {
+      clearStripeIntent();
+      setStripeIntentError(null);
+      setIsCreatingStripeIntent(false);
+      return;
+    }
+
+    if (isCalculatingTotal || totalAmount <= 0) {
+      return;
+    }
+
+    const amountInMinorUnits = Math.round(totalAmount * 100);
+
+    if (
+      stripeClientSecret &&
+      stripeIntentAmount === amountInMinorUnits &&
+      stripePaymentIntentId
+    ) {
+      return;
+    }
+
+    let isActive = true;
+
+    const createIntent = async () => {
+      setIsCreatingStripeIntent(true);
+      setStripeIntentError(null);
+      try {
+        const response = await fetch("/api/stripe/create-payment-intent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: amountInMinorUnits,
+            metadata: {
+              checkoutStep: "payment",
+              shippingCountry: shippingAddress?.country || "",
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "Failed to create payment intent");
+        }
+
+        const data = await response.json();
+        if (!isActive) {
+          return;
+        }
+
+        setStripeClientSecret(data.clientSecret);
+        setStripePaymentIntentId(data.paymentIntentId);
+        setStripeIntentAmount(amountInMinorUnits);
+        setStripeIntentError(null);
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+        console.error("Error creating Stripe payment intent:", error);
+        clearStripeIntent();
+        setStripeIntentError(
+          t(
+            "stripeIntentError",
+            "Nu am reușit să pregătim plata Stripe. Reîncearcă."
+          )
+        );
+      } finally {
+        if (isActive) {
+          setIsCreatingStripeIntent(false);
+        }
+      }
+    };
+
+    createIntent();
+
+    return () => {
+      isActive = false;
+    };
+  }, [
+    stripeEnabled,
+    selectedPaymentMethod,
+    isCalculatingTotal,
+    totalAmount,
+    shippingAddress,
+    t,
+    stripeClientSecret,
+    stripeIntentAmount,
+    stripePaymentIntentId,
+  ]);
+
   const showBillingForm = !useSameAddress;
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -206,6 +326,11 @@ export function PaymentForm({
   };
 
   const handlePaymentSuccess = (paymentDetails: PaymentDetails) => {
+    const { stripePaymentIntentId: intentIdFromDetails, ...rest } =
+      paymentDetails;
+    const resolvedPaymentIntentId =
+      intentIdFromDetails || stripePaymentIntentId;
+
     if (!isNetopia && !useNewCard && selectedPaymentMethod !== "stripe_new") {
       const selectedCard = savedCards.find(
         card => card.id === selectedPaymentMethod
@@ -224,6 +349,7 @@ export function PaymentForm({
           paymentDetails: savedCardPaymentDetails,
           billingAddressSameAsShipping: useSameAddress,
           billingAddress: useSameAddress ? undefined : currentBillingAddress,
+          stripePaymentIntentId: resolvedPaymentIntentId,
         });
         return;
       }
@@ -231,9 +357,10 @@ export function PaymentForm({
 
     onSubmit({
       paymentMethod: selectedPaymentMethod,
-      paymentDetails,
+      paymentDetails: rest,
       billingAddressSameAsShipping: useSameAddress,
       billingAddress: useSameAddress ? undefined : currentBillingAddress,
+      stripePaymentIntentId: resolvedPaymentIntentId,
     });
   };
 
@@ -247,6 +374,12 @@ export function PaymentForm({
     setSelectedPaymentMethod(value);
     setUseNewCard(value === "stripe_new");
     setPaymentError(null);
+    if (value !== "stripe_new") {
+      setStripeClientSecret(null);
+      setStripePaymentIntentId(undefined);
+      setStripeIntentAmount(null);
+      setStripeIntentError(null);
+    }
   };
 
   const handleContinue = () => {
@@ -265,6 +398,7 @@ export function PaymentForm({
         paymentMethod: selectedPaymentMethod,
         billingAddressSameAsShipping: useSameAddress,
         billingAddress: useSameAddress ? undefined : currentBillingAddress,
+        stripePaymentIntentId: undefined,
       });
       return;
     }
@@ -287,7 +421,20 @@ export function PaymentForm({
           paymentDetails: savedCardPaymentDetails,
           billingAddressSameAsShipping: useSameAddress,
           billingAddress: useSameAddress ? undefined : currentBillingAddress,
+          stripePaymentIntentId: undefined,
         });
+        return;
+      }
+    }
+
+    if (selectedPaymentMethod === "stripe_new") {
+      if (isCreatingStripeIntent || !stripeClientSecret) {
+        setPaymentError(
+          t(
+            "stripeStillLoading",
+            "Așteaptă câteva secunde până pregătim plata Stripe."
+          )
+        );
         return;
       }
     }
@@ -335,18 +482,54 @@ export function PaymentForm({
         />
 
         {stripeEnabled && selectedPaymentMethod === "stripe_new" && (
-          <div className="my-6">
-            <StripeProvider>
-              <StripePaymentForm
-                onSuccess={handlePaymentSuccess}
-                onError={handlePaymentError}
-                billingDetails={getBillingDetails()}
-                amount={
-                  isCalculatingTotal ? getCartTotal() * 100 : totalAmount * 100
-                }
-                isCalculatingTotal={isCalculatingTotal}
-              />
-            </StripeProvider>
+          <div className="my-6 space-y-4">
+            {stripeIntentError && (
+              <div className="p-3 bg-red-50 text-red-600 rounded-md flex items-center justify-between gap-3">
+                <p className="text-sm">{stripeIntentError}</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setStripeClientSecret(null);
+                    setStripePaymentIntentId(undefined);
+                    setStripeIntentAmount(null);
+                    setStripeIntentError(null);
+                  }}
+                >
+                  {t("retry", "Reîncearcă")}
+                </Button>
+              </div>
+            )}
+
+            {isCreatingStripeIntent && !stripeClientSecret && (
+              <div className="flex justify-center items-center gap-2 text-sm text-muted-foreground border rounded-md py-3">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {t("initializingStripe", "Pregătim plata securizată Stripe...")}
+              </div>
+            )}
+
+            {stripeClientSecret && (
+              <StripeProvider
+                options={{
+                  clientSecret: stripeClientSecret,
+                  appearance: { theme: "stripe" },
+                }}
+              >
+                <StripePaymentForm
+                  clientSecret={stripeClientSecret}
+                  paymentIntentId={stripePaymentIntentId}
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                  billingDetails={getBillingDetails()}
+                  amount={
+                    isCalculatingTotal
+                      ? getCartTotal() * 100
+                      : totalAmount * 100
+                  }
+                  isCalculatingTotal={isCalculatingTotal}
+                />
+              </StripeProvider>
+            )}
           </div>
         )}
 

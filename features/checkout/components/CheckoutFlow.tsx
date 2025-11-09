@@ -390,6 +390,13 @@ export function CheckoutFlow() {
       const tax = cartTotalIncludingVAT - subtotalExcludingVAT;
       const total = cartTotalIncludingVAT + shippingCost - discountAmount;
 
+      const stripePaymentIntentId =
+        checkoutData.stripePaymentIntentId ||
+        checkoutData.paymentDetails?.stripePaymentIntentId;
+      const isStripePayment =
+        checkoutData.paymentMethod?.startsWith("stripe") ||
+        Boolean(stripePaymentIntentId);
+
       const orderData = {
         items: cartItems,
         shippingAddress: checkoutData.shippingAddress!,
@@ -404,7 +411,9 @@ export function CheckoutFlow() {
         tax,
         shippingCost,
         total,
-        paymentStatus: "PAID",
+        paymentStatus: isStripePayment ? "PENDING" : "PAID",
+        paymentProvider: isStripePayment ? "stripe" : undefined,
+        stripePaymentIntentId,
       };
 
       const order = await createOrder(orderData);

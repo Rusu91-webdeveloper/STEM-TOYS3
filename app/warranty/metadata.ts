@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ro_RO",
     siteName: "TechTots",
+    url: "https://www.techtots.ro/warranty",
   },
   twitter: {
     card: "summary_large_image",
@@ -31,10 +32,17 @@ export const metadata: Metadata = {
       "Protecție completă de 2 ani pentru toate produsele TechTots conform legislației UE. Garanție gratuită și automată.",
   },
   alternates: {
-    canonical: "/warranty",
+    canonical: "https://www.techtots.ro/warranty",
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
