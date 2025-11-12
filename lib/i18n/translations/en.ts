@@ -423,6 +423,12 @@ export const en = {
   // Homepage specific translations
   heroSection: "Hero Section",
   inspireMinds: "Inspire Curious Minds",
+  heroBadgeTitle: "Inspire Curious Minds",
+  heroBadgeSubtitle:
+    "10,000+ delighted parents who transformed their kids",
+  heroPrimarySubtitle: "STEM toys that make learning irresistible",
+  heroDescription:
+    "Replace screen time with active learning. Over 10,000 parents have already transformed their children from 'phone dependent' to 'future inventors' with our STEM toys.",
 
   // Hormozi Formula Headlines - Outcome focused, not feature focused
   homepageH1:
@@ -485,8 +491,10 @@ export const en = {
     "Get personalized recommendations for the perfect toys for your child - completely free",
 
   // Urgency Elements
+  guarantee: "Easy returns and Romanian support you can rely on",
   limitedSpots: "Limited Spots",
   consultationThisMonth: "for personalized STEM consultation this month",
+  fastDelivery: "Fast delivery in 1-3 business days",
 
   b2bSolutions: "B2B Programs",
   b2bSolutionsDesc:
@@ -537,6 +545,8 @@ export const en = {
   contact: "Contact",
   address: "Address",
   customerSupport: "Customer Support",
+  footerLegalAddress:
+    "Cluj County, Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70",
 
   // SEO Translations
   metaTitle: "TechTots | STEM Toys for Curious Minds",

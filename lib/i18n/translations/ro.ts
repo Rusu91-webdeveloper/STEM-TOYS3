@@ -499,6 +499,12 @@ export const ro = {
   // Homepage specific translations - Hormozi Style Conversion Copy
   heroSection: "Secțiunea Principală",
   inspireMinds: "Inspiră Minți Curioase",
+  heroBadgeTitle: "Inspiră Minți Curioase",
+  heroBadgeSubtitle:
+    "10.000+ părinți fericiți care și-au transformat copiii",
+  heroPrimarySubtitle: "Jucării STEM care fac învățarea irezistibilă",
+  heroDescription:
+    "Înlocuiește timpul de ecran cu învățare activă. Peste 10.000 de părinți și-au transformat deja copiii din 'dependenți de telefon' în 'viitori inventatori' cu jucăriile noastre STEM.",
 
   // Hormozi Formula Headlines - Outcome focused, not feature focused
   homepageH1:
@@ -556,13 +562,15 @@ export const ro = {
   // Risk Reversal Elements
   // guarantee: "Garanția STEM de 30 Zile", // Removed - risky advertisement
   // guaranteeDesc: "Dacă copilul tău nu arată îmbunătățiri în rezolvarea problemelor în 30 de zile, îți returnăm 100% banii", // Removed - risky advertisement
+  guarantee: "Retur ușor și suport real din România",
   freeConsultation: "Consultare STEM Gratuită",
   freeConsultationDesc:
     "Obține recomandări personalizate pentru jucăriile perfecte pentru copilul tău - complet gratuit",
 
   // Urgency Elements
-  limitedSpots: "Locuri Limitete",
+  limitedSpots: "Locuri Limitate",
   consultationThisMonth: "pentru consultarea STEM personalizată luna aceasta",
+  fastDelivery: "Livrare rapidă în 1-3 zile lucrătoare",
 
   b2bSolutions: "Programe B2B",
   b2bSolutionsDesc:
@@ -613,6 +621,8 @@ export const ro = {
   contact: "Contact",
   address: "Adresă",
   customerSupport: "Asistență Clienți",
+  footerLegalAddress:
+    "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70",
 
   // SEO Translations
   metaTitle: "TechTots | Jucării STEM pentru minți curioase",

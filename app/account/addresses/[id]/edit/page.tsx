@@ -1,12 +1,11 @@
-"use client";
-
+import type { Metadata } from "next";
 import React from "react";
 
 import { AddressForm } from "@/features/account/components/AddressForm";
 import { glassPanelClass } from "@/features/home/components/homeTheme";
 import { cn } from "@/lib/utils";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Edit Address | My Account",
   description: "Edit your shipping or billing address",
 };
