@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product";
 
 import { ProductCard } from "./ProductCard";
+import { productsGlassCardClass } from "./productsTheme";
 
 interface ProductGridProps {
   products: Product[];
@@ -134,41 +135,43 @@ export function ProductGrid({
   return (
     <div className={cn("space-y-2 sm:space-y-6", className)}>
       {(showLayoutToggle || showSortOptions) && (
-        <div className="flex flex-col gap-2 sm:gap-4 sm:flex-row sm:justify-between sm:items-center bg-white/80 backdrop-blur-sm p-2 sm:p-3 rounded-xl shadow-sm border border-gray-100/80 mb-2 sm:mb-4">
+        <div
+          className={`${productsGlassCardClass} flex flex-col gap-2 sm:gap-4 sm:flex-row sm:justify-between sm:items-center p-2 sm:p-3 border-white/12 shadow-indigo-900/30 mb-2 sm:mb-4`}
+        >
           {showSortOptions && (
             <div className="w-full sm:w-48">
               <Select value={sortOption} onValueChange={setSortOption}>
-                <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm bg-white border-gray-200 shadow-sm rounded-lg">
+                <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm bg-white/5 border-white/15 text-slate-100 shadow-none rounded-lg backdrop-blur">
                   <SelectValue placeholder={t("sortBy")} />
                 </SelectTrigger>
-                <SelectContent className="border-gray-200 shadow-md">
+                <SelectContent className="border-white/15 bg-slate-900/90 text-slate-100 shadow-xl shadow-black/30">
                   <SelectItem
                     value="featured"
-                    className="text-xs sm:text-sm hover:bg-gray-50"
+                    className="text-xs sm:text-sm hover:bg-indigo-500/20 focus:bg-indigo-500/20 focus:text-slate-100"
                   >
                     {t("featured")}
                   </SelectItem>
                   <SelectItem
                     value="price-low"
-                    className="text-xs sm:text-sm hover:bg-gray-50"
+                    className="text-xs sm:text-sm hover:bg-indigo-500/20 focus:bg-indigo-500/20 focus:text-slate-100"
                   >
                     {t("priceLowToHigh")}
                   </SelectItem>
                   <SelectItem
                     value="price-high"
-                    className="text-xs sm:text-sm hover:bg-gray-50"
+                    className="text-xs sm:text-sm hover:bg-indigo-500/20 focus:bg-indigo-500/20 focus:text-slate-100"
                   >
                     {t("priceHighToLow")}
                   </SelectItem>
                   <SelectItem
                     value="newest"
-                    className="text-xs sm:text-sm hover:bg-gray-50"
+                    className="text-xs sm:text-sm hover:bg-indigo-500/20 focus:bg-indigo-500/20 focus:text-slate-100"
                   >
                     {t("newest")}
                   </SelectItem>
                   <SelectItem
                     value="rating"
-                    className="text-xs sm:text-sm hover:bg-gray-50"
+                    className="text-xs sm:text-sm hover:bg-indigo-500/20 focus:bg-indigo-500/20 focus:text-slate-100"
                   >
                     {t("topRated")}
                   </SelectItem>
@@ -179,7 +182,7 @@ export function ProductGrid({
 
           {showLayoutToggle && (
             <div className="flex items-center space-x-1.5 sm:space-x-2">
-              <span className="text-xs sm:text-sm text-muted-foreground mr-1 sm:mr-2">
+              <span className="text-xs sm:text-sm text-slate-300 mr-1 sm:mr-2">
                 {t("view")}:
               </span>
               <Button
@@ -188,8 +191,8 @@ export function ProductGrid({
                 className={cn(
                   "px-2 sm:px-3 h-8 sm:h-10 transition-all duration-300",
                   layout === "grid"
-                    ? "bg-primary text-white shadow-md hover:shadow-lg"
-                    : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                    ? "bg-gradient-to-r from-indigo-600 to-sky-600 text-white shadow-indigo-900/40 hover:shadow-indigo-500/40"
+                    : "bg-white/10 border-white/15 text-slate-200 hover:bg-white/15"
                 )}
                 onClick={() => setLayout("grid")}
                 aria-label={t("gridView")}
@@ -202,8 +205,8 @@ export function ProductGrid({
                 className={cn(
                   "px-2 sm:px-3 h-8 sm:h-10 transition-all duration-300",
                   layout === "list"
-                    ? "bg-primary text-white shadow-md hover:shadow-lg"
-                    : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                    ? "bg-gradient-to-r from-indigo-600 to-sky-600 text-white shadow-indigo-900/40 hover:shadow-indigo-500/40"
+                    : "bg-white/10 border-white/15 text-slate-200 hover:bg-white/15"
                 )}
                 onClick={() => setLayout("list")}
                 aria-label={t("listView")}
@@ -216,7 +219,9 @@ export function ProductGrid({
       )}
 
       {sortedProducts.length === 0 ? (
-        <div className="text-center py-6 sm:py-12 text-muted-foreground text-xs sm:text-sm bg-white rounded-xl shadow-sm border border-gray-100/80">
+        <div
+          className={`${productsGlassCardClass} text-center py-6 sm:py-12 text-slate-200 text-xs sm:text-sm border-white/12 shadow-indigo-900/30`}
+        >
           {t("noProductsFound")}
         </div>
       ) : layout === "grid" && !isEffectivelySingleColumn ? (

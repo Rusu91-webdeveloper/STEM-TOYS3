@@ -1,15 +1,23 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import React from "react";
 
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { AccountNav } from "@/features/account/components/AccountNav";
 import { MobileNav } from "@/features/account/components/MobileNav";
+import {
+  glassCardClass,
+  glassPanelClass,
+  homeBackgroundClass,
+  homeContentWrapperClass,
+  homeOverlayBottomClass,
+  homeOverlayTopClass,
+} from "@/features/home/components/homeTheme";
 import { auth } from "@/lib/auth";
 import { verifyUserExists } from "@/lib/db-helpers";
 import { getTranslations } from "@/lib/i18n/server";
 import { logger } from "@/lib/logger";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "My Account | NextCommerce",
@@ -92,60 +100,62 @@ export default async function AccountLayout({
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Account content area with background - only this section gets the styled background */}
-      <div className="relative min-h-[calc(100vh-200px)]">
-        {/* Background image with reduced opacity - only for account content */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/blog_homepage_hero_01.png"
-            alt="Background"
-            fill
-            priority
-            className="object-cover"
-            style={{ opacity: 0.08 }} // Reduced opacity for better text visibility
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/90 to-background/80" />
-        </div>
-
-        {/* Account content with glass effect */}
-        <div className="relative z-10 flex-1">
-          <div className="container flex-1 items-start md:grid md:grid-cols-[240px_minmax(0,1fr)] md:gap-8 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-12">
-            {/* Enhanced sidebar - Only visible on tablet and larger screens */}
-            <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 overflow-y-auto border-r md:sticky md:block">
-              <div className="py-8 pr-6 lg:py-10">
-                <div className="mb-6 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                      {t("account")}
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      {session.user?.name ?? t("account")}
-                    </p>
-                  </div>
-                  <div className="md:hidden">
-                    <LanguageSwitcher />
-                  </div>
+    <div className={homeBackgroundClass}>
+      <div className={homeOverlayTopClass} aria-hidden />
+      <div className={homeOverlayBottomClass} aria-hidden />
+      <div
+        className={`${homeContentWrapperClass} min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-16`}
+      >
+        <div className="container grid flex-1 items-start gap-8 pt-12 md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-12">
+          {/* Enhanced sidebar */}
+          <aside className="sticky top-24 hidden max-h-[calc(100vh-6rem)] overflow-y-auto md:block">
+            <div className="space-y-6">
+              <div
+                className={cn(
+                  glassPanelClass,
+                  "flex items-center justify-between border-white/10 bg-slate-900/70 px-5 py-4 text-slate-100 shadow-xl shadow-black/30"
+                )}
+              >
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight">
+                    {t("account")}
+                  </h2>
+                  <p className="text-sm text-slate-300">
+                    {session.user?.name ?? t("account")}
+                  </p>
                 </div>
-                <div className="rounded-lg bg-white/50 backdrop-blur-sm shadow-lg border border-gray-100 p-4">
-                  <AccountNav />
+                <div className="md:hidden">
+                  <LanguageSwitcher />
                 </div>
               </div>
-            </aside>
-
-            {/* Main content with glass effect */}
-            <main className="min-h-screen w-full pb-28 md:pb-16 mt-6">
-              <div className="rounded-xl bg-white/70 backdrop-blur-sm shadow-lg border border-gray-100 p-3 sm:p-6 mb-6">
-                {children}
+              <div
+                className={cn(
+                  glassCardClass,
+                  "border-white/10 bg-slate-900/60 p-4 text-slate-100 shadow-xl shadow-black/30"
+                )}
+              >
+                <AccountNav />
               </div>
-            </main>
-          </div>
-        </div>
+            </div>
+          </aside>
 
-        {/* Spacer for bottom nav on small devices (accounts for safe-area) */}
-        <div className="md:hidden h-[calc(4rem+env(safe-area-inset-bottom))]"></div>
-        <MobileNav />
+          {/* Main content */}
+          <main className="w-full space-y-6 md:mt-6">
+            <div
+              className={cn(
+                glassPanelClass,
+                "border-white/10 bg-slate-900/70 p-4 text-slate-100 shadow-2xl shadow-black/40 sm:p-6"
+              )}
+            >
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
+
+      {/* Spacer + mobile nav */}
+      <div className="md:hidden h-[calc(4rem+env(safe-area-inset-bottom))]" />
+      <MobileNav />
     </div>
   );
 }

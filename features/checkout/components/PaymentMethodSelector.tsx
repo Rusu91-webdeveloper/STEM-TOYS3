@@ -6,6 +6,7 @@ import React, { /* useState, */ useEffect, useMemo } from "react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import { NetopiaLogoBadge } from "./NetopiaLogoBadge";
 
 interface PaymentCard {
@@ -63,7 +64,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
           </div>
         );
       default:
-        return <CreditCard className="h-4 w-4 text-gray-500" />;
+        return <CreditCard className="h-4 w-4 text-slate-200" />;
     }
   };
 
@@ -184,15 +185,15 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
 
   if (isLoadingCards) {
     return (
-      <div className="flex justify-center items-center py-6">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      <div className="flex items-center justify-center py-6">
+        <Loader2 className="h-8 w-8 animate-spin text-sky-300" />
       </div>
     );
   }
 
   return (
     <div className="mb-6">
-      <Label className="text-base font-medium mb-3 block">
+      <Label className="mb-3 block text-base font-semibold text-slate-100">
         {t("selectPaymentMethod", "Selectează metoda de plată")}
       </Label>
       <RadioGroup
@@ -200,52 +201,62 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
         onValueChange={onPaymentMethodChange}
         className="space-y-3"
       >
-        {paymentMethods.map(method => (
-          <div
-            key={method.id}
-            className={`flex items-start space-x-2 p-3 border rounded-md hover:bg-gray-50 ${
-              method.provider === "netopia"
-                ? "border-blue-200 bg-blue-50/30"
-                : ""
-            }`}
-          >
-            <RadioGroupItem
-              value={method.id}
-              id={`payment-${method.id}`}
-              className="mt-1"
-            />
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor={`payment-${method.id}`}
-                  className="font-medium cursor-pointer flex items-center gap-2"
-                >
-                  {method.icon}
-                  {method.name}
-                  {method.provider === "netopia" && (
-                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                      🇷🇴 Netopia
-                    </span>
-                  )}
-                </Label>
-                <span className="text-sm text-gray-500">{method.fee}</span>
+        {paymentMethods.map(method => {
+          const isSelected = selectedPaymentMethod === method.id;
+
+          return (
+            <div
+              key={method.id}
+              className={cn(
+                "flex items-start gap-3 rounded-xl border p-3 transition-colors duration-200",
+                method.provider === "netopia"
+                  ? "border-sky-400/40 bg-sky-500/10"
+                  : "border-white/10 bg-white/5",
+                isSelected
+                  ? "border-sky-400 bg-sky-500/20 shadow-lg shadow-sky-500/15"
+                  : "hover:border-white/20 hover:bg-white/10"
+              )}
+            >
+              <RadioGroupItem
+                value={method.id}
+                id={`payment-${method.id}`}
+                className="mt-1 border-white/40 text-sky-300"
+              />
+              <div className="flex-1">
+                <div className="flex items-center justify-between gap-3">
+                  <Label
+                    htmlFor={`payment-${method.id}`}
+                    className="flex cursor-pointer items-center gap-2 font-semibold text-slate-100"
+                  >
+                    {method.icon}
+                    {method.name}
+                    {method.provider === "netopia" && (
+                      <span className="rounded border border-sky-400/40 bg-sky-500/15 px-2 py-0.5 text-xs text-sky-100">
+                        🇷🇴 Netopia
+                      </span>
+                    )}
+                  </Label>
+                  {method.fee ? (
+                    <span className="text-sm text-slate-300">{method.fee}</span>
+                  ) : null}
+                </div>
+                {method.description && (
+                  <div className="mt-1 text-sm text-slate-300">
+                    {method.description}
+                  </div>
+                )}
+                {method.type === "saved_card" && (
+                  <div className="mt-1 text-sm text-slate-300">
+                    {
+                      savedCards.find(card => card.id === method.id)
+                        ?.cardholderName
+                    }
+                  </div>
+                )}
               </div>
-              {method.description && (
-                <div className="text-sm text-gray-600 mt-1">
-                  {method.description}
-                </div>
-              )}
-              {method.type === "saved_card" && (
-                <div className="text-sm text-gray-600 mt-1">
-                  {
-                    savedCards.find(card => card.id === method.id)
-                      ?.cardholderName
-                  }
-                </div>
-              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </RadioGroup>
 
       <div className="mt-4">

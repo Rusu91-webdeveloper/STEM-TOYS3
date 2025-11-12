@@ -8,7 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
+import {
+  glassPanelClass,
+  gradientButtonClass,
+} from "@/features/home/components/homeTheme";
 import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface ProfileFormData {
   name: string;
@@ -147,14 +152,19 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-      <div className="space-y-4 bg-white/50 p-6 rounded-xl shadow-sm border border-gray-100 backdrop-blur-sm">
-        <h3 className="text-lg font-medium mb-4 text-gray-800">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 text-slate-100">
+      <div
+        className={cn(
+          glassPanelClass,
+          "space-y-4 border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-black/30"
+        )}
+      >
+        <h3 className="mb-4 text-lg font-semibold text-slate-100">
           {t("profile", "Informații personale")}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-gray-700">
+            <Label htmlFor="name" className="text-sm font-medium text-slate-200">
               {t("name", "Nume")}
             </Label>
             <Input
@@ -164,14 +174,17 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               })}
               placeholder={t("yourName", "Numele tău")}
               disabled={isLoading}
-              className="transition-all focus:border-primary/50 focus:ring-primary/30"
+              className="border border-white/15 bg-white/10 text-slate-100 placeholder:text-slate-400 transition-all focus:border-sky-400/60 focus:ring-sky-400/20"
             />
             {errors.name && (
-              <p className="text-sm text-red-500">{errors.name.message}</p>
+              <p className="text-sm text-rose-300">{errors.name.message}</p>
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-gray-700">
+            <Label
+              htmlFor="email"
+              className="text-sm font-medium text-slate-200"
+            >
               {t("email", "Email")}
             </Label>
             <Input
@@ -186,22 +199,30 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               })}
               placeholder={t("yourEmail", "Emailul tău")}
               disabled={isLoading}
-              className="transition-all focus:border-primary/50 focus:ring-primary/30"
+              className="border border-white/15 bg-white/10 text-slate-100 placeholder:text-slate-400 transition-all focus:border-sky-400/60 focus:ring-sky-400/20"
             />
             {errors.email && (
-              <p className="text-sm text-red-500">{errors.email.message}</p>
+              <p className="text-sm text-rose-300">{errors.email.message}</p>
             )}
           </div>
         </div>
       </div>
 
-      <div className="bg-white/50 p-6 rounded-xl shadow-sm border border-gray-100 backdrop-blur-sm">
-        <h3 className="text-lg font-medium mb-4 text-gray-800">
+      <div
+        className={cn(
+          glassPanelClass,
+          "border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-black/30"
+        )}
+      >
+        <h3 className="mb-4 text-lg font-semibold text-slate-100">
           {t("password", "Parolă")}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="newPassword" className="text-gray-700">
+            <Label
+              htmlFor="newPassword"
+              className="text-sm font-medium text-slate-200"
+            >
               {t("newPassword", "Parolă nouă")}
             </Label>
             <Input
@@ -213,16 +234,19 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                 "Leave blank to keep current password"
               )}
               disabled={isLoading}
-              className="transition-all focus:border-primary/50 focus:ring-primary/30"
+              className="border border-white/15 bg-white/10 text-slate-100 placeholder:text-slate-400 transition-all focus:border-sky-400/60 focus:ring-sky-400/20"
             />
             {errors.newPassword && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-rose-300">
                 {errors.newPassword.message}
               </p>
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-gray-700">
+            <Label
+              htmlFor="confirmPassword"
+              className="text-sm font-medium text-slate-200"
+            >
               {t("confirmNewPassword", "Confirmă parola")}
             </Label>
             <Input
@@ -236,10 +260,10 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               })}
               placeholder={t("confirmNewPassword", "Confirmă parola nouă")}
               disabled={isLoading}
-              className="transition-all focus:border-primary/50 focus:ring-primary/30"
+              className="border border-white/15 bg-white/10 text-slate-100 placeholder:text-slate-400 transition-all focus:border-sky-400/60 focus:ring-sky-400/20"
             />
             {errors.confirmPassword && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-rose-300">
                 {errors.confirmPassword.message}
               </p>
             )}
@@ -249,11 +273,14 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           <Button
             type="submit"
             disabled={isLoading}
-            className="bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary transition-all duration-300 shadow-md hover:shadow-lg"
+            className={cn(
+              "flex items-center gap-2 transition-all duration-300 hover:scale-[1.01]",
+              gradientButtonClass
+            )}
           >
             {isLoading ? (
               <>
-                <span className="animate-spin mr-2">⏳</span>
+                <span className="mr-2 animate-spin">⏳</span>
                 {t("saving", "Se salvează...")}
               </>
             ) : (

@@ -30,6 +30,7 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
 import { MobileLanguageSelector } from "@/components/ui/mobile-language-selector";
 import { CartButton } from "@/features/cart";
+import { glassPanelClass } from "@/features/home/components/homeTheme";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation, TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -68,6 +69,15 @@ const navigation: {
   { name: "blog", href: "/blog", icon: BookOpen },
   { name: "about", href: "/about", icon: Info },
 ];
+
+const desktopNavLinkBaseClass =
+  "relative group flex items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-3 2xl:px-4 py-2 text-sm 2xl:text-base font-medium transition-all duration-200 backdrop-blur-sm";
+const desktopNavLinkActiveClass =
+  "text-white bg-white/10 border-white/20 shadow-[0_18px_45px_rgba(99,102,241,0.45)]";
+const desktopNavLinkInactiveClass =
+  "text-slate-200/80 hover:text-white hover:bg-white/5 hover:border-white/15";
+const desktopIconBaseClass =
+  "hidden lg:block w-4 h-4 2xl:w-5 2xl:h-5 transition-colors duration-200";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -268,206 +278,167 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white sticky top-0 z-40 w-full border-b shadow-sm">
-      {/* Mobile & Tablet Header - Visible on small, medium, and large screens (up to xl) */}
-      <div className="block xl:hidden">
-        <div className="flex items-center justify-between h-16 px-4 md:px-6 lg:px-8">
-          {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <div className="relative h-10 w-28 md:h-12 md:w-32 lg:h-14 lg:w-36">
-              <Image
-                className="object-contain"
-                src="/TechTots_LOGO.png"
-                alt="TechTots Logo"
-                priority
-                fill
-                sizes="(max-width: 640px) 7rem, (max-width: 768px) 8rem, (max-width: 1024px) 9rem, 9rem"
-              />
-            </div>
-          </Link>
-
-          {/* Mobile/Tablet Right Side */}
-          <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-4">
-            {/* Wishlist Icon */}
-            <button
-              type="button"
-              className="relative inline-flex items-center justify-center rounded-md p-1.5 md:p-2 lg:p-2.5 text-gray-700 hover:bg-gray-100 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500 cursor-pointer transition-colors"
-              onClick={handleWishlistClick}
-              aria-label="Wishlist"
-            >
-              <Heart
-                className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6"
-                aria-hidden="true"
-              />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 md:w-5 md:h-5 lg:w-5 lg:h-5 flex items-center justify-center font-bold">
-                  {wishlistCount > 9 ? "9+" : wishlistCount}
-                </span>
-              )}
-            </button>
-
-            {/* Products Icon */}
-            <Link
-              href="/products"
-              aria-label={t("products")}
-              className="relative inline-flex items-center justify-center rounded-md p-1.5 md:p-2 lg:p-2.5 text-gray-700 hover:bg-gray-100 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer transition-colors"
-            >
-              <Boxes
-                className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6"
-                aria-hidden="true"
-              />
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-gradient-to-br from-slate-950/95 via-indigo-950/85 to-slate-900/90 shadow-[0_18px_45px_rgba(2,6,23,0.65)] transition-[background,shadow] duration-500 supports-[backdrop-filter]:backdrop-blur-2xl">
+      {/* Unified responsive header */}
+      <div className="px-3 sm:px-5 lg:px-8 py-1.5 lg:py-3 max-[400px]:px-2.5">
+        <div
+          className={cn(
+            glassPanelClass,
+            "pointer-events-auto flex items-center justify-between min-h-[3.25rem] sm:min-h-[3.75rem] lg:min-h-[4.5rem] 2xl:min-h-[5.5rem] px-3 sm:px-4 lg:px-6 2xl:px-9 bg-gradient-to-br from-white/15 via-white/10 to-white/5 shadow-[0_18px_50px_rgba(2,132,199,0.16)] text-slate-100 max-[400px]:px-2 max-[400px]:min-h-[3rem]"
+          )}
+        >
+          {/* Logo + Desktop Navigation */}
+          <div className="flex items-center gap-2.5 sm:gap-3.5 lg:gap-8 2xl:gap-12 min-w-0 max-[400px]:gap-1.5">
+            <Link href="/" className="flex items-center">
+              <div className="relative h-9 w-24 xs:h-10 xs:w-28 sm:h-12 sm:w-32 lg:h-12 lg:w-32 2xl:h-14 2xl:w-36 max-[400px]:h-8 max-[400px]:w-20">
+                <Image
+                  className="object-contain"
+                  src="/TechTots_LOGO.png"
+                  alt="TechTots Logo"
+                  priority
+                  fill
+                  sizes="(max-width: 640px) 7rem, (max-width: 768px) 8rem, (max-width: 1280px) 9rem, 9rem"
+                />
+              </div>
             </Link>
 
-            {/* Cart Button - Now using the CartButton component for consistency */}
-            <CartButton variant="header" />
-
-            {/* Login/Account Icon (mobile/tablet) */}
-            {shouldShowAuthenticatedUI ? (
-              <Link
-                href="/account"
-                aria-label={t("account")}
-                className="relative inline-flex items-center justify-center rounded-md p-1.5 md:p-2 lg:p-2.5 text-gray-700 hover:bg-gray-100 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer transition-colors"
-              >
-                <User
-                  className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6"
-                  aria-hidden="true"
-                />
-              </Link>
-            ) : (
-              <Link
-                href="/auth/login"
-                aria-label={t("login")}
-                className="relative inline-flex items-center justify-center rounded-md p-1.5 md:p-2 lg:p-2.5 text-gray-700 hover:bg-gray-100 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer transition-colors"
-              >
-                <LogIn
-                  className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6"
-                  aria-hidden="true"
-                />
-              </Link>
-            )}
-
-            {/* Mobile/Tablet menu button */}
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-md p-1.5 md:p-2 lg:p-2.5 text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 cursor-pointer"
-              onClick={() => setMobileMenuOpen(true)}
-            >
-              <span className="sr-only">Open main menu</span>
-              <Menu
-                className="h-5 w-5 md:h-6 md:w-6 lg:h-6 lg:w-6"
-                aria-hidden="true"
-              />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Header - Only visible on extra large screens and up */}
-      <div className="hidden xl:block xl:pointer-events-auto pointer-events-none">
-        <div className="w-full px-8 2xl:px-12">
-          <div className="flex items-center justify-between h-20 2xl:h-24">
-            {/* Left Section: Logo + Navigation */}
-            <div className="flex items-center space-x-8 2xl:space-x-12">
-              {/* Logo */}
-              <div className="flex-shrink-0">
-                <Link href="/" className="flex items-center">
-                  <div className="relative h-12 w-32 2xl:h-14 2xl:w-36">
-                    <Image
-                      className="object-contain"
-                      src="/TechTots_LOGO.png"
-                      alt="TechTots Logo"
-                      priority
-                      fill
-                      sizes="(max-width: 1280px) 8rem, (max-width: 1536px) 9rem, 9rem"
-                    />
-                  </div>
-                </Link>
-              </div>
-
-              {/* Navigation Links */}
-              <nav className="flex items-center space-x-2 2xl:space-x-3">
-                {navigation.map(item => {
-                  const IconComponent = item.icon;
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
+            <nav className="hidden lg:flex items-center gap-2 2xl:gap-3">
+              {navigation.map(item => {
+                const IconComponent = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      desktopNavLinkBaseClass,
+                      isActive
+                        ? desktopNavLinkActiveClass
+                        : desktopNavLinkInactiveClass
+                    )}
+                    data-conversion="cta"
+                    data-conversion-type="click"
+                    data-conversion-category="nav"
+                    data-conversion-action="header_link_click"
+                    data-conversion-element={`header_${typeof item.name === "string" ? item.name : String(item.name)}`}
+                  >
+                    <IconComponent
                       className={cn(
-                        "relative group px-3 2xl:px-4 py-2 text-sm 2xl:text-base font-medium transition-all duration-200 rounded-md cursor-pointer whitespace-nowrap flex items-center gap-2",
-                        pathname === item.href
-                          ? "text-indigo-700 bg-indigo-50 shadow-sm"
-                          : "text-gray-700 hover:text-indigo-600 hover:bg-indigo-50/50"
+                        desktopIconBaseClass,
+                        isActive
+                          ? "text-indigo-300 drop-shadow-[0_0_14px_rgba(99,102,241,0.55)]"
+                          : "text-slate-400 group-hover:text-indigo-200 group-hover:drop-shadow-[0_0_12px_rgba(129,140,248,0.4)]"
                       )}
-                      data-conversion="cta"
-                      data-conversion-type="click"
-                      data-conversion-category="nav"
-                      data-conversion-action="header_link_click"
-                      data-conversion-element={`header_${typeof item.name === "string" ? item.name : String(item.name)}`}
-                    >
-                      {/* Icon - visible on big screens */}
-                      <IconComponent
+                    />
+                    <span className="relative">
+                      {t(item.name)}
+                      <span
                         className={cn(
-                          "w-4 h-4 2xl:w-5 2xl:h-5 transition-colors duration-200 hidden lg:block",
-                          pathname === item.href
-                            ? "text-indigo-700"
-                            : "text-gray-500 group-hover:text-indigo-600"
+                          "absolute -bottom-1 left-0 h-[2px] w-0 rounded-full bg-sky-400/80 transition-all duration-200 group-hover:w-full group-hover:shadow-[0_0_15px_rgba(56,189,248,0.6)]",
+                          isActive ? "w-full" : ""
                         )}
-                      />
-                      <span className="relative">
-                        {t(item.name)}
-                        <span
-                          className={cn(
-                            "absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-200 group-hover:w-full",
-                            pathname === item.href ? "w-full" : ""
-                          )}
-                        ></span>
-                      </span>
-                    </Link>
-                  );
-                })}
-              </nav>
+                      ></span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Responsive utilities */}
+          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 2xl:gap-6 text-slate-200 min-w-0 max-[400px]:gap-1.5">
+            {/* Mobile controls */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5 lg:hidden max-[400px]:gap-1">
+              <button
+                type="button"
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition-colors duration-200 hover:border-rose-400/40 hover:bg-rose-500/20 hover:text-rose-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 shadow-[0_12px_28px_rgba(244,63,94,0.28)] cursor-pointer max-[400px]:h-9 max-[400px]:w-9"
+                onClick={handleWishlistClick}
+                aria-label="Wishlist"
+              >
+                <Heart className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]" aria-hidden="true" />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border border-white/20 bg-rose-500 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.6)] sm:h-5 sm:w-5">
+                    {wishlistCount > 9 ? "9+" : wishlistCount}
+                  </span>
+                )}
+              </button>
+
+              <Link
+                href="/products"
+                aria-label={t("products")}
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition-colors duration-200 hover:border-indigo-400/40 hover:bg-indigo-500/20 hover:text-indigo-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 cursor-pointer shadow-[0_12px_28px_rgba(79,70,229,0.3)] max-[400px]:h-9 max-[400px]:w-9"
+              >
+                <Boxes className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]" aria-hidden="true" />
+              </Link>
+
+              <CartButton
+                variant="header"
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/10 shadow-[0_16px_40px_rgba(2,6,23,0.5)] transition hover:bg-white/15 max-[400px]:h-9 max-[400px]:w-9 max-[400px]:p-1 text-slate-200"
+              />
+
+              {shouldShowAuthenticatedUI ? (
+                <Link
+                  href="/account"
+                  aria-label={t("account")}
+                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition-colors duration-200 hover:border-white/20 hover:bg-white/20 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 cursor-pointer shadow-[0_16px_40px_rgba(59,130,246,0.32)] max-[400px]:h-9 max-[400px]:w-9"
+                >
+                  <User className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]" aria-hidden="true" />
+                </Link>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  aria-label={t("login")}
+                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/15 text-white transition-all duration-200 hover:border-white/35 hover:bg-white/25 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-slate-900 cursor-pointer shadow-[0_18px_48px_rgba(148,163,184,0.4)] max-[400px]:h-9 max-[400px]:w-9"
+                >
+                  <LogIn className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]" aria-hidden="true" />
+                </Link>
+              )}
+
+              <button
+                type="button"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/12 bg-white/10 text-white transition-colors duration-200 hover:border-white/25 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-slate-900 cursor-pointer shadow-[0_16px_36px_rgba(2,6,23,0.5)] max-[400px]:h-9 max-[400px]:w-9"
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <span className="sr-only">Open main menu</span>
+                <Menu className="h-5 w-5 max-[400px]:h-[18px] max-[400px]:w-[18px]" aria-hidden="true" />
+              </button>
             </div>
 
-            {/* Right Section: Utilities + User Actions */}
-            <div className="flex items-center space-x-4 2xl:space-x-6">
-              {/* Language Switcher */}
-              <div className="flex items-center space-x-2 2xl:space-x-3">
+            {/* Desktop utilities */}
+            <div className="hidden lg:flex items-center gap-4 2xl:gap-6">
+              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 shadow-inner shadow-black/20 backdrop-blur-sm">
                 <LanguageSwitcher />
               </div>
 
-              {/* Cart Button */}
-              <div className="flex items-center">
+              <div className="flex items-center justify-center rounded-full border border-white/10 bg-white/10 p-2 shadow-inner shadow-black/30 transition hover:bg-white/15">
                 <CartButton />
               </div>
 
-              {/* User Actions */}
               {shouldShowAuthenticatedUI ? (
-                <div className="flex items-center space-x-2 2xl:space-x-3 border-l pl-4 2xl:pl-6 border-gray-200">
+                <div className="flex items-center gap-3 2xl:gap-4 border-l border-white/10 pl-4 2xl:pl-6">
                   <Link
                     href="/account"
-                    className="flex items-center gap-2 px-3 2xl:px-4 py-2 rounded-md text-sm 2xl:text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-colors cursor-pointer shadow-sm hover:shadow border border-transparent hover:border-gray-200"
+                    className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-4 2xl:px-5 py-2 text-sm 2xl:text-base font-medium text-slate-200 transition-all duration-200 hover:border-white/20 hover:bg-white/15 hover:text-white shadow-[0_16px_40px_rgba(148,163,184,0.25)]"
                   >
                     <User className="h-4 w-4 2xl:h-5 2xl:w-5" />
                     <span>{t("account")}</span>
                   </Link>
 
-                  {/* Admin Navigation - Enhanced with better visibility */}
                   {isAdmin && (
                     <Link
                       href="/admin"
-                      className="flex items-center gap-2 px-3 2xl:px-4 py-2 rounded-md text-sm 2xl:text-base font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg border border-transparent transform hover:scale-105"
+                      className="flex items-center gap-2 rounded-xl border border-indigo-400/40 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 px-4 2xl:px-5 py-2 text-sm 2xl:text-base font-medium text-white transition-all duration-200 hover:from-indigo-500/90 hover:via-violet-500/90 hover:to-purple-600/90 hover:shadow-[0_20px_45px_rgba(79,70,229,0.55)] transform hover:scale-[1.02]"
                     >
                       <Settings className="h-4 w-4 2xl:h-5 2xl:w-5" />
                       <span>{t("admin")}</span>
                     </Link>
                   )}
 
-                  {/* Database Schema Showcase - For VISITOR and ADMIN roles */}
                   {(session?.user?.role === "VISITOR" ||
                     session?.user?.role === "ADMIN") && (
                     <Link
                       href="/database-showcase"
-                      className="flex items-center gap-2 px-3 2xl:px-4 py-2 rounded-md text-sm 2xl:text-base font-medium bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg border border-transparent transform hover:scale-105"
+                      className="flex items-center gap-2 rounded-xl border border-cyan-400/40 bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 px-4 2xl:px-5 py-2 text-sm 2xl:text-base font-medium text-white transition-all duration-200 hover:from-cyan-500/90 hover:via-sky-500/90 hover:to-blue-600/90 hover:shadow-[0_20px_45px_rgba(14,165,233,0.55)] transform hover:scale-[1.02]"
                     >
                       <Database className="h-4 w-4 2xl:h-5 2xl:w-5" />
                       <span>Database Schema</span>
@@ -477,7 +448,7 @@ export default function Header() {
                   {isSupplier && (
                     <Link
                       href="/supplier/dashboard"
-                      className="flex items-center gap-2 px-3 2xl:px-4 py-2 rounded-md text-sm 2xl:text-base font-medium bg-gradient-to-r from-green-500 to-teal-600 text-white hover:from-green-600 hover:to-teal-700 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg border border-transparent transform hover:scale-105"
+                      className="flex items-center gap-2 rounded-xl border border-emerald-400/40 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 px-4 2xl:px-5 py-2 text-sm 2xl:text-base font-medium text-white transition-all duration-200 hover:from-emerald-500/90 hover:via-teal-500/90 hover:to-emerald-600/90 hover:shadow-[0_20px_45px_rgba(16,185,129,0.55)] transform hover:scale-[1.02]"
                     >
                       <Building2 className="h-4 w-4 2xl:h-5 2xl:w-5" />
                       <span>{t("supplier")}</span>
@@ -487,18 +458,17 @@ export default function Header() {
                   <Button
                     onClick={handleSignOut}
                     variant="ghost"
-                    className="flex items-center gap-2 px-3 2xl:px-4 py-2 rounded-md text-sm 2xl:text-base font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer shadow-sm hover:shadow h-auto border border-transparent hover:border-red-200"
+                    className="flex items-center gap-2 rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 2xl:px-5 py-2 text-sm 2xl:text-base font-semibold text-rose-200 transition-all duration-200 hover:bg-rose-500/20 hover:text-rose-100 hover:border-rose-300/60 shadow-[0_16px_40px_rgba(244,63,94,0.45)] h-auto"
                   >
                     <LogOut className="h-4 w-4 2xl:h-5 2xl:w-5" />
                     <span>{t("logout")}</span>
                   </Button>
                 </div>
               ) : (
-                // Not authenticated - show login
-                <div className="flex items-center border-l pl-4 2xl:pl-6 border-gray-200">
+                <div className="flex items-center border-l border-white/10 pl-4 2xl:pl-6">
                   <Link
                     href="/auth/login"
-                    className="flex items-center gap-2 px-4 2xl:px-5 py-2 rounded-md bg-indigo-600 text-white text-sm 2xl:text-base font-medium hover:bg-indigo-700 transition-colors shadow-sm hover:shadow cursor-pointer border border-indigo-600 hover:border-indigo-700"
+                    className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 2xl:px-6 py-2 text-sm 2xl:text-base font-semibold text-white transition-all duration-200 hover:border-white/40 hover:bg-white/20 hover:text-slate-900 shadow-[0_18px_45px_rgba(148,163,184,0.35)]"
                   >
                     <span>{t("login")}</span>
                     <span aria-hidden="true">&rarr;</span>
@@ -514,7 +484,7 @@ export default function Header() {
       {isClient &&
         mobileMenuOpen &&
         createPortal(
-          <div className="xl:hidden fixed inset-0 z-[9999] animate-fadeIn">
+          <div className="lg:hidden fixed inset-0 z-[9999] animate-fadeIn">
             {/* Enhanced backdrop with smoother blur */}
             <div
               className="fixed inset-0 bg-gradient-to-br from-black/60 via-indigo-900/30 to-black/60 backdrop-blur-md z-[9999] transition-all duration-500 ease-out"
@@ -524,62 +494,46 @@ export default function Header() {
 
             {/* Modern sidebar with glassmorphism - COMPACT WIDTH */}
             <div
-              className="fixed top-0 right-0 bottom-0 w-[80vw] xs:w-[75vw] sm:w-[65vw] md:w-[55vw] max-w-[340px] 
-              bg-gradient-to-br from-white via-gray-50/95 to-white
-              backdrop-blur-xl backdrop-saturate-150
-              shadow-[0_0_50px_rgba(0,0,0,0.15),0_20px_40px_rgba(99,102,241,0.1)]
-              border-l-[3px]
-              flex flex-col z-[10000] pointer-events-auto 
+              className="fixed top-0 right-0 bottom-0 w-[80vw] xs:w-[75vw] sm:w-[65vw] md:w-[55vw] max-w-[340px]
+              bg-gradient-to-br from-slate-950/95 via-indigo-950/85 to-slate-900/95
+              text-slate-100
+              backdrop-blur-2xl backdrop-saturate-150
+              shadow-[0_30px_70px_rgba(2,6,23,0.65),0_15px_35px_rgba(79,70,229,0.35)]
+              border-l border-white/10
+              flex flex-col z-[10000] pointer-events-auto
               transform transition-all duration-500 ease-out
               animate-slideInRight
               overflow-hidden"
-              style={{
-                borderImage:
-                  "linear-gradient(to bottom, rgb(129, 140, 248), rgb(192, 132, 252), rgb(99, 102, 241)) 1",
-              }}
             >
               {/* Gradient overlay for depth */}
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/30 via-transparent to-purple-50/20 pointer-events-none" />
 
               {/* Modern header with gradient - COMPACT */}
               <div
-                className="relative flex items-center justify-between h-12 px-3 
-                border-b border-gray-200/60
-                bg-gradient-to-r from-white via-indigo-50/40 to-purple-50/30
-                shadow-sm
-                z-10"
+                className="relative z-10 flex h-12 items-center justify-between border-b border-white/10 bg-gradient-to-r from-slate-950/95 via-indigo-950/80 to-slate-900/90 px-3 shadow-[0_12px_25px_rgba(2,6,23,0.55)]"
               >
                 {/* Animated menu title - Smaller */}
-                <h2 className="text-sm font-bold bg-gradient-to-r from-indigo-700 via-purple-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-2 animate-fadeIn">
+                <h2 className="flex items-center gap-2 text-sm font-bold text-white animate-fadeIn">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-b from-indigo-400 to-purple-500 rounded-full blur-sm opacity-60"></div>
-                    <div className="relative w-1 h-4 bg-gradient-to-b from-indigo-500 via-purple-500 to-indigo-600 rounded-full shadow-lg"></div>
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-b from-indigo-500 to-purple-600 blur-sm opacity-60"></div>
+                    <div className="relative h-4 w-1 rounded-full bg-gradient-to-b from-indigo-400 via-purple-500 to-indigo-500 shadow-lg"></div>
                   </div>
-                  <span className="relative">
+                  <span className="relative text-slate-100">
                     {t("menu", "Meniu")}
-                    <div className="absolute -bottom-0.5 left-0 right-0 h-[1.5px] bg-gradient-to-r from-indigo-400 via-purple-400 to-transparent rounded-full opacity-60"></div>
+                    <div className="absolute -bottom-0.5 left-0 right-0 h-[1.5px] rounded-full bg-gradient-to-r from-indigo-400 via-purple-400 to-transparent opacity-60"></div>
                   </span>
                 </h2>
 
                 {/* Enhanced close button - Compact */}
                 <button
                   type="button"
-                  className="relative rounded-full p-1.5 
-                    bg-white/80 hover:bg-gradient-to-br hover:from-red-50 hover:to-pink-50
-                    text-gray-500 hover:text-red-600 
-                    transition-all duration-300 
-                    min-h-[36px] min-w-[36px] 
-                    flex items-center justify-center group 
-                    border border-gray-200/60 hover:border-red-300
-                    shadow-sm hover:shadow-md
-                    backdrop-blur-sm
-                    transform hover:scale-105 active:scale-95"
+                  className="group relative flex min-h-[36px] min-w-[36px] items-center justify-center rounded-full border border-white/10 bg-slate-900/70 p-1.5 text-slate-300 transition-all duration-300 hover:border-rose-400/40 hover:bg-rose-500/10 hover:text-rose-200 shadow-[0_10px_25px_rgba(2,6,23,0.45)] backdrop-blur-lg transform hover:scale-105 active:scale-95"
                   onClick={() => setMobileMenuOpen(false)}
                   aria-label="Close navigation menu"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-red-400/0 to-pink-400/0 group-hover:from-red-400/10 group-hover:to-pink-400/10 rounded-full transition-all duration-300"></div>
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-400/0 to-pink-400/0 transition-all duration-300 group-hover:from-rose-400/10 group-hover:to-pink-400/15"></div>
                   <X
-                    className="relative h-4 w-4 group-hover:rotate-90 transition-transform duration-300"
+                    className="relative h-4 w-4 transition-transform duration-300 group-hover:rotate-90"
                     aria-hidden="true"
                   />
                 </button>
@@ -596,20 +550,12 @@ export default function Header() {
                   >
                     <button
                       type="button"
-                      className={`
-                        flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs font-semibold
-                        transition-all duration-300 
-                        shadow-sm hover:shadow-md
-                        backdrop-blur-sm
-                        border
-                        transform hover:scale-[1.01] active:scale-[0.99]
-                        group
-                        ${
-                          activeFilters.hasActiveFilters
-                            ? "bg-gradient-to-br from-indigo-50 via-purple-50/50 to-indigo-50 border-indigo-200 text-indigo-800 shadow-indigo-100"
-                            : "bg-white/90 hover:bg-gradient-to-br hover:from-gray-50 hover:to-indigo-50/30 border-gray-200/60 hover:border-indigo-200 text-gray-800"
-                        }
-                      `}
+                      className={cn(
+                        "flex w-full items-center justify-between rounded-2xl border border-white/10 px-3 py-2.5 text-xs font-semibold text-slate-200 transition-all duration-300 backdrop-blur-sm transform hover:scale-[1.01] active:scale-[0.99] group shadow-[0_18px_35px_rgba(2,6,23,0.45)]",
+                        activeFilters.hasActiveFilters
+                          ? "bg-gradient-to-br from-indigo-500/15 via-violet-500/15 to-indigo-500/15 text-white border-indigo-400/40 shadow-[0_22px_45px_rgba(99,102,241,0.35)]"
+                          : "bg-slate-900/60 hover:border-indigo-400/30 hover:bg-indigo-500/10"
+                      )}
                       aria-expanded={productsMenuOpen}
                       aria-controls="mobile-products-section"
                       onClick={() => {
@@ -628,24 +574,27 @@ export default function Header() {
                       <span className="flex items-center gap-2">
                         {/* Modern icon container - COMPACT */}
                         <div
-                          className={`
-                          relative p-1.5 rounded-md 
-                          transition-all duration-300
-                          ${
+                          className={cn(
+                            "relative rounded-lg border border-transparent p-1.5 transition-all duration-300",
                             activeFilters.hasActiveFilters
-                              ? "bg-gradient-to-br from-indigo-100 to-purple-100 shadow-sm"
-                              : "bg-gradient-to-br from-indigo-50 to-purple-50 group-hover:from-indigo-100 group-hover:to-purple-100"
-                          }`}
+                              ? "border-indigo-400/50 bg-indigo-500/20 shadow-[0_0_18px_rgba(99,102,241,0.35)]"
+                              : "border-white/10 bg-slate-900/60 group-hover:border-indigo-400/40 group-hover:bg-indigo-500/15"
+                          )}
                         >
                           {/* Glow effect */}
                           <div
-                            className={`absolute inset-0 rounded-md blur-sm ${activeFilters.hasActiveFilters ? "bg-indigo-300/40" : "bg-indigo-200/0 group-hover:bg-indigo-200/30"} transition-all duration-300`}
+                            className={cn(
+                              "absolute inset-0 rounded-lg blur-md transition-all duration-300",
+                              activeFilters.hasActiveFilters
+                                ? "bg-indigo-500/30"
+                                : "bg-indigo-400/0 group-hover:bg-indigo-400/20"
+                            )}
                           ></div>
 
                           {activeFilters.hasActiveFilters ? (
-                            <Filter className="relative w-3 h-3 text-indigo-700" />
+                            <Filter className="relative h-3 w-3 text-indigo-200" />
                           ) : (
-                            <Boxes className="relative w-3 h-3 text-indigo-600 group-hover:text-indigo-700" />
+                            <Boxes className="relative h-3 w-3 text-indigo-200 group-hover:text-indigo-100" />
                           )}
                         </div>
 
@@ -672,18 +621,13 @@ export default function Header() {
 
                       {/* Modern chevron - COMPACT */}
                       <span
-                        className={`
-                        ml-auto rounded-md h-6 w-6 
-                        flex items-center justify-center 
-                        transition-all duration-300 
-                        ${
+                        className={cn(
+                          "ml-auto flex h-6 w-6 items-center justify-center rounded-md transition-all duration-300 shadow-[0_10px_25px_rgba(2,6,23,0.35)]",
                           activeFilters.hasActiveFilters
-                            ? "bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-700"
-                            : "bg-gradient-to-br from-gray-100 to-gray-50 text-gray-600 group-hover:from-indigo-100 group-hover:to-purple-100 group-hover:text-indigo-700"
-                        }
-                        shadow-sm
-                        ${productsMenuOpen ? "rotate-180" : "rotate-0"}
-                      `}
+                            ? "bg-indigo-500/30 text-indigo-100"
+                            : "bg-slate-900/60 text-slate-300 group-hover:bg-indigo-500/15 group-hover:text-indigo-100",
+                          productsMenuOpen ? "rotate-180" : "rotate-0"
+                        )}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -704,37 +648,31 @@ export default function Header() {
                     {productsMenuOpen && (
                       <div
                         id="mobile-products-section"
-                        className="mt-1.5 space-y-0.5 rounded-lg overflow-hidden border border-indigo-100/60 bg-gradient-to-br from-white to-gray-50/30 shadow-sm backdrop-blur-sm"
+                        className="mt-1.5 space-y-0.5 overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 shadow-[0_18px_35px_rgba(2,6,23,0.45)] backdrop-blur-sm"
                       >
                         {/* All products - COMPACT */}
                         <button
                           type="button"
-                          className="flex items-center px-3 py-2 text-xs text-gray-700 
-                            hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50/50 
-                            hover:text-indigo-700 
-                            w-full text-left 
-                            transition-all duration-200
-                            group
-                            border-b border-gray-100/60 last:border-0"
+                          className="group flex w-full items-center border-b border-white/5 px-3 py-2 text-xs text-slate-200 transition-all duration-200 hover:bg-indigo-500/10 hover:text-white last:border-0"
                           onClick={() => {
                             router.push(buildProductsUrl({}));
                             setMobileMenuOpen(false);
                           }}
                         >
-                          <div className="ml-0.5 mr-2 w-1.5 h-1.5 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 shadow-sm group-hover:scale-125 transition-transform duration-200"></div>
-                          <span className="font-medium group-hover:font-semibold transition-all text-xs">
+                          <div className="ml-0.5 mr-2 h-1.5 w-1.5 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 shadow-sm transition-transform duration-200 group-hover:scale-125"></div>
+                          <span className="text-xs font-medium transition-all group-hover:font-semibold">
                             {t("allProducts", "Toate produsele")}
                           </span>
-                          <span className="ml-auto text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-semibold group-hover:bg-indigo-100 transition-colors">
+                          <span className="ml-auto rounded-full bg-indigo-500/20 px-2 py-0.5 text-[10px] font-semibold text-indigo-100 transition-colors group-hover:bg-indigo-500/30">
                             {t("all", "Toate")}
                           </span>
                         </button>
 
                         {/* Age (Varsta) subsection */}
-                        <div className="border-t border-gray-100">
+                        <div className="border-t border-white/10">
                           <button
                             type="button"
-                            className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50/80 transition-colors duration-200"
+                            className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors duration-200 hover:bg-white/10"
                             aria-expanded={ageOpen}
                             aria-controls="mobile-age-subsection"
                             onClick={() => {
@@ -751,11 +689,11 @@ export default function Header() {
                             }}
                           >
                             <span className="flex items-center">
-                              <span className="w-1 h-4 bg-blue-500 rounded-sm mr-3"></span>
+                              <span className="mr-3 h-4 w-1 rounded-sm bg-sky-400"></span>
                               {t("age", "Vârstă")}
                             </span>
                             <span
-                              className="ml-auto text-gray-500 transition-transform duration-300"
+                              className="ml-auto text-slate-400 transition-transform duration-300"
                               style={{
                                 transform: ageOpen
                                   ? "rotate(180deg)"
@@ -780,7 +718,7 @@ export default function Header() {
                           {ageOpen && (
                             <div
                               id="mobile-age-subsection"
-                              className="bg-gray-50/80 border-t border-b border-gray-100"
+                              className="border-y border-white/10 bg-slate-900/60"
                             >
                               {[
                                 {
@@ -812,10 +750,10 @@ export default function Header() {
                                 <button
                                   key={opt.id}
                                   type="button"
-                                  className={`flex items-center px-4 py-2.5 text-sm w-full text-left group transition-all duration-200 ${
+                                  className={`group flex w-full items-center border border-transparent px-4 py-2.5 text-sm text-left transition-all duration-200 ${
                                     activeFilters.ageGroup === opt.id
-                                      ? "bg-indigo-50 text-indigo-700 font-medium"
-                                      : "text-gray-700 hover:bg-white"
+                                      ? "bg-gradient-to-r from-indigo-500/20 via-sky-500/20 to-indigo-500/20 text-white font-medium border-indigo-400/40 shadow-[0_15px_35px_rgba(99,102,241,0.3)]"
+                                      : "text-slate-200 hover:bg-white/10"
                                   }`}
                                   onClick={() => {
                                     router.push(
@@ -827,14 +765,14 @@ export default function Header() {
                                   }}
                                 >
                                   <div
-                                    className={`ml-4 mr-3 w-1.5 h-1.5 rounded-full ${opt.color}`}
+                                    className={`ml-4 mr-3 h-1.5 w-1.5 rounded-full ${opt.color}`}
                                   ></div>
-                                  <span className="group-hover:text-indigo-700">
+                                  <span className="group-hover:text-white">
                                     {opt.label}
                                   </span>
                                   {activeFilters.ageGroup === opt.id && (
-                                    <div className="ml-auto bg-indigo-100 p-0.5 rounded-full">
-                                      <Check className="w-3 h-3 text-indigo-600" />
+                                    <div className="ml-auto rounded-full bg-indigo-500/20 p-0.5">
+                                      <Check className="h-3 w-3 text-indigo-200" />
                                     </div>
                                   )}
                                 </button>
@@ -844,10 +782,10 @@ export default function Header() {
                         </div>
 
                         {/* Category subsection */}
-                        <div className="border-t border-gray-100">
+                        <div className="border-t border-white/10">
                           <button
                             type="button"
-                            className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50/80 transition-colors duration-200"
+                            className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors duration-200 hover:bg-white/10"
                             aria-expanded={categoryOpen}
                             aria-controls="mobile-category-subsection"
                             onClick={async () => {
@@ -875,11 +813,11 @@ export default function Header() {
                             }}
                           >
                             <span className="flex items-center">
-                              <span className="w-1 h-4 bg-indigo-500 rounded-sm mr-3"></span>
+                              <span className="mr-3 h-4 w-1 rounded-sm bg-indigo-500"></span>
                               {t("categories", "Categorii")}
                             </span>
                             <span
-                              className="ml-auto text-gray-500 transition-transform duration-300"
+                              className="ml-auto text-slate-400 transition-transform duration-300"
                               style={{
                                 transform: categoryOpen
                                   ? "rotate(180deg)"
@@ -904,16 +842,16 @@ export default function Header() {
                           {categoryOpen && (
                             <div
                               id="mobile-category-subsection"
-                              className="bg-gray-50/80 border-t border-b border-gray-100"
+                              className="border-y border-white/10 bg-slate-900/60"
                             >
                               {categories.map(cat => (
                                 <button
                                   key={cat.id}
                                   type="button"
-                                  className={`flex items-center px-4 py-2.5 text-sm w-full text-left group transition-all duration-200 ${
+                                  className={`group flex w-full items-center border border-transparent px-4 py-2.5 text-sm text-left transition-all duration-200 ${
                                     activeFilters.category.includes(cat.id)
-                                      ? "bg-indigo-50 text-indigo-700 font-medium"
-                                      : "text-gray-700 hover:bg-white"
+                                      ? "bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-indigo-500/20 text-white font-medium border-indigo-400/40 shadow-[0_15px_35px_rgba(99,102,241,0.3)]"
+                                      : "text-slate-200 hover:bg-white/10"
                                   }`}
                                   onClick={() => {
                                     router.push(
@@ -922,13 +860,13 @@ export default function Header() {
                                     setMobileMenuOpen(false);
                                   }}
                                 >
-                                  <div className="ml-4 mr-3 w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                                  <span className="group-hover:text-indigo-700">
+                                  <div className="ml-4 mr-3 h-1.5 w-1.5 rounded-full bg-indigo-400"></div>
+                                  <span className="group-hover:text-white">
                                     {getCategoryTranslation(cat.id, t)}
                                   </span>
                                   {activeFilters.category.includes(cat.id) && (
-                                    <div className="ml-auto bg-indigo-100 p-0.5 rounded-full">
-                                      <Check className="w-3 h-3 text-indigo-600" />
+                                    <div className="ml-auto rounded-full bg-indigo-500/20 p-0.5">
+                                      <Check className="h-3 w-3 text-indigo-200" />
                                     </div>
                                   )}
                                 </button>
@@ -940,12 +878,12 @@ export default function Header() {
                         {/* Gift Ideas */}
                         <button
                           type="button"
-                          className={`flex items-center px-4 py-2.5 text-sm w-full text-left border-t border-gray-100 transition-all duration-200 ${
+                          className={`flex w-full items-center border-t border-white/10 px-4 py-2.5 text-sm text-left transition-all duration-200 ${
                             activeFilters.specialCategories.includes(
                               "GIFT_IDEAS"
                             )
-                              ? "bg-pink-50 text-pink-700 font-medium"
-                              : "text-gray-700 hover:bg-indigo-50/50 hover:text-indigo-700"
+                              ? "bg-rose-500/15 text-white font-medium border-rose-400/40 shadow-[0_15px_35px_rgba(244,63,94,0.3)]"
+                              : "text-slate-200 hover:bg-rose-500/10 hover:text-white"
                           }`}
                           onClick={() => {
                             router.push(
@@ -956,16 +894,16 @@ export default function Header() {
                             setMobileMenuOpen(false);
                           }}
                         >
-                          <div className="ml-1 mr-2 w-1.5 h-1.5 rounded-full bg-pink-500"></div>
+                          <div className="ml-1 mr-2 h-1.5 w-1.5 rounded-full bg-rose-400"></div>
                           <span>{t("giftIdeas", "Idei de cadouri")}</span>
                           {activeFilters.specialCategories.includes(
                             "GIFT_IDEAS"
                           ) ? (
-                            <div className="ml-auto bg-pink-100 p-0.5 rounded-full">
-                              <Check className="w-3 h-3 text-pink-600" />
+                            <div className="ml-auto rounded-full bg-rose-500/20 p-0.5">
+                              <Check className="h-3 w-3 text-rose-200" />
                             </div>
                           ) : (
-                            <span className="ml-auto text-xs text-pink-700 bg-pink-100 px-2 py-0.5 rounded-full">
+                            <span className="ml-auto rounded-full bg-rose-500/15 px-2 py-0.5 text-xs text-rose-200">
                               {t("gift", "Cadou")}
                             </span>
                           )}
@@ -986,37 +924,37 @@ export default function Header() {
                             key={item.name}
                             href={item.href}
                             className={cn(
-                              "flex rounded-lg px-3 py-2.5 text-xs transition-all duration-300 cursor-pointer min-h-[40px] items-center group border relative overflow-hidden animate-fadeIn",
+                              "relative flex min-h-[40px] items-center overflow-hidden rounded-2xl border border-white/10 px-3 py-2.5 text-xs text-slate-200 transition-all duration-300 animate-fadeIn cursor-pointer group transform hover:scale-[1.01] active:scale-[0.99] shadow-[0_15px_35px_rgba(2,6,23,0.45)]",
                               isActive
-                                ? "bg-gradient-to-br from-indigo-50 via-purple-50/50 to-indigo-50 text-indigo-700 border-indigo-200 shadow-sm shadow-indigo-100/50"
-                                : "text-gray-700 hover:text-indigo-700 active:bg-gray-100 bg-white/90 border-gray-200/60 hover:border-indigo-200 shadow-sm hover:shadow-md transform hover:scale-[1.01] active:scale-[0.99]"
+                                ? "bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-indigo-500/20 text-white border-indigo-400/40 shadow-[0_20px_45px_rgba(99,102,241,0.4)]"
+                                : "bg-slate-900/60 hover:border-indigo-400/30 hover:bg-indigo-500/10"
                             )}
                             onClick={() => setMobileMenuOpen(false)}
                             style={{ animationDelay: `${0.2 + index * 0.05}s` }}
                           >
                             {/* Gradient overlay on hover */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/0 via-purple-50/0 to-indigo-50/0 group-hover:from-indigo-50/30 group-hover:via-purple-50/20 group-hover:to-indigo-50/30 transition-all duration-300"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-purple-500/0 to-indigo-500/0 transition-all duration-300 group-hover:from-indigo-500/10 group-hover:via-purple-500/10 group-hover:to-indigo-500/10"></div>
 
                             {/* Modern icon container - COMPACT */}
                             <div className="relative">
                               <div
                                 className={cn(
-                                  "p-1.5 rounded-md mr-2 transition-all duration-300 relative",
+                                  "relative mr-2 rounded-lg p-1.5 transition-all duration-300",
                                   isActive
-                                    ? "bg-gradient-to-br from-indigo-100 to-purple-100 shadow-sm"
-                                    : "bg-gradient-to-br from-gray-100 to-gray-50 group-hover:from-indigo-100 group-hover:to-purple-100"
+                                    ? "bg-indigo-500/20 shadow-[0_0_18px_rgba(99,102,241,0.4)] border border-indigo-400/40"
+                                    : "border border-white/10 bg-slate-900/60 group-hover:border-indigo-400/40 group-hover:bg-indigo-500/15"
                                 )}
                               >
                                 {/* Icon glow effect */}
                                 {isActive && (
-                                  <div className="absolute inset-0 bg-indigo-300/40 blur-sm rounded-md"></div>
+                                  <div className="absolute inset-0 rounded-lg bg-indigo-400/30 blur-md"></div>
                                 )}
                                 <IconComponent
                                   className={cn(
-                                    "relative w-3 h-3 transition-all duration-300",
+                                    "relative h-3 w-3 transition-all duration-300",
                                     isActive
-                                      ? "text-indigo-700"
-                                      : "text-gray-500 group-hover:text-indigo-700 group-hover:scale-110"
+                                      ? "text-indigo-100"
+                                      : "text-slate-300 group-hover:text-indigo-100 group-hover:scale-110"
                                   )}
                                 />
                               </div>
@@ -1024,10 +962,10 @@ export default function Header() {
 
                             <span
                               className={cn(
-                                "relative font-semibold transition-all duration-200 text-xs",
+                                "relative text-xs font-semibold transition-all duration-200",
                                 isActive
-                                  ? "text-indigo-700"
-                                  : "group-hover:text-indigo-700"
+                                  ? "text-white"
+                                  : "group-hover:text-white"
                               )}
                             >
                               {t(item.name)}
@@ -1035,14 +973,14 @@ export default function Header() {
 
                             {/* Active indicator badge - COMPACT */}
                             {isActive && (
-                              <div className="ml-auto bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse border border-indigo-400/30">
+                              <div className="ml-auto rounded-full border border-indigo-400/40 bg-gradient-to-r from-indigo-500 to-purple-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-[0_0_15px_rgba(99,102,241,0.5)] animate-pulse">
                                 {t("active")}
                               </div>
                             )}
 
                             {/* Arrow indicator on hover */}
                             {!isActive && (
-                              <div className="ml-auto opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                              <div className="ml-auto translate-x-2 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="12"
@@ -1053,7 +991,7 @@ export default function Header() {
                                   strokeWidth="2.5"
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
-                                  className="text-indigo-400"
+                                  className="text-indigo-200"
                                 >
                                   <path d="m9 18 6-6-6-6"></path>
                                 </svg>
@@ -1229,22 +1167,22 @@ export default function Header() {
 
                   {/* Utilities Section - COMPACT */}
                   <div
-                    className="relative py-3 border-t border-gray-200/60 mt-2 bg-gradient-to-b from-indigo-50/20 via-purple-50/10 to-white/50 backdrop-blur-sm animate-fadeIn"
+                    className="relative mt-2 animate-fadeIn border-t border-white/10 bg-gradient-to-b from-slate-950/80 via-indigo-950/60 to-slate-900/70 py-3 backdrop-blur-sm"
                     style={{ animationDelay: "0.4s" }}
                   >
                     {/* Decorative gradient line */}
-                    <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-indigo-300 to-transparent opacity-50"></div>
+                    <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent opacity-70"></div>
 
                     <div className="flex flex-col gap-2.5 px-2">
                       {/* Modern section header - COMPACT */}
                       <div className="flex items-center justify-between px-1">
                         <div className="flex items-center gap-1.5">
-                          <div className="w-0.5 h-3 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full shadow-sm"></div>
-                          <span className="text-[10px] font-bold bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent uppercase tracking-wider">
+                          <div className="h-3 w-0.5 rounded-full bg-gradient-to-b from-indigo-400 to-purple-500 shadow-sm"></div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-200">
                             {t("preferences", "Preferințe")}
                           </span>
                         </div>
-                        <div className="h-[1.5px] flex-1 bg-gradient-to-r from-indigo-200 via-purple-200 to-transparent ml-2 rounded-full"></div>
+                        <div className="ml-2 h-[1.5px] flex-1 rounded-full bg-gradient-to-r from-indigo-400/60 via-purple-400/40 to-transparent"></div>
                       </div>
 
                       {/* Enhanced mobile selector */}
@@ -1257,17 +1195,17 @@ export default function Header() {
                   {/* User Actions - COMPACT */}
                   {shouldShowAuthenticatedUI && (
                     <div
-                      className="relative border-t border-gray-200/60 py-3 space-y-2 bg-gradient-to-b from-white/50 to-gray-50/30 backdrop-blur-sm animate-fadeIn"
+                      className="relative space-y-2 border-t border-white/10 bg-gradient-to-b from-slate-950/75 via-indigo-950/60 to-slate-900/70 py-3 backdrop-blur-sm animate-fadeIn"
                       style={{ animationDelay: "0.5s" }}
                     >
                       {/* Decorative gradient line */}
-                      <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-indigo-300 to-transparent opacity-50"></div>
+                      <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent opacity-70"></div>
 
                       {/* Section header - COMPACT */}
                       <div className="flex items-center justify-between px-3 mb-2">
                         <div className="flex items-center gap-1.5">
-                          <div className="w-0.5 h-3 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full shadow-sm"></div>
-                          <span className="text-[10px] font-bold bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent uppercase tracking-wider">
+                          <div className="h-3 w-0.5 rounded-full bg-gradient-to-b from-indigo-400 to-purple-500 shadow-sm"></div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-200">
                             {t("account", "Cont")}
                           </span>
                         </div>
@@ -1276,26 +1214,18 @@ export default function Header() {
                       {/* Account link - COMPACT */}
                       <Link
                         href="/account"
-                        className="mx-2 flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
-                          bg-white/90 hover:bg-gradient-to-br hover:from-indigo-50 hover:to-purple-50/50 
-                          text-gray-800 hover:text-indigo-700
-                          border border-gray-200/60 hover:border-indigo-200
-                          shadow-sm hover:shadow-md
-                          transition-all duration-300
-                          transform hover:scale-[1.01] active:scale-[0.99]
-                          group
-                          relative overflow-hidden"
+                        className="group relative mx-2 flex items-center justify-between overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 px-3 py-2.5 text-xs text-slate-200 transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99] shadow-[0_15px_35px_rgba(2,6,23,0.45)] hover:border-indigo-400/30 hover:bg-indigo-500/10"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {/* Gradient overlay on hover */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/0 via-purple-50/0 to-indigo-50/0 group-hover:from-indigo-50/30 group-hover:via-purple-50/20 group-hover:to-indigo-50/30 transition-all duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-purple-500/0 to-indigo-500/0 transition-all duration-300 group-hover:from-indigo-500/10 group-hover:via-purple-500/10 group-hover:to-indigo-500/10"></div>
 
                         <span className="relative flex items-center gap-2">
-                          <div className="p-1.5 rounded-md bg-gradient-to-br from-indigo-50 to-purple-50 group-hover:from-indigo-100 group-hover:to-purple-100 transition-all duration-300 relative">
-                            <div className="absolute inset-0 bg-indigo-200/0 group-hover:bg-indigo-200/30 blur-sm rounded-md transition-all duration-300"></div>
-                            <User className="relative h-3 w-3 text-indigo-600 group-hover:text-indigo-700 group-hover:scale-110 transition-all duration-300" />
+                          <div className="relative rounded-lg border border-white/10 bg-slate-900/60 p-1.5 transition-all duration-300 group-hover:border-indigo-400/40 group-hover:bg-indigo-500/15">
+                            <div className="absolute inset-0 rounded-lg bg-indigo-400/0 blur-md transition-all duration-300 group-hover:bg-indigo-400/25"></div>
+                            <User className="relative h-3 w-3 text-indigo-200 transition-all duration-300 group-hover:scale-110" />
                           </div>
-                          <span className="font-semibold text-xs">
+                          <span className="text-xs font-semibold">
                             {t("account")}
                           </span>
                         </span>
@@ -1311,7 +1241,7 @@ export default function Header() {
                           strokeWidth="2.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          className="relative text-gray-400 group-hover:text-indigo-500 transform group-hover:translate-x-1 transition-all duration-300"
+                          className="relative text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-indigo-200"
                         >
                           <path d="m9 18 6-6-6-6"></path>
                         </svg>
@@ -1323,25 +1253,17 @@ export default function Header() {
                           handleSignOut();
                           setMobileMenuOpen(false);
                         }}
-                        className="mx-2 w-[calc(100%-1rem)] flex items-center justify-between px-3 py-2.5 rounded-lg text-xs 
-                          bg-white/90 hover:bg-gradient-to-br hover:from-red-50 hover:to-pink-50/50 
-                          text-gray-800 hover:text-red-600
-                          border border-gray-200/60 hover:border-red-300
-                          shadow-sm hover:shadow-md hover:shadow-red-100/50
-                          transition-all duration-300
-                          transform hover:scale-[1.01] active:scale-[0.99]
-                          group
-                          relative overflow-hidden"
+                        className="group relative mx-2 flex w-[calc(100%-1rem)] items-center justify-between overflow-hidden rounded-2xl border border-rose-400/40 bg-rose-500/10 px-3 py-2.5 text-xs text-rose-200 transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99] shadow-[0_18px_40px_rgba(244,63,94,0.35)] hover:bg-rose-500/20"
                       >
                         {/* Gradient overlay on hover */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-red-50/0 via-pink-50/0 to-red-50/0 group-hover:from-red-50/40 group-hover:via-pink-50/20 group-hover:to-red-50/40 transition-all duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-rose-400/0 via-pink-400/0 to-rose-400/0 transition-all duration-300 group-hover:from-rose-400/15 group-hover:via-pink-400/10 group-hover:to-rose-400/15"></div>
 
                         <span className="relative flex items-center gap-2">
-                          <div className="p-1.5 rounded-md bg-gradient-to-br from-red-50 to-pink-50 group-hover:from-red-100 group-hover:to-pink-100 transition-all duration-300 relative">
-                            <div className="absolute inset-0 bg-red-200/0 group-hover:bg-red-200/30 blur-sm rounded-md transition-all duration-300"></div>
-                            <LogOut className="relative h-3 w-3 text-red-600 group-hover:text-red-700 group-hover:scale-110 transition-all duration-300" />
+                          <div className="relative rounded-lg border border-rose-400/40 bg-rose-500/15 p-1.5 transition-all duration-300 group-hover:bg-rose-500/25">
+                            <div className="absolute inset-0 rounded-lg bg-rose-400/20 blur-md transition-all duration-300 group-hover:bg-rose-400/35"></div>
+                            <LogOut className="relative h-3 w-3 text-rose-200 transition-all duration-300 group-hover:scale-110" />
                           </div>
-                          <span className="font-semibold text-red-600 group-hover:text-red-700 text-xs">
+                          <span className="text-xs font-semibold text-rose-200 group-hover:text-rose-100">
                             {t("logout")}
                           </span>
                         </span>
@@ -1357,7 +1279,7 @@ export default function Header() {
                           strokeWidth="2.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          className="relative text-red-400 group-hover:text-red-500 transform group-hover:translate-x-1 transition-all duration-300"
+                          className="relative text-rose-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-rose-100"
                         >
                           <path d="m9 18 6-6-6-6"></path>
                         </svg>

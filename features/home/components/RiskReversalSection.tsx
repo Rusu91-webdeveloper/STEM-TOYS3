@@ -2,6 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
+import {
+  glassCardClass,
+  glassPanelClass,
+  gradientButtonClass,
+} from "@/features/home/components/homeTheme";
 
 interface RiskReversalSectionProps {
   t: (key: string, defaultValue?: string) => string;
@@ -53,127 +58,124 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
   ];
 
   return (
-    <section className="py-6 sm:py-8 md:py-10 lg:py-12 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div className="container mx-auto px-4 max-w-5xl">
-        {/* Main Risk Reversal Headline */}
-        <div className="text-center mb-4 sm:mb-6 md:mb-8">
-          <span className="inline-block px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mb-3">
-            Fără Riscuri
-          </span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-gray-900 leading-tight">
-            Începe Fără Nicio Îngrijorare
-          </h2>
-          {/* Replace long paragraph with concise bullets */}
-          <ul className="flex flex-wrap justify-center gap-2 text-xs sm:text-sm text-gray-700 max-w-3xl mx-auto">
-            <li className="inline-flex items-center gap-1 bg-white/80 border border-gray-200 rounded-full px-3 py-1">
-              <span>🛡️</span>
-              <span>{t("qualityGuaranteed", "Quality Guaranteed")}</span>
-            </li>
-            <li className="inline-flex items-center gap-1 bg-white/80 border border-gray-200 rounded-full px-3 py-1">
-              <span>🎯</span>
-              <span>{t("freeConsultation", "Free Consultation")}</span>
-            </li>
-            <li className="inline-flex items-center gap-1 bg-white/80 border border-gray-200 rounded-full px-3 py-1">
-              <span>🚚</span>
-              <span>Livrare Rapidă</span>
-            </li>
-          </ul>
-        </div>
+    <section className="py-10 sm:py-12 md:py-14">
+      <div className="container mx-auto max-w-6xl px-4">
+        <div className={`${glassPanelClass} space-y-8 p-6 sm:p-8`}>
+          {/* Main Risk Reversal Headline */}
+          <div className="text-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">
+              Fără Riscuri
+            </span>
+            <h2 className="mt-4 bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl md:text-4xl lg:text-5xl">
+              Începe Fără Nicio Îngrijorare
+            </h2>
+            {/* Replace long paragraph with concise bullets */}
+            <ul className="mt-4 flex flex-wrap justify-center gap-2 text-xs text-slate-200/80 sm:text-sm">
+              <li className={`${glassCardClass} flex items-center gap-2 px-3 py-1`}>
+                <span>🛡️</span>
+                <span>{t("qualityGuaranteed", "Quality Guaranteed")}</span>
+              </li>
+              <li className={`${glassCardClass} flex items-center gap-2 px-3 py-1`}>
+                <span>🎯</span>
+                <span>{t("freeConsultation", "Free Consultation")}</span>
+              </li>
+              <li className={`${glassCardClass} flex items-center gap-2 px-3 py-1`}>
+                <span>🚚</span>
+                <span>Livrare Rapidă</span>
+              </li>
+            </ul>
+          </div>
 
-        {/* Guarantee Features Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          {guaranteeFeatures.map((feature, index) => (
-            <div
-              key={index}
-              className="group relative bg-white rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 border border-gray-100"
-            >
-              <div className="text-center">
+          {/* Guarantee Features Grid */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+            {guaranteeFeatures.map((feature, index) => (
+              <div
+                key={index}
+                className={`${glassCardClass} group relative flex flex-col items-center gap-2 rounded-2xl p-4 text-center transition hover:border-emerald-400/60 hover:shadow-emerald-500/20`}
+              >
                 <div
-                  className="text-2xl sm:text-3xl mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300"
+                  className="text-2xl sm:text-3xl transition-transform duration-300 group-hover:scale-110"
                   aria-hidden
                 >
                   {feature.icon}
                 </div>
-                <h3 className="text-xs sm:text-sm font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">
+                <h3 className="text-xs font-semibold text-white sm:text-sm">
                   {feature.title}
                 </h3>
-                <p className="text-[10px] sm:text-xs text-gray-600 leading-tight line-clamp-1 sm:line-clamp-2">
+                <p className="text-[0.7rem] text-slate-200/70 sm:text-xs">
                   {feature.description}
                 </p>
               </div>
+            ))}
+          </div>
 
-              {/* Hover Effect */}
-              <div className="absolute inset-0 ring-1 ring-transparent group-hover:ring-blue-400/50 rounded-lg transition-all duration-300" />
-            </div>
-          ))}
-        </div>
+          {/* Consultation Booking Section */}
+          <div className={`${glassPanelClass} border-white/15 p-6 sm:p-8`}>
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2">
+                <span className="text-xl">🎯</span>
+                <span className="rounded-full border border-emerald-300/40 bg-emerald-400/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-100">
+                  Consultare Gratuită
+                </span>
+              </div>
 
-        {/* Simplified Consultation Booking Section */}
-        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-100">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 mb-3">
-              <span className="text-xl">🎯</span>
-              <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
-                Consultare Gratuită
-              </span>
-            </div>
+              <h3 className="mt-4 text-lg font-bold text-white sm:text-xl">
+                Obține Recomandări Pentru Copilul Tău
+              </h3>
 
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 leading-tight">
-              Obține Recomandări Pentru Copilul Tău
-            </h3>
+              <p className="mt-3 text-xs text-slate-200/80 sm:text-sm">
+                În 15 minute, expertul nostru STEM îți va recomanda jucăriile
+                potrivite pentru copilul tău.
+              </p>
 
-            <p className="text-xs sm:text-sm text-gray-600 mb-4 max-w-md mx-auto">
-              În 15 minute, expertul nostru STEM îți va recomanda jucăriile
-              potrivite pentru copilul tău.
-            </p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <Link
+                  href="/contact"
+                  className={`${gradientButtonClass} inline-flex items-center justify-center gap-2 px-5 py-2 text-xs font-semibold sm:text-sm`}
+                >
+                  <span>📅</span>
+                  Programează Consultare Gratuită
+                </Link>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mt-4">
-              <Link
-                href="/contact"
-                className="flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg text-xs sm:text-sm transition-colors"
-              >
-                <span className="mr-1">📅</span>
-                Programează Consultare Gratuită
-              </Link>
-
-              <Link
-                href="/products"
-                className="flex items-center justify-center px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg text-xs sm:text-sm transition-colors"
-              >
-                Vezi Jucăriile
-              </Link>
+                <Link
+                  href="/products"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-2 text-xs font-semibold text-white/90 transition hover:border-white/30 hover:bg-white/15 sm:text-sm"
+                >
+                  Vezi Jucăriile
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Simplified Final Risk Reversal CTA */}
-        <div className="text-center bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-4 sm:p-6 text-white">
-          <h3 className="text-lg sm:text-xl font-bold mb-2 leading-tight">
-            Începe Transformarea Copilului Tău
-          </h3>
-          <p className="text-xs sm:text-sm mb-3 sm:mb-4 text-white/90 max-w-md mx-auto">
-            Alătură-te miilor de părinți care au transformat învățarea copiilor
-            lor cu jucăriile noastre STEM de calitate.
-          </p>
+          {/* Final Risk Reversal CTA */}
+          <div className="rounded-3xl border border-emerald-400/40 bg-gradient-to-r from-emerald-500/40 via-sky-500/30 to-indigo-500/40 p-6 text-center text-white shadow-lg shadow-emerald-500/25 sm:p-8">
+            <h3 className="text-lg font-bold sm:text-xl">
+              Începe Transformarea Copilului Tău
+            </h3>
+            <p className="mt-3 text-xs text-white/85 sm:text-sm">
+              Alătură-te miilor de părinți care au transformat învățarea copiilor
+              lor cu jucăriile noastre STEM de calitate.
+            </p>
 
-          <div className="flex gap-3 justify-center items-center">
-            <Link
-              href="/products"
-              className="inline-flex items-center justify-center px-4 py-2 bg-white text-green-600 font-medium rounded-lg text-xs sm:text-sm"
-            >
-              <span className="mr-1">🚀</span>
-              Începe Transformarea
-            </Link>
+            <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href="/products"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-2 text-xs font-semibold text-emerald-600 transition hover:bg-white/90 sm:text-sm"
+              >
+                <span>🚀</span>
+                Începe Transformarea
+              </Link>
 
-            <div className="flex items-center gap-1 text-white/90">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="text-xs font-medium">Calitate Garantată</span>
+              <div className="flex items-center gap-2 text-white/85">
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="text-xs font-medium">Calitate Garantată</span>
+              </div>
             </div>
           </div>
         </div>

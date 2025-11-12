@@ -15,6 +15,7 @@ import {
   FileText,
   AlertCircle,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +42,7 @@ import {
   type SupplierRegistrationFormData,
 } from "@/features/supplier/lib/supplier-validation";
 import { useCsrfForm } from "@/hooks/useCsrfToken";
+import { cn } from "@/lib/utils";
 
 const steps = [
   {
@@ -112,6 +114,14 @@ const certifications = [
   "Health & Safety Certification",
   "Other",
 ];
+
+const inputClasses =
+  "bg-slate-900/40 border-white/10 text-white placeholder:text-slate-400 focus-visible:ring-sky-400 focus-visible:ring-offset-0";
+const selectTriggerClasses =
+  "bg-slate-900/40 border-white/10 text-white focus-visible:ring-sky-400 focus-visible:ring-offset-0";
+const cardClasses = "border border-white/10 bg-white/5 shadow-lg shadow-black/25 backdrop-blur";
+const fieldErrorClasses = "border-rose-400/60 focus-visible:ring-rose-400";
+const labelClasses = "text-slate-200";
 
 export function SupplierRegistration() {
   const router = useRouter();
@@ -291,62 +301,64 @@ export function SupplierRegistration() {
           <div className="space-y-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="companyName">Company Name *</Label>
+                <Label htmlFor="companyName" className={labelClasses}>
+                  Company Name *
+                </Label>
                 <Input
                   id="companyName"
                   placeholder="Enter your company name"
                   {...register("companyName")}
-                  className={errors.companyName ? "border-destructive" : ""}
+                  className={cn(inputClasses, errors.companyName && fieldErrorClasses)}
                 />
                 {errors.companyName && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.companyName.message}
-                  </p>
+                  <p className="mt-1 text-sm text-destructive">{errors.companyName.message}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="description">Company Description</Label>
+                <Label htmlFor="description" className={labelClasses}>
+                  Company Description
+                </Label>
                 <Textarea
                   id="description"
                   placeholder="Brief description of your company and products"
                   {...register("description")}
                   rows={3}
+                  className={cn(inputClasses, "min-h-[120px]", errors.description && fieldErrorClasses)}
                 />
                 {errors.description && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.description.message}
-                  </p>
+                  <p className="mt-1 text-sm text-destructive">{errors.description.message}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="website">Website</Label>
+                <Label htmlFor="website" className={labelClasses}>
+                  Website
+                </Label>
                 <Input
                   id="website"
                   type="url"
                   placeholder="https://yourcompany.com"
                   {...register("website")}
+                  className={cn(inputClasses, errors.website && fieldErrorClasses)}
                 />
                 {errors.website && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.website.message}
-                  </p>
+                  <p className="mt-1 text-sm text-destructive">{errors.website.message}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="phone">Phone Number *</Label>
+                <Label htmlFor="phone" className={labelClasses}>
+                  Phone Number *
+                </Label>
                 <Input
                   id="phone"
                   placeholder="07XXXXXXXX"
                   {...register("phone")}
-                  className={errors.phone ? "border-destructive" : ""}
+                  className={cn(inputClasses, errors.phone && fieldErrorClasses)}
                 />
                 {errors.phone && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.phone.message}
-                  </p>
+                  <p className="mt-1 text-sm text-destructive">{errors.phone.message}</p>
                 )}
               </div>
 
@@ -388,83 +400,79 @@ export function SupplierRegistration() {
           <div className="space-y-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="businessAddress">Business Address *</Label>
+                <Label htmlFor="businessAddress" className={labelClasses}>
+                  Business Address *
+                </Label>
                 <Input
                   id="businessAddress"
                   placeholder="Street address, building number"
                   {...register("businessAddress")}
-                  className={errors.businessAddress ? "border-destructive" : ""}
+                  className={cn(inputClasses, errors.businessAddress && fieldErrorClasses)}
                 />
                 {errors.businessAddress && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.businessAddress.message}
-                  </p>
+                  <p className="mt-1 text-sm text-destructive">{errors.businessAddress.message}</p>
                 )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="businessCity">City *</Label>
+                  <Label htmlFor="businessCity" className={labelClasses}>
+                    City *
+                  </Label>
                   <Input
                     id="businessCity"
                     placeholder="City name"
                     {...register("businessCity")}
-                    className={errors.businessCity ? "border-destructive" : ""}
+                    className={cn(inputClasses, errors.businessCity && fieldErrorClasses)}
                   />
                   {errors.businessCity && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.businessCity.message}
-                    </p>
+                    <p className="mt-1 text-sm text-destructive">{errors.businessCity.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="businessState">State/County *</Label>
+                  <Label htmlFor="businessState" className={labelClasses}>
+                    State/County *
+                  </Label>
                   <Input
                     id="businessState"
                     placeholder="State or county"
                     {...register("businessState")}
-                    className={errors.businessState ? "border-destructive" : ""}
+                    className={cn(inputClasses, errors.businessState && fieldErrorClasses)}
                   />
                   {errors.businessState && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.businessState.message}
-                    </p>
+                    <p className="mt-1 text-sm text-destructive">{errors.businessState.message}</p>
                   )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="businessCountry">Country *</Label>
+                  <Label htmlFor="businessCountry" className={labelClasses}>
+                    Country *
+                  </Label>
                   <Input
                     id="businessCountry"
                     {...register("businessCountry")}
-                    className={
-                      errors.businessCountry ? "border-destructive" : ""
-                    }
+                    className={cn(inputClasses, errors.businessCountry && fieldErrorClasses)}
                   />
                   {errors.businessCountry && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.businessCountry.message}
-                    </p>
+                    <p className="mt-1 text-sm text-destructive">{errors.businessCountry.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="businessPostalCode">Postal Code *</Label>
+                  <Label htmlFor="businessPostalCode" className={labelClasses}>
+                    Postal Code *
+                  </Label>
                   <Input
                     id="businessPostalCode"
                     placeholder="123456"
                     {...register("businessPostalCode")}
-                    className={
-                      errors.businessPostalCode ? "border-destructive" : ""
-                    }
+                    className={cn(inputClasses, errors.businessPostalCode && fieldErrorClasses)}
                   />
                   {errors.businessPostalCode && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.businessPostalCode.message}
-                    </p>
+                    <p className="mt-1 text-sm text-destructive">{errors.businessPostalCode.message}</p>
                   )}
                 </div>
               </div>
@@ -477,54 +485,48 @@ export function SupplierRegistration() {
           <div className="space-y-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="contactPersonName">Contact Person Name *</Label>
+                <Label htmlFor="contactPersonName" className={labelClasses}>
+                  Contact Person Name *
+                </Label>
                 <Input
                   id="contactPersonName"
                   placeholder="Full name of primary contact"
                   {...register("contactPersonName")}
-                  className={
-                    errors.contactPersonName ? "border-destructive" : ""
-                  }
+                  className={cn(inputClasses, errors.contactPersonName && fieldErrorClasses)}
                 />
                 {errors.contactPersonName && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.contactPersonName.message}
-                  </p>
+                  <p className="mt-1 text-sm text-destructive">{errors.contactPersonName.message}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="contactPersonEmail">Contact Email *</Label>
+                <Label htmlFor="contactPersonEmail" className={labelClasses}>
+                  Contact Email *
+                </Label>
                 <Input
                   id="contactPersonEmail"
                   type="email"
                   placeholder="contact@yourcompany.com"
                   {...register("contactPersonEmail")}
-                  className={
-                    errors.contactPersonEmail ? "border-destructive" : ""
-                  }
+                  className={cn(inputClasses, errors.contactPersonEmail && fieldErrorClasses)}
                 />
                 {errors.contactPersonEmail && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.contactPersonEmail.message}
-                  </p>
+                  <p className="mt-1 text-sm text-destructive">{errors.contactPersonEmail.message}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="contactPersonPhone">Contact Phone *</Label>
+                <Label htmlFor="contactPersonPhone" className={labelClasses}>
+                  Contact Phone *
+                </Label>
                 <Input
                   id="contactPersonPhone"
                   placeholder="07XXXXXXXX"
                   {...register("contactPersonPhone")}
-                  className={
-                    errors.contactPersonPhone ? "border-destructive" : ""
-                  }
+                  className={cn(inputClasses, errors.contactPersonPhone && fieldErrorClasses)}
                 />
                 {errors.contactPersonPhone && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.contactPersonPhone.message}
-                  </p>
+                  <p className="mt-1 text-sm text-destructive">{errors.contactPersonPhone.message}</p>
                 )}
               </div>
             </div>
@@ -537,53 +539,56 @@ export function SupplierRegistration() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="yearEstablished">Year Established</Label>
+                  <Label htmlFor="yearEstablished" className={labelClasses}>
+                    Year Established
+                  </Label>
                   <Input
                     id="yearEstablished"
                     type="number"
                     placeholder="2020"
                     {...register("yearEstablished", { valueAsNumber: true })}
+                    className={cn(inputClasses, errors.yearEstablished && fieldErrorClasses)}
                   />
                   {errors.yearEstablished && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.yearEstablished.message}
-                    </p>
+                    <p className="mt-1 text-sm text-destructive">{errors.yearEstablished.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="employeeCount">Number of Employees</Label>
+                  <Label htmlFor="employeeCount" className={labelClasses}>
+                    Number of Employees
+                  </Label>
                   <Input
                     id="employeeCount"
                     type="number"
                     placeholder="10"
                     {...register("employeeCount", { valueAsNumber: true })}
+                    className={cn(inputClasses, errors.employeeCount && fieldErrorClasses)}
                   />
                   {errors.employeeCount && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.employeeCount.message}
-                    </p>
+                    <p className="mt-1 text-sm text-destructive">{errors.employeeCount.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="annualRevenue">Annual Revenue</Label>
+                  <Label htmlFor="annualRevenue" className={labelClasses}>
+                    Annual Revenue
+                  </Label>
                   <Input
                     id="annualRevenue"
                     placeholder="€100,000 - €500,000"
                     {...register("annualRevenue")}
+                    className={cn(inputClasses, errors.annualRevenue && fieldErrorClasses)}
                   />
                   {errors.annualRevenue && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.annualRevenue.message}
-                    </p>
+                    <p className="mt-1 text-sm text-destructive">{errors.annualRevenue.message}</p>
                   )}
                 </div>
               </div>
 
               <div>
-                <Label>Product Categories *</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                <Label className={labelClasses}>Product Categories *</Label>
+                <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
                   {productCategories.map(category => (
                     <div key={category} className="flex items-center space-x-2">
                       <Controller
@@ -606,7 +611,7 @@ export function SupplierRegistration() {
                           />
                         )}
                       />
-                      <Label htmlFor={category} className="text-sm">
+                      <Label htmlFor={category} className="text-sm text-slate-200">
                         {category}
                       </Label>
                     </div>
@@ -620,8 +625,8 @@ export function SupplierRegistration() {
               </div>
 
               <div>
-                <Label>Certifications</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                <Label className={labelClasses}>Certifications</Label>
+                <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
                   {certifications.map(cert => (
                     <div key={cert} className="flex items-center space-x-2">
                       <Controller
@@ -644,7 +649,7 @@ export function SupplierRegistration() {
                           />
                         )}
                       />
-                      <Label htmlFor={cert} className="text-sm">
+                      <Label htmlFor={cert} className="text-sm text-slate-200">
                         {cert}
                       </Label>
                     </div>
@@ -665,43 +670,35 @@ export function SupplierRegistration() {
           <div className="space-y-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="logo">Company Logo</Label>
-                <div className="mt-2">
-                  <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                    <div className="space-y-1 text-center">
-                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                      <div className="flex text-sm text-gray-600">
-                        <label
-                          htmlFor="logo-upload"
-                          className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                        >
-                          <span>Upload a file</span>
-                          <input
-                            id="logo-upload"
-                            name="logo-upload"
-                            type="file"
-                            className="sr-only"
-                            accept="image/*"
-                            onChange={handleFileUpload}
-                          />
-                        </label>
-                        <p className="pl-1">or drag and drop</p>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        PNG, JPG, WebP up to 5MB
-                      </p>
-                    </div>
-                  </div>
+                <Label htmlFor="logo-upload" className={labelClasses}>
+                  Company Logo
+                </Label>
+                <div className="mt-3 rounded-lg border-2 border-dashed border-white/15 bg-white/5 p-6 text-center">
+                  <Upload className="mx-auto mb-3 h-10 w-10 text-slate-200" />
+                  <label
+                    htmlFor="logo-upload"
+                    className="inline-flex cursor-pointer items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-sky-200 transition hover:bg-white/20"
+                  >
+                    Upload or drag & drop
+                  </label>
+                  <input
+                    id="logo-upload"
+                    name="logo-upload"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                  />
+                  <p className="mt-2 text-xs text-slate-300">PNG, JPG, WebP up to 5MB</p>
                   {logoFile && (
-                    <p className="text-sm text-green-600 mt-2">
-                      ✓ {logoFile.name} selected
-                    </p>
+                    <p className="mt-3 text-sm text-emerald-200">✓ {logoFile.name} selected</p>
                   )}
+                  {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
                 </div>
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-start space-x-2">
+                <div className="flex items-start space-x-3">
                   <Controller
                     name="termsAccepted"
                     control={control}
@@ -713,26 +710,20 @@ export function SupplierRegistration() {
                       />
                     )}
                   />
-                  <div className="grid gap-1.5 leading-none">
-                    <Label
-                      htmlFor="termsAccepted"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      I accept the Terms and Conditions *
+                  <div>
+                    <Label htmlFor="termsAccepted" className="text-sm font-medium text-slate-200">
+                      I accept the <a href="/terms" className="text-sky-300 hover:underline">Terms and Conditions</a> *
                     </Label>
-                    <p className="text-sm text-muted-foreground">
-                      I have read and agree to the TechTots Supplier Terms and
-                      Conditions
+                    <p className="mt-1 text-xs text-slate-300">
+                      Confirm that you agree to the TechTots Supplier Terms and Conditions.
                     </p>
                   </div>
                 </div>
                 {errors.termsAccepted && (
-                  <p className="text-sm text-destructive">
-                    {errors.termsAccepted.message}
-                  </p>
+                  <p className="text-sm text-destructive">{errors.termsAccepted.message}</p>
                 )}
 
-                <div className="flex items-start space-x-2">
+                <div className="flex items-start space-x-3">
                   <Controller
                     name="privacyAccepted"
                     control={control}
@@ -744,22 +735,17 @@ export function SupplierRegistration() {
                       />
                     )}
                   />
-                  <div className="grid gap-1.5 leading-none">
-                    <Label
-                      htmlFor="privacyAccepted"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      I accept the Privacy Policy *
+                  <div>
+                    <Label htmlFor="privacyAccepted" className="text-sm font-medium text-slate-200">
+                      I accept the <a href="/privacy" className="text-sky-300 hover:underline">Privacy Policy</a> *
                     </Label>
-                    <p className="text-sm text-muted-foreground">
-                      I have read and agree to the TechTots Privacy Policy
+                    <p className="mt-1 text-xs text-slate-300">
+                      Confirm that you consent to our data processing practices.
                     </p>
                   </div>
                 </div>
                 {errors.privacyAccepted && (
-                  <p className="text-sm text-destructive">
-                    {errors.privacyAccepted.message}
-                  </p>
+                  <p className="text-sm text-destructive">{errors.privacyAccepted.message}</p>
                 )}
               </div>
             </div>
@@ -772,90 +758,108 @@ export function SupplierRegistration() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <section className="container mx-auto px-4 pb-20 pt-24 sm:px-6 lg:px-12 lg:pb-24">
+      <div className="mx-auto max-w-5xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="mb-10 text-center">
+          <Badge className="mx-auto mb-4 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-sky-200">
             Supplier Registration
+          </Badge>
+          <h1 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+            Submit your supplier application
           </h1>
-          <p className="text-gray-600">
-            Complete your application to become a TechTots supplier
+          <p className="mt-3 text-sm text-slate-200 sm:text-base">
+            Share your business details so we can verify eligibility and tailor your onboarding plan.
           </p>
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                    currentStep >= step.id
-                      ? "bg-blue-600 border-blue-600 text-white"
-                      : "bg-white border-gray-300 text-gray-500"
-                  }`}
-                >
-                  {currentStep > step.id ? (
-                    <CheckCircle className="w-6 h-6" />
-                  ) : (
-                    <step.icon className="w-5 h-5" />
+        <div className="mb-10 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-inner shadow-black/30">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-between">
+            {steps.map((step, index) => {
+              const isActive = currentStep === step.id;
+              const isComplete = currentStep > step.id;
+              const Icon = step.icon;
+
+              return (
+                <div key={step.id} className="flex items-center">
+                  <div
+                    className={cn(
+                      "flex h-10 w-10 items-center justify-center rounded-full border transition",
+                      isComplete && "border-emerald-400/60 bg-emerald-500/20 text-emerald-100",
+                      isActive && !isComplete && "border-sky-400/60 bg-sky-500/20 text-sky-100",
+                      !isComplete && !isActive && "border-white/20 bg-white/5 text-slate-400"
+                    )}
+                  >
+                    {isComplete ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div
+                      className={cn(
+                        "mx-2 h-1 w-16 rounded-full transition sm:w-20",
+                        isComplete ? "bg-emerald-400/60" : "bg-white/10"
+                      )}
+                    />
                   )}
                 </div>
-                {index < steps.length - 1 && (
-                  <div
-                    className={`w-full h-0.5 mx-4 ${
-                      currentStep > step.id ? "bg-blue-600" : "bg-gray-300"
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
-          <div className="flex justify-between mt-4">
-            {steps.map(step => (
-              <div key={step.id} className="text-center flex-1">
-                <p
-                  className={`text-sm font-medium ${
-                    currentStep >= step.id ? "text-blue-600" : "text-gray-500"
-                  }`}
-                >
-                  {step.title}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">{step.description}</p>
-              </div>
-            ))}
+          <div className="mt-6 grid gap-3 sm:grid-cols-5">
+            {steps.map(step => {
+              const isActive = currentStep === step.id;
+              const isComplete = currentStep > step.id;
+
+              return (
+                <div key={step.id} className="text-center">
+                  <p
+                    className={cn(
+                      "text-sm font-semibold",
+                      isActive && "text-sky-200",
+                      isComplete && "text-emerald-200",
+                      !isActive && !isComplete && "text-slate-300"
+                    )}
+                  >
+                    {step.title}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400">{step.description}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* Form */}
-        <Card>
+        <Card className={cn(cardClasses, "border-white/10")}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-white">
               {(() => {
                 const StepIcon = steps[currentStep - 1].icon;
                 return <StepIcon className="w-5 h-5" />;
               })()}
               {steps[currentStep - 1].title}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-slate-200">
               {steps[currentStep - 1].description}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="text-slate-200">
             <form
               onSubmit={handleSubmit(onSubmit as any)}
               className="space-y-6"
             >
               {error && (
-                <Alert variant="destructive">
+                <Alert
+                  variant="destructive"
+                  className="border border-rose-500/40 bg-rose-500/10 text-rose-100 backdrop-blur"
+                >
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 
               {success && (
-                <Alert>
+                <Alert className="border border-emerald-500/40 bg-emerald-500/10 text-emerald-100 backdrop-blur">
                   <CheckCircle className="h-4 w-4" />
                   <AlertDescription>{success}</AlertDescription>
                 </Alert>
@@ -870,7 +874,7 @@ export function SupplierRegistration() {
                   variant="outline"
                   onClick={prevStep}
                   disabled={currentStep === 1}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 rounded-full border-white/20 bg-white/10 text-slate-200 transition hover:bg-white/20 disabled:opacity-50"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Previous
@@ -880,7 +884,7 @@ export function SupplierRegistration() {
                   <Button
                     type="button"
                     onClick={nextStep}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-500 via-emerald-500 to-indigo-500 px-6 text-white shadow-lg shadow-emerald-500/25 transition hover:from-sky-400 hover:via-emerald-400 hover:to-indigo-400"
                   >
                     Next
                     <ArrowRight className="w-4 h-4" />
@@ -889,7 +893,7 @@ export function SupplierRegistration() {
                   <Button
                     type="submit"
                     disabled={isSubmitting || !isValid}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 via-sky-500 to-indigo-500 px-6 text-white shadow-lg shadow-emerald-500/25 transition hover:from-emerald-400 hover:via-sky-400 hover:to-indigo-400 disabled:opacity-60"
                   >
                     {isSubmitting ? "Submitting..." : "Submit Application"}
                     <ArrowRight className="w-4 h-4" />
@@ -901,13 +905,10 @@ export function SupplierRegistration() {
         </Card>
 
         {/* Progress Info */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            Step {currentStep} of {steps.length} •{" "}
-            {Math.round((currentStep / steps.length) * 100)}% Complete
-          </p>
+        <div className="mt-6 text-center text-sm text-slate-300">
+          Step {currentStep} of {steps.length} • {Math.round((currentStep / steps.length) * 100)}% Complete
         </div>
       </div>
-    </div>
+    </section>
   );
 }

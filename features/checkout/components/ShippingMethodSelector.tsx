@@ -9,6 +9,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/features/cart";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
+import { glassCardClass } from "@/features/home/components/homeTheme";
+import { cn } from "@/lib/utils";
 
 import { fetchShippingSettings } from "../lib/checkoutApi";
 import { ShippingMethod } from "../types";
@@ -200,9 +202,9 @@ export function ShippingMethodSelector({
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-        <p className="ml-2 text-indigo-600">
+      <div className="flex items-center justify-center py-12 text-slate-100">
+        <Loader2 className="h-8 w-8 animate-spin text-sky-300" />
+        <p className="ml-2 text-sky-200">
           {t("loadingShippingOptions", "Loading shipping options...")}
         </p>
       </div>
@@ -213,16 +215,16 @@ export function ShippingMethodSelector({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Free Shipping Banner */}
       {freeShippingApplied && (
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center space-x-3">
+      <div className="mb-6 rounded-2xl border border-emerald-400/40 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-sky-500/10 p-4 text-emerald-100 shadow-inner shadow-emerald-500/20">
+          <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
-              <Gift className="h-6 w-6 text-green-600" />
+              <Gift className="h-6 w-6 text-emerald-300" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-green-800">
+              <h3 className="text-lg font-semibold text-emerald-100">
                 🎉 Transport Gratuit Aplicat!
               </h3>
-              <p className="text-green-700 text-sm">
+              <p className="text-sm text-emerald-100/90">
                 Comanda ta depășește pragul de{" "}
                 {formatPrice(freeShippingThreshold || 100)} - livrarea standard
                 este gratuită! Pentru livrare mai rapidă, poți opta pentru
@@ -233,10 +235,12 @@ export function ShippingMethodSelector({
         </div>
       )}
 
-      <div className="bg-white rounded-lg border p-6">
-        <div className="flex items-center space-x-2 mb-4">
-          <Truck className="h-5 w-5 text-indigo-600" />
-          <h2 className="text-xl font-semibold">
+      <div
+        className={`${glassCardClass} border-white/10 bg-slate-900/70 p-6 text-slate-100 shadow-lg shadow-black/20`}
+      >
+        <div className="mb-4 flex items-center gap-2">
+          <Truck className="h-5 w-5 text-sky-300" />
+          <h2 className="text-xl font-semibold text-slate-100">
             {freeShippingApplied
               ? "Alege Viteza de Livrare"
               : t("shippingMethod", "Shipping Method")}
@@ -249,69 +253,80 @@ export function ShippingMethodSelector({
             onValueChange={setSelectedMethodId}
             className="space-y-4"
           >
-            {shippingMethods.map(method => (
-              <div
-                key={method.id}
-                className={`flex items-center space-x-2 border p-4 rounded-lg transition-all ${
-                  selectedMethodId === method.id
-                    ? "border-indigo-500 bg-indigo-50"
-                    : "border-gray-200 hover:border-gray-300"
-                } ${
-                  freeShippingApplied
-                    ? "bg-gradient-to-r from-green-50 to-emerald-50"
-                    : ""
-                }`}
-              >
-                <RadioGroupItem value={method.id} id={method.id} />
-                <div className="flex-1">
-                  <div className="flex justify-between items-center">
-                    <Label
-                      htmlFor={method.id}
-                      className="font-medium flex items-center space-x-2"
-                    >
-                      <span>{method.name}</span>
-                      {freeShippingApplied && method.id === "priority" && (
-                        <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-                          Recomandat
-                        </span>
+            {shippingMethods.map(method => {
+              const isSelected = selectedMethodId === method.id;
+
+              return (
+                <div
+                  key={method.id}
+                  className={cn(
+                    "flex items-center gap-3 rounded-2xl border p-4 transition-all duration-200",
+                    isSelected
+                      ? "border-sky-400 bg-sky-500/20 shadow-lg shadow-sky-500/20"
+                      : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10",
+                    freeShippingApplied && method.id === "priority"
+                      ? "border-amber-400/30 bg-amber-500/10"
+                      : ""
+                  )}
+                >
+                  <RadioGroupItem
+                    value={method.id}
+                    id={method.id}
+                    className="border-white/40 text-sky-300"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <Label
+                        htmlFor={method.id}
+                        className="flex items-center gap-2 font-semibold text-slate-100"
+                      >
+                        <span>{method.name}</span>
+                        {freeShippingApplied && method.id === "priority" && (
+                          <span className="rounded-full border border-amber-300/60 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-100">
+                            Recomandat
+                          </span>
+                        )}
+                      </Label>
+                      <span
+                        className={cn(
+                          "font-semibold",
+                          method.price === 0
+                            ? "text-emerald-300 text-lg"
+                            : "text-sky-200"
+                        )}
+                      >
+                        {method.price === 0 ? (
+                          <span className="flex items-center gap-1">
+                            <Gift className="h-4 w-4" />
+                            <span>GRATUIT</span>
+                          </span>
+                        ) : (
+                          formatPrice(method.price)
+                        )}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-300">
+                      {method.description}
+                    </p>
+                    <p className="text-sm text-slate-300">
+                      {t("estimatedDelivery", "Estimated delivery")}:{" "}
+                      {method.estimatedDelivery}
+                    </p>
+                    {method.price === 0 &&
+                      method.id === "standard" &&
+                      freeShippingApplied && (
+                        <p className="mt-1 text-xs text-emerald-300">
+                          Preț normal: {formatPrice(5.99)} - Economisești{" "}
+                          {formatPrice(5.99)}!
+                        </p>
                       )}
-                    </Label>
-                    <span
-                      className={`font-medium ${
-                        method.price === 0
-                          ? "text-green-600 text-lg"
-                          : "text-indigo-700"
-                      }`}
-                    >
-                      {method.price === 0 ? (
-                        <span className="flex items-center space-x-1">
-                          <Gift className="h-4 w-4" />
-                          <span>GRATUIT</span>
-                        </span>
-                      ) : (
-                        formatPrice(method.price)
-                      )}
-                    </span>
                   </div>
-                  <p className="text-sm text-gray-500">{method.description}</p>
-                  <p className="text-sm text-gray-500">
-                    {t("estimatedDelivery", "Estimated delivery")}:{" "}
-                    {method.estimatedDelivery}
-                  </p>
-                  {method.price === 0 &&
-                    method.id === "standard" &&
-                    freeShippingApplied && (
-                      <p className="text-xs text-green-600 mt-1">
-                        Preț normal: {formatPrice(5.99)} - Economisești{" "}
-                        {formatPrice(5.99)}!
-                      </p>
-                    )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </RadioGroup>
         ) : (
-          <p className="text-center text-gray-500 py-4">
+          <p className="py-4 text-center text-slate-300">
             {t(
               "noShippingMethodsAvailable",
               "No shipping methods are currently available."
@@ -321,15 +336,23 @@ export function ShippingMethodSelector({
       </div>
 
       <div className="flex justify-between">
-        <Button type="button" variant="outline" onClick={onBack}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onBack}
+          className="border-white/20 bg-white/5 text-slate-100 hover:border-white/30 hover:bg-white/10"
+        >
           {t("backToShippingAddress", "Back to Shipping Address")}
         </Button>
         <Button
           type="submit"
           disabled={shippingMethods.length === 0}
-          className={
-            freeShippingApplied ? "bg-green-600 hover:bg-green-700" : ""
-          }
+          className={cn(
+            "bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25 transition",
+            freeShippingApplied
+              ? "from-emerald-500 via-sky-500 to-indigo-500 hover:from-emerald-400 hover:via-sky-400 hover:to-indigo-400"
+              : "hover:from-sky-400 hover:via-indigo-400 hover:to-purple-400"
+          )}
         >
           {freeShippingApplied
             ? "Continuă cu Opțiunea Selectată"

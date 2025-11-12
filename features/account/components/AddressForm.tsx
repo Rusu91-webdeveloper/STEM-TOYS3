@@ -17,7 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  glassPanelClass,
+  gradientButtonClass,
+} from "@/features/home/components/homeTheme";
 import { toast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 import { addressSchema } from "@/lib/validations";
 
 // Romanian counties (județe)
@@ -66,7 +71,6 @@ const romanianCounties = [
   { code: "VN", name: "Vrancea" },
 ];
 
-// Major Romanian cities by county
 const romanianCities = {
   B: ["București"],
   CJ: ["Cluj-Napoca", "Turda", "Câmpia Turzii", "Gherla", "Dej", "Huedin"],
@@ -74,17 +78,15 @@ const romanianCities = {
   IS: ["Iași", "Pașcani", "Târgu Frumos", "Hârlău"],
   CT: ["Constanța", "Mangalia", "Medgidia", "Cernavodă", "Năvodari"],
   BV: ["Brașov", "Făgăraș", "Săcele", "Zărnești", "Codlea", "Râșnov"],
-  // Add more cities for other counties as needed
 };
 
-// Extend the address schema to include the name field and isDefault
 const extendedAddressSchema = addressSchema.extend({
   name: z.string().min(1, "Address nickname is required"),
   isDefault: z.boolean().default(false),
 });
 
 type AddressFormValues = z.infer<typeof extendedAddressSchema> & {
-  isDefault: boolean; // Ensure isDefault is always boolean
+  isDefault: boolean;
 };
 
 interface AddressFormProps {
@@ -120,17 +122,15 @@ export function AddressForm({
       city: initialData?.city || "",
       state: initialData?.state || "B",
       postalCode: initialData?.postalCode || "",
-      country: "RO", // Default to Romania and don't allow changes
+      country: "RO",
       phone: initialData?.phone || "",
       isDefault: initialData?.isDefault ?? false,
     },
   });
 
-  // Update available cities when county changes
   const handleCountyChange = (countyCode: string) => {
     setValue("state", countyCode);
     setSelectedCounty(countyCode);
-    // Reset city when county changes
     setValue("city", "");
   };
 
@@ -163,7 +163,6 @@ export function AddressForm({
           : "Your new address has been added successfully.",
       });
 
-      // Redirect back to addresses list
       router.push("/account/addresses");
       router.refresh();
     } catch (error) {
@@ -179,72 +178,80 @@ export function AddressForm({
     }
   };
 
+  const renderError = (message?: string) =>
+    message ? <p className="mt-1 text-sm text-rose-300">{message}</p> : null;
+
+  const inputClasses = (hasError?: boolean) =>
+    cn(
+      "border border-white/15 bg-white/10 text-slate-100 placeholder:text-slate-400 transition-all focus:border-sky-400/60 focus:ring-sky-400/20",
+      hasError && "border-rose-400"
+    );
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-slate-100">
+      <div className={cn(glassPanelClass, "space-y-4 border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-black/30")}
+      >
         <div>
-          <Label htmlFor="name">Address Nickname</Label>
+          <Label htmlFor="name" className="text-sm font-medium text-slate-200">
+            Address Nickname
+          </Label>
           <Input
             id="name"
             placeholder="Acasă, Serviciu, etc."
             {...register("name")}
-            className={errors.name ? "border-red-500" : ""}
+            className={inputClasses(!!errors.name)}
           />
-          {errors.name && (
-            <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
-          )}
+          {renderError(errors.name?.message)}
         </div>
 
         <div>
-          <Label htmlFor="fullName">Nume Complet</Label>
+          <Label htmlFor="fullName" className="text-sm font-medium text-slate-200">
+            Nume Complet
+          </Label>
           <Input
             id="fullName"
             placeholder="Ion Popescu"
             {...register("fullName")}
-            className={errors.fullName ? "border-red-500" : ""}
+            className={inputClasses(!!errors.fullName)}
           />
-          {errors.fullName && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.fullName.message}
-            </p>
-          )}
+          {renderError(errors.fullName?.message)}
         </div>
 
         <div>
-          <Label htmlFor="addressLine1">Adresa</Label>
+          <Label htmlFor="addressLine1" className="text-sm font-medium text-slate-200">
+            Adresa
+          </Label>
           <Input
             id="addressLine1"
             placeholder="Strada Victoriei nr. 10"
             {...register("addressLine1")}
-            className={errors.addressLine1 ? "border-red-500" : ""}
+            className={inputClasses(!!errors.addressLine1)}
           />
-          {errors.addressLine1 && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.addressLine1.message}
-            </p>
-          )}
+          {renderError(errors.addressLine1?.message)}
         </div>
 
         <div>
-          <Label htmlFor="addressLine2">Detalii adresă (Opțional)</Label>
+          <Label htmlFor="addressLine2" className="text-sm font-medium text-slate-200">
+            Detalii adresă (Opțional)
+          </Label>
           <Input
             id="addressLine2"
             placeholder="Bloc, Scara, Etaj, Apartament"
             {...register("addressLine2")}
+            className={inputClasses()}
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <Label htmlFor="state">Județ</Label>
-            <Select
-              defaultValue={watch("state")}
-              onValueChange={handleCountyChange}
-            >
-              <SelectTrigger className={errors.state ? "border-red-500" : ""}>
+            <Label htmlFor="state" className="text-sm font-medium text-slate-200">
+              Județ
+            </Label>
+            <Select defaultValue={watch("state")} onValueChange={handleCountyChange}>
+              <SelectTrigger className={cn(inputClasses(!!errors.state))}>
                 <SelectValue placeholder="Selectează județul" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="border-white/15 bg-slate-900/85 text-slate-100 backdrop-blur">
                 {romanianCounties.map(county => (
                   <SelectItem key={county.code} value={county.code}>
                     {county.name}
@@ -252,92 +259,98 @@ export function AddressForm({
                 ))}
               </SelectContent>
             </Select>
-            {errors.state && (
-              <p className="text-sm text-red-500 mt-1">
-                {errors.state.message}
-              </p>
-            )}
+            {renderError(errors.state?.message)}
           </div>
 
           <div>
-            <Label htmlFor="city">Oraș</Label>
+            <Label htmlFor="city" className="text-sm font-medium text-slate-200">
+              Oraș
+            </Label>
             <Input
               id="city"
               placeholder="București"
               {...register("city")}
-              className={errors.city ? "border-red-500" : ""}
+              className={inputClasses(!!errors.city)}
             />
-            {errors.city && (
-              <p className="text-sm text-red-500 mt-1">{errors.city.message}</p>
-            )}
+            {renderError(errors.city?.message)}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <Label htmlFor="postalCode">Cod Poștal</Label>
+            <Label htmlFor="postalCode" className="text-sm font-medium text-slate-200">
+              Cod Poștal
+            </Label>
             <Input
               id="postalCode"
               placeholder="010101"
               {...register("postalCode")}
-              className={errors.postalCode ? "border-red-500" : ""}
+              className={inputClasses(!!errors.postalCode)}
             />
-            {errors.postalCode && (
-              <p className="text-sm text-red-500 mt-1">
-                {errors.postalCode.message}
-              </p>
-            )}
+            {renderError(errors.postalCode?.message)}
           </div>
 
           <div>
-            <Label htmlFor="country">Țara</Label>
+            <Label htmlFor="country" className="text-sm font-medium text-slate-200">
+              Țara
+            </Label>
             <Input
               id="country"
               value="România"
               disabled
-              className="bg-gray-100"
+              className={cn(
+                inputClasses(),
+                "cursor-not-allowed border-white/20 bg-white/15 text-slate-200"
+              )}
             />
             <input type="hidden" value="RO" {...register("country")} />
           </div>
         </div>
 
         <div>
-          <Label htmlFor="phone">Număr de Telefon</Label>
+          <Label htmlFor="phone" className="text-sm font-medium text-slate-200">
+            Număr de Telefon
+          </Label>
           <Input
             id="phone"
             placeholder="0712 345 678"
             {...register("phone")}
-            className={errors.phone ? "border-red-500" : ""}
+            className={inputClasses(!!errors.phone)}
           />
-          {errors.phone && (
-            <p className="text-sm text-red-500 mt-1">{errors.phone.message}</p>
-          )}
+          {renderError(errors.phone?.message)}
         </div>
 
-        <div className="flex items-center space-x-2 pt-4">
+        <div className="flex items-center gap-2 pt-2">
           <Checkbox
             id="isDefault"
             checked={watch("isDefault")}
-            onCheckedChange={checked =>
-              setValue("isDefault", checked as boolean)
-            }
+            onCheckedChange={checked => setValue("isDefault", checked as boolean)}
+            className="border-white/25 text-sky-300 data-[state=checked]:border-sky-400 data-[state=checked]:bg-sky-500"
           />
-          <Label htmlFor="isDefault" className="text-sm font-medium">
+          <Label htmlFor="isDefault" className="text-sm font-medium text-slate-200">
             Setează ca adresă implicită
           </Label>
         </div>
       </div>
 
-      <div className="flex gap-3 justify-end">
+      <div className="flex justify-end gap-3">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.push("/account/addresses")}
           disabled={isLoading}
+          className="border-white/20 bg-white/10 text-slate-100 transition hover:border-white/30 hover:bg-white/15"
         >
           Anulează
         </Button>
-        <Button type="submit" disabled={isLoading}>
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className={cn(
+            "px-6 transition hover:scale-[1.01]",
+            gradientButtonClass
+          )}
+        >
           {isLoading
             ? "Se salvează..."
             : isEditing

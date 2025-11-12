@@ -75,7 +75,7 @@ describe("Header Component - Mobile Menu", () => {
     fireEvent.click(menuButton);
 
     await waitFor(() => {
-      expect(screen.getByText("Menu")).toBeInTheDocument();
+      expect(screen.getByText(/menu/i)).toBeInTheDocument();
     });
   });
 
@@ -87,7 +87,7 @@ describe("Header Component - Mobile Menu", () => {
     fireEvent.click(menuButton);
 
     await waitFor(() => {
-      expect(screen.getByText("Menu")).toBeInTheDocument();
+      expect(screen.getByText(/menu/i)).toBeInTheDocument();
     });
 
     // Close menu
@@ -97,7 +97,7 @@ describe("Header Component - Mobile Menu", () => {
     fireEvent.click(closeButton);
 
     await waitFor(() => {
-      expect(screen.queryByText("Menu")).not.toBeInTheDocument();
+      expect(screen.queryByText(/menu/i)).not.toBeInTheDocument();
     });
   });
 
@@ -109,17 +109,19 @@ describe("Header Component - Mobile Menu", () => {
     fireEvent.click(menuButton);
 
     await waitFor(() => {
-      expect(screen.getByText("Menu")).toBeInTheDocument();
+      expect(screen.getByText(/menu/i)).toBeInTheDocument();
     });
 
     // Click backdrop (the overlay div)
-    const backdrop = document.querySelector(".fixed.inset-0.bg-black");
+    const backdrop = document.querySelector(
+      '.fixed.inset-0[aria-hidden="true"]'
+    );
     if (backdrop) {
       fireEvent.click(backdrop);
     }
 
     await waitFor(() => {
-      expect(screen.queryByText("Menu")).not.toBeInTheDocument();
+      expect(screen.queryByText(/menu/i)).not.toBeInTheDocument();
     });
   });
 
@@ -133,7 +135,7 @@ describe("Header Component - Mobile Menu", () => {
     await waitFor(() => {
       // Check for mobile menu container first
       const mobileMenu = document.querySelector(
-        ".fixed.top-16.right-0.bottom-0"
+        ".fixed.top-0.right-0.bottom-0"
       );
       expect(mobileMenu).toBeInTheDocument();
 
@@ -179,9 +181,9 @@ describe("Header Component - Mobile Menu", () => {
 
     await waitFor(() => {
       const menuContainer = document.querySelector(
-        ".fixed.top-16.right-0.bottom-0"
+        ".fixed.top-0.right-0.bottom-0"
       );
-      expect(menuContainer).toHaveClass("w-80", "max-w-[85vw]");
+      expect(menuContainer).toHaveClass("w-[80vw]", "max-w-[340px]");
     });
   });
 
@@ -195,7 +197,7 @@ describe("Header Component - Mobile Menu", () => {
     await waitFor(() => {
       // Check for mobile menu container first
       const mobileMenu = document.querySelector(
-        ".fixed.top-16.right-0.bottom-0"
+        ".fixed.top-0.right-0.bottom-0"
       );
       expect(mobileMenu).toBeInTheDocument();
 

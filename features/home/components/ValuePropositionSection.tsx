@@ -1,6 +1,10 @@
 "use client";
 
 import React from "react";
+import {
+  glassCardClass,
+  glassPanelClass,
+} from "@/features/home/components/homeTheme";
 
 interface ValuePropositionSectionProps {
   t: (key: string, defaultValue?: string) => string;
@@ -44,101 +48,96 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
   ];
 
   return (
-    <section className="py-6 sm:py-8 md:py-12 lg:py-16 bg-green-50 text-gray-900">
-      <div className="container mx-auto px-4 max-w-5xl">
-        {/* Simplified headline section */}
-        <div className="text-center mb-4 sm:mb-6 md:mb-8">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 leading-tight">
-            {t("whyChooseTechTots")}
-          </h2>
-          {/* Simple subheading */}
-          <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto">
-            {t("provenResults", "Proven Results")} •{" "}
-            {t("qualityProducts", "Quality Products")} •{" "}
-            {t("parentsLoveThisBecause", "Parents Love This")}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-          {cards.slice(0, 3).map(card => (
-            <div
-              key={card.key}
-              className="group relative w-full overflow-hidden rounded-lg shadow-sm transition-all duration-300 hover:shadow-md bg-white border border-gray-100"
-              aria-label={card.title}
-              role="region"
-            >
-              {/* Card header with icon */}
-              <div className="px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
-                <span className="text-green-600 font-medium text-sm">
-                  {card.badge}
-                </span>
-                <span className="text-2xl">{card.icon}</span>
-              </div>
-
-              {/* Card content */}
-              <div className="p-3 sm:p-4">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-                  {card.title}
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">{card.description}</p>
-
-                {/* Simple checkmark */}
-                <div className="mt-auto pt-2 flex items-center gap-2 text-green-600">
-                  <svg
-                    className="h-4 w-4"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span className="text-xs font-medium">Rezultat Dovedit</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Simplified Social Proof and SEO Category Links */}
-        <div className="mt-6 sm:mt-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-100">
-            <div className="flex -space-x-1">
-              <div className="w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
-              <div className="w-5 h-5 bg-blue-400 rounded-full border-2 border-white"></div>
-              <div className="w-5 h-5 bg-purple-400 rounded-full border-2 border-white"></div>
-            </div>
-            <p className="text-xs sm:text-sm font-medium text-gray-900">
-              {t("socialProofNumber")} {t("socialProofText")}
+    <section className="py-10 sm:py-12 md:py-14">
+      <div className="container mx-auto max-w-6xl px-4">
+        <div className={`${glassPanelClass} text-center`}>
+          <div className="border-b border-white/10 px-6 py-6 sm:px-8 sm:py-8">
+            <h2 className="bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl md:text-4xl">
+              {t("whyChooseTechTots")}
+            </h2>
+            <p className="mt-3 text-xs text-slate-200/80 sm:text-sm">
+              {t("provenResults", "Proven Results")} •{" "}
+              {t("qualityProducts", "Quality Products")} •{" "}
+              {t("parentsLoveThisBecause", "Parents Love This")}
             </p>
           </div>
 
-          {/* Simplified category links */}
-          <div className="mt-4 sm:mt-6 text-center">
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm">
+          <div className="grid grid-cols-1 gap-4 border-b border-white/10 px-6 py-6 sm:grid-cols-2 sm:gap-6 sm:px-8 sm:py-8 md:grid-cols-3">
+            {cards.slice(0, 3).map(card => (
+              <div
+                key={card.key}
+                className={`${glassCardClass} group relative flex h-full flex-col overflow-hidden p-5 transition hover:border-emerald-400/60 hover:shadow-emerald-500/20`}
+                aria-label={card.title}
+                role="region"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">
+                    {card.badge}
+                  </span>
+                  <span className="text-2xl">{card.icon}</span>
+                </div>
+
+                <div className="mt-4 text-left">
+                  <h3 className="text-lg font-semibold text-white">
+                    {card.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-200/80">
+                    {card.description}
+                  </p>
+                </div>
+
+                <div className="mt-auto pt-4 text-left">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/40 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-100">
+                    <svg
+                      className="h-4 w-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Rezultat Dovedit
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="px-6 py-6 sm:px-8 sm:py-8">
+            <div className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-medium text-white/90 sm:text-sm">
+              <div className="flex -space-x-1">
+                <div className="h-6 w-6 rounded-full border-2 border-white bg-emerald-400"></div>
+                <div className="h-6 w-6 rounded-full border-2 border-white bg-sky-400"></div>
+                <div className="h-6 w-6 rounded-full border-2 border-white bg-indigo-400"></div>
+              </div>
+              {t("socialProofNumber")} {t("socialProofText")}
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-emerald-200 sm:mt-6 sm:gap-4 sm:text-sm">
               <a
                 href="/categories/science"
-                className="text-green-600 hover:underline"
+                className="transition hover:text-white hover:underline"
               >
                 {t("scienceCategory", "Science")}
               </a>
               <a
                 href="/categories/technology"
-                className="text-green-600 hover:underline"
+                className="transition hover:text-white hover:underline"
               >
                 {t("technologyCategory", "Technology")}
               </a>
               <a
                 href="/categories/engineering"
-                className="text-green-600 hover:underline"
+                className="transition hover:text-white hover:underline"
               >
                 {t("engineeringCategory", "Engineering")}
               </a>
               <a
                 href="/categories/mathematics"
-                className="text-green-600 hover:underline"
+                className="transition hover:text-white hover:underline"
               >
                 {t("mathematicsCategory", "Mathematics")}
               </a>

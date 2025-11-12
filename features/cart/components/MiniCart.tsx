@@ -11,6 +11,12 @@ import { useCart } from "@/features/cart/context/CartContext";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
+import {
+  glassCardClass,
+  glassPanelClass,
+  gradientButtonClass,
+} from "@/features/home/components/homeTheme";
+import { cn } from "@/lib/utils";
 
 import { BulkCartOperations } from "./BulkCartOperations";
 
@@ -187,17 +193,23 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
         <div className="fixed inset-0 z-[10000] overflow-hidden">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity z-[10000]"
+            className="fixed inset-0 z-[10000] bg-slate-950/75 backdrop-blur-sm transition-opacity"
             onClick={onClose}
           />
 
           {/* Cart Panel - Enhanced Layout */}
-          <div className="fixed right-0 top-0 h-full w-full max-w-lg bg-white shadow-xl transition-transform flex flex-col z-[10001] pointer-events-auto">
+          <div
+            className="pointer-events-auto fixed right-0 top-0 z-[10001] flex h-full w-full max-w-lg flex-col border-l border-white/10 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100 shadow-[0_0_40px_rgba(76,29,149,0.45)] backdrop-blur-xl transition-transform"
+          >
             {/* Header - Fixed at top */}
-            <div className="flex items-center justify-between border-b p-4 bg-white z-10 flex-shrink-0">
+            <div
+              className={`${glassPanelClass} flex flex-shrink-0 items-center justify-between border-white/10 px-5 py-4 text-slate-100`}
+            >
               <div className="flex items-center gap-3">
-                <ShoppingBag className="h-5 w-5" />
-                <h2 className="text-lg font-semibold">
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-slate-100 shadow-inner shadow-white/10">
+                  <ShoppingBag className="h-5 w-5" />
+                </span>
+                <h2 className="text-lg font-semibold tracking-tight">
                   {t("cart")} ({items.length})
                 </h2>
 
@@ -211,7 +223,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="p-1"
+                className="p-1 text-slate-300 hover:bg-white/10 hover:text-slate-100"
               >
                 <X className="h-5 w-5" />
               </Button>
@@ -222,8 +234,8 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
               {isLoading ? (
                 <div className="flex flex-1 items-center justify-center p-8">
                   <div className="text-center">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">
+                    <div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-2 border-sky-400 border-t-transparent" />
+                    <p className="text-sm text-slate-300">
                       {t("loading")}
                     </p>
                   </div>
@@ -231,9 +243,11 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
               ) : isEmpty ? (
                 <div className="flex flex-1 items-center justify-center p-8">
                   <div className="text-center">
-                    <ShoppingBag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-lg font-medium">{t("emptyCart")}</p>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <ShoppingBag className="mx-auto mb-4 h-12 w-12 text-slate-500" />
+                    <p className="text-lg font-medium text-slate-100">
+                      {t("emptyCart")}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-400">
                       Start adding items to your cart
                     </p>
                   </div>
@@ -241,27 +255,27 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
               ) : (
                 <>
                   {/* Bulk Operations - Fixed at top of content */}
-                  <div className="px-4 pt-4 pb-2 bg-white border-b flex-shrink-0">
+                  <div className="flex-shrink-0 border-b border-white/10 bg-white/5 px-4 pb-2 pt-4 backdrop-blur">
                     <BulkCartOperations />
                   </div>
 
                   {/* Items Container - Scrollable with proper height calculation */}
-                  <div className="flex-1 overflow-y-auto min-h-0 relative">
+                  <div className="relative min-h-0 flex-1 overflow-y-auto">
                     {/* Scroll indicator */}
                     {showScrollIndicator && (
-                      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 bg-gray-800 text-white px-3 py-1 rounded-full text-xs flex items-center gap-1 animate-pulse">
+                      <div className="absolute left-1/2 top-2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-white/10 px-3 py-1 text-xs text-slate-100 shadow">
                         <ChevronDown className="h-3 w-3" />
                         Scroll for more
                       </div>
                     )}
 
-                    <div className="p-4 space-y-4" ref={itemsContainerRef}>
+                    <div className="space-y-4 p-4" ref={itemsContainerRef}>
                       {items.map(item => (
                         <div
                           key={`${item.id}-${item.variantId ?? ""}-${
                             item.selectedLanguage ?? ""
                           }`}
-                          className="flex gap-3 pb-4 border-b last:border-b-0 group hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors"
+                          className="group -m-2 flex gap-3 rounded-2xl border border-transparent p-2 pb-4 transition-colors hover:border-white/10 hover:bg-white/5"
                         >
                           {/* Selection Checkbox */}
                           <div className="flex items-start pt-2">
@@ -270,12 +284,12 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                               onCheckedChange={() =>
                                 toggleItemSelection(item.id)
                               }
-                              className="mt-1"
+                              className="mt-1 border-white/40 text-sky-300 data-[state=checked]:bg-sky-500 data-[state=checked]:text-white"
                             />
                           </div>
 
                           {/* Item image */}
-                          <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
+                          <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/5">
                             {item.image ? (
                               <img
                                 src={item.image}
@@ -283,8 +297,8 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                                 className="h-full w-full object-cover object-center"
                               />
                             ) : (
-                              <div className="h-full w-full bg-gray-100 flex items-center justify-center">
-                                <ShoppingBag className="h-6 w-6 text-gray-400" />
+                              <div className="flex h-full w-full items-center justify-center text-slate-400">
+                                <ShoppingBag className="h-6 w-6" />
                               </div>
                             )}
                           </div>
@@ -292,23 +306,23 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                           {/* Item details */}
                           <div className="flex flex-1 flex-col">
                             <div className="flex justify-between">
-                              <div className="flex-1 min-w-0">
-                                <h4 className="text-sm font-medium text-gray-900 truncate">
+                              <div className="min-w-0 flex-1">
+                                <h4 className="truncate text-sm font-semibold text-slate-100">
                                   {item.name}
                                 </h4>
                                 {item.selectedLanguage && (
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-slate-400">
                                     Language:{" "}
                                     {item.selectedLanguage.toUpperCase()}
                                   </p>
                                 )}
                                 {item.isBook && (
-                                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mt-1">
+                                  <span className="mt-1 inline-block rounded-full border border-sky-400/40 bg-sky-500/15 px-2 py-1 text-xs text-sky-100">
                                     Digital Book
                                   </span>
                                 )}
                               </div>
-                              <p className="text-sm font-medium text-gray-900 ml-2 flex-shrink-0">
+                              <p className="ml-2 flex-shrink-0 text-sm font-semibold text-slate-100">
                                 {formatPrice(item.price)}
                               </p>
                             </div>
@@ -328,11 +342,11 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                                     )
                                   }
                                   disabled={item.quantity <= 1}
-                                  className="h-6 w-6 p-0 hover:bg-gray-100 transition-colors"
+                                  className="h-6 w-6 border-white/20 bg-white/5 p-0 text-slate-100 hover:bg-white/10"
                                 >
                                   -
                                 </Button>
-                                <span className="text-sm font-medium min-w-[20px] text-center">
+                                <span className="min-w-[20px] text-center text-sm font-medium text-slate-100">
                                   {item.quantity}
                                 </span>
                                 <Button
@@ -346,7 +360,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                                       item.selectedLanguage
                                     )
                                   }
-                                  className="h-6 w-6 p-0 hover:bg-gray-100 transition-colors"
+                                  className="h-6 w-6 border-white/20 bg-white/5 p-0 text-slate-100 hover:bg-white/10"
                                   disabled={
                                     stockMap[item.id] !== undefined &&
                                     item.quantity >= stockMap[item.id]
@@ -365,7 +379,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                                     item.selectedLanguage
                                   )
                                 }
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 transition-colors opacity-0 group-hover:opacity-100"
+                                className="opacity-0 p-1 text-rose-400 transition-colors hover:bg-rose-500/15 hover:text-rose-200 group-hover:opacity-100"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -377,13 +391,15 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                   </div>
 
                   {/* Footer - Fixed at bottom with enhanced styling */}
-                  <div className="border-t bg-white p-4 space-y-4 flex-shrink-0 shadow-lg">
+                  <div
+                    className={`${glassPanelClass} flex-shrink-0 space-y-4 border-white/10 p-4 text-slate-100 shadow-lg`}
+                  >
                     {/* Total with enhanced styling */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-lg font-semibold text-gray-900">
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-lg font-semibold text-slate-200">
                         {t("total")}
                       </span>
-                      <span className="text-xl font-bold text-gray-900">
+                      <span className="text-xl font-bold text-slate-100">
                         {formatPrice(getTotal())}
                       </span>
                     </div>
@@ -393,7 +409,10 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                       <Button
                         onClick={handleCheckout}
                         disabled={isCheckoutLoading}
-                        className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+                        className={cn(
+                          "h-12 w-full text-base font-semibold transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]",
+                          gradientButtonClass
+                        )}
                       >
                         {isCheckoutLoading ? (
                           <div className="flex items-center gap-2">
@@ -408,7 +427,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                       <Button
                         variant="outline"
                         onClick={handleClearCart}
-                        className="w-full h-10 border-gray-300 hover:bg-gray-50 transition-colors"
+                        className="h-10 w-full border-white/20 bg-white/5 text-slate-100 transition-colors hover:border-white/30 hover:bg-white/10"
                       >
                         {t("clearCart")}
                       </Button>

@@ -190,6 +190,24 @@ export default function AboutPage() {
     },
   ];
 
+  const heroStats = [
+    {
+      value: "87%",
+      label: t("aboutHeroMathImprovement"),
+      accentClass: "text-emerald-300",
+    },
+    {
+      value: "30",
+      label: t("aboutHeroTransformationDays"),
+      accentClass: "text-sky-300",
+    },
+    {
+      value: "99%",
+      label: t("aboutHeroSatisfiedParents"),
+      accentClass: "text-indigo-300",
+    },
+  ];
+
   return (
     <>
       {/* Structured Data for SEO */}
@@ -199,376 +217,403 @@ export default function AboutPage() {
           __html: JSON.stringify(aboutStructuredData),
         }}
       />
-      <div className="flex flex-col">
-        {/* Hormozi-Style Hero Section - Compact on Mobile */}
-        <section className="relative bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-5">
-            <div
-              className="absolute inset-0"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000' fill-opacity='0.1'%3E%3Ccircle cx='7' cy='7' r='7'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-              }}
-            />
-          </div>
-
-          <div className="container relative z-10 px-3 sm:px-4 lg:px-8">
-            <div className="max-w-5xl mx-auto text-center">
-              {/* Social Proof Badge - Compact on Mobile */}
-              <div className="mb-3 sm:mb-4 md:mb-6">
-                <span className="inline-flex items-center px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-full bg-green-100 text-green-800 text-xs sm:text-sm font-medium">
+      <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.12),_transparent_55%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(165,180,252,0.14),_transparent_60%)]" />
+        <div className="relative z-10">
+          <section className="container mx-auto px-3 py-8 sm:px-6 sm:py-10 lg:py-16">
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/90 via-indigo-900/80 to-slate-950/95 p-6 shadow-xl shadow-black/40 sm:p-10">
+              <div className="absolute inset-y-[25%] right-0 hidden w-1/3 rounded-full bg-emerald-400/10 blur-3xl lg:block" />
+              <div className="relative mx-auto max-w-4xl space-y-6 text-center">
+                <div className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-200">
                   <Image
                     src="/TechTots_LOGO.png"
                     alt="TechTots Logo"
-                    width={20}
-                    height={20}
-                    className="mr-1.5 sm:mr-2 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
+                    width={28}
+                    height={28}
+                    className="h-7 w-auto"
                   />
-                  {t("aboutHeroSocialProof")}
-                </span>
-              </div>
-
-              {/* Hormozi-Style Headline - Compact on Mobile */}
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold mb-3 sm:mb-4 md:mb-6 text-gray-900 leading-tight">
-                {t("aboutHeroHeadline")}{" "}
-                <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
-                  {t("aboutHeroHeadlineStruggling")}
-                </span>{" "}
-                {t("aboutHeroHeadlineInto")}{" "}
-                <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                  {t("aboutHeroHeadlineFuture")}
-                </span>
-              </h1>
-
-              {/* Transformation-Focused Subheadline - Compact on Mobile */}
-              <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl mb-4 sm:mb-6 md:mb-8 text-gray-700 max-w-4xl mx-auto leading-relaxed">
-                {t("aboutHeroSubheadline")}
-              </p>
-
-              {/* Results Proof - Compact on Mobile */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-12">
-                <div className="bg-white/80 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 shadow-lg">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-600 mb-1 sm:mb-2">
-                    87%
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600">
-                    {t("aboutHeroMathImprovement")}
-                  </div>
+                  <span className="text-white/80">{t("aboutHeroSocialProof")}</span>
                 </div>
-
-                <div className="bg-white/80 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 shadow-lg">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600 mb-1 sm:mb-2">
-                    30
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600">
-                    {t("aboutHeroTransformationDays")}
-                  </div>
-                </div>
-
-                <div className="bg-white/80 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 shadow-lg">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-purple-600 mb-1 sm:mb-2">
-                    99%
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600">
-                    {t("aboutHeroSatisfiedParents")}
-                  </div>
-                </div>
-              </div>
-
-              {/* CTA Section - Compact on Mobile */}
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center">
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
-                >
-                  <Link href="/contact">
-                    {t("aboutHeroFreeConsultation")}
-                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1.5 sm:ml-2" />
-                  </Link>
-                </Button>
-
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 text-sm sm:text-base md:text-lg font-semibold"
-                >
-                  <Link href="/products">{t("aboutHeroSeeToys")}</Link>
-                </Button>
-              </div>
-
-              {/* Guarantee - Compact on Mobile */}
-              <div className="mt-4 sm:mt-6 md:mt-8 text-center">
-                <p className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">
-                  🛡️ Calitate Garantată și Suport Dedicat
+                <h1 className="text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-4xl">
+                  {t("aboutHeroHeadline")}{" "}
+                  <span className="bg-gradient-to-r from-rose-400 via-orange-400 to-amber-300 bg-clip-text text-transparent">
+                    {t("aboutHeroHeadlineStruggling")}
+                  </span>{" "}
+                  {t("aboutHeroHeadlineInto")}{" "}
+                  <span className="bg-gradient-to-r from-emerald-300 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
+                    {t("aboutHeroHeadlineFuture")}
+                  </span>
+                </h1>
+                <p className="mx-auto max-w-3xl text-sm text-slate-200 sm:text-base md:text-lg">
+                  {t("aboutHeroSubheadline")}
                 </p>
-                <p className="text-[10px] sm:text-xs text-gray-500">
-                  Peste 10,000 de părinți au încredere în noi. Alătură-te și tu!
-                </p>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {heroStats.map(stat => (
+                    <div
+                      key={stat.label}
+                      className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-inner shadow-black/20 backdrop-blur"
+                    >
+                      <div className={`text-2xl font-bold sm:text-3xl ${stat.accentClass}`}>
+                        {stat.value}
+                      </div>
+                      <p className="mt-2 text-xs text-slate-200 sm:text-sm">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 via-sky-500 to-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:from-emerald-400 hover:via-sky-400 hover:to-indigo-400 sm:w-auto sm:text-base"
+                  >
+                    <Link href="/contact">
+                      {t("aboutHeroFreeConsultation")}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="w-full rounded-2xl border border-sky-400/60 bg-white/5 px-6 py-3 text-sm font-semibold text-sky-100 transition hover:border-sky-300 hover:bg-sky-500/20 hover:text-white sm:w-auto sm:text-base"
+                  >
+                    <Link href="/products">{t("aboutHeroSeeToys")}</Link>
+                  </Button>
+                </div>
+                <div className="mx-auto mt-4 inline-flex flex-col items-center gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-slate-200 shadow-inner shadow-black/30 sm:flex-row sm:text-sm">
+                  <span>🛡️ Calitate garantată și suport dedicat</span>
+                  <span className="hidden h-1 w-1 rounded-full bg-white/30 sm:inline-block" />
+                  <span>Peste 10,000 de părinți au încredere în noi.</span>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Our Story */}
-        <section className="py-6 sm:py-8 md:py-12 lg:py-16 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50">
-          <div className="container px-3 sm:px-4 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-center">
-              <div>
-                <div className="flex items-center mb-3 sm:mb-4 md:mb-6">
-                  <Image
-                    src="/TechTots_LOGO.png"
-                    alt="TechTots Logo"
-                    width={60}
-                    height={30}
-                    className="mr-2 sm:mr-3 h-6 sm:h-8 md:h-10 w-auto"
-                  />
-                  <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-indigo-900">
-                    {t("whyChooseStemH2")}
-                  </h2>
-                </div>
-                {/* Collapsible text for mobile */}
-                <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm md:text-base lg:text-lg bg-white/80 rounded-lg shadow-md p-3 sm:p-4 md:p-6 border border-indigo-100 transition-all">
-                  {/* Mobile: show only first paragraph unless expanded */}
-                  <div className="block sm:hidden">
-                    <p className="leading-relaxed text-gray-800 font-medium">
-                      {t(
-                        "ourStoryParagraph1",
-                        'Established in 2025, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.'
-                      )}
-                    </p>
-                    {storyExpanded && (
-                      <>
-                        <p className="leading-relaxed text-gray-700">
+          <div className="container mx-auto px-3 pb-12 sm:px-6 lg:pb-20">
+            <div className="mx-auto max-w-5xl space-y-8 sm:space-y-10 lg:space-y-12">
+              <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-7 md:p-9">
+                <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src="/TechTots_LOGO.png"
+                        alt="TechTots Logo"
+                        width={60}
+                        height={30}
+                        className="h-8 w-auto"
+                      />
+                      <h2 className="text-lg font-bold text-white sm:text-xl md:text-2xl">
+                        {t("whyChooseStemH2")}
+                      </h2>
+                    </div>
+                    <div className="mt-4 space-y-4 text-xs text-slate-200 sm:text-sm md:text-base">
+                      <div className="block sm:hidden">
+                        <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-inner shadow-black/20">
+                          <p className="leading-relaxed text-slate-100">
+                            {t(
+                              "ourStoryParagraph1",
+                              'Established in 2025, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.'
+                            )}
+                          </p>
+                          {storyExpanded && (
+                            <>
+                              <p className="mt-3 leading-relaxed text-slate-200">
+                                {t(
+                                  "ourStoryParagraph2",
+                                  'At TechTots, we believe STEM toys are essential catalysts for cognitive growth in all children, igniting natural curiosity and building foundations in computational thinking and scientific reasoning. We champion an approach where learning aligns with a child\'s natural interests and neurology. We are especially committed to neurodiverse children, including those with ADHD and autism. Drawing inspiration from "STEM Play for Neurodiverse Minds," we offer tools designed for sensory-rich experiences that enhance focus and cognitive skills, transforming their unique strengths into pathways for learning and confidence.'
+                                )}
+                              </p>
+                              <p className="mt-3 border-l-4 border-sky-300/60 pl-4 text-sm italic text-slate-200">
+                                {t(
+                                  "ourStoryParagraph3",
+                                  'Further shaped by "Born for the Future," which emphasizes preparing children with critical human skills for an AI-driven world, we understand that STEM integration builds crucial technical and creative problem-solving abilities. Our mission at TechTots is to be your trusted partner, providing enriching educational toys and parental guidance. We aim to show how these carefully selected tools foster development, nurture curiosity, and equip all children with essential skills for tomorrow—all through the power of joyful play.'
+                                )}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                        <div className="mt-3 flex justify-center">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-full border border-sky-400/60 bg-white/5 px-4 py-1 text-xs font-semibold text-sky-100 transition hover:border-sky-300 hover:bg-sky-500/20 hover:text-white"
+                            onClick={() => setStoryExpanded(v => !v)}
+                            aria-expanded={storyExpanded}
+                          >
+                            {storyExpanded
+                              ? t("showLess", "Show less")
+                              : t("readMore", "Read more")}
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="hidden space-y-4 rounded-2xl border border-white/10 bg-slate-900/60 p-5 shadow-inner shadow-black/20 sm:block">
+                        <p className="text-sm font-medium text-slate-100 sm:text-base">
+                          {t(
+                            "ourStoryParagraph1",
+                            'Established in 2025, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.'
+                          )}
+                        </p>
+                        <p className="text-sm leading-relaxed text-slate-200 sm:text-base">
                           {t(
                             "ourStoryParagraph2",
                             'At TechTots, we believe STEM toys are essential catalysts for cognitive growth in all children, igniting natural curiosity and building foundations in computational thinking and scientific reasoning. We champion an approach where learning aligns with a child\'s natural interests and neurology. We are especially committed to neurodiverse children, including those with ADHD and autism. Drawing inspiration from "STEM Play for Neurodiverse Minds," we offer tools designed for sensory-rich experiences that enhance focus and cognitive skills, transforming their unique strengths into pathways for learning and confidence.'
                           )}
                         </p>
-                        <p className="leading-relaxed text-gray-700 italic border-l-4 border-indigo-300 pl-4">
+                        <p className="border-l-4 border-sky-300/60 pl-4 text-sm italic text-slate-200 sm:text-base">
                           {t(
                             "ourStoryParagraph3",
                             'Further shaped by "Born for the Future," which emphasizes preparing children with critical human skills for an AI-driven world, we understand that STEM integration builds crucial technical and creative problem-solving abilities. Our mission at TechTots is to be your trusted partner, providing enriching educational toys and parental guidance. We aim to show how these carefully selected tools foster development, nurture curiosity, and equip all children with essential skills for tomorrow—all through the power of joyful play.'
                           )}
                         </p>
-                      </>
-                    )}
-                    <div className="flex justify-center mt-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-indigo-400 text-indigo-700 hover:bg-indigo-50 px-4 py-1 text-xs font-semibold rounded-full shadow-sm"
-                        onClick={() => setStoryExpanded(v => !v)}
-                        aria-expanded={storyExpanded}
-                      >
-                        {storyExpanded
-                          ? t("showLess", "Show less")
-                          : t("readMore", "Read more")}
-                      </Button>
+                      </div>
                     </div>
                   </div>
-                  {/* Desktop/tablet: always show all paragraphs */}
-                  <div className="hidden sm:block">
-                    <p className="leading-relaxed text-gray-800 font-medium">
-                      {t(
-                        "ourStoryParagraph1",
-                        'Established in 2025, TechTots was founded on a vision sparked by two pivotal books: "STEM Play for Neurodiverse Minds" by Casey Wrenly and "Born for the Future" by a dedicated educator and parent. These works highlighted the profound impact of STEM play on child development and the importance of future-ready skills, shaping our core mission.'
-                      )}
+                  <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-3 shadow-inner shadow-black/30 sm:p-5">
+                    <BookCarousel
+                      books={books}
+                      onLanguageToggle={toggleBookLanguage}
+                      currentLanguages={[bookVersions.book1, bookVersions.book2]}
+                      showLanguageToggle={false}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-7 md:p-9">
+                <h2 className="text-center text-base font-semibold text-white sm:text-lg md:text-xl">
+                  {t("ourStemCollectionH2")}
+                </h2>
+                <p className="mx-auto mt-3 max-w-3xl text-center text-xs text-slate-300 sm:text-sm">
+                  {t(
+                    "ourStemCollectionDescription",
+                    "Selecția noastră de jucării STEM este curatoriată pentru a construi curiozitate, încredere și competențe pregătitoare pentru viitor."
+                  )}
+                </p>
+                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 shadow-inner shadow-black/20 transition hover:border-emerald-400/60 hover:shadow-emerald-500/20">
+                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 via-sky-400 to-indigo-400 text-white shadow-lg">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-5 w-5"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                    </div>
+                    <h3 className="text-center text-sm font-semibold text-white sm:text-base">
+                      {t("qualitySafety")}
+                    </h3>
+                    <p className="mt-2 text-center text-xs text-slate-300 sm:text-sm">
+                      {t("qualitySafetyDesc")}
                     </p>
-                    <p className="leading-relaxed text-gray-700">
-                      {t(
-                        "ourStoryParagraph2",
-                        'At TechTots, we believe STEM toys are essential catalysts for cognitive growth in all children, igniting natural curiosity and building foundations in computational thinking and scientific reasoning. We champion an approach where learning aligns with a child\'s natural interests and neurology. We are especially committed to neurodiverse children, including those with ADHD and autism. Drawing inspiration from "STEM Play for Neurodiverse Minds," we offer tools designed for sensory-rich experiences that enhance focus and cognitive skills, transforming their unique strengths into pathways for learning and confidence.'
-                      )}
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 shadow-inner shadow-black/20 transition hover:border-emerald-400/60 hover:shadow-emerald-500/20">
+                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 via-sky-400 to-indigo-400 text-white shadow-lg">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-5 w-5"
+                      >
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                      </svg>
+                    </div>
+                    <h3 className="text-center text-sm font-semibold text-white sm:text-base">
+                      {t("educationalImpact")}
+                    </h3>
+                    <p className="mt-2 text-center text-xs text-slate-300 sm:text-sm">
+                      {t("educationalImpactDesc")}
                     </p>
-                    <p className="leading-relaxed text-gray-700 italic border-l-4 border-indigo-300 pl-4">
-                      {t(
-                        "ourStoryParagraph3",
-                        'Further shaped by "Born for the Future," which emphasizes preparing children with critical human skills for an AI-driven world, we understand that STEM integration builds crucial technical and creative problem-solving abilities. Our mission at TechTots is to be your trusted partner, providing enriching educational toys and parental guidance. We aim to show how these carefully selected tools foster development, nurture curiosity, and equip all children with essential skills for tomorrow—all through the power of joyful play.'
-                      )}
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 shadow-inner shadow-black/20 transition hover:border-emerald-400/60 hover:shadow-emerald-500/20">
+                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 via-sky-400 to-indigo-400 text-white shadow-lg">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-5 w-5"
+                      >
+                        <path d="M7 3a4 4 0 0 1 8 0 5 5 0 0 1 4 5.5c0 3-2 4.5-4 5.5C13 16 12 18 12 20m-1-4v-2a4 4 0 0 0-4-4c-2 0-3 1-3 2a3 3 0 0 0 3 3c1 0 3 .5 3 2Z"></path>
+                        <path d="M13 20a1 1 0 0 1-1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 1-1 1Z"></path>
+                      </svg>
+                    </div>
+                    <h3 className="text-center text-sm font-semibold text-white sm:text-base">
+                      {t("sustainability")}
+                    </h3>
+                    <p className="mt-2 text-center text-xs text-slate-300 sm:text-sm">
+                      {t("sustainabilityDesc")}
                     </p>
                   </div>
                 </div>
-              </div>
-              <div className="mt-6 lg:mt-0">
-                <BookCarousel
-                  books={books}
-                  onLanguageToggle={toggleBookLanguage}
-                  currentLanguages={[bookVersions.book1, bookVersions.book2]}
-                  showLanguageToggle={false}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
+              </section>
 
-        {/* Our Values */}
-        <section className="py-6 sm:py-8 md:py-12 lg:py-16 bg-white">
-          <div className="container px-3 sm:px-4 lg:px-8">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 md:mb-8 text-center text-indigo-900">
-              {t("ourStemCollectionH2")}
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto">
-              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow-md transition-all border border-indigo-100 transform hover:-translate-y-1 duration-300">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto shadow-md">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-white sm:w-5 sm:h-5"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
+              <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-7 md:p-9">
+                <h2 className="text-center text-base font-semibold text-white sm:text-lg md:text-xl">
+                  {t("ourTeam")}
+                </h2>
+                <div className="mt-6 flex justify-center">
+                  <div className="w-full max-w-lg overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 shadow-xl shadow-black/40 transition hover:border-emerald-400/60 hover:shadow-emerald-500/20">
+                    <div className="relative h-40 w-full sm:h-48 md:h-56">
+                      <Image
+                        src="/images/category_banner_math_01.png"
+                        alt="RUSU EMANUEL MARIUS"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 75vw, 50vw"
+                        style={{ objectFit: "cover" }}
+                        className="transition-transform duration-500 hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                      <div className="absolute bottom-4 left-4 right-4 text-left text-slate-100">
+                        <p className="text-xs font-medium uppercase tracking-[0.3em] text-emerald-200">
+                          {t("founderRole", "Fondator & Director Executiv")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-4 px-5 py-6">
+                      <h3 className="border-b border-white/10 pb-3 text-lg font-semibold text-white">
+                        RUSU EMANUEL MARIUS
+                      </h3>
+                      <p className="text-sm leading-relaxed text-slate-200">
+                        {t(
+                          "founderDescription",
+                          "Visionary entrepreneur with extensive expertise in development, design, and marketing. Passionate about creating educational technology that empowers children to explore, learn, and grow. Founded TechTots with the mission to revolutionize how children interact with STEM subjects through thoughtfully designed educational toys."
+                        )}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <Button className="h-9 rounded-full bg-gradient-to-r from-emerald-500 to-sky-500 px-4 text-xs font-semibold text-white hover:from-emerald-400 hover:to-sky-400">
+                          {t("contact", "Contact")}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="h-9 rounded-full border border-sky-400/60 bg-white/5 px-4 text-xs font-semibold text-sky-100 transition hover:border-sky-300 hover:bg-sky-500/20 hover:text-white"
+                        >
+                          {t("linkedin", "LinkedIn")}
+                        </Button>
+                        <Button
+                          asChild
+                          variant="outline"
+                          className="h-9 rounded-full border border-sky-400/60 bg-white/5 px-4 text-xs font-semibold text-sky-100 transition hover:border-sky-300 hover:bg-sky-500/20 hover:text-white"
+                        >
+                          <Link href="/authors/techtots-editorial">
+                            {t("viewProfile", "View author profile")}
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-sm sm:text-base md:text-lg font-bold mb-2 sm:mb-3 text-center text-indigo-900">
-                  {t("qualitySafety")}
-                </h3>
-                <p className="text-center text-gray-700 leading-relaxed text-xs sm:text-sm">
-                  {t("qualitySafetyDesc")}
-                </p>
-              </div>
-              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow-md transition-all border border-indigo-100 transform hover:-translate-y-1 duration-300">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto shadow-md">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-white sm:w-5 sm:h-5"
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                </div>
-                <h3 className="text-sm sm:text-base md:text-lg font-bold mb-2 sm:mb-3 text-center text-indigo-900">
-                  {t("educationalImpact")}
-                </h3>
-                <p className="text-center text-gray-700 leading-relaxed text-xs sm:text-sm">
-                  {t("educationalImpactDesc")}
-                </p>
-              </div>
-              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-3 sm:p-4 md:p-6 rounded-lg shadow-sm hover:shadow-md transition-all border border-indigo-100 transform hover:-translate-y-1 duration-300 sm:col-span-2 lg:col-span-1 sm:max-w-md sm:mx-auto lg:max-w-none">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto shadow-md">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-white sm:w-5 sm:h-5"
-                  >
-                    <path d="M7 3a4 4 0 0 1 8 0 5 5 0 0 1 4 5.5c0 3-2 4.5-4 5.5C13 16 12 18 12 20m-1-4v-2a4 4 0 0 0-4-4c-2 0-3 1-3 2a3 3 0 0 0 3 3c1 0 3 .5 3 2Z"></path>
-                    <path d="M13 20a1 1 0 0 1-1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 1-1 1Z"></path>
-                  </svg>
-                </div>
-                <h3 className="text-sm sm:text-base md:text-lg font-bold mb-2 sm:mb-3 text-center text-indigo-900">
-                  {t("sustainability")}
-                </h3>
-                <p className="text-center text-gray-700 leading-relaxed text-xs sm:text-sm">
-                  {t("sustainabilityDesc")}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+              </section>
 
-        {/* Our Team - Compact on Mobile */}
-        <section className="py-4 sm:py-6 md:py-10 lg:py-12 xl:py-16 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50">
-          <div className="container px-3 sm:px-4 lg:px-8">
-            <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-3 sm:mb-4 md:mb-6 lg:mb-8 text-center text-indigo-900">
-              {t("ourTeam")}
-            </h2>
-            <div className="flex justify-center">
-              {/* Rusu Emanuel Marius profile - Compact on Mobile */}
-              <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all border border-indigo-200 transform hover:-translate-y-1 duration-300 max-w-sm sm:max-w-md md:max-w-lg w-full">
-                <div className="relative h-32 sm:h-40 md:h-48 lg:h-56 xl:h-64 w-full group">
-                  <Image
-                    src="/images/category_banner_math_01.png"
-                    alt="RUSU EMANUEL MARIUS"
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 75vw, 50vw"
-                    style={{ objectFit: "cover" }}
-                    className="transition-transform group-hover:scale-105 duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                  <div className="absolute bottom-2 sm:bottom-3 md:bottom-4 left-2 sm:left-3 md:left-4 right-2 sm:right-3 md:right-4 text-white">
-                    <p className="text-xs sm:text-sm md:text-base font-medium text-indigo-200 drop-shadow-md">
-                      {"Fondator și Director Executiv"}
+              <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-7 md:p-9">
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-emerald-200 sm:text-sm">
+                      {t("companyLegalTag", "Legal")}
+                    </p>
+                    <h2 className="mt-3 text-lg font-semibold text-white sm:text-xl md:text-2xl">
+                      {t("companyLegalHeading", "Informații legale companie")}
+                    </h2>
+                    <p className="mt-3 text-xs text-slate-300 sm:text-sm">
+                      {t(
+                        "companyLegalDescription",
+                        "Datele complete de identificare pentru procesatorii de plăți și autoritățile de reglementare."
+                      )}
                     </p>
                   </div>
-                </div>
-                <div className="p-3 sm:p-4 md:p-6">
-                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold mb-1.5 sm:mb-2 md:mb-3 text-indigo-900 border-b border-indigo-200 pb-1.5 sm:pb-2">
-                    RUSU EMANUEL MARIUS
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed text-xs sm:text-sm md:text-base">
-                    {t(
-                      "founderDescription",
-                      "Visionary entrepreneur with extensive expertise in development, design, and marketing. Passionate about creating educational technology that empowers children to explore, learn, and grow. Founded TechTots with the mission to revolutionize how children interact with STEM subjects through thoughtfully designed educational toys."
-                    )}
-                  </p>
-                  <div className="mt-2 sm:mt-3 md:mt-4 flex gap-1.5 sm:gap-2 flex-wrap">
-                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-xs h-7 sm:h-8 px-2 sm:px-3">
-                      {t("contact", "Contact")}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs h-7 sm:h-8 px-2 sm:px-3"
-                    >
-                      {t("linkedin", "LinkedIn")}
-                    </Button>
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs h-7 sm:h-8 px-2 sm:px-3"
-                    >
-                      <Link href="/authors/techtots-editorial">
-                        {t("viewProfile", "View author profile")}
-                      </Link>
-                    </Button>
+                  <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 shadow-inner shadow-black/30">
+                    <dl className="space-y-3 text-xs text-slate-200 sm:text-sm">
+                      <div>
+                        <dt className="text-emerald-200">{t("companyLegalEntity", "Denumire")}</dt>
+                        <dd className="mt-1 text-white">WEBIRA REM S.R.L.</dd>
+                      </div>
+                      <div>
+                        <dt className="text-emerald-200">{t("companyLegalAddress", "Sediu social")}</dt>
+                        <dd className="mt-1 leading-relaxed">
+                          Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70
+                        </dd>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <dt className="text-emerald-200">
+                            {t("companyLegalCuiLabel", "Cod de identificare fiscală")}
+                          </dt>
+                          <dd className="mt-1 text-white">51813997</dd>
+                        </div>
+                        <div>
+                          <dt className="text-emerald-200">
+                            {t("companyLegalCuiDateLabel", "Data înregistrării")}
+                          </dt>
+                          <dd className="mt-1 text-white">20.05.2025</dd>
+                        </div>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <dt className="text-emerald-200">
+                            {t("companyLegalRegCommerce", "Registrul Comerțului")}
+                          </dt>
+                          <dd className="mt-1 text-white">J2025035239005</dd>
+                        </div>
+                        <div>
+                          <dt className="text-emerald-200">{t("companyLegalRegDate", "Data înscrierii")}</dt>
+                          <dd className="mt-1 text-white">19.05.2025</dd>
+                        </div>
+                      </div>
+                    </dl>
                   </div>
                 </div>
-              </div>
+              </section>
+
+              <section className="overflow-hidden rounded-3xl border border-sky-500/40 bg-gradient-to-br from-sky-500/20 via-indigo-900/40 to-slate-950/80 p-5 text-slate-100 shadow-xl shadow-sky-500/30 sm:p-7 md:p-9">
+                <h2 className="text-center text-base font-semibold text-white sm:text-lg md:text-xl">
+                  {t("joinStemJourney")}
+                </h2>
+                <p className="mx-auto mt-3 max-w-3xl text-center text-xs text-slate-200 sm:text-sm md:text-base">
+                  {t("joinStemJourneyDesc") ||
+                    "Discover our carefully curated selection of educational toys and start inspiring curiosity today!"}
+                </p>
+                <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="w-full rounded-2xl bg-white/90 px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-white/20 transition hover:bg-white sm:w-auto sm:text-base"
+                  >
+                    <Link href="/products">{t("shopCollection")}</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="w-full rounded-2xl border border-white/40 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10 sm:w-auto sm:text-base"
+                  >
+                    <Link href="/contact">{t("aboutHeroFreeConsultation")}</Link>
+                  </Button>
+                </div>
+              </section>
             </div>
           </div>
-        </section>
-
-        {/* CTA - Compact on Mobile */}
-        <section className="py-6 sm:py-8 md:py-10 lg:py-12 xl:py-16 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 text-white">
-          <div className="container text-center px-3 sm:px-4 lg:px-8">
-            <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-2 sm:mb-3 md:mb-4 drop-shadow-md">
-              {t("joinStemJourney")}
-            </h2>
-            <p className="text-xs sm:text-sm md:text-base lg:text-lg mb-3 sm:mb-4 md:mb-6 max-w-2xl mx-auto leading-relaxed drop-shadow-sm">
-              {t("joinStemJourneyDesc") ||
-                "Discover our carefully curated selection of educational toys and start inspiring curiosity today!"}
-            </p>
-            <Button
-              asChild
-              size="lg"
-              className="bg-white hover:bg-white/90 text-indigo-700 border-none shadow-md transition-all hover:shadow-lg text-xs sm:text-sm md:text-base h-8 sm:h-9 md:h-10 px-4 sm:px-6"
-            >
-              <Link href="/products">{t("shopCollection")}</Link>
-            </Button>
-          </div>
-        </section>
+        </div>
       </div>
     </>
   );

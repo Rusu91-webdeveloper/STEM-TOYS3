@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { SkeletonCard } from "@/components/ui/skeleton";
+import { blogGlassCardClass } from "@/features/blog/components/blogTheme";
 
 export interface BlogPost {
   id: string;
@@ -43,9 +43,26 @@ export function BlogGrid({
 }: BlogGridProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <SkeletonCard key={i} />
+          <div
+            key={i}
+            className={`${blogGlassCardClass} h-full animate-pulse rounded-2xl border border-white/5`}
+          >
+            <div className="h-40 w-full rounded-t-2xl bg-white/10" />
+            <div className="space-y-3 px-4 py-6">
+              <div className="h-3 w-3/4 rounded-full bg-white/10" />
+              <div className="h-3 w-full rounded-full bg-white/10" />
+              <div className="h-3 w-5/6 rounded-full bg-white/10" />
+              <div className="flex items-center gap-3 pt-4">
+                <div className="h-8 w-8 rounded-full bg-white/10" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-1/2 rounded-full bg-white/10" />
+                  <div className="h-3 w-1/3 rounded-full bg-white/10" />
+                </div>
+              </div>
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -53,8 +70,13 @@ export function BlogGrid({
 
   if (error) {
     return (
-      <div className="text-center text-red-500 py-12 text-lg font-semibold">
-        {error}
+      <div
+        className={`${blogGlassCardClass} border border-red-400/40 bg-red-500/10 px-6 py-10 text-center text-red-200`}
+      >
+        <h2 className="text-xl font-semibold">{error}</h2>
+        <p className="mt-2 text-sm text-red-100/80">
+          Please refresh the page or try again later.
+        </p>
       </div>
     );
   }
@@ -62,79 +84,84 @@ export function BlogGrid({
   // Additional safety check for blogPosts
   if (!Array.isArray(blogPosts) || blogPosts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24">
+      <div
+        className={`${blogGlassCardClass} flex flex-col items-center justify-center border border-white/10 px-8 py-16 text-center text-white`}
+      >
         <Image
           src="/images/empty-state.svg"
           alt="No blog posts"
           width={180}
           height={180}
-          className="mb-6"
+          className="mb-6 opacity-90"
         />
-        <h2 className="text-2xl font-bold mb-2">No blog posts found</h2>
-        <p className="text-gray-500 mb-4">
-          Check back soon for new articles and insights!
+        <h2 className="text-2xl font-semibold">No blog posts found</h2>
+        <p className="mt-2 max-w-md text-sm text-white/80">
+          Check back soon for new experiments, insights, and STEM learning
+          strategies from our experts.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {blogPosts.map(post => (
         <Card
           key={post.id}
-          className="group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group-hover:scale-[1.01] border border-gray-100 dark:border-gray-700"
+          className={`${blogGlassCardClass} group relative overflow-hidden border border-white/10 transition-all duration-300 hover:border-white/20 hover:shadow-2xl hover:shadow-indigo-900/40`}
         >
           {/* Image section - compact for 2-column layout */}
-          <div className="relative w-full h-24 sm:h-28 lg:h-32 overflow-hidden">
+          <div className="relative h-40 w-full overflow-hidden">
             <Image
               src={post.coverImage || getDefaultImage(post.stemCategory)}
               alt={post.title}
               fill
-              sizes="(max-width: 1024px) 50vw, 33vw"
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
             {/* Gradient overlay for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
 
             {/* Category badge - very compact */}
-            <div className="absolute top-1 left-1">
+            <div className="absolute left-4 top-4">
               <Badge
                 variant="secondary"
-                className="bg-white/95 text-indigo-700 font-medium text-xs px-1.5 py-0.5 shadow backdrop-blur-sm"
+                className="bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow backdrop-blur-sm"
               >
                 {post.category?.name || post.stemCategory}
               </Badge>
             </div>
+
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/90 via-slate-950/10 to-transparent" />
           </div>
 
           {/* Content section - very compact */}
-          <CardContent className="p-2 sm:p-3 flex flex-col flex-1">
-            <Link href={`/blog/${post.slug}`} className="flex-1 group">
-              <h3 className="text-xs sm:text-sm font-bold mb-1 group-hover:text-indigo-700 transition-colors line-clamp-2 leading-tight">
+          <CardContent className="flex flex-1 flex-col gap-3 px-5 py-6">
+            <Link href={`/blog/${post.slug}`} className="group space-y-2">
+              <h3 className="text-base font-semibold leading-tight text-white transition-colors duration-200 group-hover:text-indigo-200 line-clamp-2">
                 {post.title}
               </h3>
-              <p className="text-gray-600 dark:text-gray-300 text-xs mb-2 line-clamp-2 leading-relaxed">
+              <p className="text-sm leading-relaxed text-white/70 line-clamp-3">
                 {post.excerpt}
               </p>
             </Link>
 
             {/* Author and date section - very compact */}
-            <div className="flex items-center gap-1.5 mt-auto pt-1.5 border-t border-gray-100 dark:border-gray-700">
-              <Avatar className="h-5 w-5 flex-shrink-0">
+            <div className="mt-auto flex items-center gap-3 border-t border-white/10 pt-4">
+              <Avatar className="h-9 w-9 border border-white/10">
                 <AvatarImage
                   src={post.author?.avatarUrl || undefined}
                   alt={post.author?.name || "Author"}
                 />
-                <AvatarFallback className="text-xs">
+                <AvatarFallback className="text-sm font-semibold">
                   {post.author?.name?.[0] || "T"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <span className="text-xs text-gray-700 dark:text-gray-300 font-medium truncate block">
+                <span className="block truncate text-sm font-medium text-white">
                   {post.author?.name || "TechTots Team"}
                 </span>
-                <span className="text-xs text-gray-400 dark:text-gray-500">
+                <span className="text-xs text-white/60">
                   {post.publishedAt
                     ? format(new Date(post.publishedAt), "MMM d")
                     : ""}
@@ -142,9 +169,9 @@ export function BlogGrid({
               </div>
 
               {/* Read more arrow - very small */}
-              <div className="flex-shrink-0 text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition-transform duration-200">
+              <div className="flex-shrink-0 text-indigo-200 transition-transform duration-200 group-hover:translate-x-1">
                 <svg
-                  className="w-3 h-3"
+                  className="h-4 w-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

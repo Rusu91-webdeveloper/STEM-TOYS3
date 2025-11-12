@@ -3,7 +3,7 @@
 import { MapPin, Edit, Trash } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   AlertDialog,
@@ -27,7 +27,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  glassCardClass,
+  glassPanelClass,
+  gradientButtonClass,
+} from "@/features/home/components/homeTheme";
 import { toast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 interface Address {
   id: string;
@@ -79,11 +85,9 @@ export function AddressList() {
 
   const handleSetDefault = async (id: string) => {
     try {
-      // Find the address to update
       const address = addresses.find(a => a.id === id);
       if (!address) return;
 
-      // Update the address with isDefault = true
       const response = await fetch(`/api/account/addresses/${id}`, {
         method: "PUT",
         headers: {
@@ -96,11 +100,10 @@ export function AddressList() {
         throw new Error("Failed to update default address");
       }
 
-      // Update local state
-      setAddresses(
-        addresses.map(address => ({
-          ...address,
-          isDefault: address.id === id,
+      setAddresses(prev =>
+        prev.map(addr => ({
+          ...addr,
+          isDefault: addr.id === id,
         }))
       );
 
@@ -128,8 +131,7 @@ export function AddressList() {
         throw new Error("Failed to delete address");
       }
 
-      // Update local state
-      setAddresses(addresses.filter(address => address.id !== id));
+      setAddresses(prev => prev.filter(address => address.id !== id));
       setAddressToDelete(null);
 
       toast({
@@ -137,7 +139,6 @@ export function AddressList() {
         description: "Your address has been deleted successfully.",
       });
 
-      // Refresh the page to update any other components
       router.refresh();
     } catch (error) {
       console.error("Error deleting address:", error);
@@ -151,22 +152,26 @@ export function AddressList() {
 
   if (loading) {
     return (
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 text-slate-100 md:grid-cols-2">
         {[1, 2].map(i => (
-          <Card key={i} className="relative">
-            <CardHeader>
-              <Skeleton className="h-6 w-32 mb-2" />
-              <Skeleton className="h-4 w-24" />
+          <Card
+            key={i}
+            className={cn(
+              glassCardClass,
+              "border-white/10 bg-slate-900/60 p-0 shadow-lg shadow-black/30"
+            )}
+          >
+            <CardHeader className="space-y-2">
+              <Skeleton className="h-6 w-32 rounded bg-white/10" />
+              <Skeleton className="h-4 w-24 rounded bg-white/10" />
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
+            <CardContent className="space-y-2">
+              <Skeleton className="h-4 w-full rounded bg-white/10" />
+              <Skeleton className="h-4 w-3/4 rounded bg-white/10" />
+              <Skeleton className="h-4 w-1/2 rounded bg-white/10" />
             </CardContent>
             <CardFooter>
-              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full rounded bg-white/10" />
             </CardFooter>
           </Card>
         ))}
@@ -176,24 +181,48 @@ export function AddressList() {
 
   if (error) {
     return (
-      <div className="text-center py-10 border rounded-lg">
-        <MapPin className="h-10 w-10 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium mb-2">Error loading addresses</h3>
-        <p className="text-gray-500 mb-6">{error}</p>
-        <Button onClick={() => window.location.reload()}>Try Again</Button>
+      <div
+        className={cn(
+          glassPanelClass,
+          "space-y-4 rounded-3xl border-white/10 bg-slate-900/70 p-10 text-center text-slate-100 shadow-xl shadow-black/30"
+        )}
+      >
+        <MapPin className="mx-auto h-10 w-10 text-slate-400" />
+        <h3 className="text-lg font-semibold">Error loading addresses</h3>
+        <p className="text-slate-300">{error}</p>
+        <Button
+          onClick={() => window.location.reload()}
+          className={cn(
+            "mx-auto inline-flex min-w-[200px] justify-center transition hover:scale-[1.02]",
+            gradientButtonClass
+          )}
+        >
+          Try Again
+        </Button>
       </div>
     );
   }
 
   if (addresses.length === 0) {
     return (
-      <div className="text-center py-10 border rounded-lg">
-        <MapPin className="h-10 w-10 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium mb-2">No addresses found</h3>
-        <p className="text-gray-500 mb-6">
+      <div
+        className={cn(
+          glassPanelClass,
+          "space-y-4 rounded-3xl border-white/10 bg-slate-900/70 p-10 text-center text-slate-100 shadow-xl shadow-black/30"
+        )}
+      >
+        <MapPin className="mx-auto h-10 w-10 text-slate-400" />
+        <h3 className="text-lg font-semibold">No addresses found</h3>
+        <p className="text-slate-300">
           You haven't added any addresses to your account yet.
         </p>
-        <Button asChild>
+        <Button
+          asChild
+          className={cn(
+            "mx-auto inline-flex min-w-[200px] justify-center transition hover:scale-[1.02]",
+            gradientButtonClass
+          )}
+        >
           <Link href="/account/addresses/new">Add Your First Address</Link>
         </Button>
       </div>
@@ -201,36 +230,48 @@ export function AddressList() {
   }
 
   return (
-    <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 text-slate-100 md:grid-cols-2">
       {addresses.map(address => (
-        <Card key={address.id} className="relative">
+        <Card
+          key={address.id}
+          className={cn(
+            glassCardClass,
+            "relative border-white/10 bg-slate-900/60 shadow-lg shadow-black/30"
+          )}
+        >
           {address.isDefault && (
-            <Badge className="absolute top-4 right-4 bg-green-500 hover:bg-green-600">
+            <Badge className="absolute right-5 top-5 border border-emerald-400/40 bg-emerald-500/20 text-emerald-100">
               Default
             </Badge>
           )}
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
+            <CardTitle className="flex items-center gap-2 text-slate-100">
+              <MapPin className="h-4 w-4 text-sky-300" />
               {address.name}
             </CardTitle>
-            <CardDescription>{address.fullName}</CardDescription>
+            <CardDescription className="text-slate-300">
+              {address.fullName}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-sm space-y-1">
+            <div className="space-y-1 text-sm text-slate-200">
               <p>{address.addressLine1}</p>
               {address.addressLine2 && <p>{address.addressLine2}</p>}
               <p>
                 {address.city}, {address.state} {address.postalCode}
               </p>
               <p>{address.country}</p>
-              <p className="pt-2">{address.phone}</p>
+              <p className="pt-2 text-slate-300">{address.phone}</p>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col sm:flex-row gap-2 pt-0">
-            <Button variant="outline" asChild className="w-full sm:w-auto">
+          <CardFooter className="flex flex-col gap-2 pt-0 sm:flex-row">
+            <Button
+              variant="outline"
+              asChild
+              className="w-full border-white/20 bg-white/10 text-slate-100 transition hover:border-white/30 hover:bg-white/15 sm:w-auto"
+            >
               <Link href={`/account/addresses/${address.id}/edit`}>
-                <Edit className="h-4 w-4 mr-2" />
+                <Edit className="mr-2 h-4 w-4" />
                 Edit
               </Link>
             </Button>
@@ -238,7 +279,7 @@ export function AddressList() {
             {!address.isDefault && (
               <Button
                 variant="outline"
-                className="w-full sm:w-auto"
+                className="w-full border-sky-400/40 bg-sky-500/20 text-sky-100 transition hover:border-sky-400/60 hover:bg-sky-500/25 sm:w-auto"
                 onClick={() => handleSetDefault(address.id)}
               >
                 Set as Default
@@ -252,26 +293,28 @@ export function AddressList() {
               <AlertDialogTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full sm:w-auto text-red-500 hover:text-red-600"
+                  className="w-full border-rose-400/40 bg-rose-500/15 text-rose-200 transition hover:border-rose-400/60 hover:bg-rose-500/25 sm:w-auto"
                   onClick={() => setAddressToDelete(address.id)}
                 >
-                  <Trash className="h-4 w-4 mr-2" />
+                  <Trash className="mr-2 h-4 w-4" />
                   Delete
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="border-white/15 bg-slate-900/85 text-slate-100 backdrop-blur">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
+                  <AlertDialogDescription className="text-slate-300">
                     This will permanently delete this address from your account.
                     This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel className="border-white/20 bg-white/10 text-slate-100 hover:border-white/30 hover:bg-white/15">
+                    Cancel
+                  </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => handleDelete(address.id)}
-                    className="bg-red-500 hover:bg-red-600"
+                    className="bg-rose-500 text-white hover:bg-rose-600"
                   >
                     Delete
                   </AlertDialogAction>

@@ -4,10 +4,17 @@ import { formatDistance } from "date-fns";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  glassCardClass,
+  glassPanelClass,
+  gradientButtonClass,
+} from "@/features/home/components/homeTheme";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 // Define return types
 type ReturnReason =
@@ -49,17 +56,30 @@ interface ReturnItem {
   };
 }
 
-// Define return status badges with colors
-const statusBadges: Record<ReturnStatus, { label: string; color: string }> = {
-  PENDING: { label: "Pending", color: "bg-yellow-100 text-yellow-800" },
-  APPROVED: { label: "Approved", color: "bg-blue-100 text-blue-800" },
-  REJECTED: { label: "Rejected", color: "bg-red-100 text-red-800" },
-  RECEIVED: { label: "Received", color: "bg-purple-100 text-purple-800" },
-  REFUNDED: { label: "Refunded", color: "bg-green-100 text-green-800" },
+const STATUS_BADGES: Record<ReturnStatus, { label: string; classes: string }> = {
+  PENDING: {
+    label: "Pending",
+    classes: "border-amber-400/40 bg-amber-500/20 text-amber-100",
+  },
+  APPROVED: {
+    label: "Approved",
+    classes: "border-sky-400/40 bg-sky-500/20 text-sky-100",
+  },
+  REJECTED: {
+    label: "Rejected",
+    classes: "border-rose-400/40 bg-rose-500/20 text-rose-100",
+  },
+  RECEIVED: {
+    label: "Received",
+    classes: "border-purple-400/40 bg-purple-500/20 text-purple-100",
+  },
+  REFUNDED: {
+    label: "Refunded",
+    classes: "border-emerald-400/40 bg-emerald-500/20 text-emerald-100",
+  },
 };
 
-// Define reason display labels
-const reasonLabels: Record<ReturnReason, string> = {
+const REASON_LABELS: Record<ReturnReason, string> = {
   DOES_NOT_MEET_EXPECTATIONS: "Does not meet expectations",
   DAMAGED_OR_DEFECTIVE: "Damaged or defective",
   WRONG_ITEM_SHIPPED: "Wrong item shipped",
@@ -102,90 +122,121 @@ export default function ReturnsPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-48">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      <div className="flex h-48 items-center justify-center text-slate-100">
+        <Loader2 className="h-10 w-10 animate-spin text-sky-300" />
       </div>
     );
   }
 
   if (returns.length === 0) {
     return (
-      <div className="mt-6">
-        <div className="bg-white p-8 rounded-xl shadow-sm text-center">
-          <h3 className="text-lg font-medium mb-2">No returns found</h3>
-          <p className="text-gray-500 mb-4">
-            You haven't initiated any returns yet.
-          </p>
-          <Link href="/account/orders" className="text-primary hover:underline">
-            View your orders
-          </Link>
-        </div>
+      <div
+        className={cn(
+          glassPanelClass,
+          "mt-6 space-y-4 rounded-3xl border-white/10 bg-slate-900/70 p-10 text-center text-slate-100 shadow-xl shadow-black/30"
+        )}
+      >
+        <h3 className="text-lg font-semibold">No returns found</h3>
+        <p className="text-slate-300">
+          You haven't initiated any returns yet. Explore your orders to start a return.
+        </p>
+        <Button
+          asChild
+          className={cn(
+            "mx-auto inline-flex min-w-[200px] justify-center transition hover:scale-[1.02]",
+            gradientButtonClass
+          )}
+        >
+          <Link href="/account/orders">View your orders</Link>
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Your Returns</h1>
+    <div className="space-y-6 text-slate-100">
+      <div
+        className={cn(
+          glassPanelClass,
+          "flex flex-col gap-1 border-white/10 bg-slate-900/70 px-5 py-4 shadow-xl shadow-black/30"
+        )}
+      >
+        <h1 className="text-2xl font-bold tracking-tight">Your Returns</h1>
+        <p className="text-sm text-slate-300">
+          Track the status of every item you've requested to send back.
+        </p>
+      </div>
 
       <div className="space-y-4">
-        {returns.map(returnItem => (
-          <div
-            key={returnItem.id}
-            className="bg-white p-6 rounded-lg shadow-sm"
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex items-center space-x-4">
-                {returnItem.orderItem.product.images?.[0] && (
-                  <div className="relative h-16 w-16 rounded overflow-hidden">
-                    <Image
-                      src={returnItem.orderItem.product.images[0]}
-                      alt={returnItem.orderItem.name}
-                      className="object-cover"
-                      fill
-                    />
-                  </div>
-                )}
+        {returns.map(returnItem => {
+          const badge = STATUS_BADGES[returnItem.status];
 
-                <div>
-                  <h3 className="font-medium">{returnItem.orderItem.name}</h3>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Order #{returnItem.order.orderNumber} •
-                    {formatDistance(
-                      new Date(returnItem.createdAt),
-                      new Date(),
-                      { addSuffix: true }
-                    )}
-                  </div>
-                  <div className="mt-1 text-sm">
-                    <span className="text-gray-500">Reason:</span>{" "}
-                    <span className="font-medium">
-                      {reasonLabels[returnItem.reason]}
-                    </span>
-                    {returnItem.details && (
-                      <p className="text-sm italic mt-1">
-                        {returnItem.details}
-                      </p>
-                    )}
+          return (
+            <div
+              key={returnItem.id}
+              className={cn(
+                glassCardClass,
+                "border-white/10 bg-slate-900/60 p-6 text-slate-100 shadow-lg shadow-black/30"
+              )}
+            >
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+                  {returnItem.orderItem.product.images?.[0] && (
+                    <div className="relative mx-auto h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:mx-0">
+                      <Image
+                        src={returnItem.orderItem.product.images[0]}
+                        alt={returnItem.orderItem.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+
+                  <div className="min-w-0 space-y-1">
+                    <h3 className="text-base font-semibold">
+                      {returnItem.orderItem.name}
+                    </h3>
+                    <div className="text-sm text-slate-300">
+                      Order #{returnItem.order.orderNumber} •
+                      {" "}
+                      {formatDistance(
+                        new Date(returnItem.createdAt),
+                        new Date(),
+                        { addSuffix: true }
+                      )}
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-slate-400">Reason:</span>{" "}
+                      <span className="font-medium text-slate-100">
+                        {REASON_LABELS[returnItem.reason]}
+                      </span>
+                      {returnItem.details && (
+                        <p className="mt-1 text-sm italic text-slate-300">
+                          {returnItem.details}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
+
+                <Badge
+                  className={cn(
+                    "w-fit border px-3 py-1 text-xs uppercase tracking-wide",
+                    badge.classes
+                  )}
+                >
+                  {badge.label}
+                </Badge>
               </div>
 
-              <Badge className={statusBadges[returnItem.status].color}>
-                {statusBadges[returnItem.status].label}
-              </Badge>
+              {returnItem.status === "APPROVED" && (
+                <div className="mt-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/15 p-4 text-sm text-emerald-100">
+                  Your return has been approved. Check your email for the return shipping label.
+                </div>
+              )}
             </div>
-
-            {returnItem.status === "APPROVED" && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-sm text-green-600">
-                  Your return has been approved. Please check your email for the
-                  return shipping label.
-                </p>
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

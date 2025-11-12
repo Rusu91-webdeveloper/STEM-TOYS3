@@ -16,6 +16,7 @@ import { signOut } from "next-auth/react";
 import React from "react";
 
 import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 export function AccountNav() {
   const pathname = usePathname();
@@ -64,38 +65,40 @@ export function AccountNav() {
   };
 
   return (
-    <nav className="space-y-2">
+    <nav className="space-y-2 text-slate-200">
       {navItems.map(item => {
         const isActive = pathname === item.href;
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center px-4 py-3 text-sm rounded-lg transition-all duration-200 ${
+            className={cn(
+              "flex items-center rounded-xl border border-transparent px-4 py-3 text-sm transition-all duration-200",
               isActive
-                ? "bg-gradient-to-r from-primary to-primary/70 text-white font-medium shadow-md"
-                : "text-gray-700 hover:bg-white/80 hover:shadow-sm hover:translate-x-1"
-            }`}
+                ? "border-sky-400/40 bg-sky-500/20 text-white shadow-lg shadow-sky-500/25"
+                : "text-slate-300 hover:border-white/20 hover:bg-white/10 hover:text-slate-50"
+            )}
           >
             <item.icon
-              className={`w-5 h-5 mr-3 ${isActive ? "" : "text-primary/70"}`}
+              className={cn(
+                "mr-3 h-5 w-5",
+                isActive ? "text-sky-200" : "text-slate-300"
+              )}
             />
             <span className="font-medium">{item.label}</span>
             {isActive && (
-              <div className="ml-auto bg-white/20 rounded-full w-2 h-2"></div>
+              <div className="ml-auto h-2 w-2 rounded-full bg-white/40" />
             )}
           </Link>
         );
       })}
-      <div className="pt-4 mt-4 border-t border-gray-200">
+      <div className="mt-4 border-t border-white/10 pt-4">
         <button
           onClick={handleSignOut}
-          className="flex items-center w-full px-4 py-3 text-sm text-gray-700 rounded-lg transition-all duration-200 hover:bg-white/80 hover:shadow-sm hover:translate-x-1 group"
+          className="group flex w-full items-center rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-slate-200 transition-all duration-200 hover:border-white/25 hover:bg-white/15 hover:text-rose-200"
         >
-          <LogOut className="w-5 h-5 mr-3 text-red-500/70 group-hover:text-red-500" />
-          <span className="font-medium group-hover:text-red-500">
-            {t("logout")}
-          </span>
+          <LogOut className="mr-3 h-5 w-5 text-rose-300 transition-colors group-hover:text-rose-200" />
+          <span className="font-medium">{t("logout")}</span>
         </button>
       </div>
     </nav>

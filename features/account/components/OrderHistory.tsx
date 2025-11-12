@@ -14,11 +14,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  glassCardClass,
+  glassPanelClass,
+  gradientButtonClass,
+} from "@/features/home/components/homeTheme";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 // Define order status type
 type OrderStatus = "processing" | "shipped" | "delivered" | "cancelled";
@@ -59,19 +63,19 @@ interface OrderHistoryProps {
   initialOrders: Order[];
 }
 
-// Function to get the status badge variant
-const getStatusBadgeVariant = (status: OrderStatus) => {
+// Helper to determine badge styling for statuses
+const getStatusBadgeClasses = (status: OrderStatus) => {
   switch (status) {
     case "processing":
-      return "bg-blue-100 text-blue-800 hover:bg-blue-100";
+      return "border-sky-400/40 bg-sky-500/20 text-sky-100";
     case "shipped":
-      return "bg-amber-100 text-amber-800 hover:bg-amber-100";
+      return "border-amber-400/40 bg-amber-500/20 text-amber-100";
     case "delivered":
-      return "bg-green-100 text-green-800 hover:bg-green-100";
+      return "border-emerald-400/40 bg-emerald-500/20 text-emerald-100";
     case "cancelled":
-      return "bg-red-100 text-red-800 hover:bg-red-100";
+      return "border-rose-400/40 bg-rose-500/20 text-rose-100";
     default:
-      return "";
+      return "border-white/20 bg-white/10 text-slate-100";
   }
 };
 
@@ -81,16 +85,13 @@ const isWithinReturnWindow = (order: Order) => {
     return false;
   }
 
-  // Use deliveredAt if available, otherwise fall back to order creation date
   const referenceDate = order.deliveredAt
     ? new Date(order.deliveredAt)
     : new Date(order.date);
 
-  const today = new Date();
-  const diffTime = today.getTime() - referenceDate.getTime();
+  const diffTime = Date.now() - referenceDate.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  // Allow returns within 14 days of delivery (or order creation if deliveredAt is not set)
   return diffDays <= 14;
 };
 
@@ -98,33 +99,50 @@ const isWithinReturnWindow = (order: Order) => {
 const hasReturnableItems = (order: Order) =>
   order.items.some(item => !item.isDigital);
 
+const TABS = [
+  { value: "all", labelKey: "all", fallback: "Toate" },
+  { value: "processing", labelKey: "processing", fallback: "În procesare" },
+  { value: "shipped", labelKey: "shipped", fallback: "Expediat" },
+  { value: "delivered", labelKey: "delivered", fallback: "Livrat" },
+  { value: "cancelled", labelKey: "cancelled", fallback: "Anulat" },
+];
+
 export function OrderHistory({ initialOrders }: OrderHistoryProps) {
   const { t } = useTranslation();
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const [activeTab, setActiveTab] = useState("all");
   const { formatPrice } = useCurrency();
+  const [orders] = useState<Order[]>(initialOrders);
+  const [activeTab, setActiveTab] = useState<string>("all");
 
-  // Filter orders based on active tab
   const filteredOrders =
     activeTab === "all"
       ? orders
       : orders.filter(order => order.status === activeTab);
 
-  // Empty state
   if (orders.length === 0) {
     return (
-      <div className="text-center py-12 border rounded-lg">
-        <ShoppingBag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium mb-2">
+      <div
+        className={cn(
+          glassPanelClass,
+          "space-y-4 rounded-3xl border-white/10 bg-slate-900/70 p-10 text-center text-slate-100 shadow-xl shadow-black/30"
+        )}
+      >
+        <ShoppingBag className="mx-auto h-12 w-12 text-slate-400" />
+        <h3 className="text-lg font-semibold">
           {t("noOrdersYet", "Nu există comenzi încă")}
         </h3>
-        <p className="text-gray-500 mb-6">
+        <p className="text-slate-300">
           {t(
             "whenPlaceOrders",
             "Când plasezi comenzi, acestea vor apărea aici"
           )}
         </p>
-        <Button asChild>
+        <Button
+          asChild
+          className={cn(
+            "mx-auto inline-flex min-w-[200px] justify-center transition hover:scale-[1.02]",
+            gradientButtonClass
+          )}
+        >
           <Link href="/products">
             {t("continueShopping", "Continuă cumpărăturile")}
           </Link>
@@ -134,165 +152,169 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-100">
       <Tabs
         defaultValue="all"
         value={activeTab}
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-6 gap-1 sm:gap-2 p-1">
-          <TabsTrigger
-            value="all"
-            className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
-          >
-            {t("all", "Toate")}
-          </TabsTrigger>
-          <TabsTrigger
-            value="processing"
-            className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
-          >
-            {t("processing", "În procesare")}
-          </TabsTrigger>
-          <TabsTrigger
-            value="shipped"
-            className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
-          >
-            {t("shipped", "Expediat")}
-          </TabsTrigger>
-          <TabsTrigger
-            value="delivered"
-            className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
-          >
-            {t("delivered", "Livrat")}
-          </TabsTrigger>
-          <TabsTrigger
-            value="cancelled"
-            className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
-          >
-            {t("cancelled", "Anulat")}
-          </TabsTrigger>
+        <TabsList
+          className={cn(
+            glassPanelClass,
+            "mb-6 grid grid-cols-2 gap-1 border-white/10 bg-slate-900/70 p-1 sm:grid-cols-3 md:grid-cols-5"
+          )}
+        >
+          {TABS.map(tab => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="rounded-xl border border-transparent px-2 py-1.5 text-xs transition-all data-[state=active]:border-sky-400/40 data-[state=active]:bg-sky-500/20 data-[state=active]:text-white sm:px-3 sm:py-2 sm:text-sm"
+            >
+              {t(tab.labelKey as any, tab.fallback)}
+            </TabsTrigger>
+          ))}
         </TabsList>
+
         <TabsContent value={activeTab} className="space-y-4">
           {filteredOrders.length === 0 ? (
-            <div className="text-center py-8 border rounded-lg">
-              <Package className="h-10 w-10 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium mb-2">
-                {t("noFilteredOrders")}
+            <div
+              className={cn(
+                glassPanelClass,
+                "space-y-3 rounded-3xl border-white/10 bg-slate-900/70 p-8 text-center text-slate-100"
+              )}
+            >
+              <Package className="mx-auto h-10 w-10 text-slate-400" />
+              <h3 className="text-lg font-semibold">
+                {t("noFilteredOrders", "Nu există comenzi pentru filtru")}
               </h3>
-              <p className="text-gray-500">
-                {t("noFilteredOrdersDescription")}
+              <p className="text-slate-300">
+                {t(
+                  "noFilteredOrdersDescription",
+                  "Încearcă să ajustezi filtrele pentru a vedea alte comenzi"
+                )}
               </p>
             </div>
           ) : (
-            filteredOrders.map(order => (
-              <Card
-                key={order.id}
-                className="overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-              >
-                <CardHeader className="pb-3 px-4 sm:px-6 pt-4 sm:pt-6">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="text-base sm:text-lg break-words line-clamp-1">
-                        {t("orderNumber", "Order #")}
-                        {order.orderNumber}
-                      </CardTitle>
-                      <CardDescription className="text-sm break-words mt-1">
-                        {t("placedOn", "Placed on ")}{" "}
-                        {formatDate(new Date(order.date))}
-                      </CardDescription>
-                    </div>
-                    <Badge
-                      className={`${getStatusBadgeVariant(
-                        order.status
-                      )} capitalize w-fit text-xs sm:text-sm shrink-0 px-2 py-1`}
-                    >
-                      {t(order.status, order.status)}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pb-3 px-4 sm:px-6">
-                  <div className="space-y-4">
-                    {order.items.map(item => (
-                      <div
-                        key={item.id}
-                        className="flex flex-col gap-3 sm:flex-row sm:items-start p-3 sm:p-0 sm:bg-transparent bg-muted/30 rounded-lg sm:rounded-none"
+            filteredOrders.map(order => {
+              const statusClasses = getStatusBadgeClasses(order.status);
+
+              return (
+                <Card
+                  key={order.id}
+                  className={cn(
+                    glassCardClass,
+                    "overflow-hidden border-white/10 bg-slate-900/60 text-slate-100 shadow-lg shadow-black/30 transition-all duration-200 hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_25px_50px_-12px_rgba(8,47,73,0.65)]"
+                  )}
+                >
+                  <CardHeader className="px-4 pb-3 pt-4 sm:px-6 sm:pt-6">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="line-clamp-1 break-words text-base sm:text-lg">
+                          {t("orderNumber", "Order #")}
+                          {order.orderNumber}
+                        </CardTitle>
+                        <CardDescription className="mt-1 break-words text-sm text-slate-300">
+                          {t("placedOn", "Plasată pe ")}
+                          {formatDate(new Date(order.date))}
+                        </CardDescription>
+                      </div>
+                      <Badge
+                        className={cn(
+                          "w-fit shrink-0 border px-2 py-1 text-xs uppercase tracking-wide sm:text-sm",
+                          statusClasses
+                        )}
                       >
-                        <div className="h-16 w-16 rounded bg-muted overflow-hidden relative shrink-0 mx-auto sm:mx-0">
-                          <img
-                            src={item.image}
-                            alt={item.productName}
-                            className="object-cover h-full w-full"
-                          />
-                        </div>
-                        <div className="flex flex-col text-center sm:text-left min-w-0 flex-1">
-                          <Link
-                            href={`/products/${item.productSlug}`}
-                            className="font-medium hover:underline text-sm sm:text-base line-clamp-2 break-words-safe"
-                          >
-                            {item.productName}
-                          </Link>
-                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3 text-xs sm:text-sm text-muted-foreground mt-1">
-                            <span className="whitespace-nowrap">
-                              {formatPrice(item.price)} x {item.quantity}
-                            </span>
-                            <span className="hidden sm:inline">•</span>
-                            <span className="font-medium">
-                              {formatPrice(item.price * item.quantity)}
-                            </span>
+                        {t(order.status, order.status)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="px-4 pb-3 sm:px-6">
+                    <div className="space-y-4">
+                      {order.items.map(item => (
+                        <div
+                          key={item.id}
+                          className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 sm:flex-row sm:items-start sm:rounded-xl"
+                        >
+                          <div className="relative mx-auto h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:mx-0">
+                            <img
+                              src={item.image}
+                              alt={item.productName}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <div className="flex min-w-0 flex-1 flex-col text-center sm:text-left">
+                            <Link
+                              href={`/products/${item.productSlug}`}
+                              className="text-sm font-medium text-slate-100 transition hover:text-sky-300 hover:underline sm:text-base"
+                            >
+                              {item.productName}
+                            </Link>
+                            <div className="mt-1 flex flex-col gap-1 text-xs text-slate-300 sm:flex-row sm:items-center sm:gap-3 sm:text-sm">
+                              <span className="whitespace-nowrap">
+                                {formatPrice(item.price)} × {item.quantity}
+                              </span>
+                              <span className="hidden sm:inline">•</span>
+                              <span className="font-medium">
+                                {formatPrice(item.price * item.quantity)}
+                              </span>
+                            </div>
                           </div>
                         </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="text-sm font-semibold sm:text-base">
+                        {t("total", "Total")}: {formatPrice(order.total)}
                       </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 pt-4 border-t flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
-                    <div className="font-medium text-sm sm:text-base">
-                      {t("total", "Total")}: {formatPrice(order.total)}
+                      <div className="break-words text-xs text-slate-300 sm:text-sm">
+                        {t("shippingTo", "Livrare către")}: {" "}
+                        <span className="font-medium text-slate-100">
+                          {order.shippingAddress.name}
+                        </span>
+                        <br className="sm:hidden" />
+                        <span className="sm:inline">, </span>
+                        <span className="break-words-safe">
+                          {order.shippingAddress.city}, {order.shippingAddress.state}
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-xs sm:text-sm text-muted-foreground break-words">
-                      {t("shippingTo", "Shipping to")}:{" "}
-                      <span className="font-medium">
-                        {order.shippingAddress.name}
-                      </span>
-                      <br className="sm:hidden" />
-                      <span className="sm:inline">, </span>
-                      <span className="break-words-safe">
-                        {order.shippingAddress.city},{" "}
-                        {order.shippingAddress.state}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between px-4 sm:px-6 pb-4 sm:pb-6">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                    className="w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10"
-                  >
-                    <Link href={`/account/orders/${order.id}`}>
-                      <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                      {t("viewDetails", "View Details")}
-                    </Link>
-                  </Button>
-                  {order.status === "delivered" &&
-                    isWithinReturnWindow(order) &&
-                    hasReturnableItems(order) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                        className="w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10"
-                      >
-                        <Link href={`/account/orders/${order.id}/return`}>
-                          <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                          {t("returnItem", "Return Items")}
-                        </Link>
-                      </Button>
-                    )}
-                </CardFooter>
-              </Card>
-            ))
+                  </CardContent>
+
+                  <CardFooter className="flex flex-col gap-2 px-4 pb-4 sm:flex-row sm:justify-between sm:px-6 sm:pb-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="h-9 w-full border-white/20 bg-white/10 text-xs text-slate-100 transition hover:border-white/30 hover:bg-white/15 sm:h-10 sm:w-auto sm:text-sm"
+                    >
+                      <Link href={`/account/orders/${order.id}`}>
+                        <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                        {t("viewDetails", "View Details")}
+                      </Link>
+                    </Button>
+
+                    {order.status === "delivered" &&
+                      isWithinReturnWindow(order) &&
+                      hasReturnableItems(order) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                          className="h-9 w-full border-rose-400/40 bg-rose-500/15 text-xs text-rose-200 transition hover:border-rose-400/60 hover:bg-rose-500/25 sm:h-10 sm:w-auto sm:text-sm"
+                        >
+                          <Link href={`/account/orders/${order.id}/return`}>
+                            <ArrowRight className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                            {t("returnItem", "Return Items")}
+                          </Link>
+                        </Button>
+                      )}
+                  </CardFooter>
+                </Card>
+              );
+            })
           )}
         </TabsContent>
       </Tabs>

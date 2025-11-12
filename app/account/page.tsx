@@ -2,9 +2,11 @@ import { User } from "lucide-react";
 import React from "react";
 
 import { ProfileForm } from "@/features/account/components/ProfileForm";
+import { glassPanelClass } from "@/features/home/components/homeTheme";
 import { db } from "@/lib/db";
 import { getTranslations } from "@/lib/i18n/server";
 import { auth } from "@/lib/server/auth";
+import { cn } from "@/lib/utils";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -37,16 +39,19 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3 pb-2 border-b border-gray-200/70">
-        <div className="p-2 rounded-full bg-primary/10 backdrop-blur-sm">
-          <User className="h-5 w-5 text-primary" />
+    <div className="space-y-6 text-slate-100">
+      <div
+        className={cn(
+          glassPanelClass,
+          "flex items-center gap-3 border-white/10 bg-slate-900/70 px-5 py-4 text-slate-100 shadow-xl shadow-black/30"
+        )}
+      >
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-sky-200 shadow-inner shadow-white/10">
+          <User className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {t("profile")}
-          </h2>
-          <p className="text-muted-foreground">{t("managePersonalInfo")}</p>
+          <h2 className="text-2xl font-bold tracking-tight">{t("profile")}</h2>
+          <p className="text-sm text-slate-300">{t("managePersonalInfo")}</p>
         </div>
       </div>
       <ProfileForm initialData={userData} />

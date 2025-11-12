@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 
 import { useCart } from "@/features/cart";
 import CouponInput from "@/features/cart/components/CouponInput";
+import { glassCardClass } from "@/features/home/components/homeTheme";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 
@@ -150,7 +151,7 @@ export function CheckoutSummary({
 
     if (cartTotalIncludingVAT >= freeShippingThreshold) {
       return (
-        <div className="mt-2 p-2 bg-green-50 text-green-700 rounded-md text-sm">
+        <div className="mt-2 rounded-md bg-emerald-500/10 p-2 text-sm text-emerald-200">
           {t(
             "freeStandardShippingApplied",
             "Free standard shipping available!"
@@ -160,7 +161,7 @@ export function CheckoutSummary({
     }
     const amountNeeded = freeShippingThreshold - cartTotalIncludingVAT;
     return (
-      <div className="mt-2 p-2 bg-blue-50 text-blue-700 rounded-md text-sm">
+      <div className="mt-2 rounded-md bg-sky-500/10 p-2 text-sm text-sky-200">
         {t("addMoreForFreeShipping", "Add")} {formatPrice(amountNeeded)}{" "}
         {t("moreForFreeStandardShipping", "more for free standard shipping")}
       </div>
@@ -169,31 +170,33 @@ export function CheckoutSummary({
 
   if (isLoading) {
     return (
-      <div className="border rounded-lg p-6 space-y-4 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+      <div
+        className={`${glassCardClass} space-y-4 bg-slate-900/60 p-6 text-slate-100 animate-pulse`}
+      >
+        <div className="h-6 w-1/2 rounded bg-white/10"></div>
         <div className="space-y-2">
           {[1, 2, 3].map(i => (
             <div key={i} className="flex gap-4">
-              <div className="h-16 w-16 bg-gray-200 rounded"></div>
+              <div className="h-16 w-16 rounded bg-white/10"></div>
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                <div className="h-4 rounded bg-white/10"></div>
+                <div className="h-4 w-1/4 rounded bg-white/10"></div>
               </div>
             </div>
           ))}
         </div>
-        <div className="space-y-2 pt-4 border-t">
+        <div className="space-y-2 border-t border-white/10 pt-4">
           <div className="flex justify-between">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-4 w-1/4 rounded bg-white/10"></div>
+            <div className="h-4 w-1/4 rounded bg-white/10"></div>
           </div>
           <div className="flex justify-between">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-4 w-1/4 rounded bg-white/10"></div>
+            <div className="h-4 w-1/4 rounded bg-white/10"></div>
           </div>
           <div className="flex justify-between">
-            <div className="h-5 bg-gray-200 rounded w-1/3"></div>
-            <div className="h-5 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-5 w-1/3 rounded bg-white/10"></div>
+            <div className="h-5 w-1/4 rounded bg-white/10"></div>
           </div>
         </div>
       </div>
@@ -202,48 +205,54 @@ export function CheckoutSummary({
 
   if (cartItems.length === 0) {
     return (
-      <div className="border rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">
+      <div
+        className={`${glassCardClass} space-y-4 bg-slate-900/60 p-6 text-slate-100`}
+      >
+        <h2 className="text-xl font-semibold">
           {t("orderSummary", "Order Summary")}
         </h2>
-        <p className="text-gray-500">{t("emptyCart", "Your cart is empty")}</p>
+        <p className="text-slate-300">{t("emptyCart", "Your cart is empty")}</p>
       </div>
     );
   }
 
   return (
-    <div className="border rounded-lg p-4 sm:p-6 space-y-4 lg:sticky lg:top-4">
-      <h2 className="text-xl font-semibold">
+    <div
+      className={`${glassCardClass} space-y-4 border-white/10 bg-slate-900/70 p-4 text-slate-100 shadow-xl shadow-black/30 sm:p-6 lg:sticky lg:top-4`}
+    >
+      <h2 className="text-xl font-semibold text-slate-100">
         {t("orderSummary", "Order Summary")}
       </h2>
 
-      <div className="space-y-3 max-h-60 sm:max-h-80 overflow-y-auto">
+      <div className="max-h-60 space-y-3 overflow-y-auto sm:max-h-80">
         {cartItems.map(item => (
           <div key={item.id} className="flex gap-3 sm:gap-4">
             {item.image ? (
               <img
                 src={item.image}
                 alt={item.name}
-                className="h-12 w-12 sm:h-16 sm:w-16 object-cover rounded flex-shrink-0"
+                className="h-12 w-12 flex-shrink-0 rounded object-cover sm:h-16 sm:w-16"
               />
             ) : (
-              <div className="h-12 w-12 sm:h-16 sm:w-16 bg-gray-200 rounded flex-shrink-0"></div>
+              <div className="h-12 w-12 flex-shrink-0 rounded bg-white/10 sm:h-16 sm:w-16"></div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm sm:text-base truncate">
+              <p className="truncate text-sm font-medium sm:text-base">
                 {item.name}
               </p>
-              <p className="text-xs sm:text-sm text-gray-500">
+              <p className="text-xs text-slate-300 sm:text-sm">
                 {t("qty", "Qty")}: {item.quantity}
               </p>
-              <p className="text-xs sm:text-sm">{formatPrice(item.price)}</p>
+              <p className="text-xs text-slate-200 sm:text-sm">
+                {formatPrice(item.price)}
+              </p>
             </div>
           </div>
         ))}
       </div>
 
       {/* **COUPON INPUT SECTION** */}
-      <div className="border-t pt-4">
+      <div className="border-t border-white/10 pt-4">
         <CouponInput
           cartTotal={cartTotalIncludingVAT}
           appliedCoupon={localAppliedCoupon}
@@ -252,30 +261,30 @@ export function CheckoutSummary({
         />
       </div>
 
-      <div className="space-y-2 pt-4 border-t">
-        <div className="flex justify-between text-sm sm:text-base">
-          <span className="text-gray-600">{t("subtotal", "Subtotal")}</span>
+      <div className="space-y-2 border-t border-white/10 pt-4">
+        <div className="flex justify-between text-sm text-slate-300 sm:text-base">
+          <span>{t("subtotal", "Subtotal")}</span>
           <span>{formatPrice(cartTotalIncludingVAT)}</span>
         </div>
 
         {/* **DISCOUNT LINE** */}
         {discountAmount > 0 && (
-          <div className="flex justify-between text-green-600 text-sm sm:text-base">
-            <span className="font-medium truncate">
+          <div className="flex justify-between text-sm text-emerald-300 sm:text-base">
+            <span className="truncate font-medium">
               Discount ({localAppliedCoupon?.code})
             </span>
-            <span className="font-medium flex-shrink-0">
+            <span className="flex-shrink-0 font-medium">
               -{formatPrice(discountAmount)}
             </span>
           </div>
         )}
 
         {/* VAT line removed - prices already include VAT for EU compliance */}
-        <div className="flex justify-between text-sm sm:text-base">
-          <span className="text-gray-600">{t("shipping", "Shipping")}</span>
+        <div className="flex justify-between text-sm text-slate-300 sm:text-base">
+          <span>{t("shipping", "Shipping")}</span>
           <span>
             {finalShippingCost === 0 && shippingCost > 0 ? (
-              <span className="line-through text-gray-400 mr-2">
+              <span className="mr-2 line-through text-slate-400/80">
                 {formatPrice(shippingCost)}
               </span>
             ) : null}
@@ -285,15 +294,15 @@ export function CheckoutSummary({
 
         {renderFreeShippingMessage()}
 
-        <div className="flex justify-between font-semibold text-base sm:text-lg pt-2 border-t">
-          <span>{t("total", "Total")}</span>
+        <div className="flex justify-between border-t border-white/10 pt-2 text-base font-semibold sm:text-lg">
+          <span className="text-slate-100">{t("total", "Total")}</span>
           <span>{formatPrice(total)}</span>
         </div>
 
         {/* **SAVINGS HIGHLIGHT** */}
         {discountAmount > 0 && (
           <div className="text-center">
-            <p className="text-sm text-green-600 font-medium">
+            <p className="text-sm font-medium text-emerald-300">
               🎉 You saved {formatPrice(discountAmount)}!
             </p>
           </div>

@@ -65,269 +65,329 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-12">
-      {/* Header - Compact on Mobile */}
-      <div className="relative h-[120px] sm:h-[180px] md:h-[250px] rounded-lg sm:rounded-xl overflow-hidden mb-4 sm:mb-6 md:mb-12">
-        <Image
-          src="/images/homepage_hero_banner_01.png"
-          alt="Contact Us"
-          fill
-          style={{ objectFit: "cover" }}
-        />
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-          <h1 className="text-xl sm:text-2xl md:text-4xl font-bold text-white px-4">
-            {t("contactH1")}
-          </h1>
-        </div>
-      </div>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.12),_transparent_60%)]" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-12">
-        {/* Contact Form */}
-        <div>
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 md:mb-6">
-            {t("getInTouch" as any, "Get in Touch")}
-          </h2>
-
-          {submitted ? (
-            <div className="bg-green-50 border border-green-200 text-green-700 p-4 sm:p-5 md:p-6 rounded-lg">
-              <div className="flex items-center mb-3 sm:mb-4">
-                <div className="text-xl sm:text-2xl mr-2 sm:mr-3">✅</div>
-                <h3 className="text-base sm:text-lg md:text-xl font-semibold">
-                  {t("messageSent" as any, "Message Sent!")}
-                </h3>
-              </div>
-              <p className="text-sm sm:text-base mb-3 sm:mb-4">
-                {t(
-                  "thankYouMessage" as any,
-                  "Thank you for contacting us. We'll get back to you as soon as possible."
-                )}
-              </p>
-              <div className="bg-green-100 border border-green-300 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
-                <p className="text-xs sm:text-sm text-green-800">
-                  <strong>📧 Ai primit și un email de confirmare!</strong>
-                  <br />
-                  Verifică căsuța de email (inclusiv spam/junk) pentru
-                  confirmarea că am primit mesajul tău.
-                </p>
-              </div>
-              <Button
-                className="mt-3 sm:mt-4 text-sm sm:text-base"
-                onClick={() => setSubmitted(false)}
-              >
-                {t("sendAnotherMessage" as any, "Send Another Message")}
-              </Button>
+      <div className="relative z-10 container mx-auto px-3 py-6 sm:px-6 sm:py-10 lg:py-16">
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-lg shadow-black/30">
+          <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+            <div className="relative h-[180px] w-full overflow-hidden rounded-t-3xl lg:h-full lg:rounded-l-3xl">
+              <Image
+                src="/images/homepage_hero_banner_01.png"
+                alt="Contact TechTots"
+                fill
+                style={{ objectFit: "cover" }}
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-indigo-900/80 to-slate-950/90 backdrop-blur-sm" />
             </div>
-          ) : (
-            <>
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6">
-                  <div className="flex items-center">
-                    <div className="text-lg sm:text-xl mr-2">⚠️</div>
-                    <p className="text-sm sm:text-base font-medium">{error}</p>
-                  </div>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-xs sm:text-sm font-medium mb-1"
-                  >
-                    {t("name" as any, "Name")}*
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    disabled={isSubmitting}
-                    className="w-full p-2 sm:p-2.5 md:p-3 text-sm sm:text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-xs sm:text-sm font-medium mb-1"
-                  >
-                    {t("email" as any, "Email")}*
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    disabled={isSubmitting}
-                    className="w-full p-2 sm:p-2.5 md:p-3 text-sm sm:text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="subject"
-                    className="block text-xs sm:text-sm font-medium mb-1"
-                  >
-                    {t("subject" as any, "Subject")}*
-                  </label>
-                  <select
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                    disabled={isSubmitting}
-                    className="w-full p-2 sm:p-2.5 md:p-3 text-sm sm:text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <option value="">
-                      {t("selectSubject" as any, "Select a subject")}
-                    </option>
-                    <option value="general">
-                      {t("generalInquiry" as any, "General Inquiry")}
-                    </option>
-                    <option value="order">
-                      {t("orderQuestion" as any, "Order Question")}
-                    </option>
-                    <option value="return">
-                      {t("returnQuestion" as any, "Return or Refund")}
-                    </option>
-                    <option value="product">
-                      {t("productInfo" as any, "Product Information")}
-                    </option>
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="message"
-                    className="block text-xs sm:text-sm font-medium mb-1"
-                  >
-                    {t("message" as any, "Message")}*
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    rows={4}
-                    disabled={isSubmitting}
-                    minLength={10}
-                    maxLength={2000}
-                    className="w-full p-2 sm:p-2.5 md:p-3 text-sm sm:text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-                    placeholder="Te rugăm să descrii mesajul tău (minim 10 caractere)..."
-                  />
-                  <div className="text-xs sm:text-sm text-gray-500 mt-1">
-                    {formData.message.length}/2000 caractere
-                    {formData.message.length < 10 &&
-                      formData.message.length > 0 && (
-                        <span className="text-red-500 ml-2">
-                          (minim 10 caractere necesare)
-                        </span>
-                      )}
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full py-2.5 sm:py-3 text-sm sm:text-base font-semibold"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-3.5 w-3.5 sm:h-4 sm:w-4 border-b-2 border-white mr-2"></div>
-                      {t("sending" as any, "Sending...")}
-                    </div>
-                  ) : (
-                    t("sendMessage" as any, "Send Message")
-                  )}
-                </Button>
-              </form>
-            </>
-          )}
-        </div>
-
-        {/* Contact Information - Compact on Mobile */}
-        <div>
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 md:mb-6">
-            {t("contactInfo" as any, "Contact Information")}
-          </h2>
-
-          <div className="space-y-3 sm:space-y-4 md:space-y-6">
-            <div className="bg-gray-50 p-3 sm:p-4 md:p-6 rounded-lg">
-              <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-2">
-                {t("address" as any, "Address")}
-              </h3>
-              <p className="text-xs sm:text-sm md:text-base text-gray-700 leading-relaxed">
-                TechTots Educational Solutions
-                <br />
-                Mehedinti 54-56, Bl D5, sc 2, apt 70
-                <br />
-                Cluj-Napoca, Cluj
-                <br />
-                România
+            <div className="relative flex flex-col justify-center gap-4 px-6 py-8">
+              <span className="inline-flex w-fit items-center rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-sky-200">
+                TechTots Support
+              </span>
+              <h1 className="text-2xl font-bold leading-tight sm:text-3xl lg:text-4xl">
+                {t("contactH1")}
+              </h1>
+              <p className="text-sm text-slate-200 sm:text-base">
+                Suntem alături de tine pentru întrebări, recomandări personalizate sau suport rapid
+                legat de comenzi și învățare STEM.
               </p>
-            </div>
-
-            <div className="bg-gray-50 p-3 sm:p-4 md:p-6 rounded-lg">
-              <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-2">
-                {t("customerSupport" as any, "Customer Support")}
-              </h3>
-              <p className="text-xs sm:text-sm md:text-base text-gray-700 leading-relaxed">
-                Email:{" "}
-                <a
-                  href="mailto:webira.rem.srl@gmail.com"
-                  className="text-indigo-600 hover:text-indigo-800 font-medium break-all"
-                >
-                  webira.rem.srl@gmail.com
-                </a>
-                <br />
-                Phone:{" "}
-                <a
-                  href="tel:+40771248029"
-                  className="text-indigo-600 hover:text-indigo-800 font-medium"
-                >
-                  +40771 248 029
-                </a>
-                <br />
-                <span className="text-xs sm:text-sm">
-                  Hours: Monday-Friday, 9:00 AM - 6:00 PM CET
+              <div className="flex flex-wrap items-center gap-3 text-xs text-sky-200">
+                <span className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5">
+                  🛰️ Tracking în timp real
                 </span>
+                <span className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5">
+                  ⚡ Răspuns în &lt; 12 ore
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-10 grid grid-cols-1 gap-6 lg:mt-14 lg:grid-cols-[0.65fr_0.35fr] lg:gap-8">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20 backdrop-blur-md sm:p-8">
+            <div className="flex flex-col gap-2">
+              <h2 className="text-xl font-semibold sm:text-2xl">
+                {t("getInTouch" as any, "Get in Touch")}
+              </h2>
+              <p className="text-sm text-slate-300 sm:text-base">
+                Completează formularul și echipa noastră răspunde rapid cu soluții adaptate nevoilor
+                tale.
               </p>
             </div>
 
-            <div className="bg-gray-50 p-3 sm:p-4 md:p-6 rounded-lg">
-              <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-2">
-                {t("followUs" as any, "Follow Us")}
+            <div className="mt-6">
+              {submitted ? (
+                <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-5 shadow-inner shadow-emerald-500/20">
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">✅</div>
+                    <h3 className="text-lg font-semibold text-emerald-100">
+                      {t("messageSent" as any, "Message Sent!")}
+                    </h3>
+                  </div>
+                  <p className="mt-3 text-sm text-emerald-100/80">
+                    {t(
+                      "thankYouMessage" as any,
+                      "Thank you for contacting us. We'll get back to you as soon as possible."
+                    )}
+                  </p>
+                  <div className="mt-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-xs text-emerald-100">
+                    <p className="font-semibold">
+                      <strong>📧 Ai primit și un email de confirmare!</strong>
+                    </p>
+                    <p className="mt-1">
+                      Verifică căsuța de email (inclusiv spam/junk) pentru confirmarea că am primit
+                      mesajul tău.
+                    </p>
+                  </div>
+                  <Button
+                    className="mt-4 bg-emerald-500 text-white hover:bg-emerald-400"
+                    onClick={() => setSubmitted(false)}
+                  >
+                    {t("sendAnotherMessage" as any, "Send Another Message")}
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {error && (
+                    <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100 shadow-inner shadow-red-500/20">
+                      <div className="flex items-center gap-2">
+                        <div className="text-xl">⚠️</div>
+                        <p className="font-medium">{error}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="flex flex-col gap-2">
+                        <label
+                          htmlFor="name"
+                          className="text-xs font-semibold uppercase tracking-wide text-slate-300"
+                        >
+                          {t("name" as any, "Name")}*
+                        </label>
+                        <input
+                          type="text"
+                          id="name"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          required
+                          disabled={isSubmitting}
+                          className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-400 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+                          placeholder="Numele tău complet"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label
+                          htmlFor="email"
+                          className="text-xs font-semibold uppercase tracking-wide text-slate-300"
+                        >
+                          {t("email" as any, "Email")}*
+                        </label>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                          disabled={isSubmitting}
+                          className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-400 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+                          placeholder="nume@email.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label
+                        htmlFor="subject"
+                        className="text-xs font-semibold uppercase tracking-wide text-slate-300"
+                      >
+                        {t("subject" as any, "Subject")}*
+                      </label>
+                      <select
+                        id="subject"
+                        name="subject"
+                        value={formData.subject}
+                        onChange={handleChange}
+                        required
+                        disabled={isSubmitting}
+                        className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <option value="" className="bg-slate-900 text-slate-200">
+                          {t("selectSubject" as any, "Select a subject")}
+                        </option>
+                        <option value="general" className="bg-slate-900 text-slate-200">
+                          {t("generalInquiry" as any, "General Inquiry")}
+                        </option>
+                        <option value="order" className="bg-slate-900 text-slate-200">
+                          {t("orderQuestion" as any, "Order Question")}
+                        </option>
+                        <option value="return" className="bg-slate-900 text-slate-200">
+                          {t("returnQuestion" as any, "Return or Refund")}
+                        </option>
+                        <option value="product" className="bg-slate-900 text-slate-200">
+                          {t("productInfo" as any, "Product Information")}
+                        </option>
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label
+                        htmlFor="message"
+                        className="text-xs font-semibold uppercase tracking-wide text-slate-300"
+                      >
+                        {t("message" as any, "Message")}*
+                      </label>
+                      <textarea
+                        id="message"
+                        name="message"
+                        value={formData.message}
+                        onChange={handleChange}
+                        required
+                        rows={5}
+                        disabled={isSubmitting}
+                        minLength={10}
+                        maxLength={2000}
+                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-400 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+                        placeholder="Te rugăm să descrii mesajul tău (minim 10 caractere)..."
+                      />
+                      <div className="flex items-center justify-between text-xs text-slate-400">
+                        <span>{formData.message.length}/2000 caractere</span>
+                        {formData.message.length < 10 && formData.message.length > 0 && (
+                          <span className="text-red-300">(minim 10 caractere necesare)</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full rounded-xl bg-sky-500 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></div>
+                          {t("sending" as any, "Sending...")}
+                        </div>
+                      ) : (
+                        t("sendMessage" as any, "Send Message")
+                      )}
+                    </Button>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20 backdrop-blur-md sm:p-7">
+              <h2 className="text-lg font-semibold sm:text-xl">
+                {t("contactInfo" as any, "Contact Information")}
+              </h2>
+              <p className="mt-2 text-sm text-slate-300">
+                Răspundem rapid prin toate canalele — alege ce funcționează cel mai bine pentru tine.
+              </p>
+              <div className="mt-4 space-y-4 text-sm text-slate-100">
+                <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+                  <h3 className="text-sm font-semibold text-white">
+                    {t("address" as any, "Address")}
+                  </h3>
+                  <p className="mt-2 text-xs text-slate-300 sm:text-sm">
+                    TechTots Educational Solutions
+                    <br />
+                    Mehedinti 54-56, Bl D5, sc 2, apt 70
+                    <br />
+                    Cluj-Napoca, Cluj
+                    <br />
+                    România
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+                  <h3 className="text-sm font-semibold text-white">
+                    {t("customerSupport" as any, "Customer Support")}
+                  </h3>
+                  <p className="mt-2 text-xs text-slate-300 sm:text-sm leading-relaxed">
+                    Email:{" "}
+                    <a
+                      href="mailto:webira.rem.srl@gmail.com"
+                      className="text-sky-300 underline decoration-sky-500/30 underline-offset-4 transition hover:text-sky-200"
+                    >
+                      webira.rem.srl@gmail.com
+                    </a>
+                    <br />
+                    Phone:{" "}
+                    <a
+                      href="tel:+40771248029"
+                      className="text-sky-300 underline decoration-sky-500/30 underline-offset-4 transition hover:text-sky-200"
+                    >
+                      +40771 248 029
+                    </a>
+                    <br />
+                    <span className="text-xs text-slate-400">
+                      Hours: Monday-Friday, 9:00 AM - 6:00 PM CET
+                    </span>
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+                  <h3 className="text-sm font-semibold text-white">
+                    {t("followUs" as any, "Follow Us")}
+                  </h3>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300 sm:text-sm">
+                    <a
+                      href="#"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 transition hover:border-sky-400/50 hover:text-sky-200"
+                    >
+                      Facebook
+                    </a>
+                    <a
+                      href="#"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 transition hover:border-sky-400/50 hover:text-sky-200"
+                    >
+                      Twitter
+                    </a>
+                    <a
+                      href="#"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 transition hover:border-sky-400/50 hover:text-sky-200"
+                    >
+                      Instagram
+                    </a>
+                    <a
+                      href="#"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 transition hover:border-sky-400/50 hover:text-sky-200"
+                    >
+                      LinkedIn
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-sky-500/40 bg-gradient-to-br from-sky-500/20 via-transparent to-indigo-500/20 p-6 shadow-lg shadow-sky-500/30">
+              <h3 className="text-base font-semibold text-white sm:text-lg">
+                Preferi discuțiile rapide?
               </h3>
-              <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
+              <p className="mt-2 text-sm text-slate-100">
+                Contactează-ne pe WhatsApp sau rezervă o sesiune video de 15 minute pentru recomandări
+                personalizate de produse STEM.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3 text-sm">
                 <a
-                  href="#"
-                  className="text-indigo-600 hover:text-indigo-800 text-xs sm:text-sm md:text-base font-medium"
+                  href="https://wa.me/40771248029"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-sky-100 transition hover:border-sky-400/50 hover:text-white"
                 >
-                  Facebook
+                  💬 WhatsApp Direct
                 </a>
                 <a
-                  href="#"
-                  className="text-indigo-600 hover:text-indigo-800 text-xs sm:text-sm md:text-base font-medium"
+                  href="/contact"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-sky-100 transition hover:border-sky-400/50 hover:text-white"
                 >
-                  Twitter
-                </a>
-                <a
-                  href="#"
-                  className="text-indigo-600 hover:text-indigo-800 text-xs sm:text-sm md:text-base font-medium"
-                >
-                  Instagram
-                </a>
-                <a
-                  href="#"
-                  className="text-indigo-600 hover:text-indigo-800 text-xs sm:text-sm md:text-base font-medium"
-                >
-                  LinkedIn
+                  🎥 Book video call
                 </a>
               </div>
             </div>

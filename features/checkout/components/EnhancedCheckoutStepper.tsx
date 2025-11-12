@@ -4,6 +4,7 @@ import { CreditCard, Eye, MapPin, Truck } from "lucide-react";
 import React from "react";
 
 import { useTranslation } from "@/lib/i18n";
+import { glassCardClass } from "@/features/home/components/homeTheme";
 
 import { CheckoutStep, CheckoutData } from "../types";
 
@@ -38,22 +39,18 @@ function EnhancedStep({
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col items-center flex-1 relative">
+    <div className="relative flex flex-1 flex-col items-center">
       {/* Step Circle */}
       <button
         onClick={onClick}
         disabled={!isClickable}
-        className={`relative w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+        className={`relative flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-200 ${
           isActive
-            ? "border-indigo-600 bg-indigo-600 text-white"
+            ? "border-sky-400 bg-sky-500/80 text-white shadow-lg shadow-sky-500/20"
             : isCompleted
-              ? "border-green-500 bg-green-500 text-white"
-              : "border-gray-300 bg-white text-gray-400"
-        } ${
-          isClickable
-            ? "hover:border-indigo-500 hover:bg-indigo-50 cursor-pointer"
-            : "cursor-not-allowed"
-        }`}
+              ? "border-emerald-400 bg-emerald-500/80 text-white shadow-lg shadow-emerald-500/20"
+              : "border-white/25 bg-white/10 text-slate-300"
+        } ${isClickable ? "hover:border-sky-400/80 hover:bg-sky-400/20" : "cursor-not-allowed"}`}
       >
         {isCompleted ? (
           <svg
@@ -79,17 +76,17 @@ function EnhancedStep({
         <h3
           className={`text-sm font-medium ${
             isActive
-              ? "text-indigo-600"
+              ? "text-sky-400"
               : isCompleted
-                ? "text-green-600"
-                : "text-gray-500"
+                ? "text-emerald-300"
+                : "text-slate-300"
           }`}
         >
           {t(step.label.toLowerCase().replace(/\s+/g, ""), step.label)}
         </h3>
-        <p className="text-xs text-gray-400 mt-1">{step.description}</p>
+        <p className="mt-1 text-xs text-slate-400">{step.description}</p>
         {completionInfo && (
-          <p className="text-xs text-green-600 mt-1 font-medium">
+          <p className="mt-1 text-xs font-medium text-emerald-300">
             {completionInfo}
           </p>
         )}
@@ -98,8 +95,8 @@ function EnhancedStep({
       {/* Connector Line */}
       {stepNumber < totalSteps && (
         <div
-          className={`absolute top-6 left-full w-full h-0.5 transition-colors duration-200 ${
-            isCompleted ? "bg-green-500" : "bg-gray-300"
+          className={`absolute top-6 left-full h-0.5 w-full transition-colors duration-200 ${
+            isCompleted ? "bg-emerald-400" : "bg-white/15"
           }`}
           style={{ width: "calc(100% - 3rem)" }}
         />
@@ -119,16 +116,16 @@ function ProgressBar({ completedSteps, totalSteps }: ProgressBarProps) {
   return (
     <div className="mb-6">
       <div className="flex justify-between items-center mb-2">
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium text-slate-200">
           Step {completedSteps} of {totalSteps}
         </span>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-slate-400">
           {Math.round(progressPercentage)}% complete
         </span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="h-2 w-full rounded-full bg-white/10">
         <div
-          className="bg-indigo-600 h-2 rounded-full transition-all duration-300 ease-out"
+          className="h-2 rounded-full bg-gradient-to-r from-emerald-400 via-sky-400 to-indigo-400 transition-all duration-300 ease-out"
           style={{ width: `${progressPercentage}%` }}
         />
       </div>
@@ -239,7 +236,9 @@ export function EnhancedCheckoutStepper({
   ).length;
 
   return (
-    <div className="bg-white border rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
+    <div
+      className={`${glassCardClass} mb-6 border-white/10 bg-slate-900/70 p-4 text-slate-100 shadow-lg shadow-black/20 sm:mb-8 sm:p-6`}
+    >
       {/* Progress Bar */}
       <ProgressBar
         completedSteps={completedStepsCount}
@@ -247,7 +246,7 @@ export function EnhancedCheckoutStepper({
       />
 
       {/* Desktop Stepper */}
-      <div className="hidden md:flex justify-between items-start relative">
+      <div className="relative hidden items-start justify-between md:flex">
         {stepDefinitions.map((step, index) => (
           <EnhancedStep
             key={step.id}
@@ -268,58 +267,58 @@ export function EnhancedCheckoutStepper({
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
                 currentStep === "shipping-address"
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-sky-500 text-white shadow shadow-sky-500/40"
                   : isCompleted("shipping-address")
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-600"
+                    ? "bg-emerald-500 text-white shadow shadow-emerald-500/40"
+                    : "bg-white/10 text-slate-300"
               }`}
             >
               {isCompleted("shipping-address") ? "✓" : "1"}
             </div>
             <div
-              className={`flex-1 h-1 mx-2 ${
-                isCompleted("shipping-address") ? "bg-green-500" : "bg-gray-200"
+              className={`mx-2 h-1 flex-1 ${
+                isCompleted("shipping-address") ? "bg-emerald-400" : "bg-white/15"
               }`}
             />
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
                 currentStep === "shipping-method"
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-sky-500 text-white shadow shadow-sky-500/40"
                   : isCompleted("shipping-method")
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-600"
+                    ? "bg-emerald-500 text-white shadow shadow-emerald-500/40"
+                    : "bg-white/10 text-slate-300"
               }`}
             >
               {isCompleted("shipping-method") ? "✓" : "2"}
             </div>
             <div
-              className={`flex-1 h-1 mx-2 ${
-                isCompleted("shipping-method") ? "bg-green-500" : "bg-gray-200"
+              className={`mx-2 h-1 flex-1 ${
+                isCompleted("shipping-method") ? "bg-emerald-400" : "bg-white/15"
               }`}
             />
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
                 currentStep === "payment"
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-sky-500 text-white shadow shadow-sky-500/40"
                   : isCompleted("payment")
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-600"
+                    ? "bg-emerald-500 text-white shadow shadow-emerald-500/40"
+                    : "bg-white/10 text-slate-300"
               }`}
             >
               {isCompleted("payment") ? "✓" : "3"}
             </div>
             <div
-              className={`flex-1 h-1 mx-2 ${
-                isCompleted("payment") ? "bg-green-500" : "bg-gray-200"
+              className={`mx-2 h-1 flex-1 ${
+                isCompleted("payment") ? "bg-emerald-400" : "bg-white/15"
               }`}
             />
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
                 currentStep === "review"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-gray-200 text-gray-600"
+                  ? "bg-sky-500 text-white shadow shadow-sky-500/40"
+                  : "bg-white/10 text-slate-300"
               }`}
             >
               4
@@ -327,7 +326,7 @@ export function EnhancedCheckoutStepper({
           </div>
         </div>
         <div className="mt-3 text-center">
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-slate-200">
             {stepDefinitions.find(step => step.id === currentStep)?.label}
           </span>
         </div>

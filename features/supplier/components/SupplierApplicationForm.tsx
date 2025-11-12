@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -26,6 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 interface ApplicationData {
   // Company Information
@@ -64,6 +66,49 @@ interface ApplicationData {
   logo?: File;
   catalogUrl: string;
 }
+
+type FieldName = keyof ApplicationData;
+
+const isNonEmptyString = (value: unknown): value is string =>
+  typeof value === "string" && value.trim().length > 0;
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const yearPattern = /^\d{4}$/;
+
+const fieldValidators: Partial<Record<FieldName, (value: ApplicationData[FieldName]) => boolean>> = {
+  companyName: (value) => isNonEmptyString(value),
+  phone: (value) => isNonEmptyString(value),
+  description: (value) => isNonEmptyString(value),
+  businessAddress: (value) => isNonEmptyString(value),
+  businessCity: (value) => isNonEmptyString(value),
+  businessState: (value) => isNonEmptyString(value),
+  businessPostalCode: (value) => isNonEmptyString(value),
+  contactPersonName: (value) => isNonEmptyString(value),
+  contactPersonEmail: (value) => typeof value === "string" && emailPattern.test(value.trim()),
+  contactPersonPhone: (value) => isNonEmptyString(value),
+  yearEstablished: (value) => typeof value === "string" && yearPattern.test(value.trim()),
+  employeeCount: (value) => isNonEmptyString(value),
+  annualRevenue: (value) => isNonEmptyString(value),
+  productCategories: (value) => Array.isArray(value) && value.length > 0,
+  termsAccepted: (value) => value === true,
+  privacyAccepted: (value) => value === true,
+};
+
+const requiredFieldsByStep: Record<number, FieldName[]> = {
+  1: ["companyName", "phone", "description"],
+  2: [
+    "businessAddress",
+    "businessCity",
+    "businessState",
+    "businessPostalCode",
+    "contactPersonName",
+    "contactPersonEmail",
+    "contactPersonPhone",
+  ],
+  3: ["yearEstablished", "employeeCount", "annualRevenue"],
+  4: ["productCategories"],
+  5: ["termsAccepted", "privacyAccepted"],
+};
 
 const productCategories = [
   "Science Kits",
@@ -105,12 +150,21 @@ const steps = [
   { id: 5, title: "Documents & Terms", description: "Upload documents and accept terms" }
 ];
 
+const inputClasses =
+  "bg-slate-900/40 border-white/10 text-white placeholder:text-slate-400 focus-visible:ring-sky-400 focus-visible:ring-offset-0";
+const selectTriggerClasses =
+  "bg-slate-900/40 border-white/10 text-white focus-visible:ring-sky-400 focus-visible:ring-offset-0";
+const cardClasses = "border border-white/10 bg-white/5 shadow-lg shadow-black/25 backdrop-blur";
+const fieldErrorClasses = "border-rose-400/60 focus-visible:ring-rose-400";
+const labelClasses = "text-slate-200";
+
 export function SupplierApplicationForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, boolean>>>({});
   
   const [formData, setFormData] = useState<ApplicationData>({
     companyName: "",
@@ -138,11 +192,12 @@ export function SupplierApplicationForm() {
     catalogUrl: ""
   });
 
-  const updateFormData = (field: keyof ApplicationData, value: any) => {
+  const updateFormData = <K extends FieldName>(field: K, value: ApplicationData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    setFieldErrors(prev => ({ ...prev, [field]: false }));
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, field: 'logo') => {
+  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>, field: "logo") => {
     const file = event.target.files?.[0];
     if (file) {
       updateFormData(field, file);
@@ -150,12 +205,22 @@ export function SupplierApplicationForm() {
   };
 
   const handleCategoryToggle = (category: string) => {
-    setFormData(prev => ({
-      ...prev,
-      productCategories: prev.productCategories.includes(category)
+    setFormData(prev => {
+      const exists = prev.productCategories.includes(category);
+      const nextCategories = exists
         ? prev.productCategories.filter(c => c !== category)
-        : [...prev.productCategories, category]
-    }));
+        : [...prev.productCategories, category];
+
+      setFieldErrors(errors => ({
+        ...errors,
+        productCategories: nextCategories.length === 0,
+      }));
+
+      return {
+        ...prev,
+        productCategories: nextCategories,
+      };
+    });
   };
 
   const handleCertificationToggle = (certification: string) => {
@@ -167,26 +232,35 @@ export function SupplierApplicationForm() {
     }));
   };
 
-  const validateStep = (step: number): boolean => {
-    switch (step) {
-      case 1:
-        return !!(formData.companyName && formData.phone && formData.description);
-      case 2:
-        return !!(formData.businessAddress && formData.businessCity && 
-                 formData.contactPersonName && formData.contactPersonEmail);
-      case 3:
-        return !!(formData.yearEstablished && formData.employeeCount && formData.annualRevenue);
-      case 4:
-        return formData.productCategories.length > 0;
-      case 5:
-        return formData.termsAccepted && formData.privacyAccepted;
-      default:
-        return false;
+  const validateStep = (step: number, shouldSetErrors = false): boolean => {
+    const fields = requiredFieldsByStep[step] ?? [];
+    if (!fields.length) {
+      return true;
     }
+
+    let isValid = true;
+    const updates: Partial<Record<FieldName, boolean>> = {};
+
+    fields.forEach(field => {
+      const validator = fieldValidators[field];
+      const value = formData[field];
+      const fieldIsValid = validator ? validator(value) : Boolean(value);
+      updates[field] = !fieldIsValid;
+
+      if (!fieldIsValid) {
+        isValid = false;
+      }
+    });
+
+    if (shouldSetErrors) {
+      setFieldErrors(prev => ({ ...prev, ...updates }));
+    }
+
+    return isValid;
   };
 
   const nextStep = () => {
-    if (validateStep(currentStep)) {
+    if (validateStep(currentStep, true)) {
       setCurrentStep(prev => Math.min(prev + 1, steps.length));
       setError(null);
     } else {
@@ -200,7 +274,7 @@ export function SupplierApplicationForm() {
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(currentStep)) {
+    if (!validateStep(currentStep, true)) {
       setError("Please complete all required fields.");
       return;
     }
@@ -247,146 +321,171 @@ export function SupplierApplicationForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center">
-          <CardContent className="p-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+      <section className="container mx-auto flex min-h-[60vh] items-center justify-center px-4 pb-20 pt-24 sm:px-6 lg:px-12">
+        <Card className={cn(cardClasses, "w-full max-w-lg text-center")}>
+          <CardContent className="space-y-6 p-10">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-200">
+              <CheckCircle className="h-10 w-10" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h2>
-            <p className="text-gray-600 mb-4">
-              Thank you for your application. We'll review your information and get back to you within 5-7 business days.
-            </p>
-            <div className="flex items-center justify-center">
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              <span className="text-sm text-gray-500">Redirecting...</span>
+            <div className="space-y-3">
+              <h2 className="text-3xl font-semibold text-white">Application submitted!</h2>
+              <p className="text-sm text-slate-200">
+                Thank you for your application. Our partnerships team will review your submission and respond within 5-7 business days.
+              </p>
+            </div>
+            <div className="flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin text-sky-300" />
+              Redirecting to onboarding timeline...
             </div>
           </CardContent>
         </Card>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <section className="container mx-auto px-4 pb-20 pt-24 sm:px-6 lg:px-12 lg:pb-24">
+      <div className="mx-auto max-w-5xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="mb-10 text-center">
+          <Badge className="mx-auto mb-4 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-sky-200">
+            Supplier Application
+          </Badge>
+          <h1 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
             Become a TechTots Supplier
           </h1>
-          <p className="text-gray-600">
-            Complete the application below to join our network of trusted STEM toy suppliers
+          <p className="mt-3 text-sm text-slate-200 sm:text-base">
+            Complete the application below to join our network of trusted STEM toy suppliers.
           </p>
         </div>
 
         {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  currentStep >= step.id 
-                    ? "bg-blue-600 text-white" 
-                    : "bg-gray-200 text-gray-600"
-                }`}>
-                  {step.id}
+        <div className="mb-10 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-inner shadow-black/30">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-between">
+            {steps.map((step, index) => {
+              const isActive = currentStep === step.id;
+              const isComplete = currentStep > step.id;
+
+              return (
+                <div key={step.id} className="flex items-center">
+                  <div
+                    className={cn(
+                      "flex h-10 w-10 items-center justify-center rounded-full border text-sm font-semibold transition",
+                      isComplete && "border-emerald-400/60 bg-emerald-500/20 text-emerald-100",
+                      isActive && !isComplete && "border-sky-400/60 bg-sky-500/20 text-sky-100",
+                      !isComplete && !isActive && "border-white/20 bg-white/5 text-slate-400"
+                    )}
+                  >
+                    {step.id}
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div
+                      className={cn(
+                        "mx-2 h-1 w-16 rounded-full transition sm:w-20",
+                        isComplete ? "bg-emerald-400/60" : "bg-white/10"
+                      )}
+                    />
+                  )}
                 </div>
-                {index < steps.length - 1 && (
-                  <div className={`w-16 h-1 mx-2 ${
-                    currentStep > step.id ? "bg-blue-600" : "bg-gray-200"
-                  }`} />
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
-          <Progress value={progress} className="h-2" />
-          <div className="text-center mt-2">
-            <span className="text-sm text-gray-600">
-              Step {currentStep} of {steps.length}: {steps[currentStep - 1].title}
-            </span>
+          <div className="mt-6">
+            <Progress value={progress} className="h-2 bg-white/10" />
+            <p className="mt-3 text-center text-sm text-slate-200">
+              Step {currentStep} of {steps.length}: <span className="font-medium text-white">{steps[currentStep - 1].title}</span>
+            </p>
           </div>
         </div>
 
         {/* Error Alert */}
         {error && (
-          <Alert variant="destructive" className="mb-6">
+          <Alert
+            variant="destructive"
+            className="mb-6 border border-rose-500/40 bg-rose-500/10 text-rose-100 backdrop-blur"
+          >
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {/* Form Steps */}
-        <Card className="shadow-lg">
+        <Card className={cn(cardClasses, "border-white/10")}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-white">
               <Building2 className="w-5 h-5" />
               {steps[currentStep - 1].title}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-slate-200">
               {steps[currentStep - 1].description}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 text-slate-200">
             {/* Step 1: Company Information */}
             {currentStep === 1 && (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="companyName">Company Name *</Label>
+                    <Label htmlFor="companyName" className={labelClasses}>Company Name *</Label>
                     <Input
                       id="companyName"
                       value={formData.companyName}
                       onChange={(e) => updateFormData("companyName", e.target.value)}
                       placeholder="Enter your company name"
+                      className={cn(inputClasses, fieldErrors.companyName && fieldErrorClasses)}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="phone">Phone Number *</Label>
+                    <Label htmlFor="phone" className={labelClasses}>Phone Number *</Label>
                     <Input
                       id="phone"
                       value={formData.phone}
                       onChange={(e) => updateFormData("phone", e.target.value)}
                       placeholder="+40 XXX XXX XXX"
+                      className={cn(inputClasses, fieldErrors.phone && fieldErrorClasses)}
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="website">Website</Label>
+                  <Label htmlFor="website" className={labelClasses}>Website</Label>
                   <Input
                     id="website"
                     value={formData.website}
                     onChange={(e) => updateFormData("website", e.target.value)}
                     placeholder="https://yourcompany.com"
+                    className={inputClasses}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="description">Company Description *</Label>
+                  <Label htmlFor="description" className={labelClasses}>Company Description *</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => updateFormData("description", e.target.value)}
                     placeholder="Tell us about your company and what you do..."
                     rows={4}
+                    className={cn(inputClasses, "min-h-[120px]", fieldErrors.description && fieldErrorClasses)}
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="vatNumber">VAT Number</Label>
+                    <Label htmlFor="vatNumber" className={labelClasses}>VAT Number</Label>
                     <Input
                       id="vatNumber"
                       value={formData.vatNumber}
                       onChange={(e) => updateFormData("vatNumber", e.target.value)}
                       placeholder="RO12345678"
+                      className={inputClasses}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="taxId">Tax ID</Label>
+                    <Label htmlFor="taxId" className={labelClasses}>Tax ID</Label>
                     <Input
                       id="taxId"
                       value={formData.taxId}
                       onChange={(e) => updateFormData("taxId", e.target.value)}
                       placeholder="Tax identification number"
+                      className={inputClasses}
                     />
                   </div>
                 </div>
@@ -397,71 +496,78 @@ export function SupplierApplicationForm() {
             {currentStep === 2 && (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="businessAddress">Business Address *</Label>
+                  <Label htmlFor="businessAddress" className={labelClasses}>Business Address *</Label>
                   <Input
                     id="businessAddress"
                     value={formData.businessAddress}
                     onChange={(e) => updateFormData("businessAddress", e.target.value)}
                     placeholder="Street address"
+                    className={cn(inputClasses, fieldErrors.businessAddress && fieldErrorClasses)}
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="businessCity">City *</Label>
+                    <Label htmlFor="businessCity" className={labelClasses}>City *</Label>
                     <Input
                       id="businessCity"
                       value={formData.businessCity}
                       onChange={(e) => updateFormData("businessCity", e.target.value)}
                       placeholder="City"
+                      className={cn(inputClasses, fieldErrors.businessCity && fieldErrorClasses)}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="businessState">State/County *</Label>
+                    <Label htmlFor="businessState" className={labelClasses}>State/County *</Label>
                     <Input
                       id="businessState"
                       value={formData.businessState}
                       onChange={(e) => updateFormData("businessState", e.target.value)}
                       placeholder="State or county"
+                      className={cn(inputClasses, fieldErrors.businessState && fieldErrorClasses)}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="businessPostalCode">Postal Code *</Label>
+                    <Label htmlFor="businessPostalCode" className={labelClasses}>Postal Code *</Label>
                     <Input
                       id="businessPostalCode"
                       value={formData.businessPostalCode}
                       onChange={(e) => updateFormData("businessPostalCode", e.target.value)}
                       placeholder="Postal code"
+                      className={cn(inputClasses, fieldErrors.businessPostalCode && fieldErrorClasses)}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="contactPersonName">Contact Person Name *</Label>
+                    <Label htmlFor="contactPersonName" className={labelClasses}>Contact Person Name *</Label>
                     <Input
                       id="contactPersonName"
                       value={formData.contactPersonName}
                       onChange={(e) => updateFormData("contactPersonName", e.target.value)}
                       placeholder="Full name"
+                      className={cn(inputClasses, fieldErrors.contactPersonName && fieldErrorClasses)}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="contactPersonEmail">Contact Email *</Label>
+                    <Label htmlFor="contactPersonEmail" className={labelClasses}>Contact Email *</Label>
                     <Input
                       id="contactPersonEmail"
                       type="email"
                       value={formData.contactPersonEmail}
                       onChange={(e) => updateFormData("contactPersonEmail", e.target.value)}
                       placeholder="email@company.com"
+                      className={cn(inputClasses, fieldErrors.contactPersonEmail && fieldErrorClasses)}
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="contactPersonPhone">Contact Phone *</Label>
+                  <Label htmlFor="contactPersonPhone" className={labelClasses}>Contact Phone *</Label>
                   <Input
                     id="contactPersonPhone"
                     value={formData.contactPersonPhone}
                     onChange={(e) => updateFormData("contactPersonPhone", e.target.value)}
                     placeholder="+40 XXX XXX XXX"
+                    className={cn(inputClasses, fieldErrors.contactPersonPhone && fieldErrorClasses)}
                   />
                 </div>
               </div>
@@ -472,19 +578,20 @@ export function SupplierApplicationForm() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="yearEstablished">Year Established *</Label>
+                    <Label htmlFor="yearEstablished" className={labelClasses}>Year Established *</Label>
                     <Input
                       id="yearEstablished"
                       value={formData.yearEstablished}
                       onChange={(e) => updateFormData("yearEstablished", e.target.value)}
                       placeholder="2020"
+                      className={cn(inputClasses, fieldErrors.yearEstablished && fieldErrorClasses)}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="employeeCount">Number of Employees *</Label>
+                    <Label htmlFor="employeeCount" className={labelClasses}>Number of Employees *</Label>
                     <Select value={formData.employeeCount} onValueChange={(value) => updateFormData("employeeCount", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select range" />
+                      <SelectTrigger className={cn(selectTriggerClasses, fieldErrors.employeeCount && fieldErrorClasses)}>
+                        <SelectValue placeholder="Select range" className="text-white" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="1-5">1-5 employees</SelectItem>
@@ -496,10 +603,10 @@ export function SupplierApplicationForm() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="annualRevenue">Annual Revenue *</Label>
+                    <Label htmlFor="annualRevenue" className={labelClasses}>Annual Revenue *</Label>
                     <Select value={formData.annualRevenue} onValueChange={(value) => updateFormData("annualRevenue", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select range" />
+                      <SelectTrigger className={cn(selectTriggerClasses, fieldErrors.annualRevenue && fieldErrorClasses)}>
+                        <SelectValue placeholder="Select range" className="text-white" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="<100k">Less than €100k</SelectItem>
@@ -518,8 +625,8 @@ export function SupplierApplicationForm() {
             {currentStep === 4 && (
               <div className="space-y-6">
                 <div>
-                  <Label>Product Categories *</Label>
-                  <p className="text-sm text-gray-600 mb-3">Select all categories that apply to your products</p>
+                  <Label className={labelClasses}>Product Categories *</Label>
+                  <p className="mb-3 text-sm text-slate-300">Select all categories that apply to your products</p>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {productCategories.map((category) => (
                       <div key={category} className="flex items-center space-x-2">
@@ -528,14 +635,14 @@ export function SupplierApplicationForm() {
                           checked={formData.productCategories.includes(category)}
                           onCheckedChange={() => handleCategoryToggle(category)}
                         />
-                        <Label htmlFor={category} className="text-sm">{category}</Label>
+                        <Label htmlFor={category} className="text-sm text-slate-200">{category}</Label>
                       </div>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <Label>Certifications & Standards</Label>
-                  <p className="text-sm text-gray-600 mb-3">Select all certifications your company holds</p>
+                  <Label className={labelClasses}>Certifications & Standards</Label>
+                  <p className="mb-3 text-sm text-slate-300">Select all certifications your company holds</p>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {certifications.map((certification) => (
                       <div key={certification} className="flex items-center space-x-2">
@@ -544,18 +651,19 @@ export function SupplierApplicationForm() {
                           checked={formData.certifications.includes(certification)}
                           onCheckedChange={() => handleCertificationToggle(certification)}
                         />
-                        <Label htmlFor={certification} className="text-sm">{certification}</Label>
+                        <Label htmlFor={certification} className="text-sm text-slate-200">{certification}</Label>
                       </div>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="catalogUrl">Product Catalog URL</Label>
+                  <Label htmlFor="catalogUrl" className={labelClasses}>Product Catalog URL</Label>
                   <Input
                     id="catalogUrl"
                     value={formData.catalogUrl}
                     onChange={(e) => updateFormData("catalogUrl", e.target.value)}
                     placeholder="https://yourcompany.com/catalog"
+                    className={inputClasses}
                   />
                 </div>
               </div>
@@ -565,22 +673,22 @@ export function SupplierApplicationForm() {
             {currentStep === 5 && (
               <div className="space-y-6">
                 <div>
-                  <Label htmlFor="logo">Company Logo</Label>
-                  <p className="text-sm text-gray-600 mb-3">Upload your company logo (optional)</p>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <Label htmlFor="logo" className={labelClasses}>Company Logo</Label>
+                  <p className="mb-3 text-sm text-slate-300">Upload your company logo (optional)</p>
+                  <div className="rounded-lg border-2 border-dashed border-white/15 bg-white/5 p-6 text-center">
+                    <Upload className="mx-auto mb-2 h-8 w-8 text-slate-200" />
                     <input
                       type="file"
                       id="logo"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload(e, 'logo')}
+                      onChange={(e) => handleFileUpload(e, "logo")}
                       className="hidden"
                     />
-                    <Label htmlFor="logo" className="cursor-pointer text-blue-600 hover:text-blue-700">
+                    <Label htmlFor="logo" className="cursor-pointer text-sky-300 hover:text-sky-200">
                       Click to upload logo
                     </Label>
                     {formData.logo && (
-                      <p className="text-sm text-gray-600 mt-2">Selected: {formData.logo.name}</p>
+                      <p className="mt-2 text-sm text-slate-200">Selected: {formData.logo.name}</p>
                     )}
                   </div>
                 </div>
@@ -589,20 +697,20 @@ export function SupplierApplicationForm() {
                     <Checkbox
                       id="terms"
                       checked={formData.termsAccepted}
-                      onCheckedChange={(checked) => updateFormData("termsAccepted", checked)}
+                      onCheckedChange={(checked) => updateFormData("termsAccepted", checked === true)}
                     />
-                    <Label htmlFor="terms" className="text-sm">
-                      I accept the <a href="/terms" className="text-blue-600 hover:underline">Terms and Conditions</a> *
+                    <Label htmlFor="terms" className="text-sm text-slate-200">
+                      I accept the <a href="/terms" className="text-sky-300 hover:underline">Terms and Conditions</a> *
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="privacy"
                       checked={formData.privacyAccepted}
-                      onCheckedChange={(checked) => updateFormData("privacyAccepted", checked)}
+                      onCheckedChange={(checked) => updateFormData("privacyAccepted", checked === true)}
                     />
-                    <Label htmlFor="privacy" className="text-sm">
-                      I accept the <a href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</a> *
+                    <Label htmlFor="privacy" className="text-sm text-slate-200">
+                      I accept the <a href="/privacy" className="text-sky-300 hover:underline">Privacy Policy</a> *
                     </Label>
                   </div>
                 </div>
@@ -612,12 +720,12 @@ export function SupplierApplicationForm() {
         </Card>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between mt-8">
+        <div className="mt-8 flex justify-between">
           <Button
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 rounded-full border-white/20 bg-white/10 text-slate-200 transition hover:bg-white/20 disabled:opacity-50"
           >
             <ArrowLeft className="w-4 h-4" />
             Previous
@@ -626,7 +734,7 @@ export function SupplierApplicationForm() {
           {currentStep < steps.length ? (
             <Button
               onClick={nextStep}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-500 via-emerald-500 to-indigo-500 px-6 text-white shadow-lg shadow-emerald-500/25 transition hover:from-sky-400 hover:via-emerald-400 hover:to-indigo-400"
             >
               Next
               <ArrowRight className="w-4 h-4" />
@@ -635,7 +743,7 @@ export function SupplierApplicationForm() {
             <Button
               onClick={handleSubmit}
               disabled={loading}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 via-sky-500 to-indigo-500 px-6 text-white shadow-lg shadow-emerald-500/25 transition hover:from-emerald-400 hover:via-sky-400 hover:to-indigo-400 disabled:opacity-60"
             >
               {loading ? (
                 <>
@@ -652,6 +760,6 @@ export function SupplierApplicationForm() {
           )}
         </div>
       </div>
-    </div>
+  </section>
   );
 }

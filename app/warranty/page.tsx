@@ -2,57 +2,63 @@ import { Card } from "@/components/ui/card";
 
 export default function WarrantyPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-4 sm:py-6 md:py-12">
-      <div className="container mx-auto px-3 sm:px-4">
-        <div className="max-w-5xl mx-auto">
-          {/* Header - Compact on Mobile */}
-          <div className="text-center mb-4 sm:mb-6 md:mb-12">
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
-              Garanția Legală
-            </h1>
-            <p className="text-sm sm:text-base md:text-lg text-gray-600 leading-relaxed">
-              Protecție completă de 2 ani pentru toate produsele TechTots
-            </p>
-            <div className="flex justify-center mt-3 sm:mt-4 md:mt-6">
-              <div className="bg-green-100 text-green-600 rounded-full w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center text-xl sm:text-2xl font-bold">
-                2
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(16,185,129,0.12),_transparent_60%)]" />
+
+      <div className="relative z-10 py-8 sm:py-10 lg:py-16">
+        <div className="container mx-auto px-3 sm:px-6">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/40 backdrop-blur sm:p-10">
+              <span className="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-200">
+                TechTots Warranty
+              </span>
+              <h1 className="mt-4 text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-4xl">
+                Garanția Legală
+              </h1>
+              <p className="mt-4 text-sm text-slate-200 sm:text-base md:text-lg">
+                Protecție completă de 2 ani pentru toate produsele TechTots
+              </p>
+              <div className="mt-6 flex justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/15 text-2xl font-bold text-emerald-200 shadow-inner shadow-emerald-500/30 sm:h-18 sm:w-18">
+                  2
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Main Warranty Section - Compact on Mobile */}
-          <section className="mb-4 sm:mb-6 md:mb-10">
-            <div className="bg-white rounded-lg shadow-md p-4 sm:p-5 md:p-8">
-              <h2 className="text-base sm:text-lg md:text-2xl font-semibold text-gray-800 mb-3 sm:mb-4 md:mb-6 flex items-center">
-                <span className="bg-green-100 text-green-600 rounded-full w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 flex items-center justify-center text-xs sm:text-sm font-bold mr-2 sm:mr-3">
+          <section className="mx-auto mt-10 max-w-5xl space-y-8 sm:mt-12 lg:space-y-12">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/30 backdrop-blur sm:p-8">
+              <h2 className="mb-5 flex items-center gap-3 text-base font-semibold text-white sm:text-lg md:text-2xl">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-200">
                   ✓
                 </span>
                 Garanția Legală (2 Ani)
               </h2>
 
-              <div className="prose prose-sm sm:prose-base max-w-none">
-                <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-3 sm:mb-4 leading-relaxed">
+              <div className="prose prose-sm max-w-none text-slate-200 sm:prose-base">
+                <p className="leading-relaxed">
                   Toate produsele noastre beneficiază de{" "}
                   <strong>garanție legală de 2 ani</strong> împotriva defectelor
                   de conformitate, conform legislației UE. Această garanție este
                   gratuită și se aplică automat.
                 </p>
 
-                <div className="grid sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 my-3 sm:my-4 md:my-6">
-                  <div className="bg-green-50 rounded-lg p-3 sm:p-4">
-                    <h3 className="text-sm sm:text-base md:text-lg font-semibold text-green-800 mb-1 sm:mb-2">
-                      Prima 12 luni
+                <div className="mt-6 grid gap-4 sm:grid-cols-2 md:gap-6">
+                  <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 shadow-inner shadow-emerald-500/20">
+                    <h3 className="text-sm font-semibold text-emerald-100 sm:text-base md:text-lg">
+                      Primele 12 luni
                     </h3>
-                    <p className="text-green-700 text-[10px] sm:text-xs md:text-sm">
+                    <p className="mt-2 text-xs text-emerald-50 sm:text-sm">
                       Nu trebuie să demonstrezi că defectul exista la momentul
                       livrării. Se presupune că defectul era prezent la livrare.
                     </p>
                   </div>
-                  <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
-                    <h3 className="text-sm sm:text-base md:text-lg font-semibold text-blue-800 mb-1 sm:mb-2">
+                  <div className="rounded-2xl border border-sky-400/30 bg-sky-500/10 p-4 shadow-inner shadow-sky-500/20">
+                    <h3 className="text-sm font-semibold text-sky-100 sm:text-base md:text-lg">
                       Următoarele 12 luni
                     </h3>
-                    <p className="text-blue-700 text-[10px] sm:text-xs md:text-sm">
+                    <p className="mt-2 text-xs text-sky-50 sm:text-sm">
                       Produsul rămâne sub garanție, dar s-ar putea să fie nevoie
                       să demonstrezi că defectul nu a fost cauzat de utilizarea
                       normală.
@@ -60,10 +66,10 @@ export default function WarrantyPage() {
                   </div>
                 </div>
 
-                <h3 className="text-sm sm:text-base md:text-lg font-semibold mt-4 sm:mt-5 md:mt-6 mb-2 sm:mb-3">
+                <h3 className="mt-7 text-sm font-semibold text-white sm:text-base md:text-lg">
                   Produsul poate fi returnat sub garanție dacă:
                 </h3>
-                <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm md:text-base text-gray-600">
+                <ul className="mt-3 space-y-2 text-xs text-slate-200 sm:text-sm md:text-base">
                   <li>Nu corespunde descrierii produsului</li>
                   <li>Are calități diferite față de modelul prezentat</li>
                   <li>
@@ -80,26 +86,23 @@ export default function WarrantyPage() {
                 </ul>
               </div>
             </div>
-          </section>
 
-          {/* Contact Information - Compact on Mobile */}
-          <section className="mb-4 sm:mb-6 md:mb-10">
-            <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg p-4 sm:p-5 md:p-8">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4 md:mb-6">
+            <div className="overflow-hidden rounded-3xl border border-emerald-500/40 bg-gradient-to-br from-emerald-500/20 via-indigo-900/50 to-slate-950/80 p-6 text-slate-100 shadow-xl shadow-emerald-500/30 sm:p-8">
+              <h2 className="text-lg font-semibold text-white sm:text-xl md:text-2xl">
                 Contactează-ne pentru Garanție
               </h2>
 
-              <div className="grid sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
+              <div className="mt-6 grid gap-5 sm:grid-cols-2 md:gap-6">
                 <div>
-                  <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3">
+                  <h3 className="text-sm font-semibold text-white sm:text-base md:text-lg">
                     📞 Suport Garanție
                   </h3>
-                  <div className="space-y-1.5 sm:space-y-2 text-blue-100 text-xs sm:text-sm">
+                  <div className="mt-3 space-y-2 text-xs text-slate-100 sm:text-sm">
                     <p>
                       📧 Email:{" "}
                       <a
                         href="mailto:webira.rem.srl@gmail.com"
-                        className="text-white underline break-all"
+                        className="text-emerald-100 underline underline-offset-4 hover:text-white"
                       >
                         webira.rem.srl@gmail.com
                       </a>
@@ -108,7 +111,7 @@ export default function WarrantyPage() {
                       📱 Telefon:{" "}
                       <a
                         href="tel:+40771248029"
-                        className="text-white underline"
+                        className="text-emerald-100 underline underline-offset-4 hover:text-white"
                       >
                         0771 248 029
                       </a>
@@ -117,10 +120,10 @@ export default function WarrantyPage() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3">
+                  <h3 className="text-sm font-semibold text-white sm:text-base md:text-lg">
                     📍 Centrul de Service
                   </h3>
-                  <div className="text-blue-100 text-xs sm:text-sm">
+                  <div className="mt-3 rounded-2xl border border-white/10 bg-white/10 p-4 text-xs text-slate-100 sm:text-sm">
                     <p>TechTots Educational Solutions</p>
                     <p>Departamentul Garanții</p>
                     <p>Str. Mehedinți 54-56</p>
@@ -129,31 +132,26 @@ export default function WarrantyPage() {
                 </div>
               </div>
 
-              <div className="mt-4 sm:mt-5 md:mt-6 bg-white/10 rounded-lg p-3 sm:p-4">
-                <p className="text-blue-100 text-xs sm:text-sm">
-                  💡 <strong>Sfat:</strong> Pentru aplicarea garanției, poți
-                  folosi și sistemul online prin{" "}
-                  <a
-                    href="/account/orders"
-                    className="text-white underline font-semibold"
-                  >
-                    Comenzile Mele
-                  </a>{" "}
-                  - selectează "Problemă cu Produsul" în locul returnării.
-                </p>
+              <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-4 text-xs text-slate-100 sm:text-sm">
+                💡 <strong>Sfat:</strong> Pentru aplicarea garanției, poți
+                folosi și sistemul online prin{" "}
+                <a
+                  href="/account/orders"
+                  className="text-emerald-100 underline underline-offset-4 hover:text-white"
+                >
+                  Comenzile Mele
+                </a>{" "}
+                - selectează "Problemă cu Produsul" în locul returnării.
               </div>
             </div>
-          </section>
 
-          {/* Legal Compliance - Compact on Mobile */}
-          <section className="mb-4 sm:mb-6 md:mb-10">
-            <div className="bg-gray-50 rounded-lg p-4 sm:p-5 md:p-6">
-              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/30 backdrop-blur sm:p-8">
+              <h2 className="text-base font-semibold text-white sm:text-lg md:text-xl">
                 📋 Baza Legală
               </h2>
-              <div className="text-xs sm:text-sm text-gray-600 space-y-1.5 sm:space-y-2">
+              <div className="mt-4 space-y-2 text-xs text-slate-200 sm:text-sm">
                 <p>Această politică de garanție se bazează pe:</p>
-                <ul className="list-disc list-inside space-y-1 ml-3 sm:ml-4">
+                <ul className="ml-3 list-disc space-y-1 text-slate-200 sm:ml-4">
                   <li>
                     Directiva UE 2019/771 privind contractele de vânzare a
                     bunurilor
@@ -171,7 +169,7 @@ export default function WarrantyPage() {
                     consumatorilor
                   </li>
                 </ul>
-                <p className="mt-3 sm:mt-4">
+                <p className="mt-4 text-slate-300">
                   <strong>Ultimă actualizare:</strong>{" "}
                   {new Date().toLocaleDateString("ro-RO")} | Versiunea 1.0
                 </p>

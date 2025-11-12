@@ -14,8 +14,10 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import React from "react";
 
-import { useTranslation } from "@/lib/i18n";
+import { gradientButtonClass } from "@/features/home/components/homeTheme";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
+import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -62,8 +64,8 @@ export function MobileNav() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 z-50 w-full h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-background/80 backdrop-blur-md border-t border-gray-200 shadow-lg md:hidden">
-      <div className="grid h-full grid-cols-5 mx-auto">
+    <div className="md:hidden fixed bottom-0 left-0 z-50 h-[calc(4rem+env(safe-area-inset-bottom))] w-full border-t border-white/10 bg-slate-950/70 pb-[env(safe-area-inset-bottom)] text-slate-200 shadow-[0_-20px_40px_-20px_rgba(14,165,233,0.35)] backdrop-blur-xl">
+      <div className="mx-auto grid h-full grid-cols-5">
         {navItems.slice(0, 4).map(item => {
           const isActive = item.exact
             ? pathname === item.href
@@ -73,19 +75,23 @@ export function MobileNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center relative ${
+              className={cn(
+                "relative flex flex-col items-center justify-center transition-colors",
                 isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-primary"
-              }`}
+                  ? "text-sky-300"
+                  : "text-slate-400 hover:text-sky-200"
+              )}
             >
               {isActive && (
-                <span className="absolute top-0 block h-1 w-10 bg-gradient-to-r from-primary to-primary/70 rounded-full" />
+                <span className="absolute top-0 block h-1 w-10 rounded-full bg-gradient-to-r from-emerald-400 via-sky-400 to-indigo-400 shadow-[0_0_15px_rgba(56,189,248,0.5)]" />
               )}
               <item.icon
-                className={`w-5 h-5 ${isActive ? "fill-primary/10" : ""} transition-transform hover:scale-110`}
+                className={cn(
+                  "h-5 w-5 transition-transform hover:scale-110",
+                  isActive && "text-sky-300"
+                )}
               />
-              <span className="text-xs mt-1 text-center font-medium">
+              <span className="mt-1 text-center text-xs font-medium">
                 {item.label}
               </span>
             </Link>
@@ -94,20 +100,20 @@ export function MobileNav() {
         {isAuthenticated ? (
           <Link
             href="/account"
-            className="flex flex-col items-center justify-center relative text-muted-foreground hover:text-primary"
+            className="relative flex flex-col items-center justify-center text-slate-400 transition-colors hover:text-sky-200"
           >
             <User className="w-5 h-5 transition-transform hover:scale-110" />
-            <span className="text-xs mt-1 text-center font-medium">
+            <span className="mt-1 text-center text-xs font-medium">
               {t("account")}
             </span>
           </Link>
         ) : (
           <Link
             href="/auth/login"
-            className="flex flex-col items-center justify-center relative text-muted-foreground hover:text-primary"
+            className="relative flex flex-col items-center justify-center text-slate-400 transition-colors hover:text-sky-200"
           >
             <LogIn className="w-5 h-5 transition-transform hover:scale-110" />
-            <span className="text-xs mt-1 text-center font-medium">
+            <span className="mt-1 text-center text-xs font-medium">
               {t("login")}
             </span>
           </Link>

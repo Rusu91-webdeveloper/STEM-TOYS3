@@ -113,6 +113,7 @@ export const ro = {
   subtotal: "Subtotal",
   tax: "Taxe",
   shipping: "Livrare",
+  delivery: "Livrare",
   total: "Total",
   clearCart: "Golește coșul",
   loading: "Se încarcă...",
@@ -1436,7 +1437,23 @@ export const ro = {
   faqStartTransformationEn: "Start Your Child's Transformation Today",
 
   // Footer specific translations (expanded)
+  footerShopDiscover: "Descoperă & Cumpără",
+  footerCustomerCare: "Suport clienți",
+  footerKnowledge: "Ghiduri & Parteneriate",
+  footerGuide2025: "Ghid 2025",
+  footerAgeGuide: "Jucării STEM după vârstă",
+  footerPhoneLabel: "Telefon",
+  footerEmailLabel: "Email",
+  footerAddressLabel: "Sediu central",
+  footerPromise:
+    "Inspirăm următoarea generație de inovatori prin experiențe de învățare STEM curate.",
+  footerPaymentSecurity: "Criptare SSL 256-bit",
+  footerLegalInfoLabel: "Date companie",
+  footerLegalCui: "Cod unic de înregistrare: 51813997 (20.05.2025)",
+  footerLegalRegCom: "Registrul Comerțului: J2025035239005 (19.05.2025)",
+
   // Newsletter section
+  exclusiveInsights: "Inspirație STEM exclusivă",
   joinEducatorsParents: "🚀 Alătură-te la 50.000+ Educatori și Părinți STEM",
   newsletterSubtitle:
     "Obține acces exclusiv la produse noi, resurse educaționale și reduceri speciale. În plus, primește ghidul nostru săptămânal de activități STEM!",
@@ -1447,6 +1464,10 @@ export const ro = {
     "✓ Bine ai venit! Verifică-ți emailul pentru primul pachet de resurse STEM.",
   subscriptionErrorMessage:
     "✗ Ceva nu a mers bine. Te rugăm să încerci din nou sau să contactezi asistența.",
+  noSpamGuarantee: "Zero spam",
+  unsubscribeAnytime: "Te dezabonezi oricând",
+  newsletterValueBullet:
+    "Primești săptămânal experimente STEM, ghiduri pentru părinți și oferte dedicate membrilor comunității TechTots.",
 
   // Company description
   companyDescription:
@@ -1908,6 +1929,7 @@ export const ro = {
   filters: "Filtre",
   active: "Activ",
   clear: "Șterge",
+  openFilters: "Deschide",
   best: "Cele mai vândute",
   new: "Noutăți",
   gifts: "Idei de cadouri",
@@ -1921,6 +1943,10 @@ export const ro = {
   quickActions: "Acțiuni rapide",
   reset: "Resetează",
   apply: "Aplică",
+  filterTipTitle:
+    "Pont: combină grupa de vârstă și rezultatele de învățare pentru a vedea kit-uri ultra relevante.",
+  filterTipDescription:
+    "Folosește filtrele \"Rezultate de învățare\" și \"Categorii speciale\" împreună pentru a descoperi selecții curate pentru micul tău inventator.",
   specialOffers: "Oferte speciale",
   detailedFilters: "Filtre detaliate",
   liveResults: "Rezultate în timp real",

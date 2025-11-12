@@ -2,6 +2,7 @@
 
 import React from "react";
 import { trackEvent as gaTrackEvent } from "@/lib/analytics/ga4";
+import { glassCardClass } from "@/features/home/components/homeTheme";
 
 interface TrustBadgesRowProps {
   t: (key: string, defaultValue?: string) => string;
@@ -16,24 +17,27 @@ export default function TrustBadgesRow({ t }: TrustBadgesRowProps) {
 
   return (
     <div aria-label="Trust badges" className="w-full">
-      <h4 className="text-xs text-gray-500 font-medium mb-2 text-center">
+      <h4 className="mb-2.5 text-center text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-emerald-200 sm:mb-3 sm:text-sm">
         {t("trustBadgesHeading", "Why customers trust us")}
       </h4>
-      <ul className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+      <ul className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4">
         {items.map((item, idx) => (
           <li key={idx}>
             <button
               type="button"
               aria-label={item.label}
-              className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-700 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
+              className={`${glassCardClass} flex items-center gap-2 px-2.5 py-2 text-xs font-medium text-slate-100 transition hover:border-emerald-400/60 hover:shadow-emerald-500/20 sm:px-4 sm:py-2.5 sm:text-sm`}
               onClick={() =>
                 gaTrackEvent("trust_badge_click", { label: item.label })
               }
             >
-              <span aria-hidden className="text-base sm:text-lg">
+              <span
+                aria-hidden
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400/60 via-sky-400/60 to-indigo-400/60 text-sm sm:h-9 sm:w-9 sm:text-lg"
+              >
                 {item.icon}
               </span>
-              <span className="font-medium">{item.label}</span>
+              <span className="text-left">{item.label}</span>
             </button>
           </li>
         ))}

@@ -9,7 +9,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   AlertDialog,
@@ -32,12 +32,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  glassCardClass,
+  glassPanelClass,
+  gradientButtonClass,
+} from "@/features/home/components/homeTheme";
 import { toast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
-// Define card type
 type CardType = "visa" | "mastercard" | "amex" | "discover";
 
-// Define card interface
 interface PaymentCard {
   id: string;
   cardType: CardType;
@@ -48,61 +52,30 @@ interface PaymentCard {
   isDefault: boolean;
 }
 
-// Sample payment cards
-const SAMPLE_CARDS: PaymentCard[] = [
-  {
-    id: "card1",
-    cardType: "visa",
-    lastFourDigits: "4242",
-    expiryMonth: "12",
-    expiryYear: "2025",
-    cardholderName: "John Doe",
-    isDefault: true,
-  },
-  {
-    id: "card2",
-    cardType: "mastercard",
-    lastFourDigits: "5678",
-    expiryMonth: "09",
-    expiryYear: "2024",
-    cardholderName: "John Doe",
-    isDefault: false,
-  },
-];
-
-// Get card logo component based on card type
 const getCardLogo = (cardType: CardType) => {
   switch (cardType) {
     case "visa":
       return (
-        <div className="flex items-center">
-          <div className="bg-blue-500 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            VISA
-          </div>
+        <div className="rounded px-1.5 py-0.5 text-xs font-semibold text-white" style={{ background: "linear-gradient(135deg,#2563eb,#60a5fa)" }}>
+          VISA
         </div>
       );
     case "mastercard":
       return (
-        <div className="flex items-center">
-          <div className="bg-red-500 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            MC
-          </div>
+        <div className="rounded bg-gradient-to-r from-orange-500 to-red-500 px-1.5 py-0.5 text-xs font-semibold text-white">
+          MC
         </div>
       );
     case "amex":
       return (
-        <div className="flex items-center">
-          <div className="bg-blue-700 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            AMEX
-          </div>
+        <div className="rounded bg-gradient-to-r from-sky-500 to-blue-700 px-1.5 py-0.5 text-xs font-semibold text-white">
+          AMEX
         </div>
       );
     case "discover":
       return (
-        <div className="flex items-center">
-          <div className="bg-orange-500 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            DISC
-          </div>
+        <div className="rounded bg-gradient-to-r from-amber-500 to-orange-600 px-1.5 py-0.5 text-xs font-semibold text-white">
+          DISC
         </div>
       );
     default:
@@ -156,9 +129,8 @@ export function PaymentMethods() {
         throw new Error("Failed to update default payment method");
       }
 
-      // Update local state
-      setCards(
-        cards.map(card => ({
+      setCards(prev =>
+        prev.map(card => ({
           ...card,
           isDefault: card.id === id,
         }))
@@ -188,8 +160,7 @@ export function PaymentMethods() {
         throw new Error("Failed to remove payment method");
       }
 
-      // Update local state
-      setCards(cards.filter(card => card.id !== id));
+      setCards(prev => prev.filter(card => card.id !== id));
       setCardToDelete(null);
 
       toast({
@@ -208,29 +179,28 @@ export function PaymentMethods() {
     }
   };
 
-  // Loading state
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 text-slate-100">
         {[1, 2].map(i => (
-          <Card key={i}>
-            <CardHeader className="pb-2">
-              <div className="flex justify-between">
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-5 w-16" />
-              </div>
+          <Card
+            key={i}
+            className={cn(
+              glassCardClass,
+              "border-white/10 bg-slate-900/60 p-0 shadow-lg shadow-black/30"
+            )}
+          >
+            <CardHeader className="flex items-center justify-between pb-2">
+              <Skeleton className="h-6 w-32 rounded bg-white/10" />
+              <Skeleton className="h-5 w-16 rounded bg-white/10" />
             </CardHeader>
-            <CardContent className="pb-2">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-48" />
-                <Skeleton className="h-4 w-32" />
-              </div>
+            <CardContent className="space-y-2 pb-2">
+              <Skeleton className="h-4 w-48 rounded bg-white/10" />
+              <Skeleton className="h-4 w-32 rounded bg-white/10" />
             </CardContent>
-            <CardFooter>
-              <div className="flex gap-2">
-                <Skeleton className="h-9 w-24" />
-                <Skeleton className="h-9 w-24" />
-              </div>
+            <CardFooter className="flex gap-2">
+              <Skeleton className="h-9 w-24 rounded bg-white/10" />
+              <Skeleton className="h-9 w-24 rounded bg-white/10" />
             </CardFooter>
           </Card>
         ))}
@@ -238,17 +208,27 @@ export function PaymentMethods() {
     );
   }
 
-  // Empty state
   if (cards.length === 0) {
     return (
-      <div className="text-center py-12 border rounded-lg">
-        <CreditCard className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium mb-2">No payment methods</h3>
-        <p className="text-gray-500 mb-6">
+      <div
+        className={cn(
+          glassPanelClass,
+          "space-y-4 rounded-3xl border-white/10 bg-slate-900/70 p-10 text-center text-slate-100 shadow-xl shadow-black/30"
+        )}
+      >
+        <CreditCard className="mx-auto h-12 w-12 text-slate-400" />
+        <h3 className="text-lg font-semibold">No payment methods</h3>
+        <p className="text-slate-300">
           You haven't added any payment methods yet.
         </p>
-        <Button onClick={() => router.push("/account/payment-methods/new")}>
-          <PlusCircle className="h-4 w-4 mr-2" />
+        <Button
+          onClick={() => router.push("/account/payment-methods/new")}
+          className={cn(
+            "mx-auto inline-flex min-w-[220px] items-center gap-2 transition hover:scale-[1.02]",
+            gradientButtonClass
+          )}
+        >
+          <PlusCircle className="h-4 w-4" />
           Add Payment Method
         </Button>
       </div>
@@ -256,37 +236,44 @@ export function PaymentMethods() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-100">
       <div className="grid gap-4">
         {cards.map(card => (
-          <Card key={card.id}>
+          <Card
+            key={card.id}
+            className={cn(
+              glassCardClass,
+              "border-white/10 bg-slate-900/60 text-slate-100 shadow-lg shadow-black/30"
+            )}
+          >
             <CardHeader className="pb-2">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
                   {getCardLogo(card.cardType)}
                   <CardTitle className="text-base">
                     •••• •••• •••• {card.lastFourDigits}
                   </CardTitle>
                 </div>
                 {card.isDefault && (
-                  <div className="flex items-center text-sm text-green-600">
-                    <CheckCircle className="h-4 w-4 mr-1" />
+                  <div className="flex items-center gap-1 text-sm text-emerald-200">
+                    <CheckCircle className="h-4 w-4" />
                     Default
                   </div>
                 )}
               </div>
-              <CardDescription>
+              <CardDescription className="text-slate-300">
                 Expires {card.expiryMonth}/{card.expiryYear}
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-2">
-              <p className="text-sm">{card.cardholderName}</p>
+              <p className="text-sm text-slate-200">{card.cardholderName}</p>
             </CardContent>
             <CardFooter className="flex flex-wrap gap-2">
               {!card.isDefault && (
                 <Button
                   variant="outline"
                   size="sm"
+                  className="border-sky-400/40 bg-sky-500/20 text-sky-100 transition hover:border-sky-400/60 hover:bg-sky-500/25"
                   onClick={() => handleSetDefault(card.id)}
                 >
                   Set as Default
@@ -295,12 +282,12 @@ export function PaymentMethods() {
               <Button
                 variant="outline"
                 size="sm"
-                className="flex items-center"
+                className="border-white/20 bg-white/10 text-slate-100 transition hover:border-white/30 hover:bg-white/15"
                 onClick={() =>
                   router.push(`/account/payment-methods/${card.id}/edit`)
                 }
               >
-                <Edit className="h-4 w-4 mr-1" />
+                <Edit className="mr-1 h-4 w-4" />
                 Edit
               </Button>
               <AlertDialog
@@ -311,26 +298,28 @@ export function PaymentMethods() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-red-500"
+                    className="border-rose-400/40 bg-rose-500/15 text-rose-200 transition hover:border-rose-400/60 hover:bg-rose-500/25"
                     onClick={() => setCardToDelete(card.id)}
                   >
-                    <Trash className="h-4 w-4 mr-1" />
+                    <Trash className="mr-1 h-4 w-4" />
                     Remove
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="border-white/15 bg-slate-900/85 text-slate-100 backdrop-blur">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Remove payment method</AlertDialogTitle>
-                    <AlertDialogDescription>
+                    <AlertDialogDescription className="text-slate-300">
                       Are you sure you want to remove this payment method? This
                       action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel className="border-white/20 bg-white/10 text-slate-100 hover:border-white/30 hover:bg-white/15">
+                      Cancel
+                    </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => handleDelete(card.id)}
-                      className="bg-red-500 hover:bg-red-600"
+                      className="bg-rose-500 text-white hover:bg-rose-600"
                     >
                       Remove
                     </AlertDialogAction>
@@ -344,16 +333,24 @@ export function PaymentMethods() {
 
       <div className="mt-6">
         <Button
-          className="flex items-center"
+          className={cn(
+            "inline-flex items-center gap-2 transition hover:scale-[1.02]",
+            gradientButtonClass
+          )}
           onClick={() => router.push("/account/payment-methods/new")}
         >
-          <PlusCircle className="h-4 w-4 mr-2" />
+          <PlusCircle className="h-4 w-4" />
           Add New Payment Method
         </Button>
       </div>
 
-      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-6 bg-gray-50 p-4 rounded-lg">
-        <ShieldCheck className="h-5 w-5 text-green-600" />
+      <div
+        className={cn(
+          glassPanelClass,
+          "flex items-center gap-3 border-white/10 bg-slate-900/70 px-5 py-4 text-sm text-slate-200 shadow-lg shadow-black/30"
+        )}
+      >
+        <ShieldCheck className="h-5 w-5 text-emerald-300" />
         <p>Your payment information is stored securely and encrypted.</p>
       </div>
     </div>

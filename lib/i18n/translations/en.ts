@@ -53,6 +53,7 @@ export const en = {
   subtotal: "Subtotal",
   tax: "Tax",
   shipping: "Shipping",
+  delivery: "Delivery",
   total: "Total",
   clearCart: "Clear Cart",
   loading: "Loading...",

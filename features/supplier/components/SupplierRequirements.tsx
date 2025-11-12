@@ -2,36 +2,23 @@
 
 import Link from "next/link";
 import {
-  CheckCircle,
-  AlertTriangle,
-  Shield,
-  Award,
-  Globe,
-  Clock,
-  FileText,
-  Users,
-  TrendingUp,
-  Star,
   ArrowRight,
-  Building2,
-  Truck,
-  Zap,
-  Euro,
-  MapPin,
-  Target,
-  BarChart3,
-  Heart,
-  Eye,
-  Package,
-  CreditCard,
-  Phone,
-  Mail,
+  Award,
   Calendar,
-  CheckSquare,
-  XCircle,
+  CheckCircle,
+  Euro,
+  Globe,
   Info,
   Languages,
+  MapPin,
+  Shield,
+  Target,
+  Truck,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -40,15 +27,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/lib/i18n";
+
+const iconAccent = "from-emerald-400/80 via-sky-400/80 to-indigo-500/80";
 
 export function SupplierRequirements() {
   const { t, language, setLanguage } = useTranslation();
 
   const eligibilityCriteria = [
     {
-      icon: Building2,
+      icon: Globe,
       title: t("establishedBusiness"),
       description: t("establishedBusinessDescription"),
       required: true,
@@ -83,13 +71,6 @@ export function SupplierRequirements() {
       details: t("shippingCapabilitiesDetails"),
     },
     {
-      icon: Users,
-      title: t("customerService"),
-      description: t("customerServiceDescription"),
-      required: true,
-      details: t("customerServiceDetails"),
-    },
-    {
       icon: TrendingUp,
       title: t("growthPotential"),
       description: t("growthPotentialDescription"),
@@ -97,13 +78,16 @@ export function SupplierRequirements() {
       details: t("growthPotentialDetails"),
     },
     {
-      icon: Star,
+      icon: Target,
       title: t("innovationFocus"),
       description: t("innovationFocusDescription"),
       required: false,
       details: t("innovationFocusDetails"),
     },
   ];
+
+  const requiredCriteria = eligibilityCriteria.filter(item => item.required);
+  const innovationCriteria = eligibilityCriteria.filter(item => !item.required);
 
   const qualityStandards = [
     {
@@ -150,7 +134,7 @@ export function SupplierRequirements() {
     },
     {
       category: t("businessStandards"),
-      icon: Building2,
+      icon: Globe,
       requirements: [
         t("businessStandardsDescription"),
         t("professionalCustomerService"),
@@ -208,7 +192,7 @@ export function SupplierRequirements() {
       step: "01",
       title: t("initialApplication"),
       description: t("initialApplicationDescription"),
-      duration: "30-45 minutes",
+      duration: "30-45 min",
       requirements: [
         t("businessRegistration"),
         t("taxCompliance"),
@@ -220,7 +204,7 @@ export function SupplierRequirements() {
       step: "02",
       title: t("documentationReview"),
       description: t("documentationReviewDescription"),
-      duration: "3-5 business days",
+      duration: "3-5 " + t("days"),
       requirements: [
         t("legalVerification"),
         t("financialAssessment"),
@@ -232,7 +216,7 @@ export function SupplierRequirements() {
       step: "03",
       title: t("productAssessment"),
       description: t("productAssessmentDescription"),
-      duration: "5-7 business days",
+      duration: "5-7 " + t("days"),
       requirements: [
         t("safetyTesting"),
         t("qualityEvaluation"),
@@ -244,7 +228,7 @@ export function SupplierRequirements() {
       step: "04",
       title: t("shippingLogistics"),
       description: t("shippingLogisticsDescription"),
-      duration: "3-5 business days",
+      duration: "3-5 " + t("days"),
       requirements: [
         t("shippingCapacity"),
         t("deliveryTimes"),
@@ -256,7 +240,7 @@ export function SupplierRequirements() {
       step: "05",
       title: t("finalDecision"),
       description: t("finalDecisionDescription"),
-      duration: "2-3 business days",
+      duration: "2-3 " + t("days"),
       requirements: [
         t("executiveReview"),
         t("riskAssessment"),
@@ -268,7 +252,7 @@ export function SupplierRequirements() {
       step: "06",
       title: t("onboardingSetup"),
       description: t("onboardingSetupDescription"),
-      duration: "1-2 weeks",
+      duration: "1-2 " + t("weeks"),
       requirements: [
         t("accountCreation"),
         t("productUpload"),
@@ -290,7 +274,6 @@ export function SupplierRequirements() {
         t("standardMarketingExposure"),
         t("monthlyPaymentProcessing"),
       ],
-      color: "bg-gray-100",
     },
     {
       tier: t("premium"),
@@ -304,7 +287,6 @@ export function SupplierRequirements() {
         t("dedicatedAccountManager"),
         t("exclusivePromotionalEvents"),
       ],
-      color: "bg-blue-50",
     },
     {
       tier: t("elite"),
@@ -318,7 +300,6 @@ export function SupplierRequirements() {
         t("coBrandedMarketingMaterials"),
         t("vipCustomerAccess"),
       ],
-      color: "bg-purple-50",
     },
   ];
 
@@ -359,65 +340,51 @@ export function SupplierRequirements() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Floating Language Toggle - Compact on Mobile */}
-      <div className="fixed top-20 sm:top-24 right-2 sm:right-4 z-50">
+    <>
+      <div className="fixed right-4 top-24 z-20">
         <Button
           variant="outline"
           size="sm"
           onClick={() => setLanguage(language === "ro" ? "en" : "ro")}
-          className="flex items-center gap-1 sm:gap-2 border-2 bg-white/90 backdrop-blur-sm hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm"
+          className="flex items-center gap-2 rounded-full border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur transition hover:bg-white/20 sm:text-sm"
         >
-          <Languages className="w-3 h-3 sm:w-4 sm:h-4" />
-          {language === "ro" ? "🇬🇧 EN" : "🇷🇴 RO"}
+          <Languages className="h-4 w-4" />
+          {language === "ro" ? "EN" : "RO"}
         </Button>
       </div>
-      {/* Hero Section - Compact on Mobile */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
-        <div className="relative container mx-auto px-3 sm:px-4 py-8 sm:py-12 md:py-16 lg:py-24 xl:py-32">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex justify-center items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4 md:mb-6">
-              <Badge
-                variant="secondary"
-                className="text-[10px] sm:text-xs px-2 py-1"
-              >
-                <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                {t("qualityStandards")} 2025
-              </Badge>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLanguage(language === "ro" ? "en" : "ro")}
-                className="hidden sm:flex items-center gap-2 border-2 hover:bg-blue-50 transition-colors text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2"
-              >
-                <Languages className="w-3 h-3 sm:w-4 sm:h-4" />
-                {language === "ro" ? "🇬🇧 English" : "🇷🇴 Română"}
-              </Button>
-            </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-3 sm:mb-4 md:mb-6">
+
+      <section className="container mx-auto px-4 pb-20 pt-24 sm:px-6 lg:px-12 lg:pb-24">
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/80 via-indigo-900/70 to-slate-950/90 p-6 shadow-2xl shadow-black/40 sm:p-10">
+          <div className="absolute inset-y-0 right-0 hidden w-1/3 rounded-full bg-emerald-500/15 blur-3xl lg:block" />
+          <div className="relative flex flex-col items-center text-center">
+            <Badge className="mb-4 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-200 sm:text-sm">
+              {t("qualityStandards")} 2025
+            </Badge>
+            <h1 className="max-w-3xl text-3xl font-bold leading-tight text-white sm:text-4xl lg:text-5xl">
               {t("supplierRequirements")}{" "}
-              <span className="text-blue-600">2025</span>
+              <span className="bg-gradient-to-r from-emerald-300 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
+                2025
+              </span>
             </h1>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-gray-600 mb-4 sm:mb-6 md:mb-8 max-w-3xl mx-auto leading-snug sm:leading-normal">
+            <p className="mt-4 max-w-3xl text-sm text-slate-200 sm:text-base lg:text-lg">
               {t("supplierRequirements2025Description")}
             </p>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Button
-                size="lg"
                 asChild
-                className="text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6"
+                size="lg"
+                className="rounded-2xl bg-gradient-to-r from-emerald-500 via-sky-500 to-indigo-500 px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:from-emerald-400 hover:via-sky-400 hover:to-indigo-400 sm:text-base"
               >
                 <Link href="/supplier/apply">
                   {t("startApplication")}
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1.5 sm:ml-2" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button
+                asChild
                 size="lg"
                 variant="outline"
-                asChild
-                className="text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6"
+                className="rounded-2xl border border-white/40 bg-white/5 px-7 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10 sm:text-base"
               >
                 <Link href="/supplier/benefits">{t("viewBenefits")}</Link>
               </Button>
@@ -426,344 +393,148 @@ export function SupplierRequirements() {
         </div>
       </section>
 
-      {/* Key Requirements Summary - Compact on Mobile */}
-      <section className="py-6 sm:py-10 md:py-16 bg-white">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="text-center mb-6 sm:mb-8 md:mb-12">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
-              {t("keyRequirements2025")}
-            </h2>
-            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
-              {t("keyRequirementsDescription")}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-            <Card className="border-0 shadow-lg text-center">
-              <CardContent className="p-3 sm:p-4 md:p-6">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                  <MapPin className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-600" />
-                </div>
-                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
-                  {t("euBased")}
-                </h3>
-                <p className="text-gray-600 text-xs sm:text-sm">
-                  {t("euBasedDescription")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg text-center">
-              <CardContent className="p-3 sm:p-4 md:p-6">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                  <Truck className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-green-600" />
-                </div>
-                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
-                  {t("sevenDayShipping")}
-                </h3>
-                <p className="text-gray-600 text-xs sm:text-sm">
-                  {t("sevenDayShippingDescription")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg text-center">
-              <CardContent className="p-3 sm:p-4 md:p-6">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                  <Award className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-purple-600" />
-                </div>
-                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
-                  {t("premiumQuality")}
-                </h3>
-                <p className="text-gray-600 text-xs sm:text-sm">
-                  {t("premiumQualityDescription")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg text-center">
-              <CardContent className="p-3 sm:p-4 md:p-6">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                  <Shield className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-orange-600" />
-                </div>
-                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
-                  {t("fullCompliance")}
-                </h3>
-                <p className="text-gray-600 text-xs sm:text-sm">
-                  {t("fullComplianceDescription")}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+      <section className="container mx-auto px-4 pb-20 sm:px-6 lg:px-12">
+        <div className="text-center">
+          <Badge className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-200 sm:text-sm">
+            {t("keyRequirements2025")}
+          </Badge>
+          <h2 className="mt-4 text-2xl font-semibold text-white sm:text-3xl lg:text-4xl">
+            {t("keyRequirementsDescription")}
+          </h2>
         </div>
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {requiredCriteria.map(criterion => (
+            <Card key={criterion.title} className="rounded-3xl border border-white/10 bg-white/5 shadow-lg shadow-black/25">
+              <CardHeader className="space-y-4">
+                <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br ${iconAccent} text-white shadow-lg shadow-black/30`}>
+                  <criterion.icon className="h-6 w-6" />
+                </div>
+                <CardTitle className="text-lg text-white">{criterion.title}</CardTitle>
+                <CardDescription className="text-sm text-slate-200">
+                  {criterion.description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-slate-300">{criterion.details}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        {innovationCriteria.length > 0 && (
+          <div className="mt-12 rounded-3xl border border-dashed border-white/20 bg-white/5 p-6 shadow-inner shadow-black/20 sm:p-10">
+            <h3 className="text-lg font-semibold text-white sm:text-xl">{t("innovationFocus")}</h3>
+            <p className="mt-3 text-sm text-slate-200 sm:text-base">{t("innovationFocusDetails")}</p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {innovationCriteria.map(item => (
+                <div key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                  <div className="flex items-center gap-3 text-sky-200">
+                    <item.icon className="h-5 w-5" />
+                    <span className="text-sm font-semibold text-white">{item.title}</span>
+                  </div>
+                  <p className="mt-3 text-sm text-slate-200">{item.description}</p>
+                  <p className="mt-2 text-xs text-slate-300">{item.details}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
-      {/* Eligibility Criteria - Compact on Mobile */}
-      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gray-50">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="text-center mb-6 sm:mb-10 md:mb-16">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
-              {t("eligibilityCriteria")}
-            </h2>
-            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
-              {t("eligibilityCriteriaDescription")}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 md:gap-8">
-            {eligibilityCriteria.map((criterion, index) => (
-              <Card
-                key={index}
-                className="border-0 shadow-lg hover:shadow-xl transition-shadow"
-              >
-                <CardHeader className="text-center p-3 sm:p-4 md:p-6">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                    <criterion.icon className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-600" />
+      <section className="container mx-auto px-4 pb-20 sm:px-6 lg:px-12">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="rounded-3xl border border-white/10 bg-gradient-to-br from-indigo-900/70 via-slate-950/80 to-slate-950/90 p-6 shadow-2xl shadow-black/30 sm:p-10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-white">
+                <Truck className="h-5 w-5 text-sky-300" />
+                {t("shippingRequirements")}
+              </CardTitle>
+              <CardDescription className="text-sm text-slate-300">
+                {t("shippingRequirementsDescription")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {shippingRequirements.map(region => (
+                <div key={region.region} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-white">{region.region}</p>
+                    <Badge className="rounded-full border border-sky-400/40 bg-sky-500/15 text-xs text-sky-200">
+                      {t("maxDays")} {region.maxDays}
+                    </Badge>
                   </div>
-                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl flex items-center justify-center gap-1 sm:gap-2">
-                    {criterion.title}
-                    {criterion.required && (
-                      <Badge
-                        variant="destructive"
-                        className="text-[10px] sm:text-xs px-1 py-0.5 sm:px-2"
-                      >
-                        {t("required")}
-                      </Badge>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
-                  <CardDescription className="text-xs sm:text-sm md:text-base text-gray-600 mb-2 sm:mb-3">
-                    {criterion.description}
-                  </CardDescription>
-                  <div className="text-xs sm:text-sm text-gray-500 bg-gray-50 p-2 sm:p-3 rounded-lg">
-                    <strong>{t("details")}:</strong> {criterion.details}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Shipping Requirements - Compact on Mobile */}
-      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-white">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="text-center mb-6 sm:mb-10 md:mb-16">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
-              {t("shippingRequirements")}
-            </h2>
-            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
-              {t("shippingRequirementsDescription")}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5 md:gap-8">
-            {shippingRequirements.map((region, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardHeader className="text-center p-3 sm:p-4 md:p-6">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                    <Truck className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-green-600" />
-                  </div>
-                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl">
-                    {region.region}
-                  </CardTitle>
-                  <Badge
-                    variant="secondary"
-                    className="w-fit mx-auto text-[10px] sm:text-xs px-1.5 py-0.5"
-                  >
-                    <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
-                    {t("maxDays")} {region.maxDays}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
-                  <ul className="space-y-1 sm:space-y-2">
-                    {region.requirements.map((requirement, reqIndex) => (
-                      <li
-                        key={reqIndex}
-                        className="flex items-start gap-1.5 sm:gap-2 text-xs sm:text-sm"
-                      >
-                        <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">{requirement}</span>
+                  <ul className="mt-3 space-y-2 text-xs text-slate-200">
+                    {region.requirements.map(requirement => (
+                      <li key={requirement} className="flex items-start gap-2">
+                        <CheckCircle className="h-3.5 w-3.5 text-emerald-300" />
+                        <span>{requirement}</span>
                       </li>
                     ))}
                   </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
-      {/* Quality Standards - Compact on Mobile */}
-      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gray-50">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="text-center mb-6 sm:mb-10 md:mb-16">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
-              {t("qualityStandardsSection")}
-            </h2>
-            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
-              {t("qualityStandardsSectionDescription")}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-5 md:gap-8">
-            {qualityStandards.map((standard, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardHeader className="p-3 sm:p-4 md:p-6">
-                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl flex items-center gap-1.5 sm:gap-2">
-                    <standard.icon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                    {standard.category}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
-                  <ul className="space-y-1.5 sm:space-y-2 md:space-y-3">
-                    {standard.requirements.map((requirement, reqIndex) => (
-                      <li
-                        key={reqIndex}
-                        className="flex items-start gap-1.5 sm:gap-2 md:gap-3"
-                      >
-                        <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-xs sm:text-sm md:text-base text-gray-700">
-                          {requirement}
-                        </span>
+          <Card className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/25 sm:p-10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-white">
+                <Shield className="h-5 w-5 text-emerald-300" />
+                {t("qualityStandardsSection")}
+              </CardTitle>
+              <CardDescription className="text-sm text-slate-300">
+                {t("qualityStandardsSectionDescription")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {qualityStandards.map(standard => (
+                <div key={standard.category} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-center gap-3 text-white">
+                    <standard.icon className="h-4 w-4 text-sky-200" />
+                    <span className="text-sm font-semibold">{standard.category}</span>
+                  </div>
+                  <ul className="mt-3 grid gap-2 text-xs text-slate-200 sm:grid-cols-2">
+                    {standard.requirements.map(req => (
+                      <li key={req} className="flex items-start gap-2">
+                        <Target className="mt-0.5 h-3 w-3 text-emerald-300" />
+                        <span>{req}</span>
                       </li>
                     ))}
                   </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
       </section>
 
-      {/* Compliance Requirements - Compact on Mobile */}
-      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-white">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="text-center mb-6 sm:mb-10 md:mb-16">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
-              {t("complianceRequirements")}
-            </h2>
-            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
-              {t("complianceRequirementsDescription")}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5 md:gap-8">
-            {complianceRequirements.map((compliance, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardHeader className="p-3 sm:p-4 md:p-6">
-                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl flex items-center gap-1.5 sm:gap-2">
-                    <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                    {compliance.category}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
-                  <ul className="space-y-1 sm:space-y-2">
-                    {compliance.requirements.map((requirement, reqIndex) => (
-                      <li
-                        key={reqIndex}
-                        className="flex items-start gap-1.5 sm:gap-2 text-xs sm:text-sm"
-                      >
-                        <CheckSquare className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">{requirement}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Application Process - Compact on Mobile */}
-      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gray-50">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="text-center mb-6 sm:mb-10 md:mb-16">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
+      <section className="container mx-auto px-4 pb-20 sm:px-6 lg:px-12">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20 sm:p-10">
+          <div className="text-center">
+            <Badge className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-200 sm:text-sm">
               {t("applicationProcess")}
-            </h2>
-            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
+            </Badge>
+            <h2 className="mt-4 text-2xl font-semibold text-white sm:text-3xl">
               {t("applicationProcessDescription")}
-            </p>
+            </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 md:gap-8">
-            {applicationProcess.map((step, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardHeader className="text-center p-3 sm:p-4 md:p-6">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                    <span className="text-white font-bold text-base sm:text-lg md:text-xl">
-                      {step.step}
-                    </span>
-                  </div>
-                  <CardTitle className="text-sm sm:text-base md:text-lg lg:text-xl">
-                    {step.title}
-                  </CardTitle>
-                  <Badge
-                    variant="secondary"
-                    className="w-fit mx-auto text-[10px] sm:text-xs px-1.5 py-0.5"
-                  >
-                    <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {applicationProcess.map(step => (
+              <Card key={step.step} className="rounded-2xl border border-white/10 bg-white/5 shadow-inner shadow-black/20">
+                <CardHeader className="flex items-center justify-between">
+                  <Badge className="rounded-full border border-sky-400/40 bg-sky-500/15 text-xs text-sky-100">
+                    {step.step}
+                  </Badge>
+                  <Badge className="rounded-full border border-white/20 bg-white/10 text-xs text-slate-200">
                     {step.duration}
                   </Badge>
                 </CardHeader>
-                <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
-                  <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-2 sm:mb-3 md:mb-4">
-                    {step.description}
-                  </p>
-                  <div className="bg-blue-50 p-2 sm:p-3 rounded-lg">
-                    <h4 className="font-semibold text-blue-900 mb-1 sm:mb-2 text-xs sm:text-sm">
-                      {t("requirements")}
-                    </h4>
-                    <ul className="space-y-0.5 sm:space-y-1">
-                      {step.requirements.map((req, reqIndex) => (
-                        <li
-                          key={reqIndex}
-                          className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-blue-800"
-                        >
-                          <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                          {req}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Commission Structure - Compact on Mobile */}
-      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-white">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="text-center mb-6 sm:mb-10 md:mb-16">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
-              {t("commissionStructure")}
-            </h2>
-            <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto">
-              {t("commissionStructureDescription")}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5 md:gap-8">
-            {commissionStructure.map((tier, index) => (
-              <Card
-                key={index}
-                className={`border-0 shadow-lg ${tier.color} ${index === 1 ? "ring-2 ring-blue-500" : ""}`}
-              >
-                <CardHeader className="text-center p-3 sm:p-4 md:p-6">
-                  <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl">
-                    {tier.tier}
-                  </CardTitle>
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600">
-                    {tier.rate}
-                  </div>
-                  <CardDescription className="text-[10px] sm:text-xs md:text-sm">
-                    {tier.requirements}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
-                  <ul className="space-y-1 sm:space-y-2">
-                    {tier.features.map((feature, featureIndex) => (
-                      <li
-                        key={featureIndex}
-                        className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
-                      >
-                        <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600" />
-                        {feature}
+                <CardContent className="space-y-3">
+                  <p className="text-sm font-semibold text-white">{step.title}</p>
+                  <p className="text-xs text-slate-300">{step.description}</p>
+                  <ul className="space-y-2 text-xs text-slate-200">
+                    {step.requirements.map(req => (
+                      <li key={req} className="flex items-start gap-2">
+                        <CheckCircle className="mt-0.5 h-3 w-3 text-emerald-300" />
+                        <span>{req}</span>
                       </li>
                     ))}
                   </ul>
@@ -774,112 +545,124 @@ export function SupplierRequirements() {
         </div>
       </section>
 
-      {/* Important Notes - Compact on Mobile */}
-      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gray-50">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="max-w-4xl mx-auto">
-            <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
-              <CardHeader className="p-3 sm:p-4 md:p-6">
-                <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl flex items-center gap-1.5 sm:gap-2">
-                  <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
-                  {t("importantNotes2025")}
-                </CardTitle>
+      <section className="container mx-auto px-4 pb-20 sm:px-6 lg:px-12">
+        <div className="grid gap-6 lg:grid-cols-3">
+          {commissionStructure.map(tier => (
+            <Card key={tier.tier} className="rounded-3xl border border-white/10 bg-white/5 shadow-xl shadow-black/25">
+              <CardHeader className="text-center">
+                <CardTitle className="text-xl text-white">{tier.tier}</CardTitle>
+                <p className="mt-2 text-3xl font-semibold text-sky-200">{tier.rate}</p>
+                <CardDescription className="text-xs text-slate-300">{tier.requirements}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 md:space-y-6 p-3 sm:p-4 md:p-6 pt-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base">
-                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                      {t("applicationTimeline")}
-                    </h4>
-                    <p className="text-gray-600 text-[10px] sm:text-xs md:text-sm">
-                      {t("applicationTimelineDescription")}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base">
-                      <Target className="w-3 h-3 sm:w-4 sm:h-4" />
-                      {t("qualityAssurance")}
-                    </h4>
-                    <p className="text-gray-600 text-[10px] sm:text-xs md:text-sm">
-                      {t("qualityAssuranceDescription")}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base">
-                      <Euro className="w-3 h-3 sm:w-4 sm:h-4" />
-                      {t("euCompliance")}
-                    </h4>
-                    <p className="text-gray-600 text-[10px] sm:text-xs md:text-sm">
-                      {t("euComplianceDescription")}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base">
-                      <Truck className="w-3 h-3 sm:w-4 sm:h-4" />
-                      {t("shippingStandards")}
-                    </h4>
-                    <p className="text-gray-600 text-[10px] sm:text-xs md:text-sm">
-                      {t("shippingStandardsDescription")}
-                    </p>
-                  </div>
-                </div>
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 sm:p-3 md:p-4">
-                  <h4 className="font-semibold text-orange-900 mb-1 sm:mb-2 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base">
-                    <Info className="w-3 h-3 sm:w-4 sm:h-4" />
-                    {t("newFor2025")}
-                  </h4>
-                  <p className="text-orange-800 text-[10px] sm:text-xs md:text-sm">
-                    {t("newFor2025Description")}
-                  </p>
-                </div>
+              <CardContent>
+                <ul className="space-y-2 text-xs text-slate-200">
+                  {tier.features.map(feature => (
+                    <li key={feature} className="flex items-start gap-2">
+                      <Zap className="mt-0.5 h-3 w-3 text-emerald-300" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
               </CardContent>
             </Card>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* CTA Section - Compact on Mobile with Visible Buttons */}
-      <section className="py-6 sm:py-10 md:py-16 lg:py-20 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+      <section className="container mx-auto px-4 pb-20 sm:px-6 lg:px-12">
+        <div className="grid gap-6 lg:grid-cols-3">
+          {complianceRequirements.map(block => (
+            <Card key={block.category} className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/70 via-indigo-900/60 to-slate-950/80 p-6 shadow-2xl shadow-black/30">
+              <CardHeader>
+                <CardTitle className="text-lg text-white">{block.category}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-xs text-slate-200">
+                  {block.requirements.map(req => (
+                    <li key={req} className="flex items-start gap-2">
+                      <CheckCircle className="mt-0.5 h-3 w-3 text-emerald-300" />
+                      <span>{req}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
 
-        <div className="container mx-auto px-3 sm:px-4 text-center relative z-10">
-          <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white mb-2 sm:mb-3 md:mb-4">
+      <section className="container mx-auto px-4 pb-24 sm:px-6 lg:px-12">
+        <Card className="rounded-3xl border border-white/10 bg-gradient-to-br from-sky-500/15 via-indigo-600/20 to-slate-950/80 p-6 shadow-2xl shadow-black/30 sm:p-10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3 text-white">
+              <Info className="h-5 w-5 text-amber-300" />
+              {t("importantNotes2025")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Calendar className="h-4 w-4 text-sky-200" />
+              <h4 className="text-sm font-semibold text-white">{t("applicationTimeline")}</h4>
+              <p className="text-xs text-slate-200">{t("applicationTimelineDescription")}</p>
+            </div>
+            <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Target className="h-4 w-4 text-emerald-200" />
+              <h4 className="text-sm font-semibold text-white">{t("qualityAssurance")}</h4>
+              <p className="text-xs text-slate-200">{t("qualityAssuranceDescription")}</p>
+            </div>
+            <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Euro className="h-4 w-4 text-emerald-200" />
+              <h4 className="text-sm font-semibold text-white">{t("euCompliance")}</h4>
+              <p className="text-xs text-slate-200">{t("euComplianceDescription")}</p>
+            </div>
+            <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Truck className="h-4 w-4 text-sky-200" />
+              <h4 className="text-sm font-semibold text-white">{t("shippingStandards")}</h4>
+              <p className="text-xs text-slate-200">{t("shippingStandardsDescription")}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="container mx-auto px-4 pb-24 sm:px-6 lg:px-12">
+        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-6 text-center shadow-2xl shadow-emerald-900/40 sm:p-12">
+          <h2 className="text-2xl font-semibold text-white sm:text-3xl lg:text-4xl">
             {t("readyToJoinPremium")}
           </h2>
-          <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-emerald-100 mb-4 sm:mb-6 md:mb-8 max-w-2xl mx-auto">
+          <p className="mt-3 text-sm text-emerald-100 sm:text-base lg:text-lg">
             {t("readyToJoinDescription")}
           </p>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center">
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Button
-              size="lg"
-              className="bg-white text-emerald-700 hover:bg-emerald-50 border-2 border-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6"
               asChild
+              size="lg"
+              className="bg-white text-emerald-700 hover:bg-emerald-50 border-2 border-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base px-6 py-3 rounded-2xl"
             >
               <Link href="/supplier/apply">
                 {t("startApplication")}
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1.5 sm:ml-2" />
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             <Button
-              size="lg"
-              className="bg-white/90 backdrop-blur-sm text-emerald-700 border-2 border-white hover:bg-white hover:text-emerald-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6"
               asChild
+              size="lg"
+              variant="outline"
+              className="rounded-2xl border-white bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/20 sm:text-base"
             >
               <Link href="/supplier/benefits">{t("viewBenefits")}</Link>
             </Button>
             <Button
-              size="lg"
-              className="bg-white/90 backdrop-blur-sm text-emerald-700 border-2 border-white hover:bg-white hover:text-emerald-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base py-2 sm:py-2.5 md:py-3 px-4 sm:px-6"
               asChild
+              size="lg"
+              variant="outline"
+              className="rounded-2xl border-white bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/20 sm:text-base"
             >
               <Link href="/contact">{t("contactUs")}</Link>
             </Button>
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 }
+

@@ -29,35 +29,35 @@ const AGE_OPTIONS: Array<{
   labelKey: string;
   short: string;
   icon: string;
-  accent: string;
+  iconClass: string;
 }> = [
   {
     id: "PRESCHOOL_3_5",
     labelKey: "age3to5H2",
     short: "3–5",
     icon: "🐣",
-    accent: "bg-emerald-100 text-emerald-700",
+    iconClass: "bg-emerald-500/30 text-emerald-100",
   },
   {
     id: "ELEMENTARY_6_8",
     labelKey: "age6to8H2",
     short: "6–8",
     icon: "🎒",
-    accent: "bg-indigo-100 text-indigo-700",
+    iconClass: "bg-indigo-500/30 text-indigo-100",
   },
   {
     id: "MIDDLE_SCHOOL_9_12",
     labelKey: "age9to12H2",
     short: "9–12",
     icon: "🧠",
-    accent: "bg-fuchsia-100 text-fuchsia-700",
+    iconClass: "bg-fuchsia-500/30 text-fuchsia-100",
   },
   {
     id: "TEENS_13_PLUS",
     labelKey: "age13plusH2",
     short: "13+",
     icon: "🚀",
-    accent: "bg-amber-100 text-amber-700",
+    iconClass: "bg-amber-500/30 text-amber-100",
   },
 ];
 
@@ -70,9 +70,9 @@ export default function AgeQuickFilters({
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-5">
-      <div className="bg-white/70 backdrop-blur shadow-sm rounded-xl p-3 sm:p-4 border border-gray-100">
+      <div className="rounded-xl border border-white/10 bg-slate-950/40 backdrop-blur-xl shadow-indigo-900/30 p-3 sm:p-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-          <div className="text-sm sm:text-base font-semibold">
+          <div className="text-sm sm:text-base font-semibold text-slate-100">
             {t("findPerfectToysForAge")}
           </div>
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 sm:gap-2">
@@ -91,19 +91,21 @@ export default function AgeQuickFilters({
                   className={
                     "group flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-xs sm:text-sm rounded-md border transition " +
                     (isActive
-                      ? "bg-primary text-white border-primary"
-                      : "bg-white text-gray-800 border-gray-200 hover:bg-gray-50")
+                      ? "bg-gradient-to-r from-indigo-500 to-sky-500 text-white border-transparent shadow-md shadow-indigo-500/40"
+                      : "bg-white/10 text-slate-200 border-white/15 hover:bg-white/15")
                   }
                 >
                   <span
-                    className={`flex h-7 w-7 items-center justify-center rounded-full ${opt.accent} bg-opacity-90`}
+                    className={`flex h-7 w-7 items-center justify-center rounded-full ${opt.iconClass}`}
                     aria-hidden
                   >
                     <span className="text-sm">{opt.icon}</span>
                   </span>
                   <span className="min-w-0">
-                    <span className="font-semibold">{t(opt.labelKey)}</span>
-                    <span className="ml-1 text-[10px] text-gray-500 group-hover:text-gray-600">
+                    <span className="font-semibold text-slate-100">
+                      {t(opt.labelKey)}
+                    </span>
+                    <span className="ml-1 text-[10px] text-slate-400 group-hover:text-slate-300">
                       {opt.short} {t("years", "yrs")}
                     </span>
                   </span>

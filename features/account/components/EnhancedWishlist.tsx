@@ -63,6 +63,11 @@ import { toast } from "@/hooks/use-toast";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import {
+  glassCardClass,
+  glassPanelClass,
+  gradientButtonClass,
+} from "@/features/home/components/homeTheme";
 
 interface WishlistItem {
   id: string;
@@ -430,24 +435,25 @@ export function EnhancedWishlist({
     return (
       <Card
         className={cn(
-          "group relative overflow-hidden transition-all duration-200",
+          glassCardClass,
+          "group relative overflow-hidden border-white/10 bg-slate-900/60 shadow-lg shadow-black/30 transition-all duration-200 hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_25px_50px_-12px_rgba(8,47,73,0.65)]",
           viewMode === "grid" ? "h-full" : "flex-row",
-          isOutOfStock && "opacity-60"
+          isOutOfStock && "opacity-80"
         )}
       >
         <CardContent
           className={cn(
-            "p-4",
+            "p-4 text-slate-100",
             viewMode === "list" && "flex items-center gap-4"
           )}
         >
           {/* Product Image */}
           <div
             className={cn(
-              "relative rounded-lg overflow-hidden bg-gray-100",
+              "relative overflow-hidden rounded-2xl border border-white/10 bg-white/10",
               viewMode === "grid"
-                ? "aspect-square mb-3"
-                : "w-24 h-24 flex-shrink-0"
+                ? "mb-3 aspect-square"
+                : "h-24 w-24 flex-shrink-0"
             )}
           >
             {item.product.images.length > 0 ? (
@@ -455,18 +461,21 @@ export function EnhancedWishlist({
                 src={item.product.images[0]}
                 alt={item.product.name}
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-200"
+                className="object-cover transition-transform duration-200 group-hover:scale-105"
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
+              <div className="flex h-full items-center justify-center text-slate-400">
                 No Image
               </div>
             )}
 
             {/* Badges */}
-            <div className="absolute top-2 left-2 flex flex-col gap-1">
+            <div className="absolute left-2 top-2 flex flex-col gap-1">
               {isOnSale && (
-                <Badge variant="destructive" className="text-xs">
+                <Badge
+                  variant="secondary"
+                  className="border border-emerald-400/30 bg-emerald-500/20 text-xs text-emerald-100 backdrop-blur"
+                >
                   {t("sale", "Sale")}
                 </Badge>
               )}
@@ -474,7 +483,7 @@ export function EnhancedWishlist({
                 <Badge
                   variant="secondary"
                   className={cn(
-                    "text-xs text-white",
+                    "border border-white/20 text-xs text-white",
                     PRIORITY_COLORS[item.priority]
                   )}
                 >
@@ -485,15 +494,18 @@ export function EnhancedWishlist({
 
             {/* Price Alert Indicator */}
             {item.priceAlert && (
-              <div className="absolute top-2 right-2">
-                <Bell className="h-4 w-4 text-blue-500" />
+              <div className="absolute right-2 top-2 rounded-full bg-sky-500/20 p-1 backdrop-blur">
+                <Bell className="h-4 w-4 text-sky-200" />
               </div>
             )}
 
             {/* Out of Stock Overlay */}
             {isOutOfStock && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <Badge variant="secondary" className="text-white bg-red-500">
+              <div className="absolute inset-0 flex items-center justify-center bg-slate-950/70 backdrop-blur">
+                <Badge
+                  variant="secondary"
+                  className="border border-rose-400/40 bg-rose-500/60 text-white"
+                >
                   {t("outOfStock", "Out of Stock")}
                 </Badge>
               </div>
@@ -501,10 +513,18 @@ export function EnhancedWishlist({
           </div>
 
           {/* Product Details */}
-          <div className={cn("space-y-2", viewMode === "list" && "flex-1")}>
+          <div
+            className={cn(
+              "space-y-2 text-slate-100",
+              viewMode === "list" && "flex-1"
+            )}
+          >
             {/* Category */}
             {item.product.category && (
-              <Badge variant="outline" className="text-xs">
+              <Badge
+                variant="outline"
+                className="border border-white/15 bg-white/10 text-xs text-slate-100"
+              >
                 {item.product.category.name}
               </Badge>
             )}
@@ -512,7 +532,7 @@ export function EnhancedWishlist({
             {/* Title */}
             <h3
               className={cn(
-                "font-semibold line-clamp-2 group-hover:text-primary transition-colors",
+                "line-clamp-2 font-semibold transition-colors hover:text-sky-300",
                 viewMode === "grid" ? "text-sm" : "text-base"
               )}
             >
@@ -523,11 +543,11 @@ export function EnhancedWishlist({
 
             {/* Price */}
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-primary">
+              <span className="text-lg font-bold text-slate-50">
                 {formatPrice(item.product.price)}
               </span>
               {isOnSale && (
-                <span className="text-sm text-muted-foreground line-through">
+                <span className="text-sm line-through text-slate-400">
                   {formatPrice(item.product.compareAtPrice!)}
                 </span>
               )}
@@ -544,7 +564,7 @@ export function EnhancedWishlist({
 
             {/* Note */}
             {item.note && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
+              <p className="line-clamp-2 text-sm text-slate-300">
                 {item.note}
               </p>
             )}
@@ -553,8 +573,12 @@ export function EnhancedWishlist({
             {item.tags && item.tags.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {item.tags.map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    <Tag className="h-3 w-3 mr-1" />
+                  <Badge
+                    key={index}
+                    variant="outline"
+                    className="text-xs text-slate-100"
+                  >
+                    <Tag className="mr-1 h-3 w-3" />
                     {tag}
                   </Badge>
                 ))}
@@ -562,7 +586,7 @@ export function EnhancedWishlist({
             )}
 
             {/* Added Date */}
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1 text-xs text-slate-400">
               <Calendar className="h-3 w-3" />
               {new Date(item.addedAt).toLocaleDateString()}
             </div>
@@ -579,39 +603,54 @@ export function EnhancedWishlist({
               size="sm"
               onClick={() => handleAddToCart(item.product.id)}
               disabled={isOutOfStock}
-              className="flex-1"
+              className={cn(
+                "flex-1 hover:scale-[1.01]",
+                gradientButtonClass,
+                isOutOfStock && "opacity-60"
+              )}
             >
-              <ShoppingCart className="h-4 w-4 mr-2" />
+              <ShoppingCart className="mr-2 h-4 w-4" />
               {t("addToCart", "Add to Cart")}
             </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-white/15 bg-white/10 text-slate-100 hover:border-white/25 hover:bg-white/15"
+                >
                   <Edit className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setIsEditingItem(item.id)}>
-                  <Edit className="h-4 w-4 mr-2" />
+              <DropdownMenuContent className="border-white/15 bg-slate-900/80 text-slate-100">
+                <DropdownMenuItem
+                  onClick={() => setIsEditingItem(item.id)}
+                  className="focus:bg-white/10 focus:text-slate-100"
+                >
+                  <Edit className="mr-2 h-4 w-4" />
                   {t("editItem", "Edit Item")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() =>
                     handleUpdateItem(item.id, { priceAlert: !item.priceAlert })
                   }
+                  className="focus:bg-white/10 focus:text-slate-100"
                 >
                   {item.priceAlert ? (
-                    <BellOff className="h-4 w-4 mr-2" />
+                    <BellOff className="mr-2 h-4 w-4" />
                   ) : (
-                    <Bell className="h-4 w-4 mr-2" />
+                    <Bell className="mr-2 h-4 w-4" />
                   )}
                   {item.priceAlert
                     ? t("disableAlert", "Disable Alert")
                     : t("enableAlert", "Enable Alert")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleRemoveItem(item.id)}>
-                  <Trash2 className="h-4 w-4 mr-2" />
+                <DropdownMenuItem
+                  onClick={() => handleRemoveItem(item.id)}
+                  className="focus:bg-rose-500/15 focus:text-rose-200"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
                   {t("remove", "Remove")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -623,14 +662,19 @@ export function EnhancedWishlist({
   };
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn("space-y-6 text-slate-100", className)}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div
+        className={cn(
+          glassPanelClass,
+          "flex items-center justify-between gap-6 rounded-3xl border-white/10 bg-slate-900/70 px-6 py-5 shadow-xl shadow-black/30"
+        )}
+      >
         <div>
-          <h2 className="text-2xl font-bold">
+          <h2 className="text-2xl font-bold tracking-tight">
             {t("myWishlist", "My Wishlist")}
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-slate-300">
             {t("wishlistItemsCount", `${filteredAndSortedItems.length} items`)}
           </p>
         </div>
@@ -639,19 +683,22 @@ export function EnhancedWishlist({
           {canShare && (
             <Dialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Share2 className="h-4 w-4 mr-2" />
+                <Button
+                  variant="outline"
+                  className="border-white/20 bg-white/10 text-slate-100 transition hover:border-white/30 hover:bg-white/15"
+                >
+                  <Share2 className="mr-2 h-4 w-4" />
                   {t("share", "Share")}
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="border-white/10 bg-slate-900/80 text-slate-100 backdrop-blur">
                 <DialogHeader>
                   <DialogTitle>
                     {t("shareWishlist", "Share Wishlist")}
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-slate-300">
                     {t(
                       "shareWishlistDescription",
                       "Share your wishlist with friends and family"
@@ -662,7 +709,7 @@ export function EnhancedWishlist({
                     <Button
                       variant="outline"
                       onClick={() => handleShareWishlist("link")}
-                      className="flex flex-col gap-1 h-auto py-3"
+                      className="h-auto flex-col gap-1 border-white/20 bg-white/10 py-3 text-slate-100 hover:border-white/30 hover:bg-white/15"
                     >
                       <Copy className="h-4 w-4" />
                       <span className="text-xs">
@@ -673,7 +720,7 @@ export function EnhancedWishlist({
                     <Button
                       variant="outline"
                       onClick={() => handleShareWishlist("email")}
-                      className="flex flex-col gap-1 h-auto py-3"
+                      className="h-auto flex-col gap-1 border-white/20 bg-white/10 py-3 text-slate-100 hover:border-white/30 hover:bg-white/15"
                     >
                       <Mail className="h-4 w-4" />
                       <span className="text-xs">{t("email", "Email")}</span>
@@ -682,7 +729,7 @@ export function EnhancedWishlist({
                     <Button
                       variant="outline"
                       onClick={() => handleShareWishlist("social")}
-                      className="flex flex-col gap-1 h-auto py-3"
+                      className="h-auto flex-col gap-1 border-white/20 bg-white/10 py-3 text-slate-100 hover:border-white/30 hover:bg-white/15"
                     >
                       <MessageCircle className="h-4 w-4" />
                       <span className="text-xs">{t("social", "Social")}</span>
@@ -698,7 +745,7 @@ export function EnhancedWishlist({
                         <Input
                           value={shareableLink}
                           readOnly
-                          className="flex-1"
+                          className="flex-1 border-white/20 bg-white/10 text-slate-100"
                         />
                         <Button
                           variant="outline"
@@ -713,6 +760,7 @@ export function EnhancedWishlist({
                               ),
                             });
                           }}
+                          className="border-white/20 bg-white/10 text-slate-100 hover:border-white/30 hover:bg-white/15"
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
@@ -730,12 +778,17 @@ export function EnhancedWishlist({
               onOpenChange={setIsCreateCollectionOpen}
             >
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button
+                  className={cn(
+                    "transition hover:scale-[1.02]",
+                    gradientButtonClass
+                  )}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
                   {t("newCollection", "New Collection")}
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="border-white/10 bg-slate-900/80 text-slate-100 backdrop-blur">
                 <DialogHeader>
                   <DialogTitle>
                     {t("createCollection", "Create Collection")}
@@ -753,6 +806,7 @@ export function EnhancedWishlist({
                         "enterCollectionName",
                         "Enter collection name"
                       )}
+                      className="border-white/20 bg-white/10 text-slate-100 placeholder:text-slate-400"
                     />
                   </div>
 
@@ -768,6 +822,7 @@ export function EnhancedWishlist({
                       }
                       placeholder={t("enterDescription", "Enter description")}
                       rows={3}
+                      className="border-white/20 bg-white/10 text-slate-100 placeholder:text-slate-400"
                     />
                   </div>
 
@@ -796,13 +851,20 @@ export function EnhancedWishlist({
                     <Switch
                       checked={newCollectionPublic}
                       onCheckedChange={setNewCollectionPublic}
+                        className="data-[state=checked]:bg-sky-500"
                     />
                     <label className="text-sm">
                       {t("makePublic", "Make this collection public")}
                     </label>
                   </div>
 
-                  <Button onClick={handleCreateCollection} className="w-full">
+                  <Button
+                    onClick={handleCreateCollection}
+                    className={cn(
+                      "w-full transition hover:scale-[1.01]",
+                      gradientButtonClass
+                    )}
+                  >
                     {t("createCollection", "Create Collection")}
                   </Button>
                 </div>
@@ -821,19 +883,26 @@ export function EnhancedWishlist({
           }
         >
           <TabsList
-            className="grid w-full"
+            className="grid w-full rounded-2xl border border-white/15 bg-white/10 p-1 text-slate-200 shadow-inner shadow-white/10"
             style={{
               gridTemplateColumns: `repeat(${collections.length + 1}, 1fr)`,
             }}
           >
-            <TabsTrigger value="all">
+            <TabsTrigger
+              value="all"
+              className="rounded-xl border border-transparent px-4 py-2 data-[state=active]:border-white/30 data-[state=active]:bg-sky-500/20 data-[state=active]:text-white"
+            >
               {t("allItems", "All Items")} (
               {items.filter(item => !item.collectionId).length})
             </TabsTrigger>
             {collections.map(collection => (
-              <TabsTrigger key={collection.id} value={collection.id}>
+              <TabsTrigger
+                key={collection.id}
+                value={collection.id}
+                className="flex items-center justify-center gap-2 rounded-xl border border-transparent px-4 py-2 text-slate-200 data-[state=active]:border-white/30 data-[state=active]:bg-sky-500/20 data-[state=active]:text-white"
+              >
                 <div
-                  className={cn("w-3 h-3 rounded-full mr-2", collection.color)}
+                  className={cn("h-3 w-3 rounded-full", collection.color)}
                 />
                 {collection.name} ({collection.items.length})
               </TabsTrigger>
@@ -843,24 +912,24 @@ export function EnhancedWishlist({
       )}
 
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         {/* Search and Filters */}
-        <div className="flex gap-2 flex-1 max-w-2xl">
+        <div className="flex max-w-2xl flex-1 gap-2">
           <Input
             placeholder={t("searchWishlist", "Search wishlist...")}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="flex-1"
+            className="flex-1 border-white/20 bg-white/10 text-slate-100 placeholder:text-slate-400"
           />
 
           <Select
             value={filterBy}
             onValueChange={(value: any) => setFilterBy(value)}
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40 border-white/20 bg-white/10 text-slate-100">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="border-white/15 bg-slate-900/85 text-slate-100">
               <SelectItem value="all">{t("allItems", "All Items")}</SelectItem>
               <SelectItem value="available">
                 {t("available", "Available")}
@@ -879,10 +948,10 @@ export function EnhancedWishlist({
             value={sortBy}
             onValueChange={(value: any) => setSortBy(value)}
           >
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-32 border-white/20 bg-white/10 text-slate-100">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="border-white/15 bg-slate-900/85 text-slate-100">
               <SelectItem value="added">
                 {t("dateAdded", "Date Added")}
               </SelectItem>
@@ -894,12 +963,17 @@ export function EnhancedWishlist({
             </SelectContent>
           </Select>
 
-          <div className="flex border rounded-md">
+          <div className="flex overflow-hidden rounded-lg border border-white/20 bg-white/10">
             <Button
               variant={viewMode === "grid" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("grid")}
-              className="rounded-r-none"
+              className={cn(
+                "rounded-r-none text-slate-100",
+                viewMode === "grid"
+                  ? "bg-sky-500/30 hover:bg-sky-500/40"
+                  : "bg-transparent hover:bg-white/10"
+              )}
             >
               <Grid className="h-4 w-4" />
             </Button>
@@ -907,7 +981,12 @@ export function EnhancedWishlist({
               variant={viewMode === "list" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("list")}
-              className="rounded-l-none"
+              className={cn(
+                "rounded-l-none text-slate-100",
+                viewMode === "list"
+                  ? "bg-sky-500/30 hover:bg-sky-500/40"
+                  : "bg-transparent hover:bg-white/10"
+              )}
             >
               <List className="h-4 w-4" />
             </Button>
@@ -930,16 +1009,21 @@ export function EnhancedWishlist({
           ))}
         </div>
       ) : (
-        <Card className="text-center p-8">
-          <CardContent className="space-y-4">
-            <Heart className="h-12 w-12 text-muted-foreground mx-auto" />
+        <Card
+          className={cn(
+            glassPanelClass,
+            "text-center shadow-xl shadow-black/30"
+          )}
+        >
+          <CardContent className="space-y-4 py-8 text-slate-100">
+            <Heart className="mx-auto h-12 w-12 text-slate-400" />
             <div>
               <h3 className="text-lg font-semibold mb-2">
                 {searchQuery
                   ? t("noResultsFound", "No Results Found")
                   : t("emptyWishlist", "Your Wishlist is Empty")}
               </h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="mb-4 text-slate-300">
                 {searchQuery
                   ? t(
                       "tryDifferentSearch",
@@ -951,7 +1035,13 @@ export function EnhancedWishlist({
                     )}
               </p>
               {!searchQuery && (
-                <Button asChild>
+                <Button
+                  asChild
+                  className={cn(
+                    "transition hover:scale-[1.02]",
+                    gradientButtonClass
+                  )}
+                >
                   <Link href="/products">
                     {t("browseProducts", "Browse Products")}
                   </Link>

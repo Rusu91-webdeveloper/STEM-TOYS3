@@ -34,6 +34,12 @@ import MobileAgeBar from "./MobileAgeBar";
 import { ProductsMainDisplay } from "./ProductsMainDisplay";
 import { ProductsSidebar } from "./ProductsSidebar";
 import { StemBenefitsSection } from "./StemBenefitsSection";
+import {
+  productsBackgroundClass,
+  productsContentWrapperClass,
+  productsOverlayBottomClass,
+  productsOverlayTopClass,
+} from "./productsTheme";
 
 interface CategoryIconInfo {
   icon: LucideIcon;
@@ -671,11 +677,11 @@ function ClientProductsPageContent({
         />
 
         <div className="w-full max-w-full overflow-x-hidden bg-gradient-to-b from-muted/20 via-background to-muted/10">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 relative z-10">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 relative z-10">
             {/* Subtle top accent */}
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary/10 via-primary/20 to-primary/10 rounded-full opacity-70 hidden sm:block"></div>
 
-            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
+            <div className="flex flex-col lg:flex-row gap-4 sm:gap-5 lg:gap-6">
               <ProductFiltersErrorBoundary
                 onError={() => {
                   // Fallback: clear filters and reload
@@ -782,7 +788,13 @@ function ClientProductsPageContent({
     </ProductsErrorBoundary>
   );
 
-  return content;
+  return (
+    <div className={productsBackgroundClass}>
+      <div className={productsOverlayTopClass} aria-hidden />
+      <div className={productsOverlayBottomClass} aria-hidden />
+      <div className={productsContentWrapperClass}>{content}</div>
+    </div>
+  );
 }
 
 function ClientProductsPageFallback() {

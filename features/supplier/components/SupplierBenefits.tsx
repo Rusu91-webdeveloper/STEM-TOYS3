@@ -2,22 +2,22 @@
 
 import Link from "next/link";
 import {
-  CheckCircle,
-  TrendingUp,
-  Users,
-  Shield,
-  Clock,
-  Award,
-  Globe,
-  Zap,
-  Star,
   ArrowRight,
-  DollarSign,
+  Award,
   BarChart3,
+  CheckCircle,
+  DollarSign,
   MessageSquare,
   Settings,
+  Shield,
+  Star,
   Target,
+  TrendingUp,
+  Users,
+  Zap,
 } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,169 +26,179 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
+const mainBenefits = [
+  {
+    icon: Users,
+    stats: "50K+ families",
+    title: "Growing Customer Base",
+    description:
+      "Tap into a loyal STEM audience seeking premium products with educational impact.",
+    accent:
+      "from-emerald-400/80 via-emerald-500/80 to-teal-500/80 text-emerald-100",
+  },
+  {
+    icon: TrendingUp,
+    stats: "300% growth",
+    title: "Revenue Acceleration",
+    description:
+      "Unlock promotional calendars, launch playbooks, and co-marketing support that multiplies reach.",
+    accent: "from-sky-400/80 via-sky-500/80 to-indigo-500/80 text-sky-100",
+  },
+  {
+    icon: Shield,
+    stats: "99.9% uptime",
+    title: "Professional Platform",
+    description:
+      "Enterprise-grade infrastructure, localized storefronts, and end-to-end performance analytics.",
+    accent:
+      "from-indigo-400/80 via-indigo-500/80 to-purple-500/80 text-indigo-100",
+  },
+  {
+    icon: CheckCircle,
+    stats: "1-2 weeks",
+    title: "Guided Onboarding",
+    description:
+      "Concierge support handles compliance, merchandising, content, and launch readiness.",
+    accent: "from-amber-400/80 via-amber-500/80 to-orange-500/80 text-amber-100",
+  },
+] as const;
+
+const platformFeatures = [
+  {
+    icon: BarChart3,
+    title: "Advanced Analytics",
+    description:
+      "Real-time dashboards, cohort analysis, and merchandising insights to optimize performance.",
+  },
+  {
+    icon: MessageSquare,
+    title: "Dedicated Success Team",
+    description:
+      "Quarterly planning, campaign reviews, and hands-on merchandising guidance.",
+  },
+  {
+    icon: Settings,
+    title: "Operational Efficiency",
+    description:
+      "Streamlined catalog management, documentation workflows, and automated QA checks.",
+  },
+  {
+    icon: Target,
+    title: "Marketing Engine",
+    description:
+      "Email, social, and on-site activations built around learning milestones and STEM seasons.",
+  },
+] as const;
+
+const supportFeatures = [
+  {
+    title: "24/7 Platform Access",
+    description:
+      "Monitor sales, manage inventory, and adjust pricing whenever you need.",
+  },
+  {
+    title: "Training & Resources",
+    description:
+      "Video walkthroughs, STEM positioning templates, and best-practice guides.",
+  },
+  {
+    title: "Technical Support",
+    description:
+      "Priority incident response, integration help, and launch QA coverage.",
+  },
+  {
+    title: "Business Consulting",
+    description:
+      "Assistance with assortment strategy, pricing elasticity, and packaging alignment.",
+  },
+] as const;
+
+const testimonials = [
+  {
+    name: "Maria Popescu",
+    company: "EduTech Solutions",
+    quote:
+      "TechTots transformed our go-to-market approach. Their merchandising and analytics drove a 3x uplift in 90 days.",
+    growth: "+300%",
+  },
+  {
+    name: "Alexandru Ionescu",
+    company: "Science Toys Pro",
+    quote:
+      "From photography to launch campaigns, every touchpoint felt premium. The team is deeply invested in our success.",
+    growth: "+250%",
+  },
+  {
+    name: "Elena Dumitrescu",
+    company: "Learning Innovations",
+    quote:
+      "Compliance and storytelling support made our STEM kits stand out. We gained national visibility almost instantly.",
+    growth: "+400%",
+  },
+] as const;
+
+const successStats = [
+  {
+    metric: "500+",
+    label: "Active STEM Suppliers",
+    description: "Curated network of verified partners",
+  },
+  {
+    metric: "62%",
+    label: "Conversion Lift",
+    description: "Average uplift from TechTots merchandising",
+  },
+  {
+    metric: "18",
+    label: "Launch Playbooks",
+    description: "Seasonal and thematic activation templates",
+  },
+  {
+    metric: "72%",
+    label: "Catalog Expansion",
+    description: "Partners expanding SKUs within 6 months",
+  },
+] as const;
 
 export function SupplierBenefits() {
-  const mainBenefits = [
-    {
-      icon: Users,
-      title: "Growing Customer Base",
-      description:
-        "Access thousands of families and educators actively seeking quality STEM toys",
-      stats: "50K+ customers",
-      color: "from-blue-500 to-indigo-600",
-    },
-    {
-      icon: TrendingUp,
-      title: "Revenue Growth",
-      description:
-        "Increase your sales with our proven platform and marketing support",
-      stats: "300% average growth",
-      color: "from-green-500 to-emerald-600",
-    },
-    {
-      icon: Shield,
-      title: "Professional Platform",
-      description:
-        "Benefit from our established e-commerce infrastructure and security",
-      stats: "99.9% uptime",
-      color: "from-purple-500 to-violet-600",
-    },
-    {
-      icon: Clock,
-      title: "Quick Onboarding",
-      description:
-        "Get started quickly with our streamlined setup and training process",
-      stats: "1-2 weeks setup",
-      color: "from-orange-500 to-amber-600",
-    },
-  ];
-
-  const platformFeatures = [
-    {
-      icon: BarChart3,
-      title: "Advanced Analytics",
-      description:
-        "Comprehensive sales reports, customer insights, and performance metrics",
-    },
-    {
-      icon: MessageSquare,
-      title: "Dedicated Support",
-      description: "Personalized support from our team to help you succeed",
-    },
-    {
-      icon: Settings,
-      title: "Easy Management",
-      description:
-        "User-friendly dashboard for managing products, orders, and inventory",
-    },
-    {
-      icon: Target,
-      title: "Marketing Support",
-      description:
-        "Promotional campaigns and marketing assistance to boost sales",
-    },
-  ];
-
-  const successMetrics = [
-    {
-      metric: "500+",
-      label: "Active Suppliers",
-      description: "Growing network of trusted partners",
-    },
-    {
-      metric: "50K+",
-      label: "Happy Customers",
-      description: "Loyal customer base across Romania",
-    },
-    {
-      metric: "10K+",
-      label: "Products Listed",
-      description: "Diverse catalog of STEM toys",
-    },
-    {
-      metric: "98%",
-      label: "Satisfaction Rate",
-      description: "High customer satisfaction scores",
-    },
-  ];
-
-  const supportFeatures = [
-    {
-      title: "24/7 Platform Access",
-      description:
-        "Manage your business anytime, anywhere with our always-available platform",
-    },
-    {
-      title: "Training & Resources",
-      description: "Comprehensive training materials and best practices guides",
-    },
-    {
-      title: "Technical Support",
-      description:
-        "Expert technical support for platform and integration issues",
-    },
-    {
-      title: "Business Consulting",
-      description:
-        "Strategic advice to help optimize your performance and growth",
-    },
-  ];
-
-  const testimonials = [
-    {
-      name: "Maria Popescu",
-      company: "EduTech Solutions",
-      content:
-        "TechTots has transformed our business. We've seen a 300% increase in sales since joining their platform.",
-      rating: 5,
-      growth: "+300%",
-    },
-    {
-      name: "Alexandru Ionescu",
-      company: "Science Toys Pro",
-      content:
-        "The platform is incredibly user-friendly and the support team is always helpful. Highly recommended!",
-      rating: 5,
-      growth: "+250%",
-    },
-    {
-      name: "Elena Dumitrescu",
-      company: "Learning Innovations",
-      content:
-        "TechTots helped us reach customers we never could have reached on our own. Excellent partnership!",
-      rating: 5,
-      growth: "+400%",
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
-        <div className="relative container mx-auto px-4 py-20 lg:py-32">
-          <div className="max-w-4xl mx-auto text-center">
-            <Badge variant="secondary" className="mb-6">
-              <Star className="w-4 h-4 mr-2" />
+    <>
+      <section className="container mx-auto px-4 pb-12 pt-20 sm:px-6 lg:px-12 lg:pb-16 lg:pt-24">
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/80 via-indigo-900/70 to-slate-950/90 p-6 shadow-2xl shadow-black/40 sm:p-10">
+          <div className="absolute inset-y-0 right-0 hidden w-1/3 rounded-full bg-emerald-500/15 blur-3xl lg:block" />
+          <div className="relative mx-auto max-w-4xl text-center">
+            <Badge className="mb-4 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-200 sm:text-sm">
               Partnership Benefits
             </Badge>
-            <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Why Choose <span className="text-blue-600">TechTots</span>?
+            <h1 className="text-3xl font-bold leading-tight text-white sm:text-4xl lg:text-5xl">
+              Why STEM creators partner with{" "}
+              <span className="bg-gradient-to-r from-emerald-300 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
+                TechTots
+              </span>
             </h1>
-            <p className="text-xl lg:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Join our network of successful suppliers and benefit from our
-              professional platform, growing customer base, and comprehensive
-              support system.
+            <p className="mt-4 text-sm text-slate-200 sm:text-base lg:text-lg">
+              Access a premium marketplace engineered for experiential learning. We
+              combine pedagogy, performance marketing, and collaborative merchandising
+              to accelerate your business with clarity.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <Button
+                asChild
+                size="lg"
+                className="rounded-2xl bg-gradient-to-r from-emerald-500 via-sky-500 to-indigo-500 px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:from-emerald-400 hover:via-sky-400 hover:to-indigo-400 sm:text-base"
+              >
                 <Link href="/supplier/apply">
                   Start Application
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="rounded-2xl border border-white/40 bg-white/5 px-7 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10 sm:text-base"
+              >
                 <Link href="/supplier/requirements">View Requirements</Link>
               </Button>
             </div>
@@ -196,103 +206,64 @@ export function SupplierBenefits() {
         </div>
       </section>
 
-      {/* Main Benefits */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Key Benefits
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover why leading STEM toy suppliers choose TechTots as their
-              preferred platform.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {mainBenefits.map((benefit, index) => (
-              <Card
-                key={index}
-                className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group"
-              >
-                <CardHeader className="text-center">
-                  <div
-                    className={`w-16 h-16 bg-gradient-to-br ${benefit.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200`}
-                  >
-                    <benefit.icon className="w-8 h-8 text-white" />
-                  </div>
-                  <CardTitle className="text-xl">{benefit.title}</CardTitle>
-                  <Badge variant="secondary" className="w-fit mx-auto">
+      <section className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {mainBenefits.map(benefit => (
+            <Card
+              key={benefit.title}
+              className="rounded-3xl border border-white/10 bg-white/5 shadow-lg shadow-black/25"
+            >
+              <CardHeader className="space-y-4">
+                <div
+                  className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br ${benefit.accent} shadow-lg shadow-black/30`}
+                >
+                  <benefit.icon className="h-6 w-6" />
+                </div>
+                <div className="text-center">
+                  <CardTitle className="text-lg text-white">{benefit.title}</CardTitle>
+                  <Badge className="mt-1 rounded-full border border-white/20 bg-white/10 text-xs text-white">
                     {benefit.stats}
                   </Badge>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base text-gray-600">
-                    {benefit.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-sm text-slate-200">
+                  {benefit.description}
+                </CardDescription>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
 
-      {/* Success Metrics */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Platform Success
+      <section className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/25 sm:p-10">
+          <div className="text-center">
+            <Badge className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-200 sm:text-sm">
+              Platform Advantages
+            </Badge>
+            <h2 className="mt-4 text-2xl font-semibold text-white sm:text-3xl">
+              Everything you need to scale in one operating system
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Join a thriving marketplace with proven results and growing
-              success.
+            <p className="mt-3 text-sm text-slate-200 sm:text-base">
+              Data, creative, and operations work in concert to tell your STEM story and
+              maximise repeat purchase potential.
             </p>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {successMetrics.map((metric, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl lg:text-5xl font-bold text-blue-600 mb-2">
-                  {metric.metric}
-                </div>
-                <div className="text-lg font-semibold text-gray-900 mb-1">
-                  {metric.label}
-                </div>
-                <div className="text-sm text-gray-600">
-                  {metric.description}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Platform Features */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Platform Features
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Everything you need to succeed in one comprehensive platform.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {platformFeatures.map((feature, index) => (
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            {platformFeatures.map(feature => (
               <Card
-                key={index}
-                className="border-0 shadow-lg hover:shadow-xl transition-shadow"
+                key={feature.title}
+                className="rounded-2xl border border-white/10 bg-white/5 shadow-inner shadow-black/20"
               >
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <feature.icon className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
+                <CardHeader className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/20 text-sky-200">
+                    <feature.icon className="h-6 w-6" />
                   </div>
+                  <CardTitle className="text-lg text-white">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-base text-gray-600">
+                  <CardDescription className="text-sm text-slate-200">
                     {feature.description}
                   </CardDescription>
                 </CardContent>
@@ -302,76 +273,79 @@ export function SupplierBenefits() {
         </div>
       </section>
 
-      {/* Support Features */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Comprehensive Support
+      <section className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16">
+        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-indigo-900/70 via-slate-950/80 to-slate-950/90 p-6 shadow-2xl shadow-black/30 sm:p-10">
+          <div className="text-center">
+            <Badge className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-200 sm:text-sm">
+              Revenue Engine
+            </Badge>
+            <h2 className="mt-4 text-2xl font-semibold text-white sm:text-3xl">
+              Proven compounding impact for STEM specialists
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We're here to help you succeed every step of the way.
+            <p className="mt-3 text-sm text-slate-200 sm:text-base">
+              Your growth is fuelled by collaborative campaigns, cross-category expansion,
+              and retention journeys tuned for experiential learning.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {supportFeatures.map((feature, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <CheckCircle className="w-6 h-6 text-green-600 mt-1 flex-shrink-0" />
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        {feature.title}
-                      </h3>
-                      <p className="text-gray-600">{feature.description}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {successStats.map(stat => (
+              <div
+                key={stat.label}
+                className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center shadow-inner shadow-black/25"
+              >
+                <p className="text-3xl font-semibold text-sky-200 sm:text-4xl">
+                  {stat.metric}
+                </p>
+                <p className="mt-2 text-sm font-semibold text-white">{stat.label}</p>
+                <p className="mt-1 text-xs text-slate-200">{stat.description}</p>
+              </div>
             ))}
+          </div>
+          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Button
+              asChild
+              size="lg"
+              className="rounded-2xl bg-white/90 px-7 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-white/20 transition hover:bg-white sm:text-base"
+            >
+              <Link href="/supplier/apply">Start earning today</Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="rounded-2xl border border-white/40 bg-white/5 px-7 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10 sm:text-base"
+            >
+              <Link href="/supplier/registration-success">See onboarding timeline</Link>
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Success Stories
+      <section className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20 sm:p-10">
+          <div className="text-center">
+            <Badge className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-200 sm:text-sm">
+              Support Ecosystem
+            </Badge>
+            <h2 className="mt-4 text-2xl font-semibold text-white sm:text-3xl">
+              Dedicated experts from day zero through scale
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Hear from our successful suppliers about their experience with
-              TechTots.
+            <p className="mt-3 text-sm text-slate-200 sm:text-base">
+              Every supplier receives human support plus a full content library tailored to STEM
+              product excellence.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className="w-5 h-5 text-yellow-400 fill-current"
-                        />
-                      ))}
-                    </div>
-                    <Badge className="bg-green-100 text-green-800">
-                      {testimonial.growth} Growth
-                    </Badge>
-                  </div>
-                  <p className="text-gray-600 mb-4 italic">
-                    "{testimonial.content}"
-                  </p>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            {supportFeatures.map(feature => (
+              <Card
+                key={feature.title}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/40 to-slate-950/60 shadow-inner shadow-black/25"
+              >
+                <CardContent className="flex items-start gap-4 p-6">
+                  <CheckCircle className="h-6 w-6 text-emerald-300" />
                   <div>
-                    <div className="font-semibold text-gray-900">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {testimonial.company}
-                    </div>
+                    <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
+                    <p className="mt-2 text-sm text-slate-200">{feature.description}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -380,48 +354,91 @@ export function SupplierBenefits() {
         </div>
       </section>
 
-      {/* Revenue Potential */}
-      <section className="py-20 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-            Revenue Potential
-          </h2>
-          <p className="text-xl text-indigo-100 mb-8 max-w-3xl mx-auto">
-            Our suppliers see significant revenue growth through our platform.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-              <DollarSign className="w-12 h-12 text-white mx-auto mb-4" />
-              <div className="text-3xl font-bold text-white mb-2">€50K+</div>
-              <div className="text-indigo-100">Average Monthly Revenue</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-              <TrendingUp className="w-12 h-12 text-white mx-auto mb-4" />
-              <div className="text-3xl font-bold text-white mb-2">300%</div>
-              <div className="text-indigo-100">Average Growth Rate</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-              <Users className="w-12 h-12 text-white mx-auto mb-4" />
-              <div className="text-3xl font-bold text-white mb-2">10K+</div>
-              <div className="text-indigo-100">New Customers Monthly</div>
-            </div>
+      <section className="container mx-auto px-4 pb-16 sm:px-6 lg:px-12">
+        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-indigo-900/70 via-slate-950/80 to-slate-950/90 p-6 shadow-2xl shadow-black/30 sm:p-10">
+          <div className="text-center">
+            <Badge className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-200 sm:text-sm">
+              Partner Voices
+            </Badge>
+            <h2 className="mt-4 text-2xl font-semibold text-white sm:text-3xl">
+              “More than a marketplace—TechTots is a growth partner.”
+            </h2>
+            <p className="mt-3 text-sm text-slate-200 sm:text-base">
+              Real stories from brands scaling experiential learning across Romania and beyond.
+            </p>
           </div>
-          <Button
-            size="lg"
-            className="bg-white text-indigo-700 hover:bg-indigo-50 border-2 border-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-            asChild
-          >
-            <Link href="/supplier/apply">
-              Start Earning Today
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Link>
-          </Button>
+          <div className="mt-10 grid gap-6 lg:grid-cols-3">
+            {testimonials.map(testimonial => (
+              <Card
+                key={testimonial.name}
+                className="flex h-full flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left shadow-inner shadow-black/20"
+              >
+                <p className="text-sm italic text-slate-200">“{testimonial.quote}”</p>
+                <div className="mt-6 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-white">{testimonial.name}</p>
+                    <p className="text-xs text-slate-300">{testimonial.company}</p>
+                  </div>
+                  <Badge className="rounded-full border border-emerald-400/40 bg-emerald-500/15 text-xs font-semibold text-emerald-200">
+                    {testimonial.growth}
+                  </Badge>
+                </div>
+              </Card>
+            ))}
+          </div>
+          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Button
+              asChild
+              size="lg"
+              className="rounded-2xl bg-white/90 px-7 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-white/20 transition hover:bg-white sm:text-base"
+            >
+              <Link href="/supplier/apply">Become a TechTots supplier</Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="rounded-2xl border border-white/40 bg-white/5 px-7 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10 sm:text-base"
+            >
+              <Link href="/supplier/registration-success">Understand the review process</Link>
+            </Button>
+          </div>
         </div>
       </section>
-    </div>
+
+      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 py-12 sm:py-16">
+        <div className="pointer-events-none absolute inset-0 bg-black/10" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        <div className="container relative mx-auto px-4 text-center sm:px-6 lg:px-12">
+          <h2 className="text-2xl font-semibold text-white sm:text-3xl lg:text-4xl">
+            Ready to join the TechTots supplier ecosystem?
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm text-emerald-100 sm:text-base lg:text-lg">
+            Submit your application and we’ll schedule an introductory call within 48 hours.
+            Let’s build the future of experiential learning together.
+          </p>
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Button
+              asChild
+              size="lg"
+              className="bg-white text-emerald-700 hover:bg-emerald-50 border-2 border-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base px-6 py-3 rounded-2xl"
+            >
+              <Link href="/supplier/apply">
+                Apply now
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-white text-white hover:bg-white/10 rounded-2xl px-6 py-3 text-sm sm:text-base"
+            >
+              <Link href="/supplier/requirements">Review eligibility</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

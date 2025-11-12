@@ -57,6 +57,13 @@ const MobileConversionOptimizer = dynamic(
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import type { Product } from "@/types/product";
+import {
+  glassPanelClass,
+  homeBackgroundClass,
+  homeContentWrapperClass,
+  homeOverlayBottomClass,
+  homeOverlayTopClass,
+} from "@/features/home/components/homeTheme";
 
 // Define categories data
 const categories = [
@@ -304,73 +311,79 @@ export default function HomePageClient({
   ];
 
   return (
-    <div className="flex flex-col">
+    <div className={homeBackgroundClass}>
       <SeoJsonLd data={jsonLd} />
-      {/* Performance Optimizer - Loads first for optimal Core Web Vitals */}
-      <PerformanceOptimizer />
+      <div className={homeOverlayTopClass} aria-hidden />
+      <div className={homeOverlayBottomClass} aria-hidden />
+      <div className={homeContentWrapperClass}>
+        {/* Performance Optimizer - Loads first for optimal Core Web Vitals */}
+        <PerformanceOptimizer />
 
-      {/* **PERFORMANCE**: Hero Section - Critical for FCP */}
-      <HeroSection t={t} />
+        {/* **PERFORMANCE**: Hero Section - Critical for FCP */}
+        <HeroSection t={t} />
 
-      {/* **PERFORMANCE**: Trust badges and age links - Keep above fold for UX but optimize loading */}
-      <div className="-mt-4 sm:-mt-6 mb-6 sm:mb-8">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto w-full max-w-5xl bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85 shadow-sm border border-border rounded-2xl p-4 sm:p-6 lg:p-7">
-            {/* Trust badges row */}
-            <TrustBadgesRow t={t} />
+        {/* **PERFORMANCE**: Trust badges and age links - Keep above fold for UX but optimize loading */}
+        <div className="-mt-3 sm:-mt-5 mb-6 sm:mb-8">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div
+              className={`${glassPanelClass} mx-auto w-full max-w-5xl p-3.5 sm:p-6 lg:p-7`}
+            >
+              {/* Trust badges row */}
+              <TrustBadgesRow t={t} />
 
-            {/* Subtle divider */}
-            <div className="my-3 sm:my-4 border-t border-border"></div>
+              {/* Subtle divider */}
+              <div className="my-3 sm:my-4 border-t border-white/10"></div>
 
-            {/* Age quick links row */}
-            <AgeQuickLinksRow t={t} />
+              {/* Age quick links row */}
+              <AgeQuickLinksRow t={t} />
+            </div>
           </div>
         </div>
+
+        {/* **PERFORMANCE**: Defer non-critical sections below the fold */}
+        <Suspense
+          fallback={
+            <div className="mx-4 max-w-7xl animate-pulse rounded-xl bg-white/5 backdrop-blur sm:mx-6 lg:mx-8"></div>
+          }
+        >
+          <PillarSection />
+        </Suspense>
+
+        <Suspense
+          fallback={
+            <div className="mx-4 max-w-7xl animate-pulse rounded-xl bg-white/5 backdrop-blur sm:mx-6 lg:mx-8"></div>
+          }
+        >
+          <CategoriesSection categories={categories} t={t} />
+        </Suspense>
+
+        <Suspense
+          fallback={
+            <div className="mx-4 max-w-7xl animate-pulse rounded-xl bg-white/5 backdrop-blur sm:mx-6 lg:mx-8"></div>
+          }
+        >
+          <ValuePropositionSection t={t} />
+        </Suspense>
+
+        {/* Risk Reversal Section - Guarantees and Consultation */}
+        <RiskReversalSection t={t} />
+
+        {/* Featured Products Accordion - Load with suspense for better performance */}
+        <Suspense fallback={<FeaturedProductsLoader />}>
+          <FeaturedProductsAccordion
+            products={initialFeaturedProducts}
+            formatPrice={formatPrice}
+            t={t}
+            isLoading={initialFeaturedProducts.length === 0}
+          />
+        </Suspense>
+
+        {/* Supplier Banner - Only visible on Home page */}
+        <SupplierBanner t={t} />
+
+        {/* Mobile Conversion Optimizer - Sticky CTAs, trust indicators, etc. */}
+        <MobileConversionOptimizer t={t} />
       </div>
-
-      {/* **PERFORMANCE**: Defer non-critical sections below the fold */}
-      <Suspense
-        fallback={
-          <div className="h-32 bg-muted animate-pulse rounded-xl mx-4 sm:mx-6 lg:mx-8 max-w-7xl"></div>
-        }
-      >
-        <PillarSection />
-      </Suspense>
-
-      <Suspense
-        fallback={
-          <div className="h-48 bg-muted animate-pulse rounded-xl mx-4 sm:mx-6 lg:mx-8 max-w-7xl"></div>
-        }
-      >
-        <CategoriesSection categories={categories} t={t} />
-      </Suspense>
-
-      <Suspense
-        fallback={
-          <div className="h-64 bg-muted animate-pulse rounded-xl mx-4 sm:mx-6 lg:mx-8 max-w-7xl"></div>
-        }
-      >
-        <ValuePropositionSection t={t} />
-      </Suspense>
-
-      {/* Risk Reversal Section - Guarantees and Consultation */}
-      <RiskReversalSection t={t} />
-
-      {/* Featured Products Accordion - Load with suspense for better performance */}
-      <Suspense fallback={<FeaturedProductsLoader />}>
-        <FeaturedProductsAccordion
-          products={initialFeaturedProducts}
-          formatPrice={formatPrice}
-          t={t}
-          isLoading={initialFeaturedProducts.length === 0}
-        />
-      </Suspense>
-
-      {/* Supplier Banner - Only visible on Home page */}
-      <SupplierBanner t={t} />
-
-      {/* Mobile Conversion Optimizer - Sticky CTAs, trust indicators, etc. */}
-      <MobileConversionOptimizer t={t} />
     </div>
   );
 }

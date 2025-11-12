@@ -2,6 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import {
+  // glassCardClass,
+  gradientButtonClass,
+} from "@/features/home/components/homeTheme";
 
 interface MobileConversionOptimizerProps {
   t: (key: string, defaultValue?: string) => string;
@@ -55,13 +59,12 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
       {/* Mobile Sticky CTA Bar - Only visible on mobile after scroll */}
       {isVisible && (
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-          <div className="bg-white border-t border-gray-200 shadow-2xl px-4 py-3">
-            <div className="flex items-center justify-between gap-3 max-w-sm mx-auto">
-              {/* Primary CTA */}
+          <div className="border-t border-white/10 bg-slate-950/90 px-4 py-3 backdrop-blur">
+            <div className="mx-auto flex max-w-sm items-center justify-between gap-3">
               <Link
                 href="/products"
                 onClick={() => trackConversion("sticky_primary", "mobile_bar")}
-                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-center text-sm"
+                className={`${gradientButtonClass} flex-1 px-4 py-3 text-sm font-semibold`}
               >
                 <div className="flex items-center justify-center gap-2">
                   <span>🚀</span>
@@ -69,13 +72,12 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
                 </div>
               </Link>
 
-              {/* Secondary CTA */}
               <Link
                 href="/contact"
                 onClick={() =>
                   trackConversion("sticky_secondary", "mobile_bar")
                 }
-                className="flex-1 bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 font-semibold py-3 px-4 rounded-xl transition-all duration-300 text-center text-sm"
+                className="flex-1 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-center text-sm font-semibold text-white/90 transition hover:border-white/30 hover:bg-white/15"
               >
                 <div className="flex items-center justify-center gap-2">
                   <span>📞</span>
@@ -83,7 +85,6 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
                 </div>
               </Link>
 
-              {/* Close Button */}
               <button
                 onClick={() => {
                   setIsVisible(false);
@@ -91,11 +92,11 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
                     localStorage.setItem("home-sticky-cta-dismissed", "true");
                   } catch {}
                 }}
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="rounded-full p-2 text-white/60 transition hover:text-white"
                 aria-label="Închide"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="h-5 w-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -110,11 +111,10 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
               </button>
             </div>
 
-            {/* Guarantee Badge */}
-            <div className="text-center mt-2">
-              <span className="inline-flex items-center gap-1 text-xs text-gray-600">
+            <div className="mt-2 text-center text-xs text-slate-200/80">
+              <span className="inline-flex items-center gap-1">
                 <svg
-                  className="w-3 h-3 text-green-500"
+                  className="h-3 w-3 text-emerald-300"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -133,14 +133,13 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
 
       {/* Mobile-First Trust Indicators */}
       <div className="block md:hidden">
-        <div className="bg-green-50 border-t border-green-200 py-4">
+        <div className="border-t border-white/10 bg-slate-950/70 py-4 backdrop-blur">
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-center gap-6 text-center">
-              {/* Trust Badge 1 */}
+            <div className="flex items-center justify-center gap-6 text-center text-white/85">
               <div className="flex flex-col items-center">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mb-1">
+                <div className="mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400/40 via-sky-400/40 to-indigo-400/40 text-white">
                   <svg
-                    className="w-4 h-4 text-green-600"
+                    className="h-4 w-4"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -151,32 +150,26 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
                     />
                   </svg>
                 </div>
-                <span className="text-xs font-medium text-gray-700">
-                  Garanție
-                </span>
+                <span className="text-xs font-medium">Garanție</span>
               </div>
 
-              {/* Trust Badge 2 */}
               <div className="flex flex-col items-center">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-1">
+                <div className="mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-sky-400/40 via-indigo-400/40 to-fuchsia-400/40 text-white">
                   <svg
-                    className="w-4 h-4 text-blue-600"
+                    className="h-4 w-4"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <span className="text-xs font-medium text-gray-700">
-                  Calitate
-                </span>
+                <span className="text-xs font-medium">Calitate</span>
               </div>
 
-              {/* Trust Badge 3 */}
               <div className="flex flex-col items-center">
-                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mb-1">
+                <div className="mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400/40 via-fuchsia-400/40 to-purple-400/40 text-white">
                   <svg
-                    className="w-4 h-4 text-purple-600"
+                    className="h-4 w-4"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -187,16 +180,13 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
                     />
                   </svg>
                 </div>
-                <span className="text-xs font-medium text-gray-700">
-                  Suport
-                </span>
+                <span className="text-xs font-medium">Suport</span>
               </div>
 
-              {/* Trust Badge 4 */}
               <div className="flex flex-col items-center">
-                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mb-1">
+                <div className="mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/40 via-orange-400/40 to-rose-400/40 text-white">
                   <svg
-                    className="w-4 h-4 text-orange-600"
+                    className="h-4 w-4"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -207,7 +197,7 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
                     />
                   </svg>
                 </div>
-                <span className="text-xs font-medium text-gray-700">Rapid</span>
+                <span className="text-xs font-medium">Rapid</span>
               </div>
             </div>
           </div>
@@ -229,13 +219,11 @@ function MobileConversionOptimizer({ t }: MobileConversionOptimizerProps) {
       </div>
 
       {/* Mobile-Only Urgency Banner */}
-      <div className="block md:hidden bg-gradient-to-r from-orange-500 to-red-500 text-white py-2">
+      <div className="block md:hidden bg-gradient-to-r from-rose-500/80 via-orange-500/80 to-amber-500/80 py-2 text-white shadow-lg shadow-rose-500/30">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center gap-2 text-sm font-medium">
             <span className="animate-pulse">🔥</span>
-            <span>
-              Locuri limitate pentru consultarea gratuită luna aceasta!
-            </span>
+            <span>Locuri limitate pentru consultarea gratuită luna aceasta!</span>
             <span className="animate-pulse">🔥</span>
           </div>
         </div>

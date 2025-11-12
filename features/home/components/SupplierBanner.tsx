@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import React from "react";
+import {
+  glassCardClass,
+  glassPanelClass,
+  gradientButtonClass,
+} from "@/features/home/components/homeTheme";
 
 interface SupplierBannerProps {
   t: (key: string, defaultValue?: string) => string;
@@ -25,7 +30,7 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
           viewBox="0 0 24 24"
           strokeWidth={1.5}
           stroke="currentColor"
-          className="w-5 h-5 sm:w-6 sm:h-6"
+          className="h-5 w-5 sm:h-6 sm:w-6"
         >
           <path
             strokeLinecap="round"
@@ -45,7 +50,7 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
           viewBox="0 0 24 24"
           strokeWidth={1.5}
           stroke="currentColor"
-          className="w-5 h-5 sm:w-6 sm:h-6"
+          className="h-5 w-5 sm:h-6 sm:w-6"
         >
           <path
             strokeLinecap="round"
@@ -65,7 +70,7 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
           viewBox="0 0 24 24"
           strokeWidth={1.5}
           stroke="currentColor"
-          className="w-5 h-5 sm:w-6 sm:h-6"
+          className="h-5 w-5 sm:h-6 sm:w-6"
         >
           <path
             strokeLinecap="round"
@@ -83,115 +88,103 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
   ];
 
   return (
-    <section className="py-4 sm:py-6 md:py-8 lg:py-12 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/20">
-      <div className="container mx-auto px-4 max-w-7xl">
-        {/* Main Banner Content */}
-        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 shadow-lg sm:shadow-xl lg:shadow-2xl">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.4%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+    <section className="py-6 sm:py-8 md:py-10 lg:py-12">
+      <div className="container mx-auto max-w-7xl px-4">
+        <div
+          className={`${glassPanelClass} relative overflow-hidden rounded-3xl border-white/15 bg-gradient-to-br from-slate-950/95 via-indigo-950/85 to-slate-900/90 text-slate-100`}
+        >
+          <div className="absolute inset-0 opacity-60">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.2),_transparent_55%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(165,180,252,0.2),_transparent_60%)]" />
           </div>
 
-          {/* Content Container */}
-          <div className="relative z-10 px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 lg:px-12 lg:py-12">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8 lg:gap-12 items-center">
-              {/* Left Side - Text Content */}
-              <div className="text-center lg:text-left">
-                <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white/90 backdrop-blur-sm mb-2 sm:mb-3 md:mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-4 h-4 mr-2"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .414.336.75.75.75z"
-                    />
-                  </svg>
-                  {t("supplier_opportunity", "Oportunitate de Afaceri")}
-                </div>
-
-                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
-                  {t("supplier_banner_title", "Devino Furnizor TechTots")}
-                </h2>
-
-                <p className="text-xs sm:text-sm md:text-base lg:text-lg text-white/90 mb-3 sm:mb-4 md:mb-6 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                  {t(
-                    "supplier_banner_subtitle",
-                    "Alătură-te rețelei noastre de furnizori și ajută la educarea generațiilor viitoare cu jucării STEM de calitate."
-                  )}
-                </p>
-
-                {/* CTA Button */}
-                <Link
-                  href="/supplier"
-                  aria-label={t("become_supplier")}
-                  tabIndex={0}
-                  data-conversion="cta"
-                  data-conversion-type="click"
-                  data-conversion-category="supplier_banner"
-                  data-conversion-action="become_supplier"
-                  data-conversion-element="supplier_banner_button"
-                  className="inline-flex items-center justify-center px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 bg-white text-blue-600 hover:bg-gray-50 font-semibold text-sm sm:text-base md:text-lg rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600 group"
+          <div className="relative z-10 grid grid-cols-1 items-center gap-6 px-6 py-8 sm:gap-8 sm:px-8 sm:py-10 lg:grid-cols-2 lg:gap-12 lg:px-12 lg:py-12">
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="h-4 w-4"
                 >
-                  {t("become_supplier")}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2 md:ml-3 transform transition-transform group-hover:translate-x-1"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                    />
-                  </svg>
-                </Link>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 013.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .414.336.75.75.75z"
+                  />
+                </svg>
+                {t("supplier_opportunity", "Oportunitate de Afaceri")}
               </div>
 
-              {/* Right Side - Benefits Grid */}
-              <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
-                {benefits.map((benefit, index) => (
-                  <div
-                    key={index}
-                    className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl lg:rounded-2xl p-2 sm:p-3 md:p-4 lg:p-6 text-center hover:bg-white/20 transition-all duration-300 hover:scale-105 group cursor-pointer"
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`${benefit.title}: ${benefit.description}`}
-                    onKeyDown={e => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        window.location.href = "/supplier";
-                      }
-                    }}
-                    onClick={() => (window.location.href = "/supplier")}
-                  >
-                    {/* Icon */}
-                    <div className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 bg-white/20 rounded-lg sm:rounded-xl lg:rounded-2xl mb-2 sm:mb-3 group-hover:bg-white/30 transition-colors duration-300">
-                      <div className="text-white group-hover:scale-110 transition-transform duration-300">
-                        {benefit.icon}
-                      </div>
-                    </div>
+              <h2 className="mt-4 bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-xl font-bold leading-tight text-transparent sm:text-2xl md:text-3xl lg:text-4xl">
+                {t("supplier_banner_title", "Devino Furnizor TechTots")}
+              </h2>
 
-                    {/* Title */}
-                    <h3 className="text-xs sm:text-sm md:text-base font-semibold text-white mb-1 sm:mb-2 leading-tight truncate">
-                      {benefit.title}
-                    </h3>
+              <p className="mt-4 text-sm text-slate-200/85 sm:text-base lg:text-lg">
+                {t(
+                  "supplier_banner_subtitle",
+                  "Alătură-te rețelei noastre de furnizori și ajută la educarea generațiilor viitoare cu jucării STEM de calitate."
+                )}
+              </p>
 
-                    {/* Description */}
-                    <p className="text-[10px] sm:text-xs md:text-sm text-white/80 leading-tight line-clamp-2">
-                      {benefit.description}
-                    </p>
+              <Link
+                href="/supplier"
+                aria-label={t("become_supplier")}
+                tabIndex={0}
+                data-conversion="cta"
+                data-conversion-type="click"
+                data-conversion-category="supplier_banner"
+                data-conversion-action="become_supplier"
+                data-conversion-element="supplier_banner_button"
+                className={`${gradientButtonClass} mt-6 inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:text-base`}
+              >
+                {t("become_supplier")}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="h-5 w-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                  />
+                </svg>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-5">
+              {benefits.map((benefit, index) => (
+                <div
+                  key={index}
+                  className={`${glassCardClass} cursor-pointer rounded-2xl p-2 text-center transition duration-300 hover:border-emerald-400/60 hover:shadow-emerald-500/20 sm:p-3 md:p-4`}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`${benefit.title}: ${benefit.description}`}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      window.location.href = "/supplier";
+                    }
+                  }}
+                  onClick={() => (window.location.href = "/supplier")}
+                >
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400/40 via-sky-400/40 to-indigo-400/40 text-white shadow-emerald-500/20 transition-transform duration-300 hover:scale-105 sm:h-14 sm:w-14">
+                    {benefit.icon}
                   </div>
-                ))}
-              </div>
+                  <h3 className="text-xs font-semibold text-white sm:text-sm md:text-base">
+                    {benefit.title}
+                  </h3>
+                  <p className="mt-1 text-[0.65rem] text-slate-200/80 sm:text-xs">
+                    {benefit.description}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
