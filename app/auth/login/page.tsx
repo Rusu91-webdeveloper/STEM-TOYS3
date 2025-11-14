@@ -15,7 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Separator } from "@/components/ui/separator";
+import { AuthExperienceLayout } from "@/app/auth/components/AuthExperienceLayout";
 import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import { loginSchema } from "@/lib/validations";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -281,115 +283,130 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-6 max-w-md mx-auto">
+    <div className="space-y-6">
       <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold">{t("welcomeBack")}</h1>
-        <p className="text-muted-foreground">{t("signInCredentials")}</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-emerald-300/80">
+          {t("welcomeBack")}
+        </p>
+        <h2 className="text-3xl font-bold text-white">{t("signInCredentials")}</h2>
+        <p className="text-sm text-slate-300">
+          {t(
+            "loginHeroSubtitle",
+            "Blochează accesul la istoricul comenzilor, recompense și oferte exclusive."
+          )}
+        </p>
       </div>
 
-      <div className="w-full p-6 space-y-6 bg-card rounded-lg border shadow-sm">
-        {error && (
-          <div className="p-4 rounded-md bg-destructive/15 text-destructive border border-destructive/30 flex flex-col space-y-1">
-            <p className="font-medium">{t("signInFailed")}</p>
-            <p className="text-sm">{error}</p>
-            {error.includes("not verified") && (
-              <div className="mt-2 text-sm">
-                <p>
-                  Need a new verification email?{" "}
-                  <Link
-                    href="/auth/resend-verification"
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Resend verification
-                  </Link>
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {success && (
-          <div className="p-4 rounded-md bg-green-100 text-green-800 border border-green-200 flex items-start gap-3">
-            <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium">{t("authSuccess")}</p>
-              <p className="text-sm">{success}</p>
-            </div>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">{t("email")}</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder={t("emailPlaceholderExample")}
-              autoComplete="email"
-              {...register("email")}
-              className={errors.email ? "border-destructive" : ""}
-            />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">{t("password")}</Label>
-              <div className="flex flex-col items-end">
+      {error && (
+        <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-red-200">
+          <p className="font-medium">{t("signInFailed")}</p>
+          <p className="text-sm">{error}</p>
+          {error.includes("not verified") && (
+            <div className="mt-2 text-sm">
+              <p>
+                Need a new verification email?{" "}
                 <Link
-                  href="/auth/forgot-password"
-                  className="text-sm text-primary hover:underline"
+                  href="/auth/resend-verification"
+                  className="font-medium text-emerald-200 underline-offset-2 hover:underline"
                 >
-                  {t("forgotPassword")}
+                  Resend verification
                 </Link>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t("oauthUserHint")}
-                </p>
-              </div>
-            </div>
-            <PasswordInput
-              id="password"
-              placeholder={t("passwordPlaceholder")}
-              autoComplete="current-password"
-              {...register("password")}
-              className={errors.password ? "border-destructive" : ""}
-            />
-            {errors.password && (
-              <p className="text-sm text-destructive">
-                {errors.password.message}
               </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {success && (
+        <div className="flex items-start gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100">
+          <CheckCircle className="h-5 w-5 flex-shrink-0" />
+          <div>
+            <p className="font-medium">{t("authSuccess")}</p>
+            <p className="text-sm">{success}</p>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-slate-200">
+            {t("email")}
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder={t("emailPlaceholderExample")}
+            autoComplete="email"
+            {...register("email")}
+            className={cn("bg-transparent text-white placeholder:text-slate-400", {
+              "border-red-400 focus-visible:ring-red-400": Boolean(errors.email),
+            })}
+          />
+          {errors.email && (
+            <p className="text-sm text-red-300">{errors.email.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-slate-200">
+              {t("password")}
+            </Label>
+            <div className="flex flex-col items-end">
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm text-emerald-200 hover:text-emerald-100"
+              >
+                {t("forgotPassword")}
+              </Link>
+              <p className="mt-1 text-xs text-slate-400">{t("oauthUserHint")}</p>
+            </div>
+          </div>
+          <PasswordInput
+            id="password"
+            placeholder={t("passwordPlaceholder")}
+            autoComplete="current-password"
+            {...register("password")}
+            className={cn(
+              "bg-transparent text-white placeholder:text-slate-400",
+              errors.password && "border-red-400 focus-visible:ring-red-400"
             )}
-          </div>
-
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? t("signingIn") : t("signIn")}
-          </Button>
-        </form>
-
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <Separator className="w-full" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-card px-2 text-muted-foreground text-sm">
-              {t("orContinueWith")}
-            </span>
-          </div>
+          />
+          {errors.password && (
+            <p className="text-sm text-red-300">{errors.password.message}</p>
+          )}
         </div>
 
-        <GoogleSignInButton />
+        <Button
+          type="submit"
+          className="w-full bg-gradient-to-r from-emerald-400 via-sky-500 to-indigo-500 text-white shadow-lg shadow-emerald-500/40 hover:from-emerald-300 hover:via-sky-400 hover:to-indigo-400"
+          disabled={isLoading}
+        >
+          {isLoading ? t("signingIn") : t("signIn")}
+        </Button>
+      </form>
 
-        <div className="mt-4 text-center text-sm">
-          {t("dontHaveAccount")}{" "}
-          <Link
-            href="/auth/register"
-            className="font-medium text-primary hover:underline"
-          >
-            {t("createAccount")}
-          </Link>
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <Separator className="w-full bg-white/10" />
         </div>
+        <div className="relative flex justify-center">
+          <span className="bg-slate-900 px-2 text-sm text-slate-400">
+            {t("orContinueWith")}
+          </span>
+        </div>
+      </div>
+
+      <GoogleSignInButton />
+
+      <div className="text-center text-sm text-slate-300">
+        {t("dontHaveAccount")}{" "}
+        <Link
+          href="/auth/register"
+          className="font-medium text-emerald-200 hover:text-emerald-100"
+        >
+          {t("createAccount")}
+        </Link>
       </div>
     </div>
   );
@@ -400,29 +417,38 @@ function LoginFormFallback() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-6 max-w-md mx-auto">
-      <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold">{t("welcomeBack")}</h1>
-        <p className="text-muted-foreground">{t("signInCredentials")}</p>
-      </div>
-
-      <div className="w-full p-6 space-y-6 bg-card rounded-lg border shadow-sm">
-        <div className="animate-pulse">
-          <div className="h-10 bg-gray-200 rounded mb-4"></div>
-          <div className="h-10 bg-gray-200 rounded mb-4"></div>
-          <div className="h-10 bg-gray-200 rounded"></div>
-        </div>
+    <div className="space-y-4">
+      <div className="h-20 animate-pulse rounded-2xl bg-white/5" />
+      <div className="space-y-3 rounded-2xl border border-white/10 p-4">
+        <div className="h-4 animate-pulse rounded bg-white/10" />
+        <div className="h-4 animate-pulse rounded bg-white/10" />
+        <div className="h-10 animate-pulse rounded bg-white/10" />
       </div>
     </div>
   );
 }
 
 export default function LoginPage() {
+  const { t } = useTranslation();
+
   return (
-    <div className="container mx-auto py-10">
+    <AuthExperienceLayout
+      title={t(
+        "loginHeroTitle",
+        "Conectează-te la platforma părinților care cresc vizionari STEM"
+      )}
+      subtitle={t(
+        "loginHeroDescription",
+        "Gestionăm comenzile, garanțiile și recomandările inteligente într-un singur hub."
+      )}
+      highlight={t(
+        "loginHeroHighlight",
+        "Autentificarea îți activează suport prioritar și oferte personalizate."
+      )}
+    >
       <Suspense fallback={<LoginFormFallback />}>
         <LoginForm />
       </Suspense>
-    </div>
+    </AuthExperienceLayout>
   );
 }

@@ -6,14 +6,9 @@ const createJestConfig = nextJest({
 });
 
 // Add any custom config to be passed to Jest
-const customJestConfig = {
-  // Add more setup options before each test is run
+const sharedProjectConfig = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
-
-  // if using TypeScript with a baseUrl set to the root directory then you need the below for alias' to work
   moduleDirectories: ["node_modules", "<rootDir>/"],
-
-  // Module path mapping for absolute imports
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
     "^@/components/(.*)$": "<rootDir>/components/$1",
@@ -23,23 +18,35 @@ const customJestConfig = {
     "^@/hooks/(.*)$": "<rootDir>/hooks/$1",
     "^@/types/(.*)$": "<rootDir>/types/$1",
   },
+  transform: {
+    "^.+\\.(t|j)sx?$": ["babel-jest", { presets: ["next/babel"] }],
+  },
+};
+
+const customJestConfig = {
+  // Add more setup options before each test is run
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
 
   // Test environment - use different environments based on test location
   projects: [
     {
       displayName: "node",
       testEnvironment: "jest-environment-node",
+      ...sharedProjectConfig,
       testPathIgnorePatterns: [
         "<rootDir>/__tests__/features/",
         "<rootDir>/__tests__/components/",
+        "<rootDir>/__tests__/app/",
       ],
     },
     {
       displayName: "jsdom",
       testEnvironment: "jsdom",
+      ...sharedProjectConfig,
       testMatch: [
         "**/__tests__/features/**/*.test.(ts|tsx)",
         "**/__tests__/components/**/*.test.(ts|tsx)",
+        "**/__tests__/app/**/*.test.(ts|tsx)",
       ],
     },
   ],

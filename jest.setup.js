@@ -1,5 +1,5 @@
 // jest.setup.js
-import "@testing-library/jest-dom";
+require("@testing-library/jest-dom");
 
 // Mock next/router
 jest.mock("next/router", () => ({
@@ -60,6 +60,9 @@ process.env.NEXTAUTH_URL = "http://localhost:3000";
 
 // Global test utilities
 global.fetch = jest.fn();
+if (typeof window !== "undefined") {
+  window.fetch = global.fetch;
+}
 
 // Setup global mocks only in jsdom environment
 if (typeof window !== "undefined") {
@@ -83,6 +86,14 @@ if (typeof window !== "undefined") {
     unobserve: jest.fn(),
     disconnect: jest.fn(),
   }));
+
+  class ResizeObserverMock {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+
+  global.ResizeObserver = ResizeObserverMock;
 }
 
 // Mock console.warn for cleaner test output
