@@ -113,12 +113,12 @@ export function ProductActionButtons({
 
   return (
     <ProductActionButtonsErrorBoundary onError={handleError}>
-      <div className="flex items-center space-x-1 flex-shrink-0">
+      <div className="flex flex-shrink-0 items-center space-x-1">
         {/* Favorite Button - Now works for both products and books */}
         <Button
-          variant={isFavorited ? "default" : "outline"}
+          variant={isFavorited ? "default" : "ghost"}
           size="icon"
-          className={buttonSize}
+          className={`${buttonSize} border border-white/20 bg-white/10 text-slate-100 shadow-md shadow-primary/20 transition hover:bg-white/20`}
           onClick={onFavoriteClick}
           disabled={isFavoriteLoading}
           title={favoriteTitle}
@@ -132,9 +132,9 @@ export function ProductActionButtons({
 
         {/* Share Button */}
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className={buttonSize}
+          className={`${buttonSize} border border-white/15 bg-white/10 text-slate-100 shadow-md shadow-indigo-500/10 transition hover:bg-white/20`}
           onClick={onShareClick}
           title={shareTitle}
         >
@@ -144,12 +144,12 @@ export function ProductActionButtons({
         {/* Quick Add to Cart Button (optional) */}
         {onQuickAddToCart && (
           <Button
-            variant={justAddedToCart ? "default" : "outline"}
+            variant={justAddedToCart ? "default" : "ghost"}
             size="icon"
             className={`${buttonSize} transition-all ${
               justAddedToCart
                 ? "bg-green-600 hover:bg-green-700 border-green-600"
-                : ""
+                : "border border-emerald-200/30 bg-emerald-400/10 text-slate-100 shadow-md shadow-emerald-500/20 hover:bg-emerald-400/20"
             }`}
             onClick={onQuickAddToCart}
             disabled={isAddingToCart || justAddedToCart}

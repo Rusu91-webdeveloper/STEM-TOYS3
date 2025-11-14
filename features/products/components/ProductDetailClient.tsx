@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "@/lib/i18n";
 
+import { LazyProductReviews } from "@/components/lazy/client";
 import { ProductImageGallery } from "./ProductImageGallery";
 import { ProductBreadcrumb } from "./ProductBreadcrumb";
 import { ProductHeader } from "./ProductHeader";
@@ -12,15 +13,32 @@ import ProductSpecs from "./ProductSpecs";
 import ProductEducation from "./ProductEducation";
 import ProductFAQ from "./ProductFAQ";
 import { useProductActions } from "../hooks/useProductActions";
+import type { Review } from "./ProductReviews";
+import {
+  productBackgroundClass,
+  productContentWrapperClass,
+  productHeroGridClass,
+  productOverlayBottomClass,
+  productOverlayTopClass,
+  productPrimaryPanelClass,
+  productSecondaryPanelClass,
+  productSubSectionCardClass,
+} from "./productTheme";
 
 interface ProductDetailClientProps {
   product: any;
   relatedProducts?: any[];
+  initialReviews?: Review[];
+  userLoggedIn?: boolean;
+  isBook?: boolean;
 }
 
 export default function ProductDetailClient({
   product,
   relatedProducts = [],
+  initialReviews = [],
+  userLoggedIn = false,
+  isBook,
 }: ProductDetailClientProps) {
   const { t } = useTranslation();
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<
@@ -65,134 +83,117 @@ export default function ProductDetailClient({
     return product.category?.name || t("generalCategory");
   };
 
+  const derivedIsBook = Boolean(
+    isBook ??
+      (product.isBook ||
+        product.attributes?.author ||
+        product.tags?.includes("book"))
+  );
+
+  const resolvedReviewCount =
+    initialReviews.length > 0
+      ? initialReviews.length
+      : product.reviewCount || 0;
+
+  const resolvedAverageRating =
+    initialReviews.length > 0
+      ? initialReviews.reduce(
+          (total, review) => total + (Number(review.rating) || 0),
+          0
+        ) / initialReviews.length
+      : product.averageRating || 0;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8">
-        {/* Breadcrumb */}
-        <ProductBreadcrumb
-          categorySlug={product.category?.slug}
-          categoryName={getCategoryName()}
-          productName={product.name}
-          t={t}
-        />
+    <div className={productBackgroundClass}>
+      <div className={productOverlayTopClass} aria-hidden />
+      <div className={productOverlayBottomClass} aria-hidden />
 
-        {/* Hero Section - Picture, Name, Price, Description in Viewport */}
-        <div className="mb-8 sm:mb-12 lg:mb-16">
-          {/* Mobile Layout - Stacked */}
-          <div className="lg:hidden space-y-4 sm:space-y-6">
-            {/* Product Image */}
-            <div className="w-full">
-              <ProductImageGallery
-                images={product.images || []}
-                alt={product.name}
-                className="w-full"
-                metadata={product.imageMetadata?.map((m: any) => ({
-                  alt: m?.alt,
-                  tags: m?.tags,
-                }))}
-              />
+      <div className={productContentWrapperClass}>
+        <div className={productPrimaryPanelClass}>
+          {/* Breadcrumb */}
+          <ProductBreadcrumb
+            categorySlug={product.category?.slug}
+            categoryName={getCategoryName()}
+            productName={product.name}
+            t={t}
+          />
+
+          {/* Hero Section - Picture, Name, Price, Description */}
+          <div className="mt-6 space-y-6 lg:space-y-8">
+            <div className={productHeroGridClass}>
+              {/* Product Image */}
+              <div className={productSubSectionCardClass}>
+                <ProductImageGallery
+                  images={product.images || []}
+                  alt={product.name}
+                  className="w-full"
+                  metadata={product.imageMetadata?.map((m: any) => ({
+                    alt: m?.alt,
+                    tags: m?.tags,
+                  }))}
+                />
+              </div>
+
+              {/* Product Info */}
+              <div className="flex flex-col gap-4">
+                <div className={`${productSubSectionCardClass} space-y-4`}>
+                  <ProductHeader
+                    name={product.name}
+                    price={product.price}
+                    compareAtPrice={product.compareAtPrice}
+                    averageRating={resolvedAverageRating}
+                    reviewCount={resolvedReviewCount}
+                    totalSold={product.totalSold || 0}
+                    stockQuantity={product.stockQuantity || 0}
+                    isFavorited={isFavorited}
+                    isFavoriteLoading={isFavoriteLoading}
+                    isAddingToCart={isAddingToCart}
+                    justAddedToCart={justAddedToCart}
+                    onFavoriteClick={handleFavorite}
+                    onShareClick={handleShare}
+                    onQuickAddToCart={handleQuickAddToCart}
+                    isBook={derivedIsBook}
+                    t={t}
+                    size="md"
+                  />
+                </div>
+
+                <ProductDescription
+                  description={product.description}
+                  categoryName={getCategoryName()}
+                  t={t}
+                />
+              </div>
             </div>
 
-            {/* Product Info */}
-            <div className="space-y-3">
-              <ProductHeader
-                name={product.name}
-                price={product.price}
-                compareAtPrice={product.compareAtPrice}
-                averageRating={product.averageRating || 0}
-                reviewCount={product.reviewCount || 0}
-                totalSold={product.totalSold || 0}
-                stockQuantity={product.stockQuantity || 0}
-                isFavorited={isFavorited}
-                isFavoriteLoading={isFavoriteLoading}
-                isAddingToCart={isAddingToCart}
-                justAddedToCart={justAddedToCart}
-                onFavoriteClick={handleFavorite}
-                onShareClick={handleShare}
-                onQuickAddToCart={handleQuickAddToCart}
-                isBook={Boolean(
-                  product.isBook ||
-                    product.attributes?.author ||
-                    product.tags?.includes("book")
-                )}
-                t={t}
-                size="sm"
-              />
+            {/* Secondary Information - Below the Fold */}
+            <div className="space-y-6 lg:space-y-8">
+              <ProductSpecs product={product} />
 
-              <ProductDescription
-                description={product.description}
+              <ProductEducation product={product} />
+
+              <ProductFeatures
+                isFreeShippingActive={isFreeShippingActive}
+                freeShippingThreshold={freeShippingThreshold}
                 categoryName={getCategoryName()}
+                productSlug={product.slug}
                 t={t}
               />
-            </div>
-          </div>
 
-          {/* Desktop Layout - Side by Side */}
-          <div className="hidden lg:grid lg:grid-cols-2 gap-8 xl:gap-12">
-            {/* Product Images */}
-            <div className="space-y-4">
-              <ProductImageGallery
-                images={product.images || []}
-                alt={product.name}
-                className="w-full"
-                metadata={product.imageMetadata?.map((m: any) => ({
-                  alt: m?.alt,
-                  tags: m?.tags,
-                }))}
-              />
-            </div>
-
-            {/* Product Info */}
-            <div className="space-y-4">
-              <ProductHeader
-                name={product.name}
-                price={product.price}
-                compareAtPrice={product.compareAtPrice}
-                averageRating={product.averageRating || 0}
-                reviewCount={product.reviewCount || 0}
-                totalSold={product.totalSold || 0}
-                stockQuantity={product.stockQuantity || 0}
-                isFavorited={isFavorited}
-                isFavoriteLoading={isFavoriteLoading}
-                onFavoriteClick={handleFavorite}
-                onShareClick={handleShare}
-                isBook={Boolean(
-                  product.isBook ||
-                    product.attributes?.author ||
-                    product.tags?.includes("book")
-                )}
-                t={t}
-                size="md"
-              />
-
-              <ProductDescription
-                description={product.description}
-                categoryName={getCategoryName()}
-                t={t}
+              <ProductFAQ
+                faq={(product?.metadata?.seo?.faq as any) || undefined}
               />
             </div>
           </div>
         </div>
 
-        {/* Secondary Information - Below the Fold */}
-        <div className="space-y-8 sm:space-y-12">
-          {/* Specifications / Taxonomy / Brand / Tags */}
-          <ProductSpecs product={product} />
-
-          {/* Education (RO fields) */}
-          <ProductEducation product={product} />
-
-          {/* Product Features, Benefits, and Learn More */}
-          <ProductFeatures
-            isFreeShippingActive={isFreeShippingActive}
-            freeShippingThreshold={freeShippingThreshold}
-            categoryName={getCategoryName()}
-            productSlug={product.slug}
-            t={t}
+        <div className={productSecondaryPanelClass}>
+          <LazyProductReviews
+            productId={product.id}
+            reviews={initialReviews}
+            userLoggedIn={userLoggedIn}
+            className="space-y-6"
           />
-
-          {/* FAQ */}
-          <ProductFAQ faq={(product?.metadata?.seo?.faq as any) || undefined} />
         </div>
       </div>
     </div>

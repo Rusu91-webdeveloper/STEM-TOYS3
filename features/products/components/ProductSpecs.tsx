@@ -6,6 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n";
 
+import {
+  productBodyTextClass,
+  productDividerClass,
+  productMutedTextClass,
+  productSubSectionCardClass,
+  productTitleClass,
+} from "./productTheme";
+
 type ProductSpecsProps = {
   product: any;
 };
@@ -111,31 +119,37 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg border p-3 sm:p-4">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">
+    <div className={`${productSubSectionCardClass} space-y-4`}>
+      <h3 className={productTitleClass}>
         {t("features") || "Specifications"}
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+      <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
         {visible.map((e, idx) => (
-          <div key={idx} className="flex items-start justify-between">
-            <span className="text-xs sm:text-sm text-gray-600 mr-3">
+          <div key={idx} className="flex items-start justify-between gap-3">
+            <span className={`${productMutedTextClass} text-xs sm:text-sm`}>
               {e.label}
             </span>
-            <span className="text-xs sm:text-sm text-gray-900 text-right break-words">
+            <span
+              className={`${productBodyTextClass} text-right text-xs sm:text-sm`}
+            >
               {e.value as any}
             </span>
           </div>
         ))}
       </div>
 
-      {(brand || tags.length > 0) && <Separator className="my-3" />}
+      {(brand || tags.length > 0) && (
+        <Separator className={`${productDividerClass} border-white/10`} />
+      )}
 
       {brand && (
-        <div className="mb-2">
-          <span className="text-xs sm:text-sm text-gray-600 mr-2">Brand</span>
+        <div className="mb-2 flex flex-wrap items-baseline gap-2">
+          <span className={`${productMutedTextClass} text-xs sm:text-sm`}>
+            Brand
+          </span>
           <a
             href={`/supplier/${product?.supplier?.companySlug ?? ""}`}
-            className="text-xs sm:text-sm text-blue-600 hover:underline"
+            className="text-xs font-medium text-emerald-300 underline decoration-emerald-300/30 underline-offset-4 transition hover:text-emerald-200 sm:text-sm"
           >
             {brand}
           </a>
@@ -143,9 +157,13 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
       )}
 
       {tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {tags.map((tag: string) => (
-            <Badge key={tag} variant="secondary" className="text-xs">
+            <Badge
+              key={tag}
+              variant="secondary"
+              className="border-white/15 bg-white/10 text-xs text-slate-100 shadow-sm shadow-slate-900/30"
+            >
               {tag}
             </Badge>
           ))}

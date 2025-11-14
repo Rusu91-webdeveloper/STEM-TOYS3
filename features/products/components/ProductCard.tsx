@@ -111,10 +111,14 @@ export function ProductCard({
     return (
       <div
         className={cn(
-          `${productsGlassCardClass} flex flex-col xs:flex-row overflow-hidden border-white/12 shadow-indigo-900/30 transition-all duration-300`,
+          `${productsGlassCardClass} relative flex flex-col xs:flex-row overflow-hidden border-white/12 shadow-indigo-900/30 transition-all duration-300`,
           className
         )}
       >
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-900/90 via-slate-900/80 to-purple-900/70 opacity-95 sm:opacity-80 md:opacity-40 lg:opacity-20 transition-opacity duration-500"
+          aria-hidden
+        />
         <div className="relative z-10 w-full xs:w-1/3 h-48 xs:h-48 sm:h-56 xs:max-w-[240px] overflow-hidden bg-slate-900/70 border-r border-white/10">
           <Link href={`/products/${product.slug}`}>
             <div
@@ -159,7 +163,7 @@ export function ProductCard({
             )}
           </Link>
         </div>
-        <div className="relative flex flex-col flex-1 p-4 sm:p-5 justify-between">
+        <div className="relative z-10 flex flex-col flex-1 p-4 sm:p-5 justify-between">
           <div className="space-y-2.5">
             <Link href={`/products/${product.slug}`} className="block">
               <h3 className="font-bold text-base sm:text-lg line-clamp-2 text-slate-100 transition-colors leading-tight tracking-tight hover:text-indigo-200">
@@ -239,9 +243,13 @@ export function ProductCard({
         className
       )}
     >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/6 via-transparent to-indigo-500/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-900/90 via-slate-900/75 to-purple-900/70 opacity-95 sm:opacity-90 md:opacity-50 lg:opacity-25 transition-opacity duration-500"
+        aria-hidden
+      />
+      <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-white/6 via-transparent to-indigo-500/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       {/* Compact image container for mobile: 3/2 aspect ratio instead of 4/3 */}
-      <div className="relative overflow-hidden aspect-[3/2] sm:aspect-square bg-slate-900/70 border-b border-white/10">
+      <div className="relative z-10 overflow-hidden aspect-[3/2] sm:aspect-square bg-slate-900/70 border-b border-white/10">
         <Link href={`/products/${product.slug}`}>
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,_rgba(129,140,248,0.12)_1px,_transparent_1px)] bg-[length:18px_18px] opacity-70" />
           <OptimizedProductImage
@@ -282,7 +290,7 @@ export function ProductCard({
       </div>
 
       {/* Compact content padding for mobile */}
-      <div className="flex flex-col flex-1 p-2.5 sm:p-5 space-y-1.5 sm:space-y-4">
+      <div className="relative z-10 flex flex-col flex-1 p-2.5 sm:p-5 space-y-1.5 sm:space-y-4">
         {/* Compact low stock banner for mobile */}
         {product.stockQuantity !== undefined &&
           product.stockQuantity > 0 &&

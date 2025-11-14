@@ -57,7 +57,7 @@ export function ProductImageGallery({
   return (
     <div className={cn("space-y-3 sm:space-y-4", className)}>
       {/* Main image */}
-      <div className="relative aspect-square w-full overflow-hidden rounded-lg sm:rounded-xl border">
+      <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/10 bg-slate-950/40">
         <Image
           src={images[currentImageIndex] || "/placeholder-product.png"}
           alt={getAlt(currentImageIndex)}
@@ -73,7 +73,7 @@ export function ProductImageGallery({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-1 sm:left-2 top-1/2 h-6 w-6 sm:h-8 sm:w-8 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background/90"
+              className="absolute left-1 top-1/2 h-7 w-7 -translate-y-1/2 rounded-full border border-white/15 bg-slate-900/70 backdrop-blur sm:left-2 sm:h-9 sm:w-9"
               onClick={handlePrevImage}
               aria-label="Previous image"
             >
@@ -82,7 +82,7 @@ export function ProductImageGallery({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-1 sm:right-2 top-1/2 h-6 w-6 sm:h-8 sm:w-8 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background/90"
+              className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 rounded-full border border-white/15 bg-slate-900/70 backdrop-blur sm:right-2 sm:h-9 sm:w-9"
               onClick={handleNextImage}
               aria-label="Next image"
             >
@@ -93,7 +93,7 @@ export function ProductImageGallery({
 
         {/* Image counter */}
         {images.length > 1 && (
-          <div className="absolute bottom-1 sm:bottom-2 right-1 sm:right-2 rounded-full bg-background/80 px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs backdrop-blur-sm">
+          <div className="absolute bottom-1 right-1 rounded-full border border-white/10 bg-slate-950/70 px-1.5 py-0.5 text-xs text-slate-100 backdrop-blur sm:bottom-2 sm:right-2 sm:px-2 sm:py-1">
             {currentImageIndex + 1} / {images.length}
           </div>
         )}
@@ -106,8 +106,9 @@ export function ProductImageGallery({
             <button
               key={index}
               className={cn(
-                "relative h-12 w-12 sm:h-16 sm:w-16 flex-shrink-0 overflow-hidden rounded-md border transition-all duration-200",
-                currentImageIndex === index && "ring-2 ring-primary scale-105"
+                "relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-white/10 transition-all duration-200 sm:h-16 sm:w-16",
+                currentImageIndex === index &&
+                  "scale-105 border-emerald-400/60 ring-2 ring-emerald-400/50"
               )}
               onClick={() => handleThumbnailClick(index)}
               aria-label={`View image ${index + 1}`}

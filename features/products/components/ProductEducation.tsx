@@ -2,6 +2,13 @@
 
 import React from "react";
 
+import {
+  productBodyTextClass,
+  productMutedTextClass,
+  productSubSectionCardClass,
+  productTitleClass,
+} from "./productTheme";
+
 type ProductEducationProps = {
   product: any;
 };
@@ -28,27 +35,33 @@ export default function ProductEducation({ product }: ProductEducationProps) {
   if (!hasLists && !hasMeta) return null;
 
   return (
-    <div className="bg-white rounded-lg border p-3 sm:p-4">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">Education</h3>
+    <div className={`${productSubSectionCardClass} space-y-4`}>
+      <h3 className={productTitleClass}>Education</h3>
 
       {hasMeta && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+        <div className="grid gap-3 sm:grid-cols-3">
           {certification && (
-            <div className="text-xs sm:text-sm">
-              <div className="text-gray-600">Certification</div>
-              <div className="text-gray-900">{certification}</div>
+            <div className="space-y-1">
+              <div className={`${productMutedTextClass} text-xs`}>
+                Certification
+              </div>
+              <div className={productBodyTextClass}>{certification}</div>
             </div>
           )}
           {level && (
-            <div className="text-xs sm:text-sm">
-              <div className="text-gray-600">Level</div>
-              <div className="text-gray-900">{level}</div>
+            <div className="space-y-1">
+              <div className={`${productMutedTextClass} text-xs`}>Level</div>
+              <div className={productBodyTextClass}>{level}</div>
             </div>
           )}
           {typeof ministry === "boolean" && (
-            <div className="text-xs sm:text-sm">
-              <div className="text-gray-600">Ministry Approval</div>
-              <div className="text-gray-900">{ministry ? "Yes" : "No"}</div>
+            <div className="space-y-1">
+              <div className={`${productMutedTextClass} text-xs`}>
+                Ministry Approval
+              </div>
+              <div className={productBodyTextClass}>
+                {ministry ? "Yes" : "No"}
+              </div>
             </div>
           )}
         </div>
@@ -58,17 +71,18 @@ export default function ProductEducation({ product }: ProductEducationProps) {
         const items = Array.isArray(block.items) ? block.items : [];
         if (items.length === 0) return null;
         return (
-          <div key={block.title} className="mb-3 last:mb-0">
-            <div className="text-xs sm:text-sm font-medium text-gray-900 mb-1">
+          <div key={block.title} className="space-y-1">
+            <div className="text-sm font-medium text-slate-100">
               {block.title}
             </div>
-            <ul className="list-disc list-inside space-y-0.5">
+            <ul className="space-y-1.5">
               {items.map((it: string, idx: number) => (
                 <li
                   key={`${block.title}-${idx}`}
-                  className="text-xs sm:text-sm text-gray-700"
+                  className={`flex items-start gap-3 ${productBodyTextClass}`}
                 >
-                  {it}
+                  <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-400" />
+                  <span className="flex-1">{it}</span>
                 </li>
               ))}
             </ul>

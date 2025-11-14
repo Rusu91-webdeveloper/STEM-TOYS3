@@ -4,6 +4,14 @@ import React from "react";
 import { ShoppingCart, Truck, RotateCcw } from "lucide-react";
 import { formatPrice } from "@/lib/email/base";
 
+import {
+  productBodyTextClass,
+  productMutedTextClass,
+  productSectionCardClass,
+  productSubSectionCardClass,
+  productTitleClass,
+} from "./productTheme";
+
 interface ProductFeaturesProps {
   isFreeShippingActive: boolean;
   freeShippingThreshold: number | null;
@@ -23,50 +31,50 @@ export function ProductFeatures({
   t,
 }: ProductFeaturesProps) {
   return (
-    <div className="space-y-8 sm:space-y-12">
+    <div className="space-y-6 lg:space-y-8">
       {/* Product Features - Single Row */}
-      <div className="bg-white rounded-lg border p-3 sm:p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+      <div className={`${productSectionCardClass} space-y-4`}>
+        <h3 className={productTitleClass}>
           {t("productFeatures", "Caracteristici produs")}
         </h3>
-        <div className="grid grid-cols-3 gap-2 sm:gap-4">
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-green-100 rounded-full">
-              <ShoppingCart className="h-4 w-4 text-green-600" />
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="flex items-center gap-3 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20">
+              <ShoppingCart className="h-4 w-4 text-emerald-300" />
             </div>
-            <div className="text-xs">
-              <div className="font-medium">
+            <div>
+              <div className="text-sm font-semibold text-slate-100">
                 {t("securePayment", "Plată securizată")}
               </div>
-              <div className="text-muted-foreground">
+              <div className={`${productMutedTextClass} text-xs`}>
                 {t("sslProtected", "SSL Protected")}
               </div>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <Truck className="h-4 w-4 text-blue-600" />
+          <div className="flex items-center gap-3 rounded-2xl border border-sky-400/20 bg-sky-400/10 px-3 py-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500/20">
+              <Truck className="h-4 w-4 text-sky-300" />
             </div>
-            <div className="text-xs">
-              <div className="font-medium">
+            <div>
+              <div className="text-sm font-semibold text-slate-100">
                 {t("freeShipping", "Transport gratuit")}
               </div>
-              <div className="text-muted-foreground">
+              <div className={`${productMutedTextClass} text-xs`}>
                 {isFreeShippingActive && freeShippingThreshold
                   ? `${t("over", "Peste")} ${formatPrice(freeShippingThreshold)}`
                   : t("notAvailable", "Indisponibil")}
               </div>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-orange-100 rounded-full">
-              <RotateCcw className="h-4 w-4 text-orange-600" />
+          <div className="flex items-center gap-3 rounded-2xl border border-orange-400/20 bg-orange-400/10 px-3 py-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/20">
+              <RotateCcw className="h-4 w-4 text-orange-300" />
             </div>
-            <div className="text-xs">
-              <div className="font-medium">
+            <div>
+              <div className="text-sm font-semibold text-slate-100">
                 {t("easyReturns", "Retur simplu")}
               </div>
-              <div className="text-muted-foreground">
+              <div className={`${productMutedTextClass} text-xs`}>
                 {t("dayPolicy", "Politică 30 zile")}
               </div>
             </div>
@@ -75,40 +83,40 @@ export function ProductFeatures({
       </div>
 
       {/* Detailed Features & Benefits */}
-      <div className="bg-white rounded-lg border p-3 sm:p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+      <div className={`${productSubSectionCardClass} space-y-4`}>
+        <h3 className={productTitleClass}>
           {t("featuresBenefits", "Caracteristici și beneficii")}
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <ul className="space-y-1.5 sm:space-y-2">
-            <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1 flex-shrink-0"></div>
-              <span className="text-xs sm:text-sm text-gray-700">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ul className="space-y-2">
+            <li className="flex items-start gap-3">
+              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-sky-400" />
+              <span className={productBodyTextClass}>
                 {t(
                   "developsCriticalThinking",
                   "Dezvoltă gândirea critică și logica"
                 )}
               </span>
             </li>
-            <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1 flex-shrink-0"></div>
-              <span className="text-xs sm:text-sm text-gray-700">
+            <li className="flex items-start gap-3">
+              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-emerald-400" />
+              <span className={productBodyTextClass}>
                 {t("encouragesCreativity", "Încurajează creativitatea")}
               </span>
             </li>
-            <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-1 flex-shrink-0"></div>
-              <span className="text-xs sm:text-sm text-gray-700">
+            <li className="flex items-start gap-3">
+              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-violet-400" />
+              <span className={productBodyTextClass}>
                 {t("buildsConfidence", "Construiește încrederea în sine")}
               </span>
             </li>
           </ul>
 
-          <ul className="space-y-1.5 sm:space-y-2">
-            <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-1 flex-shrink-0"></div>
-              <span className="text-xs sm:text-sm text-gray-700">
+          <ul className="space-y-2">
+            <li className="flex items-start gap-3">
+              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-orange-400" />
+              <span className={productBodyTextClass}>
                 {t(
                   "teachesFundamentalConcepts",
                   "Predă concepte fundamentale de"
@@ -116,9 +124,9 @@ export function ProductFeatures({
                 {categoryName} {t("inEngagingWay", "într-un mod captivant")}
               </span>
             </li>
-            <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-red-500 rounded-full mt-1 flex-shrink-0"></div>
-              <span className="text-xs sm:text-sm text-gray-700">
+            <li className="flex items-start gap-3">
+              <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-rose-400" />
+              <span className={productBodyTextClass}>
                 {t("safeMaterials", "Materiale sigure și de calitate")}
               </span>
             </li>
@@ -127,19 +135,17 @@ export function ProductFeatures({
       </div>
 
       {/* Learn More Resources */}
-      <div className="bg-white rounded-lg border p-3 sm:p-4">
-        <h3 className="text-sm font-semibold mb-2">
-          {t("learnMore", "Află mai multe")}
-        </h3>
-        <p className="text-xs text-muted-foreground mb-2">
+      <div className={`${productSubSectionCardClass} space-y-3`}>
+        <h3 className={productTitleClass}>{t("learnMore", "Află mai multe")}</h3>
+        <p className={`${productMutedTextClass} text-xs sm:text-sm`}>
           {t(
             "usefulGuides",
             "Ghiduri utile pentru a alege și folosi jucăriile STEM:"
           )}
         </p>
-        <div className="flex flex-wrap gap-2 text-xs">
+        <div className="flex flex-wrap gap-3 text-sm">
           <a
-            className="underline hover:text-primary transition-colors"
+            className="font-medium text-emerald-300 underline decoration-emerald-300/40 underline-offset-4 transition hover:text-emerald-200"
             href="/ghid-jucarii-stem-2025"
             data-conversion="cta"
             data-conversion-type="click"
@@ -149,9 +155,9 @@ export function ProductFeatures({
           >
             {t("guide2025", "Ghid 2025")}
           </a>
-          <span className="text-muted-foreground">·</span>
+          <span className={productMutedTextClass}>·</span>
           <a
-            className="underline hover:text-primary transition-colors"
+            className="font-medium text-emerald-300 underline decoration-emerald-300/40 underline-offset-4 transition hover:text-emerald-200"
             href="/jucarii-stem-dupa-varsta"
             data-conversion="cta"
             data-conversion-type="click"
@@ -161,9 +167,9 @@ export function ProductFeatures({
           >
             {t("byAge", "După vârstă")}
           </a>
-          <span className="text-muted-foreground">·</span>
+          <span className={productMutedTextClass}>·</span>
           <a
-            className="underline hover:text-primary transition-colors"
+            className="font-medium text-emerald-300 underline decoration-emerald-300/40 underline-offset-4 transition hover:text-emerald-200"
             href="/beneficiile-jucariilor-stem"
             data-conversion="cta"
             data-conversion-type="click"
@@ -173,9 +179,9 @@ export function ProductFeatures({
           >
             {t("stemBenefits", "Beneficii STEM")}
           </a>
-          <span className="text-muted-foreground">·</span>
+          <span className={productMutedTextClass}>·</span>
           <a
-            className="underline hover:text-primary transition-colors"
+            className="font-medium text-emerald-300 underline decoration-emerald-300/40 underline-offset-4 transition hover:text-emerald-200"
             href="/faq"
             data-conversion="cta"
             data-conversion-type="click"

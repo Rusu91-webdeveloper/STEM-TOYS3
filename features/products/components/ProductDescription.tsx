@@ -2,10 +2,19 @@
 
 import React from "react";
 
+import { cn } from "@/lib/utils";
+
+import {
+  productBodyTextClass,
+  productSubSectionCardClass,
+  productTitleClass,
+} from "./productTheme";
+
 interface ProductDescriptionProps {
   description: string;
   categoryName: string;
   t: (key: string, fallback?: string) => string;
+  className?: string;
 }
 
 /**
@@ -15,16 +24,23 @@ export function ProductDescription({
   description,
   categoryName,
   t,
+  className,
 }: ProductDescriptionProps) {
   return (
-    <div className="bg-white rounded-lg border p-3 sm:p-4">
-      <h2 className="text-sm font-semibold text-gray-900 mb-2">
+    <div
+      className={cn(
+        productSubSectionCardClass,
+        "space-y-2.5 sm:space-y-3.5",
+        className
+      )}
+    >
+      <h2 className={productTitleClass}>
         {t("productDescription", "Descriere produs")}
       </h2>
-      <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+      <p className={productBodyTextClass}>
         {description}
       </p>
-      <p className="text-xs sm:text-sm text-gray-700 leading-relaxed mt-2">
+      <p className={`${productBodyTextClass} pt-1`}>
         {t("stemToyDesigned", "Jucărie STEM concepută pentru")} {categoryName}.{" "}
         {t("providesHandsOn", "Oferă experiențe practice de învățare.")}
       </p>

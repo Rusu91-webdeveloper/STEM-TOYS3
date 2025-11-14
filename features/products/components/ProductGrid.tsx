@@ -18,6 +18,81 @@ import type { Product } from "@/types/product";
 import { ProductCard } from "./ProductCard";
 import { productsGlassCardClass } from "./productsTheme";
 
+type GridColumnsConfig = {
+  base?: number;
+  sm?: number;
+  md?: number;
+  lg?: number;
+  xl?: number;
+};
+
+type Breakpoint = keyof GridColumnsConfig;
+
+const breakpointClassMap: Record<Breakpoint, Record<number, string>> = {
+  base: {
+    1: "grid-cols-1",
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-4",
+    5: "grid-cols-5",
+    6: "grid-cols-6",
+  },
+  sm: {
+    1: "sm:grid-cols-1",
+    2: "sm:grid-cols-2",
+    3: "sm:grid-cols-3",
+    4: "sm:grid-cols-4",
+    5: "sm:grid-cols-5",
+    6: "sm:grid-cols-6",
+  },
+  md: {
+    1: "md:grid-cols-1",
+    2: "md:grid-cols-2",
+    3: "md:grid-cols-3",
+    4: "md:grid-cols-4",
+    5: "md:grid-cols-5",
+    6: "md:grid-cols-6",
+  },
+  lg: {
+    1: "lg:grid-cols-1",
+    2: "lg:grid-cols-2",
+    3: "lg:grid-cols-3",
+    4: "lg:grid-cols-4",
+    5: "lg:grid-cols-5",
+    6: "lg:grid-cols-6",
+  },
+  xl: {
+    1: "xl:grid-cols-1",
+    2: "xl:grid-cols-2",
+    3: "xl:grid-cols-3",
+    4: "xl:grid-cols-4",
+    5: "xl:grid-cols-5",
+    6: "xl:grid-cols-6",
+  },
+};
+
+const buildGridColsClass = (columns?: GridColumnsConfig) => {
+  const classes = new Set<string>();
+  const config = columns || {};
+  const breakpoints: Breakpoint[] = ["base", "sm", "md", "lg", "xl"];
+
+  breakpoints.forEach(bp => {
+    const value = config[bp];
+    if (value && breakpointClassMap[bp]?.[value]) {
+      classes.add(breakpointClassMap[bp][value]);
+    }
+  });
+
+  if (!classes.size) {
+    classes.add("grid-cols-2");
+  } else if (!config.base) {
+    // Ensure we always have a base column definition for browsers that don't apply breakpoint classes
+    classes.add(breakpointClassMap.base[2]);
+  }
+
+  return Array.from(classes).join(" ");
+};
+
 interface ProductGridProps {
   products: Product[];
   className?: string;
@@ -25,12 +100,7 @@ interface ProductGridProps {
   defaultSort?: string;
   showLayoutToggle?: boolean;
   showSortOptions?: boolean;
-  columns?: {
-    sm?: number;
-    md?: number;
-    lg?: number;
-    xl?: number;
-  };
+  columns?: GridColumnsConfig;
   priorityItemsCount?: number; // Number of items to mark as priority
 }
 
@@ -120,14 +190,8 @@ export function ProductGrid({
 
   const sortedProducts = sortProducts(products, sortOption);
 
-  // 1. Ensure grid is 2 columns on mobile (grid-cols-2)
-  const gridColsClass = cn(
-    `grid-cols-2`,
-    columns.sm && `sm:grid-cols-${columns.sm}`,
-    columns.md && `md:grid-cols-${columns.md}`,
-    columns.lg && `lg:grid-cols-${columns.lg}`,
-    columns.xl && `xl:grid-cols-${columns.xl}`
-  );
+  // 1. Ensure grid is 2 columns on mobile (grid-cols-2) with deterministic Tailwind classes
+  const gridColsClass = buildGridColsClass({ base: 2, ...columns });
 
   // If the effective visible columns is 1, prefer list layout for a more compact look
   const isEffectivelySingleColumn = visibleColumns === 1;

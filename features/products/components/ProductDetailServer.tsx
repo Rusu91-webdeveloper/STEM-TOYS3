@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import React from "react";
 
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
-import { LazyProductReviews } from "@/components/lazy/client";
 import { getCombinedProduct } from "@/lib/api/products";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
 import type { Product } from "@/types/product";
@@ -109,14 +108,8 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
         product={product}
         isBook={isBook}
         initialReviews={reviews}
+        userLoggedIn={false}
       />
-      <div className="mt-16">
-        <LazyProductReviews
-          productId={product.id}
-          reviews={reviews}
-          userLoggedIn={false} // You can enhance this with session logic if needed
-        />
-      </div>
     </>
   );
 };

@@ -54,15 +54,15 @@ export function ProductHeader({
     : 0;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4 text-slate-100">
       {/* Title and Action Buttons */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1 min-w-0">
           <h1
             className={
               size === "sm"
-                ? "text-lg sm:text-xl font-bold text-gray-900 leading-tight"
-                : "text-xl xl:text-2xl font-bold text-gray-900 leading-tight"
+                ? "text-2xl font-bold leading-tight text-slate-100 sm:text-3xl"
+                : "text-3xl font-bold leading-tight text-slate-100 xl:text-4xl"
             }
           >
             {name}
@@ -93,13 +93,13 @@ export function ProductHeader({
       </div>
 
       {/* Price and Rating Row */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-baseline space-x-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-baseline gap-2">
           <span
             className={
               size === "sm"
-                ? "text-xl sm:text-2xl font-bold text-gray-900"
-                : "text-2xl xl:text-3xl font-bold text-gray-900"
+                ? "text-3xl font-semibold text-emerald-300 sm:text-4xl"
+                : "text-4xl font-semibold text-emerald-300 xl:text-5xl"
             }
           >
             {formatPrice(price)}
@@ -108,15 +108,15 @@ export function ProductHeader({
             <span
               className={
                 size === "sm"
-                  ? "text-sm sm:text-base text-gray-500 line-through"
-                  : "text-base xl:text-lg text-gray-500 line-through"
+                  ? "text-sm sm:text-base text-slate-300/80 line-through"
+                  : "text-base xl:text-lg text-slate-300/80 line-through"
               }
             >
               {formatPrice(compareAtPrice)}
             </span>
           )}
         </div>
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center gap-1">
           {[...Array(5)].map((_, i) => (
             <Star
               key={i}
@@ -130,7 +130,7 @@ export function ProductHeader({
           <span
             className={`${
               size === "sm" ? "text-xs" : "text-sm"
-            } text-gray-600 ml-1`}
+            } ml-1 text-slate-300`}
           >
             ({reviewCount})
           </span>
@@ -138,26 +138,32 @@ export function ProductHeader({
       </div>
 
       {/* Discount Badge and Stock Status Row */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
           {hasDiscount && (
-            <Badge variant="destructive" className="text-xs">
+            <Badge
+              variant="destructive"
+              className="border-none text-xs shadow-lg shadow-red-500/30"
+            >
               {discountPercentage}% {t("off", "reducere")}
             </Badge>
           )}
-          <Badge variant="secondary" className="text-xs">
+          <Badge
+            variant="secondary"
+            className="border-white/20 bg-white/10 text-xs text-slate-100 shadow-lg shadow-indigo-500/20 hover:bg-white/20"
+          >
             {totalSold} {t("sold", "vândute")}
           </Badge>
         </div>
         <div
-          className={`${size === "sm" ? "text-xs" : "text-sm"} text-gray-600`}
+          className={`${size === "sm" ? "text-xs" : "text-sm"} text-slate-300`}
         >
           {stockQuantity > 0 ? (
-            <span className="text-green-600">
+            <span className="text-emerald-300">
               {t("inStock", "În stoc")} ({stockQuantity})
             </span>
           ) : (
-            <span className="text-red-600">
+            <span className="text-rose-300">
               {t("outOfStock", "Stoc epuizat")}
             </span>
           )}
