@@ -6,7 +6,7 @@ import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 import { db } from "@/lib/db";
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
 import { generateReturnLabel } from "@/lib/return-label";
-import stripe from "@/lib/stripe-server";
+import { getStripeServerClient } from "@/lib/stripe-server";
 
 // Return reason display labels (unused but kept for future use)
 
@@ -140,6 +140,7 @@ export async function PATCH(
     // Stripe refund logic for REFUNDED status
     if (status === "REFUNDED") {
       try {
+        const stripe = getStripeServerClient();
         const order = updatedReturn.order as any;
         if (!order.stripePaymentIntentId) {
           await db.return.update({
