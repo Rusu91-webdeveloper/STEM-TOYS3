@@ -236,18 +236,24 @@ export function PaymentForm({
       setIsCreatingStripeIntent(true);
       setStripeIntentError(null);
       try {
+        const payload: Record<string, unknown> = {
+          amount: amountInMinorUnits,
+          metadata: {
+            checkoutStep: "payment",
+            shippingCountry: shippingAddress?.country || "",
+          },
+        };
+
+        if (stripePaymentIntentId) {
+          payload.paymentIntentId = stripePaymentIntentId;
+        }
+
         const response = await fetch("/api/stripe/create-payment-intent", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            amount: amountInMinorUnits,
-            metadata: {
-              checkoutStep: "payment",
-              shippingCountry: shippingAddress?.country || "",
-            },
-          }),
+          body: JSON.stringify(payload),
         });
 
         if (!response.ok) {

@@ -173,9 +173,6 @@ importers:
       dompurify:
         specifier: ^3.2.6
         version: 3.2.6
-      dotenv:
-        specifier: ^16.5.0
-        version: 16.6.1
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.1.0)
@@ -354,6 +351,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^8.34.1
         version: 8.38.0(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3)
+      dotenv:
+        specifier: ^16.6.1
+        version: 16.6.1
       eslint:
         specifier: ^9.30.1
         version: 9.31.0(jiti@2.4.2)

@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 import { getRequiredEnvVar } from "@/lib/env";
+import {
+  getStripeApiVersion,
+  getStripeWebhookSecret,
+  validateStripeSecretKey,
+} from "@/lib/stripe-config";
 
 // Initialize Stripe with proper error handling for required keys
 const stripeSecretKey = getRequiredEnvVar(
@@ -11,53 +16,114 @@ const stripeSecretKey = getRequiredEnvVar(
   true // Allow development placeholder in non-production environments
 );
 
-const stripe = new Stripe(stripeSecretKey);
+// Validate secret key format
+const keyValidation = validateStripeSecretKey(stripeSecretKey);
+if (!keyValidation.valid && process.env.NODE_ENV === "production") {
+  throw new Error(
+    `Stripe configuration error: ${keyValidation.error || "Invalid key"}`
+  );
+}
 
-const webhookSecret = getRequiredEnvVar(
-  "STRIPE_WEBHOOK_SECRET",
-  "Stripe webhook secret is required for secure webhook processing. Please set the STRIPE_WEBHOOK_SECRET environment variable.",
-  true // Allow development placeholder in non-production environments
-);
+const stripe = new Stripe(stripeSecretKey, {
+  apiVersion: getStripeApiVersion(),
+});
+
+// Get webhook secret from centralized config
+const webhookSecret =
+  getStripeWebhookSecret() ||
+  getRequiredEnvVar(
+    "STRIPE_WEBHOOK_SECRET",
+    "Stripe webhook secret is required for secure webhook processing. Please set the STRIPE_WEBHOOK_SECRET environment variable.",
+    true // Allow development placeholder in non-production environments
+  );
+
+// Webhook signature verification tolerance (300 seconds = 5 minutes)
+// This accounts for clock skew between Stripe's servers and ours
+const WEBHOOK_TOLERANCE = 300;
 
 export async function POST(request: Request) {
   const body = await request.text();
   const headersList = await headers();
   const signature = headersList.get("stripe-signature") || "";
 
-  // In development, simulate a successful webhook response
-  if (process.env.NODE_ENV !== "production") {
-    return NextResponse.json({ received: true });
-  }
-
+  // Always verify webhook signatures, even in development
+  // Use Stripe CLI for local testing: stripe listen --forward-to localhost:3000/api/stripe/webhook
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      webhookSecret,
+      WEBHOOK_TOLERANCE
+    );
   } catch (error) {
     console.error("Webhook signature verification failed:", error);
     return NextResponse.json(
-      { error: "Webhook signature verification failed" },
+      {
+        error: "Webhook signature verification failed",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Invalid signature or clock skew",
+      },
       { status: 400 }
     );
   }
 
   // Handle the event
-  switch (event.type) {
-    case "payment_intent.succeeded":
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      // Handle successful payment (update order status, send confirmation email, etc.)
-      await handleSuccessfulPayment(paymentIntent);
-      break;
+  try {
+    switch (event.type) {
+      case "payment_intent.succeeded":
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        await handleSuccessfulPayment(paymentIntent);
+        break;
 
-    case "payment_intent.payment_failed":
-      const failedPaymentIntent = event.data.object as Stripe.PaymentIntent;
-      // Handle failed payment (notify customer, update order status, etc.)
-      await handleFailedPayment(failedPaymentIntent);
-      break;
+      case "payment_intent.payment_failed":
+        const failedPaymentIntent = event.data.object as Stripe.PaymentIntent;
+        await handleFailedPayment(failedPaymentIntent);
+        break;
 
-    default:
-      // Unhandled event type
-      break;
+      case "payment_intent.requires_action":
+        // Handle 3D Secure authentication requirement
+        const actionRequiredIntent = event.data.object as Stripe.PaymentIntent;
+        console.log(
+          `Payment requires action (3D Secure): ${actionRequiredIntent.id}`
+        );
+        // Order status will be updated when payment completes via succeeded event
+        break;
+
+      case "payment_intent.canceled":
+        const canceledIntent = event.data.object as Stripe.PaymentIntent;
+        await handleCanceledPayment(canceledIntent);
+        break;
+
+      case "charge.refunded":
+        const refundedCharge = event.data.object as Stripe.Charge;
+        await handleRefund(refundedCharge);
+        break;
+
+      case "charge.dispute.created":
+        const dispute = event.data.object as Stripe.Dispute;
+        await handleDispute(dispute);
+        break;
+
+      default:
+        // Log unhandled events for monitoring
+        console.log(`Unhandled webhook event type: ${event.type}`);
+        break;
+    }
+  } catch (error) {
+    console.error(`Error processing webhook event ${event.type}:`, error);
+    // Return 500 to trigger Stripe retry
+    return NextResponse.json(
+      {
+        error: "Error processing webhook",
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ received: true });
@@ -174,13 +240,193 @@ async function handleFailedPayment(paymentIntent: Stripe.PaymentIntent) {
   const userEmail = paymentIntent.metadata.userEmail;
 
   if (orderId) {
-    // Update order status to "payment_failed" in database
-    // TODO: Implement database update for failed payment
+    try {
+      const { db } = await import("@/lib/db");
 
-    // Notify customer about failed payment if we have their email
-    if (userEmail) {
-      // Send an email notification about the failed payment
-      // TODO: Implement email notification for failed payment
+      // Update order status to "payment_failed" in database
+      await db.order.update({
+        where: { id: orderId },
+        data: {
+          paymentStatus: "FAILED",
+          status: "CANCELLED",
+        },
+      });
+
+      console.log(`Order ${orderId} marked as payment failed`);
+
+      // Notify customer about failed payment if we have their email
+      if (userEmail) {
+        try {
+          const { DatabaseTemplateService } = await import(
+            "@/lib/email/database-template-service"
+          );
+
+          await DatabaseTemplateService.sendEmail(
+            userEmail,
+            "Payment Failed",
+            `Your payment for order ${orderId} has failed. Please try again or contact support.`
+          );
+        } catch (emailError) {
+          console.error(
+            `Failed to send payment failure email to ${userEmail}:`,
+            emailError
+          );
+        }
+      }
+    } catch (error) {
+      console.error(
+        `Error processing failed payment for order ${orderId}:`,
+        error
+      );
+      throw error; // Re-throw to trigger webhook retry
     }
+  }
+}
+
+// Function to handle canceled payment
+async function handleCanceledPayment(paymentIntent: Stripe.PaymentIntent) {
+  const orderId = paymentIntent.metadata.orderId;
+
+  if (orderId) {
+    try {
+      const { db } = await import("@/lib/db");
+
+      await db.order.update({
+        where: { id: orderId },
+        data: {
+          paymentStatus: "FAILED",
+          status: "CANCELLED",
+        },
+      });
+
+      console.log(`Order ${orderId} canceled due to payment cancellation`);
+    } catch (error) {
+      console.error(
+        `Error processing canceled payment for order ${orderId}:`,
+        error
+      );
+      throw error;
+    }
+  }
+}
+
+// Function to handle refund
+async function handleRefund(charge: Stripe.Charge) {
+  const paymentIntentId = charge.payment_intent as string;
+
+  if (!paymentIntentId) {
+    console.warn("Refund charge missing payment_intent ID");
+    return;
+  }
+
+  try {
+    const { db } = await import("@/lib/db");
+
+    // Find order by Stripe payment intent ID
+    const order = await db.order.findFirst({
+      where: {
+        stripePaymentIntentId: paymentIntentId,
+      },
+    });
+
+    if (order) {
+      await db.order.update({
+        where: { id: order.id },
+        data: {
+          paymentStatus: "REFUNDED",
+        },
+      });
+
+      console.log(`Order ${order.id} marked as refunded`);
+
+      // Optionally send refund confirmation email
+      if (order.userId) {
+        const user = await db.user.findUnique({
+          where: { id: order.userId },
+          select: { email: true },
+        });
+
+        if (user?.email) {
+          try {
+            const { DatabaseTemplateService } = await import(
+              "@/lib/email/database-template-service"
+            );
+
+            await DatabaseTemplateService.sendEmail(
+              user.email,
+              "Refund Processed",
+              `Your refund for order ${order.orderNumber} has been processed.`
+            );
+          } catch (emailError) {
+            console.error(
+              `Failed to send refund email to ${user.email}:`,
+              emailError
+            );
+          }
+        }
+      }
+    } else {
+      console.warn(
+        `No order found for refunded payment intent ${paymentIntentId}`
+      );
+    }
+  } catch (error) {
+    console.error(`Error processing refund for charge ${charge.id}:`, error);
+    throw error;
+  }
+}
+
+// Function to handle dispute
+async function handleDispute(dispute: Stripe.Dispute) {
+  const chargeId = dispute.charge as string;
+
+  if (!chargeId) {
+    console.warn("Dispute missing charge ID");
+    return;
+  }
+
+  try {
+    // Retrieve the charge to get the payment intent
+    const charge = await stripe.charges.retrieve(chargeId);
+    const paymentIntentId = charge.payment_intent as string;
+
+    if (!paymentIntentId) {
+      console.warn("Dispute charge missing payment_intent ID");
+      return;
+    }
+
+    const { db } = await import("@/lib/db");
+
+    // Find order by Stripe payment intent ID
+    const order = await db.order.findFirst({
+      where: {
+        stripePaymentIntentId: paymentIntentId,
+      },
+    });
+
+    if (order) {
+      // Log dispute for admin review
+      console.error(
+        `DISPUTE CREATED: Order ${order.id} (${order.orderNumber}) - Dispute ID: ${dispute.id}, Amount: ${dispute.amount}, Reason: ${dispute.reason}`
+      );
+
+      // Update order status to indicate dispute
+      await db.order.update({
+        where: { id: order.id },
+        data: {
+          paymentStatus: "DISPUTED",
+          // Keep order status as-is, but payment is disputed
+        },
+      });
+
+      // TODO: Send alert to admin team about the dispute
+    } else {
+      console.warn(
+        `No order found for disputed payment intent ${paymentIntentId}`
+      );
+    }
+  } catch (error) {
+    console.error(`Error processing dispute ${dispute.id}:`, error);
+    throw error;
   }
 }

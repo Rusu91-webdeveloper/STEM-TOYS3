@@ -7,8 +7,9 @@
  */
 export async function createPaymentIntent(
   amount: number,
-  metadata?: Record<string, string>
-): Promise<{ clientSecret: string } | null> {
+  metadata?: Record<string, string>,
+  paymentIntentId?: string
+): Promise<{ clientSecret: string; paymentIntentId: string } | null> {
   try {
     // Fetch CSRF token before making the request
     const csrfToken = await fetchCsrfToken();
@@ -22,12 +23,12 @@ export async function createPaymentIntent(
       headers["X-CSRF-Token"] = csrfToken;
     }
 
-    const response = await fetch("/api/checkout/payment-intent", {
+    const response = await fetch("/api/stripe/create-payment-intent", {
       method: "POST",
       headers,
       body: JSON.stringify({
         amount: Math.round(amount * 100), // Convert to cents
-        currency: "usd",
+        paymentIntentId,
         metadata,
       }),
     });
@@ -39,7 +40,10 @@ export async function createPaymentIntent(
     }
 
     const data = await response.json();
-    return { clientSecret: data.clientSecret };
+    return {
+      clientSecret: data.clientSecret,
+      paymentIntentId: data.paymentIntentId,
+    };
   } catch (error) {
     console.error("Error creating payment intent:", error);
     return null;

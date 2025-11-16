@@ -195,43 +195,35 @@ export async function POST(request: Request) {
     // Determine if this is a guest checkout
     const _isGuestCheckout = !user && orderData.isGuestCheckout;
 
-    // Check if Stripe environment variables are set
-    const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    // Determine payment provider from order data
+    const paymentProvider = orderData.paymentProvider || "netopia";
+    const isStripePayment = paymentProvider === "stripe" || Boolean(orderData.stripePaymentIntentId);
 
-    if (!stripePublicKey) {
-      console.error(
-        "Stripe publishable key is not set. Payment processing will fail."
-      );
-
-      // In development, return a success response anyway
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          "Development mode: Creating test order without payment processing"
+    // Only validate Stripe configuration if this is a Stripe payment
+    if (isStripePayment) {
+      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      if (!stripeSecretKey) {
+        console.error(
+          "Stripe secret key is not set but order requires Stripe payment."
         );
-        const orderId = Math.random()
-          .toString(36)
-          .substring(2, 12)
-          .toUpperCase();
-        const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-        return NextResponse.json({
-          success: true,
-          orderId,
-          orderNumber,
-          message:
-            "Development mode: Test order created without payment processing",
-        });
+        // In development, allow order creation but log warning
+        if (process.env.NODE_ENV === "development") {
+          console.warn(
+            "Development mode: Stripe payment requested but Stripe not configured. Order will be created with PENDING payment status."
+          );
+        } else {
+          // In production, return an error for Stripe payments
+          return NextResponse.json(
+            {
+              success: false,
+              message: "Stripe payment configuration error. Please contact support.",
+              error: "STRIPE_NOT_CONFIGURED",
+            },
+            { status: 500 }
+          );
+        }
       }
-
-      // In production, return an error
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Payment configuration error. Please contact support.",
-          error: "STRIPE_NOT_CONFIGURED",
-        },
-        { status: 500 }
-      );
     }
 
     // Use the items provided in the order data if available, otherwise fetch from database

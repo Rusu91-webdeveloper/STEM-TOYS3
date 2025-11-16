@@ -83,31 +83,52 @@ export const POST = withRateLimit(
       // Get the cart ID using shared logic
       const cartId = await getCartId(request);
 
-      // Add IDs to cart items if they don't already have them
+      // Optimize: Batch database queries in parallel instead of sequential
+      // Separate books and products for efficient querying
+      const bookIds = validatedCart
+        .filter(item => item.isBook)
+        .map(item => item.productId);
+      const productIds = validatedCart
+        .filter(item => !item.isBook)
+        .map(item => item.productId);
+
+      // Execute all database queries in parallel
+      const [books, products] = await Promise.all([
+        bookIds.length > 0
+          ? db.book.findMany({
+              where: {
+                id: { in: bookIds },
+                isActive: true,
+              },
+            })
+          : Promise.resolve([]),
+        productIds.length > 0
+          ? db.product.findMany({
+              where: {
+                id: { in: productIds },
+                isActive: true,
+              },
+            })
+          : Promise.resolve([]),
+      ]);
+
+      // Create lookup maps for O(1) access
+      const bookMap = new Map(books.map(book => [book.id, book]));
+      const productMap = new Map(products.map(product => [product.id, product]));
+
+      // Add IDs to cart items and validate existence
       const cartWithIds: CartItem[] = [];
       for (const item of validatedCart) {
-        let entity: any = null;
+        // Check if entity exists and is active
+        const entity = item.isBook
+          ? bookMap.get(item.productId)
+          : productMap.get(item.productId);
 
-        if (item.isBook) {
-          entity = await db.book.findUnique({
-            where: { id: item.productId, isActive: true },
-          });
-          if (!entity) {
-            console.warn(
-              `Book with ID ${item.productId} not found or inactive. Skipping.`
-            );
-            continue;
-          }
-        } else {
-          entity = await db.product.findUnique({
-            where: { id: item.productId, isActive: true },
-          });
-          if (!entity) {
-            console.warn(
-              `Product with ID ${item.productId} not found or inactive. Skipping.`
-            );
-            continue;
-          }
+        if (!entity) {
+          console.warn(
+            `${item.isBook ? "Book" : "Product"} with ID ${item.productId} not found or inactive. Skipping.`
+          );
+          continue;
         }
 
         // Create cart item with proper ID

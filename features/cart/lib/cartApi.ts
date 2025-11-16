@@ -150,11 +150,30 @@ export async function saveCart(items: CartItem[]): Promise<boolean> {
   } catch (error) {
     // Handle abort/timeout specifically
     if (error instanceof DOMException && error.name === "AbortError") {
-      console.error("Cart save request timed out after", API_TIMEOUT_MS, "ms");
+      console.error(
+        "❌ [CART API] Cart save request timed out after",
+        API_TIMEOUT_MS,
+        "ms"
+      );
+      console.warn(
+        "📦 [CART API] Cart data may not be synced. Will retry on next update."
+      );
       return false;
     }
 
-    console.error("Error saving cart:", error);
+    // Handle network errors
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      console.error(
+        "❌ [CART API] Network error saving cart:",
+        error.message
+      );
+      console.warn(
+        "📦 [CART API] Cart data may not be synced. Will retry on next update."
+      );
+      return false;
+    }
+
+    console.error("❌ [CART API] Error saving cart:", error);
     return false;
   }
 }

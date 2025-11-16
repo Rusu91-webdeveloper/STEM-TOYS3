@@ -22,13 +22,17 @@ This report analyzes the implementation of both Stripe and Netopia payment integ
 
 ### 1.1 Payment Intent Creation ✅ **CORRECT**
 
-**File:** `app/api/checkout/payment-intent/route.ts`
+**File:** `app/api/stripe/create-payment-intent/route.ts`
 
 **Current Implementation:**
 ```typescript
 const paymentIntent = await stripe.paymentIntents.create({
   amount,
-  currency: "usd",
+  currency: "ron",
+  automatic_payment_methods: {
+    enabled: true,
+    allow_redirects: "always",
+  },
   metadata,
 });
 ```
@@ -53,10 +57,10 @@ const paymentIntent = await stripe.paymentIntents.create({
    ```typescript
    const paymentIntent = await stripe.paymentIntents.create({
      amount,
-     currency: "usd",
+     currency: "ron",
      automatic_payment_methods: {
        enabled: true,
-       allow_redirects: 'always'
+       allow_redirects: "always"
      },
      metadata,
    });

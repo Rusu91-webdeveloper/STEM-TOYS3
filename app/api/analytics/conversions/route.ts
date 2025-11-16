@@ -15,35 +15,130 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Store conversions in database
-    const storedConversions = await Promise.all(
-      conversions.map(async (conversion: ConversionEvent) => await prisma.conversionLog.create({
-          data: {
-            conversionId: conversion.id,
-            type: conversion.type,
-            category: conversion.category,
-            action: conversion.action,
-            elementData: conversion.element,
-            pageData: conversion.page,
-            userData: conversion.user,
-            contextData: conversion.context,
-            metadata: conversion.metadata,
-            timestamp: new Date(conversion.timestamp),
-          },
-        }))
+    // Validate each conversion before storing
+    const validatedConversions = conversions.map((conversion: ConversionEvent, index: number) => {
+      if (!conversion.id) {
+        throw new Error(`Conversion at index ${index} is missing required field: id`);
+      }
+      if (!conversion.type) {
+        throw new Error(`Conversion at index ${index} is missing required field: type`);
+      }
+      if (!conversion.timestamp) {
+        throw new Error(`Conversion at index ${index} is missing required field: timestamp`);
+      }
+      
+      return {
+        conversionId: conversion.id,
+        type: conversion.type,
+        category: conversion.category || null,
+        action: conversion.action || null,
+        elementData: conversion.element || null,
+        pageData: conversion.page || null,
+        userData: conversion.user || null,
+        contextData: conversion.context || null,
+        metadata: conversion.metadata || null,
+        timestamp: new Date(conversion.timestamp),
+      };
+    });
+
+    // Check for existing conversions in batch to avoid duplicates
+    const conversionIds = validatedConversions.map((c) => c.conversionId);
+    const existingConversions = await prisma.conversionLog.findMany({
+      where: {
+        conversionId: { in: conversionIds },
+      },
+      select: { conversionId: true, timestamp: true },
+    });
+
+    const existingSet = new Set(
+      existingConversions.map(
+        (e) => `${e.conversionId}-${e.timestamp.getTime()}`
+      )
     );
+
+    // Filter out duplicates before attempting to store
+    const conversionsToStore = validatedConversions.filter((data) => {
+      const key = `${data.conversionId}-${data.timestamp.getTime()}`;
+      return !existingSet.has(key);
+    });
+
+    // Store conversions in database
+    // Use individual creates with error handling to ensure partial success
+    const storedConversions = await Promise.allSettled(
+      conversionsToStore.map(async (data) => {
+        try {
+          return await prisma.conversionLog.create({ data });
+        } catch (individualError: any) {
+          // Log the error but continue with other conversions
+          console.error("Failed to store individual conversion:", {
+            error: individualError.message,
+            code: individualError.code,
+            meta: individualError.meta,
+            data: {
+              conversionId: data.conversionId,
+              type: data.type,
+            },
+          });
+          throw individualError; // Re-throw to be caught by Promise.allSettled
+        }
+      })
+    );
+
+    // Process results
+    const successful = storedConversions
+      .filter((result) => result.status === "fulfilled")
+      .map((result) => (result as PromiseFulfilledResult<any>).value);
+
+    const failed = storedConversions
+      .filter((result) => result.status === "rejected")
+      .map((result) => (result as PromiseRejectedResult).reason);
+
+    const skippedCount = validatedConversions.length - conversionsToStore.length;
+
+    // Log failures for debugging
+    if (failed.length > 0) {
+      console.warn(`Failed to store ${failed.length} conversions:`, failed);
+    }
+
+    if (skippedCount > 0) {
+      console.info(`Skipped ${skippedCount} duplicate conversions`);
+    }
 
     return NextResponse.json({
       success: true,
       data: {
-        storedCount: storedConversions.length,
-        conversions: storedConversions,
+        storedCount: successful.length,
+        requestedCount: conversions.length,
+        skippedCount: skippedCount,
+        failedCount: failed.length,
+        conversions: successful,
       },
     });
   } catch (error: any) {
-    console.error("Error storing conversion data:", error);
+    console.error("Error storing conversion data:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+    });
+    
+    // Return more detailed error information in development
+    const errorMessage = process.env.NODE_ENV === "development" 
+      ? error.message || "Failed to store conversion data"
+      : "Failed to store conversion data";
+    
     return NextResponse.json(
-      { success: false, error: "Failed to store conversion data" },
+      { 
+        success: false, 
+        error: errorMessage,
+        ...(process.env.NODE_ENV === "development" && {
+          details: {
+            name: error.name,
+            code: error.code,
+            stack: error.stack,
+          },
+        }),
+      },
       { status: 500 }
     );
   }
