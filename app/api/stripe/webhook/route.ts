@@ -6,42 +6,46 @@ import { getRequiredEnvVar } from "@/lib/env";
 import {
   getStripeApiVersion,
   getStripeWebhookSecret,
+  isStripeEnabled,
   validateStripeSecretKey,
 } from "@/lib/stripe-config";
 
-// Initialize Stripe with proper error handling for required keys
-const stripeSecretKey = getRequiredEnvVar(
-  "STRIPE_SECRET_KEY",
-  "Stripe secret key is required for webhook processing. Please set the STRIPE_SECRET_KEY environment variable.",
-  true // Allow development placeholder in non-production environments
-);
-
-// Validate secret key format
-const keyValidation = validateStripeSecretKey(stripeSecretKey);
-if (!keyValidation.valid && process.env.NODE_ENV === "production") {
-  throw new Error(
-    `Stripe configuration error: ${keyValidation.error || "Invalid key"}`
-  );
-}
-
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: getStripeApiVersion(),
-});
-
-// Get webhook secret from centralized config
-const webhookSecret =
-  getStripeWebhookSecret() ||
-  getRequiredEnvVar(
-    "STRIPE_WEBHOOK_SECRET",
-    "Stripe webhook secret is required for secure webhook processing. Please set the STRIPE_WEBHOOK_SECRET environment variable.",
-    true // Allow development placeholder in non-production environments
-  );
+// Note: Stripe initialization and env validation are performed inside the POST handler
 
 // Webhook signature verification tolerance (300 seconds = 5 minutes)
 // This accounts for clock skew between Stripe's servers and ours
 const WEBHOOK_TOLERANCE = 300;
 
 export async function POST(request: Request) {
+  // If Stripe is disabled, acknowledge and exit
+  if (!isStripeEnabled()) {
+    return NextResponse.json({ received: true, disabled: true });
+  }
+
+  // Initialize Stripe at request-time
+  const stripeSecretKey = getRequiredEnvVar(
+    "STRIPE_SECRET_KEY",
+    "Stripe secret key is required for webhook processing. Please set the STRIPE_SECRET_KEY environment variable.",
+    true
+  );
+  const keyValidation = validateStripeSecretKey(stripeSecretKey);
+  if (!keyValidation.valid && process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { error: `Stripe configuration error: ${keyValidation.error || "Invalid key"}` },
+      { status: 500 }
+    );
+  }
+  const stripe = new Stripe(stripeSecretKey, {
+    apiVersion: getStripeApiVersion(),
+  });
+  const webhookSecret =
+    getStripeWebhookSecret() ||
+    getRequiredEnvVar(
+      "STRIPE_WEBHOOK_SECRET",
+      "Stripe webhook secret is required for secure webhook processing. Please set the STRIPE_WEBHOOK_SECRET environment variable.",
+      true
+    );
+
   const body = await request.text();
   const headersList = await headers();
   const signature = headersList.get("stripe-signature") || "";
@@ -105,7 +109,7 @@ export async function POST(request: Request) {
 
       case "charge.dispute.created":
         const dispute = event.data.object as Stripe.Dispute;
-        await handleDispute(dispute);
+        await handleDispute(dispute, stripe);
         break;
 
       default:
@@ -377,7 +381,7 @@ async function handleRefund(charge: Stripe.Charge) {
 }
 
 // Function to handle dispute
-async function handleDispute(dispute: Stripe.Dispute) {
+async function handleDispute(dispute: Stripe.Dispute, stripe: Stripe) {
   const chargeId = dispute.charge as string;
 
   if (!chargeId) {

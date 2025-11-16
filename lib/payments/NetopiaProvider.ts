@@ -5,8 +5,8 @@ import {
   RefundResult,
   PaymentStatus,
 } from "./IPaymentProvider";
-import Netopia from "netopia-payment2";
-import Ipn from "netopia-payment2";
+import * as NetopiaModule from "netopia-payment2";
+const { Netopia, Ipn } = NetopiaModule as any;
 
 export class NetopiaPaymentError extends Error {
   constructor(
@@ -28,8 +28,8 @@ export enum NetopiaErrorCode {
 }
 
 export class NetopiaProvider implements IPaymentProvider {
-  private netopia: Netopia;
-  private ipn: Ipn;
+  private netopia: any;
+  private ipn: any;
   private baseUrl: string;
 
   constructor() {
