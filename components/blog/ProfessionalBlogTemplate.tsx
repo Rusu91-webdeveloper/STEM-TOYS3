@@ -494,19 +494,22 @@ export default function ProfessionalBlogTemplate({
                 </div>
               </div>
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 md:mb-4">
-                Explore Our STEM Collection
+                {t("discoverStemCollection", "Explore Our STEM Collection")}
               </h2>
               <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/90 mb-4 sm:mb-6 md:mb-8 max-w-2xl mx-auto leading-snug sm:leading-relaxed">
-                Discover educational toys that make learning fun and engaging
-                for children of all ages. From science experiments to coding
-                robots, we have everything to spark curiosity and creativity.
+                {t(
+                  "stemCollectionCtaDescription",
+                  "Discover educational toys that make learning fun and engaging for children of all ages. From science experiments to coding robots, we have everything to spark curiosity and creativity."
+                )}
               </p>
               <Button
                 asChild
                 size="lg"
                 className="bg-white text-blue-600 hover:bg-gray-100 px-5 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 text-sm sm:text-base md:text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                <Link href="/products">Shop STEM Toys</Link>
+                <Link href="/products">
+                  {t("ctaShopNow", "Shop STEM Toys")}
+                </Link>
               </Button>
             </div>
           </div>

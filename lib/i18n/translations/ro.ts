@@ -518,6 +518,8 @@ export const ro = {
   // Pain-focused subheadline addressing parent frustrations
   discoverCollection:
     "Înlocuiește timpul de ecran cu învățare activă. Peste 10,000 de părinți au transformat deja copiii lor din 'dependenti de telefon' în 'viitori inventatori' cu jucăriile noastre STEM.",
+  stemCollectionCtaDescription:
+    "Descoperă jucăriile educaționale care fac învățarea distractivă pentru copiii de toate vârstele. De la experimente științifice la roboți de programare, avem tot ce le trebuie pentru a aprinde curiozitatea și creativitatea.",
 
   // Conversion-optimized CTAs
   shopAllProducts: "Vezi Cum Funcționează (Demo Gratuit)",

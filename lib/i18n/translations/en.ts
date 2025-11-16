@@ -442,6 +442,8 @@ export const en = {
   // Pain-focused subheadline addressing parent frustrations
   discoverCollection:
     "Replace screen time with active learning. Families worldwide are transforming their kids from 'phone addicts' to 'future inventors' with our STEM toys.",
+  stemCollectionCtaDescription:
+    "Discover educational toys that make learning fun and engaging for children of all ages. From science experiments to coding robots, we have everything to spark curiosity and creativity.",
 
   // Conversion-optimized CTAs
   shopAllProducts: "See How It Works (Free Demo)",
