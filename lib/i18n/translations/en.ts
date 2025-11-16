@@ -1302,7 +1302,23 @@ export const en = {
   faqStartTransformationRo: "Începe Transformarea Copilului Tău Astăzi",
 
   // Footer specific translations (expanded)
+  footerShopDiscover: "Shop & Discover",
+  footerCustomerCare: "Customer Care",
+  footerKnowledge: "Guides & Partnerships",
+  footerGuide2025: "2025 Guide",
+  footerAgeGuide: "STEM Toys by Age",
+  footerPhoneLabel: "Phone",
+  footerEmailLabel: "Email",
+  footerAddressLabel: "Headquarters",
+  footerPromise:
+    "Inspiring the next generation of innovators with curated STEM learning experiences.",
+  footerPaymentSecurity: "SSL 256-bit Encryption",
+  footerLegalInfoLabel: "Company details",
+  footerLegalCui: "Unique registration code: 51813997 (20.05.2025)",
+  footerLegalRegCom: "Trade Registry: J2025035239005 (19.05.2025)",
+
   // Newsletter section
+  exclusiveInsights: "Exclusive STEM Insights",
   joinEducatorsParents: "🚀 Join 50,000+ STEM Educators & Parents",
   newsletterSubtitle:
     "Get exclusive access to new products, educational resources, and special discounts. Plus, receive our weekly STEM activity guide!",
@@ -1313,6 +1329,10 @@ export const en = {
     "✓ Welcome aboard! Check your email for your first STEM resource pack.",
   subscriptionErrorMessage:
     "✗ Something went wrong. Please try again or contact support.",
+  noSpamGuarantee: "Zero spam",
+  unsubscribeAnytime: "Unsubscribe anytime",
+  newsletterValueBullet:
+    "Receive weekly STEM experiments, parent guides, and member-only offers from the TechTots community.",
 
   // Company description
   companyDescription:

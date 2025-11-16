@@ -51,18 +51,18 @@ export function PillarSection({ items = DEFAULT_PILLARS }: PillarSectionProps) {
   return (
     <section
       aria-label="TechTots Pillars"
-      className="relative py-8 sm:py-10 md:py-12 lg:py-14"
+      className="relative py-6 sm:py-10 md:py-12 lg:py-14"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className={`${glassPanelClass} mx-auto max-w-6xl p-6 sm:p-8`}>
+        <div className={`${glassPanelClass} mx-auto max-w-6xl p-5 sm:p-8`}>
           <div className="mb-6 text-center sm:mb-8">
             <span className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-emerald-200 sm:text-xs">
               {t("pillarSectionTag")}
             </span>
-            <h2 className="mt-3 bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-2xl font-extrabold tracking-tight text-transparent sm:text-3xl md:text-4xl">
+            <h2 className="mt-3 bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-xl font-extrabold tracking-tight text-transparent sm:text-3xl md:text-4xl">
               {t("pillarSectionTitle")}
             </h2>
-            <p className="mt-2 text-xs text-slate-200/80 sm:text-sm md:text-base">
+            <p className="mt-2 text-[0.85rem] text-slate-200/80 sm:text-sm md:text-base">
               {t("pillarSectionSubtitle")}
             </p>
           </div>

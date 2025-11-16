@@ -7,7 +7,8 @@ export const homeOverlayTopClass =
 export const homeOverlayBottomClass =
   "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(165,180,252,0.14),_transparent_60%)]";
 
-export const homeContentWrapperClass = "relative z-10 flex flex-col gap-8 lg:gap-12";
+export const homeContentWrapperClass =
+  "relative z-10 flex flex-col gap-6 sm:gap-8 lg:gap-12";
 
 export const glassPanelClass =
   "rounded-3xl border border-white/10 bg-white/5 shadow-lg shadow-black/30 backdrop-blur";
@@ -19,4 +20,3 @@ export const gradientButtonClass =
   "rounded-2xl bg-gradient-to-r from-emerald-500 via-sky-500 to-indigo-500 text-white shadow-lg shadow-emerald-500/25 transition hover:from-emerald-400 hover:via-sky-400 hover:to-indigo-400";
 
 export const subtleDividerClass = "my-3 sm:my-4 border-t border-white/10";
-
