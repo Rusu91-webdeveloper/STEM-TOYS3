@@ -12,25 +12,10 @@ import {
   validateStripeSecretKey,
 } from "@/lib/stripe-config";
 
-const stripeSecretKey = getRequiredEnvVar(
-  "STRIPE_SECRET_KEY",
-  "Stripe secret key is required for payment processing. Please set the STRIPE_SECRET_KEY environment variable.",
-  true
-);
-
-// Validate secret key format
-const keyValidation = validateStripeSecretKey(stripeSecretKey);
-if (!keyValidation.valid) {
-  throw new Error(
-    `Stripe configuration error: ${keyValidation.error || "Invalid key"}`
-  );
-}
-
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: getStripeApiVersion(),
-});
-
-const normalizedCurrency = getStripeCurrency();
+// IMPORTANT:
+// Avoid initializing Stripe and validating keys at module import time.
+// Doing so can break Next.js production builds because the build step imports route modules.
+// We initialize and validate within the request handler instead.
 
 const createRequestSchema = z.object({
   amount: z.number().int().positive(),
@@ -50,6 +35,29 @@ const REUSABLE_STATUSES: Stripe.PaymentIntent.Status[] = [
 
 export async function POST(request: NextRequest) {
   try {
+    // Initialize Stripe lazily at request time to prevent build-time failures
+    const stripeSecretKey = getRequiredEnvVar(
+      "STRIPE_SECRET_KEY",
+      "Stripe secret key is required for payment processing. Please set the STRIPE_SECRET_KEY environment variable.",
+      true
+    );
+    const keyValidation = validateStripeSecretKey(stripeSecretKey);
+    if (!keyValidation.valid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Stripe configuration error: ${
+            keyValidation.error || "Invalid key"
+          }`,
+        },
+        { status: 500 }
+      );
+    }
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: getStripeApiVersion(),
+    });
+    const normalizedCurrency = getStripeCurrency();
+
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json(
@@ -98,6 +106,8 @@ export async function POST(request: NextRequest) {
 
     if (paymentIntentId) {
       paymentIntent = await reuseOrCreatePaymentIntent(
+        stripe,
+        normalizedCurrency,
         paymentIntentId,
         amount,
         baseMetadata,
@@ -131,6 +141,8 @@ export async function POST(request: NextRequest) {
 }
 
 async function reuseOrCreatePaymentIntent(
+  stripe: Stripe,
+  normalizedCurrency: string,
   paymentIntentId: string,
   amount: number,
   metadata: Record<string, string>,

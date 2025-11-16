@@ -122,6 +122,19 @@ export const ro = {
   processingCheckout: "Se procesează...",
   goingToCheckout: "Se pregătește finalizarea comenzii...",
   takingToLogin: "Te direcționăm către autentificare...",
+  sold: "vândute",
+  inStock: "În stoc",
+  productFeatures: "Caracteristici ale produsului",
+  securePayment: "Plată securizată",
+  sslProtected: "Protejat prin SSL",
+  notAvailable: "Indisponibil",
+  easyReturns: "Retur simplu",
+  dayPolicy: "Politică de 30 de zile",
+  learnMore: "Află mai multe",
+  usefulGuides: "Ghiduri utile pentru a alege și folosi jucăriile STEM:",
+  guide2025: "Ghid 2025",
+  byAge: "După vârstă",
+  stemBenefits: "Beneficii STEM",
 
   // Checkout page
   shippingAddress: "Adresa de livrare",
@@ -518,6 +531,8 @@ export const ro = {
   // Pain-focused subheadline addressing parent frustrations
   discoverCollection:
     "Înlocuiește timpul de ecran cu învățare activă. Peste 10,000 de părinți au transformat deja copiii lor din 'dependenti de telefon' în 'viitori inventatori' cu jucăriile noastre STEM.",
+  stemCollectionCtaDescription:
+    "Descoperă jucăriile educaționale care fac învățarea distractivă pentru copiii de toate vârstele. De la experimente științifice la roboți de programare, avem tot ce le trebuie pentru a aprinde curiozitatea și creativitatea.",
 
   // Conversion-optimized CTAs
   shopAllProducts: "Vezi Cum Funcționează (Demo Gratuit)",

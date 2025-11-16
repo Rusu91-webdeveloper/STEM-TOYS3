@@ -75,7 +75,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
 
   return (
     <section
-      className="relative flex min-h-[70vh] items-center justify-center overflow-hidden px-3 pb-12 pt-24 xs:px-4 sm:px-6 sm:pb-18 sm:pt-32 lg:px-8"
+      className="relative flex min-h-[60vh] items-center justify-center overflow-hidden px-3 pb-10 pt-20 xs:px-4 sm:min-h-[70vh] sm:px-6 sm:pb-16 sm:pt-28 lg:px-8"
       aria-label={t("heroSection", "Homepage Hero Section")}
     >
       {/* **PERFORMANCE**: Ultra-optimized hero image for LCP - uses preloaded image */}
@@ -103,8 +103,8 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
         <div className="absolute inset-0 bg-black/18" aria-hidden="true" />
       </div>
       {/* Content is perfectly centered without boxed backdrop */}
-      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center px-3 text-center xs:px-4 sm:px-6">
-        <div className="relative flex w-full max-w-4xl flex-col items-center px-2 py-6 sm:px-6 sm:py-10">
+      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center px-2 text-center xs:px-4 sm:px-6">
+        <div className="relative flex w-full max-w-4xl flex-col items-center px-1.5 py-5 sm:px-6 sm:py-9">
           {/* Hero badge and supporting stat */}
           <div className="mb-4 flex flex-col items-center text-white/85 animate-fade-in sm:mb-5">
             <span className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.36em] text-emerald-200 sm:px-5 sm:text-xs">
@@ -119,18 +119,18 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
           </div>
 
           {/* Main Headline - A/B Tested */}
-          <h1 className="animate-fade-in bg-gradient-to-r from-sky-100 via-emerald-50 to-indigo-100 bg-clip-text text-[2.2rem] font-extrabold leading-tight text-transparent drop-shadow-[0_24px_60px_rgba(2,6,23,0.85)] xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl">
+          <h1 className="animate-fade-in bg-gradient-to-r from-sky-100 via-emerald-50 to-indigo-100 bg-clip-text text-[1.9rem] font-extrabold leading-tight text-transparent drop-shadow-[0_24px_60px_rgba(2,6,23,0.85)] xs:text-[2.35rem] sm:text-5xl md:text-6xl lg:text-7xl">
             {t("homepageH1Short", getHeadline())}
           </h1>
 
           {/* Subheadline */}
-          <p className="mt-4 max-w-3xl text-base font-semibold text-emerald-200 drop-shadow-[0_24px_55px_rgba(2,6,23,0.75)] animate-fade-in sm:text-lg md:text-xl">
+          <p className="mt-3 max-w-3xl text-sm font-semibold text-emerald-200 drop-shadow-[0_24px_55px_rgba(2,6,23,0.75)] animate-fade-in sm:mt-4 sm:text-lg md:text-xl">
             {t(
               "heroPrimarySubtitle",
               "Jucării STEM care fac învățarea irezistibilă"
             )}
           </p>
-          <p className="mt-4 max-w-3xl text-xs text-slate-100/85 drop-shadow-[0_18px_45px_rgba(2,6,23,0.65)] animate-fade-in sm:text-sm md:text-base">
+          <p className="mt-3 max-w-3xl text-[0.85rem] text-slate-100/85 drop-shadow-[0_18px_45px_rgba(2,6,23,0.65)] animate-fade-in sm:mt-4 sm:text-sm md:text-base">
             {t(
               "heroDescription",
               "Înlocuiește timpul de ecran cu învățare activă. Peste 10,000 de părinți au transformat deja copiii lor din 'dependenți de telefon' în 'viitori inventatori' cu jucăriile noastre STEM."
@@ -138,7 +138,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
           </p>
 
           {/* Primary Actions */}
-          <div className="mt-6 flex w-full max-w-md flex-col items-center justify-center gap-2.5 xs:max-w-2xl xs:flex-row sm:gap-4">
+          <div className="mt-5 flex w-full max-w-md flex-col items-center justify-center gap-2 xs:max-w-2xl xs:flex-row sm:mt-6 sm:gap-4">
             <Link
               href="/products"
               aria-label={getCTAText()}
@@ -158,7 +158,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
                   variant: ctaVariant?.name,
                 });
               }}
-              className={`${gradientButtonClass} flex w-full items-center justify-center gap-2 px-6 py-3 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-sky-500 xs:w-auto sm:text-base`}
+              className={`${gradientButtonClass} flex w-full items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-sky-500 xs:w-auto sm:px-6 sm:py-3 sm:text-base`}
             >
               {getCTAText()}
               <svg
@@ -187,7 +187,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
               data-conversion-category="cta"
               data-conversion-action="guides_articles"
               data-conversion-element="hero_secondary_button"
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/12 px-6 py-3 text-sm font-medium text-white transition hover:border-white/35 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent xs:w-auto sm:text-base"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/12 px-4 py-2.5 text-sm font-medium text-white transition hover:border-white/35 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent xs:w-auto sm:px-6 sm:py-3 sm:text-base"
               onClick={() =>
                 trackEvent("hero_secondary_click", {
                   element: "secondary_button",
@@ -200,7 +200,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
           </div>
 
           {/* Urgency & Guarantee */}
-          <div className="mt-7 flex w-full max-w-lg flex-col items-center gap-2.5 px-3.5 py-4 text-center text-xs text-slate-100/95 drop-shadow-[0_10px_36px_rgba(0,0,0,0.55)] sm:flex-row sm:flex-wrap sm:justify-center sm:gap-3 sm:text-sm">
+          <div className="mt-6 flex w-full max-w-lg flex-col items-center gap-2 px-3 py-3 text-center text-[0.7rem] text-slate-100/95 drop-shadow-[0_10px_36px_rgba(0,0,0,0.55)] sm:flex-row sm:flex-wrap sm:justify-center sm:gap-3 sm:px-3.5 sm:py-4 sm:text-sm">
             <div className="flex items-center gap-2 text-emerald-200 drop-shadow-[0_6px_22px_rgba(0,0,0,0.5)]">
               <span className="text-base">🛡️</span>
               <span>

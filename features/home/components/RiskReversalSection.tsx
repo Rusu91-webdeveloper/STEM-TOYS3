@@ -58,19 +58,19 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
   ];
 
   return (
-    <section className="py-10 sm:py-12 md:py-14">
+    <section className="py-6 sm:py-10 md:py-12">
       <div className="container mx-auto max-w-6xl px-4">
-        <div className={`${glassPanelClass} space-y-8 p-6 sm:p-8`}>
+        <div className={`${glassPanelClass} space-y-6 p-5 sm:space-y-8 sm:p-8`}>
           {/* Main Risk Reversal Headline */}
           <div className="text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">
               Fără Riscuri
             </span>
-            <h2 className="mt-4 bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl md:text-4xl lg:text-5xl">
+            <h2 className="mt-4 bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-xl font-bold text-transparent sm:text-3xl md:text-4xl lg:text-5xl">
               Începe Fără Nicio Îngrijorare
             </h2>
             {/* Replace long paragraph with concise bullets */}
-            <ul className="mt-4 flex flex-wrap justify-center gap-2 text-xs text-slate-200/80 sm:text-sm">
+            <ul className="mt-3 flex flex-wrap justify-center gap-2 text-[0.8rem] text-slate-200/80 sm:mt-4 sm:text-sm">
               <li className={`${glassCardClass} flex items-center gap-2 px-3 py-1`}>
                 <span>🛡️</span>
                 <span>{t("qualityGuaranteed", "Quality Guaranteed")}</span>
@@ -87,7 +87,7 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
           </div>
 
           {/* Guarantee Features Grid */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-4">
             {guaranteeFeatures.map((feature, index) => (
               <div
                 key={index}
@@ -110,7 +110,7 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
           </div>
 
           {/* Consultation Booking Section */}
-          <div className={`${glassPanelClass} border-white/15 p-6 sm:p-8`}>
+          <div className={`${glassPanelClass} border-white/15 p-5 sm:p-8`}>
             <div className="text-center">
               <div className="inline-flex items-center gap-2">
                 <span className="text-xl">🎯</span>
@@ -128,10 +128,10 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
                 potrivite pentru copilul tău.
               </p>
 
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <div className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:justify-center">
                 <Link
                   href="/contact"
-                  className={`${gradientButtonClass} inline-flex items-center justify-center gap-2 px-5 py-2 text-xs font-semibold sm:text-sm`}
+                  className={`${gradientButtonClass} inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold sm:px-5 sm:py-2.5 sm:text-sm`}
                 >
                   <span>📅</span>
                   Programează Consultare Gratuită
@@ -139,7 +139,7 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
 
                 <Link
                   href="/products"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-2 text-xs font-semibold text-white/90 transition hover:border-white/30 hover:bg-white/15 sm:text-sm"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white/90 transition hover:border-white/30 hover:bg-white/15 sm:px-5 sm:py-2.5 sm:text-sm"
                 >
                   Vezi Jucăriile
                 </Link>
@@ -148,19 +148,19 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
           </div>
 
           {/* Final Risk Reversal CTA */}
-          <div className="rounded-3xl border border-emerald-400/40 bg-gradient-to-r from-emerald-500/40 via-sky-500/30 to-indigo-500/40 p-6 text-center text-white shadow-lg shadow-emerald-500/25 sm:p-8">
-            <h3 className="text-lg font-bold sm:text-xl">
+          <div className="rounded-3xl border border-emerald-400/40 bg-gradient-to-r from-emerald-500/40 via-sky-500/30 to-indigo-500/40 p-5 text-center text-white shadow-lg shadow-emerald-500/25 sm:p-8">
+            <h3 className="text-base font-bold sm:text-xl">
               Începe Transformarea Copilului Tău
             </h3>
-            <p className="mt-3 text-xs text-white/85 sm:text-sm">
+            <p className="mt-3 text-[0.85rem] text-white/85 sm:text-sm">
               Alătură-te miilor de părinți care au transformat învățarea copiilor
               lor cu jucăriile noastre STEM de calitate.
             </p>
 
-            <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:mt-5 sm:flex-row">
               <Link
                 href="/products"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-2 text-xs font-semibold text-emerald-600 transition hover:bg-white/90 sm:text-sm"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-emerald-600 transition hover:bg-white/90 sm:px-5 sm:py-2.5 sm:text-sm"
               >
                 <span>🚀</span>
                 Începe Transformarea

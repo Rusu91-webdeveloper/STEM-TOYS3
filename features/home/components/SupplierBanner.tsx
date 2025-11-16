@@ -88,7 +88,7 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
   ];
 
   return (
-    <section className="py-6 sm:py-8 md:py-10 lg:py-12">
+    <section className="py-5 sm:py-8 md:py-10 lg:py-12">
       <div className="container mx-auto max-w-7xl px-4">
         <div
           className={`${glassPanelClass} relative overflow-hidden rounded-3xl border-white/15 bg-gradient-to-br from-slate-950/95 via-indigo-950/85 to-slate-900/90 text-slate-100`}
@@ -98,7 +98,7 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(165,180,252,0.2),_transparent_60%)]" />
           </div>
 
-          <div className="relative z-10 grid grid-cols-1 items-center gap-6 px-6 py-8 sm:gap-8 sm:px-8 sm:py-10 lg:grid-cols-2 lg:gap-12 lg:px-12 lg:py-12">
+          <div className="relative z-10 grid grid-cols-1 items-center gap-5 px-5 py-6 sm:gap-8 sm:px-8 sm:py-10 lg:grid-cols-2 lg:gap-12 lg:px-12 lg:py-12">
             <div className="text-center lg:text-left">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">
                 <svg
@@ -118,11 +118,11 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
                 {t("supplier_opportunity", "Oportunitate de Afaceri")}
               </div>
 
-              <h2 className="mt-4 bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-xl font-bold leading-tight text-transparent sm:text-2xl md:text-3xl lg:text-4xl">
+              <h2 className="mt-4 bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-lg font-bold leading-tight text-transparent sm:text-2xl md:text-3xl lg:text-4xl">
                 {t("supplier_banner_title", "Devino Furnizor TechTots")}
               </h2>
 
-              <p className="mt-4 text-sm text-slate-200/85 sm:text-base lg:text-lg">
+              <p className="mt-3 text-sm text-slate-200/85 sm:mt-4 sm:text-base lg:text-lg">
                 {t(
                   "supplier_banner_subtitle",
                   "Alătură-te rețelei noastre de furnizori și ajută la educarea generațiilor viitoare cu jucării STEM de calitate."
@@ -138,7 +138,7 @@ const SupplierBannerComponent = ({ t }: SupplierBannerProps) => {
                 data-conversion-category="supplier_banner"
                 data-conversion-action="become_supplier"
                 data-conversion-element="supplier_banner_button"
-                className={`${gradientButtonClass} mt-6 inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:text-base`}
+                className={`${gradientButtonClass} mt-5 inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:mt-6 sm:px-6 sm:py-3 sm:text-base`}
               >
                 {t("become_supplier")}
                 <svg

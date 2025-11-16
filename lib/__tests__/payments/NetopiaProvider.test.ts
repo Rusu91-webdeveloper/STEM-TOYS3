@@ -7,7 +7,7 @@ import {
 // Mock the Netopia SDK
 jest.mock("netopia-payment2", () => ({
   __esModule: true,
-  default: jest.fn().mockImplementation(() => ({
+  Netopia: jest.fn().mockImplementation(() => ({
     createOrder: jest.fn(),
     getStatus: jest.fn(),
     verifyAuth: jest.fn(),
@@ -39,10 +39,9 @@ describe("NetopiaProvider", () => {
 
     // Create provider (this will initialize the mocks)
     provider = new NetopiaProvider();
-    mockNetopia = (require("netopia-payment2").default as jest.Mock).mock
-      .results[0].value;
-    mockIpn = (require("netopia-payment2").Ipn as jest.Mock).mock.results[0]
+    mockNetopia = (require("netopia-payment2").Netopia as jest.Mock).mock.results[0]
       .value;
+    mockIpn = (require("netopia-payment2").Ipn as jest.Mock).mock.results[0].value;
   });
 
   describe("initialization", () => {

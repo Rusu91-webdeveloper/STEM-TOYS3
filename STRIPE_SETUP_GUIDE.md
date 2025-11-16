@@ -177,6 +177,12 @@ TARGET_LOCALES=ro,ro-RO
 
 ## Step 5: Verify Configuration
 
+### Build-time behavior and gating
+
+- Stripe webhook initialization happens at request time, not at build time.
+- If `NEXT_PUBLIC_STRIPE_ENABLED` is not set to `true`, the webhook endpoint will acknowledge events without processing.
+- In production, when enabled, the server requires live keys (`sk_live_*`) and a valid `STRIPE_WEBHOOK_SECRET`.
+
 ### 5.1 Check Environment Variables are Loaded
 
 ```bash

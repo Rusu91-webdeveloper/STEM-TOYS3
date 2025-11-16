@@ -136,7 +136,8 @@ export function ProductGrid({
     const handleResize = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        let cols = 1;
+        const fallbackCols = columns.base ?? 1;
+        let cols = fallbackCols;
         const width = window.innerWidth;
         if (width >= 1280 && columns.xl) cols = columns.xl;
         else if (width >= 1024 && columns.lg) cols = columns.lg;

@@ -1,4 +1,7 @@
+import Link from "next/link";
 import { Metadata } from "next";
+
+import { auth } from "@/lib/server/auth";
 
 const lastUpdated = new Intl.DateTimeFormat("ro-RO", {
   day: "numeric",
@@ -18,12 +21,11 @@ const quickSummaryRight = [
   "Suport multilingv disponibil",
 ];
 
-const processSteps = [
+const getProcessSteps = (ordersHref: string) => [
   {
     icon: "🛒",
     title: "1. Mergi la Comenzile Mele",
-    description:
-      'Accesează <a href="/account/orders" class="text-sky-200 underline underline-offset-4 hover:text-sky-100">Comenzile Mele</a> din contul tău',
+    description: `Accesează <a href="${ordersHref}" class="text-sky-200 underline underline-offset-4 hover:text-sky-100">Comenzile Mele</a> din contul tău`,
   },
   {
     icon: "🔄",
@@ -102,7 +104,18 @@ export const metadata: Metadata = {
     "politica returnare, returnare produse, garanție, drepturile consumatorului, UE, România",
 };
 
-export default function ReturnsPage() {
+export default async function ReturnsPage() {
+  const session = await auth();
+  const isAuthenticated = Boolean(session?.user);
+  const ordersLinkHref = isAuthenticated ? "/account/orders" : "/auth/login";
+  const ordersLinkCtaLabel = isAuthenticated
+    ? "Mergi la Comenzile Mele"
+    : "Autentifică-te pentru a vedea comenzile";
+  const processSteps = getProcessSteps(ordersLinkHref);
+  const ordersLinkInlineLabel = isAuthenticated
+    ? "Comenzile Mele (/account/orders)"
+    : "Autentifică-te pentru a accesa Comenzile Mele";
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.16),_transparent_55%)]" />
@@ -144,13 +157,13 @@ export default function ReturnsPage() {
                     Cea mai simplă modalitate de a returna un produs este prin contul tău online.
                   </p>
                 </div>
-                <a
-                  href="/account/orders"
+                <Link
+                  href={ordersLinkHref}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-sky-500/40 bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-100 shadow-sky-500/20 transition hover:border-sky-400/60 hover:bg-sky-500/30 sm:w-auto sm:px-5 sm:py-2.5 md:px-6 md:py-3 md:text-base"
                 >
                   <span>🛒</span>
-                  Mergi la Comenzile Mele
-                </a>
+                  {ordersLinkCtaLabel}
+                </Link>
               </div>
             </section>
 
@@ -210,12 +223,12 @@ export default function ReturnsPage() {
                   <ol className="ml-3 list-decimal space-y-1.5 text-xs text-slate-100 sm:ml-5 sm:space-y-2 sm:text-sm">
                     <li>
                       Accesează contul tău și mergi la{" "}
-                      <a
-                        href="/account/orders"
+                      <Link
+                        href={ordersLinkHref}
                         className="font-semibold text-sky-200 underline underline-offset-4 hover:text-sky-100"
                       >
-                        Comenzile Mele (/account/orders)
-                      </a>
+                        {ordersLinkInlineLabel}
+                      </Link>
                     </li>
                     <li>Găsește comanda care conține produsul pe care dorești să îl returnezi</li>
                     <li>Apasă pe butonul "Returnează Produs" de lângă articolul dorit</li>
@@ -353,9 +366,9 @@ export default function ReturnsPage() {
               <h2 className="text-lg font-semibold text-white sm:text-xl md:text-2xl">Ai Nevoie de Ajutor cu Returnarea?</h2>
               <div className="mt-4 rounded-2xl border border-white/10 bg-white/10 p-4 text-xs text-sky-100 sm:text-sm md:mt-6">
                 💡 <strong>Sfat:</strong> Majoritatea problemelor se rezolvă rapid prin{" "}
-                <a href="/account/orders" className="text-white underline underline-offset-4">
+                <Link href={ordersLinkHref} className="text-white underline underline-offset-4">
                   Comenzile Mele
-                </a>{" "}
+                </Link>{" "}
                 - unde poți iniția returnarea în câteva clickuri și vei primi automat emailul cu eticheta!
               </div>
               <div className="mt-6 grid gap-5 sm:grid-cols-2 md:gap-6">
@@ -413,4 +426,3 @@ export default function ReturnsPage() {
     </div>
   );
 }
-

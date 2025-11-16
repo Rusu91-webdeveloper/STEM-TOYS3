@@ -15,6 +15,7 @@ import {
 } from "@/features/home/components/homeTheme";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 
 // Define return types
 type ReturnReason =
@@ -92,6 +93,12 @@ export default function ReturnsPage() {
   const [returns, setReturns] = useState<ReturnItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { data: session, status } = useOptimizedSession();
+  const isAuthenticated = status === "authenticated" && Boolean(session?.user);
+  const emptyStateHref = isAuthenticated ? "/account/orders" : "/auth/login";
+  const emptyStateCtaLabel = isAuthenticated
+    ? "View your orders"
+    : "Log in to view orders";
 
   useEffect(() => {
     const fetchReturns = async () => {
@@ -147,7 +154,7 @@ export default function ReturnsPage() {
             gradientButtonClass
           )}
         >
-          <Link href="/account/orders">View your orders</Link>
+          <Link href={emptyStateHref}>{emptyStateCtaLabel}</Link>
         </Button>
       </div>
     );

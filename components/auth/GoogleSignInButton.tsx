@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface GoogleSignInButtonProps {
   callbackUrl?: string;
@@ -55,7 +56,10 @@ export function GoogleSignInButton({
       type="button"
       disabled={isLoading}
       onClick={handleGoogleSignIn}
-      className="w-full flex items-center justify-center gap-2"
+      className={cn(
+        "w-full flex items-center justify-center gap-2 bg-white text-gray-900 hover:bg-gray-100",
+        "dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
+      )}
     >
       {isLoading ? (
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-900 border-t-transparent" />

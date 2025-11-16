@@ -48,25 +48,25 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
   ];
 
   return (
-    <section className="py-10 sm:py-12 md:py-14">
+    <section className="py-6 sm:py-10 md:py-12">
       <div className="container mx-auto max-w-6xl px-4">
         <div className={`${glassPanelClass} text-center`}>
-          <div className="border-b border-white/10 px-6 py-6 sm:px-8 sm:py-8">
-            <h2 className="bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl md:text-4xl">
+          <div className="border-b border-white/10 px-4 py-5 sm:px-8 sm:py-8">
+            <h2 className="bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-xl font-bold text-transparent sm:text-3xl md:text-4xl">
               {t("whyChooseTechTots")}
             </h2>
-            <p className="mt-3 text-xs text-slate-200/80 sm:text-sm">
+            <p className="mt-3 text-[0.85rem] text-slate-200/80 sm:text-sm">
               {t("provenResults", "Proven Results")} •{" "}
               {t("qualityProducts", "Quality Products")} •{" "}
               {t("parentsLoveThisBecause", "Parents Love This")}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 border-b border-white/10 px-6 py-6 sm:grid-cols-2 sm:gap-6 sm:px-8 sm:py-8 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 border-b border-white/10 px-4 py-5 sm:grid-cols-2 sm:gap-5 sm:px-8 sm:py-8 md:grid-cols-3">
             {cards.slice(0, 3).map(card => (
               <div
                 key={card.key}
-                className={`${glassCardClass} group relative flex h-full flex-col overflow-hidden p-5 transition hover:border-emerald-400/60 hover:shadow-emerald-500/20`}
+                className={`${glassCardClass} group relative flex h-full flex-col overflow-hidden p-4 transition hover:border-emerald-400/60 hover:shadow-emerald-500/20`}
                 aria-label={card.title}
                 role="region"
               >
@@ -78,7 +78,7 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
                 </div>
 
                 <div className="mt-4 text-left">
-                  <h3 className="text-lg font-semibold text-white">
+                  <h3 className="text-base font-semibold text-white sm:text-lg">
                     {card.title}
                   </h3>
                   <p className="mt-2 text-sm text-slate-200/80">
@@ -106,7 +106,7 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
             ))}
           </div>
 
-          <div className="px-6 py-6 sm:px-8 sm:py-8">
+          <div className="px-4 py-5 sm:px-8 sm:py-8">
             <div className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-medium text-white/90 sm:text-sm">
               <div className="flex -space-x-1">
                 <div className="h-6 w-6 rounded-full border-2 border-white bg-emerald-400"></div>

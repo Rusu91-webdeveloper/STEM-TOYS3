@@ -323,10 +323,10 @@ export default function HomePageClient({
         <HeroSection t={t} />
 
         {/* **PERFORMANCE**: Trust badges and age links - Keep above fold for UX but optimize loading */}
-        <div className="-mt-3 sm:-mt-5 mb-6 sm:mb-8">
+        <div className="-mt-2 sm:-mt-4 mb-5 sm:mb-8">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div
-              className={`${glassPanelClass} mx-auto w-full max-w-5xl p-3.5 sm:p-6 lg:p-7`}
+              className={`${glassPanelClass} mx-auto w-full max-w-5xl p-3 sm:p-5 lg:p-7`}
             >
               {/* Trust badges row */}
               <TrustBadgesRow t={t} />

@@ -615,8 +615,7 @@ function ClientProductsPageContent({
   const content = (
     <ProductsErrorBoundary>
       <ProductVariantProvider>
-        {/* Hide hero section on mobile devices to save space and show products immediately */}
-        <div className="hidden md:block">
+        <section className="mb-4 sm:mb-6 lg:mb-10">
           <ProductsHeroSection
             categoryImagePath={getCategoryImagePath()}
             activeCategory={activeCategory}
@@ -625,7 +624,7 @@ function ClientProductsPageContent({
             getCategoryDescription={getCategoryDescription}
             t={t}
           />
-        </div>
+        </section>
 
         {/* Removed redundant category quick buttons to avoid duplication with sidebar and mobile filters */}
 
@@ -676,7 +675,13 @@ function ClientProductsPageContent({
           t={t}
         />
 
-        <div className="w-full max-w-full overflow-x-hidden bg-gradient-to-b from-muted/20 via-background to-muted/10">
+        <div
+          className="w-full max-w-full overflow-x-hidden"
+          style={{
+            background:
+              "linear-gradient(180deg, #f3f4f6 0%, #d1d5db 50%, #c0c0c0 100%)",
+          }}
+        >
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 relative z-10">
             {/* Subtle top accent */}
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary/10 via-primary/20 to-primary/10 rounded-full opacity-70 hidden sm:block"></div>

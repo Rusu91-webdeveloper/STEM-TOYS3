@@ -2,12 +2,11 @@
  * Utility functions for handling environment variables
  */
 
-import { join } from "path";
-
-import { config } from "dotenv";
-
-// Cache flag to prevent repeated loading
-let environmentLoaded = false;
+// NOTE:
+// Next.js automatically loads environment variables from .env files in development
+// and from the hosting provider (e.g., Vercel) in production. We intentionally avoid
+// importing or depending on 'dotenv' here to ensure compatibility with Edge/Serverless
+// runtimes and to prevent bundling issues during production builds.
 
 /**
  * Retrieves an environment variable and ensures it exists
@@ -75,62 +74,6 @@ export function getOptionalEnvVar(
 
   return value;
 }
-
-// Function to load environment variables from multiple sources
-function loadEnvironmentVariables() {
-  // Skip if already loaded
-  if (environmentLoaded) {
-    return;
-  }
-
-  // **PERFORMANCE**: Skip file loading in production - rely on system env vars
-  if (process.env.NODE_ENV === "production") {
-    environmentLoaded = true;
-    return;
-  }
-
-  const projectRoot = process.cwd();
-
-  // **PERFORMANCE**: Only load .env.local in development to reduce I/O
-  const envFiles = [".env.local"];
-
-  for (const envFile of envFiles) {
-    const envPath = join(projectRoot, envFile);
-    try {
-      const result = config({ path: envPath });
-      if (result.parsed) {
-        // **PERFORMANCE**: Only log once per session to reduce console noise
-        if (process.env.NODE_ENV === "development" && !globalThis.envLoaded) {
-          console.log(`✅ Loaded environment variables from ${envFile}`);
-          globalThis.envLoaded = true;
-        }
-      }
-    } catch (error) {
-      // File doesn't exist or can't be read - this is OK
-      // **PERFORMANCE**: Skip logging for missing files
-    }
-  }
-
-  // **PERFORMANCE**: Skip manual parsing in development - rely on config() above
-  // Only verify critical variables exist
-  const criticalVars = ["DATABASE_URL", "NEXTAUTH_SECRET"];
-  const missing = criticalVars.filter(varName => !process.env[varName]);
-
-  if (missing.length > 0 && process.env.NODE_ENV === "development") {
-    console.warn(
-      `⚠️  Missing critical environment variables: ${missing.join(", ")}`
-    );
-  }
-
-  // Mark as loaded to prevent repeated loading
-  environmentLoaded = true;
-}
-
-// Load environment variables immediately when this module is imported
-loadEnvironmentVariables();
-
-// Export the loader function for manual use if needed
-export { loadEnvironmentVariables };
 
 // Export commonly used environment variables with fallbacks
 export const env = {
