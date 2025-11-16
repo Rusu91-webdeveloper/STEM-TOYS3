@@ -59,10 +59,19 @@ export function ProductsHeroSection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const mobileStats = [
+    { label: t("heroStatProducts", "Produse STEM"), value: "120+" },
+    { label: t("heroStatFamilies", "Familii fericite"), value: "2.5k+" },
+    { label: t("heroStatDelivery", "Livrare rapidă"), value: "24h" },
+  ];
+
   return (
-    <div className="relative">
+    <section className="relative">
       {/* Premium Hero Image with enhanced mobile visuals */}
-      <div className="relative h-[24vh] xs:h-[30vh] sm:h-[36vh] md:h-[42vh] lg:h-[46vh] xl:h-[50vh] min-h-[220px] sm:min-h-[280px] lg:min-h-[360px] w-full overflow-hidden rounded-b-[2rem] sm:rounded-b-[3rem]">
+      <div className="relative w-full overflow-hidden rounded-[1.75rem] sm:rounded-[2.5rem]">
+        <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-b from-slate-900/80 via-slate-900/30 to-slate-900/90" />
+        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-primary/30 via-transparent to-purple-500/30 mix-blend-multiply" />
+        <div className="relative h-auto min-h-[260px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[420px]">
         {/* Decorative pattern overlay - non-interactive */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[length:20px_20px] z-10 mix-blend-soft-light"></div>
 
@@ -78,16 +87,12 @@ export function ProductsHeroSection({
           sizes="100vw"
           style={{ objectFit: "cover" }}
           priority
-          className="brightness-90"
+          className="brightness-90 object-cover"
         />
 
-        {/* Gradient overlays - non-interactive */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/90" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-purple-600/20 mix-blend-multiply" />
-
         {/* Content overlay should capture clicks */}
-        <div className="absolute inset-0 z-20 flex items-end sm:items-center">
-          <div className="container mx-auto px-4 sm:px-6 pb-6 sm:pb-0 text-white">
+        <div className="absolute inset-0 z-30 flex items-end sm:items-center">
+          <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-0 text-white">
             <div className="max-w-3xl xl:max-w-4xl animate-fadeIn">
               {/* Premium category badge */}
               <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
@@ -158,6 +163,22 @@ export function ProductsHeroSection({
             </div>
           </div>
         </div>
+        </div>
+      </div>
+
+      {/* Mobile quick stats */}
+      <div className="grid grid-cols-2 gap-2 mt-3 px-4 sm:hidden">
+        {mobileStats.map(stat => (
+          <div
+            key={stat.label}
+            className="rounded-2xl bg-white text-slate-900 px-4 py-3 shadow-lg shadow-slate-900/5 border border-slate-100/60"
+          >
+            <div className="text-xl font-black">{stat.value}</div>
+            <div className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+              {stat.label}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Decorative bubbles - non-interactive (hidden on small screens) */}
@@ -174,6 +195,6 @@ export function ProductsHeroSection({
         className="hidden sm:block pointer-events-none absolute -bottom-5 right-0 w-20 h-20 rounded-full bg-purple-500/20 blur-2xl motion-safe:animate-pulse"
         style={{ animationDelay: "1.5s" }}
       ></div>
-    </div>
+    </section>
   );
 }

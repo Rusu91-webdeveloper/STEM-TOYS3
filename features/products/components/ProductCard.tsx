@@ -2,7 +2,6 @@
 
 import { StarIcon } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -120,24 +119,24 @@ export function ProductCard({
           aria-hidden
         />
         <div className="relative z-10 w-full xs:w-1/3 h-48 xs:h-48 sm:h-56 xs:max-w-[240px] overflow-hidden bg-slate-900/70 border-r border-white/10">
-          <Link href={`/products/${product.slug}`}>
-            <div
-              className="relative h-full w-full group"
-              style={{ position: "relative" }}
-            >
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,_rgba(129,140,248,0.14)_1px,_transparent_1px)] bg-[length:18px_18px] opacity-80" />
-              <Image
-                src={imageUrl}
-                alt={product.name}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
-                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 240px"
-                priority={priority}
-                loading={priority ? "eager" : "lazy"}
-                quality={85}
-                placeholder="blur"
-                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-              />
+          <Link
+            href={`/products/${product.slug}`}
+            className="group block h-full relative"
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,_rgba(129,140,248,0.14)_1px,_transparent_1px)] bg-[length:18px_18px] opacity-80" />
+            <div className="relative z-10 flex h-full w-full items-center justify-center">
+              <div className="relative h-full w-full p-3 sm:p-0">
+                <OptimizedProductImage
+                  src={imageUrl}
+                  alt={product.name}
+                  fill
+                  className="object-contain sm:object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 240px"
+                  priority={priority}
+                  quality={85}
+                  placeholder="blur"
+                />
+              </div>
             </div>
             {isOnSale && (
               <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-md bg-rose-500/25 text-rose-100 border border-rose-400/40 px-2 py-0.5 text-xs font-semibold shadow-md shadow-rose-500/30 backdrop-blur">
@@ -250,18 +249,25 @@ export function ProductCard({
       <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-white/6 via-transparent to-indigo-500/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       {/* Compact image container for mobile: 3/2 aspect ratio instead of 4/3 */}
       <div className="relative z-10 overflow-hidden aspect-[3/2] sm:aspect-square bg-slate-900/70 border-b border-white/10">
-        <Link href={`/products/${product.slug}`}>
+        <Link
+          href={`/products/${product.slug}`}
+          className="group block h-full relative"
+        >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,_rgba(129,140,248,0.12)_1px,_transparent_1px)] bg-[length:18px_18px] opacity-70" />
-          <OptimizedProductImage
-            src={imageUrl}
-            alt={product.name}
-            fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            priority={priority}
-            quality={90}
-            placeholder="blur"
-          />
+          <div className="relative z-10 flex h-full w-full items-center justify-center">
+            <div className="relative h-full w-full p-3 sm:p-0">
+              <OptimizedProductImage
+                src={imageUrl}
+                alt={product.name}
+                fill
+                className="object-contain sm:object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                priority={priority}
+                quality={90}
+                placeholder="blur"
+              />
+            </div>
+          </div>
           {isOnSale && (
             <div className="absolute top-2 left-2 sm:top-3 sm:left-3 inline-flex items-center gap-1 sm:gap-1.5 rounded-md bg-rose-500/25 text-rose-100 border border-rose-400/40 px-1.5 py-0.5 sm:px-2 sm:py-0.5 text-[10px] sm:text-xs font-semibold shadow-md shadow-rose-500/30 backdrop-blur">
               <span>Sale</span>

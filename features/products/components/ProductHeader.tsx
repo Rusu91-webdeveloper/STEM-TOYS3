@@ -52,6 +52,9 @@ export function ProductHeader({
   const discountPercentage = hasDiscount
     ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
     : 0;
+  const displayRating = Number.isFinite(averageRating)
+    ? averageRating.toFixed(1)
+    : "0.0";
 
   return (
     <div className="space-y-4 text-slate-100">
@@ -116,25 +119,12 @@ export function ProductHeader({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`${size === "sm" ? "h-3 w-3" : "h-4 w-4"} ${
-                i < Math.floor(averageRating)
-                  ? "text-yellow-400 fill-current"
-                  : "text-gray-300"
-              }`}
-            />
-          ))}
-          <span
-            className={`${
-              size === "sm" ? "text-xs" : "text-sm"
-            } ml-1 text-slate-300`}
-          >
-            ({reviewCount})
-          </span>
-        </div>
+        <RatingBadge
+          averageRating={averageRating}
+          displayRating={displayRating}
+          reviewCount={reviewCount}
+          size={size}
+        />
       </div>
 
       {/* Discount Badge and Stock Status Row */}
@@ -168,6 +158,51 @@ export function ProductHeader({
             </span>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function RatingBadge({
+  averageRating,
+  displayRating,
+  reviewCount,
+  size,
+}: {
+  averageRating: number;
+  displayRating: string;
+  reviewCount: number;
+  size: "sm" | "md";
+}) {
+  return (
+    <div
+      className={`flex w-full flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-900/40 px-3 py-2 text-slate-50 backdrop-blur-sm shadow-inner shadow-black/30 transition sm:w-auto sm:flex-nowrap sm:justify-start`}
+    >
+      <div className="flex items-center gap-1">
+        {[...Array(5)].map((_, i) => (
+          <Star
+            key={i}
+            className={`${size === "sm" ? "h-3 w-3" : "h-4 w-4"} ${
+              i < Math.round(averageRating)
+                ? "text-yellow-400 fill-current drop-shadow"
+                : "text-gray-400"
+            }`}
+          />
+        ))}
+      </div>
+      <div className="flex items-baseline gap-2">
+        <span
+          className={`font-semibold ${
+            size === "sm" ? "text-sm" : "text-base"
+          } text-white`}
+        >
+          {displayRating}
+        </span>
+        <span
+          className={`${size === "sm" ? "text-xs" : "text-sm"} text-slate-200`}
+        >
+          ({reviewCount})
+        </span>
       </div>
     </div>
   );

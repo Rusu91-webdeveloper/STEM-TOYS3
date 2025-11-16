@@ -37,15 +37,15 @@ export function StemBenefitsSection({
             return (
               <div
                 key={index}
-                className="rounded-lg border border-white/12 bg-slate-950/40 p-1.5 sm:p-2 shadow-sm shadow-indigo-900/20 hover:shadow-indigo-500/30 transition-shadow flex flex-col items-center text-center backdrop-blur"
+                className="rounded-2xl border border-white/25 bg-white/15 p-2 sm:p-3 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 flex flex-col items-center text-center backdrop-blur-lg"
               >
-                <div className="p-0.5 sm:p-1 rounded-full bg-gradient-to-br from-indigo-500/40 to-sky-500/40 text-slate-100 mb-0.5 sm:mb-1 shadow-sm shadow-indigo-500/30">
-                  <BenefitIcon className="h-2.5 w-2.5 sm:h-4 sm:w-4" />
+                <div className="p-1 sm:p-1.5 rounded-full bg-gradient-to-br from-white/40 to-white/10 text-slate-900 mb-1 sm:mb-1.5 border border-white/30 shadow-sm">
+                  <BenefitIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                 </div>
-                <h3 className="font-bold text-xs mb-0.5 text-slate-100">
+                <h3 className="font-bold text-xs mb-0.5 text-slate-900">
                   {t(benefit.titleKey)}
                 </h3>
-                <p className="text-slate-300 text-xs leading-tight">
+                <p className="text-slate-800 text-[11px] sm:text-xs leading-tight">
                   {t(benefit.descKey)}
                 </p>
               </div>

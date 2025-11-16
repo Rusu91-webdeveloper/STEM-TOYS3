@@ -364,13 +364,14 @@ export function EnhancedProductFilters({
           <SelectTrigger
             className={cn(
               "h-10 sm:h-11 text-sm sm:text-base",
+              selectedProductType === "all" ? "text-black" : undefined,
               isInsideModal && "h-11 sm:h-12 text-sm"
             )}
           >
             <SelectValue placeholder="Select product type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">
+            <SelectItem value="all" className="text-black">
               {t ? t("allTypes", "All Types") : "All Types"}
             </SelectItem>
             {Object.keys(PRODUCT_TYPE_DISPLAY_NAMES).map(key => (
