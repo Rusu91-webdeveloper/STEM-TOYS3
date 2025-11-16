@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
 import { DatabaseTemplateService } from "@/lib/email/database-template-service";
+import { getStripeApiVersion } from "@/lib/stripe-config";
 import {
   getShippingSettings,
   getTaxSettings,
@@ -25,7 +26,7 @@ import {
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripeClient = stripeSecretKey
-  ? new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" })
+  ? new Stripe(stripeSecretKey, { apiVersion: getStripeApiVersion() })
   : null;
 
 // Order validation schema - more lenient version
