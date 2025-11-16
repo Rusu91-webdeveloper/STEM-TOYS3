@@ -50,7 +50,7 @@ const CategoriesSectionComponent = ({
   });
 
   return (
-    <section className="py-6 sm:py-10 md:py-12">
+    <section className="py-4 sm:py-6 md:py-8">
       <div className="container mx-auto max-w-4xl px-3 sm:px-4">
         <div className="mb-5 text-center sm:mb-8">
           <h2 className="bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-xl font-bold tracking-tight text-transparent sm:text-3xl">
@@ -156,7 +156,7 @@ const CategoriesSectionComponent = ({
           </div>
 
           {/* Content section */}
-          <div className="px-4 py-5 sm:px-8 sm:py-8">
+          <div className="px-4 py-4 sm:px-7 sm:py-6">
             <h3 className="text-base font-semibold text-white sm:text-xl">
               {t("exploreAllCategories", "Explore All STEM Categories")}
             </h3>

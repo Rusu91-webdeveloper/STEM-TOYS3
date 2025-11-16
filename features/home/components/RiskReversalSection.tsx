@@ -58,15 +58,15 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
   ];
 
   return (
-    <section className="py-6 sm:py-10 md:py-12">
+    <section className="py-4 sm:py-6 md:py-8">
       <div className="container mx-auto max-w-6xl px-4">
-        <div className={`${glassPanelClass} space-y-6 p-5 sm:space-y-8 sm:p-8`}>
+        <div className={`${glassPanelClass} space-y-5 p-4 sm:space-y-7 sm:p-6`}>
           {/* Main Risk Reversal Headline */}
           <div className="text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">
               Fără Riscuri
             </span>
-            <h2 className="mt-4 bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-xl font-bold text-transparent sm:text-3xl md:text-4xl lg:text-5xl">
+            <h2 className="mt-4 bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-xl font-bold text-transparent sm:text-3xl md:text-4xl lg:text-4xl">
               Începe Fără Nicio Îngrijorare
             </h2>
             {/* Replace long paragraph with concise bullets */}
@@ -110,7 +110,7 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
           </div>
 
           {/* Consultation Booking Section */}
-          <div className={`${glassPanelClass} border-white/15 p-5 sm:p-8`}>
+          <div className={`${glassPanelClass} border-white/15 p-4 sm:p-6`}>
             <div className="text-center">
               <div className="inline-flex items-center gap-2">
                 <span className="text-xl">🎯</span>
@@ -148,7 +148,7 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
           </div>
 
           {/* Final Risk Reversal CTA */}
-          <div className="rounded-3xl border border-emerald-400/40 bg-gradient-to-r from-emerald-500/40 via-sky-500/30 to-indigo-500/40 p-5 text-center text-white shadow-lg shadow-emerald-500/25 sm:p-8">
+          <div className="rounded-3xl border border-emerald-400/40 bg-gradient-to-r from-emerald-500/40 via-sky-500/30 to-indigo-500/40 p-4 text-center text-white shadow-lg shadow-emerald-500/25 sm:p-6">
             <h3 className="text-base font-bold sm:text-xl">
               Începe Transformarea Copilului Tău
             </h3>

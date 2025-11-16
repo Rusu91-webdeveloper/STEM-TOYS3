@@ -51,10 +51,10 @@ export function PillarSection({ items = DEFAULT_PILLARS }: PillarSectionProps) {
   return (
     <section
       aria-label="TechTots Pillars"
-      className="relative py-6 sm:py-10 md:py-12 lg:py-14"
+      className="relative py-4 sm:py-6 md:py-8 lg:py-10"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className={`${glassPanelClass} mx-auto max-w-6xl p-5 sm:p-8`}>
+        <div className={`${glassPanelClass} mx-auto max-w-6xl p-4 sm:p-6`}>
           <div className="mb-6 text-center sm:mb-8">
             <span className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-emerald-200 sm:text-xs">
               {t("pillarSectionTag")}

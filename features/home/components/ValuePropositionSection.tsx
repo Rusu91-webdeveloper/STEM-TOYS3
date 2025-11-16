@@ -48,10 +48,10 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
   ];
 
   return (
-    <section className="py-6 sm:py-10 md:py-12">
+    <section className="py-4 sm:py-6 md:py-8">
       <div className="container mx-auto max-w-6xl px-4">
         <div className={`${glassPanelClass} text-center`}>
-          <div className="border-b border-white/10 px-4 py-5 sm:px-8 sm:py-8">
+          <div className="border-b border-white/10 px-4 py-4 sm:px-8 sm:py-6">
             <h2 className="bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-xl font-bold text-transparent sm:text-3xl md:text-4xl">
               {t("whyChooseTechTots")}
             </h2>
@@ -62,7 +62,7 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 border-b border-white/10 px-4 py-5 sm:grid-cols-2 sm:gap-5 sm:px-8 sm:py-8 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 border-b border-white/10 px-4 py-4 sm:grid-cols-2 sm:gap-5 sm:px-8 sm:py-6 md:grid-cols-3">
             {cards.slice(0, 3).map(card => (
               <div
                 key={card.key}
@@ -106,7 +106,7 @@ function ValuePropositionSection({ t }: ValuePropositionSectionProps) {
             ))}
           </div>
 
-          <div className="px-4 py-5 sm:px-8 sm:py-8">
+          <div className="px-4 py-4 sm:px-8 sm:py-6">
             <div className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-medium text-white/90 sm:text-sm">
               <div className="flex -space-x-1">
                 <div className="h-6 w-6 rounded-full border-2 border-white bg-emerald-400"></div>

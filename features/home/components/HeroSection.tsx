@@ -75,7 +75,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
 
   return (
     <section
-      className="relative flex min-h-[60vh] items-center justify-center overflow-hidden px-3 pb-10 pt-20 xs:px-4 sm:min-h-[70vh] sm:px-6 sm:pb-16 sm:pt-28 lg:px-8"
+      className="relative flex min-h-[48vh] items-center justify-center overflow-hidden px-3 pb-8 pt-16 xs:min-h-[50vh] xs:px-4 sm:min-h-[55vh] sm:px-6 sm:pb-12 sm:pt-20 md:min-h-[60vh] lg:px-8"
       aria-label={t("heroSection", "Homepage Hero Section")}
     >
       {/* **PERFORMANCE**: Ultra-optimized hero image for LCP - uses preloaded image */}
@@ -119,7 +119,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
           </div>
 
           {/* Main Headline - A/B Tested */}
-          <h1 className="animate-fade-in bg-gradient-to-r from-sky-100 via-emerald-50 to-indigo-100 bg-clip-text text-[1.9rem] font-extrabold leading-tight text-transparent drop-shadow-[0_24px_60px_rgba(2,6,23,0.85)] xs:text-[2.35rem] sm:text-5xl md:text-6xl lg:text-7xl">
+          <h1 className="animate-fade-in bg-gradient-to-r from-sky-100 via-emerald-50 to-indigo-100 bg-clip-text text-[1.8rem] font-extrabold leading-tight text-transparent drop-shadow-[0_24px_60px_rgba(2,6,23,0.85)] xs:text-[2.2rem] sm:text-4xl md:text-5xl lg:text-6xl xl:text-6xl">
             {t("homepageH1Short", getHeadline())}
           </h1>
 
@@ -187,7 +187,7 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
               data-conversion-category="cta"
               data-conversion-action="guides_articles"
               data-conversion-element="hero_secondary_button"
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/12 px-4 py-2.5 text-sm font-medium text-white transition hover:border-white/35 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent xs:w-auto sm:px-6 sm:py-3 sm:text-base"
+              className="hidden xs:flex w-full items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/12 px-4 py-2.5 text-sm font-medium text-white transition hover:border-white/35 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent xs:w-auto sm:px-6 sm:py-3 sm:text-base"
               onClick={() =>
                 trackEvent("hero_secondary_click", {
                   element: "secondary_button",

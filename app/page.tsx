@@ -8,7 +8,7 @@ import HomePageClient from "./HomePageClient";
 const heroSectionCriticalCSS = `
   /* Critical above-the-fold styles for maximum FCP improvement */
   .hero-section {
-    min-height: 36vh;
+    min-height: 50vh;
     position: relative;
     display: flex;
     align-items: center;
@@ -60,7 +60,7 @@ const heroSectionCriticalCSS = `
   /* Responsive breakpoints for critical content */
   @media (min-width: 640px) {
     .hero-section {
-      min-height: 70vh;
+      min-height: 55vh;
     }
     .hero-title {
       font-size: 3rem;
@@ -72,7 +72,7 @@ const heroSectionCriticalCSS = `
 
   @media (min-width: 768px) {
     .hero-section {
-      min-height: 80vh;
+      min-height: 60vh;
     }
     .hero-title {
       font-size: 3.5rem;
@@ -81,7 +81,7 @@ const heroSectionCriticalCSS = `
 
   @media (min-width: 1024px) {
     .hero-section {
-      min-height: 85vh;
+      min-height: 65vh;
     }
   }
 

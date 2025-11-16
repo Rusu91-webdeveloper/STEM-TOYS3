@@ -277,9 +277,9 @@ export default function Footer({
   ];
 
   const socialBaseClass =
-    "group relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 sm:h-12 sm:w-12";
+    "group relative flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 sm:h-11 sm:w-11";
   const socialIconClass =
-    "h-4 w-4 text-gray-300 transition-colors group-hover:text-white sm:h-5 sm:w-5";
+    "h-[14px] w-[14px] text-gray-300 transition-colors group-hover:text-white sm:h-5 sm:w-5";
 
   return (
     <footer className="bg-gray-950 text-white">
@@ -287,7 +287,7 @@ export default function Footer({
       <NewsletterSignup />
 
       {/* Main footer content */}
-      <div className="container mx-auto px-3 py-5 sm:py-8 md:py-12 lg:py-16">
+      <div className="container mx-auto px-3 py-4 sm:py-6 md:py-8 lg:py-10">
         <div className="mb-5 flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-center text-[0.85rem] text-gray-200 shadow-sm backdrop-blur-sm sm:mb-8 sm:px-6 sm:py-4 sm:text-sm">
           <span>
             {getReturnPolicyText()} ·{" "}
@@ -296,17 +296,17 @@ export default function Footer({
             </Link>
           </span>
         </div>
-        <div className="flex flex-col gap-8 sm:gap-12">
+        <div className="flex flex-col gap-6 sm:gap-10">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-10">
-            <div className="flex flex-col justify-between gap-6 rounded-3xl border border-white/10 bg-white/[0.03] p-4 shadow-lg shadow-black/10 backdrop-blur-sm sm:p-7 lg:col-span-5">
+            <div className="flex flex-col justify-between gap-6 rounded-3xl border border-white/10 bg-white/[0.03] p-3 shadow-lg shadow-black/10 backdrop-blur-sm sm:p-6 lg:col-span-5">
               <div>
                 <div className="flex items-center gap-3">
-                  <div className="relative h-10 w-28 sm:h-12 sm:w-32 md:h-14 md:w-40">
+                  <div className="relative h-9 w-24 sm:h-11 sm:w-28 md:h-13 md:w-36">
                 <Image
                   src="/TechTots_LOGO.png"
                   alt={`${storeName} Logo`}
                   fill
-                  sizes="(max-width: 640px) 6rem, (max-width: 768px) 7rem, (max-width: 1024px) 9rem, 9rem"
+                  sizes="(max-width: 640px) 6rem, (max-width: 768px) 7rem, (max-width: 1024px) 8rem, 8rem"
                   className="object-contain"
                   priority={false}
                 />
@@ -336,7 +336,7 @@ export default function Footer({
                 ))}
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-2.5 sm:grid-cols-2">
                 {contactDetails.map((detail) => (
                   <div
                     key={detail.label}
@@ -368,12 +368,12 @@ export default function Footer({
             </div>
 
             <div className="lg:col-span-7">
-              <div className="grid gap-5 sm:gap-7 sm:grid-cols-2 md:grid-cols-3">
+              <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 md:grid-cols-3">
                 {navSections.map((section) => (
                   <nav
                     key={section.title}
                     aria-label={section.title}
-                    className="rounded-3xl border border-white/5 bg-white/[0.01] p-3.5 shadow-[0px_20px_45px_-20px_rgba(15,23,42,0.45)] transition duration-300 hover:border-white/15 hover:bg-white/[0.04] sm:p-4"
+                    className="rounded-3xl border border-white/5 bg-white/[0.01] p-2.5 shadow-[0px_20px_45px_-20px_rgba(15,23,42,0.45)] transition duration-300 hover:border-white/15 hover:bg-white/[0.04] sm:p-3"
                   >
                     <div className="flex items-center gap-3">
                       <span
@@ -381,16 +381,16 @@ export default function Footer({
                       >
                         {section.title.charAt(0)}
                       </span>
-                      <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-200 sm:text-[0.7rem] md:text-sm">
+                      <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-200 sm:text-xs md:text-[13px]">
                         {section.title}
                       </h3>
                     </div>
-                    <ul className="mt-4 space-y-2">
+                    <ul className="mt-3 space-y-1.5">
                       {section.items.map((item) => (
                         <li key={item.label}>
                           <Link
                             href={item.href}
-                            className="group flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white sm:text-sm"
+                            className="group flex items-center justify-between rounded-xl px-2 py-1 text-[11px] text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white sm:text-xs"
                             {...(item.tracking ?? {})}
                           >
                             <span className="flex items-center gap-2">
@@ -399,7 +399,7 @@ export default function Footer({
                               />
                               {item.label}
                             </span>
-                            <span className="text-xs font-semibold opacity-0 transition-all duration-200 group-hover:translate-x-1 group-hover:opacity-100">
+                            <span className="text-[11px] font-semibold opacity-0 transition-all duration-200 group-hover:translate-x-1 group-hover:opacity-100">
                               &gt;
                             </span>
                           </Link>
@@ -412,34 +412,34 @@ export default function Footer({
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-5 shadow-[0px_20px_45px_-20px_rgba(15,23,42,0.55)] backdrop-blur-sm sm:p-8">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-4 shadow-[0px_20px_45px_-20px_rgba(15,23,42,0.55)] backdrop-blur-sm sm:p-5">
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-start lg:gap-10">
-              <div className="flex flex-col gap-3 text-center text-xs text-gray-400 sm:text-sm lg:text-left">
-                <p className="text-[0.92rem] font-semibold text-white sm:text-base">
+              <div className="flex flex-col gap-2.5 text-center text-[11px] text-gray-400 sm:text-xs lg:text-left">
+                <p className="text-[0.85rem] font-semibold text-white sm:text-[0.95rem]">
                   © 2025 {storeName} {t("allRightsReserved")}
                 </p>
-                <p className="text-[0.85rem] leading-relaxed text-gray-400 sm:text-sm">
+                <p className="text-[0.8rem] leading-relaxed text-gray-400 sm:text-[0.9rem]">
                   {t(
                     "footerPromise",
                     "Inspiring the next generation of innovators with curated STEM learning experiences."
                   )}
                 </p>
-                <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
+                <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
                   <Link
                     href="/privacy"
-                    className="text-xs font-medium uppercase tracking-[0.2em] text-gray-400 transition-colors hover:text-white"
+                    className="text-[11px] font-medium uppercase tracking-[0.2em] text-gray-400 transition-colors hover:text-white sm:text-xs"
                   >
                     {t("privacyPolicy")}
                   </Link>
                   <Link
                     href="/terms"
-                    className="text-xs font-medium uppercase tracking-[0.2em] text-gray-400 transition-colors hover:text-white"
+                    className="text-[11px] font-medium uppercase tracking-[0.2em] text-gray-400 transition-colors hover:text-white sm:text-xs"
                   >
                     {t("termsOfService")}
                   </Link>
                   <Link
                     href="/gdpr"
-                    className="text-xs font-medium uppercase tracking-[0.2em] text-gray-400 transition-colors hover:text-white"
+                    className="text-[11px] font-medium uppercase tracking-[0.2em] text-gray-400 transition-colors hover:text-white sm:text-xs"
                   >
                     GDPR
                   </Link>
@@ -469,7 +469,7 @@ export default function Footer({
                 </span>
               </Link>
 
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3.5 text-left text-xs text-gray-200 shadow-inner sm:text-sm lg:ml-auto">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-3.5 py-3 text-left text-xs text-gray-200 shadow-inner sm:text-sm lg:ml-auto">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-400">
                   {t("footerLegalInfoLabel", "Date companie")}
                 </p>
