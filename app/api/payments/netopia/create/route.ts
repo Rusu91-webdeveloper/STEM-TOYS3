@@ -48,6 +48,9 @@ export async function POST(request: Request) {
               },
             },
           },
+          shippingAddress: true,
+          // Note: billingAddress relation doesn't exist in schema
+          // Using shippingAddress for both billing and shipping
         },
       });
 
@@ -69,6 +72,17 @@ export async function POST(request: Request) {
           vat: effectiveVat,
           quantity: item.quantity,
         }));
+
+        // hydrate customer address from order shipping address if available
+        const ship = orderRecord.shippingAddress;
+        if (ship) {
+          customerData.address = {
+            street: ship.addressLine1 || ship.addressLine2 || "",
+            city: ship.city || "",
+            country: ship.country || "RO",
+            postalCode: ship.postalCode || "",
+          };
+        }
       }
     } catch (dbError) {
       console.error("Failed to enrich Netopia payload with products:", dbError);

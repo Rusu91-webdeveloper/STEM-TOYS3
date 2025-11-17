@@ -5,8 +5,9 @@ import {
   RefundResult,
   PaymentStatus,
 } from "./IPaymentProvider";
+// Import Netopia SDK - verified exports: Netopia, Ipn, constants
 import * as NetopiaModule from "netopia-payment2";
-const { Netopia, Ipn } = NetopiaModule as any;
+const { Netopia, Ipn } = NetopiaModule;
 
 export class NetopiaPaymentError extends Error {
   constructor(
@@ -86,7 +87,10 @@ export class NetopiaProvider implements IPaymentProvider {
         countryName: "Romania",
         state: orderData.customer.address?.city || "",
         postalCode: orderData.customer.address?.postalCode || "",
-        details: orderData.customer.address?.street || "",
+        details:
+          orderData.customer.address?.street ||
+          orderData.customer.address?.addressLine1 ||
+          "",
       };
 
       // Prepare shipping data (same as billing for now)
@@ -141,39 +145,183 @@ export class NetopiaProvider implements IPaymentProvider {
         data: {},
       };
 
-      const response = await this.netopia.createOrder(
-        configData,
-        paymentData,
-        netopiaOrderData
-      );
-
-      if (response.code !== 200) {
+      // Validate Netopia instance is initialized
+      if (!this.netopia || typeof this.netopia.createOrder !== "function") {
+        console.error("❌ [NETOPIA] SDK not properly initialized");
         throw new NetopiaPaymentError(
-          NetopiaErrorCode.PAYMENT_DECLINED,
-          response.message || "Payment creation failed"
+          NetopiaErrorCode.INVALID_CONFIGURATION,
+          "Netopia SDK is not properly initialized. Check your API credentials."
         );
       }
 
+      // Log request data in development
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔍 [NETOPIA] Request data:", {
+          configData,
+          paymentData,
+          netopiaOrderData: {
+            ...netopiaOrderData,
+            posSignature: netopiaOrderData.posSignature ? "***" : undefined,
+          },
+          isLive: process.env.NETOPIA_SANDBOX !== "true",
+          hasApiKey: !!process.env.NETOPIA_API_KEY,
+          hasSignature: !!process.env.NETOPIA_SIGNATURE,
+        });
+      }
+
+      let response;
+      try {
+        response = await this.netopia.createOrder(
+          configData,
+          paymentData,
+          netopiaOrderData
+        );
+      } catch (sdkError: any) {
+        console.error("❌ [NETOPIA] SDK error during createOrder:", {
+          error: sdkError,
+          message: sdkError?.message,
+          stack: process.env.NODE_ENV === "development" ? sdkError?.stack : undefined,
+        });
+        throw new NetopiaPaymentError(
+          NetopiaErrorCode.NETWORK_ERROR,
+          `Netopia SDK error: ${sdkError?.message || "Unknown error during payment creation"}`
+        );
+      }
+
+      // Log full response in development for debugging
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔍 [NETOPIA] Full API response:", JSON.stringify(response, null, 2));
+      }
+
+      // Check if response is valid
+      if (!response) {
+        console.error("❌ [NETOPIA] No response received from createOrder");
+        throw new NetopiaPaymentError(
+          NetopiaErrorCode.NETWORK_ERROR,
+          "No response received from Netopia API"
+        );
+      }
+
+      // Handle different response code formats
+      // Use nullish coalescing (??) instead of || because 0 is falsy but valid
+      const responseCode = response.code ?? response.statusCode ?? response.status;
+      
+      // Check for SDK internal errors FIRST (code 0 means SDK caught an exception)
+      // This happens when the SDK tries to access paymentURL from a failed API response
+      // Must check for 0 explicitly (not falsy, since 0 is falsy in JavaScript)
+      if (responseCode === 0 || responseCode === "0" || (response.hasOwnProperty('code') && response.code === 0)) {
+        const errorData = response.data || response.error || response.message;
+        console.error("❌ [NETOPIA] SDK internal error (code 0):", {
+          message: response.message,
+          errorData: typeof errorData === "string" ? errorData : JSON.stringify(errorData),
+          fullResponse: process.env.NODE_ENV === "development" ? response : undefined,
+        });
+        
+        // Check if it's a paymentURL access error (SDK bug - API returned error but SDK tried to parse success response)
+        if (typeof errorData === "string" && errorData.includes("paymentURL")) {
+          throw new NetopiaPaymentError(
+            NetopiaErrorCode.NETWORK_ERROR,
+            "Netopia API returned an error response, but the SDK tried to access paymentURL from it. " +
+            "This indicates the Netopia API rejected your request. Common causes:\n" +
+            "1. Invalid or incorrect sandbox API credentials (NETOPIA_API_KEY, NETOPIA_SIGNATURE)\n" +
+            "2. Request format doesn't match Netopia's expected structure\n" +
+            "3. API endpoint configuration issue\n" +
+            "4. Sandbox account not properly activated\n\n" +
+            "Please verify:\n" +
+            "- NETOPIA_SANDBOX=true is set\n" +
+            "- Your sandbox credentials are correct and active\n" +
+            "- Contact Netopia support if credentials are correct but still failing"
+          );
+        }
+        
+        throw new NetopiaPaymentError(
+          NetopiaErrorCode.NETWORK_ERROR,
+          `Netopia SDK error: ${response.message || "Unknown error"}${typeof errorData === "string" ? ` - ${errorData}` : ""}`
+        );
+      }
+      
+      // Handle other non-200 status codes
+      if (responseCode !== 200 && responseCode !== "200") {
+        console.error("❌ [NETOPIA] createOrder failed:", {
+          code: responseCode,
+          message: response.message || response.error || "Unknown error",
+          data: response.data,
+          response: process.env.NODE_ENV === "development" ? response : undefined,
+        });
+        
+        // Provide more specific error messages based on status code
+        let errorMessage = response.message || response.error || "Payment creation failed";
+        if (responseCode === 400) {
+          errorMessage = "Invalid request format. Please check your order data structure.";
+        } else if (responseCode === 401) {
+          errorMessage = "Authentication failed. Please verify your NETOPIA_API_KEY and NETOPIA_SIGNATURE.";
+        } else if (responseCode === 404) {
+          errorMessage = "API endpoint not found. Please check your Netopia SDK configuration.";
+        }
+        
+        throw new NetopiaPaymentError(
+          NetopiaErrorCode.PAYMENT_DECLINED,
+          errorMessage
+        );
+      }
+
+      // Try multiple paths to extract payment URL
       const paymentUrl =
         response.data?.payment?.paymentURL ||
         response.data?.payment?.paymentUrl ||
-        response.data?.paymentUrl;
+        response.data?.paymentURL ||
+        response.paymentURL ||
+        response.paymentUrl ||
+        response.data?.url ||
+        response.url;
+
+      // Try multiple paths to extract transaction ID
       const netopiaTransactionId =
         response.data?.payment?.ntpID ||
         response.data?.payment?.ntpId ||
+        response.data?.ntpID ||
+        response.data?.ntpId ||
+        response.ntpID ||
+        response.ntpId ||
+        response.data?.transactionId ||
+        response.transactionId ||
         this.netopia?.ntpID;
 
-      if (!paymentUrl || !netopiaTransactionId) {
+      // Log what we found for debugging
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔍 [NETOPIA] Extracted values:", {
+          paymentUrl: paymentUrl ? "✓ Found" : "✗ Missing",
+          transactionId: netopiaTransactionId ? "✓ Found" : "✗ Missing",
+          responseStructure: {
+            hasData: !!response.data,
+            hasPayment: !!response.data?.payment,
+            topLevelKeys: Object.keys(response),
+            dataKeys: response.data ? Object.keys(response.data) : [],
+          },
+        });
+      }
+
+      // Validate we have required data
+      if (!paymentUrl) {
+        console.error("❌ [NETOPIA] Missing payment URL in response:", {
+          responseKeys: Object.keys(response),
+          dataKeys: response.data ? Object.keys(response.data) : [],
+          fullResponse: process.env.NODE_ENV === "development" ? response : "hidden",
+        });
         throw new NetopiaPaymentError(
           NetopiaErrorCode.PAYMENT_DECLINED,
-          "Netopia did not return a payment URL or transaction ID"
+          "Netopia did not return a payment URL. Check your API credentials and sandbox configuration."
         );
+      }
+
+      if (!netopiaTransactionId) {
+        console.warn("⚠️ [NETOPIA] Missing transaction ID, using order ID as fallback");
       }
 
       return {
         paymentUrl,
-        invoiceId: netopiaTransactionId,
-        transactionId: netopiaTransactionId,
+        invoiceId: netopiaTransactionId || orderData.id,
+        transactionId: netopiaTransactionId || orderData.id,
         status: "pending",
       };
     } catch (error) {
