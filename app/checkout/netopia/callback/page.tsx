@@ -37,7 +37,7 @@ export default function NetopiaCallback() {
         );
         const result = await response.json();
 
-        if (result.status === "paid") {
+        if (result.status === "paid" || result.status === "refunded") {
           setStatus("success");
           setMessage("Plata a fost procesată cu succes!");
 

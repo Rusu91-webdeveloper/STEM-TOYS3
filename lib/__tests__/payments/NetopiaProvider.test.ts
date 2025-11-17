@@ -2,7 +2,7 @@ import {
   NetopiaProvider,
   NetopiaPaymentError,
   NetopiaErrorCode,
-} from "../payments/NetopiaProvider";
+} from "../../payments/NetopiaProvider";
 
 // Mock the Netopia SDK
 jest.mock("netopia-payment2", () => ({
@@ -70,7 +70,7 @@ describe("NetopiaProvider", () => {
     const mockOrderData = {
       id: "order_123",
       amount: 100,
-      currency: "USD",
+      currency: "RON",
       customer: {
         name: "John Doe",
         email: "john@example.com",
@@ -84,7 +84,10 @@ describe("NetopiaProvider", () => {
         code: 200,
         message: "Success",
         data: {
-          paymentUrl: "https://netopia.example.com/pay/123",
+          payment: {
+            paymentURL: "https://netopia.example.com/pay/123",
+            ntpID: "ntp_generated_123",
+          },
         },
       };
 
@@ -94,44 +97,31 @@ describe("NetopiaProvider", () => {
 
       expect(result).toEqual({
         paymentUrl: "https://netopia.example.com/pay/123",
-        invoiceId: expect.stringContaining("ntp_order_123_"),
-        transactionId: expect.stringContaining("ntp_order_123_"),
+        invoiceId: "ntp_generated_123",
+        transactionId: "ntp_generated_123",
         status: "pending",
       });
 
       expect(mockNetopia.createOrder).toHaveBeenCalledWith(
         expect.objectContaining({
-          configData: expect.objectContaining({
-            language: "ro",
-            notifyUrl: "http://localhost:3000/api/payments/netopia/webhook",
-            redirectUrl: "http://localhost:3000/checkout/netopia/callback",
-          }),
+          language: "ro",
+          notifyUrl: "http://localhost:3000/api/payments/netopia/webhook",
+          redirectUrl: "http://localhost:3000/checkout/netopia/callback",
         }),
         expect.any(Object),
         expect.objectContaining({
           orderID: "order_123",
-          amount: 470, // 100 USD * 4.7 exchange rate
+          amount: 100,
           currency: "RON",
         })
       );
     });
 
-    it("should convert USD to RON", async () => {
+    it("should reject non-RON amounts", async () => {
       const usdOrderData = { ...mockOrderData, currency: "USD", amount: 50 };
 
-      mockNetopia.createOrder.mockResolvedValue({
-        code: 200,
-        data: { paymentUrl: "https://netopia.example.com/pay/123" },
-      });
-
-      await provider.createPayment(usdOrderData);
-
-      expect(mockNetopia.createOrder).toHaveBeenCalledWith(
-        expect.any(Object),
-        expect.any(Object),
-        expect.objectContaining({
-          amount: 235, // 50 USD * 4.7
-        })
+      await expect(provider.createPayment(usdOrderData)).rejects.toThrow(
+        "Netopia payments require RON amounts"
       );
     });
 
@@ -145,9 +135,7 @@ describe("NetopiaProvider", () => {
         NetopiaPaymentError
       );
 
-      await expect(provider.createPayment(mockOrderData)).rejects.toThrow(
-        "Payment creation failed"
-      );
+      await expect(provider.createPayment(mockOrderData)).rejects.toThrow("Invalid request");
     });
 
     it("should handle network errors", async () => {
@@ -165,11 +153,15 @@ describe("NetopiaProvider", () => {
 
   describe("handleWebhook", () => {
     const mockPayload = {
-      ntpID: "ntp_123",
-      orderID: "order_123",
-      status: 1,
-      amount: 470,
-      currency: "RON",
+      payment: {
+        ntpID: "ntp_123",
+        status: 3,
+        amount: 470,
+        currency: "RON",
+      },
+      order: {
+        orderID: "order_123",
+      },
     };
 
     it("should handle valid webhook successfully", async () => {
@@ -216,7 +208,7 @@ describe("NetopiaProvider", () => {
       mockNetopia.getStatus.mockResolvedValue({
         code: 200,
         data: {
-          status: "1",
+          status: "3",
           amount: "470",
           currency: "RON",
         },
@@ -234,9 +226,12 @@ describe("NetopiaProvider", () => {
 
     it("should map status codes correctly", async () => {
       const testCases = [
-        { status: "1", expected: "paid" },
-        { status: "2", expected: "failed" },
-        { status: "3", expected: "cancelled" },
+        { status: "3", expected: "paid" },
+        { status: "5", expected: "paid" },
+        { status: "4", expected: "cancelled" },
+        { status: "12", expected: "failed" },
+        { status: "11", expected: "failed" },
+        { status: "8", expected: "refunded" },
         { status: "0", expected: "pending" },
       ];
 

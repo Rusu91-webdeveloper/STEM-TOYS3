@@ -65,12 +65,15 @@ export class NetopiaProvider implements IPaymentProvider {
 
   async createPayment(orderData: OrderData): Promise<PaymentResult> {
     try {
-      // Convert USD to RON if needed (assuming 1 USD = 4.7 RON for now)
-      const exchangeRate = 4.7;
-      const amountInRON =
-        orderData.currency === "USD"
-          ? Math.round(orderData.amount * exchangeRate * 100) / 100
-          : orderData.amount;
+      // Netopia POS is configured for RON-only; enforce RON amounts
+      if (orderData.currency !== "RON") {
+        throw new NetopiaPaymentError(
+          NetopiaErrorCode.INVALID_AMOUNT,
+          "Netopia payments require RON amounts; convert before creating the payment"
+        );
+      }
+
+      const amountInRON = orderData.amount;
 
       // Prepare billing data
       const billingData = {
@@ -89,9 +92,8 @@ export class NetopiaProvider implements IPaymentProvider {
       // Prepare shipping data (same as billing for now)
       const shippingData = { ...billingData };
 
-      // Prepare order data
+      // Prepare order data (let Netopia assign ntpID)
       const netopiaOrderData = {
-        ntpID: `ntp_${orderData.id}_${Date.now()}`,
         posSignature: process.env.NETOPIA_SIGNATURE!,
         dateTime: new Date().toISOString(),
         orderID: orderData.id,
@@ -100,7 +102,15 @@ export class NetopiaProvider implements IPaymentProvider {
         currency: "RON",
         billing: billingData,
         shipping: shippingData,
-        products: [], // We'll populate this if we have product data
+        products:
+          orderData.products?.map(item => ({
+            name: item.name,
+            code: item.code || "",
+            category: item.category || "",
+            price: item.price,
+            vat: item.vat ?? 0,
+            qty: item.quantity ?? 1,
+          })) || [],
         installments: {
           selected: 0,
           available: 1,
@@ -128,15 +138,6 @@ export class NetopiaProvider implements IPaymentProvider {
           bonus: 0,
           split: [],
         },
-        instrument: {
-          type: "card",
-          account: "",
-          expMonth: 0,
-          expYear: 0,
-          secretCode: "",
-          token: "",
-          clientID: "",
-        },
         data: {},
       };
 
@@ -153,10 +154,26 @@ export class NetopiaProvider implements IPaymentProvider {
         );
       }
 
+      const paymentUrl =
+        response.data?.payment?.paymentURL ||
+        response.data?.payment?.paymentUrl ||
+        response.data?.paymentUrl;
+      const netopiaTransactionId =
+        response.data?.payment?.ntpID ||
+        response.data?.payment?.ntpId ||
+        this.netopia?.ntpID;
+
+      if (!paymentUrl || !netopiaTransactionId) {
+        throw new NetopiaPaymentError(
+          NetopiaErrorCode.PAYMENT_DECLINED,
+          "Netopia did not return a payment URL or transaction ID"
+        );
+      }
+
       return {
-        paymentUrl: response.data?.paymentUrl || "",
-        invoiceId: netopiaOrderData.ntpID,
-        transactionId: netopiaOrderData.ntpID,
+        paymentUrl,
+        invoiceId: netopiaTransactionId,
+        transactionId: netopiaTransactionId,
         status: "pending",
       };
     } catch (error) {
@@ -171,13 +188,19 @@ export class NetopiaProvider implements IPaymentProvider {
     }
   }
 
-  async handleWebhook(payload: any, signature: string): Promise<void> {
+  async handleWebhook(payloadOrRaw: any, signature: string): Promise<void> {
     try {
+      const rawBody =
+        typeof payloadOrRaw === "string"
+          ? payloadOrRaw
+          : JSON.stringify(payloadOrRaw);
+      const payload =
+        typeof payloadOrRaw === "string"
+          ? JSON.parse(payloadOrRaw)
+          : payloadOrRaw;
+
       // Verify the webhook signature
-      const verificationResult = await this.ipn.verify(
-        signature,
-        JSON.stringify(payload)
-      );
+      const verificationResult = await this.ipn.verify(signature, rawBody);
 
       if (
         verificationResult.errorType !== 0 ||
@@ -190,20 +213,31 @@ export class NetopiaProvider implements IPaymentProvider {
       }
 
       // Process the payment notification
-      const { ntpID, orderID, status, amount, currency } = payload;
+      const paymentStatusCode =
+        payload?.payment?.status ?? payload?.status ?? payload?.state;
+      const ntpID =
+        payload?.payment?.ntpID ||
+        payload?.payment?.ntpId ||
+        payload?.ntpID ||
+        payload?.ntpId;
+      const orderID = payload?.order?.orderID || payload?.orderID;
+      const amount =
+        payload?.payment?.amount ?? payload?.amount ?? payload?.payment?.paymentAmount;
+      const currency =
+        payload?.payment?.currency ?? payload?.currency ?? payload?.payment?.paymentCurrency;
 
       // Here you would update your database based on the payment status
       // This is a placeholder - you'll need to integrate with your database layer
       console.log("Processing Netopia webhook:", {
         ntpID,
         orderID,
-        status,
+        status: paymentStatusCode,
         amount,
         currency,
       });
 
       // Status codes from Netopia:
-      // 1 = Success, 2 = Failed, 3 = Cancelled, etc.
+      // 3 = Paid, 5 = Confirmed, 4 = Cancelled, 12 = Rejected, 15 = Need authorize
     } catch (error) {
       throw new NetopiaPaymentError(
         NetopiaErrorCode.INVALID_SIGNATURE,
@@ -238,18 +272,25 @@ export class NetopiaProvider implements IPaymentProvider {
       const statusData = response.data;
       let status: PaymentStatus["status"] = "pending";
 
-      // Map Netopia status codes to our enum
+      // Map Netopia status codes to our enum (constants from SDK)
       if (statusData) {
         const netopiaStatus = parseInt(statusData.status || "0");
         switch (netopiaStatus) {
-          case 1:
+          case 3: // PAID
+          case 5: // CONFIRMED
             status = "paid";
             break;
-          case 2:
-            status = "failed";
-            break;
-          case 3:
+          case 4: // CANCELED
             status = "cancelled";
+            break;
+          case 8: // CREDIT
+          case 17: // REVERSED
+            status = "refunded";
+            break;
+          case 11: // ERROR
+          case 12: // DECLINED
+          case 13: // FRAUD
+            status = "failed";
             break;
           default:
             status = "pending";

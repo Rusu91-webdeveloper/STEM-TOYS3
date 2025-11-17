@@ -16,6 +16,14 @@ export interface OrderData {
     };
   };
   metadata?: Record<string, any>;
+  products?: Array<{
+    name: string;
+    code?: string;
+    category?: string;
+    price: number;
+    vat?: number;
+    quantity?: number;
+  }>;
 }
 
 export interface PaymentResult {

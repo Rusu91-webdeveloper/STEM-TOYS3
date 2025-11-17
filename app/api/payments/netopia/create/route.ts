@@ -22,10 +22,63 @@ export async function POST(request: Request) {
     // Initialize Netopia provider
     const netopiaProvider = new NetopiaProvider();
 
+    // Try to load order and items from DB to build product lines and authoritative total
+    let products: Array<{
+      name: string;
+      code?: string;
+      category?: string;
+      price: number;
+      vat?: number;
+      quantity?: number;
+    }> = [];
+    let finalAmount = amount;
+
+    try {
+      const { db } = await import("@/lib/db");
+      const orderRecord = await db.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: {
+            include: {
+              product: {
+                select: {
+                  sku: true,
+                  category: { select: { name: true } },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (orderRecord) {
+        finalAmount = orderRecord.total;
+        const effectiveVat =
+          orderRecord.subtotal && orderRecord.subtotal > 0
+            ? Math.round(
+                ((orderRecord.tax / orderRecord.subtotal) * 100 + Number.EPSILON) *
+                  100
+              ) / 100
+            : 0;
+
+        products = orderRecord.items.map(item => ({
+          name: item.name,
+          code: item.product?.sku || item.productId || item.id,
+          category: item.product?.category?.name || "Order Item",
+          price: item.price,
+          vat: effectiveVat,
+          quantity: item.quantity,
+        }));
+      }
+    } catch (dbError) {
+      console.error("Failed to enrich Netopia payload with products:", dbError);
+      // Continue with provided amount and empty products
+    }
+
     // Create payment data for Netopia
     const orderData = {
       id: orderId,
-      amount,
+      amount: finalAmount,
       currency,
       customer: customerData || {
         name: "Customer",
@@ -42,10 +95,18 @@ export async function POST(request: Request) {
         orderId,
         createdAt: new Date().toISOString(),
       },
+      products,
     };
 
     // Create payment with Netopia
     const paymentResult = await netopiaProvider.createPayment(orderData);
+
+    if (!paymentResult.paymentUrl || !paymentResult.transactionId) {
+      return NextResponse.json(
+        { error: "Netopia did not return a payment URL" },
+        { status: 502 }
+      );
+    }
 
     // Update order in database with Netopia transaction details
     try {

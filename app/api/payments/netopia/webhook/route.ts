@@ -23,11 +23,18 @@ export async function POST(request: Request) {
     // Initialize Netopia provider
     const netopiaProvider = new NetopiaProvider();
 
-    // Handle webhook with signature verification
-    await netopiaProvider.handleWebhook(payload, signature);
+    // Handle webhook with signature verification (use raw body for hashing)
+    await netopiaProvider.handleWebhook(body, signature);
 
-    // Process the payment notification based on Netopia's response
-    const { ntpID, orderID, status, amount, currency } = payload;
+    // Netopia IPN structure nests payment/order info
+    const paymentStatusCode =
+      payload?.payment?.status ?? payload?.status ?? payload?.state;
+    const ntpID =
+      payload?.payment?.ntpID ||
+      payload?.payment?.ntpId ||
+      payload?.ntpID ||
+      payload?.ntpId;
+    const orderID = payload?.order?.orderID || payload?.orderID;
 
     if (orderID) {
       try {
@@ -38,16 +45,24 @@ export async function POST(request: Request) {
         let orderStatus = "PROCESSING";
 
         // Map Netopia status codes to our status
-        switch (status) {
-          case 1: // Success
+        switch (paymentStatusCode) {
+          case 3: // Paid
+          case 5: // Confirmed
             paymentStatus = "PAID";
-            orderStatus = "COMPLETED"; // For digital products, complete immediately
+            orderStatus = "COMPLETED";
             break;
-          case 2: // Failed
+          case 4: // Cancelled
             paymentStatus = "FAILED";
             orderStatus = "CANCELLED";
             break;
-          case 3: // Cancelled
+          case 8: // Credit/refund
+          case 17: // Reversed
+            paymentStatus = "REFUNDED";
+            orderStatus = "CANCELLED";
+            break;
+          case 11: // Error
+          case 12: // Declined/rejected
+          case 13: // Fraud
             paymentStatus = "FAILED";
             orderStatus = "CANCELLED";
             break;
@@ -63,7 +78,10 @@ export async function POST(request: Request) {
             paymentStatus: paymentStatus as any,
             status: orderStatus as any,
             netopiaTransactionId: ntpID,
-            completedAt: status === 1 ? new Date() : undefined,
+            completedAt:
+              paymentStatusCode === 3 || paymentStatusCode === 5
+                ? new Date()
+                : undefined,
           },
         });
 
@@ -77,7 +95,7 @@ export async function POST(request: Request) {
           },
         });
 
-        if (updatedOrder && status === 1) {
+        if (updatedOrder && (paymentStatusCode === 3 || paymentStatusCode === 5)) {
           // Successful payment
           // Check if order contains digital books
           const digitalItems = await db.orderItem.findMany({

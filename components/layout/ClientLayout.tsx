@@ -18,6 +18,7 @@ export default function ClientLayout({
   const pathname = usePathname();
   const isAdminPage = pathname?.startsWith("/admin");
   const isSupplierPage = pathname?.startsWith("/supplier");
+  const isCheckoutPage = pathname?.startsWith("/checkout");
 
   return (
     <>
@@ -26,7 +27,7 @@ export default function ClientLayout({
       <DatabaseConfigNotice />
       <Header />
       <main className="flex-grow">{children}</main>
-      {!isAdminPage && !isSupplierPage && (
+      {!isAdminPage && !isSupplierPage && !isCheckoutPage && (
         <Footer initialStoreSettings={initialStoreSettings} />
       )}
       <PromotionalPopup />
