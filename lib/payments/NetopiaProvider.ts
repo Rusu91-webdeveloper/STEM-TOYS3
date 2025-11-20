@@ -234,7 +234,7 @@ export class NetopiaProvider implements IPaymentProvider {
 
         console.log("   Base URL:", baseURL);
         console.log("   Endpoint:", endpoint);
-        console.log("   Full URL:", url);
+        console.log("   Full URL (v2):", url);
         
         const directResponse = await axios.post(
           url,
