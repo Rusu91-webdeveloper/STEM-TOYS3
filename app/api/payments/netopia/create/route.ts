@@ -289,8 +289,11 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: "Failed to create payment",
-        details:
-          process.env.NODE_ENV === "development" ? errorMessage : "An error occurred while processing your payment. Please try again or contact support.",
+        details: errorMessage, // EXPOSING ERROR FOR DEBUGGING
+        debug_env: {
+          node_env: process.env.NODE_ENV,
+          site_url: process.env.NEXT_PUBLIC_SITE_URL || "MISSING",
+        }
       },
       { status: 500 }
     );
