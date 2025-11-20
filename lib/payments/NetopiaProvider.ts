@@ -223,10 +223,10 @@ export class NetopiaProvider implements IPaymentProvider {
         };
 
         // PRODUCTION ENDPOINT FIX:
-        // The previous endpoint https://secure.netopia-payments.com/ returned a 404 HTML page.
-        // The classic/standard MobilPay/Netopia production endpoint is secure.mobilpay.ro.
+        // The correct production endpoint for Netopia v2 API is secure.netopia-payments.com
+        // secure.mobilpay.ro is the legacy platform and does not support the REST API.
         const baseURL = process.env.NETOPIA_SANDBOX !== "true"
-          ? "https://secure.mobilpay.ro/"
+          ? "https://secure.netopia-payments.com/"
           : "https://secure-sandbox.netopia-payments.com/";
         
         const endpoint = "payment/card/start";
