@@ -212,6 +212,16 @@ export class NetopiaProvider implements IPaymentProvider {
       try {
         console.log("⏳ [NETOPIA] Making direct API call (bypassing buggy SDK)...");
         const axios = (await import("axios")).default;
+        
+        const requestPayload = {
+          config: configData,
+          payment: paymentData,
+          order: {
+            ...netopiaOrderData,
+            posSignature: process.env.NETOPIA_SIGNATURE,
+          },
+        };
+
         // PRODUCTION ENDPOINT FIX:
         // The previous endpoint https://secure.netopia-payments.com/ returned a 404 HTML page.
         // The classic/standard MobilPay/Netopia production endpoint is secure.mobilpay.ro.
