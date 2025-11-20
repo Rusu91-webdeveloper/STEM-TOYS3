@@ -290,7 +290,7 @@ export async function POST(request: Request) {
       {
         error: "Failed to create payment",
         details:
-          process.env.NODE_ENV === "development" ? errorMessage : "An error occurred while processing your payment. Please try again or contact support.",
+          process.env.NODE_ENV === "development" || process.env.NETOPIA_DEBUG_MODE === "true" ? errorMessage : "An error occurred while processing your payment. Please try again or contact support.",
       },
       { status: 500 }
     );
