@@ -47,6 +47,12 @@ const envSchema = z.object({
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
 
+  // Netopia Payment Gateway (required for Netopia payments)
+  NETOPIA_API_KEY: z.string().optional(),
+  NETOPIA_SIGNATURE: z.string().optional(),
+  NETOPIA_SANDBOX: z.string().optional(),
+  NETOPIA_WEBHOOK_SECRET: z.string().optional(),
+
   // Email service
   RESEND_API_KEY: z.string().optional(),
 
@@ -192,6 +198,10 @@ export const serviceConfig = {
     if (!_env) return false;
     return !!(_env.STRIPE_SECRET_KEY && _env.STRIPE_PUBLISHABLE_KEY);
   },
+  isNetopiaEnabled: () => {
+    if (!_env) return false;
+    return !!(_env.NETOPIA_API_KEY && _env.NETOPIA_SIGNATURE);
+  },
   isEmailEnabled: () => {
     if (!_env) return false;
     return !!_env.RESEND_API_KEY;
@@ -247,6 +257,8 @@ export function logConfigStatus() {
     );
     // eslint-disable-next-line no-console
     console.log(`  - Stripe: ${serviceConfig.isStripeEnabled() ? "✅" : "❌"}`);
+    // eslint-disable-next-line no-console
+    console.log(`  - Netopia: ${serviceConfig.isNetopiaEnabled() ? "✅" : "❌"}`);
     // eslint-disable-next-line no-console
     console.log(`  - Email: ${serviceConfig.isEmailEnabled() ? "✅" : "❌"}`);
     // eslint-disable-next-line no-console

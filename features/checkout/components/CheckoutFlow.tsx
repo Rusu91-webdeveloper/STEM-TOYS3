@@ -337,6 +337,10 @@ export function CheckoutFlow() {
           paymentMethod: checkoutData.paymentMethod,
         };
 
+        console.log("🚀 [CHECKOUT] Initiating Netopia payment...");
+        console.log("   Order ID:", order.orderId);
+        console.log("   Amount:", total, "RON");
+
         const response = await fetch("/api/payments/netopia/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -345,19 +349,44 @@ export function CheckoutFlow() {
 
         if (response.ok) {
           const paymentResult = await response.json();
+          console.log("✅ [CHECKOUT] Payment URL received:", paymentResult.paymentUrl);
 
           if (paymentResult.paymentUrl) {
             // Clear cart before redirect
             await clearCart();
 
+            console.log("🔄 [CHECKOUT] Redirecting to Netopia payment page...");
             // Redirect to Netopia payment page
             window.location.href = paymentResult.paymentUrl;
             return;
+          } else {
+            console.error("❌ [CHECKOUT] No payment URL in response");
+            throw new Error("Netopia did not return a payment URL");
           }
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error("❌ [CHECKOUT] Payment creation failed:");
+          console.error("   Status:", response.status);
+          console.error("   Error:", errorData.error || "Unknown error");
+          console.error("   Details:", errorData.details || "No details provided");
+          
+          throw new Error(
+            errorData.details || 
+            errorData.error || 
+            "Failed to create Netopia payment. Please check your payment settings."
+          );
         }
-
-        throw new Error("Failed to initiate Netopia payment");
       }
+    } catch (error) {
+      console.error("❌ [CHECKOUT] Netopia payment failed:", error);
+      
+      // Provide user-friendly error message
+      const userMessage = error instanceof Error 
+        ? error.message
+        : "Failed to initiate Netopia payment. Please try again or contact support.";
+      
+      setOrderError(userMessage);
+      throw error;
     } finally {
       setIsProcessingOrder(false);
     }

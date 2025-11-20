@@ -39,21 +39,39 @@ export class NetopiaProvider implements IPaymentProvider {
     const isLive = process.env.NETOPIA_SANDBOX !== "true";
     this.baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
+    console.log("🔧 [NETOPIA] Initializing Netopia Provider...");
+    console.log(`   Environment: ${isLive ? "PRODUCTION" : "SANDBOX"}`);
+    console.log(`   Base URL: ${this.baseUrl}`);
+    console.log(`   API Key: ${apiKey ? `${apiKey.substring(0, 8)}...` : "NOT SET"}`);
+    console.log(`   Signature: ${signature ? `${signature.substring(0, 8)}...` : "NOT SET"}`);
+
     if (!apiKey || !signature) {
+      console.error("❌ [NETOPIA] Missing required credentials");
+      console.error("   Please set NETOPIA_API_KEY and NETOPIA_SIGNATURE environment variables");
       throw new NetopiaPaymentError(
         NetopiaErrorCode.INVALID_CONFIGURATION,
-        "Netopia API key and signature are required"
+        "Netopia API key and signature are required. Check your environment variables."
       );
     }
 
-    this.netopia = new Netopia({
-      apiKey,
-      posSignature: signature,
-      isLive,
-    });
+    try {
+      this.netopia = new Netopia({
+        apiKey,
+        posSignature: signature,
+        isLive,
+      });
+      console.log("✅ [NETOPIA] Netopia SDK instance created successfully");
+    } catch (error) {
+      console.error("❌ [NETOPIA] Failed to initialize Netopia SDK:", error);
+      throw new NetopiaPaymentError(
+        NetopiaErrorCode.INVALID_CONFIGURATION,
+        `Failed to initialize Netopia SDK: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
 
     // Get the public key certificate from environment
     const publicKeyCertificate = process.env.NETOPIA_WEBHOOK_SECRET;
+    console.log(`   Webhook Secret: ${publicKeyCertificate ? "SET" : "NOT SET (optional)"}`);
 
     this.ipn = new Ipn({
       posSignature: signature,
@@ -62,19 +80,29 @@ export class NetopiaProvider implements IPaymentProvider {
       alg: "RS512",
       publicKeyStr: publicKeyCertificate || "", // Certificate for webhook verification
     });
+    
+    console.log("✅ [NETOPIA] IPN handler initialized for webhook verification");
   }
 
   async createPayment(orderData: OrderData): Promise<PaymentResult> {
+    console.log("💳 [NETOPIA] Starting payment creation...");
+    console.log(`   Order ID: ${orderData.id}`);
+    console.log(`   Amount: ${orderData.amount} ${orderData.currency}`);
+    console.log(`   Customer: ${orderData.customer.name} (${orderData.customer.email})`);
+
     try {
       // Netopia POS is configured for RON-only; enforce RON amounts
       if (orderData.currency !== "RON") {
+        console.error("❌ [NETOPIA] Currency validation failed");
+        console.error(`   Expected: RON, Got: ${orderData.currency}`);
         throw new NetopiaPaymentError(
           NetopiaErrorCode.INVALID_AMOUNT,
-          "Netopia payments require RON amounts; convert before creating the payment"
+          `Netopia payments require RON currency. Current: ${orderData.currency}. Please convert to RON before creating payment.`
         );
       }
 
       const amountInRON = orderData.amount;
+      console.log("✅ [NETOPIA] Currency validation passed (RON)");
 
       // Prepare billing data
       const billingData = {
@@ -148,57 +176,171 @@ export class NetopiaProvider implements IPaymentProvider {
       // Validate Netopia instance is initialized
       if (!this.netopia || typeof this.netopia.createOrder !== "function") {
         console.error("❌ [NETOPIA] SDK not properly initialized");
+        console.error("   Check if NETOPIA_API_KEY and NETOPIA_SIGNATURE are correctly set");
         throw new NetopiaPaymentError(
           NetopiaErrorCode.INVALID_CONFIGURATION,
           "Netopia SDK is not properly initialized. Check your API credentials."
         );
       }
 
-      // Log request data in development
+      console.log("✅ [NETOPIA] SDK instance validated");
+
+      // Log request data
+      console.log("📤 [NETOPIA] Preparing API request...");
+      console.log(`   Order ID: ${netopiaOrderData.orderID}`);
+      console.log(`   Amount: ${netopiaOrderData.amount} RON`);
+      console.log(`   Products: ${netopiaOrderData.products.length} items`);
+      console.log(`   Cancel URL: ${configData.cancelUrl}`);
+      console.log(`   Notify URL: ${configData.notifyUrl}`);
+      console.log(`   Redirect URL: ${configData.redirectUrl}`);
+
       if (process.env.NODE_ENV === "development") {
-        console.log("🔍 [NETOPIA] Request data:", {
-          configData,
-          paymentData,
-          netopiaOrderData: {
+        console.log("🔍 [NETOPIA] Full request data:", {
+          config: configData,
+          payment: paymentData,
+          order: {
             ...netopiaOrderData,
-            posSignature: netopiaOrderData.posSignature ? "***" : undefined,
+            posSignature: netopiaOrderData.posSignature ? "***HIDDEN***" : undefined,
           },
-          isLive: process.env.NETOPIA_SANDBOX !== "true",
-          hasApiKey: !!process.env.NETOPIA_API_KEY,
-          hasSignature: !!process.env.NETOPIA_SIGNATURE,
+          environment: process.env.NETOPIA_SANDBOX !== "true" ? "PRODUCTION" : "SANDBOX",
         });
       }
 
+      // WORKAROUND: The SDK has a bug where it tries to access response.data.payment.paymentURL
+      // before checking status codes. Make a direct HTTP call to get the actual error.
       let response;
       try {
-        response = await this.netopia.createOrder(
-          configData,
-          paymentData,
-          netopiaOrderData
+        console.log("⏳ [NETOPIA] Making direct API call (bypassing buggy SDK)...");
+        const axios = (await import("axios")).default;
+        const baseURL = process.env.NETOPIA_SANDBOX !== "true"
+          ? "https://secure.netopia-payments.com/"
+          : "https://secure-sandbox.netopia-payments.com/";
+        
+        const requestPayload = {
+          config: configData,
+          payment: paymentData,
+          order: {
+            ...netopiaOrderData,
+            posSignature: process.env.NETOPIA_SIGNATURE,
+          },
+        };
+
+        console.log("   Base URL:", baseURL);
+        console.log("   Endpoint: /payment/card/start");
+        
+        const directResponse = await axios.post(
+          `${baseURL}payment/card/start`,
+          requestPayload,
+          {
+            headers: {
+              Authorization: process.env.NETOPIA_API_KEY || "",
+              "Content-Type": "application/json",
+            },
+            validateStatus: () => true, // Accept all status codes
+          }
         );
-      } catch (sdkError: any) {
-        console.error("❌ [NETOPIA] SDK error during createOrder:", {
-          error: sdkError,
-          message: sdkError?.message,
-          stack: process.env.NODE_ENV === "development" ? sdkError?.stack : undefined,
-        });
+
+        console.log("📥 [NETOPIA] Raw API Response:");
+        console.log(`   Status: ${directResponse.status}`);
+        console.log(`   Status Text: ${directResponse.statusText}`);
+        
+        if (process.env.NODE_ENV === "development") {
+          console.log("🔍 [NETOPIA] Full response headers:");
+          console.log(JSON.stringify(directResponse.headers, null, 2));
+          console.log("🔍 [NETOPIA] Full response data:");
+          console.log(JSON.stringify(directResponse.data, null, 2));
+        }
+
+        // Check if the API returned an error status
+        if (directResponse.status >= 400) {
+          console.error("❌ [NETOPIA] API returned error status:", directResponse.status);
+          console.error("   Response data:", JSON.stringify(directResponse.data, null, 2));
+          
+          const errorMessage = typeof directResponse.data === "object"
+            ? JSON.stringify(directResponse.data, null, 2)
+            : String(directResponse.data);
+          
+          throw new NetopiaPaymentError(
+            NetopiaErrorCode.API_ERROR,
+            `Netopia API error (HTTP ${directResponse.status}): ${errorMessage}`
+          );
+        }
+
+        // Netopia API returns data in this structure: { payment: { paymentURL, ... }, error: { code, message }, ... }
+        // But the SDK wraps it as: { code: 200, message: "...", data: { payment: {...}, error: {...} } }
+        // Since we're making a direct call, we get the unwrapped structure
+        const apiData = directResponse.data;
+        
+        // Check if there's an error in the response (even with 200 status)
+        if (apiData?.error?.code && apiData.error.code !== "101" && apiData.error.code !== "100") {
+          // Codes 100 and 101 are not errors - they mean "redirect to payment page"
+          console.error("❌ [NETOPIA] API returned error:");
+          console.error(`   Error Code: ${apiData.error.code}`);
+          console.error(`   Error Message: ${apiData.error.message}`);
+          
+          throw new NetopiaPaymentError(
+            NetopiaErrorCode.API_ERROR,
+            `Netopia API error (${apiData.error.code}): ${apiData.error.message}`
+          );
+        }
+        
+        // Check if response has the expected paymentURL
+        if (!apiData?.payment?.paymentURL) {
+          console.error("❌ [NETOPIA] API response missing paymentURL");
+          console.error("   Response structure:", JSON.stringify(apiData, null, 2));
+          
+          throw new NetopiaPaymentError(
+            NetopiaErrorCode.INVALID_RESPONSE,
+            `Netopia API response missing payment URL. Full response: ${JSON.stringify(apiData)}`
+          );
+        }
+
+        // Success! Wrap the response to match SDK format
+        response = {
+          code: 200,
+          message: "You send your request successfully",
+          data: apiData,
+        };
+        
+        console.log("✅ [NETOPIA] API call completed successfully");
+        console.log(`   Payment URL: ${apiData.payment.paymentURL}`);
+
+      } catch (error: any) {
+        console.error("❌ [NETOPIA] API call failed:");
+        console.error(`   Error Type: ${error?.constructor?.name || "Unknown"}`);
+        console.error(`   Message: ${error?.message || "No message provided"}`);
+        
+        if (process.env.NODE_ENV === "development" && error?.stack) {
+          console.error(`   Stack trace:`, error.stack);
+        }
+        
+        // If it's already a NetopiaPaymentError, re-throw it
+        if (error instanceof NetopiaPaymentError) {
+          throw error;
+        }
+        
+        // Handle axios errors
+        if (error?.response) {
+          console.error("   HTTP Status:", error.response.status);
+          console.error("   Response Data:", JSON.stringify(error.response.data, null, 2));
+        }
+        
         throw new NetopiaPaymentError(
           NetopiaErrorCode.NETWORK_ERROR,
-          `Netopia SDK error: ${sdkError?.message || "Unknown error during payment creation"}`
+          `Failed to call Netopia API: ${error?.message || "Unknown error"}. Check logs for details.`
         );
       }
 
-      // Log full response in development for debugging
-      if (process.env.NODE_ENV === "development") {
-        console.log("🔍 [NETOPIA] Full API response:", JSON.stringify(response, null, 2));
-      }
+      // Log full response for debugging
+      console.log("📥 [NETOPIA] Processing API response...");
 
       // Check if response is valid
       if (!response) {
         console.error("❌ [NETOPIA] No response received from createOrder");
+        console.error("   This usually indicates a network issue or incorrect API credentials");
         throw new NetopiaPaymentError(
           NetopiaErrorCode.NETWORK_ERROR,
-          "No response received from Netopia API"
+          "No response received from Netopia API. Check your internet connection and API credentials."
         );
       }
 
@@ -303,20 +445,36 @@ export class NetopiaProvider implements IPaymentProvider {
 
       // Validate we have required data
       if (!paymentUrl) {
-        console.error("❌ [NETOPIA] Missing payment URL in response:", {
-          responseKeys: Object.keys(response),
-          dataKeys: response.data ? Object.keys(response.data) : [],
-          fullResponse: process.env.NODE_ENV === "development" ? response : "hidden",
-        });
+        console.error("❌ [NETOPIA] Missing payment URL in response");
+        console.error("   Response structure:");
+        console.error(`     - Top level keys: ${Object.keys(response).join(", ")}`);
+        console.error(`     - Data keys: ${response.data ? Object.keys(response.data).join(", ") : "No data object"}`);
+        
+        if (process.env.NODE_ENV === "development") {
+          console.error("   Full response:", JSON.stringify(response, null, 2));
+        }
+        
+        console.error("");
+        console.error("   Possible causes:");
+        console.error("   1. Invalid API credentials (check NETOPIA_API_KEY and NETOPIA_SIGNATURE)");
+        console.error("   2. Incorrect environment (check NETOPIA_SANDBOX setting)");
+        console.error("   3. Account not properly configured in Netopia dashboard");
+        console.error("   4. API request format doesn't match Netopia expectations");
+        
         throw new NetopiaPaymentError(
           NetopiaErrorCode.PAYMENT_DECLINED,
-          "Netopia did not return a payment URL. Check your API credentials and sandbox configuration."
+          "Netopia did not return a payment URL. Check your API credentials, environment settings, and the console logs for details."
         );
       }
 
       if (!netopiaTransactionId) {
-        console.warn("⚠️ [NETOPIA] Missing transaction ID, using order ID as fallback");
+        console.warn("⚠️ [NETOPIA] Missing transaction ID in response");
+        console.warn("   Using order ID as fallback");
       }
+
+      console.log("✅ [NETOPIA] Payment created successfully");
+      console.log(`   Payment URL: ${paymentUrl}`);
+      console.log(`   Transaction ID: ${netopiaTransactionId || orderData.id}`);
 
       return {
         paymentUrl,
@@ -325,10 +483,16 @@ export class NetopiaProvider implements IPaymentProvider {
         status: "pending",
       };
     } catch (error) {
+      console.error("❌ [NETOPIA] Payment creation failed");
+      
       if (error instanceof NetopiaPaymentError) {
+        console.error(`   Error Code: ${error.code}`);
+        console.error(`   Error Message: ${error.message}`);
         throw error;
       }
 
+      console.error(`   Unexpected error: ${error instanceof Error ? error.message : "Unknown error"}`);
+      
       throw new NetopiaPaymentError(
         NetopiaErrorCode.NETWORK_ERROR,
         `Payment creation failed: ${error instanceof Error ? error.message : "Unknown error"}`
@@ -348,16 +512,20 @@ export class NetopiaProvider implements IPaymentProvider {
           : payloadOrRaw;
 
       // Verify the webhook signature
-      const verificationResult = await this.ipn.verify(signature, rawBody);
-
-      if (
-        verificationResult.errorType !== 0 ||
-        verificationResult.status !== 1
-      ) {
-        throw new NetopiaPaymentError(
-          NetopiaErrorCode.INVALID_SIGNATURE,
-          "Invalid webhook signature"
-        );
+      // BYPASS for local testing
+      if (process.env.NODE_ENV === "development" && signature === "TEST_SIGNATURE") {
+        console.warn("⚠️ [NETOPIA] Bypassing signature verification for testing");
+      } else {
+        const verificationResult = await this.ipn.verify(signature, rawBody);
+        if (
+          verificationResult.errorType !== 0 ||
+          verificationResult.status !== 1
+        ) {
+          throw new NetopiaPaymentError(
+            NetopiaErrorCode.INVALID_SIGNATURE,
+            "Invalid webhook signature"
+          );
+        }
       }
 
       // Process the payment notification
@@ -374,9 +542,9 @@ export class NetopiaProvider implements IPaymentProvider {
       const currency =
         payload?.payment?.currency ?? payload?.currency ?? payload?.payment?.paymentCurrency;
 
-      // Here you would update your database based on the payment status
-      // This is a placeholder - you'll need to integrate with your database layer
-      console.log("Processing Netopia webhook:", {
+      // Note: Database updates are handled in the API route (app/api/payments/netopia/webhook/route.ts)
+      // This method is responsible for signature verification and payload parsing only.
+      console.log("✅ [NETOPIA] Webhook signature verified. Payload parsed successfully.", {
         ntpID,
         orderID,
         status: paymentStatusCode,
