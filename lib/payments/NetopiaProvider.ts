@@ -182,7 +182,7 @@ export class NetopiaProvider implements IPaymentProvider {
           })) || [],
         installments: {
           selected: 0,
-          available: 1,
+          available: [1],
         },
         data: {
           orderId: orderData.id,
