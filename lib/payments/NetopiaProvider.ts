@@ -46,8 +46,8 @@ export class NetopiaProvider implements IPaymentProvider {
     const overrideBase = process.env.NETOPIA_API_BASE_URL?.trim();
     const defaultBases = isLive
       ? [
-          "https://secure.netopia-payments.com/",
           "https://secure.mobilpay.ro/",
+          "https://secure.netopia-payments.com/",
         ]
       : [
           "https://secure-sandbox.netopia-payments.com/",
@@ -261,8 +261,9 @@ export class NetopiaProvider implements IPaymentProvider {
         };
 
         const endpointPaths = [
-          "payment/card/start",
-          // "api/payment/card/start", // REMOVED: This endpoint is incorrect and returns "Invalid controller specified (api)"
+          "pay/payment/card/start", // Correct for secure.mobilpay.ro (Production)
+          "payment/card/start",     // Correct for sandbox
+          // "api/payment/card/start", // REMOVED: This endpoint is incorrect
         ];
 
         const candidateEndpoints = this.gatewayBaseCandidates
