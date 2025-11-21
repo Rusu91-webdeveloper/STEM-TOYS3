@@ -322,6 +322,13 @@ export class NetopiaProvider implements IPaymentProvider {
                 NetopiaErrorCode.API_ERROR,
                 errorMsg
               );
+
+              // 404 just means wrong endpoint, continue.
+              // 401/403 means auth failed -> definitive configuration error.
+              if (directResponse.status === 401 || directResponse.status === 403) {
+                 throw lastError;
+              }
+              
               continue;
             }
 
@@ -338,6 +345,14 @@ export class NetopiaProvider implements IPaymentProvider {
                 NetopiaErrorCode.API_ERROR,
                 errorMsg
               );
+
+              // If it's a specific Netopia business logic error (like POS not approved), 
+              // it means we hit the right server but have bad config. Stop trying other URLs.
+              // 99: POS not approved
+              if (String(apiData.error.code) === "99") {
+                  throw lastError;
+              }
+
               continue;
             }
             
@@ -376,6 +391,17 @@ export class NetopiaProvider implements IPaymentProvider {
 
             if (attemptError instanceof NetopiaPaymentError) {
               lastError = attemptError;
+              // If we explicitly threw a NetopiaPaymentError from within the try block (e.g. code 99),
+              // it means we want to stop trying other candidates.
+              if (attemptError.code === NetopiaErrorCode.PAYMENT_DECLINED || attemptError.code === NetopiaErrorCode.API_ERROR) {
+                  // Check if it's the specific POS error or Auth error we want to fail fast on
+                  if (attemptError.message.includes("POS is not approved") || 
+                      attemptError.message.includes("Error 99") ||
+                      attemptError.message.includes("HTTP 401") ||
+                      attemptError.message.includes("HTTP 403")) {
+                      break; 
+                  }
+              }
             } else {
               lastError = new NetopiaPaymentError(
                 NetopiaErrorCode.NETWORK_ERROR,
