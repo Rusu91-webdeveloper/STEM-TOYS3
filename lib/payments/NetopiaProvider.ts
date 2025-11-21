@@ -262,7 +262,7 @@ export class NetopiaProvider implements IPaymentProvider {
 
         const endpointPaths = [
           "payment/card/start",
-          "api/payment/card/start",
+          // "api/payment/card/start", // REMOVED: This endpoint is incorrect and returns "Invalid controller specified (api)"
         ];
 
         const candidateEndpoints = this.gatewayBaseCandidates
@@ -274,6 +274,8 @@ export class NetopiaProvider implements IPaymentProvider {
             }))
           )
           .filter((candidate, index, self) => self.findIndex(c => c.url === candidate.url) === index);
+
+        const errors: string[] = [];
 
         for (const candidate of candidateEndpoints) {
           try {
@@ -312,9 +314,12 @@ export class NetopiaProvider implements IPaymentProvider {
                 ? JSON.stringify(directResponse.data, null, 2)
                 : String(directResponse.data);
               
+              const errorMsg = `Netopia API error (HTTP ${directResponse.status}) at ${candidate.url}: ${errorMessage}`;
+              errors.push(errorMsg);
+              
               lastError = new NetopiaPaymentError(
                 NetopiaErrorCode.API_ERROR,
-                `Netopia API error (HTTP ${directResponse.status}): ${errorMessage}`
+                errorMsg
               );
               continue;
             }
@@ -325,9 +330,12 @@ export class NetopiaProvider implements IPaymentProvider {
               console.error(`   Error Code: ${apiData.error.code}`);
               console.error(`   Error Message: ${apiData.error.message}`);
               
+              const errorMsg = `Netopia API error (${apiData.error.code}) at ${candidate.url}: ${apiData.error.message}`;
+              errors.push(errorMsg);
+
               lastError = new NetopiaPaymentError(
                 NetopiaErrorCode.API_ERROR,
-                `Netopia API error (${apiData.error.code}): ${apiData.error.message}`
+                errorMsg
               );
               continue;
             }
@@ -336,9 +344,12 @@ export class NetopiaProvider implements IPaymentProvider {
               console.error("❌ [NETOPIA] API response missing paymentURL");
               console.error("   Response structure:", JSON.stringify(apiData, null, 2));
               
+              const errorMsg = `Netopia API response missing payment URL at ${candidate.url}. Full response: ${JSON.stringify(apiData)}`;
+              errors.push(errorMsg);
+
               lastError = new NetopiaPaymentError(
                 NetopiaErrorCode.INVALID_RESPONSE,
-                `Netopia API response missing payment URL. Full response: ${JSON.stringify(apiData)}`
+                errorMsg
               );
               continue;
             }
@@ -359,23 +370,25 @@ export class NetopiaProvider implements IPaymentProvider {
             console.error("❌ [NETOPIA] API attempt failed for:", candidate.url);
             console.error(`   Message: ${attemptError?.message || "Unknown error"}`);
             
+            const errorMsg = `Failed to call Netopia API at ${candidate.url}: ${attemptError?.message || "Unknown error"}`;
+            errors.push(errorMsg);
+
             if (attemptError instanceof NetopiaPaymentError) {
               lastError = attemptError;
             } else {
               lastError = new NetopiaPaymentError(
                 NetopiaErrorCode.NETWORK_ERROR,
-                `Failed to call Netopia API: ${attemptError?.message || "Unknown error"}`
+                errorMsg
               );
             }
           }
         }
 
         if (!response) {
-          throw lastError ||
-            new NetopiaPaymentError(
-              NetopiaErrorCode.NETWORK_ERROR,
-              "Unable to reach any Netopia API endpoint. Verify NETOPIA_API_BASE_URL or contact Netopia support."
-            );
+          throw new NetopiaPaymentError(
+            NetopiaErrorCode.NETWORK_ERROR,
+            `All Netopia API attempts failed:\n${errors.join("\n\n")}`
+          );
         }
       } catch (error: any) {
         console.error("❌ [NETOPIA] API call failed:");
