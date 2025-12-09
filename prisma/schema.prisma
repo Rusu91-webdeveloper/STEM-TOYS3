@@ -500,10 +500,14 @@ model Blog {
   excerpt      String
   content      String
   coverImage   String?
+  coverImageId String?      @unique
   categoryId   String
   authorId     String
   tags         String[]
   metadata     Json?
+  viralScore   Decimal?     @db.Decimal(3, 2)
+  competitorRank Int?
+  romanianMarketFit Decimal? @db.Decimal(3, 2)
   isPublished  Boolean      @default(false)
   publishedAt  DateTime?
   createdAt    DateTime     @default(now())
@@ -518,6 +522,8 @@ model Blog {
   @@index([authorId])
   @@index([stemCategory])
   @@index([socialShares])
+  @@index([viralScore])
+  @@index([isPublished, updatedAt])
 }
 
 model Book {
@@ -1695,6 +1701,114 @@ model AiJob {
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+}
+
+// A/B testing models for content optimization
+model ABTest {
+  id             String          @id @default(cuid())
+  name           String
+  description    String?
+  type           ABTestType
+  status         ABTestStatus    @default(DRAFT)
+  targetAudience ABTestAudience  @default(ALL)
+  startDate      DateTime?
+  endDate        DateTime?
+  winner         String?
+  confidence     Float?
+  isActive       Boolean         @default(false)
+  createdBy      String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  variants       ABTestVariant[]
+  metrics        ABTestMetrics[]
+  results        ABTestResult?
+
+  @@index([status])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+model ABTestVariant {
+  id        String    @id @default(cuid())
+  testId    String
+  name      String
+  content   String
+  weight    Float
+  isControl Boolean   @default(false)
+  isWinner  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  test      ABTest    @relation(fields: [testId], references: [id], onDelete: Cascade)
+  metrics   ABTestMetrics[]
+  results   ABTestResult[] @relation("WinnerVariant")
+
+  @@index([testId])
+}
+
+model ABTestMetrics {
+  id           String        @id @default(cuid())
+  testId       String
+  variantId    String
+  impressions  Int           @default(0)
+  clicks       Int           @default(0)
+  conversions  Int           @default(0)
+  socialShares Int           @default(0)
+  timeOnPage   Int           @default(0)
+  bounceRate   Float         @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  test         ABTest        @relation(fields: [testId], references: [id], onDelete: Cascade)
+  variant      ABTestVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([testId, variantId])
+  @@index([variantId])
+}
+
+model ABTestResult {
+  id                       String         @id @default(cuid())
+  testId                   String         @unique
+  winnerVariantId          String
+  confidence               Float
+  improvement              Float
+  statisticalSignificance  Boolean
+  recommendations          String[]
+  analysisData             Json?
+  completedAt              DateTime       @default(now())
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  test                     ABTest         @relation(fields: [testId], references: [id], onDelete: Cascade)
+  winnerVariant            ABTestVariant  @relation("WinnerVariant", fields: [winnerVariantId], references: [id])
+
+  @@index([testId])
+  @@index([winnerVariantId])
+}
+
+enum ABTestType {
+  TITLE
+  CONTENT
+  CALL_TO_ACTION
+  IMAGE
+  STRUCTURE
+  LAYOUT
+  PRICING
+  CUSTOM
+}
+
+enum ABTestStatus {
+  DRAFT
+  RUNNING
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+enum ABTestAudience {
+  ALL
+  ROMANIAN
+  NEW_USERS
+  RETURNING_USERS
+  MOBILE_USERS
+  DESKTOP_USERS
 }
 
 enum SecurityEventType {
