@@ -7,7 +7,7 @@ import { auth } from "@/lib/auth";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
 import { DatabaseTemplateService } from "@/lib/email/database-template-service";
-import { getStripeApiVersion } from "@/lib/stripe-config";
+import { getStripeApiVersion, getStripeCurrency } from "@/lib/stripe-config";
 import {
   getShippingSettings,
   getTaxSettings,
@@ -397,6 +397,65 @@ export async function POST(request: Request) {
       orderData.total ||
       Math.max(0, subtotal + tax + finalShippingCost - discountAmount);
 
+    // Validate Stripe payment intent (amount/currency) before creating order
+    const expectedAmountMinor = Math.round(orderTotal * 100);
+    const stripeCurrency = getStripeCurrency();
+    let stripePaymentIntent: Stripe.PaymentIntent | null = null;
+
+    if (isStripePayment && orderData.stripePaymentIntentId) {
+      if (!stripeClient) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Stripe client not configured for payment validation.",
+            error: "STRIPE_CLIENT_MISSING",
+          },
+          { status: 500 }
+        );
+      }
+
+      try {
+        stripePaymentIntent = await stripeClient.paymentIntents.retrieve(
+          orderData.stripePaymentIntentId
+        );
+
+        if (stripePaymentIntent.amount !== expectedAmountMinor) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: "Payment amount mismatch. Please refresh and try again.",
+              error: "AMOUNT_MISMATCH",
+            },
+            { status: 400 }
+          );
+        }
+
+        if (stripePaymentIntent.currency !== stripeCurrency) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: "Payment currency mismatch. Please refresh and try again.",
+              error: "CURRENCY_MISMATCH",
+            },
+            { status: 400 }
+          );
+        }
+      } catch (err) {
+        console.error(
+          `Failed to validate Stripe payment intent ${orderData.stripePaymentIntentId}:`,
+          err
+        );
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Failed to validate Stripe payment. Please try again.",
+            error: "INTENT_VALIDATION_FAILED",
+          },
+          { status: 500 }
+        );
+      }
+    }
+
     // Prepare order details for email (includes all calculated values)
 
     // DEBUG: Log user object and user.id before address creation
@@ -475,7 +534,8 @@ export async function POST(request: Request) {
             paymentMethod: orderData.paymentMethod || "card",
             status: "PROCESSING",
             paymentStatus:
-              (orderData.paymentStatus as any) ?? "PAID",
+              (orderData.paymentStatus as any) ??
+              (isStripePayment ? "PENDING" : "PAID"),
             shippingAddressId,
             stripePaymentIntentId: orderData.stripePaymentIntentId || null,
           },
@@ -842,6 +902,20 @@ export async function POST(request: Request) {
         }
       } else {
         console.log("No digital books found in order");
+      }
+
+      // If Stripe payment already succeeded, mark order as paid (and auto-complete digital-only orders)
+      if (stripePaymentIntent?.status === "succeeded") {
+        const allItemsAreDigital =
+          orderWithItems?.items.every(item => item.isDigital) === true;
+
+        await db.order.update({
+          where: { id: dbOrder.id },
+          data: {
+            paymentStatus: "PAID",
+            ...(allItemsAreDigital ? { status: "COMPLETED" } : {}),
+          },
+        });
       }
     } catch (dbError) {
       console.error("Failed to create order in database:", dbError);

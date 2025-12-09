@@ -80,7 +80,7 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "payment_intent.succeeded":
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        await handleSuccessfulPayment(paymentIntent);
+        await handleSuccessfulPayment(paymentIntent, stripe);
         break;
 
       case "payment_intent.payment_failed":
@@ -134,183 +134,200 @@ export async function POST(request: Request) {
 }
 
 // Function to handle successful payment
-async function handleSuccessfulPayment(paymentIntent: Stripe.PaymentIntent) {
-  // Extract order ID from metadata if available
-  const orderId = paymentIntent.metadata.orderId;
+async function handleSuccessfulPayment(
+  paymentIntent: Stripe.PaymentIntent,
+  _stripe: Stripe
+) {
+  const paymentIntentId = paymentIntent.id;
+  const orderIdFromMetadata = paymentIntent.metadata.orderId;
   const userEmail = paymentIntent.metadata.userEmail;
 
-  if (orderId) {
-    try {
-      // Import the database and digital order service
-      const { db } = await import("@/lib/db");
-      const { processDigitalBookOrder } = await import(
-        "@/lib/services/digital-order-service"
+  try {
+    const { db } = await import("@/lib/db");
+    const { processDigitalBookOrder } = await import(
+      "@/lib/services/digital-order-service"
+    );
+
+    // Look up order either by metadata or by stored Stripe intent ID
+    const order =
+      (orderIdFromMetadata
+        ? await db.order.findUnique({
+            where: { id: orderIdFromMetadata },
+            include: { items: true, user: true, shippingAddress: true },
+          })
+        : null) ||
+      (await db.order.findFirst({
+        where: { stripePaymentIntentId: paymentIntentId },
+        include: { items: true, user: true, shippingAddress: true },
+      }));
+
+    if (!order) {
+      console.warn(
+        `Payment succeeded but no order found for intent ${paymentIntentId}`
       );
-
-      // Update order payment status in database
-      await db.order.update({
-        where: { id: orderId },
-        data: {
-          paymentStatus: "PAID",
-          status: "COMPLETED", // For digital products, complete immediately
-          stripePaymentIntentId: paymentIntent.id,
-        },
-      });
-
-      // Get order with includes for processing
-      const updatedOrder = (await db.order.findUnique({
-        where: { id: orderId },
-        include: {
-          items: true,
-          user: true,
-        },
-      })) as any;
-
-      if (!updatedOrder) {
-        throw new Error(`Order not found after update: ${orderId}`);
-      }
-
-      // Order updated to paid status
-
-      // Check if order contains digital books
-      const digitalItems = await db.orderItem.findMany({
-        where: {
-          orderId,
-          isDigital: true,
-        },
-      });
-
-      const hasDigitalBooks = digitalItems.length > 0;
-
-      if (hasDigitalBooks) {
-        // Process digital book delivery
-        await processDigitalBookOrder(orderId);
-      } else {
-        // For physical products, send regular order confirmation using migration helper
-        if (userEmail) {
-          try {
-            const { DatabaseTemplateService } = await import(
-              "@/lib/email/database-template-service"
-            );
-
-            const orderNumberForEmail =
-              updatedOrder.orderNumber || updatedOrder.id;
-
-            const sendResult =
-              await DatabaseTemplateService.sendOrderConfirmationEmail(
-                userEmail,
-                {
-                  customerName:
-                    updatedOrder?.shippingAddress?.fullName ||
-                    updatedOrder?.user?.name ||
-                    "Client",
-                  orderNumber: String(orderNumberForEmail),
-                  orderTotal: updatedOrder.total,
-                  items: (updatedOrder.items || []).map((item: any) => ({
-                    name: item.name,
-                    quantity: item.quantity,
-                    price: item.price,
-                  })),
-                  shippingAddress: updatedOrder.shippingAddress || null,
-                }
-              );
-
-            if (!sendResult.success) {
-              console.error(
-                `Failed to send order confirmation email via template service:`,
-                sendResult.error
-              );
-            }
-          } catch (emailError) {
-            console.error(
-              `Failed to send order confirmation email:`,
-              emailError
-            );
-          }
-        }
-      }
-    } catch (error) {
-      console.error(
-        `Error processing successful payment for order ${orderId}:`,
-        error
-      );
+      return;
     }
+
+    const hasDigitalItems =
+      order.items.length > 0 && order.items.every(item => item.isDigital);
+
+    // Update payment status; only auto-complete digital-only orders
+    await db.order.update({
+      where: { id: order.id },
+      data: {
+        paymentStatus: "PAID",
+        stripePaymentIntentId: paymentIntentId,
+        ...(hasDigitalItems ? { status: "COMPLETED" } : {}),
+      },
+    });
+
+    if (hasDigitalItems) {
+      await processDigitalBookOrder(order.id);
+    } else if (userEmail) {
+      // For physical orders send confirmation email
+      try {
+        const { DatabaseTemplateService } = await import(
+          "@/lib/email/database-template-service"
+        );
+
+        const orderNumberForEmail = order.orderNumber || order.id;
+
+        const sendResult =
+          await DatabaseTemplateService.sendOrderConfirmationEmail(
+            userEmail,
+            {
+              customerName:
+                order?.shippingAddress?.fullName ||
+                order?.user?.name ||
+                "Client",
+              orderNumber: String(orderNumberForEmail),
+              orderTotal: order.total,
+              items: (order.items || []).map(item => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+              })),
+              shippingAddress: order.shippingAddress || null,
+            }
+          );
+
+        if (!sendResult.success) {
+          console.error(
+            `Failed to send order confirmation email via template service:`,
+            sendResult.error
+          );
+        }
+      } catch (emailError) {
+        console.error(`Failed to send order confirmation email:`, emailError);
+      }
+    }
+  } catch (error) {
+    console.error(
+      `Error processing successful payment for intent ${paymentIntentId}:`,
+      error
+    );
   }
 }
 
 // Function to handle failed payment
 async function handleFailedPayment(paymentIntent: Stripe.PaymentIntent) {
+  const paymentIntentId = paymentIntent.id;
   const orderId = paymentIntent.metadata.orderId;
   const userEmail = paymentIntent.metadata.userEmail;
 
-  if (orderId) {
-    try {
-      const { db } = await import("@/lib/db");
+  try {
+    const { db } = await import("@/lib/db");
+    const order =
+      (orderId
+        ? await db.order.findUnique({ where: { id: orderId } })
+        : null) ||
+      (await db.order.findFirst({
+        where: { stripePaymentIntentId: paymentIntentId },
+      }));
 
-      // Update order status to "payment_failed" in database
-      await db.order.update({
-        where: { id: orderId },
-        data: {
-          paymentStatus: "FAILED",
-          status: "CANCELLED",
-        },
-      });
-
-      console.log(`Order ${orderId} marked as payment failed`);
-
-      // Notify customer about failed payment if we have their email
-      if (userEmail) {
-        try {
-          const { DatabaseTemplateService } = await import(
-            "@/lib/email/database-template-service"
-          );
-
-          await DatabaseTemplateService.sendEmail(
-            userEmail,
-            "Payment Failed",
-            `Your payment for order ${orderId} has failed. Please try again or contact support.`
-          );
-        } catch (emailError) {
-          console.error(
-            `Failed to send payment failure email to ${userEmail}:`,
-            emailError
-          );
-        }
-      }
-    } catch (error) {
-      console.error(
-        `Error processing failed payment for order ${orderId}:`,
-        error
+    if (!order) {
+      console.warn(
+        `Payment failed but no order found for intent ${paymentIntentId}`
       );
-      throw error; // Re-throw to trigger webhook retry
+      return;
     }
+
+    // Update order status to "payment_failed" in database
+    await db.order.update({
+      where: { id: order.id },
+      data: {
+        paymentStatus: "FAILED",
+        status: "CANCELLED",
+      },
+    });
+
+    console.log(`Order ${order.id} marked as payment failed`);
+
+    // Notify customer about failed payment if we have their email
+    if (userEmail) {
+      try {
+        const { DatabaseTemplateService } = await import(
+          "@/lib/email/database-template-service"
+        );
+
+        await DatabaseTemplateService.sendEmail(
+          userEmail,
+          "Payment Failed",
+          `Your payment for order ${order.id} has failed. Please try again or contact support.`
+        );
+      } catch (emailError) {
+        console.error(
+          `Failed to send payment failure email to ${userEmail}:`,
+          emailError
+        );
+      }
+    }
+  } catch (error) {
+    console.error(
+      `Error processing failed payment for order ${orderId || paymentIntentId}:`,
+      error
+    );
+    throw error; // Re-throw to trigger webhook retry
   }
 }
 
 // Function to handle canceled payment
 async function handleCanceledPayment(paymentIntent: Stripe.PaymentIntent) {
+  const paymentIntentId = paymentIntent.id;
   const orderId = paymentIntent.metadata.orderId;
 
-  if (orderId) {
-    try {
-      const { db } = await import("@/lib/db");
+  try {
+    const { db } = await import("@/lib/db");
+    const order =
+      (orderId
+        ? await db.order.findUnique({ where: { id: orderId } })
+        : null) ||
+      (await db.order.findFirst({
+        where: { stripePaymentIntentId: paymentIntentId },
+      }));
 
-      await db.order.update({
-        where: { id: orderId },
-        data: {
-          paymentStatus: "FAILED",
-          status: "CANCELLED",
-        },
-      });
-
-      console.log(`Order ${orderId} canceled due to payment cancellation`);
-    } catch (error) {
-      console.error(
-        `Error processing canceled payment for order ${orderId}:`,
-        error
+    if (!order) {
+      console.warn(
+        `Payment canceled but no order found for intent ${paymentIntentId}`
       );
-      throw error;
+      return;
     }
+
+    await db.order.update({
+      where: { id: order.id },
+      data: {
+        paymentStatus: "FAILED",
+        status: "CANCELLED",
+      },
+    });
+
+    console.log(`Order ${order.id} canceled due to payment cancellation`);
+  } catch (error) {
+    console.error(
+      `Error processing canceled payment for order ${orderId || paymentIntentId}:`,
+      error
+    );
+    throw error;
   }
 }
 
@@ -402,11 +419,15 @@ async function handleDispute(dispute: Stripe.Dispute, stripe: Stripe) {
     const { db } = await import("@/lib/db");
 
     // Find order by Stripe payment intent ID
-    const order = await db.order.findFirst({
-      where: {
-        stripePaymentIntentId: paymentIntentId,
-      },
-    });
+    const order =
+      (await db.order.findFirst({
+        where: {
+          stripePaymentIntentId: paymentIntentId,
+        },
+      })) ||
+      (await db.order.findUnique({
+        where: { id: dispute.metadata?.orderId || "" },
+      }));
 
     if (order) {
       // Log dispute for admin review
