@@ -113,6 +113,7 @@ export function CheckoutSummary({
   };
 
   const cartTotalIncludingVAT = getCartTotal();
+  const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
 
   // Calculate tax based on settings (prices already include VAT for EU compliance)
   const taxRate = parseFloat(taxSettings.rate) / 100; // Convert percentage to decimal
@@ -129,14 +130,15 @@ export function CheckoutSummary({
     : 0;
 
   // Apply free shipping if threshold is met (only for standard shipping)
-  let finalShippingCost = shippingCost;
+  let finalShippingCost = hasPhysicalItems ? shippingCost : 0;
   // Note: We can't check shipping method here since CheckoutSummary doesn't have access to it
   // The free shipping logic is handled in the shipping method selector
   if (
     isFreeShippingActive &&
     freeShippingThreshold !== null &&
     cartTotalIncludingVAT >= freeShippingThreshold &&
-    shippingCost === 0 // Only show as free if shipping cost is already 0 from method selector
+    shippingCost === 0 && // Only show as free if shipping cost is already 0 from method selector
+    hasPhysicalItems
   ) {
     finalShippingCost = 0;
   }
@@ -147,7 +149,12 @@ export function CheckoutSummary({
 
   // Calculate how much more needed for free shipping
   const renderFreeShippingMessage = () => {
-    if (!isFreeShippingActive || freeShippingThreshold === null) return null;
+    if (
+      !isFreeShippingActive ||
+      freeShippingThreshold === null ||
+      !hasPhysicalItems
+    )
+      return null;
 
     if (cartTotalIncludingVAT >= freeShippingThreshold) {
       return (

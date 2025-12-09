@@ -37,11 +37,34 @@ export function ShippingMethodSelector({
   >(null);
   const { formatPrice } = useCurrency();
   const { t } = useTranslation();
-  const { getCartTotal } = useCart();
+  const { getCartTotal, items: cartItems } = useCart();
+
+  const isDigitalOnlyCart =
+    cartItems.length > 0 && cartItems.every(item => item.isBook);
 
   // Fetch shipping settings from the database
   useEffect(() => {
     async function loadShippingSettings() {
+      if (isDigitalOnlyCart) {
+        const digitalMethod: ShippingMethod = {
+          id: "digital",
+          name: t("digitalDelivery", "Digital Delivery"),
+          description: t(
+            "digitalDeliveryDescription",
+            "Primești cartea pe email, fără livrare fizică"
+          ),
+          price: 0,
+          estimatedDelivery: t("instantDelivery", "Livrare instant"),
+        };
+
+        setShippingMethods([digitalMethod]);
+        setSelectedMethodId("digital");
+        setFreeShippingApplied(true);
+        setFreeShippingThreshold(null);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const settings = await fetchShippingSettings();
         const cartTotal = getCartTotal();
@@ -188,7 +211,7 @@ export function ShippingMethodSelector({
     }
 
     loadShippingSettings();
-  }, [t, getCartTotal]);
+  }, [t, getCartTotal, isDigitalOnlyCart]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

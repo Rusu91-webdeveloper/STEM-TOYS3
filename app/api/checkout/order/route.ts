@@ -268,12 +268,42 @@ export async function POST(request: Request) {
       orderData.subtotal ||
       items.reduce((total, item) => total + item.price * item.quantity, 0);
 
+    // Detect if the order contains only digital items (books)
+    let hasPhysicalItems = items.some(item => item.isBook === false);
+    if (!hasPhysicalItems) {
+      const itemsNeedingTypeCheck = items.filter(
+        item => item.isBook === undefined
+      );
+
+      if (itemsNeedingTypeCheck.length > 0) {
+        try {
+          const potentialBookIds = itemsNeedingTypeCheck.map(
+            item => item.productId
+          );
+          const books = await db.book.findMany({
+            where: { id: { in: potentialBookIds } },
+            select: { id: true },
+          });
+          const bookIdSet = new Set(books.map(book => book.id));
+          hasPhysicalItems = itemsNeedingTypeCheck.some(
+            item => !bookIdSet.has(item.productId)
+          );
+        } catch (error) {
+          console.error("Failed to verify digital items for shipping:", error);
+          hasPhysicalItems = true; // Fall back to charging shipping if uncertain
+        }
+      }
+    }
+    const isDigitalOnlyOrder = items.length > 0 && !hasPhysicalItems;
+
     // Get initial shipping method cost (default to 0 if not provided)
     const baseShippingCost =
-      orderData.shippingCost ||
-      (orderData.shippingMethod?.price
-        ? parseFloat(orderData.shippingMethod.price.toString())
-        : 0);
+      isDigitalOnlyOrder
+        ? 0
+        : orderData.shippingCost ||
+          (orderData.shippingMethod?.price
+            ? parseFloat(orderData.shippingMethod.price.toString())
+            : 0);
 
     // Get tax and shipping settings from the database
     let taxRate = 0.21; // Default tax rate (21%)

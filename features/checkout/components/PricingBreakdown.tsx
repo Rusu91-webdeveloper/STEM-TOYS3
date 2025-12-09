@@ -19,7 +19,7 @@ export function usePricingBreakdown({
   discountAmount = 0,
   appliedCoupon,
 }: PricingBreakdownProps) {
-  const { getCartTotal } = useCart();
+  const { getCartTotal, items: cartItems } = useCart();
   const { settings, isLoading: settingsLoading } = useCheckoutSettings();
 
   // Extract settings with defaults
@@ -37,7 +37,8 @@ export function usePricingBreakdown({
 
   // Calculate totals WITH DISCOUNT (prices include VAT for EU compliance)
   const cartTotalIncludingVAT = getCartTotal();
-  let shippingCost = checkoutData.shippingMethod?.price || 0;
+  const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
+  let shippingCost = hasPhysicalItems ? checkoutData.shippingMethod?.price || 0 : 0;
 
   // Apply free shipping if threshold is met and it's standard shipping
   if (

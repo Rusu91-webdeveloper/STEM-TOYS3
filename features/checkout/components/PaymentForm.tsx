@@ -63,7 +63,7 @@ export function PaymentForm({
   onSubmit,
   onBack,
 }: PaymentFormProps) {
-  const { getCartTotal } = useCart();
+  const { getCartTotal, items: cartItems } = useCart();
   const { t } = useTranslation();
   const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
 
@@ -110,7 +110,8 @@ export function PaymentForm({
       setIsCalculatingTotal(true);
       try {
         const subtotal = getCartTotal();
-        let shippingCost = shippingMethod?.price || 0;
+        const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
+        let shippingCost = hasPhysicalItems ? shippingMethod?.price || 0 : 0;
 
         const taxRate = settings?.taxSettings?.active
           ? parseFloat(settings.taxSettings.rate) / 100
@@ -149,7 +150,7 @@ export function PaymentForm({
     if (settings) {
       calculateTotal();
     }
-  }, [discountAmount, getCartTotal, settings, shippingMethod]);
+  }, [cartItems, discountAmount, getCartTotal, settings, shippingMethod]);
 
   useEffect(() => {
     const fetchPaymentCards = async () => {

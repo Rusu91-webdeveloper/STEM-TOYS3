@@ -51,6 +51,7 @@ export function CheckoutFlow() {
     influencerName?: string;
   } | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
+  const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
 
   const updateCheckoutData = (data: Partial<CheckoutData>) => {
     setCheckoutData(prev => ({ ...prev, ...data }));
@@ -285,7 +286,9 @@ export function CheckoutFlow() {
 
       // Calculate proper total - prices already include VAT for EU compliance
       const cartTotalIncludingVAT = getCartTotal();
-      const shippingCost = checkoutData.shippingMethod?.price ?? 0;
+      const shippingCost = hasPhysicalItems
+        ? checkoutData.shippingMethod?.price ?? 0
+        : 0;
 
       // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
       const subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
@@ -412,7 +415,9 @@ export function CheckoutFlow() {
 
       // Calculate proper total - prices already include VAT for EU compliance
       const cartTotalIncludingVAT = getCartTotal();
-      const shippingCost = checkoutData.shippingMethod?.price ?? 0;
+      const shippingCost = hasPhysicalItems
+        ? checkoutData.shippingMethod?.price ?? 0
+        : 0;
 
       // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
       const subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
@@ -625,7 +630,9 @@ export function CheckoutFlow() {
       <div className="lg:col-span-1">
         <CheckoutSummary
           onCouponApplied={handleCouponApplied}
-          shippingCost={checkoutData.shippingMethod?.price ?? 0}
+          shippingCost={
+            hasPhysicalItems ? checkoutData.shippingMethod?.price ?? 0 : 0
+          }
           appliedCoupon={appliedCoupon}
           onCouponRemoved={handleCouponRemoved}
         />
