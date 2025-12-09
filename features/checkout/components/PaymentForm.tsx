@@ -111,7 +111,35 @@ export function PaymentForm({
       try {
         const subtotal = getCartTotal();
         const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
-        let shippingCost = hasPhysicalItems ? shippingMethod?.price || 0 : 0;
+
+        const standardShippingPrice = parseFloat(
+          settings?.shippingSettings?.standard?.price ?? "5.99"
+        );
+        const expressShippingPrice = parseFloat(
+          settings?.shippingSettings?.express?.price ?? "12.99"
+        );
+        const freeShippingThreshold = parseFloat(
+          settings?.shippingSettings?.freeThreshold?.price ?? "250"
+        );
+        const freeShippingActive =
+          settings?.shippingSettings?.freeThreshold?.active !== false;
+
+        let shippingCost = 0;
+        if (hasPhysicalItems) {
+          const baseShippingPrice =
+            shippingMethod?.price ??
+            (shippingMethod?.id === "express"
+              ? expressShippingPrice
+              : standardShippingPrice);
+
+          const qualifiesForFreeShipping =
+            shippingMethod?.id === "standard" &&
+            freeShippingActive &&
+            !Number.isNaN(freeShippingThreshold) &&
+            subtotal >= freeShippingThreshold;
+
+          shippingCost = qualifiesForFreeShipping ? 0 : baseShippingPrice;
+        }
 
         const taxRate = settings?.taxSettings?.active
           ? parseFloat(settings.taxSettings.rate) / 100

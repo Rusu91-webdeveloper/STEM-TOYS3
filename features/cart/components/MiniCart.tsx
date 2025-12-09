@@ -335,7 +335,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                                   size="sm"
                                   onClick={() =>
                                     updateItemQuantity(
-                                      item.id,
+                                      item.productId,
                                       item.quantity - 1,
                                       item.variantId,
                                       item.selectedLanguage
@@ -354,7 +354,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                                   size="sm"
                                   onClick={() =>
                                     updateItemQuantity(
-                                      item.id,
+                                      item.productId,
                                       item.quantity + 1,
                                       item.variantId,
                                       item.selectedLanguage
@@ -374,7 +374,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                                 size="sm"
                                 onClick={() =>
                                   removeItem(
-                                    item.id,
+                                    item.productId,
                                     item.variantId,
                                     item.selectedLanguage
                                   )

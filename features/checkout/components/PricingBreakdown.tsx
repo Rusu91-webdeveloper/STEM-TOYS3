@@ -27,25 +27,42 @@ export function usePricingBreakdown({
     ? parseFloat(settings.taxSettings.rate) / 100
     : 0.21; // Default 21%
 
+  const standardShippingPrice = parseFloat(
+    settings?.shippingSettings?.standard?.price ?? "5.99"
+  );
+  const expressShippingPrice = parseFloat(
+    settings?.shippingSettings?.express?.price ?? "12.99"
+  );
   const freeShippingThreshold = settings?.shippingSettings?.freeThreshold
     ?.active
     ? parseFloat(settings.shippingSettings.freeThreshold.price)
-    : null;
+    : 250;
 
   const isFreeShippingActive =
-    settings?.shippingSettings?.freeThreshold?.active || false;
+    settings?.shippingSettings?.freeThreshold?.active !== false;
 
   // Calculate totals WITH DISCOUNT (prices include VAT for EU compliance)
   const cartTotalIncludingVAT = getCartTotal();
   const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
-  let shippingCost = hasPhysicalItems ? checkoutData.shippingMethod?.price || 0 : 0;
+  let shippingCost = 0;
+
+  if (hasPhysicalItems) {
+    const baseShippingPrice =
+      checkoutData.shippingMethod?.price ??
+      (checkoutData.shippingMethod?.id === "express"
+        ? expressShippingPrice
+        : standardShippingPrice);
+
+    shippingCost = baseShippingPrice;
+  }
 
   // Apply free shipping if threshold is met and it's standard shipping
   if (
     isFreeShippingActive &&
     freeShippingThreshold !== null &&
     cartTotalIncludingVAT >= freeShippingThreshold &&
-    checkoutData.shippingMethod?.id === "standard"
+    checkoutData.shippingMethod?.id === "standard" &&
+    hasPhysicalItems
   ) {
     shippingCost = 0;
   }

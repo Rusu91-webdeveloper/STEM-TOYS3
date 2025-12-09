@@ -16,6 +16,7 @@ import { OrderReview } from "./OrderReview";
 import { PaymentForm } from "./PaymentForm";
 import { ShippingAddressForm } from "./ShippingAddressForm";
 import { ShippingMethodSelector } from "./ShippingMethodSelector";
+import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
 import { CheckoutData, CheckoutStep } from "../types";
 
 export function CheckoutFlow() {
@@ -23,6 +24,7 @@ export function CheckoutFlow() {
   const { data: session, status } = useOptimizedSession();
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { t } = useTranslation();
+  const { settings } = useCheckoutSettings();
 
   // Removed the forceSyncWithServer call that was causing excessive API requests
   // The cart should already be properly synced when the user reaches checkout
@@ -52,6 +54,38 @@ export function CheckoutFlow() {
   } | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
   const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
+
+  const computeShippingCost = () => {
+    if (!hasPhysicalItems) {
+      return 0;
+    }
+
+    const standardShippingPrice = parseFloat(
+      settings?.shippingSettings?.standard?.price ?? "5.99"
+    );
+    const expressShippingPrice = parseFloat(
+      settings?.shippingSettings?.express?.price ?? "12.99"
+    );
+    const freeShippingThreshold = parseFloat(
+      settings?.shippingSettings?.freeThreshold?.price ?? "250"
+    );
+    const freeShippingActive =
+      settings?.shippingSettings?.freeThreshold?.active !== false;
+
+    const baseShippingPrice =
+      checkoutData.shippingMethod?.price ??
+      (checkoutData.shippingMethod?.id === "express"
+        ? expressShippingPrice
+        : standardShippingPrice);
+
+    const qualifiesForFreeShipping =
+      checkoutData.shippingMethod?.id === "standard" &&
+      freeShippingActive &&
+      !Number.isNaN(freeShippingThreshold) &&
+      getCartTotal() >= freeShippingThreshold;
+
+    return qualifiesForFreeShipping ? 0 : baseShippingPrice;
+  };
 
   const updateCheckoutData = (data: Partial<CheckoutData>) => {
     setCheckoutData(prev => ({ ...prev, ...data }));
@@ -286,9 +320,7 @@ export function CheckoutFlow() {
 
       // Calculate proper total - prices already include VAT for EU compliance
       const cartTotalIncludingVAT = getCartTotal();
-      const shippingCost = hasPhysicalItems
-        ? checkoutData.shippingMethod?.price ?? 0
-        : 0;
+      const shippingCost = computeShippingCost();
 
       // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
       const subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
@@ -415,9 +447,7 @@ export function CheckoutFlow() {
 
       // Calculate proper total - prices already include VAT for EU compliance
       const cartTotalIncludingVAT = getCartTotal();
-      const shippingCost = hasPhysicalItems
-        ? checkoutData.shippingMethod?.price ?? 0
-        : 0;
+      const shippingCost = computeShippingCost();
 
       // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
       const subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
@@ -630,9 +660,7 @@ export function CheckoutFlow() {
       <div className="lg:col-span-1">
         <CheckoutSummary
           onCouponApplied={handleCouponApplied}
-          shippingCost={
-            hasPhysicalItems ? checkoutData.shippingMethod?.price ?? 0 : 0
-          }
+          shippingCost={computeShippingCost()}
           appliedCoupon={appliedCoupon}
           onCouponRemoved={handleCouponRemoved}
         />

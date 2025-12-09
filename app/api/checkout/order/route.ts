@@ -268,6 +268,11 @@ export async function POST(request: Request) {
       orderData.subtotal ||
       items.reduce((total, item) => total + item.price * item.quantity, 0);
 
+    // Default shipping fallback values
+    let standardShippingPrice = 5.99;
+    let freeShippingThreshold: number | null = 250;
+    let isFreeShippingActive = true;
+
     // Detect if the order contains only digital items (books)
     let hasPhysicalItems = items.some(item => item.isBook === false);
     if (!hasPhysicalItems) {
@@ -309,8 +314,6 @@ export async function POST(request: Request) {
     let taxRate = 0.21; // Default tax rate (21%)
     let applyTax = true; // Default to applying tax
     let taxRatePercentage = "21"; // For display purposes
-    let freeShippingThreshold = null;
-    let isFreeShippingActive = false;
 
     try {
       // Get tax settings
@@ -327,10 +330,18 @@ export async function POST(request: Request) {
 
       // Get shipping settings for free shipping threshold
       const shippingSettings = (await getShippingSettings()) as any;
+      if (shippingSettings?.standard?.price) {
+        standardShippingPrice = parseFloat(shippingSettings.standard.price);
+      }
       if (shippingSettings.freeThreshold?.active) {
         freeShippingThreshold = parseFloat(
           shippingSettings.freeThreshold.price
         );
+        isFreeShippingActive = true;
+      }
+      // If no free shipping config is active, keep default threshold at 250
+      if (!shippingSettings.freeThreshold) {
+        freeShippingThreshold = 250;
         isFreeShippingActive = true;
       }
     } catch (error) {
@@ -340,12 +351,17 @@ export async function POST(request: Request) {
 
     // Apply free shipping logic
     let finalShippingCost = baseShippingCost;
-    if (
+    const qualifiesForFreeShipping =
       isFreeShippingActive &&
       freeShippingThreshold !== null &&
-      subtotal >= freeShippingThreshold
-    ) {
+      subtotal >= freeShippingThreshold;
+
+    if (qualifiesForFreeShipping) {
       finalShippingCost = 0;
+    }
+
+    if (!isDigitalOnlyOrder && finalShippingCost === 0 && !qualifiesForFreeShipping) {
+      finalShippingCost = standardShippingPrice;
     }
 
     // Calculate tax based on settings (VAT-inclusive pricing for EU compliance)
