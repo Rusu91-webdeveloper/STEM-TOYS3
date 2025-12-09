@@ -31,10 +31,27 @@ echo -e "${YELLOW}DATABASE BACKUP SCRIPT${NC}"
 echo -e "${YELLOW}==============================================================================${NC}"
 echo ""
 
-# Load environment variables
+# Load environment variables (only DATABASE_URL related variables to avoid SSL cert issues)
 if [ -f .env.local ]; then
     echo -e "${GREEN}✓${NC} Loading environment variables from .env.local"
-    export $(grep -v '^#' .env.local | xargs)
+    # Only extract DATABASE_URL variables, avoiding multi-line SSL certificates
+    # This safely handles .env files with certificates/keys by only loading what we need
+    
+    # Extract DATABASE_URL_PRODUCTION if it exists
+    if grep -q "^DATABASE_URL_PRODUCTION=" .env.local 2>/dev/null; then
+        DATABASE_URL_PRODUCTION=$(grep "^DATABASE_URL_PRODUCTION=" .env.local | head -1 | cut -d '=' -f2- | sed "s/^['\"]//;s/['\"]$//" | tr -d '\n')
+        if [[ -n "$DATABASE_URL_PRODUCTION" ]] && [[ ! "$DATABASE_URL_PRODUCTION" =~ (-----|CERTIFICATE) ]]; then
+            export DATABASE_URL_PRODUCTION="$DATABASE_URL_PRODUCTION"
+        fi
+    fi
+    
+    # Extract DATABASE_URL if it exists
+    if grep -q "^DATABASE_URL=" .env.local 2>/dev/null; then
+        DATABASE_URL=$(grep "^DATABASE_URL=" .env.local | head -1 | cut -d '=' -f2- | sed "s/^['\"]//;s/['\"]$//" | tr -d '\n')
+        if [[ -n "$DATABASE_URL" ]] && [[ ! "$DATABASE_URL" =~ (-----|CERTIFICATE) ]]; then
+            export DATABASE_URL="$DATABASE_URL"
+        fi
+    fi
 fi
 
 # Determine which database URL to use
