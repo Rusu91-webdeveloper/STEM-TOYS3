@@ -78,7 +78,7 @@ export function getPaymentProviderFromHeaders(): "netopia" | "stripe" {
   // This would be set by the middleware and available in document headers
   // For now, return default - in production this would read from a global variable
   // set by the server or from local storage
-  return "netopia"; // Default to Netopia for Romanian users
+  return "stripe"; // Default to Stripe while Netopia is temporarily disabled
 }
 
 /**

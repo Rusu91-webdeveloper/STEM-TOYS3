@@ -1,13 +1,13 @@
 "use client";
 
-import { CreditCard, Loader2, Smartphone, Wallet } from "lucide-react";
+import { CreditCard, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import React, { /* useState, */ useEffect, useMemo } from "react";
 
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { NetopiaLogoBadge } from "./NetopiaLogoBadge";
+import { StripeLogoBadge } from "./StripeLogoBadge";
 
 interface PaymentCard {
   id: string;
@@ -30,6 +30,8 @@ interface PaymentMethodSelectorProps {
   billingCountry?: string;
 }
 
+const stripeNetworks = ["Visa", "Mastercard", "Apple Pay", "Google Pay", "Revolut"];
+
 export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   selectedPaymentMethod,
   onPaymentMethodChange,
@@ -40,7 +42,8 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   billingCountry,
 }: PaymentMethodSelectorProps) {
   const { t } = useTranslation();
-  const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
+  const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED !== "false";
+  const netopiaEnabled = process.env.NEXT_PUBLIC_NETOPIA_ENABLED === "true";
 
   // Get card logo or icon based on card type
   const getCardIcon = (cardType: string) => {
@@ -90,52 +93,8 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       provider: "netopia" | "stripe";
       fee?: string;
       description?: string;
+      badge?: string;
     }> = [];
-
-    // Netopia is the primary payment provider - show Netopia options for all users
-    // Romanian users get priority with local payment methods
-    if (isRomanianUser) {
-      methods.push(
-        {
-          id: "netopia_card",
-          type: "netopia_card",
-          name: "Card bancar (Netopia)",
-          icon: <CreditCard className="h-4 w-4 text-blue-600" />,
-          provider: "netopia",
-          fee: "1.5%",
-          description: "Plată securizată cu card bancar",
-        },
-        {
-          id: "netopia_sms",
-          type: "netopia_sms",
-          name: "Plată prin SMS (Netopia)",
-          icon: <Smartphone className="h-4 w-4 text-green-600" />,
-          provider: "netopia",
-          fee: "2.0%",
-          description: "Primești SMS cu link de plată",
-        },
-        {
-          id: "netopia_wallet",
-          type: "netopia_wallet",
-          name: "Portofel mobilPay (Netopia)",
-          icon: <Wallet className="h-4 w-4 text-purple-600" />,
-          provider: "netopia",
-          fee: "1.2%",
-          description: "Plată rapidă cu portofel electronic",
-        }
-      );
-    } else {
-      // Non-Romanian users see Netopia card option
-      methods.push({
-        id: "netopia_card",
-        type: "netopia_card",
-        name: "Credit/Debit Card (Netopia)",
-        icon: <CreditCard className="h-4 w-4 text-blue-600" />,
-        provider: "netopia",
-        fee: "1.5%",
-        description: "Secure card payment via Netopia",
-      });
-    }
 
     if (stripeEnabled) {
       if (savedCards.length > 0) {
@@ -143,11 +102,15 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
           methods.push({
             id: card.id,
             type: "saved_card",
-            name: `•••• •••• •••• ${card.lastFourDigits}`,
+            name: `${card.cardType.toUpperCase()} •••• ${card.lastFourDigits}`,
             icon: getCardIcon(card.cardType),
             provider: "stripe",
-            fee: "2.9% + €0.25",
-            description: card.cardholderName,
+            fee: t("stripeSavedCardFee", "Inclus"),
+            description: t(
+              "stripeSavedCardDescription",
+              "Salvat în siguranță prin Stripe, plătești instant."
+            ),
+            badge: t("stripeOnFile", "Card salvat"),
           });
         });
       }
@@ -156,18 +119,68 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
         id: "stripe_new",
         type: "new_card",
         name: t("useNewCard", "Folosește un card nou"),
-        icon: <CreditCard className="h-4 w-4 text-gray-500" />,
+        icon: (
+          <div className="flex items-center gap-1 rounded-md bg-indigo-500/20 px-2 py-1 text-[11px] font-semibold text-indigo-50 ring-1 ring-indigo-300/40">
+            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>Stripe</span>
+          </div>
+        ),
         provider: "stripe",
-        fee: "2.9% + €0.25",
+        fee: t("stripeFee", "0% taxe ascunse"),
         description: t(
           "stripeSecurePayment",
           "Plată securizată prin Stripe (Visa, Mastercard, Apple Pay)"
         ),
+        badge: t("recommended", "Recomandat"),
       });
     }
 
+    if (netopiaEnabled) {
+      if (isRomanianUser) {
+        methods.push(
+          {
+            id: "netopia_card",
+            type: "netopia_card",
+            name: "Card bancar (Netopia)",
+            icon: <CreditCard className="h-4 w-4 text-blue-600" />,
+            provider: "netopia",
+            fee: "1.5%",
+            description: "Plată securizată cu card bancar",
+          },
+          {
+            id: "netopia_sms",
+            type: "netopia_sms",
+            name: "Plată prin SMS (Netopia)",
+            icon: <Sparkles className="h-4 w-4 text-green-500" />,
+            provider: "netopia",
+            fee: "2.0%",
+            description: "Primești SMS cu link de plată",
+          },
+          {
+            id: "netopia_wallet",
+            type: "netopia_wallet",
+            name: "Portofel mobilPay (Netopia)",
+            icon: <Sparkles className="h-4 w-4 text-purple-400" />,
+            provider: "netopia",
+            fee: "1.2%",
+            description: "Plată rapidă cu portofel electronic",
+          }
+        );
+      } else {
+        methods.push({
+          id: "netopia_card",
+          type: "netopia_card",
+          name: "Credit/Debit Card (Netopia)",
+          icon: <CreditCard className="h-4 w-4 text-blue-600" />,
+          provider: "netopia",
+          fee: "1.5%",
+          description: "Secure card payment via Netopia",
+        });
+      }
+    }
+
     return methods;
-  }, [isRomanianUser, savedCards, stripeEnabled, t]);
+  }, [isRomanianUser, netopiaEnabled, savedCards, stripeEnabled, t]);
 
   useEffect(() => {
     if (paymentMethods.length === 0) {
@@ -203,18 +216,19 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       >
         {paymentMethods.map(method => {
           const isSelected = selectedPaymentMethod === method.id;
+          const isStripe = method.provider === "stripe";
 
           return (
             <div
               key={method.id}
               className={cn(
-                "flex items-start gap-3 rounded-xl border p-3 transition-colors duration-200",
-                method.provider === "netopia"
-                  ? "border-sky-400/40 bg-sky-500/10"
-                  : "border-white/10 bg-white/5",
+                "flex items-start gap-3 rounded-xl border p-4 transition-all duration-200",
+                isStripe
+                  ? "border-indigo-300/40 bg-indigo-950/30"
+                  : "border-sky-400/40 bg-sky-500/10",
                 isSelected
-                  ? "border-sky-400 bg-sky-500/20 shadow-lg shadow-sky-500/15"
-                  : "hover:border-white/20 hover:bg-white/10"
+                  ? "shadow-lg shadow-indigo-600/25 ring-2 ring-indigo-400"
+                  : "hover:border-white/25 hover:bg-white/5"
               )}
             >
               <RadioGroupItem
@@ -229,12 +243,24 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
                     className="flex cursor-pointer items-center gap-2 font-semibold text-slate-100"
                   >
                     {method.icon}
-                    {method.name}
-                    {method.provider === "netopia" && (
-                      <span className="rounded border border-sky-400/40 bg-sky-500/15 px-2 py-0.5 text-xs text-sky-100">
-                        🇷🇴 Netopia
-                      </span>
-                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span>{method.name}</span>
+                      {method.badge && (
+                        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-50">
+                          {method.badge}
+                        </span>
+                      )}
+                      {isStripe && (
+                        <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-50">
+                          Stripe
+                        </span>
+                      )}
+                      {method.provider === "netopia" && (
+                        <span className="rounded border border-sky-400/40 bg-sky-500/15 px-2 py-0.5 text-xs text-sky-100">
+                          🇷🇴 Netopia
+                        </span>
+                      )}
+                    </div>
                   </Label>
                   {method.fee ? (
                     <span className="text-sm text-slate-300">{method.fee}</span>
@@ -253,6 +279,18 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
                     }
                   </div>
                 )}
+                {isStripe && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {stripeNetworks.map(network => (
+                      <span
+                        key={network}
+                        className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-100"
+                      >
+                        {network}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -260,7 +298,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       </RadioGroup>
 
       <div className="mt-4">
-        <NetopiaLogoBadge />
+        <StripeLogoBadge />
       </div>
     </div>
   );

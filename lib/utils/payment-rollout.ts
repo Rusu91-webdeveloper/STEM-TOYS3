@@ -26,9 +26,14 @@ export interface UserContext {
  * Get the default rollout configuration from environment variables
  */
 export function getRolloutConfig(): RolloutConfig {
+  const netopiaFlag = process.env.NEXT_PUBLIC_NETOPIA_ENABLED;
+  const stripeFlag = process.env.NEXT_PUBLIC_STRIPE_ENABLED;
+
   return {
-    netopiaEnabled: process.env.NEXT_PUBLIC_NETOPIA_ENABLED !== "false", // Default to true
-    stripeEnabled: process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true", // Default to false (commented out)
+    // Netopia temporarily disabled unless explicitly re-enabled
+    netopiaEnabled: netopiaFlag === "true",
+    // Stripe is primary; disable only if explicitly turned off
+    stripeEnabled: stripeFlag !== "false",
     gradualRolloutPercentage: parseInt(
       process.env.GRADUAL_ROLLOUT_PERCENTAGE || "0"
     ),
@@ -185,7 +190,16 @@ export function getPaymentProviderForUser(
     return "netopia";
   }
 
-  return config.stripeEnabled ? "stripe" : "netopia"; // Fallback to Netopia if Stripe disabled
+  if (config.stripeEnabled) {
+    return "stripe";
+  }
+
+  if (config.netopiaEnabled) {
+    return "netopia";
+  }
+
+  // Fallback to Stripe to avoid routing users to a disabled Netopia flow
+  return "stripe";
 }
 
 /**
