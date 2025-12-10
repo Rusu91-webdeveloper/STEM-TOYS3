@@ -3,8 +3,8 @@ import { MetadataRoute } from "next";
 // Base URL for the site - use an environment variable or localhost during build
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
 
-// Supported languages
-const languages = ["ro", "en"];
+// Supported languages (currently only Romanian URLs are live)
+const languages = ["ro"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static routes that should always be included

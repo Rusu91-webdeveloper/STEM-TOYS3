@@ -17,42 +17,24 @@ export async function GET() {
       orderBy: { publishedAt: "desc" },
     });
 
-    // Supported languages
-    const languages = ["ro", "en"];
-
     let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">`;
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
-    // Add blog posts (hybrid: use -ro / -en when present)
+    // Add only the URLs that actually exist (no fabricated locale variants)
     blogs.forEach(blog => {
       const lastmod = new Date(
         blog.updatedAt || blog.publishedAt || new Date()
       ).toISOString();
       const slug = blog.slug;
-      const hasRo = slug.endsWith("-ro");
-      const hasEn = slug.endsWith("-en");
-      const base = hasRo || hasEn ? slug.slice(0, -3) : slug;
+      const url = `${baseUrl}/blog/${slug}`;
 
-      const roSlug = `${base}-ro`;
-      const enSlug = `${base}-en`;
-
-      // For each base, emit one entry per language with hreflang alternates
-      languages.forEach(lang => {
-        const langSlug = lang === "ro" ? roSlug : enSlug;
-        const url = `${baseUrl}/blog/${langSlug}`;
-        sitemap += `
+      sitemap += `
   <url>
     <loc>${url}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>`;
-        // alternates
-        sitemap += `
-    <xhtml:link rel="alternate" hreflang="ro" href="${baseUrl}/blog/${roSlug}" />
-    <xhtml:link rel="alternate" hreflang="en" href="${baseUrl}/blog/${enSlug}" />`;
-        sitemap += `
+    <priority>0.7</priority>
   </url>`;
-      });
     });
 
     sitemap += `

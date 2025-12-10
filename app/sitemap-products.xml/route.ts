@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.techtots.ro";
-const languages = ["ro", "en"];
+// Only Romanian routes are live; drop English alternates to avoid 404s
+const languages = ["ro"];
 
 export async function GET() {
   let sitemap = `<?xml version="1.0" encoding="UTF-8"?>

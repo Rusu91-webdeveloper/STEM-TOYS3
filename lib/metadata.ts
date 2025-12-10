@@ -6,8 +6,8 @@ import { registerStructuredDataVariants } from "./structured-data-registry";
 
 // Define available languages for metadata
 export const metadataLanguages = [
+  // Only Romanian pages are live right now; drop English alternates to avoid 404 hreflang
   { code: "ro", name: "Română", flag: "🇷🇴", region: "RO" },
-  { code: "en", name: "English", flag: "🇬🇧", region: "US" },
 ];
 
 // Helper to get translations based on language code

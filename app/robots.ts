@@ -25,7 +25,6 @@ export default function robots(): MetadataRoute.Robots {
           "/privacy",
           "/terms",
           "/ro",
-          "/en",
         ],
         disallow: [
           "/admin",
@@ -60,7 +59,6 @@ export default function robots(): MetadataRoute.Robots {
           "/privacy",
           "/terms",
           "/ro", // Romanian content
-          "/en", // English content
         ],
         disallow: ["/admin", "/api", "/auth", "/checkout", "/account"],
       },
