@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
+import { invalidateBookCaches } from "@/lib/cache-smart-invalidation";
 import { db } from "@/lib/db";
 
 // Validation schema for book updates
@@ -66,6 +67,12 @@ export async function PUT(
     const book = await db.book.update({
       where: { id },
       data: validatedData,
+    });
+
+    await invalidateBookCaches({
+      bookId: book.id,
+      bookSlug: book.slug,
+      reason: `Book updated: ${book.name}`,
     });
 
     return NextResponse.json(book);
@@ -146,6 +153,12 @@ export async function DELETE(
     const { revalidateTag } = await import("next/cache");
     revalidateTag("books");
     revalidateTag(`book-${book.slug}`);
+
+    await invalidateBookCaches({
+      bookId: book.id,
+      bookSlug: book.slug,
+      reason: `Book deleted: ${book.name}`,
+    });
 
     return NextResponse.json({
       success: true,

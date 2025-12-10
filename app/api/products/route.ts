@@ -136,10 +136,7 @@ export async function GET(request: NextRequest) {
         if (cachedResult && cachedResult.products?.length > 0) {
           const response = NextResponse.json(cachedResult);
           response.headers.set("X-Cache", "HIT-FAST");
-          response.headers.set(
-            "Cache-Control",
-            "public, max-age=60, s-maxage=60, stale-while-revalidate=120"
-          );
+          response.headers.set("Cache-Control", "no-store");
           return response;
         }
       } catch (cacheError) {
@@ -176,13 +173,7 @@ export async function GET(request: NextRequest) {
 
       const response = NextResponse.json(cachedResult);
       response.headers.set("X-Cache", "HIT");
-
-      // Short cache TTL for quick refresh
-      const cacheSeconds = Math.floor(cacheDuration / 1000);
-      response.headers.set(
-        "Cache-Control",
-        `public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds}, stale-while-revalidate=${cacheSeconds}`
-      );
+      response.headers.set("Cache-Control", "no-store");
       return response;
     } catch (cacheError) {
       console.warn(
@@ -212,13 +203,7 @@ export async function GET(request: NextRequest) {
 
     const response = NextResponse.json(result);
     response.headers.set("X-Cache", "MISS");
-    
-    // ⚡ SMART CACHING: Set cache headers on MISS responses
-    const cacheSeconds = Math.floor(CACHE_DURATIONS.GENERAL_LISTING / 1000);
-    response.headers.set(
-      "Cache-Control",
-      `public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds}, stale-while-revalidate=${cacheSeconds}`
-    );
+    response.headers.set("Cache-Control", "no-store");
 
     return response;
   } catch (error) {

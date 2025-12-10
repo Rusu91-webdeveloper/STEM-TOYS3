@@ -107,6 +107,50 @@ export async function invalidateBlogCaches(options?: {
 }
 
 /**
+ * Invalidate all caches for books (digital products)
+ * Call this when:
+ * - Creating/updating/deleting a book
+ * - Uploading/removing book digital files
+ */
+export async function invalidateBookCaches(options?: {
+  bookId?: string;
+  bookSlug?: string;
+  reason?: string;
+}): Promise<void> {
+  const startTime = Date.now();
+
+  try {
+    console.log("🔄 Starting book cache invalidation...", options?.reason || "manual");
+
+    // 1️⃣ Invalidate Redis/Application Cache
+    await Promise.all([
+      invalidateCachePattern("books*"),
+      invalidateCachePattern("book:*"),
+      invalidateCachePattern("products*"), // Books are surfaced on /products
+    ]);
+
+    // 2️⃣ Invalidate Next.js Data Cache
+    revalidateTag("books");
+    revalidateTag("products");
+    if (options?.bookId) {
+      revalidateTag(`book-${options.bookId}`);
+    }
+    if (options?.bookSlug) {
+      revalidateTag(`book-${options.bookSlug}`);
+    }
+
+    // 3️⃣ Invalidate relevant pages
+    revalidatePath("/products", "page");
+    revalidatePath("/", "page");
+
+    const duration = Date.now() - startTime;
+    console.log(`✅ Book caches invalidated successfully in ${duration}ms`);
+  } catch (error) {
+    console.error("❌ Error invalidating book caches:", error);
+  }
+}
+
+/**
  * Invalidate all caches for categories
  * Call this when:
  * - Creating a new category
@@ -203,4 +247,3 @@ export function getCacheInvalidationStats() {
     message: "Cache invalidation system active",
   };
 }
-

@@ -68,8 +68,9 @@ export const GET = withRateLimit(
 
       // Create response with books
       const response = applyStandardHeaders(NextResponse.json(books), {
-        cache: "public",
+        cache: "no-store",
       });
+      response.headers.set("Cache-Control", "no-store");
       return response;
     } catch (error) {
       console.error("Error fetching books:", error);

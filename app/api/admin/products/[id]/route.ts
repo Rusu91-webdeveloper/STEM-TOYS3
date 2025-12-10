@@ -6,6 +6,7 @@ import { handleFormData } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { invalidateAnalyticsOnProductChange } from "@/lib/cache/analytics-cache";
+import { invalidateProductCaches } from "@/lib/cache-smart-invalidation";
 import { deleteUploadThingFiles } from "@/lib/uploadthing";
 import { slugify } from "@/lib/utils";
 
@@ -202,6 +203,13 @@ export async function DELETE(
     if (product.categoryId) {
       revalidateTag(`category-${product.categoryId}`);
     }
+
+    // Smart cache invalidation to propagate delete quickly
+    await invalidateProductCaches({
+      productId,
+      categoryId: product.categoryId || undefined,
+      reason: `Product deleted: ${product.name}`,
+    });
 
     return NextResponse.json({
       success: true,
@@ -427,6 +435,13 @@ export async function PATCH(
     // Invalidate analytics cache since product changes affect analytics
     await invalidateAnalyticsOnProductChange();
 
+    // Smart cache invalidation to propagate updates immediately
+    await invalidateProductCaches({
+      productId: productId,
+      categoryId: categoryId || undefined,
+      reason: `Product updated: ${updatedProduct.name}`,
+    });
+
     return NextResponse.json({
       success: true,
       message: "Product updated successfully",
@@ -488,6 +503,12 @@ export async function PUT(
     if (product.categoryId) {
       revalidateTag(`category-${product.categoryId}`);
     }
+
+    await invalidateProductCaches({
+      productId: product.id,
+      categoryId: product.categoryId || undefined,
+      reason: `Product updated via PUT: ${product.name}`,
+    });
 
     return NextResponse.json(product);
   } catch (error) {

@@ -96,13 +96,8 @@ export async function getProducts(
     const url = buildApiUrl(`/api/products${queryString}`);
 
     const response = await fetch(url, {
-      // ⚡ E-COMMERCE OPTIMIZED: Product listings balanced for performance
-      next: {
-        tags: ["products", category ? `category-${category}` : ""].filter(
-          Boolean
-        ),
-        revalidate: 120, // 2 minutes cache, cleared on product updates
-      },
+      // Force fresh data after admin mutations; server-side caching handles perf
+      cache: "no-store",
     });
 
     if (!response.ok) {

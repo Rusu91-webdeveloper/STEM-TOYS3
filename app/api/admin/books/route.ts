@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
+import { invalidateBookCaches } from "@/lib/cache-smart-invalidation";
 import { db } from "@/lib/db";
 
 // Validation schema for book creation/update
@@ -66,6 +67,12 @@ export async function POST(request: NextRequest) {
         isActive: validatedData.isActive,
         slug: validatedData.slug,
       },
+    });
+
+    await invalidateBookCaches({
+      bookId: book.id,
+      bookSlug: book.slug,
+      reason: `Book created: ${book.name}`,
     });
 
     return NextResponse.json(book, { status: 201 });
