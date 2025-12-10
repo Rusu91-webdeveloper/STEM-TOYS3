@@ -7,30 +7,45 @@ import { Button } from "@/components/ui/button";
 
 export default function NetopiaCallback() {
   const router = useRouter();
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading"
   );
   const [message, setMessage] = useState("Verificare plată...");
+  const [isForcing, setIsForcing] = useState(false);
+  const [, setAttempts] = useState(0);
+
+  const isLocalhost =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1");
+  const MAX_ATTEMPTS = 6;
 
   useEffect(() => {
+    let cancelled = false;
+    let attemptRef = 0;
+
     const handleCallback = async () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const storedPendingOrderId =
           sessionStorage.getItem("pendingOrderId") ||
           sessionStorage.getItem("netopia_order_id");
-        const orderId = urlParams.get("orderId") || storedPendingOrderId;
+        const currentOrderId =
+          urlParams.get("orderId") || storedPendingOrderId || null;
         const paymentStatus = urlParams.get("status");
 
-        if (!orderId) {
+        if (!currentOrderId) {
           setStatus("error");
           setMessage("Lipsesc informațiile despre comandă.");
           return;
         }
 
+        setOrderId(currentOrderId);
+
         // Verify payment status with our backend
         const response = await fetch(
-          `/api/payments/netopia/status?orderId=${orderId}`,
+          `/api/payments/netopia/status?orderId=${currentOrderId}`,
           {
             cache: "no-store",
           }
@@ -48,21 +63,38 @@ export default function NetopiaCallback() {
           sessionStorage.removeItem("pendingPaymentMethod");
           sessionStorage.removeItem("pendingPaymentProvider");
           sessionStorage.setItem("orderCompleted", "true");
-          sessionStorage.setItem("orderId", orderId);
+          sessionStorage.setItem("orderId", currentOrderId);
 
           // Redirect to success page after a short delay
           setTimeout(() => {
-            router.push(`/checkout/confirmation?orderId=${orderId}`);
+            if (!cancelled) {
+              router.push(`/checkout/confirmation?orderId=${currentOrderId}`);
+            }
           }, 2000);
         } else if (result.status === "failed" || paymentStatus === "failed") {
           setStatus("error");
           setMessage("Plata a eșuat. Vă rugăm să încercați din nou.");
         } else if (result.status === "pending" || paymentStatus === "pending") {
+          // After a few attempts on localhost, stop looping and offer a manual dev override.
+          attemptRef += 1;
+          if (attemptRef >= MAX_ATTEMPTS && isLocalhost) {
+            setStatus("error");
+            setMessage(
+              "Plata este încă în curs de confirmare. Pe localhost, webhook-ul Netopia nu poate ajunge aici. Finalizează manual sau încearcă din nou."
+            );
+            return;
+          }
+
           setStatus("loading");
-          setMessage("Plata este în curs de confirmare. Vă rugăm să așteptați...");
+          setMessage(
+            "Plata este în curs de confirmare. Vă rugăm să așteptați..."
+          );
+          setAttempts(prev => prev + 1);
 
           setTimeout(() => {
-            handleCallback();
+            if (!cancelled) {
+              handleCallback();
+            }
           }, 4000);
         } else {
           setStatus("error");
@@ -76,10 +108,51 @@ export default function NetopiaCallback() {
     };
 
     handleCallback();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   const handleRetry = () => {
     router.push("/checkout");
+  };
+
+  const handleForceComplete = async () => {
+    if (!orderId) return;
+    setIsForcing(true);
+    try {
+      const response = await fetch(
+        `/api/payments/netopia/status?orderId=${orderId}&force=1`,
+        { cache: "no-store" }
+      );
+      const result = await response.json();
+
+      if (result.status === "paid" || result.status === "refunded") {
+        setStatus("success");
+        setMessage("Plata a fost marcată ca plătită pentru testare locală.");
+        sessionStorage.removeItem("netopia_order_id");
+        sessionStorage.removeItem("netopia_payment_method");
+        sessionStorage.removeItem("pendingOrderId");
+        sessionStorage.removeItem("pendingPaymentMethod");
+        sessionStorage.removeItem("pendingPaymentProvider");
+        sessionStorage.setItem("orderCompleted", "true");
+        sessionStorage.setItem("orderId", orderId);
+
+        setTimeout(() => {
+          router.push(`/checkout/confirmation?orderId=${orderId}`);
+        }, 1200);
+      } else {
+        setMessage(
+          "Încă nu am putut confirma plata. Verifică consola și configurarea tunelului."
+        );
+      }
+    } catch (error) {
+      console.error("Error forcing Netopia status:", error);
+      setMessage("Nu am putut forța confirmarea plății.");
+    } finally {
+      setIsForcing(false);
+    }
   };
 
   const handleContactSupport = () => {
@@ -117,16 +190,28 @@ export default function NetopiaCallback() {
         {status === "error" && (
           <>
             <XCircle className="mx-auto h-12 w-12 text-red-600 mb-4" />
-            <h1 className="text-xl font-semibold text-gray-900 mb-2">
-              Problemă cu plata
-            </h1>
-            <p className="text-gray-600 mb-6">{message}</p>
-            <div className="space-y-3">
-              <Button onClick={handleRetry} className="w-full">
-                Încearcă din nou
-              </Button>
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">
+            Problemă cu plata
+          </h1>
+          <p className="text-gray-600 mb-6">{message}</p>
+          <div className="space-y-3">
+            {isLocalhost && orderId && (
               <Button
-                onClick={handleContactSupport}
+                onClick={handleForceComplete}
+                variant="secondary"
+                disabled={isForcing}
+                className="w-full"
+              >
+                {isForcing
+                  ? "Marchez plata..."
+                  : "Finalizează manual (dev localhost)"}
+              </Button>
+            )}
+            <Button onClick={handleRetry} className="w-full">
+              Încearcă din nou
+            </Button>
+            <Button
+              onClick={handleContactSupport}
                 variant="outline"
                 className="w-full"
               >
