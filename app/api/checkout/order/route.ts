@@ -985,43 +985,64 @@ export async function POST(request: Request) {
       );
     }
 
-    // Send order confirmation email
+    // Send order confirmation email only when payment is already confirmed
+    // Netopia: email is sent from the webhook after status 3/5 (success)
+    // Stripe: send only if payment intent already succeeded
     try {
-      const recipientEmail =
-        (user?.email as string) || orderData?.guestInformation?.email;
+      const paymentProvider = orderData.paymentProvider || "netopia";
+      const isNetopia = paymentProvider === "netopia";
+      const isStripe = paymentProvider === "stripe";
+      const stripeSucceeded = stripePaymentIntent?.status === "succeeded";
+      const paymentPending =
+        orderData.paymentStatus === "PENDING" ||
+        (isNetopia && !stripeSucceeded) ||
+        (isStripe && !stripeSucceeded);
 
-      if (!recipientEmail) {
-        console.warn(
-          `Order ${dbOrder?.id || orderId}: no recipient email found (user or guest). Skipping confirmation email.`
+      if (paymentPending) {
+        console.log(
+          `ℹ️ Order ${dbOrder?.id || orderId}: payment pending (${paymentProvider}); deferring confirmation email`
         );
       } else {
-        const orderNumberForEmail =
-          dbOrder?.orderNumber || dbOrder?.id || orderId;
+        const recipientEmail =
+          (user?.email as string) || orderData?.guestInformation?.email;
 
-        const sendResult =
-          await DatabaseTemplateService.sendOrderConfirmationEmail(
-            recipientEmail,
-            {
-              customerName:
-                orderData?.shippingAddress?.fullName || user?.name || "Client",
-              orderNumber: String(orderNumberForEmail),
-              orderTotal: orderTotal,
-              items: items.map(item => ({
-                name: item.name,
-                quantity: item.quantity,
-                price: item.price,
-              })),
-              shippingAddress: orderData.shippingAddress,
-            }
+        if (!recipientEmail) {
+          console.warn(
+            `Order ${dbOrder?.id || orderId}: no recipient email found (user or guest). Skipping confirmation email.`
           );
-
-        if (sendResult.success) {
-          console.log(`✅ Order confirmation email sent to ${recipientEmail}`);
         } else {
-          console.error(
-            `❌ Failed to send order confirmation email for order ${orderNumberForEmail}:`,
-            sendResult.error
-          );
+          const orderNumberForEmail =
+            dbOrder?.orderNumber || dbOrder?.id || orderId;
+
+          const sendResult =
+            await DatabaseTemplateService.sendOrderConfirmationEmail(
+              recipientEmail,
+              {
+                customerName:
+                  orderData?.shippingAddress?.fullName ||
+                  user?.name ||
+                  "Client",
+                orderNumber: String(orderNumberForEmail),
+                orderTotal: orderTotal,
+                items: items.map(item => ({
+                  name: item.name,
+                  quantity: item.quantity,
+                  price: item.price,
+                })),
+                shippingAddress: orderData.shippingAddress,
+              }
+            );
+
+          if (sendResult.success) {
+            console.log(
+              `✅ Order confirmation email sent to ${recipientEmail}`
+            );
+          } else {
+            console.error(
+              `❌ Failed to send order confirmation email for order ${orderNumberForEmail}:`,
+              sendResult.error
+            );
+          }
         }
       }
     } catch (emailError) {

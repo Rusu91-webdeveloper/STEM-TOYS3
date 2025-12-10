@@ -66,7 +66,37 @@ export const GET = withRateLimit(
 export const POST = withRateLimit(
   async request => {
     try {
-      const body = await request.json();
+      const cartId = await getCartId(request);
+
+      // Gracefully handle empty/invalid JSON bodies (e.g., when clearing cart)
+      const rawBody = await request.text();
+      if (!rawBody) {
+        SESSION_CART_STORAGE.set(cartId, []);
+        console.warn("⚠️ [POST] Empty cart payload received; cleared session cart");
+
+        return NextResponse.json({
+          success: true,
+          message: "Cart cleared",
+          data: [],
+          user: cartId.includes("@") ? cartId : null,
+          ephemeral: true,
+        });
+      }
+
+      let body: unknown;
+      try {
+        body = JSON.parse(rawBody);
+      } catch (parseError) {
+        console.error("❌ [POST] Invalid JSON body for cart update");
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Invalid cart payload",
+            error: "INVALID_JSON",
+          },
+          { status: 400 }
+        );
+      }
 
       // Sanitize input (for string values)
       const sanitizedBody = Array.isArray(body)
@@ -79,9 +109,6 @@ export const POST = withRateLimit(
 
       // Validate the cart data
       const validatedCart = cartSchema.parse(sanitizedBody);
-
-      // Get the cart ID using shared logic
-      const cartId = await getCartId(request);
 
       // Optimize: Batch database queries in parallel instead of sequential
       // Separate books and products for efficient querying

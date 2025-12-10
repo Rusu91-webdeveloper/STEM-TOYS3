@@ -36,15 +36,16 @@ export class NetopiaProvider implements IPaymentProvider {
   private baseUrl: string;
   private netopiaGatewayUrl: string;
   private gatewayBaseCandidates: string[];
+  private isLive: boolean;
 
   constructor() {
     const apiKey = process.env.NETOPIA_API_KEY;
     const signature = process.env.NETOPIA_SIGNATURE;
-    const isLive = process.env.NETOPIA_SANDBOX !== "true";
+    this.isLive = process.env.NETOPIA_SANDBOX !== "true";
     this.baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
     const overrideBase = process.env.NETOPIA_API_BASE_URL?.trim();
-    const defaultBases = isLive
+    const defaultBases = this.isLive
       ? [
           "https://secure.mobilpay.ro/",
           "https://secure.netopia-payments.com/",
@@ -69,7 +70,7 @@ export class NetopiaProvider implements IPaymentProvider {
     this.netopiaGatewayUrl = this.gatewayBaseCandidates[0];
 
     console.log("🔧 [NETOPIA] Initializing Netopia Provider...");
-    console.log(`   Environment: ${isLive ? "PRODUCTION" : "SANDBOX"}`);
+    console.log(`   Environment: ${this.isLive ? "PRODUCTION" : "SANDBOX"}`);
     console.log(`   Base URL: ${this.baseUrl}`);
     console.log(`   Netopia API: ${this.netopiaGatewayUrl}`);
     console.log(`   API Key: ${apiKey ? `${apiKey.substring(0, 8)}...` : "NOT SET"}`);
@@ -88,7 +89,7 @@ export class NetopiaProvider implements IPaymentProvider {
       this.netopia = new Netopia({
         apiKey,
         posSignature: signature,
-        isLive,
+        isLive: this.isLive,
       });
 
       // Override SDK baseURL – package defaults to secure(-sandbox).netopia-payments.com,
@@ -194,9 +195,14 @@ export class NetopiaProvider implements IPaymentProvider {
       const configData = {
         emailTemplate: "default",
         emailSubject: `Order Confirmation - ${orderData.id}`,
-        cancelUrl: `${this.baseUrl}/checkout/cancelled`,
+        // Route both success and cancel back to the callback handler so status polling can run in dev
+        cancelUrl: `${this.baseUrl}/checkout/netopia/callback?orderId=${encodeURIComponent(
+          orderData.id
+        )}`,
         notifyUrl: `${this.baseUrl}/api/payments/netopia/webhook`,
-        redirectUrl: `${this.baseUrl}/checkout/netopia/callback`,
+        redirectUrl: `${this.baseUrl}/checkout/netopia/callback?orderId=${encodeURIComponent(
+          orderData.id
+        )}`,
         language: "ro", // Romanian
       };
 
@@ -260,11 +266,14 @@ export class NetopiaProvider implements IPaymentProvider {
           },
         };
 
-        const endpointPaths = [
-          "pay/payment/card/start", // Correct for secure.mobilpay.ro (Production)
-          "payment/card/start",     // Correct for sandbox
-          // "api/payment/card/start", // REMOVED: This endpoint is incorrect
-        ];
+        const endpointPaths = this.isLive
+          ? [
+              "pay/payment/card/start", // Production (mobilpay)
+              "payment/card/start",     // Fallback
+            ]
+          : [
+              "payment/card/start", // Sandbox endpoint; avoid noisy 404 on /pay/payment
+            ];
 
         const candidateEndpoints = this.gatewayBaseCandidates
           .flatMap(base =>
