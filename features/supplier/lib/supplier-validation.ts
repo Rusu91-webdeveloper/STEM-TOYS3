@@ -108,7 +108,8 @@ export const supplierRegistrationSchema = z.object({
     .max(20, "Maximum 20 product categories allowed"),
 
   // Integration basics (lightweight, realistic 2025)
-  integrationMethod: z.enum(["CSV", "XML", "API", "SHOPIFY_WOO_WIX_APP", "NONE"], {
+  // Note: APP covers Shopify, WooCommerce, Wix, and other platform apps
+  integrationMethod: z.enum(["CSV", "XML", "API", "APP", "NONE"], {
     required_error: "Select your integration method",
   }),
   feedUrl: z

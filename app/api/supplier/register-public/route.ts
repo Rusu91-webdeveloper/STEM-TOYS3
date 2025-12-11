@@ -33,16 +33,14 @@ const supplierApplicationSchema = z.object({
   yearEstablished: z.union([z.string(), z.number()]).optional(),
   employeeCount: z.union([z.string(), z.number()]).optional(),
   annualRevenue: z.string().optional(),
-  certifications: z
-    .union([z.string(), z.array(z.string())])
-    .transform(val => {
-      if (Array.isArray(val)) return val;
-      try {
-        return JSON.parse(val);
-      } catch {
-        return [];
-      }
-    }),
+  certifications: z.union([z.string(), z.array(z.string())]).transform(val => {
+    if (Array.isArray(val)) return val;
+    try {
+      return JSON.parse(val);
+    } catch {
+      return [];
+    }
+  }),
   productCategories: z
     .union([z.string(), z.array(z.string())])
     .transform(val => {
@@ -73,11 +71,12 @@ export async function POST(request: NextRequest) {
   try {
     const contentType = request.headers.get("content-type") || "";
     let data: Record<string, any> = {};
+    let formData: FormData | null = null;
 
     if (contentType.includes("application/json")) {
       data = await request.json();
     } else {
-      const formData = await request.formData();
+      formData = await request.formData();
       for (const [key, value] of formData.entries()) {
         data[key] = value;
       }
@@ -98,10 +97,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if company already exists
+    // Note: email field is unique, so we check by email (which will be set to contactPersonEmail)
     const existingCompany = await prisma.supplier.findFirst({
       where: {
         OR: [
           { companyName: validatedData.companyName },
+          { email: validatedData.contactPersonEmail },
           { contactPersonEmail: validatedData.contactPersonEmail },
         ],
       },
@@ -137,6 +138,9 @@ export async function POST(request: NextRequest) {
     // Create supplier application
     const supplier = await prisma.supplier.create({
       data: {
+        // Required fields: name and email
+        name: validatedData.companyName,
+        email: validatedData.contactPersonEmail,
         companyName: validatedData.companyName,
         companySlug,
         description: validatedData.description,
@@ -179,11 +183,13 @@ export async function POST(request: NextRequest) {
     });
 
     // Handle logo upload if provided
-    const logoFile = formData.get("logo") as File;
-    if (logoFile && logoFile.size > 0) {
-      // In a real implementation, you would upload to cloud storage
-      // For now, we'll just note that a logo was provided
-      console.log("Logo file received:", logoFile.name, logoFile.size);
+    if (formData) {
+      const logoFile = formData.get("logo") as File;
+      if (logoFile && logoFile.size > 0) {
+        // In a real implementation, you would upload to cloud storage
+        // For now, we'll just note that a logo was provided
+        console.log("Logo file received:", logoFile.name, logoFile.size);
+      }
     }
 
     // Send confirmation email to applicant (force direct sending to avoid queue issues)

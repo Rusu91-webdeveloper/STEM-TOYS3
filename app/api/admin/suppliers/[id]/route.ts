@@ -572,11 +572,7 @@ async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
   const ordersUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier/orders`;
   const supportEmail = "support@techtots.com";
 
-  await sendEmailViaUnifiedSystem({
-    to: supplier.contactPersonEmail,
-    subject:
-      "🎉 Congratulations! Your TechTots Supplier Application Has Been Approved!",
-    html: `
+  const htmlContent = `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -723,8 +719,14 @@ async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
         </div>
       </body>
       </html>
-    `,
-  });
+    `;
+
+  await sendEmailViaUnifiedSystem(
+    supplier.contactPersonEmail,
+    "🎉 Congratulations! Your TechTots Supplier Application Has Been Approved!",
+    htmlContent,
+    { forceDirect: true }
+  );
 }
 
 // Function to send supplier rejection email
@@ -735,10 +737,7 @@ async function sendSupplierRejectionEmail(
   const supportEmail = "support@techtots.com";
   const reapplyUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier`;
 
-  await sendEmailViaUnifiedSystem({
-    to: supplier.contactPersonEmail,
-    subject: "Update on Your TechTots Supplier Application",
-    html: `
+  const htmlContent = `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -850,6 +849,12 @@ async function sendSupplierRejectionEmail(
         </div>
       </body>
       </html>
-    `,
-  });
+    `;
+
+  await sendEmailViaUnifiedSystem(
+    supplier.contactPersonEmail,
+    "Update on Your TechTots Supplier Application",
+    htmlContent,
+    { forceDirect: true }
+  );
 }

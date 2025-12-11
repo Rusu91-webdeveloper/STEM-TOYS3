@@ -127,7 +127,8 @@ const inputClasses =
   "bg-slate-900/40 border-white/10 text-white placeholder:text-slate-400 focus-visible:ring-sky-400 focus-visible:ring-offset-0";
 const selectTriggerClasses =
   "bg-slate-900/40 border-white/10 text-white focus-visible:ring-sky-400 focus-visible:ring-offset-0";
-const cardClasses = "border border-white/10 bg-white/5 shadow-lg shadow-black/25 backdrop-blur";
+const cardClasses =
+  "border border-white/10 bg-white/5 shadow-lg shadow-black/25 backdrop-blur";
 const fieldErrorClasses = "border-rose-400/60 focus-visible:ring-rose-400";
 const labelClasses = "text-slate-200";
 
@@ -171,7 +172,7 @@ export function SupplierRegistration() {
       annualRevenue: "",
       certifications: [],
       productCategories: [],
-      integrationMethod: "NONE",
+      integrationMethod: "NONE" as const,
       feedUrl: "",
       authType: "NONE",
       authKey: "",
@@ -325,10 +326,15 @@ export function SupplierRegistration() {
                   id="companyName"
                   placeholder="Enter your company name"
                   {...register("companyName")}
-                  className={cn(inputClasses, errors.companyName && fieldErrorClasses)}
+                  className={cn(
+                    inputClasses,
+                    errors.companyName && fieldErrorClasses
+                  )}
                 />
                 {errors.companyName && (
-                  <p className="mt-1 text-sm text-destructive">{errors.companyName.message}</p>
+                  <p className="mt-1 text-sm text-destructive">
+                    {errors.companyName.message}
+                  </p>
                 )}
               </div>
 
@@ -341,10 +347,16 @@ export function SupplierRegistration() {
                   placeholder="Brief description of your company and products"
                   {...register("description")}
                   rows={3}
-                  className={cn(inputClasses, "min-h-[120px]", errors.description && fieldErrorClasses)}
+                  className={cn(
+                    inputClasses,
+                    "min-h-[120px]",
+                    errors.description && fieldErrorClasses
+                  )}
                 />
                 {errors.description && (
-                  <p className="mt-1 text-sm text-destructive">{errors.description.message}</p>
+                  <p className="mt-1 text-sm text-destructive">
+                    {errors.description.message}
+                  </p>
                 )}
               </div>
 
@@ -357,10 +369,15 @@ export function SupplierRegistration() {
                   type="url"
                   placeholder="https://yourcompany.com"
                   {...register("website")}
-                  className={cn(inputClasses, errors.website && fieldErrorClasses)}
+                  className={cn(
+                    inputClasses,
+                    errors.website && fieldErrorClasses
+                  )}
                 />
                 {errors.website && (
-                  <p className="mt-1 text-sm text-destructive">{errors.website.message}</p>
+                  <p className="mt-1 text-sm text-destructive">
+                    {errors.website.message}
+                  </p>
                 )}
               </div>
 
@@ -372,10 +389,15 @@ export function SupplierRegistration() {
                   id="phone"
                   placeholder="07XXXXXXXX"
                   {...register("phone")}
-                  className={cn(inputClasses, errors.phone && fieldErrorClasses)}
+                  className={cn(
+                    inputClasses,
+                    errors.phone && fieldErrorClasses
+                  )}
                 />
                 {errors.phone && (
-                  <p className="mt-1 text-sm text-destructive">{errors.phone.message}</p>
+                  <p className="mt-1 text-sm text-destructive">
+                    {errors.phone.message}
+                  </p>
                 )}
               </div>
 
@@ -424,10 +446,15 @@ export function SupplierRegistration() {
                   id="businessAddress"
                   placeholder="Street address, building number"
                   {...register("businessAddress")}
-                  className={cn(inputClasses, errors.businessAddress && fieldErrorClasses)}
+                  className={cn(
+                    inputClasses,
+                    errors.businessAddress && fieldErrorClasses
+                  )}
                 />
                 {errors.businessAddress && (
-                  <p className="mt-1 text-sm text-destructive">{errors.businessAddress.message}</p>
+                  <p className="mt-1 text-sm text-destructive">
+                    {errors.businessAddress.message}
+                  </p>
                 )}
               </div>
 
@@ -440,10 +467,15 @@ export function SupplierRegistration() {
                     id="businessCity"
                     placeholder="City name"
                     {...register("businessCity")}
-                    className={cn(inputClasses, errors.businessCity && fieldErrorClasses)}
+                    className={cn(
+                      inputClasses,
+                      errors.businessCity && fieldErrorClasses
+                    )}
                   />
                   {errors.businessCity && (
-                    <p className="mt-1 text-sm text-destructive">{errors.businessCity.message}</p>
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.businessCity.message}
+                    </p>
                   )}
                 </div>
 
@@ -455,10 +487,15 @@ export function SupplierRegistration() {
                     id="businessState"
                     placeholder="State or county"
                     {...register("businessState")}
-                    className={cn(inputClasses, errors.businessState && fieldErrorClasses)}
+                    className={cn(
+                      inputClasses,
+                      errors.businessState && fieldErrorClasses
+                    )}
                   />
                   {errors.businessState && (
-                    <p className="mt-1 text-sm text-destructive">{errors.businessState.message}</p>
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.businessState.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -471,10 +508,15 @@ export function SupplierRegistration() {
                   <Input
                     id="businessCountry"
                     {...register("businessCountry")}
-                    className={cn(inputClasses, errors.businessCountry && fieldErrorClasses)}
+                    className={cn(
+                      inputClasses,
+                      errors.businessCountry && fieldErrorClasses
+                    )}
                   />
                   {errors.businessCountry && (
-                    <p className="mt-1 text-sm text-destructive">{errors.businessCountry.message}</p>
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.businessCountry.message}
+                    </p>
                   )}
                 </div>
 
@@ -486,10 +528,15 @@ export function SupplierRegistration() {
                     id="businessPostalCode"
                     placeholder="123456"
                     {...register("businessPostalCode")}
-                    className={cn(inputClasses, errors.businessPostalCode && fieldErrorClasses)}
+                    className={cn(
+                      inputClasses,
+                      errors.businessPostalCode && fieldErrorClasses
+                    )}
                   />
                   {errors.businessPostalCode && (
-                    <p className="mt-1 text-sm text-destructive">{errors.businessPostalCode.message}</p>
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.businessPostalCode.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -509,10 +556,15 @@ export function SupplierRegistration() {
                   id="contactPersonName"
                   placeholder="Full name of primary contact"
                   {...register("contactPersonName")}
-                  className={cn(inputClasses, errors.contactPersonName && fieldErrorClasses)}
+                  className={cn(
+                    inputClasses,
+                    errors.contactPersonName && fieldErrorClasses
+                  )}
                 />
                 {errors.contactPersonName && (
-                  <p className="mt-1 text-sm text-destructive">{errors.contactPersonName.message}</p>
+                  <p className="mt-1 text-sm text-destructive">
+                    {errors.contactPersonName.message}
+                  </p>
                 )}
               </div>
 
@@ -525,10 +577,15 @@ export function SupplierRegistration() {
                   type="email"
                   placeholder="contact@yourcompany.com"
                   {...register("contactPersonEmail")}
-                  className={cn(inputClasses, errors.contactPersonEmail && fieldErrorClasses)}
+                  className={cn(
+                    inputClasses,
+                    errors.contactPersonEmail && fieldErrorClasses
+                  )}
                 />
                 {errors.contactPersonEmail && (
-                  <p className="mt-1 text-sm text-destructive">{errors.contactPersonEmail.message}</p>
+                  <p className="mt-1 text-sm text-destructive">
+                    {errors.contactPersonEmail.message}
+                  </p>
                 )}
               </div>
 
@@ -540,10 +597,15 @@ export function SupplierRegistration() {
                   id="contactPersonPhone"
                   placeholder="07XXXXXXXX"
                   {...register("contactPersonPhone")}
-                  className={cn(inputClasses, errors.contactPersonPhone && fieldErrorClasses)}
+                  className={cn(
+                    inputClasses,
+                    errors.contactPersonPhone && fieldErrorClasses
+                  )}
                 />
                 {errors.contactPersonPhone && (
-                  <p className="mt-1 text-sm text-destructive">{errors.contactPersonPhone.message}</p>
+                  <p className="mt-1 text-sm text-destructive">
+                    {errors.contactPersonPhone.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -564,10 +626,15 @@ export function SupplierRegistration() {
                     type="number"
                     placeholder="2020"
                     {...register("yearEstablished", { valueAsNumber: true })}
-                    className={cn(inputClasses, errors.yearEstablished && fieldErrorClasses)}
+                    className={cn(
+                      inputClasses,
+                      errors.yearEstablished && fieldErrorClasses
+                    )}
                   />
                   {errors.yearEstablished && (
-                    <p className="mt-1 text-sm text-destructive">{errors.yearEstablished.message}</p>
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.yearEstablished.message}
+                    </p>
                   )}
                 </div>
 
@@ -580,10 +647,15 @@ export function SupplierRegistration() {
                     type="number"
                     placeholder="10"
                     {...register("employeeCount", { valueAsNumber: true })}
-                    className={cn(inputClasses, errors.employeeCount && fieldErrorClasses)}
+                    className={cn(
+                      inputClasses,
+                      errors.employeeCount && fieldErrorClasses
+                    )}
                   />
                   {errors.employeeCount && (
-                    <p className="mt-1 text-sm text-destructive">{errors.employeeCount.message}</p>
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.employeeCount.message}
+                    </p>
                   )}
                 </div>
 
@@ -595,10 +667,15 @@ export function SupplierRegistration() {
                     id="annualRevenue"
                     placeholder="€100,000 - €500,000"
                     {...register("annualRevenue")}
-                    className={cn(inputClasses, errors.annualRevenue && fieldErrorClasses)}
+                    className={cn(
+                      inputClasses,
+                      errors.annualRevenue && fieldErrorClasses
+                    )}
                   />
                   {errors.annualRevenue && (
-                    <p className="mt-1 text-sm text-destructive">{errors.annualRevenue.message}</p>
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.annualRevenue.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -628,7 +705,10 @@ export function SupplierRegistration() {
                           />
                         )}
                       />
-                      <Label htmlFor={category} className="text-sm text-slate-200">
+                      <Label
+                        htmlFor={category}
+                        className="text-sm text-slate-200"
+                      >
                         {category}
                       </Label>
                     </div>
@@ -683,31 +763,83 @@ export function SupplierRegistration() {
         );
 
       case 5:
+        const integrationMethod = watchedValues.integrationMethod;
+        const showFeedUrl =
+          integrationMethod &&
+          ["CSV", "XML", "API"].includes(integrationMethod);
+        const showAuthFields =
+          integrationMethod && integrationMethod !== "NONE";
+        const showMappingNotes =
+          integrationMethod && ["CSV", "XML"].includes(integrationMethod);
+
         return (
           <div className="space-y-6">
             <div className="space-y-4">
+              <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <PlugZap className="h-5 w-5 text-sky-400" />
+                  <h3 className="text-lg font-semibold text-slate-200">
+                    Product Integration
+                  </h3>
+                </div>
+                <p className="text-sm text-slate-300">
+                  Tell us how you currently share your product catalog.
+                  Don&apos;t worry if you don&apos;t have this set up yet—we can
+                  help you configure it after approval.
+                </p>
+              </div>
+
               <div>
-                <Label className={labelClasses}>Integration method *</Label>
+                <Label className={labelClasses}>
+                  How do you share your products? *
+                </Label>
                 <Select
-                  defaultValue={watchedValues.integrationMethod}
-                  onValueChange={value => setValue("integrationMethod", value as any)}
+                  value={watchedValues.integrationMethod}
+                  onValueChange={value =>
+                    setValue("integrationMethod", value as any)
+                  }
                 >
                   <SelectTrigger className={selectTriggerClasses}>
-                    <SelectValue placeholder="Choose how you share products" />
+                    <SelectValue placeholder="Select your integration method" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CSV">CSV via BaseLinker</SelectItem>
-                    <SelectItem value="XML">XML feed</SelectItem>
-                    <SelectItem value="API">API</SelectItem>
-                    <SelectItem value="SHOPIFY_WOO_WIX_APP">
-                      Shopify / Woo / Wix app
+                    <SelectItem value="CSV">CSV File / BaseLinker</SelectItem>
+                    <SelectItem value="XML">XML Feed</SelectItem>
+                    <SelectItem value="API">REST API</SelectItem>
+                    <SelectItem value="APP">
+                      E-commerce Platform (Shopify, WooCommerce, Wix, etc.)
                     </SelectItem>
-                    <SelectItem value="NONE">I don&apos;t have this yet</SelectItem>
+                    <SelectItem value="NONE">
+                      I don&apos;t have this yet
+                    </SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="mt-1 text-xs text-slate-300">
-                  Pick what you have today. You can change this later.
-                </p>
+                <div className="mt-1 space-y-1">
+                  <p className="text-xs text-slate-300">
+                    Choose the method you currently use. You can change this
+                    later in your supplier dashboard.
+                  </p>
+                  <ul className="ml-4 list-disc space-y-0.5 text-xs text-slate-400">
+                    <li>
+                      <strong>CSV/BaseLinker:</strong> Excel export or
+                      BaseLinker integration
+                    </li>
+                    <li>
+                      <strong>XML:</strong> Standard XML product feed
+                    </li>
+                    <li>
+                      <strong>API:</strong> JSON REST API endpoint
+                    </li>
+                    <li>
+                      <strong>Platform App:</strong> Shopify, WooCommerce, Wix,
+                      Magento, etc.
+                    </li>
+                    <li>
+                      <strong>Don&apos;t have it yet:</strong> We&apos;ll help
+                      you set it up after approval
+                    </li>
+                  </ul>
+                </div>
                 {errors.integrationMethod && (
                   <p className="mt-1 text-sm text-destructive">
                     {errors.integrationMethod.message}
@@ -715,125 +847,279 @@ export function SupplierRegistration() {
                 )}
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              {showFeedUrl && (
                 <div>
                   <Label htmlFor="feedUrl" className={labelClasses}>
-                    Feed/API URL (optional)
+                    {integrationMethod === "CSV" && "CSV File URL"}
+                    {integrationMethod === "XML" && "XML Feed URL"}
+                    {integrationMethod === "API" && "API Endpoint URL"}
+                    {!integrationMethod && "Feed/API URL"} (optional)
                   </Label>
                   <div className="relative">
                     <Link2 className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                     <Input
                       id="feedUrl"
-                      placeholder="https://..."
+                      placeholder={
+                        integrationMethod === "CSV"
+                          ? "https://example.com/products.csv"
+                          : integrationMethod === "XML"
+                            ? "https://example.com/products.xml"
+                            : "https://api.example.com/products"
+                      }
                       {...register("feedUrl")}
-                      className={cn("pl-10", inputClasses, errors.feedUrl && fieldErrorClasses)}
+                      className={cn(
+                        "pl-10",
+                        inputClasses,
+                        errors.feedUrl && fieldErrorClasses
+                      )}
                     />
                   </div>
                   <p className="mt-1 text-xs text-slate-300">
-                    Paste your CSV/XML/API link if you have it. Optional.
+                    {integrationMethod === "CSV" &&
+                      "The direct URL to your CSV file. If using BaseLinker, provide your export URL."}
+                    {integrationMethod === "XML" &&
+                      "The URL where your XML product feed is hosted."}
+                    {integrationMethod === "API" &&
+                      "Your API endpoint that returns product data (JSON format)."}
+                    {!integrationMethod &&
+                      "Paste your feed or API link if you have it."}
                   </p>
                   {errors.feedUrl && (
-                    <p className="mt-1 text-sm text-destructive">{errors.feedUrl.message}</p>
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.feedUrl.message}
+                    </p>
                   )}
                 </div>
+              )}
 
-                <div>
-                  <Label className={labelClasses}>Auth type (optional)</Label>
-                  <Select
-                    defaultValue={watchedValues.authType}
-                    onValueChange={value => setValue("authType", value as any)}
-                  >
-                    <SelectTrigger className={selectTriggerClasses}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="NONE">None</SelectItem>
-                      <SelectItem value="API_KEY">API key header</SelectItem>
-                      <SelectItem value="BEARER">Bearer token</SelectItem>
-                      <SelectItem value="BASIC">Basic (user + password)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="mt-1 text-xs text-slate-300">
-                    Only share keys for product feeds. You can rotate them later.
+              {integrationMethod === "APP" && (
+                <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
+                  <p className="text-sm text-blue-200">
+                    <strong>Platform Integration:</strong> If you use Shopify,
+                    WooCommerce, Wix, or similar platforms, we&apos;ll set up
+                    the integration after your application is approved. You
+                    don&apos;t need to provide technical details now—just let us
+                    know which platform you use in the notes below.
                   </p>
-                  {errors.authType && (
-                    <p className="mt-1 text-sm text-destructive">{errors.authType.message}</p>
-                  )}
                 </div>
-              </div>
+              )}
+
+              {showAuthFields && integrationMethod !== "APP" && (
+                <>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <Label className={labelClasses}>
+                        Authentication type (optional)
+                      </Label>
+                      <Select
+                        value={watchedValues.authType || "NONE"}
+                        onValueChange={value =>
+                          setValue("authType", value as any)
+                        }
+                      >
+                        <SelectTrigger className={selectTriggerClasses}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="NONE">
+                            No authentication
+                          </SelectItem>
+                          <SelectItem value="API_KEY">
+                            API Key (header)
+                          </SelectItem>
+                          <SelectItem value="BEARER">Bearer Token</SelectItem>
+                          <SelectItem value="BASIC">
+                            Basic Auth (username + password)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="mt-1 text-xs text-slate-300">
+                        How your feed/API is protected. Leave as &quot;No
+                        authentication&quot; if it&apos;s public.
+                      </p>
+                      {errors.authType && (
+                        <p className="mt-1 text-sm text-destructive">
+                          {errors.authType.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {watchedValues.authType &&
+                      watchedValues.authType !== "NONE" &&
+                      watchedValues.authType !== "BASIC" && (
+                        <div>
+                          <Label htmlFor="authKey" className={labelClasses}>
+                            {watchedValues.authType === "API_KEY" && "API Key"}
+                            {watchedValues.authType === "BEARER" &&
+                              "Bearer Token"}
+                            {!watchedValues.authType && "Key / Token"}{" "}
+                            (optional)
+                          </Label>
+                          <div className="relative">
+                            <KeyRound className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                            <Input
+                              id="authKey"
+                              type="password"
+                              placeholder={
+                                watchedValues.authType === "API_KEY"
+                                  ? "Your API key"
+                                  : "Your bearer token"
+                              }
+                              {...register("authKey")}
+                              className={cn(
+                                "pl-10",
+                                inputClasses,
+                                errors.authKey && fieldErrorClasses
+                              )}
+                            />
+                          </div>
+                          <p className="mt-1 text-xs text-slate-300">
+                            Your credentials are encrypted and stored securely.
+                            You can rotate them anytime.
+                          </p>
+                          {errors.authKey && (
+                            <p className="mt-1 text-sm text-destructive">
+                              {errors.authKey.message}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                  </div>
+
+                  {watchedValues.authType === "BASIC" && (
+                    <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
+                      <p className="text-sm text-blue-200">
+                        <strong>Basic Authentication:</strong> For security
+                        reasons, we&apos;ll contact you separately after your
+                        application is approved to securely collect your
+                        username and password credentials. You don&apos;t need
+                        to provide them now.
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <Label htmlFor="authKey" className={labelClasses}>
-                    Key / token (optional)
+                  <Label className={labelClasses}>
+                    How often should we sync? (optional)
                   </Label>
-                  <div className="relative">
-                    <KeyRound className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <Input
-                      id="authKey"
-                      placeholder="API key or token if needed"
-                      {...register("authKey")}
-                      className={cn("pl-10", inputClasses, errors.authKey && fieldErrorClasses)}
-                    />
-                  </div>
-                  {errors.authKey && (
-                    <p className="mt-1 text-sm text-destructive">{errors.authKey.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label className={labelClasses}>Sync preference (optional)</Label>
                   <Select
-                    defaultValue={watchedValues.syncPreference}
-                    onValueChange={value => setValue("syncPreference", value as any)}
+                    value={watchedValues.syncPreference || "UNSURE"}
+                    onValueChange={value =>
+                      setValue("syncPreference", value as any)
+                    }
                   >
                     <SelectTrigger className={selectTriggerClasses}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="HOURLY">Hourly</SelectItem>
-                      <SelectItem value="DAILY">Daily</SelectItem>
+                      <SelectItem value="HOURLY">
+                        Hourly (real-time inventory)
+                      </SelectItem>
+                      <SelectItem value="DAILY">Daily (recommended)</SelectItem>
                       <SelectItem value="WEEKLY">Weekly</SelectItem>
                       <SelectItem value="MONTHLY">Monthly</SelectItem>
                       <SelectItem value="UNSURE">Not sure / depends</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="mt-1 text-xs text-slate-300">
+                    How frequently should we update your products? Daily is
+                    recommended for most suppliers.
+                  </p>
                 </div>
-              </div>
 
-              <div className="space-y-3">
-                <div>
-                  <Label htmlFor="mappingNotes" className={labelClasses}>
-                    Field mapping notes (optional)
-                  </Label>
-                  <Textarea
-                    id="mappingNotes"
-                    placeholder='If CSV/XML: list column names like SKU, Title, Price, Stock, Images...'
-                    {...register("mappingNotes")}
-                    className={cn(inputClasses, errors.mappingNotes && fieldErrorClasses)}
-                  />
-                  {errors.mappingNotes && (
-                    <p className="mt-1 text-sm text-destructive">{errors.mappingNotes.message}</p>
-                  )}
-                </div>
                 <div>
                   <Label htmlFor="categoryFocus" className={labelClasses}>
-                    Category focus (optional)
+                    Main product categories (optional)
                   </Label>
                   <Input
                     id="categoryFocus"
                     placeholder="e.g. Robotics, Coding kits, Electronics"
                     {...register("categoryFocus")}
-                    className={cn(inputClasses, errors.categoryFocus && fieldErrorClasses)}
+                    className={cn(
+                      inputClasses,
+                      errors.categoryFocus && fieldErrorClasses
+                    )}
                   />
+                  <p className="mt-1 text-xs text-slate-300">
+                    Your primary product categories to help us understand your
+                    catalog.
+                  </p>
                   {errors.categoryFocus && (
-                    <p className="mt-1 text-sm text-destructive">{errors.categoryFocus.message}</p>
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.categoryFocus.message}
+                    </p>
                   )}
                 </div>
-                <p className="text-xs text-slate-300">
-                  If you don&apos;t have feeds or API yet, select “I don&apos;t have this yet.” We can help set it up later.
-                </p>
               </div>
+
+              {showMappingNotes && (
+                <div>
+                  <Label htmlFor="mappingNotes" className={labelClasses}>
+                    CSV/XML Column Names (optional)
+                  </Label>
+                  <Textarea
+                    id="mappingNotes"
+                    placeholder="List your column/field names, e.g.: SKU, Title, Price, Stock, Images, Description, Category..."
+                    {...register("mappingNotes")}
+                    className={cn(
+                      inputClasses,
+                      errors.mappingNotes && fieldErrorClasses
+                    )}
+                    rows={3}
+                  />
+                  <p className="mt-1 text-xs text-slate-300">
+                    Help us understand your file structure. List the column
+                    names from your CSV/XML so we can map them correctly.
+                  </p>
+                  {errors.mappingNotes && (
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.mappingNotes.message}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {integrationMethod === "APP" && (
+                <div>
+                  <Label htmlFor="mappingNotes" className={labelClasses}>
+                    Platform Details (optional)
+                  </Label>
+                  <Textarea
+                    id="mappingNotes"
+                    placeholder="Which platform do you use? (Shopify, WooCommerce, Wix, Magento, etc.) Any specific integration requirements?"
+                    {...register("mappingNotes")}
+                    className={cn(
+                      inputClasses,
+                      errors.mappingNotes && fieldErrorClasses
+                    )}
+                    rows={3}
+                  />
+                  <p className="mt-1 text-xs text-slate-300">
+                    Tell us about your e-commerce platform and any special
+                    requirements.
+                  </p>
+                  {errors.mappingNotes && (
+                    <p className="mt-1 text-sm text-destructive">
+                      {errors.mappingNotes.message}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {integrationMethod === "NONE" && (
+                <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-4">
+                  <p className="text-sm text-amber-200">
+                    <strong>No problem!</strong> Many suppliers start without
+                    automated integration. After your application is approved,
+                    our team will help you set up the best integration method
+                    for your needs. You can also manually upload products
+                    through your supplier dashboard.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -862,11 +1148,17 @@ export function SupplierRegistration() {
                     accept="image/*"
                     onChange={handleFileUpload}
                   />
-                  <p className="mt-2 text-xs text-slate-300">PNG, JPG, WebP up to 5MB</p>
+                  <p className="mt-2 text-xs text-slate-300">
+                    PNG, JPG, WebP up to 5MB
+                  </p>
                   {logoFile && (
-                    <p className="mt-3 text-sm text-emerald-200">✓ {logoFile.name} selected</p>
+                    <p className="mt-3 text-sm text-emerald-200">
+                      ✓ {logoFile.name} selected
+                    </p>
                   )}
-                  {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+                  {error && (
+                    <p className="mt-2 text-sm text-destructive">{error}</p>
+                  )}
                 </div>
               </div>
 
@@ -884,16 +1176,26 @@ export function SupplierRegistration() {
                     )}
                   />
                   <div>
-                    <Label htmlFor="termsAccepted" className="text-sm font-medium text-slate-200">
-                      I accept the <a href="/terms" className="text-sky-300 hover:underline">Terms and Conditions</a> *
+                    <Label
+                      htmlFor="termsAccepted"
+                      className="text-sm font-medium text-slate-200"
+                    >
+                      I accept the{" "}
+                      <a href="/terms" className="text-sky-300 hover:underline">
+                        Terms and Conditions
+                      </a>{" "}
+                      *
                     </Label>
                     <p className="mt-1 text-xs text-slate-300">
-                      Confirm that you agree to the TechTots Supplier Terms and Conditions.
+                      Confirm that you agree to the TechTots Supplier Terms and
+                      Conditions.
                     </p>
                   </div>
                 </div>
                 {errors.termsAccepted && (
-                  <p className="text-sm text-destructive">{errors.termsAccepted.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.termsAccepted.message}
+                  </p>
                 )}
 
                 <div className="flex items-start space-x-3">
@@ -909,8 +1211,18 @@ export function SupplierRegistration() {
                     )}
                   />
                   <div>
-                    <Label htmlFor="privacyAccepted" className="text-sm font-medium text-slate-200">
-                      I accept the <a href="/privacy" className="text-sky-300 hover:underline">Privacy Policy</a> *
+                    <Label
+                      htmlFor="privacyAccepted"
+                      className="text-sm font-medium text-slate-200"
+                    >
+                      I accept the{" "}
+                      <a
+                        href="/privacy"
+                        className="text-sky-300 hover:underline"
+                      >
+                        Privacy Policy
+                      </a>{" "}
+                      *
                     </Label>
                     <p className="mt-1 text-xs text-slate-300">
                       Confirm that you consent to our data processing practices.
@@ -918,7 +1230,9 @@ export function SupplierRegistration() {
                   </div>
                 </div>
                 {errors.privacyAccepted && (
-                  <p className="text-sm text-destructive">{errors.privacyAccepted.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.privacyAccepted.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -942,7 +1256,8 @@ export function SupplierRegistration() {
             Submit your supplier application
           </h1>
           <p className="mt-3 text-sm text-slate-200 sm:text-base">
-            Share your business details so we can verify eligibility and tailor your onboarding plan.
+            Share your business details so we can verify eligibility and tailor
+            your onboarding plan.
           </p>
         </div>
 
@@ -959,12 +1274,21 @@ export function SupplierRegistration() {
                   <div
                     className={cn(
                       "flex h-10 w-10 items-center justify-center rounded-full border transition",
-                      isComplete && "border-emerald-400/60 bg-emerald-500/20 text-emerald-100",
-                      isActive && !isComplete && "border-sky-400/60 bg-sky-500/20 text-sky-100",
-                      !isComplete && !isActive && "border-white/20 bg-white/5 text-slate-400"
+                      isComplete &&
+                        "border-emerald-400/60 bg-emerald-500/20 text-emerald-100",
+                      isActive &&
+                        !isComplete &&
+                        "border-sky-400/60 bg-sky-500/20 text-sky-100",
+                      !isComplete &&
+                        !isActive &&
+                        "border-white/20 bg-white/5 text-slate-400"
                     )}
                   >
-                    {isComplete ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                    {isComplete ? (
+                      <CheckCircle className="h-5 w-5" />
+                    ) : (
+                      <Icon className="h-5 w-5" />
+                    )}
                   </div>
                   {index < steps.length - 1 && (
                     <div
@@ -995,7 +1319,9 @@ export function SupplierRegistration() {
                   >
                     {step.title}
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">{step.description}</p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {step.description}
+                  </p>
                 </div>
               );
             })}
@@ -1079,7 +1405,8 @@ export function SupplierRegistration() {
 
         {/* Progress Info */}
         <div className="mt-6 text-center text-sm text-slate-300">
-          Step {currentStep} of {steps.length} • {Math.round((currentStep / steps.length) * 100)}% Complete
+          Step {currentStep} of {steps.length} •{" "}
+          {Math.round((currentStep / steps.length) * 100)}% Complete
         </div>
       </div>
     </section>
