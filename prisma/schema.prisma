@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_DATABASE_URL")
 }
 
@@ -386,52 +386,53 @@ model Category {
 }
 
 model Product {
-  id                   String          @id @default(cuid())
+  id                   String            @id @default(cuid())
   name                 String
-  slug                 String          @unique
+  slug                 String            @unique
   description          String?
   price                Float
   compareAtPrice       Float?
-  sku                  String?         @unique
+  sku                  String?           @unique
   images               String[]
   categoryId           String?
   tags                 String[]
   attributes           Json?
   metadata             Json?
-  isActive             Boolean         @default(true)
-  featured             Boolean         @default(false)
-  stockQuantity        Int             @default(0)
-  reservedQuantity     Int             @default(0)
+  isActive             Boolean           @default(true)
+  featured             Boolean           @default(false)
+  stockQuantity        Int               @default(0)
+  reservedQuantity     Int               @default(0)
   reorderPoint         Int?
   weight               Float?
   dimensions           Json?
   averageRating        Float?
-  reviewCount          Int             @default(0)
-  totalSold            Int             @default(0)
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
+  reviewCount          Int               @default(0)
+  totalSold            Int               @default(0)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
   barcode              String?
   ageGroup             String?
   costPrice            Float?
-  importDuties         Float?          @default(0)
-  shippingCost         Float?          @default(0)
-  storageCost          Float?          @default(0)
-  packagingCost        Float?          @default(0)
-  laborCost            Float?          @default(0)
-  qualityControlCost   Float?          @default(0)
-  paymentProcessingFee Float?          @default(2.9)
-  customerServiceCost  Float?          @default(0)
-  operationalOverhead  Float?          @default(0)
-  status               ProductStatus   @default(IN_PENDING)
+  importDuties         Float?            @default(0)
+  shippingCost         Float?            @default(0)
+  storageCost          Float?            @default(0)
+  packagingCost        Float?            @default(0)
+  laborCost            Float?            @default(0)
+  qualityControlCost   Float?            @default(0)
+  paymentProcessingFee Float?            @default(2.9)
+  customerServiceCost  Float?            @default(0)
+  operationalOverhead  Float?            @default(0)
+  status               ProductStatus     @default(IN_PENDING)
   stemDiscipline       String?
   supplierId           String?
   marketingCosts       MarketingCost[]
   orderItems           OrderItem[]
-  category             Category?       @relation(fields: [categoryId], references: [id])
-  supplier             Supplier?       @relation(fields: [supplierId], references: [id])
+  category             Category?         @relation(fields: [categoryId], references: [id])
+  supplier             Supplier?         @relation(fields: [supplierId], references: [id])
   productCosts         ProductCost[]
   reviews              Review[]
   supplierOrders       SupplierOrder[]
+  supplierProducts     SupplierProduct[]
   wishlistItems        Wishlist[]
 
   @@index([categoryId])
@@ -480,8 +481,8 @@ model MarketingCost {
 model Wishlist {
   id        String   @id @default(cuid())
   userId    String
-  productId String?  // Made optional to support books
-  bookId    String?  // Added for book support
+  productId String? // Made optional to support books
+  bookId    String? // Added for book support
   createdAt DateTime @default(now())
   product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
   book      Book?    @relation(fields: [bookId], references: [id], onDelete: Cascade)
@@ -495,29 +496,29 @@ model Wishlist {
 }
 
 model Blog {
-  id           String       @id @default(cuid())
-  title        String
-  slug         String       @unique
-  excerpt      String
-  content      String
-  coverImage   String?
-  coverImageId String?      @unique
-  categoryId   String
-  authorId     String
-  tags         String[]
-  metadata     Json?
-  viralScore   Decimal?     @db.Decimal(3, 2)
-  competitorRank Int?
-  romanianMarketFit Decimal? @db.Decimal(3, 2)
-  isPublished  Boolean      @default(false)
-  publishedAt  DateTime?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  readingTime  Int?
-  stemCategory StemCategory @default(GENERAL)
-  socialShares Int?         @default(0)
-  author       User         @relation(fields: [authorId], references: [id])
-  category     Category     @relation(fields: [categoryId], references: [id])
+  id                String       @id @default(cuid())
+  title             String
+  slug              String       @unique
+  excerpt           String
+  content           String
+  coverImage        String?
+  coverImageId      String?      @unique
+  categoryId        String
+  authorId          String
+  tags              String[]
+  metadata          Json?
+  viralScore        Decimal?     @db.Decimal(3, 2)
+  competitorRank    Int?
+  romanianMarketFit Decimal?     @db.Decimal(3, 2)
+  isPublished       Boolean      @default(false)
+  publishedAt       DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  readingTime       Int?
+  stemCategory      StemCategory @default(GENERAL)
+  socialShares      Int?         @default(0)
+  author            User         @relation(fields: [authorId], references: [id])
+  category          Category     @relation(fields: [categoryId], references: [id])
 
   @@index([categoryId])
   @@index([authorId])
@@ -543,7 +544,7 @@ model Book {
   digitalFiles DigitalFile[]
   orderItems   OrderItem[]
   languages    Language[]    @relation("BookToLanguage")
-  wishlists    Wishlist[]    // Added wishlist relation
+  wishlists    Wishlist[] // Added wishlist relation
 }
 
 model DigitalFile {
@@ -1012,6 +1013,9 @@ model Supplier {
   payments                 SupplierPayment[]
   performanceMetrics       SupplierPerformanceMetrics[]
   supportTickets           SupplierSupportTicket[]
+  feeds                    SupplierFeed[]
+  supplierProducts         SupplierProduct[]
+  syncJobs                 SupplierSyncJob[]
 
   @@index([userId])
   @@index([email])
@@ -1373,22 +1377,22 @@ model SupplierInvoice {
 }
 
 model SupplierPayment {
-  id             String        @id @default(cuid())
-  supplierId     String
-  invoiceId      String?
-  amount         Float
-  currency       String        @default("RON")
-  status         PaymentStatus @default(PENDING)
-  paymentMethod  String        @default("BANK_TRANSFER")
-  transactionId  String?       @unique
-  notes          String?
-  fee            Float?        @default(0)
-  processedAt    DateTime?
-  completedAt    DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  supplier       Supplier      @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  invoice        SupplierInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  id            String           @id @default(cuid())
+  supplierId    String
+  invoiceId     String?
+  amount        Float
+  currency      String           @default("RON")
+  status        PaymentStatus    @default(PENDING)
+  paymentMethod String           @default("BANK_TRANSFER")
+  transactionId String?          @unique
+  notes         String?
+  fee           Float?           @default(0)
+  processedAt   DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  supplier      Supplier         @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  invoice       SupplierInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
   @@index([supplierId])
   @@index([invoiceId])
@@ -1547,6 +1551,90 @@ model SupplierOrderTracking {
   @@index([estimatedDeliveryDate])
   @@index([actualDeliveryDate])
   @@index([qualityRating])
+}
+
+model SupplierFeed {
+  id                     String             @id @default(cuid())
+  supplierId             String
+  name                   String?
+  type                   SupplierFeedType
+  sourceUrl              String?
+  authType               SupplierAuthType   @default(NONE)
+  apiKey                 String?
+  authHeader             String?
+  username               String?
+  password               String?
+  headers                Json?
+  mapping                Json?
+  pollingIntervalMinutes Int?               @default(60)
+  lastSyncAt             DateTime?
+  lastSyncStatus         SupplierSyncStatus @default(IDLE)
+  lastError              String?
+  isActive               Boolean            @default(true)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  supplier               Supplier           @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  syncJobs               SupplierSyncJob[]
+  products               SupplierProduct[]
+
+  @@index([supplierId])
+  @@index([type])
+  @@index([isActive])
+  @@index([lastSyncStatus])
+}
+
+model SupplierProduct {
+  id           String                @id @default(cuid())
+  supplierId   String
+  feedId       String?
+  supplierSku  String
+  name         String?
+  description  String?
+  price        Float?
+  currency     String                @default("RON")
+  stock        Int                   @default(0)
+  images       String[]              @default([])
+  categoryPath String[]              @default([])
+  attributes   Json?
+  raw          Json?
+  productId    String?
+  lastSyncAt   DateTime?
+  status       SupplierProductStatus @default(PENDING)
+  lastError    String?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  supplier     Supplier              @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  feed         SupplierFeed?         @relation(fields: [feedId], references: [id], onDelete: SetNull)
+  product      Product?              @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@unique([supplierId, supplierSku])
+  @@index([feedId])
+  @@index([productId])
+  @@index([status])
+  @@index([supplierId])
+}
+
+model SupplierSyncJob {
+  id         String              @id @default(cuid())
+  supplierId String
+  feedId     String?
+  jobType    SupplierSyncJobType
+  status     SupplierSyncStatus  @default(PENDING)
+  startedAt  DateTime            @default(now())
+  finishedAt DateTime?
+  imported   Int                 @default(0)
+  updated    Int                 @default(0)
+  failed     Int                 @default(0)
+  error      String?
+  metadata   Json?
+  supplier   Supplier            @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  feed       SupplierFeed?       @relation(fields: [feedId], references: [id], onDelete: SetNull)
+
+  @@index([supplierId])
+  @@index([feedId])
+  @@index([jobType])
+  @@index([status])
+  @@index([startedAt])
 }
 
 model AutomationWorkflow {
@@ -1730,18 +1818,18 @@ model ABTest {
 }
 
 model ABTestVariant {
-  id        String    @id @default(cuid())
+  id        String          @id @default(cuid())
   testId    String
   name      String
   content   String
   weight    Float
-  isControl Boolean   @default(false)
-  isWinner  Boolean   @default(false)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  test      ABTest    @relation(fields: [testId], references: [id], onDelete: Cascade)
+  isControl Boolean         @default(false)
+  isWinner  Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  test      ABTest          @relation(fields: [testId], references: [id], onDelete: Cascade)
   metrics   ABTestMetrics[]
-  results   ABTestResult[] @relation("WinnerVariant")
+  results   ABTestResult[]  @relation("WinnerVariant")
 
   @@index([testId])
 }
@@ -1766,19 +1854,19 @@ model ABTestMetrics {
 }
 
 model ABTestResult {
-  id                       String         @id @default(cuid())
-  testId                   String         @unique
-  winnerVariantId          String
-  confidence               Float
-  improvement              Float
-  statisticalSignificance  Boolean
-  recommendations          String[]
-  analysisData             Json?
-  completedAt              DateTime       @default(now())
-  createdAt                DateTime       @default(now())
-  updatedAt                DateTime       @updatedAt
-  test                     ABTest         @relation(fields: [testId], references: [id], onDelete: Cascade)
-  winnerVariant            ABTestVariant  @relation("WinnerVariant", fields: [winnerVariantId], references: [id])
+  id                      String        @id @default(cuid())
+  testId                  String        @unique
+  winnerVariantId         String
+  confidence              Float
+  improvement             Float
+  statisticalSignificance Boolean
+  recommendations         String[]
+  analysisData            Json?
+  completedAt             DateTime      @default(now())
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  test                    ABTest        @relation(fields: [testId], references: [id], onDelete: Cascade)
+  winnerVariant           ABTestVariant @relation("WinnerVariant", fields: [winnerVariantId], references: [id])
 
   @@index([testId])
   @@index([winnerVariantId])
@@ -2060,4 +2148,41 @@ enum AnnouncementPriority {
   NORMAL
   HIGH
   URGENT
+}
+
+enum SupplierFeedType {
+  CSV
+  XML
+  API
+  APP
+}
+
+enum SupplierAuthType {
+  NONE
+  API_KEY
+  BEARER
+  BASIC
+}
+
+enum SupplierSyncStatus {
+  IDLE
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
+enum SupplierSyncJobType {
+  PRODUCTS
+  INVENTORY
+  ORDERS
+}
+
+enum SupplierProductStatus {
+  PENDING
+  MAPPED
+  SYNCED
+  ERROR
+  DISABLED
 }

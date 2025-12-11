@@ -470,6 +470,59 @@ Before deploying ANY migration to production:
 
 ---
 
+## 🧩 Supplier Feed Sync (Dec 2025)
+
+### What this migration adds
+- New enums: `SupplierFeedType`, `SupplierAuthType`, `SupplierSyncStatus`, `SupplierSyncJobType`, `SupplierProductStatus`
+- New tables: `SupplierFeed`, `SupplierProduct`, `SupplierSyncJob`
+
+### Seed SupplierFeed rows (run in prod SQL console)
+Replace placeholders with real values:
+```sql
+INSERT INTO "SupplierFeed" (
+  id, "supplierId", name, type, "sourceUrl", "authType",
+  "apiKey", "authHeader", username, password, headers, mapping,
+  "pollingIntervalMinutes", "isActive"
+) VALUES (
+  gen_random_uuid(),                       -- id
+  '<SUPPLIER_ID>',                         -- supplierId (must exist)
+  'BaseLinker CSV',                        -- name
+  'CSV',                                   -- type: CSV | XML | API | APP
+  'https://example.com/feed.csv',          -- sourceUrl
+  'API_KEY',                               -- authType: NONE | API_KEY | BEARER | BASIC
+  'your-api-key-here',                     -- apiKey (or token)
+  'X-API-Key',                             -- authHeader (optional)
+  NULL,                                    -- username (for BASIC)
+  NULL,                                    -- password (for BASIC)
+  '{}'::jsonb,                             -- headers (extra per-feed headers)
+  '{"sku":"SKU","name":"Title","price":"Price","stock":"Stock","images":"Images"}'::jsonb, -- mapping
+  60,                                      -- pollingIntervalMinutes
+  true                                     -- isActive
+);
+```
+
+### Trigger a sync (prod)
+1. Set `CRON_SECRET` in prod env.  
+2. Call:  
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://<your-domain>/api/cron/suppliers
+```
+Optional filters: `?feedId=<id>` or `?supplierId=<id>`.
+
+### Verify
+- Check `SupplierSyncJob` for status, counts, and errors.  
+- Check `SupplierFeed.lastSyncStatus` and `lastError`.  
+- Check `SupplierProduct` row counts and spot-verify price/stock mapping.
+
+### Local dev alignment
+If your local Postgres is running:  
+```bash
+pnpm prisma migrate dev
+```
+This applies the same migration locally without touching production data.
+
+---
+
 ## 🚨 Emergency Rollback
 
 ### If Migration Fails
