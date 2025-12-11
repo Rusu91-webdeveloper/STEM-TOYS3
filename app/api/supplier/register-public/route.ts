@@ -30,38 +30,57 @@ const supplierApplicationSchema = z.object({
   contactPersonPhone: z
     .string()
     .min(10, "Contact phone must be at least 10 characters"),
-  yearEstablished: z
-    .string()
-    .min(4, "Year established must be at least 4 characters"),
-  employeeCount: z.string().min(1, "Employee count is required"),
-  annualRevenue: z.string().min(1, "Annual revenue is required"),
-  certifications: z.string().transform(val => {
-    try {
-      return JSON.parse(val);
-    } catch {
-      return [];
-    }
-  }),
-  productCategories: z.string().transform(val => {
-    try {
-      return JSON.parse(val);
-    } catch {
-      return [];
-    }
-  }),
-  termsAccepted: z.string().transform(val => val === "true"),
-  privacyAccepted: z.string().transform(val => val === "true"),
+  yearEstablished: z.union([z.string(), z.number()]).optional(),
+  employeeCount: z.union([z.string(), z.number()]).optional(),
+  annualRevenue: z.string().optional(),
+  certifications: z
+    .union([z.string(), z.array(z.string())])
+    .transform(val => {
+      if (Array.isArray(val)) return val;
+      try {
+        return JSON.parse(val);
+      } catch {
+        return [];
+      }
+    }),
+  productCategories: z
+    .union([z.string(), z.array(z.string())])
+    .transform(val => {
+      if (Array.isArray(val)) return val;
+      try {
+        return JSON.parse(val);
+      } catch {
+        return [];
+      }
+    }),
+  integrationMethod: z.string().optional(),
+  feedUrl: z.string().optional(),
+  authType: z.string().optional(),
+  authKey: z.string().optional(),
+  mappingNotes: z.string().optional(),
+  syncPreference: z.string().optional(),
+  categoryFocus: z.string().optional(),
+  termsAccepted: z
+    .union([z.string(), z.boolean()])
+    .transform(val => (typeof val === "boolean" ? val : val === "true")),
+  privacyAccepted: z
+    .union([z.string(), z.boolean()])
+    .transform(val => (typeof val === "boolean" ? val : val === "true")),
   catalogUrl: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
+    const contentType = request.headers.get("content-type") || "";
+    let data: Record<string, any> = {};
 
-    // Convert FormData to object
-    const data: Record<string, any> = {};
-    for (const [key, value] of formData.entries()) {
-      data[key] = value;
+    if (contentType.includes("application/json")) {
+      data = await request.json();
+    } else {
+      const formData = await request.formData();
+      for (const [key, value] of formData.entries()) {
+        data[key] = value;
+      }
     }
 
     // Validate the data
@@ -143,6 +162,13 @@ export async function POST(request: NextRequest) {
         certifications: validatedData.certifications,
         productCategories: validatedData.productCategories,
         catalogUrl: validatedData.catalogUrl || null,
+        integrationMethod: validatedData.integrationMethod || null,
+        feedUrl: validatedData.feedUrl || null,
+        authType: validatedData.authType || null,
+        authKey: validatedData.authKey || null,
+        mappingNotes: validatedData.mappingNotes || null,
+        syncPreference: validatedData.syncPreference || null,
+        categoryFocus: validatedData.categoryFocus || null,
         termsAccepted: validatedData.termsAccepted,
         privacyAccepted: validatedData.privacyAccepted,
         status: "PENDING",
@@ -204,6 +230,8 @@ export async function POST(request: NextRequest) {
             <li><strong>Contact:</strong> ${validatedData.contactPersonName} (${validatedData.contactPersonEmail})</li>
             <li><strong>Phone:</strong> ${validatedData.contactPersonPhone}</li>
             <li><strong>Categories:</strong> ${validatedData.productCategories.join(", ")}</li>
+            <li><strong>Integration:</strong> ${validatedData.integrationMethod || "Not provided"}</li>
+            <li><strong>Feed/API URL:</strong> ${validatedData.feedUrl || "Not provided"}</li>
             <li><strong>Application ID:</strong> ${supplier.id}</li>
           </ul>
           <p>Please review the application in the admin dashboard.</p>

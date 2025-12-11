@@ -989,6 +989,13 @@ model Supplier {
   paymentTerms             Int                          @default(30)
   privacyAccepted          Boolean                      @default(false)
   productCategories        String[]                     @default([])
+  integrationMethod        String?
+  feedUrl                  String?
+  authType                 String?
+  authKey                  String?
+  mappingNotes             String?
+  syncPreference           String?
+  categoryFocus            String?
   rejectionReason          String?
   reprezentantLegal        String?
   romanianBankAccount      String?

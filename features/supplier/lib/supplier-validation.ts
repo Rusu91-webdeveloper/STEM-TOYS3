@@ -107,6 +107,39 @@ export const supplierRegistrationSchema = z.object({
     .min(1, "At least one product category is required")
     .max(20, "Maximum 20 product categories allowed"),
 
+  // Integration basics (lightweight, realistic 2025)
+  integrationMethod: z.enum(["CSV", "XML", "API", "SHOPIFY_WOO_WIX_APP", "NONE"], {
+    required_error: "Select your integration method",
+  }),
+  feedUrl: z
+    .string()
+    .url("Please enter a valid URL")
+    .optional()
+    .or(z.literal("")),
+  authType: z
+    .enum(["NONE", "API_KEY", "BEARER", "BASIC"])
+    .optional()
+    .or(z.literal("NONE")),
+  authKey: z
+    .string()
+    .max(200, "Key/token must be less than 200 characters")
+    .optional()
+    .or(z.literal("")),
+  mappingNotes: z
+    .string()
+    .max(500, "Mapping notes must be less than 500 characters")
+    .optional()
+    .or(z.literal("")),
+  syncPreference: z
+    .enum(["HOURLY", "DAILY", "WEEKLY", "MONTHLY", "UNSURE"])
+    .optional()
+    .or(z.literal("UNSURE")),
+  categoryFocus: z
+    .string()
+    .max(200, "Category focus must be less than 200 characters")
+    .optional()
+    .or(z.literal("")),
+
   // Legal - Required
   termsAccepted: z.boolean().refine(value => value === true, {
     message: "You must accept the terms and conditions",

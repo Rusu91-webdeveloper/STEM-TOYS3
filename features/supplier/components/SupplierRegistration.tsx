@@ -14,6 +14,9 @@ import {
   User,
   FileText,
   AlertCircle,
+  PlugZap,
+  Link2,
+  KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,6 +73,12 @@ const steps = [
   },
   {
     id: 5,
+    title: "Product Feed / API",
+    description: "Tell us how you share products and stock",
+    icon: PlugZap,
+  },
+  {
+    id: 6,
     title: "Legal & Documents",
     description: "Terms acceptance and document upload",
     icon: FileText,
@@ -162,6 +171,13 @@ export function SupplierRegistration() {
       annualRevenue: "",
       certifications: [],
       productCategories: [],
+      integrationMethod: "NONE",
+      feedUrl: "",
+      authType: "NONE",
+      authKey: "",
+      mappingNotes: "",
+      syncPreference: "UNSURE",
+      categoryFocus: "",
       termsAccepted: false,
       privacyAccepted: false,
     },
@@ -221,6 +237,8 @@ export function SupplierRegistration() {
       case 4:
         return ["productCategories"];
       case 5:
+        return ["integrationMethod"];
+      case 6:
         return ["termsAccepted", "privacyAccepted"];
       default:
         return [];
@@ -665,6 +683,162 @@ export function SupplierRegistration() {
         );
 
       case 5:
+        return (
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div>
+                <Label className={labelClasses}>Integration method *</Label>
+                <Select
+                  defaultValue={watchedValues.integrationMethod}
+                  onValueChange={value => setValue("integrationMethod", value as any)}
+                >
+                  <SelectTrigger className={selectTriggerClasses}>
+                    <SelectValue placeholder="Choose how you share products" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CSV">CSV via BaseLinker</SelectItem>
+                    <SelectItem value="XML">XML feed</SelectItem>
+                    <SelectItem value="API">API</SelectItem>
+                    <SelectItem value="SHOPIFY_WOO_WIX_APP">
+                      Shopify / Woo / Wix app
+                    </SelectItem>
+                    <SelectItem value="NONE">I don&apos;t have this yet</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="mt-1 text-xs text-slate-300">
+                  Pick what you have today. You can change this later.
+                </p>
+                {errors.integrationMethod && (
+                  <p className="mt-1 text-sm text-destructive">
+                    {errors.integrationMethod.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="feedUrl" className={labelClasses}>
+                    Feed/API URL (optional)
+                  </Label>
+                  <div className="relative">
+                    <Link2 className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="feedUrl"
+                      placeholder="https://..."
+                      {...register("feedUrl")}
+                      className={cn("pl-10", inputClasses, errors.feedUrl && fieldErrorClasses)}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-slate-300">
+                    Paste your CSV/XML/API link if you have it. Optional.
+                  </p>
+                  {errors.feedUrl && (
+                    <p className="mt-1 text-sm text-destructive">{errors.feedUrl.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className={labelClasses}>Auth type (optional)</Label>
+                  <Select
+                    defaultValue={watchedValues.authType}
+                    onValueChange={value => setValue("authType", value as any)}
+                  >
+                    <SelectTrigger className={selectTriggerClasses}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NONE">None</SelectItem>
+                      <SelectItem value="API_KEY">API key header</SelectItem>
+                      <SelectItem value="BEARER">Bearer token</SelectItem>
+                      <SelectItem value="BASIC">Basic (user + password)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="mt-1 text-xs text-slate-300">
+                    Only share keys for product feeds. You can rotate them later.
+                  </p>
+                  {errors.authType && (
+                    <p className="mt-1 text-sm text-destructive">{errors.authType.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="authKey" className={labelClasses}>
+                    Key / token (optional)
+                  </Label>
+                  <div className="relative">
+                    <KeyRound className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="authKey"
+                      placeholder="API key or token if needed"
+                      {...register("authKey")}
+                      className={cn("pl-10", inputClasses, errors.authKey && fieldErrorClasses)}
+                    />
+                  </div>
+                  {errors.authKey && (
+                    <p className="mt-1 text-sm text-destructive">{errors.authKey.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className={labelClasses}>Sync preference (optional)</Label>
+                  <Select
+                    defaultValue={watchedValues.syncPreference}
+                    onValueChange={value => setValue("syncPreference", value as any)}
+                  >
+                    <SelectTrigger className={selectTriggerClasses}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="HOURLY">Hourly</SelectItem>
+                      <SelectItem value="DAILY">Daily</SelectItem>
+                      <SelectItem value="WEEKLY">Weekly</SelectItem>
+                      <SelectItem value="MONTHLY">Monthly</SelectItem>
+                      <SelectItem value="UNSURE">Not sure / depends</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="mappingNotes" className={labelClasses}>
+                    Field mapping notes (optional)
+                  </Label>
+                  <Textarea
+                    id="mappingNotes"
+                    placeholder='If CSV/XML: list column names like SKU, Title, Price, Stock, Images...'
+                    {...register("mappingNotes")}
+                    className={cn(inputClasses, errors.mappingNotes && fieldErrorClasses)}
+                  />
+                  {errors.mappingNotes && (
+                    <p className="mt-1 text-sm text-destructive">{errors.mappingNotes.message}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="categoryFocus" className={labelClasses}>
+                    Category focus (optional)
+                  </Label>
+                  <Input
+                    id="categoryFocus"
+                    placeholder="e.g. Robotics, Coding kits, Electronics"
+                    {...register("categoryFocus")}
+                    className={cn(inputClasses, errors.categoryFocus && fieldErrorClasses)}
+                  />
+                  {errors.categoryFocus && (
+                    <p className="mt-1 text-sm text-destructive">{errors.categoryFocus.message}</p>
+                  )}
+                </div>
+                <p className="text-xs text-slate-300">
+                  If you don&apos;t have feeds or API yet, select “I don&apos;t have this yet.” We can help set it up later.
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 6:
         return (
           <div className="space-y-6">
             <div className="space-y-4">
