@@ -438,6 +438,12 @@ export function AdminSupplierList() {
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
+          <Button asChild variant="secondary">
+            <Link href="/admin/suppliers/feeds">
+              <Database className="w-4 h-4 mr-2" />
+              Manage Feeds
+            </Link>
+          </Button>
           <Button asChild>
             <Link href="/admin/suppliers/new">
               <Plus className="w-4 h-4 mr-2" />
