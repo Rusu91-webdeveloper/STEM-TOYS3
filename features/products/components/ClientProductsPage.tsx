@@ -28,12 +28,10 @@ import {
   ProductGridErrorBoundary,
 } from "./ProductsErrorBoundary";
 import { ProductsHeroSection } from "./ProductsHeroSection";
-import AgeQuickFilters from "./AgeQuickFilters";
 import { MobileFilterBar } from "./MobileFilterBar";
 import MobileAgeBar from "./MobileAgeBar";
 import { ProductsMainDisplay } from "./ProductsMainDisplay";
 import { ProductsSidebar } from "./ProductsSidebar";
-import { StemBenefitsSection } from "./StemBenefitsSection";
 import {
   productsBackgroundClass,
   productsContentWrapperClass,
@@ -59,65 +57,41 @@ const LETTER_B = "B";
 const categoryInfo: Record<string, CategoryIconInfo> = {
   science: {
     icon: Atom,
-    bgColor: "bg-blue-500",
-    textColor: "text-blue-500",
+    bgColor: "bg-sky-500",
+    textColor: "text-sky-500",
     letter: LETTER_S,
   },
   technology: {
     icon: Lightbulb,
-    bgColor: "bg-green-500",
-    textColor: "text-green-500",
+    bgColor: "bg-emerald-500",
+    textColor: "text-emerald-500",
     letter: LETTER_T,
   },
   engineering: {
     icon: Microscope,
-    bgColor: "bg-orange-500",
-    textColor: "text-orange-500",
-    letter: LETTER_E,
-  },
-  mathematics: {
-    icon: ShieldQuestion,
-    bgColor: "bg-purple-500",
-    textColor: "text-purple-500",
-    letter: LETTER_M,
-  },
-  "educational-books": {
-    icon: Brain,
-    bgColor: "bg-red-500",
-    textColor: "text-red-500",
-    letter: LETTER_B,
-  },
-  engineeringlearning: {
-    icon: Rocket,
     bgColor: "bg-amber-500",
     textColor: "text-amber-500",
     letter: LETTER_E,
   },
-};
-
-// Benefits of STEM toys with icons
-const stemBenefits = [
-  {
+  mathematics: {
+    icon: ShieldQuestion,
+    bgColor: "bg-violet-500",
+    textColor: "text-violet-500",
+    letter: LETTER_M,
+  },
+  "educational-books": {
     icon: Brain,
-    titleKey: "cognitiveDevelopment",
-    descKey: "cognitiveDevelopmentDesc",
+    bgColor: "bg-rose-500",
+    textColor: "text-rose-500",
+    letter: LETTER_B,
   },
-  {
-    icon: Sparkles,
-    titleKey: "creativityInnovation",
-    descKey: "creativityInnovationDesc",
-  },
-  {
+  engineeringlearning: {
     icon: Rocket,
-    titleKey: "futureReady",
-    descKey: "futureReadyDesc",
+    bgColor: "bg-teal-500",
+    textColor: "text-teal-500",
+    letter: LETTER_E,
   },
-  {
-    icon: Star,
-    titleKey: "funLearning",
-    descKey: "funLearningDesc",
-  },
-];
+};
 
 // Interface for the category object returned by the API
 interface CategoryData {
@@ -660,33 +634,9 @@ function ClientProductsPageContent({
           />
         </div>
 
-        {/* Age Quick Filters Section - hide on mobile */}
-        <div className="hidden md:block">
-          <AgeQuickFilters
-            selectedAgeGroup={state.selectedAgeGroup}
-            onSelectAgeGroup={age => actions.setAgeGroup(age)}
-            t={t}
-          />
-        </div>
-
-        <StemBenefitsSection
-          stemBenefits={stemBenefits}
-          activeCategory={activeCategory}
-          t={t}
-        />
-
-        <div
-          className="w-full max-w-full overflow-x-hidden"
-          style={{
-            background:
-              "linear-gradient(180deg, #f3f4f6 0%, #d1d5db 50%, #c0c0c0 100%)",
-          }}
-        >
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 relative z-10">
-            {/* Subtle top accent */}
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary/10 via-primary/20 to-primary/10 rounded-full opacity-70 hidden sm:block"></div>
-
-            <div className="flex flex-col lg:flex-row gap-4 sm:gap-5 lg:gap-6">
+        <div className="w-full max-w-full overflow-x-hidden bg-transparent">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 relative z-10">
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
               <ProductFiltersErrorBoundary
                 onError={() => {
                   // Fallback: clear filters and reload
@@ -704,6 +654,7 @@ function ClientProductsPageContent({
                   selectedLearningOutcomes={state.selectedLearningOutcomes}
                   selectedProductType={state.selectedProductType}
                   selectedSpecialCategories={state.selectedSpecialCategories}
+                  selectedAgeGroup={state.selectedAgeGroup}
                   handleCategoryChange={handleCategoryChange}
                   handleFilterChange={handleFilterChange}
                   handlePriceChange={handlePriceChange}
@@ -711,6 +662,7 @@ function ClientProductsPageContent({
                   setSelectedLearningOutcomes={actions.setLearningOutcomes}
                   setSelectedProductType={actions.setProductType}
                   setSelectedSpecialCategories={actions.setSpecialCategories}
+                  setSelectedAgeGroup={age => actions.setAgeGroup(age)}
                   handleClearFilters={handleClearFilters}
                   setMobileFiltersOpen={actions.setMobileFiltersOpen}
                   t={t}
@@ -779,6 +731,7 @@ function ClientProductsPageContent({
           selectedLearningOutcomes={state.selectedLearningOutcomes}
           selectedProductType={state.selectedProductType}
           selectedSpecialCategories={state.selectedSpecialCategories}
+          selectedAgeGroup={state.selectedAgeGroup}
           onCategoryChange={handleCategoryChange}
           onFilterChange={handleFilterChange}
           onPriceChange={handlePriceChange}
@@ -786,6 +739,7 @@ function ClientProductsPageContent({
           onLearningOutcomesChange={actions.setLearningOutcomes}
           onProductTypeChange={actions.setProductType}
           onSpecialCategoriesChange={actions.setSpecialCategories}
+          onAgeGroupChange={age => actions.setAgeGroup(age)}
           onClearFilters={handleClearFilters}
           t={t}
         />

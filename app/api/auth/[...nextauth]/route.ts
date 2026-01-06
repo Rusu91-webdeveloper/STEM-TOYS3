@@ -12,11 +12,47 @@ const getHandlers = async () => {
 
       console.log("Creating fresh auth instance for handlers...");
       const authInstance = createAuth(authOptions);
+      
+      // Validate handlers exist
+      if (!authInstance?.handlers) {
+        throw new Error("Auth instance created but handlers are missing");
+      }
+      
       authHandlers = authInstance.handlers;
       console.log("Fresh auth handlers created successfully");
     } catch (error) {
       console.error("Failed to create fresh auth handlers:", error);
-      throw error;
+      
+      // Return fallback handlers instead of throwing
+      // This prevents ClientFetchError from crashing the app
+      authHandlers = {
+        GET: (req: NextRequest) => {
+          console.warn("[Auth Fallback] Using fallback GET handler");
+          return new Response(
+            JSON.stringify({
+              error: "ClientFetchError",
+              message: "Auth handlers not initialized",
+            }),
+            {
+              status: 503,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        },
+        POST: (req: NextRequest) => {
+          console.warn("[Auth Fallback] Using fallback POST handler");
+          return new Response(
+            JSON.stringify({
+              error: "ClientFetchError",
+              message: "Auth handlers not initialized",
+            }),
+            {
+              status: 503,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        },
+      };
     }
   }
   return authHandlers;
@@ -146,31 +182,80 @@ const rateLimitedPost = async (req: NextRequest) => {
     );
   }
 
-  // Otherwise, call the original handler
-  const response = await originalPost(req);
+  // Otherwise, call the original handler with error handling
+  try {
+    const response = await originalPost(req);
 
-  // If it's a Response object, add rate limit headers
-  if (response instanceof Response) {
-    // Clone the response to add our headers
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: {
-        ...Object.fromEntries(response.headers),
-        "X-RateLimit-Limit": SIGNIN_RATE_LIMIT.toString(),
-        "X-RateLimit-Remaining": remaining.toString(),
-        "X-RateLimit-Reset": reset.toString(),
-      },
-    });
+    // If it's a Response object, add rate limit headers
+    if (response instanceof Response) {
+      // Clone the response to add our headers
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: {
+          ...Object.fromEntries(response.headers),
+          "X-RateLimit-Limit": SIGNIN_RATE_LIMIT.toString(),
+          "X-RateLimit-Remaining": remaining.toString(),
+          "X-RateLimit-Reset": reset.toString(),
+        },
+      });
+    }
+
+    return response;
+  } catch (error) {
+    console.error("[Auth Route] POST handler error:", error);
+    
+    // Return a proper error response instead of throwing
+    return new Response(
+      JSON.stringify({
+        error: "ClientFetchError",
+        message: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "X-RateLimit-Limit": SIGNIN_RATE_LIMIT.toString(),
+          "X-RateLimit-Remaining": remaining.toString(),
+        },
+      }
+    );
   }
-
-  return response;
 };
 
-// Create GET handler that gets fresh auth handlers
+// Create GET handler that gets fresh auth handlers with error handling
 const rateLimitedGet = async (req: NextRequest) => {
-  const { GET: originalGet } = await getOriginalHandlers();
-  return originalGet(req);
+  try {
+    const { GET: originalGet } = await getOriginalHandlers();
+    const response = await originalGet(req);
+    
+    // Ensure we always return a valid Response
+    if (!(response instanceof Response)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid response from auth handler" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+    
+    return response;
+  } catch (error) {
+    console.error("[Auth Route] GET handler error:", error);
+    
+    // Return a proper error response instead of throwing
+    return new Response(
+      JSON.stringify({
+        error: "ClientFetchError",
+        message: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
 };
 
 // Export the handlers

@@ -28,6 +28,12 @@ interface ProductsSidebarProps {
   selectedLearningOutcomes: string[];
   selectedProductType: string;
   selectedSpecialCategories: string[];
+  selectedAgeGroup?:
+    | "TODDLERS_1_3"
+    | "PRESCHOOL_3_5"
+    | "ELEMENTARY_6_8"
+    | "MIDDLE_SCHOOL_9_12"
+    | "TEENS_13_PLUS";
   handleCategoryChange: (category: string) => void;
   handleFilterChange: (filterId: string, optionId: string) => void;
   handlePriceChange: (range: [number, number]) => void;
@@ -35,6 +41,14 @@ interface ProductsSidebarProps {
   setSelectedLearningOutcomes: (value: string[]) => void;
   setSelectedProductType: (value: string) => void;
   setSelectedSpecialCategories: (value: string[]) => void;
+  setSelectedAgeGroup?: (
+    ageGroup:
+      | "PRESCHOOL_3_5"
+      | "ELEMENTARY_6_8"
+      | "MIDDLE_SCHOOL_9_12"
+      | "TEENS_13_PLUS"
+      | undefined
+  ) => void;
   handleClearFilters: () => void;
   setMobileFiltersOpen: (open: boolean) => void;
   t: (key: string, fallback?: string) => string;
@@ -51,6 +65,7 @@ export function ProductsSidebar({
   selectedLearningOutcomes,
   selectedProductType,
   selectedSpecialCategories,
+  selectedAgeGroup,
   handleCategoryChange,
   handleFilterChange,
   handlePriceChange,
@@ -58,6 +73,7 @@ export function ProductsSidebar({
   setSelectedLearningOutcomes,
   setSelectedProductType,
   setSelectedSpecialCategories,
+  setSelectedAgeGroup,
   handleClearFilters,
   setMobileFiltersOpen,
   t,
@@ -106,51 +122,47 @@ export function ProductsSidebar({
     (priceFilterActive ? 1 : 0) +
     selectedLearningOutcomes.length +
     selectedSpecialCategories.length +
-    (selectedProductType && selectedProductType !== "all" ? 1 : 0);
+    (selectedProductType && selectedProductType !== "all" ? 1 : 0) +
+    (selectedAgeGroup ? 1 : 0);
 
   return (
     <aside className="hidden md:block w-full md:max-w-xs lg:max-w-sm xl:max-w-md">
-      <div className="relative sticky top-20 sm:top-24 isolate overflow-hidden rounded-3xl border border-white/10 bg-slate-950/70 shadow-[0_25px_70px_-20px_rgba(15,23,42,0.8)] backdrop-blur-2xl">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-500/15 via-slate-900/40 to-sky-500/10" />
-        <div className="pointer-events-none absolute -top-40 -right-32 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-48 -left-24 h-72 w-72 rounded-full bg-violet-500/20 blur-[120px]" />
-
-        <div className="relative flex flex-col gap-6 px-5 py-6 sm:px-6 sm:py-7">
+      <div className="relative sticky top-20 sm:top-24 overflow-hidden rounded-2xl border border-slate-200/70 bg-white/85 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)] backdrop-blur-sm">
+        <div className="relative flex flex-col gap-5 px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-gradient-to-br from-sky-500/80 via-indigo-500/80 to-purple-500/80 text-white shadow-[0_15px_40px_rgba(99,102,241,0.45)] sm:h-14 sm:w-14">
-                <SlidersHorizontal className="h-5 w-5 sm:h-6 sm:w-6" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sky-700 ring-1 ring-sky-200/60">
+                <SlidersHorizontal className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-300/80">
-                  {t("filters", "Filters")}
-                </p>
-                <h3 className="text-lg font-semibold text-white sm:text-xl">
-                  {t("filterOptions", "Curate Your Experience")}
+                <h3 className="text-base font-semibold text-slate-900">
+                  {t("filterOptions", "Filters")}
                 </h3>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setMobileFiltersOpen(true)}
-              className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-sky-100 transition hover:border-white/25 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2"
             >
               <Filter className="h-4 w-4" />
               {t("openFilters", "Open")}
             </button>
           </div>
 
-          <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-slate-100 shadow-inner shadow-black/20 sm:text-sm">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-sky-200" />
-              <span className="font-medium tracking-wide">
-                {t("activeFilters", "Active Filters")}
+          {activeFiltersCount > 0 && (
+            <div className="flex items-center justify-between rounded-xl border border-sky-100 bg-sky-50/80 px-4 py-2.5 text-sm">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-sky-600" />
+                <span className="font-medium text-slate-700">
+                  {t("activeFilters", "Active Filters")}
+                </span>
+              </div>
+              <span className="rounded-full bg-sky-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+                {activeFiltersCount}
               </span>
             </div>
-            <span className="rounded-full bg-gradient-to-r from-sky-500/90 via-indigo-500/90 to-purple-500/90 px-3 py-1 text-[0.7rem] font-semibold text-white shadow-[0_12px_30px_rgba(56,189,248,0.35)]">
-              {activeFiltersCount}
-            </span>
-          </div>
+          )}
 
           <ScrollArea className="h-[60vh] md:h-[62vh] lg:h-[65vh] pr-3">
             <EnhancedProductFilters
@@ -163,6 +175,7 @@ export function ProductsSidebar({
               selectedLearningOutcomes={selectedLearningOutcomes}
               selectedProductType={selectedProductType}
               selectedSpecialCategories={selectedSpecialCategories}
+              selectedAgeGroup={selectedAgeGroup}
               onCategoryChange={handleCategoryChange}
               onFilterChange={handleFilterChange}
               onPriceChange={handlePriceChange}
@@ -170,38 +183,39 @@ export function ProductsSidebar({
               onLearningOutcomesChange={setSelectedLearningOutcomes}
               onProductTypeChange={setSelectedProductType}
               onSpecialCategoriesChange={setSelectedSpecialCategories}
+              onAgeGroupChange={setSelectedAgeGroup}
               onClearFilters={handleClearFilters}
               onCloseMobile={() => setMobileFiltersOpen(false)}
               isInsideModal={false}
               t={t}
               className={cn(
-                "space-y-6 text-slate-100",
-                "[&_.text-muted-foreground]:text-slate-300/85",
-                "[&_.text-gray-600]:text-slate-300/85",
-                "[&_.text-gray-700]:text-slate-200",
-                "[&_.text-gray-500]:text-slate-300/80",
-                "[&_.border-gray-200]:border-white/10",
-                "[&_.border-gray-100]:border-white/10",
-                "[&_.bg-white]:bg-slate-900/70",
-                "[&_.bg-gray-50]:bg-slate-900/60",
-                "[&_.bg-gray-100]:bg-slate-900/60",
-                "[&_.shadow-sm]:shadow-none",
-                "[&_.ring-offset-background]:ring-offset-slate-900"
+                "space-y-5 text-slate-900",
+                "[&_.text-muted-foreground]:text-slate-500",
+                "[&_.text-gray-600]:text-slate-600",
+                "[&_.text-gray-700]:text-slate-700",
+                "[&_.text-gray-500]:text-slate-500",
+                "[&_.border-gray-200]:border-slate-200",
+                "[&_.border-gray-100]:border-slate-100",
+                "[&_.bg-white]:bg-white/80",
+                "[&_.bg-gray-50]:bg-slate-50",
+                "[&_.bg-gray-100]:bg-slate-100",
+                "[&_.shadow-sm]:shadow-[0_10px_30px_-24px_rgba(15,23,42,0.25)]",
+                "[&_.ring-offset-background]:ring-offset-white"
               )}
             />
           </ScrollArea>
 
-          <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-4 text-xs text-slate-300 shadow-inner shadow-black/30 sm:text-sm">
-            <p className="font-medium text-slate-100">
+          <div className="flex flex-col gap-2 rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-xs text-slate-600 sm:text-sm">
+            <p className="font-medium text-slate-900">
               {t(
                 "filterTipTitle",
-                "Pro Tip: Combine age group + skill outcomes to see hyper-relevant kits."
+                "Tip: Combine age group + learning outcomes to see ultra-relevant kits."
               )}
             </p>
-            <p className="text-slate-300/80">
+            <p className="text-slate-600">
               {t(
                 "filterTipDescription",
-                "Use the “Learning Outcomes” and “Special Categories” filters together to surface curated picks for your young inventor."
+                'Use the "Learning Outcomes" and "Special Categories" filters together to surface curated picks for your young inventor.'
               )}
             </p>
           </div>

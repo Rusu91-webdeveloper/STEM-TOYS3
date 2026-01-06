@@ -1,18 +1,18 @@
 "use client";
 
-import { StarIcon } from "lucide-react";
+import { ShoppingCart, StarIcon } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useShoppingCart } from "@/features/cart/hooks/useShoppingCart";
 import { useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { Product } from "@/types/product";
 
 import { OptimizedProductImage } from "./OptimizedProductImage";
 import { productsGlassCardClass } from "./productsTheme";
-
-import { ProductAddToCartButton } from "./ProductAddToCartButton";
 
 interface ProductCardProps {
   product: Product;
@@ -29,7 +29,19 @@ export function ProductCard({
   layout = "grid",
   priority = false, // Default to false, set to true for above-the-fold images
 }: ProductCardProps) {
+  // CRITICAL: All hooks must be called unconditionally at the top level
+  // Do not add any early returns or conditional logic before all hooks are called
   const { formatPrice } = useCurrency();
+  const { addItem } = useShoppingCart();
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
+  
+  // Validate product exists - but only after all hooks are called
+  if (!product || !product.id) {
+    return null;
+  }
+  
+  // Non-hook code after all hooks
   const isOnSale =
     product.compareAtPrice && product.compareAtPrice > product.price;
   // For proper SSR hydration when getting window dimensions
@@ -72,7 +84,7 @@ export function ProductCard({
           ))}
         </div>
         {product.reviewCount && (
-          <span className="text-[9px] sm:text-xs text-muted-foreground">
+          <span className="text-[9px] sm:text-xs text-slate-500">
             ({product.reviewCount})
           </span>
         )}
@@ -89,16 +101,47 @@ export function ProductCard({
       (product.category as any)?.name === "Educational Books"
   );
 
-  // Prepare product data for ProductAddToCartButton
-  const productData = {
-    id: product.id,
-    name: product.name,
-    price: product.price,
-    image: product.images[0],
-    variants: product.variants,
-    slug: product.slug,
-    stockQuantity: product.stockQuantity,
+  // Handle add to cart on image click
+  const handleImageAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isAddingToCart || product.stockQuantity === 0) return;
+    
+    setIsAddingToCart(true);
+    
+    try {
+      const item = {
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images[0],
+        quantity: 1,
+        isBook,
+        slug: product.slug,
+      };
+      
+      addItem(item, 1);
+      setJustAdded(true);
+      setTimeout(() => {
+        setJustAdded(false);
+        setIsAddingToCart(false);
+      }, 1500);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      setIsAddingToCart(false);
+    }
   };
+
+  // Get category name for display
+  const categoryName = product.stemDiscipline
+    ? product.stemDiscipline
+    : (product.category as any)?.name || (product.category as any)?.slug;
+
+  // Calculate discount percentage
+  const discountPercentage = isOnSale && product.compareAtPrice
+    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+    : 0;
 
   // Use placeholder image if product image is missing
   const imageUrl =
@@ -110,85 +153,89 @@ export function ProductCard({
     return (
       <div
         className={cn(
-          `${productsGlassCardClass} relative flex flex-col xs:flex-row overflow-hidden border-white/12 shadow-indigo-900/30 transition-all duration-300`,
+          `${productsGlassCardClass} relative flex flex-col xs:flex-row overflow-hidden transition-all duration-200 group`,
           className
         )}
       >
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-900/90 via-slate-900/80 to-purple-900/70 opacity-95 sm:opacity-80 md:opacity-40 lg:opacity-20 transition-opacity duration-500"
-          aria-hidden
-        />
-        <div className="relative z-10 w-full xs:w-1/3 h-48 xs:h-48 sm:h-56 xs:max-w-[240px] overflow-hidden bg-slate-900/70 border-r border-white/10">
-          <Link
-            href={`/products/${product.slug}`}
-            className="group block h-full relative"
+        <div className="relative z-10 w-full xs:w-1/3 h-48 xs:h-48 sm:h-56 xs:max-w-[240px] overflow-hidden bg-slate-50/80 border-r border-slate-100">
+          <button
+            onClick={handleImageAddToCart}
+            disabled={isAddingToCart || product.stockQuantity === 0}
+            className="group/image block h-full w-full relative cursor-pointer disabled:cursor-not-allowed"
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,_rgba(129,140,248,0.14)_1px,_transparent_1px)] bg-[length:18px_18px] opacity-80" />
-            <div className="relative z-10 flex h-full w-full items-center justify-center">
-              <div className="relative h-full w-full p-3 sm:p-0">
-                <OptimizedProductImage
-                  src={imageUrl}
-                  alt={product.name}
-                  fill
-                  className="object-contain sm:object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 240px"
-                  priority={priority}
-                  quality={85}
-                  placeholder="blur"
-                />
-              </div>
+            <div className="relative z-10 flex h-full w-full items-center justify-center p-4">
+              <OptimizedProductImage
+                src={imageUrl}
+                alt={product.name}
+                fill
+                className="object-contain object-center transition-transform duration-300 group-hover/image:scale-105"
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 240px"
+                priority={priority}
+                quality={85}
+                placeholder="blur"
+              />
             </div>
-            {isOnSale && (
-              <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-md bg-rose-500/25 text-rose-100 border border-rose-400/40 px-2 py-0.5 text-xs font-semibold shadow-md shadow-rose-500/30 backdrop-blur">
-                <span>Sale</span>
-                <span className="font-bold">
-                  -
-                  {Math.round(
-                    ((product.compareAtPrice - product.price) /
-                      product.compareAtPrice) *
-                      100
-                  )}
-                  %
-                </span>
-              </div>
-            )}
-            {product.stemDiscipline && (
-              <Badge
-                className="absolute top-3 right-3 capitalize text-xs px-2.5 py-1.5 bg-white/10 text-slate-100 border border-white/20 shadow-md rounded-full font-medium backdrop-blur"
-                variant="outline"
-              >
-                {product.stemDiscipline}
-              </Badge>
-            )}
-          </Link>
+            
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-slate-900/35 opacity-0 group-hover/image:opacity-100 transition-opacity duration-200 flex items-center justify-center z-20">
+              {isAddingToCart ? (
+                <div className="bg-white rounded-lg px-3 py-1.5 text-xs font-medium text-slate-900">
+                  Adding...
+                </div>
+              ) : justAdded ? (
+                <div className="bg-green-500 rounded-lg px-3 py-1.5 text-xs font-medium text-white">
+                  Added!
+                </div>
+              ) : product.stockQuantity === 0 ? (
+                <div className="bg-slate-500 rounded-lg px-3 py-1.5 text-xs font-medium text-white">
+                  Out of Stock
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg px-3 py-1.5 text-xs font-medium text-slate-900 flex items-center gap-1.5">
+                  <ShoppingCart className="h-3.5 w-3.5" />
+                  Add to Cart
+                </div>
+              )}
+            </div>
+          </button>
         </div>
         <div className="relative z-10 flex flex-col flex-1 p-4 sm:p-5 justify-between">
           <div className="space-y-2.5">
             <Link href={`/products/${product.slug}`} className="block">
-              <h3 className="font-bold text-base sm:text-lg line-clamp-2 text-slate-100 transition-colors leading-tight tracking-tight hover:text-indigo-200">
+                <h3 className="font-semibold text-base sm:text-lg line-clamp-2 text-slate-900 transition-colors leading-tight hover:text-sky-700">
                 {product.name}
               </h3>
             </Link>
 
+            {/* Category badge under title */}
+            {categoryName && (
+              <Badge
+                  className="w-fit capitalize text-xs px-2 py-0.5 bg-sky-50 text-sky-700 border border-sky-100 rounded-md font-medium"
+                variant="outline"
+              >
+                {categoryName}
+              </Badge>
+            )}
+
             <div className="flex flex-wrap items-center gap-1.5">
               {product.ageRange && (
-                <div className="bg-sky-500/20 text-sky-100 text-xs px-2 py-0.5 rounded-full font-medium border border-sky-400/30 shadow-sm backdrop-blur">
+                <div className="bg-emerald-50 text-emerald-700 text-xs px-2 py-0.5 rounded-md font-medium border border-emerald-200">
                   Ages: {product.ageRange}
                 </div>
               )}
 
               {product.stockQuantity !== undefined &&
                 product.stockQuantity === 0 && (
-                  <div className="bg-rose-500/20 text-rose-100 text-xs px-2 py-0.5 rounded-full font-bold border border-rose-400/30 shadow-sm flex items-center gap-1 backdrop-blur">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-300 animate-pulse"></span>
+                  <div className="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded-md font-medium border border-red-200 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                     Out of stock
                   </div>
                 )}
 
               {product.stockQuantity !== undefined &&
                 product.stockQuantity > 0 &&
-                product.stockQuantity <= 10 && (
-                  <div className="bg-amber-500/20 text-amber-100 text-xs px-2 py-0.5 rounded-full font-medium border border-amber-300/30 shadow-sm backdrop-blur">
+                product.stockQuantity < 4 && (
+                  <div className="bg-amber-50 text-amber-700 text-xs px-2 py-0.5 rounded-md font-medium border border-amber-200">
                     Only {product.stockQuantity} left
                   </div>
                 )}
@@ -196,37 +243,46 @@ export function ProductCard({
               {renderRating()}
             </div>
 
-            <p className="text-sm line-clamp-2 text-slate-300 leading-relaxed">
+            <p className="text-sm line-clamp-2 text-slate-600 leading-relaxed">
               {product.description}
             </p>
           </div>
           <div className="mt-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-baseline space-x-2">
-                <div className="text-xl font-bold text-slate-100">
-                  {formatPrice(product.price)}
-                </div>
-                {isOnSale && product.compareAtPrice && (
-                  <div className="text-sm text-slate-400 line-through">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <div className="text-xl font-bold text-slate-900">
+                {formatPrice(product.price)}
+              </div>
+              {isOnSale && product.compareAtPrice && (
+                <>
+                  <div className="text-sm text-slate-500 line-through">
                     {formatPrice(product.compareAtPrice)}
                   </div>
-                )}
-              </div>
-              {product.stockQuantity !== undefined &&
-                product.stockQuantity > 0 &&
-                product.stockQuantity < 10 && (
-                  <div className="text-xs text-amber-100 bg-amber-500/20 border border-amber-300/30 px-2 py-0.5 rounded-md font-medium backdrop-blur">
-                    Only {product.stockQuantity} left
-                  </div>
-                )}
+                  <Badge className="bg-red-500 text-white text-xs px-2 py-0.5">
+                    -{discountPercentage}%
+                  </Badge>
+                </>
+              )}
             </div>
-            <div className="relative">
-              <ProductAddToCartButton
-                product={productData}
-                showQuantity={false}
-                isBook={isBook}
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <Button
+                onClick={handleImageAddToCart}
+                disabled={isAddingToCart || product.stockQuantity === 0}
+                className="w-full bg-sky-600 hover:bg-sky-700 text-white shadow-sm"
                 size="sm"
-              />
+              >
+                {isAddingToCart ? (
+                  "Adding..."
+                ) : justAdded ? (
+                  "Added!"
+                ) : product.stockQuantity === 0 ? (
+                  "Out of Stock"
+                ) : (
+                  <>
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Add to Cart
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </div>
@@ -234,158 +290,150 @@ export function ProductCard({
     );
   }
 
-  // Default grid layout - Optimized for mobile compactness
+  // Default grid layout - Modern e-commerce design
   return (
     <div
       className={cn(
-        `${productsGlassCardClass} relative group overflow-hidden h-full flex flex-col border-white/12 shadow-indigo-900/30 transition-all duration-300`,
+        `${productsGlassCardClass} relative group overflow-hidden h-full flex flex-col transition-all duration-200 hover:shadow-lg`,
         className
       )}
     >
-      <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-900/90 via-slate-900/75 to-purple-900/70 opacity-95 sm:opacity-90 md:opacity-50 lg:opacity-25 transition-opacity duration-500"
-        aria-hidden
-      />
-      <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-white/6 via-transparent to-indigo-500/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      {/* Compact image container for mobile: 3/2 aspect ratio instead of 4/3 */}
-      <div className="relative z-10 overflow-hidden aspect-[3/2] sm:aspect-square bg-slate-900/70 border-b border-white/10">
-        <Link
-          href={`/products/${product.slug}`}
-          className="group block h-full relative"
+      {/* Image container - clickable to add to cart */}
+      <div className="relative z-10 overflow-hidden aspect-[3/2] sm:aspect-square bg-slate-50/80 border-b border-slate-100">
+        <button
+          onClick={handleImageAddToCart}
+          disabled={isAddingToCart || product.stockQuantity === 0}
+          className="group/image block h-full w-full relative cursor-pointer disabled:cursor-not-allowed"
         >
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,_rgba(129,140,248,0.12)_1px,_transparent_1px)] bg-[length:18px_18px] opacity-70" />
-          <div className="relative z-10 flex h-full w-full items-center justify-center">
-            <div className="relative h-full w-full p-3 sm:p-0">
-              <OptimizedProductImage
-                src={imageUrl}
-                alt={product.name}
-                fill
-                className="object-contain sm:object-cover object-center transition-transform duration-700 group-hover:scale-105"
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                priority={priority}
-                quality={90}
-                placeholder="blur"
-              />
-            </div>
+          <div className="relative z-10 flex h-full w-full items-center justify-center p-4 sm:p-6">
+            <OptimizedProductImage
+              src={imageUrl}
+              alt={product.name}
+              fill
+              className="object-contain object-center transition-transform duration-300 group-hover/image:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              priority={priority}
+              quality={90}
+              placeholder="blur"
+            />
           </div>
-          {isOnSale && (
-            <div className="absolute top-2 left-2 sm:top-3 sm:left-3 inline-flex items-center gap-1 sm:gap-1.5 rounded-md bg-rose-500/25 text-rose-100 border border-rose-400/40 px-1.5 py-0.5 sm:px-2 sm:py-0.5 text-[10px] sm:text-xs font-semibold shadow-md shadow-rose-500/30 backdrop-blur">
-              <span>Sale</span>
-              <span className="font-bold">
-                -
-                {Math.round(
-                  ((product.compareAtPrice - product.price) /
-                    product.compareAtPrice) *
-                    100
-                )}
-                %
-              </span>
-            </div>
-          )}
-          {product.stemDiscipline && (
-            <Badge
-              className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 capitalize text-[10px] sm:text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 bg-white/10 text-slate-100 border border-white/20 shadow-md rounded-full font-medium backdrop-blur"
-              variant="outline"
-            >
-              {product.stemDiscipline}
-            </Badge>
-          )}
-          {/* Overlay for readability on hover */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        </Link>
+          
+          {/* Hover overlay with add to cart button */}
+          <div className="absolute inset-0 bg-slate-900/35 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-20">
+            {isAddingToCart ? (
+              <div className="bg-white rounded-lg px-4 py-2 text-sm font-medium text-slate-900">
+                Adding...
+              </div>
+            ) : justAdded ? (
+              <div className="bg-green-500 rounded-lg px-4 py-2 text-sm font-medium text-white">
+                Added!
+              </div>
+            ) : product.stockQuantity === 0 ? (
+              <div className="bg-slate-500 rounded-lg px-4 py-2 text-sm font-medium text-white">
+                Out of Stock
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg px-4 py-2 text-sm font-medium text-slate-900 flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                Add to Cart
+              </div>
+            )}
+          </div>
+        </button>
       </div>
 
-      {/* Compact content padding for mobile */}
-      <div className="relative z-10 flex flex-col flex-1 p-2.5 sm:p-5 space-y-1.5 sm:space-y-4">
-        {/* Compact low stock banner for mobile */}
+      {/* Content section with clean spacing */}
+      <div className="relative z-10 flex flex-col flex-1 p-4 space-y-2">
+        {/* Title as link */}
+        <Link href={`/products/${product.slug}`} className="block">
+          <h3 className="font-semibold text-sm leading-tight line-clamp-2 text-slate-900 transition-colors hover:text-sky-700">
+            {product.name}
+          </h3>
+        </Link>
+
+        {/* Category badge under title */}
+        {categoryName && (
+          <Badge
+            className="w-fit capitalize text-xs px-2 py-0.5 bg-sky-50 text-sky-700 border border-sky-100 rounded-md font-medium"
+            variant="outline"
+          >
+            {categoryName}
+          </Badge>
+        )}
+
+        {/* Low stock banner - only show if quantity < 4 */}
         {product.stockQuantity !== undefined &&
           product.stockQuantity > 0 &&
-          product.stockQuantity <= 10 && (
-            <div className="rounded-md border border-amber-300/30 bg-amber-500/20 px-2 py-1 sm:px-3 sm:py-2 text-amber-100 text-[10px] sm:text-xs font-medium shadow-sm shadow-amber-500/30 backdrop-blur">
+          product.stockQuantity < 4 && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-amber-700 text-xs font-medium">
               Only{" "}
               <span className="font-semibold">{product.stockQuantity}</span>{" "}
               {product.stockQuantity === 1 ? "item" : "items"} left
             </div>
           )}
 
-        <div className="space-y-1 sm:space-y-2">
-          <Link href={`/products/${product.slug}`} className="block">
-            {/* Compact title with tighter line height for mobile */}
-            <h3 className="font-bold text-[13px] leading-[1.3] sm:text-base sm:leading-tight line-clamp-2 text-slate-100 transition-colors tracking-tight group-hover:text-indigo-200">
-              {product.name}
-            </h3>
-          </Link>
+        {/* Badges section */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {renderRating()}
 
-          {/* Compact badges section for mobile */}
-          <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
-            {renderRating()}
+          {product.ageRange && (
+            <div className="bg-emerald-50 text-emerald-700 text-xs px-2 py-0.5 rounded-md font-medium border border-emerald-200">
+              Ages: {product.ageRange}
+            </div>
+          )}
 
-            {product.ageRange && (
-              <div className="flex items-center">
-                <div className="bg-sky-500/20 text-sky-100 text-[9px] sm:text-[10px] px-1.5 py-0.5 sm:px-2 rounded-full font-medium border border-sky-400/30 shadow-sm backdrop-blur">
-                  Ages: {product.ageRange}
-                </div>
+          {product.stockQuantity !== undefined &&
+            product.stockQuantity === 0 && (
+              <div className="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded-md font-medium border border-red-200 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                Out of stock
               </div>
             )}
-
-            {/* Out of stock indicator inline with other tags */}
-            {product.stockQuantity !== undefined &&
-              product.stockQuantity === 0 && (
-                <div className="bg-rose-500/20 text-rose-100 text-[9px] sm:text-[10px] px-1.5 py-0.5 sm:px-2 rounded-full font-bold border border-rose-400/30 shadow-sm flex items-center gap-0.5 sm:gap-1 backdrop-blur">
-                  <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-rose-300 animate-pulse"></span>
-                  Out of stock
-                </div>
-              )}
-          </div>
         </div>
 
-        {/* Compact price section for mobile */}
-        <div className="flex flex-col mt-auto pt-1 sm:pt-2">
-          <div className="flex items-baseline justify-between">
-            <div className="flex items-center gap-1 sm:gap-1.5">
-              <div className="text-[15px] sm:text-xl font-extrabold text-slate-100 tracking-tight">
-                {formatPrice(product.price)}
-              </div>
-              {isOnSale && product.compareAtPrice && (
-                <div className="text-[11px] sm:text-sm text-slate-400 line-through font-medium">
+        {/* Price section with discount badge */}
+        <div className="flex flex-col mt-auto pt-2">
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <div className="text-lg font-bold text-slate-900">
+              {formatPrice(product.price)}
+            </div>
+            {isOnSale && product.compareAtPrice && (
+              <>
+                <div className="text-sm text-slate-500 line-through">
                   {formatPrice(product.compareAtPrice)}
                 </div>
-              )}
-              {isOnSale && (
-                <div className="text-[9px] sm:text-xs text-rose-200 font-semibold bg-rose-500/20 px-1 py-0.5 sm:px-1.5 rounded border border-rose-400/30 backdrop-blur">
-                  -
-                  {Math.round(
-                    ((product.compareAtPrice - product.price) /
-                      product.compareAtPrice) *
-                      100
-                  )}
-                  %
-                </div>
-              )}
-            </div>
-            {product.stockQuantity !== undefined &&
-              product.stockQuantity > 5 &&
-              product.stockQuantity <= 10 && (
-                <div className="text-[9px] sm:text-xs text-amber-100 bg-amber-500/20 border border-amber-300/30 px-1.5 py-0.5 sm:px-2 rounded-md font-medium backdrop-blur">
-                  {product.stockQuantity} left
-                </div>
-              )}
+                <Badge className="bg-red-500 text-white text-xs px-2 py-0.5">
+                  -{discountPercentage}%
+                </Badge>
+              </>
+            )}
           </div>
-          <div className="text-[9px] sm:text-xs text-slate-400 font-medium mt-0.5">
+          <div className="text-xs text-slate-500 mt-0.5">
             inclusiv TVA
           </div>
         </div>
 
-        {/* Compact button section for mobile */}
-        <div className="mt-auto pt-1.5 sm:pt-3">
-          <div className="relative">
-            <ProductAddToCartButton
-              product={productData}
-              showQuantity={false}
-              isBook={isBook}
-              size="sm"
-            />
-          </div>
+        {/* Add button - only visible on hover */}
+        <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <Button
+            onClick={handleImageAddToCart}
+            disabled={isAddingToCart || product.stockQuantity === 0}
+            className="w-full bg-sky-600 hover:bg-sky-700 text-white shadow-sm"
+            size="sm"
+          >
+            {isAddingToCart ? (
+              "Adding..."
+            ) : justAdded ? (
+              "Added!"
+            ) : product.stockQuantity === 0 ? (
+              "Out of Stock"
+            ) : (
+              <>
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Add to Cart
+              </>
+            )}
+          </Button>
         </div>
       </div>
     </div>

@@ -252,13 +252,13 @@ export function ProductAddToCartButton({
           onClick={handleAddToCart}
           disabled={isDisabled}
           className={cn(
-            "flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-300 ease-in-out disabled:cursor-not-allowed btn-premium",
+            "flex items-center justify-center gap-2 rounded-lg font-semibold transition-all duration-200 disabled:cursor-not-allowed",
             config.button,
             isAdded
-              ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 shadow-premium-lg transform scale-105"
+              ? "bg-green-600 text-white hover:bg-green-700 shadow-sm"
               : isDisabled
-                ? "bg-gray-100 text-gray-400 border border-gray-200 shadow-none"
-                : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-premium hover:shadow-premium-lg active:scale-95",
+                ? "bg-gray-100 text-gray-400 border border-gray-200"
+                : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow-md active:scale-[0.98]",
             showQuantity ? "flex-1" : "w-full"
           )}
         >
@@ -304,7 +304,7 @@ export function ProductAddToCartButton({
 
       {/* Helper text for disabled states */}
       {isDisabled && !isAdded && !isLoading && !isOutOfStock && (
-        <div className="text-premium-xs text-premium-muted text-center bg-gray-50 px-4 py-2 rounded-lg">
+        <div className="text-xs text-gray-500 text-center bg-gray-50 px-4 py-2 rounded-lg">
           {languagesLoading
             ? "Loading book information..."
             : hasVariants && !selectedVariantId

@@ -35,6 +35,12 @@ interface MobileFiltersModalProps {
   selectedLearningOutcomes: string[];
   selectedProductType: string;
   selectedSpecialCategories: string[];
+  selectedAgeGroup?:
+    | "TODDLERS_1_3"
+    | "PRESCHOOL_3_5"
+    | "ELEMENTARY_6_8"
+    | "MIDDLE_SCHOOL_9_12"
+    | "TEENS_13_PLUS";
   onCategoryChange: (category: string) => void;
   onFilterChange: (filterId: string, optionId: string) => void;
   onPriceChange: (range: [number, number]) => void;
@@ -42,6 +48,14 @@ interface MobileFiltersModalProps {
   onLearningOutcomesChange: (outcomes: string[]) => void;
   onProductTypeChange: (type: string) => void;
   onSpecialCategoriesChange: (categories: string[]) => void;
+  onAgeGroupChange?: (
+    ageGroup:
+      | "PRESCHOOL_3_5"
+      | "ELEMENTARY_6_8"
+      | "MIDDLE_SCHOOL_9_12"
+      | "TEENS_13_PLUS"
+      | undefined
+  ) => void;
   onClearFilters: () => void;
   t: (key: string, fallback?: string) => string;
 }
@@ -58,6 +72,7 @@ export function MobileFiltersModal({
   selectedLearningOutcomes,
   selectedProductType,
   selectedSpecialCategories,
+  selectedAgeGroup,
   onCategoryChange,
   onFilterChange,
   onPriceChange,
@@ -65,6 +80,7 @@ export function MobileFiltersModal({
   onLearningOutcomesChange,
   onProductTypeChange,
   onSpecialCategoriesChange,
+  onAgeGroupChange,
   onClearFilters,
   t,
 }: MobileFiltersModalProps) {
@@ -78,6 +94,7 @@ export function MobileFiltersModal({
     count += selectedLearningOutcomes.length;
     count += selectedProductType && selectedProductType !== "all" ? 1 : 0;
     count += selectedSpecialCategories.length;
+    count += selectedAgeGroup ? 1 : 0;
     count += !noPriceFilter ? 1 : 0;
     setActiveFiltersCount(count);
   }, [
@@ -86,6 +103,7 @@ export function MobileFiltersModal({
     selectedLearningOutcomes,
     selectedProductType,
     selectedSpecialCategories,
+    selectedAgeGroup,
     noPriceFilter,
   ]);
 
@@ -113,7 +131,7 @@ export function MobileFiltersModal({
           "h-[92vh] sm:h-[88vh] w-full max-w-full",
           "rounded-t-[32px] sm:rounded-t-[40px]",
           "p-0 overflow-hidden flex flex-col",
-          "bg-gradient-to-b from-white via-gray-50/50 to-white",
+          "bg-gradient-to-b from-white via-slate-50/60 to-emerald-50/30",
           "backdrop-blur-3xl",
           "shadow-[0_-20px_80px_-12px_rgba(0,0,0,0.25)]",
           "border-0",
@@ -121,27 +139,27 @@ export function MobileFiltersModal({
         )}
       >
         {/* Ultra-Premium Header with Advanced Glass Morphism */}
-        <SheetHeader className="relative px-6 py-8 sm:px-8 sm:py-10 flex-shrink-0 bg-gradient-to-br from-white/95 via-indigo-50/40 to-purple-50/30 backdrop-blur-3xl border-b border-gradient-to-r from-white/60 via-gray-200/30 to-white/60">
+        <SheetHeader className="relative px-6 py-8 sm:px-8 sm:py-10 flex-shrink-0 bg-gradient-to-br from-white/95 via-sky-50/50 to-emerald-50/30 backdrop-blur-3xl border-b border-gradient-to-r from-white/60 via-gray-200/30 to-white/60">
           {/* Premium Drag Handle with Glow Effect */}
           <div className="absolute top-5 left-1/2 transform -translate-x-1/2">
-            <div className="w-20 h-1.5 bg-gradient-to-r from-gray-300 via-gray-400 to-gray-300 rounded-full hover:from-indigo-400 hover:via-purple-400 hover:to-indigo-400 transition-all duration-500 cursor-grab active:cursor-grabbing shadow-lg hover:shadow-xl relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-400/50 to-purple-400/50 rounded-full blur-sm animate-pulse"></div>
+            <div className="w-20 h-1.5 bg-gradient-to-r from-gray-300 via-gray-400 to-gray-300 rounded-full hover:from-sky-400 hover:via-emerald-400 hover:to-sky-400 transition-all duration-500 cursor-grab active:cursor-grabbing shadow-lg hover:shadow-xl relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-sky-400/50 to-emerald-400/50 rounded-full blur-sm animate-pulse"></div>
             </div>
           </div>
 
           {/* Enhanced Header Content */}
           <div className="flex items-center justify-between mt-6">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-indigo-600 via-purple-700 to-indigo-800 rounded-3xl shadow-2xl relative overflow-hidden border border-white/20">
+              <div className="p-4 bg-gradient-to-br from-sky-600 via-emerald-600 to-sky-700 rounded-3xl shadow-2xl relative overflow-hidden border border-white/20">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent"></div>
-                <div className="absolute inset-0 bg-gradient-to-tl from-purple-400/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-tl from-emerald-400/20 to-transparent"></div>
                 <SlidersHorizontal className="w-7 h-7 text-white relative z-10" />
               </div>
               <div>
-                <SheetTitle className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-gray-900 via-indigo-900 to-purple-900 bg-clip-text text-transparent leading-tight">
+                <SheetTitle className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-slate-900 via-sky-900 to-emerald-900 bg-clip-text text-transparent leading-tight">
                   {t("advancedFilters", "Smart Filters")}
                 </SheetTitle>
-                <p className="text-base text-gray-700 mt-2 font-medium">
+                <p className="text-base text-slate-600 mt-2 font-medium">
                   {t("refineYourSearch", "Find your perfect products")}
                 </p>
               </div>
@@ -158,20 +176,20 @@ export function MobileFiltersModal({
 
           {/* Premium Active Filters Summary */}
           {activeFiltersCount > 0 && (
-            <div className="mt-6 p-6 bg-gradient-to-br from-indigo-50/80 via-purple-50/60 to-pink-50/40 rounded-3xl border border-indigo-200/30 shadow-xl backdrop-blur-sm relative overflow-hidden">
+            <div className="mt-6 p-6 bg-gradient-to-br from-sky-50/80 via-emerald-50/60 to-amber-50/40 rounded-3xl border border-sky-200/30 shadow-xl backdrop-blur-sm relative overflow-hidden">
               {/* Decorative elements */}
-              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-indigo-200/30 to-purple-200/30 rounded-full blur-2xl"></div>
-              <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-purple-200/30 to-pink-200/30 rounded-full blur-xl"></div>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-sky-200/30 to-emerald-200/30 rounded-full blur-2xl"></div>
+              <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-emerald-200/30 to-amber-200/30 rounded-full blur-xl"></div>
 
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl shadow-lg">
+                    <div className="p-2 bg-gradient-to-r from-sky-500 to-emerald-500 rounded-2xl shadow-lg">
                       <Check className="w-4 h-4 text-white" />
                     </div>
                     <span className="text-lg font-black text-gray-900">
                       {t("activeFilters", "Active Filters")}
-                      <span className="ml-2 px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full text-sm font-black shadow-lg">
+                      <span className="ml-2 px-3 py-1 bg-gradient-to-r from-sky-500 to-emerald-500 text-white rounded-full text-sm font-black shadow-lg">
                         {activeFiltersCount}
                       </span>
                     </span>
@@ -190,14 +208,14 @@ export function MobileFiltersModal({
                   {selectedCategories.map(cat => (
                     <span
                       key={cat}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-2xl text-sm font-black shadow-lg flex-shrink-0 border border-white/20"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-500 to-emerald-500 text-white rounded-2xl text-sm font-black shadow-lg flex-shrink-0 border border-white/20"
                     >
                       <Check className="w-4 h-4" />
                       {cat}
                     </span>
                   ))}
                   {selectedProductType && selectedProductType !== "all" && (
-                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl text-sm font-black shadow-lg border border-white/20">
+                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-500 to-amber-500 text-white rounded-2xl text-sm font-black shadow-lg border border-white/20">
                       <Check className="w-4 h-4" />
                       {selectedProductType}
                     </span>
@@ -216,10 +234,10 @@ export function MobileFiltersModal({
 
         {/* Premium Enhanced Filters Content with Advanced Mobile UX */}
         <div
-          className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6 sm:px-8 sm:py-8 bg-gradient-to-b from-gray-50/30 via-white/50 to-gray-50/20"
+          className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6 sm:px-8 sm:py-8 bg-gradient-to-b from-slate-50/40 via-white/60 to-emerald-50/20"
           style={{
             scrollbarWidth: "thin",
-            scrollbarColor: "#8B5CF6 transparent",
+            scrollbarColor: "#38BDF8 transparent",
           }}
         >
           {/* Premium Filter Sections with Enhanced Spacing */}
@@ -383,6 +401,7 @@ export function MobileFiltersModal({
                     selectedLearningOutcomes={selectedLearningOutcomes}
                     selectedProductType={selectedProductType}
                     selectedSpecialCategories={selectedSpecialCategories}
+                    selectedAgeGroup={selectedAgeGroup}
                     onCategoryChange={onCategoryChange}
                     onFilterChange={onFilterChange}
                     onPriceChange={onPriceChange}
@@ -390,6 +409,7 @@ export function MobileFiltersModal({
                     onLearningOutcomesChange={onLearningOutcomesChange}
                     onProductTypeChange={onProductTypeChange}
                     onSpecialCategoriesChange={onSpecialCategoriesChange}
+                    onAgeGroupChange={onAgeGroupChange}
                     onClearFilters={onClearFilters}
                     onCloseMobile={undefined}
                     className="space-y-6"

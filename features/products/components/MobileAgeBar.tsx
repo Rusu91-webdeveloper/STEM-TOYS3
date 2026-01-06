@@ -42,14 +42,14 @@ const AGE_OPTIONS: Array<{
     labelKey: "age6to8H2",
     short: "6–8",
     icon: "🎒",
-    accent: "bg-indigo-100 text-indigo-700",
+    accent: "bg-sky-100 text-sky-700",
   },
   {
     id: "MIDDLE_SCHOOL_9_12",
     labelKey: "age9to12H2",
     short: "9–12",
     icon: "🧠",
-    accent: "bg-fuchsia-100 text-fuchsia-700",
+    accent: "bg-violet-100 text-violet-700",
   },
   {
     id: "TEENS_13_PLUS",
@@ -71,7 +71,7 @@ export default function MobileAgeBar({
   };
 
   return (
-    <div className="md:hidden bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 border-b border-gray-200">
+    <div className="md:hidden bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 border-b border-slate-200/70">
       <div className="px-3 py-1.5">
         <div
           className="flex gap-1.5 overflow-x-auto pb-1"
@@ -85,8 +85,8 @@ export default function MobileAgeBar({
                 onClick={() => onSelectAgeGroup(opt.id)}
                 className={`flex-shrink-0 flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                   isActive
-                    ? "bg-gray-900 text-white border-gray-900 shadow-sm"
-                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                    ? "bg-sky-600 text-white border-sky-600 shadow-sm"
+                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
                 }`}
               >
                 <span
@@ -97,7 +97,7 @@ export default function MobileAgeBar({
                 </span>
                 <span>
                   <span className="font-semibold">{t(opt.labelKey)}</span>
-                  <span className="ml-1 text-[10px] text-gray-500">
+                  <span className="ml-1 text-[10px] text-slate-500">
                     {opt.short} {t("years", "yrs")}
                   </span>
                 </span>

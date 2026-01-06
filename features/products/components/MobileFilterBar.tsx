@@ -72,17 +72,17 @@ export function MobileFilterBar({
   };
 
   return (
-    <div className="md:hidden sticky top-16 z-30 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70 border-b border-white/10 shadow-sm shadow-indigo-900/40">
+    <div className="md:hidden sticky top-16 z-30 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/80 border-b border-slate-200/70 shadow-sm shadow-sky-100/60">
       {/* Compact Header */}
-      <div className="px-3 py-1.5 border-b border-white/10">
-        <div className="flex items-center justify-between text-slate-200">
+      <div className="px-3 py-1.5 border-b border-slate-200/70">
+        <div className="flex items-center justify-between text-slate-700">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-200" />
-            <span className="text-sm font-semibold text-slate-200">
+            <Filter className="w-4 h-4 text-sky-600" />
+            <span className="text-sm font-semibold text-slate-700">
               {t("filters", "Filters")}
             </span>
             {activeFilterCount > 0 && (
-              <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-sky-500 text-white text-xs font-bold shadow-md shadow-indigo-500/30">
+              <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-gradient-to-r from-sky-500 to-emerald-500 text-white text-xs font-bold shadow-sm">
                 {activeFilterCount}
               </span>
             )}
@@ -92,7 +92,7 @@ export function MobileFilterBar({
           {activeFilterCount > 0 && (
             <button
               onClick={onClearFilters}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-200 hover:text-rose-300 rounded-lg border border-white/10 hover:border-rose-400 transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-600 hover:text-rose-600 rounded-lg border border-slate-200 hover:border-rose-200 transition-colors"
             >
               <X className="w-3 h-3" />
               <span>{t("clear", "Clear")}</span>
@@ -116,8 +116,8 @@ export function MobileFilterBar({
                 onClick={() => onCategoryQuickSelect(category.id)}
                 className={`flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                   isSelected
-                    ? "bg-gradient-to-r from-indigo-500 to-sky-500 text-white border-transparent shadow-md shadow-indigo-500/40"
-                    : "bg-white/10 text-slate-200 border-white/15 hover:bg-white/15"
+                    ? "bg-gradient-to-r from-sky-500 to-emerald-500 text-white border-transparent shadow-sm"
+                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-white"
                 }`}
                 title={category.label}
               >
@@ -128,7 +128,7 @@ export function MobileFilterBar({
           })}
 
           {/* Divider */}
-          <div className="flex-shrink-0 w-px h-8 bg-white/10 mx-1"></div>
+          <div className="flex-shrink-0 w-px h-8 bg-slate-200 mx-1"></div>
 
           {/* Price Range Chips */}
           {QUICK_PRICE_RANGES.map(priceRange => {
@@ -143,8 +143,8 @@ export function MobileFilterBar({
                 onClick={() => onPriceQuickSelect(priceRange.id)}
                 className={`flex-shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                   isSelected
-                    ? "bg-gradient-to-r from-indigo-500 to-sky-500 text-white border-transparent shadow-md shadow-indigo-500/40"
-                    : "bg-white/10 text-slate-200 border-white/15 hover:bg-white/15"
+                    ? "bg-gradient-to-r from-sky-500 to-emerald-500 text-white border-transparent shadow-sm"
+                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-white"
                 }`}
               >
                 {priceRange.label}
@@ -153,7 +153,7 @@ export function MobileFilterBar({
           })}
 
           {/* Divider */}
-          <div className="flex-shrink-0 w-px h-8 bg-white/10 mx-1"></div>
+          <div className="flex-shrink-0 w-px h-8 bg-slate-200 mx-1"></div>
 
           {/* Special Filter Chips */}
           {SPECIAL_FILTERS.map(special => {
@@ -162,7 +162,7 @@ export function MobileFilterBar({
               <button
                 key={special.id}
                 onClick={() => onCategoryQuickSelect(special.id)}
-                className="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border bg-white/10 text-slate-200 border-white/15 hover:bg-white/15 transition-all"
+                className="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border bg-slate-50 text-slate-600 border-slate-200 hover:bg-white transition-all"
               >
                 <IconComponent className="w-3 h-3" />
                 <span className="whitespace-nowrap">{special.label}</span>
@@ -171,7 +171,7 @@ export function MobileFilterBar({
           })}
 
           {/* Divider */}
-          <div className="flex-shrink-0 w-px h-8 bg-white/10 mx-1"></div>
+          <div className="flex-shrink-0 w-px h-8 bg-slate-200 mx-1"></div>
 
           {/* Advanced Filters Button - Inline (removed per request) */}
           {/*

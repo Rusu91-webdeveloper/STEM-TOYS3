@@ -1,12 +1,13 @@
 "use client";
 
-import { Instagram, Mail, MapPin, Phone } from "lucide-react";
+import { Brain, Instagram, Mail, MapPin, Phone, Rocket, Sparkles, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import NTPLogo from "ntp-logo-react";
 import { useEffect, useState } from "react";
 
 import NewsletterSignup from "@/components/NewsletterSignup";
+import { StemBenefitsSection } from "@/features/products/components/StemBenefitsSection";
 import { useTranslation } from "@/lib/i18n";
 
 interface StoreSettings {
@@ -281,10 +282,41 @@ export default function Footer({
   const socialIconClass =
     "h-[14px] w-[14px] text-gray-300 transition-colors group-hover:text-white sm:h-5 sm:w-5";
 
+  // Benefits of STEM toys with icons
+  const stemBenefits = [
+    {
+      icon: Brain,
+      titleKey: "cognitiveDevelopment",
+      descKey: "cognitiveDevelopmentDesc",
+    },
+    {
+      icon: Sparkles,
+      titleKey: "creativityInnovation",
+      descKey: "creativityInnovationDesc",
+    },
+    {
+      icon: Rocket,
+      titleKey: "futureReady",
+      descKey: "futureReadyDesc",
+    },
+    {
+      icon: Star,
+      titleKey: "funLearning",
+      descKey: "funLearningDesc",
+    },
+  ];
+
   return (
     <footer className="bg-gray-950 text-white">
       {/* Newsletter always visible at top */}
       <NewsletterSignup />
+
+      {/* STEM Benefits Section */}
+      <StemBenefitsSection
+        stemBenefits={stemBenefits}
+        activeCategory={null}
+        t={t}
+      />
 
       {/* Main footer content */}
       <div className="container mx-auto px-3 py-4 sm:py-6 md:py-8 lg:py-10">

@@ -2,7 +2,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
-import { SessionProvider } from "next-auth/react";
 
 import ConversionTrackingProvider from "@/components/conversion-tracking/ConversionTrackingProvider";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
@@ -18,6 +17,7 @@ import { CentralizedSessionProvider } from "@/lib/auth/SessionContext";
 import { CurrencyProvider } from "@/lib/currency";
 import { I18nProvider } from "@/lib/i18n";
 import { CriticalCSS } from "@/components/CriticalCSS";
+import { SafeSessionProvider } from "@/components/auth/SafeSessionProvider";
 
 import "./globals.css";
 import { metadata as appMetadata } from "./metadata";
@@ -123,7 +123,7 @@ export default async function RootLayout({
         className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}
       >
         <StructuredDataInjector />
-        <SessionProvider>
+        <SafeSessionProvider>
           <CentralizedSessionProvider>
             <I18nProvider initialLanguage={initialLanguage}>
               <CurrencyProvider>
@@ -139,7 +139,7 @@ export default async function RootLayout({
               </CurrencyProvider>
             </I18nProvider>
           </CentralizedSessionProvider>
-        </SessionProvider>
+        </SafeSessionProvider>
       </body>
     </html>
   );

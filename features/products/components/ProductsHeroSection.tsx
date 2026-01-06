@@ -69,14 +69,14 @@ export function ProductsHeroSection({
     <section className="relative">
       {/* Premium Hero Image with enhanced mobile visuals */}
       <div className="relative w-full overflow-hidden rounded-[1.75rem] sm:rounded-[2.5rem]">
-        <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-b from-slate-900/80 via-slate-900/30 to-slate-900/90" />
-        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-primary/30 via-transparent to-purple-500/30 mix-blend-multiply" />
+        <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-b from-slate-900/70 via-slate-900/30 to-slate-900/85" />
+        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-sky-500/25 via-transparent to-emerald-500/25 mix-blend-multiply" />
         <div className="relative h-auto min-h-[260px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[420px]">
         {/* Decorative pattern overlay - non-interactive */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[length:20px_20px] z-10 mix-blend-soft-light"></div>
 
         {/* Soft gradient mesh - non-interactive */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 motion-safe:animate-pulse z-0"></div>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-500/10 via-emerald-500/10 to-amber-500/10 motion-safe:animate-pulse z-0"></div>
 
         <Image
           src={categoryImagePath}
@@ -108,7 +108,7 @@ export function ProductsHeroSection({
 
               {/* Premium headline with better mobile typography */}
               <h1 className="text-2xl sm:text-3xl md:text-[2.5rem] lg:text-[2.75rem] xl:text-[3rem] font-black mb-3 sm:mb-4 drop-shadow-2xl tracking-tight leading-tight">
-                <span className="bg-gradient-to-r from-white via-blue-100 to-purple-100 text-transparent bg-clip-text">
+                <span className="bg-gradient-to-r from-white via-sky-100 to-emerald-100 text-transparent bg-clip-text">
                   {headline}
                 </span>
               </h1>
@@ -120,22 +120,6 @@ export function ProductsHeroSection({
 
               {/* CTAs */}
               <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <Link
-                  href="/contact"
-                  onClick={() =>
-                    trackEvent("cta_click", "products", {
-                      label: "get_personalized_recommendations",
-                      element: "products-hero-primary",
-                      variant: variantName,
-                    })
-                  }
-                  className="relative z-30 group inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-primary via-blue-600 to-purple-600 px-5 py-2.5 sm:px-6 sm:py-3.5 text-sm sm:text-base font-black text-white shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-[1.03] border border-white/20 backdrop-blur-sm overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
-                >
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                  <span className="relative z-10">
-                    {t("getPersonalizedRecommendations")}
-                  </span>
-                </Link>
                 <Link
                   href="/blog"
                   onClick={() =>
@@ -182,9 +166,9 @@ export function ProductsHeroSection({
       </div>
 
       {/* Decorative bubbles - non-interactive (hidden on small screens) */}
-      <div className="hidden sm:block pointer-events-none absolute -bottom-4 left-0 w-20 h-20 rounded-full bg-blue-500/20 blur-2xl motion-safe:animate-pulse"></div>
+      <div className="hidden sm:block pointer-events-none absolute -bottom-4 left-0 w-20 h-20 rounded-full bg-sky-500/20 blur-2xl motion-safe:animate-pulse"></div>
       <div
-        className="hidden sm:block pointer-events-none absolute -bottom-6 left-1/4 w-24 h-24 rounded-full bg-green-500/20 blur-2xl motion-safe:animate-pulse"
+        className="hidden sm:block pointer-events-none absolute -bottom-6 left-1/4 w-24 h-24 rounded-full bg-emerald-500/20 blur-2xl motion-safe:animate-pulse"
         style={{ animationDelay: "0.5s" }}
       ></div>
       <div
@@ -192,7 +176,7 @@ export function ProductsHeroSection({
         style={{ animationDelay: "1s" }}
       ></div>
       <div
-        className="hidden sm:block pointer-events-none absolute -bottom-5 right-0 w-20 h-20 rounded-full bg-purple-500/20 blur-2xl motion-safe:animate-pulse"
+        className="hidden sm:block pointer-events-none absolute -bottom-5 right-0 w-20 h-20 rounded-full bg-teal-500/20 blur-2xl motion-safe:animate-pulse"
         style={{ animationDelay: "1.5s" }}
       ></div>
     </section>

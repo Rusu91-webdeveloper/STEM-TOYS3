@@ -62,6 +62,12 @@ export interface EnhancedProductFiltersProps {
   selectedLearningOutcomes?: string[];
   selectedProductType?: string;
   selectedSpecialCategories?: string[];
+  selectedAgeGroup?:
+    | "TODDLERS_1_3"
+    | "PRESCHOOL_3_5"
+    | "ELEMENTARY_6_8"
+    | "MIDDLE_SCHOOL_9_12"
+    | "TEENS_13_PLUS";
   onCategoryChange?: (categoryId: string) => void;
   onFilterChange?: (filterId: string, optionId: string) => void;
   onPriceChange?: (range: [number, number]) => void;
@@ -72,6 +78,14 @@ export interface EnhancedProductFiltersProps {
   onLearningOutcomesChange?: (learningOutcomes: string[]) => void;
   onProductTypeChange?: (productType: string) => void;
   onSpecialCategoriesChange?: (specialCategories: string[]) => void;
+  onAgeGroupChange?: (
+    ageGroup:
+      | "PRESCHOOL_3_5"
+      | "ELEMENTARY_6_8"
+      | "MIDDLE_SCHOOL_9_12"
+      | "TEENS_13_PLUS"
+      | undefined
+  ) => void;
   className?: string;
   isInsideModal?: boolean; // New prop to indicate if component is inside a modal
   t?: (key: string, fallback?: string) => string; // Translation function
@@ -87,6 +101,7 @@ export function EnhancedProductFilters({
   selectedLearningOutcomes = [],
   selectedProductType,
   selectedSpecialCategories = [],
+  selectedAgeGroup,
   onCategoryChange,
   onFilterChange,
   onPriceChange,
@@ -96,6 +111,7 @@ export function EnhancedProductFilters({
   onLearningOutcomesChange,
   onProductTypeChange,
   onSpecialCategoriesChange,
+  onAgeGroupChange,
   className,
   isInsideModal = false,
   t,
@@ -150,7 +166,8 @@ export function EnhancedProductFilters({
       : 0) +
     selectedLearningOutcomes.length +
     (selectedProductType && selectedProductType !== "all" ? 1 : 0) +
-    selectedSpecialCategories.length;
+    selectedSpecialCategories.length +
+    (selectedAgeGroup ? 1 : 0);
 
   // Handle price slider change
   const handlePriceChange = (value: number[]) => {
@@ -180,7 +197,7 @@ export function EnhancedProductFilters({
         <div className="flex items-center justify-between">
           <h3
             className={cn(
-              "text-xs sm:text-sm font-medium",
+              "text-xs sm:text-sm font-medium text-slate-700",
               isInsideModal && "text-xs"
             )}
           >
@@ -208,14 +225,14 @@ export function EnhancedProductFilters({
             isInsideModal && "space-y-2 sm:space-y-3"
           )}
         >
-          <h3
-            className={cn(
-              "text-xs sm:text-sm font-medium",
-              isInsideModal && "text-xs"
-            )}
-          >
-            {categories.name}
-          </h3>
+        <h3
+          className={cn(
+            "text-xs sm:text-sm font-medium text-slate-800",
+            isInsideModal && "text-xs"
+          )}
+        >
+          {categories.name}
+        </h3>
           <div
             className={cn(
               "space-y-2 sm:space-y-3",
@@ -239,14 +256,14 @@ export function EnhancedProductFilters({
                   )}
                   onCheckedChange={() => onCategoryChange?.(category.id)}
                   className={cn(
-                    "h-4 w-4 sm:h-5 sm:w-5",
+                    "h-4 w-4 sm:h-5 sm:w-5 border-slate-300 data-[state=checked]:border-sky-600 data-[state=checked]:bg-sky-600 data-[state=checked]:text-white",
                     isInsideModal && "h-4 w-4 sm:h-4.5 sm:w-4.5"
                   )}
                 />
                 <Label
                   htmlFor={`category-${category.id}`}
                   className={cn(
-                    "flex-grow text-xs sm:text-sm",
+                    "flex-grow text-xs sm:text-sm text-slate-700",
                     isInsideModal && "text-xs"
                   )}
                 >
@@ -268,6 +285,95 @@ export function EnhancedProductFilters({
         </div>
       )}
 
+      {/* Age Group Filter */}
+      <div
+        className={cn(
+          "space-y-3 sm:space-y-4",
+          isInsideModal && "space-y-2 sm:space-y-3"
+        )}
+      >
+        <h3
+          className={cn(
+            "text-xs sm:text-sm font-medium text-slate-800",
+            isInsideModal && "text-xs"
+          )}
+        >
+          {t ? t("ageGroup", "Age Group") : "Age Group"}
+        </h3>
+        <div
+          className={cn(
+            "space-y-1.5 sm:space-y-2",
+            isInsideModal && "space-y-1 sm:space-y-1.5"
+          )}
+        >
+          {[
+            {
+              id: "PRESCHOOL_3_5",
+              labelKey: "age3to5H2",
+              short: "3–5",
+              icon: "🐣",
+            },
+            {
+              id: "ELEMENTARY_6_8",
+              labelKey: "age6to8H2",
+              short: "6–8",
+              icon: "🎒",
+            },
+            {
+              id: "MIDDLE_SCHOOL_9_12",
+              labelKey: "age9to12H2",
+              short: "9–12",
+              icon: "🧠",
+            },
+            {
+              id: "TEENS_13_PLUS",
+              labelKey: "age13plusH2",
+              short: "13+",
+              icon: "🚀",
+            },
+          ].map(opt => {
+            const isActive = selectedAgeGroup === opt.id;
+            return (
+              <div
+                key={opt.id}
+                className={cn(
+                  "flex items-center space-x-3 py-1",
+                  isInsideModal && "py-2"
+                )}
+              >
+                <Checkbox
+                  id={`age-group-${opt.id}`}
+                  checked={isActive}
+                  onCheckedChange={checked => {
+                    if (onAgeGroupChange) {
+                      onAgeGroupChange(
+                        checked ? (opt.id as any) : undefined
+                      );
+                    }
+                  }}
+                  className={cn(
+                    "h-4 w-4 sm:h-5 sm:w-5 border-slate-300 data-[state=checked]:border-sky-600 data-[state=checked]:bg-sky-600 data-[state=checked]:text-white",
+                    isInsideModal && "h-4 w-4 sm:h-4.5 sm:w-4.5"
+                  )}
+                />
+                <Label
+                  htmlFor={`age-group-${opt.id}`}
+                  className={cn(
+                    "flex-grow text-xs sm:text-sm cursor-pointer text-slate-700",
+                    isInsideModal && "text-xs"
+                  )}
+                >
+                  <span className="mr-2">{opt.icon}</span>
+                  {t
+                    ? t(opt.labelKey, opt.short)
+                    : `${opt.short} ${t ? t("years", "yrs") : "yrs"}`}
+                </Label>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Learning Outcomes Filter */}
       <div
         className={cn(
@@ -277,7 +383,7 @@ export function EnhancedProductFilters({
       >
         <h3
           className={cn(
-            "text-xs sm:text-sm font-medium",
+            "text-xs sm:text-sm font-medium text-slate-800",
             isInsideModal && "text-xs"
           )}
         >
@@ -315,14 +421,14 @@ export function EnhancedProductFilters({
                   }
                 }}
                 className={cn(
-                  "h-4 w-4 sm:h-5 sm:w-5",
+                  "h-4 w-4 sm:h-5 sm:w-5 border-slate-300 data-[state=checked]:border-sky-600 data-[state=checked]:bg-sky-600 data-[state=checked]:text-white",
                   isInsideModal && "h-4 w-4 sm:h-4.5 sm:w-4.5"
                 )}
               />
               <Label
                 htmlFor={`learning-outcome-${key}`}
                 className={cn(
-                  "flex-grow text-xs sm:text-sm",
+                  "flex-grow text-xs sm:text-sm text-slate-700",
                   isInsideModal && "text-xs"
                 )}
               >
@@ -351,7 +457,7 @@ export function EnhancedProductFilters({
       >
         <h3
           className={cn(
-            "text-xs sm:text-sm font-medium",
+            "text-xs sm:text-sm font-medium text-slate-800",
             isInsideModal && "text-xs"
           )}
         >
@@ -363,15 +469,15 @@ export function EnhancedProductFilters({
         >
           <SelectTrigger
             className={cn(
-              "h-10 sm:h-11 text-sm sm:text-base",
-              selectedProductType === "all" ? "text-black" : undefined,
+              "h-10 sm:h-11 text-sm sm:text-base border-slate-200 bg-white/80 text-slate-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-200",
+              selectedProductType === "all" ? "text-slate-700" : undefined,
               isInsideModal && "h-11 sm:h-12 text-sm"
             )}
           >
             <SelectValue placeholder="Select product type" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all" className="text-black">
+          <SelectContent className="border-slate-200 bg-white text-slate-700 shadow-xl">
+            <SelectItem value="all" className="text-slate-700">
               {t ? t("allTypes", "All Types") : "All Types"}
             </SelectItem>
             {Object.keys(PRODUCT_TYPE_DISPLAY_NAMES).map(key => (
@@ -401,7 +507,7 @@ export function EnhancedProductFilters({
       >
         <h3
           className={cn(
-            "text-xs sm:text-sm font-medium",
+            "text-xs sm:text-sm font-medium text-slate-800",
             isInsideModal && "text-xs"
           )}
         >
@@ -441,14 +547,14 @@ export function EnhancedProductFilters({
                   }
                 }}
                 className={cn(
-                  "h-4 w-4 sm:h-5 sm:w-5",
+                  "h-4 w-4 sm:h-5 sm:w-5 border-slate-300 data-[state=checked]:border-sky-600 data-[state=checked]:bg-sky-600 data-[state=checked]:text-white",
                   isInsideModal && "h-4 w-4 sm:h-4.5 sm:w-4.5"
                 )}
               />
               <Label
                 htmlFor={`special-category-${key}`}
                 className={cn(
-                  "flex-grow text-xs sm:text-sm",
+                  "flex-grow text-xs sm:text-sm text-slate-700",
                   isInsideModal && "text-xs"
                 )}
               >
@@ -476,14 +582,14 @@ export function EnhancedProductFilters({
             isInsideModal && "space-y-2 sm:space-y-3"
           )}
         >
-          <h3
-            className={cn(
-              "text-xs sm:text-sm font-medium",
-              isInsideModal && "text-xs"
-            )}
-          >
-            Price Range
-          </h3>
+        <h3
+          className={cn(
+            "text-xs sm:text-sm font-medium text-slate-800",
+            isInsideModal && "text-xs"
+          )}
+        >
+          Price Range
+        </h3>
 
           {/* Price filter toggle checkbox */}
           <div className="flex items-center space-x-2">
@@ -492,14 +598,14 @@ export function EnhancedProductFilters({
               checked={!noPriceFilter}
               onCheckedChange={checked => onNoPriceFilterChange(!checked)}
               className={cn(
-                "h-3.5 w-3.5 sm:h-4 sm:w-4",
+                "h-3.5 w-3.5 sm:h-4 sm:w-4 border-slate-300 data-[state=checked]:border-sky-600 data-[state=checked]:bg-sky-600 data-[state=checked]:text-white",
                 isInsideModal && "h-3 w-3 sm:h-3.5 sm:w-3.5"
               )}
             />
             <Label
               htmlFor="price-filter-enabled"
               className={cn(
-                "text-xs sm:text-sm font-medium",
+                "text-xs sm:text-sm font-medium text-slate-700",
                 isInsideModal && "text-xs"
               )}
             >
@@ -540,7 +646,7 @@ export function EnhancedProductFilters({
                       }
                     }}
                     className={cn(
-                      "w-full pl-9 pr-6 py-2 text-sm border rounded-lg flex-shrink-0",
+                      "w-full pl-9 pr-6 py-2 text-sm border border-slate-200 bg-white/80 text-slate-700 rounded-lg flex-shrink-0 focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-200",
                       isInsideModal ? "h-10" : "h-8"
                     )}
                   />
@@ -571,7 +677,7 @@ export function EnhancedProductFilters({
                       }
                     }}
                     className={cn(
-                      "w-full pl-9 pr-6 py-2 text-sm border rounded-lg flex-shrink-0",
+                      "w-full pl-9 pr-6 py-2 text-sm border border-slate-200 bg-white/80 text-slate-700 rounded-lg flex-shrink-0 focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-200",
                       isInsideModal ? "h-10" : "h-8"
                     )}
                   />
@@ -616,30 +722,30 @@ export function EnhancedProductFilters({
               <AccordionContent className="pt-1 sm:pt-2 pb-3 sm:pb-4">
                 <div className="space-y-1.5 sm:space-y-2">
                   {filter.options.map(option => (
-                    <div
-                      key={option.id}
-                      className={cn(
-                        "flex items-center space-x-3 py-1",
-                        isInsideModal && "py-2"
-                      )}
-                    >
-                      <Checkbox
-                        id={`${filter.id}-${option.id}`}
-                        checked={
-                          selectedFilters[filter.id]?.includes(option.id) ||
-                          false
-                        }
-                        onCheckedChange={() =>
-                          onFilterChange?.(filter.id, option.id)
-                        }
-                        className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                      />
-                      <Label
-                        htmlFor={`${filter.id}-${option.id}`}
-                        className="flex-grow text-xs sm:text-sm"
-                      >
-                        {option.label}
-                      </Label>
+                <div
+                  key={option.id}
+                  className={cn(
+                    "flex items-center space-x-3 py-1",
+                    isInsideModal && "py-2"
+                  )}
+                >
+                  <Checkbox
+                    id={`${filter.id}-${option.id}`}
+                    checked={
+                      selectedFilters[filter.id]?.includes(option.id) ||
+                      false
+                    }
+                    onCheckedChange={() =>
+                      onFilterChange?.(filter.id, option.id)
+                    }
+                    className="h-3.5 w-3.5 sm:h-4 sm:w-4 border-slate-300 data-[state=checked]:border-sky-600 data-[state=checked]:bg-sky-600 data-[state=checked]:text-white"
+                  />
+                  <Label
+                    htmlFor={`${filter.id}-${option.id}`}
+                    className="flex-grow text-xs sm:text-sm text-slate-700"
+                  >
+                    {option.label}
+                  </Label>
                       {option.count !== undefined && (
                         <span className="text-[10px] sm:text-xs text-muted-foreground">
                           ({option.count})
@@ -756,6 +862,32 @@ export function EnhancedProductFilters({
             />
           </Badge>
         ))}
+
+        {selectedAgeGroup && (
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1 text-[10px] sm:text-xs py-0 h-5 sm:h-6"
+          >
+            {(() => {
+              const ageOptions: Record<string, { labelKey: string; short: string }> = {
+                PRESCHOOL_3_5: { labelKey: "age3to5H2", short: "3–5" },
+                ELEMENTARY_6_8: { labelKey: "age6to8H2", short: "6–8" },
+                MIDDLE_SCHOOL_9_12: { labelKey: "age9to12H2", short: "9–12" },
+                TEENS_13_PLUS: { labelKey: "age13plusH2", short: "13+" },
+              };
+              const ageOpt = ageOptions[selectedAgeGroup];
+              return ageOpt
+                ? t
+                    ? t(ageOpt.labelKey, ageOpt.short)
+                    : `${ageOpt.short} ${t ? t("years", "yrs") : "yrs"}`
+                : selectedAgeGroup;
+            })()}
+            <X
+              className="h-2.5 w-2.5 sm:h-3 sm:w-3 cursor-pointer"
+              onClick={() => onAgeGroupChange?.(undefined)}
+            />
+          </Badge>
+        )}
 
         {Object.entries(selectedFilters).map(([filterId, optionIds]) =>
           Array.isArray(optionIds)

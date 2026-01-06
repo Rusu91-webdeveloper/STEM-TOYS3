@@ -71,34 +71,34 @@ export function ProductsMainDisplay({
     { surface: string; icon: string; glow: string }
   > = {
     science: {
-      surface: "from-sky-500/25 via-sky-400/10 to-sky-500/5",
-      icon: "from-sky-400 to-sky-600",
-      glow: "shadow-sky-500/40",
+      surface: "from-sky-100/80 via-white to-sky-50",
+      icon: "from-sky-500 to-sky-600",
+      glow: "shadow-sky-300/40",
     },
     technology: {
-      surface: "from-emerald-500/25 via-emerald-400/10 to-emerald-500/5",
-      icon: "from-emerald-400 to-emerald-600",
-      glow: "shadow-emerald-500/40",
+      surface: "from-emerald-100/80 via-white to-emerald-50",
+      icon: "from-emerald-500 to-emerald-600",
+      glow: "shadow-emerald-300/40",
     },
     engineering: {
-      surface: "from-amber-500/25 via-orange-400/10 to-amber-500/5",
-      icon: "from-amber-400 to-orange-600",
-      glow: "shadow-amber-500/40",
+      surface: "from-amber-100/80 via-white to-orange-50",
+      icon: "from-amber-500 to-orange-500",
+      glow: "shadow-amber-300/40",
     },
     mathematics: {
-      surface: "from-violet-500/25 via-violet-400/10 to-violet-500/5",
-      icon: "from-violet-400 to-violet-600",
-      glow: "shadow-violet-500/40",
+      surface: "from-violet-100/80 via-white to-violet-50",
+      icon: "from-violet-500 to-violet-600",
+      glow: "shadow-violet-300/40",
     },
     "educational-books": {
-      surface: "from-rose-500/25 via-rose-400/10 to-rose-500/5",
-      icon: "from-rose-400 to-rose-600",
-      glow: "shadow-rose-500/40",
+      surface: "from-rose-100/80 via-white to-rose-50",
+      icon: "from-rose-500 to-rose-600",
+      glow: "shadow-rose-300/40",
     },
     default: {
-      surface: "from-indigo-500/25 via-purple-400/10 to-indigo-500/5",
-      icon: "from-indigo-400 to-purple-600",
-      glow: "shadow-indigo-500/40",
+      surface: "from-sky-100/80 via-white to-emerald-50",
+      icon: "from-sky-500 to-emerald-500",
+      glow: "shadow-sky-300/40",
     },
   };
 
@@ -134,16 +134,16 @@ export function ProductsMainDisplay({
   }, [displayedProducts, prevProductCount]);
 
   return (
-    <div className="flex-1 text-slate-100">
-      {/* Premium product area header with enhanced mobile design */}
+    <div className="flex-1 text-slate-900">
+      {/* Product area header */}
       <div
-        className={`${productsGlassCardClass} mb-3 sm:mb-4 flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-white/10 shadow-indigo-900/30`}
+        className={`${productsGlassCardClass} mb-4 flex items-center justify-between gap-2 px-4 py-3`}
       >
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500/30 via-indigo-500/30 to-purple-500/30 border border-white/15 shadow-md shadow-indigo-500/30">
-            <ShoppingBag className="w-4 h-4 text-white" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-700 ring-1 ring-sky-200/60">
+            <ShoppingBag className="w-4 h-4" />
           </div>
-          <p className="text-sm sm:text-base font-semibold text-slate-100">
+          <p className="text-sm sm:text-base font-medium text-slate-900">
             {(() => {
               const countStr = filteredProducts.length.toString();
               const template = t("showingProducts", `Showing {count} products`);
@@ -155,32 +155,36 @@ export function ProductsMainDisplay({
           </p>
         </div>
         {filteredProducts.length > 0 && (
-          <span className="text-xs sm:text-sm text-slate-300">
+          <span className="text-xs sm:text-sm text-slate-500">
             {filteredProducts.length} {t("items")}
           </span>
         )}
       </div>
 
-      {/* Premium educational categories banner with enhanced mobile design */}
+      {/* Educational categories banner */}
       {activeCategory && filteredProducts.length > 0 && (
         <div
-          className={`${productsGlassPanelClass} relative mb-6 sm:mb-8 overflow-hidden border-white/15 p-4 sm:p-6`}
+          className={`${productsGlassPanelClass} relative mb-6 overflow-hidden p-4 sm:p-5`}
         >
           <div
             className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${accent.surface}`}
             aria-hidden
           />
-          <div className="relative z-10 flex items-center gap-4 sm:gap-6">
+          <div
+            className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-white/60 blur-2xl"
+            aria-hidden
+          />
+          <div className="relative z-10 flex items-center gap-4">
             <div
-              className={`p-3 sm:p-4 rounded-2xl bg-gradient-to-br ${accent.icon} flex-shrink-0 border border-white/25 shadow-xl ${accent.glow}`}
+              className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${accent.icon} ${accent.glow} shadow-md`}
             >
-              <IconComponent className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+              <IconComponent className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg sm:text-xl font-black mb-2 text-slate-100 leading-tight">
+              <h3 className="text-lg font-semibold mb-1 text-slate-900 leading-tight">
                 {getLearningTitle()}
               </h3>
-              <p className="text-sm sm:text-base text-slate-300 line-clamp-2 leading-relaxed">
+              <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">
                 {getLearningDescription()}
               </p>
             </div>
@@ -188,28 +192,27 @@ export function ProductsMainDisplay({
         </div>
       )}
 
-      {/* Premium loading overlay - positioned relative to prevent CLS */}
+      {/* Loading overlay */}
       {loading && (
         <div
-          className={`${productsGlassCardClass} relative mb-6 flex items-center justify-center p-8 transition-all duration-300 border-white/12 shadow-indigo-900/40`}
+          className={`${productsGlassCardClass} relative mb-6 flex items-center justify-center p-8 transition-all duration-300`}
         >
           <div className="flex flex-col items-center">
-            {/* Premium loading spinner */}
             <div className="relative mb-4">
-              <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-300 rounded-full animate-spin shadow-lg shadow-indigo-500/40"></div>
+              <div className="w-12 h-12 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
             </div>
-            <p className="text-sm font-semibold text-slate-200">
+            <p className="text-sm font-medium text-slate-600">
               {t("filtering", "Filtering Products...")}
             </p>
           </div>
         </div>
       )}
 
-      {/* Premium Products Display - Optimized for Mobile */}
-      <div className={viewMode === "list" ? "space-y-3 sm:space-y-4" : ""}>
+      {/* Products Display */}
+      <div className={viewMode === "list" ? "space-y-4" : ""}>
         {viewMode === "grid" ? (
           <div
-            className={`${productsGlassPanelClass} p-2 sm:p-4 border-white/12`}
+            className={`${productsGlassPanelClass} relative overflow-hidden p-2 sm:p-4 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle,_rgba(14,116,144,0.08)_1px,_transparent_1px)] before:bg-[length:22px_22px] before:opacity-40`}
           >
             <ProductGrid
               products={displayProducts.map((product, index) => {
@@ -256,73 +259,66 @@ export function ProductsMainDisplay({
               return (
                 <div
                   key={product.id}
-                  className={`${productsGlassCardClass} flex flex-col sm:flex-row gap-3 sm:gap-4 overflow-hidden border-white/12 shadow-indigo-900/40 transition-all duration-500 hover:-translate-y-1 hover:scale-[1.02] relative group animate-fadeIn`}
+                  className={`${productsGlassCardClass} flex flex-col sm:flex-row gap-4 overflow-hidden transition-all duration-200 hover:shadow-md relative group animate-fadeIn`}
                   style={{ animationDelay: `${Math.min(index * 0.1, 0.5)}s` }}
                 >
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-indigo-500/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  {/* Premium ribbon for sale items */}
+                  {/* Sale ribbon */}
                   {product.compareAtPrice &&
                     product.compareAtPrice > product.price && (
                       <div className="absolute top-3 left-3 z-10">
-                        <div className="bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white text-xs font-black px-3 py-1.5 rounded-2xl shadow-xl border border-white/20 animate-pulse">
+                        <div className="bg-red-500 text-white text-xs font-semibold px-3 py-1.5 rounded-md shadow-sm">
                           SALE
                         </div>
                       </div>
                     )}
 
-                  {/* Premium product image with enhanced design */}
-                  <div className="relative z-10 w-full sm:w-48 h-48 sm:h-56 flex-shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70 shadow-inner shadow-black/30">
-                    {/* Decorative background pattern */}
-                    <div className="absolute inset-0 bg-[radial-gradient(circle,_rgba(129,140,248,0.12)_1px,_transparent_1px)] bg-[length:18px_18px] opacity-80"></div>
-
+                  {/* Product image */}
+                  <div className="relative z-10 w-full sm:w-48 h-48 sm:h-56 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/80">
                     {product.images && product.images.length > 0 ? (
                       <OptimizedProductImage
                         src={product.images[0]}
                         alt={displayName}
                         fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-700 relative z-10"
+                        className="object-contain object-center group-hover:scale-105 transition-transform duration-300 relative z-10 p-4"
                         priority={false}
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-slate-800/80 via-slate-900/70 to-slate-900 flex items-center justify-center relative z-10">
+                      <div className="w-full h-full bg-slate-100 flex items-center justify-center relative z-10">
                         <div className="text-center">
-                          <div className="w-12 h-12 bg-gradient-to-r from-slate-600 to-indigo-600 rounded-2xl flex items-center justify-center mb-2 mx-auto shadow-lg shadow-indigo-500/30">
-                            <ShoppingBag className="w-6 h-6 text-white" />
+                          <div className="w-12 h-12 bg-slate-200 rounded-lg flex items-center justify-center mb-2 mx-auto">
+                            <ShoppingBag className="w-6 h-6 text-slate-400" />
                           </div>
-                          <span className="text-slate-300 text-sm font-medium">
+                          <span className="text-slate-500 text-sm font-medium">
                             {t("noImage", "No Image")}
                           </span>
                         </div>
                       </div>
                     )}
-
-                    {/* Image overlay gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
 
-                  {/* Premium product details with enhanced mobile design */}
-                  <div className="relative z-10 flex flex-1 flex-col justify-between p-4 sm:p-6">
+                  {/* Product details */}
+                  <div className="relative z-10 flex flex-1 flex-col justify-between p-4 sm:p-5">
                     <div>
-                      <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
+                      <div className="flex items-start justify-between gap-3 mb-3">
                         <Link
                           href={`/products/${product.slug}`}
-                          className="font-black text-base sm:text-lg text-slate-100 transition-all duration-300 line-clamp-2 leading-tight group-hover:text-indigo-200 group-hover:underline"
+                          className="font-semibold text-base sm:text-lg text-slate-900 transition-colors line-clamp-2 leading-tight hover:text-sky-700"
                         >
                           {displayName}
                         </Link>
                       </div>
 
-                      <p className="text-sm sm:text-base text-slate-300 line-clamp-3 mb-4 sm:mb-5 leading-relaxed">
+                      <p className="text-sm text-slate-600 line-clamp-3 mb-4 leading-relaxed">
                         {displayDescription}
                       </p>
 
-                      {/* Premium product tags/badges */}
-                      <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-5">
+                      {/* Product tags/badges */}
+                      <div className="flex flex-wrap gap-2 mb-4">
                         {product.category?.name && (
                           <Badge
                             variant="secondary"
-                            className="text-[11px] sm:text-xs px-3 py-1.5 bg-white/10 text-slate-100 border border-white/15 shadow-md shadow-indigo-500/25 rounded-2xl font-bold hover:scale-105 transition-transform duration-300 backdrop-blur"
+                            className="text-xs px-2.5 py-1 bg-sky-50 text-sky-700 border border-sky-100 rounded-md font-medium"
                           >
                             {product.category.name}
                           </Badge>
@@ -330,7 +326,7 @@ export function ProductsMainDisplay({
                         {product.isBook && (
                           <Badge
                             variant="secondary"
-                            className="text-[11px] sm:text-xs px-3 py-1.5 bg-emerald-500/20 text-emerald-100 border border-emerald-300/30 shadow-md shadow-emerald-500/25 rounded-2xl font-bold hover:scale-105 transition-transform duration-300 backdrop-blur"
+                            className="text-xs px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md font-medium"
                           >
                             {t("digitalBook", "Digital Book")}
                           </Badge>
@@ -338,7 +334,7 @@ export function ProductsMainDisplay({
                         {product.featured && (
                           <Badge
                             variant="secondary"
-                            className="text-[11px] sm:text-xs px-3 py-1.5 bg-amber-500/20 text-amber-100 border border-amber-300/30 shadow-md shadow-amber-500/25 rounded-2xl font-bold hover:scale-105 transition-transform duration-300 backdrop-blur"
+                            className="text-xs px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-md font-medium"
                           >
                             ⭐ {t("featured", "Featured")}
                           </Badge>
@@ -346,54 +342,45 @@ export function ProductsMainDisplay({
                       </div>
                     </div>
 
-                    {/* Premium price and actions section */}
-                    <div className="flex flex-col gap-4 mt-auto">
-                      {/* Premium Price Section */}
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-baseline gap-3">
-                          <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300 text-transparent bg-clip-text">
+                    {/* Price and actions section */}
+                    <div className="flex flex-col gap-3 mt-auto">
+                      {/* Price Section */}
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xl font-bold text-slate-900">
                             {product.price
                               ? `${product.price} RON`
                               : t("freeDownload", "Free Download")}
                           </span>
                           {product.compareAtPrice &&
                             product.compareAtPrice > product.price && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm text-rose-200 font-black bg-gradient-to-r from-rose-500/20 to-red-500/20 px-3 py-1 rounded-2xl shadow-md shadow-rose-500/30 border border-rose-400/30 backdrop-blur">
-                                  -
-                                  {Math.round(
-                                    ((product.compareAtPrice - product.price) /
-                                      product.compareAtPrice) *
-                                      100
-                                  )}
-                                  % OFF
-                                </span>
-                              </div>
+                              <span className="text-sm text-red-600 font-semibold">
+                                -
+                                {Math.round(
+                                  ((product.compareAtPrice - product.price) /
+                                    product.compareAtPrice) *
+                                    100
+                                )}
+                                % OFF
+                              </span>
                             )}
                         </div>
                         {product.compareAtPrice && (
-                          <div className="flex items-center gap-3">
-                            <span className="text-base text-slate-400 line-through font-medium">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-slate-500 line-through">
                               {product.compareAtPrice} RON
-                            </span>
-                            <span className="text-sm text-slate-200 bg-white/10 px-2 py-0.5 rounded-full border border-white/15">
-                              {t("was", "Previous price")}
                             </span>
                           </div>
                         )}
                       </div>
 
-                      {/* Premium Action Button */}
+                      {/* Action Button */}
                       <div className="flex gap-3">
                         <Link
                           href={`/products/${product.slug}`}
-                          className="group flex-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-sky-600 hover:from-indigo-500 hover:via-purple-500 hover:to-sky-500 text-white px-6 py-3 rounded-2xl text-base font-black transition-all duration-500 shadow-indigo-900/40 hover:shadow-indigo-500/40 text-center hover:scale-105 active:scale-95 relative overflow-hidden border border-white/15"
+                          className="flex-1 bg-sky-600 hover:bg-sky-700 text-white px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-200 text-center shadow-sm"
                         >
-                          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                          <span className="relative z-10 flex items-center justify-center gap-2">
-                            {t("viewDetails", "View Details")}
-                            <div className="w-2 h-2 bg-white/80 rounded-full group-hover:animate-ping"></div>
-                          </span>
+                          {t("viewDetails", "View Details")}
                         </Link>
                       </div>
                     </div>
