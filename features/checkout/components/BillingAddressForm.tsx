@@ -60,6 +60,7 @@ export const BillingAddressForm = React.memo(function BillingAddressForm({
           <ShippingAddressForm
             initialData={currentBillingAddress}
             onSubmit={onBillingAddressChange}
+            allowInternational={true}
           />
         </div>
       )}

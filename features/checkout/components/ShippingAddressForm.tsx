@@ -16,7 +16,10 @@ import {
 } from "@/components/ui/select";
 import { createFormValidator } from "@/lib/formValidation";
 import { useTranslation } from "@/lib/i18n";
-import { addressSchema } from "@/lib/validations";
+import {
+  addressSchema,
+  internationalAddressSchema,
+} from "@/lib/validations";
 import { glassCardClass } from "@/features/home/components/homeTheme";
 import { cn } from "@/lib/utils";
 
@@ -39,10 +42,14 @@ interface Address {
 interface ShippingAddressFormProps {
   initialData?: ShippingAddress;
   onSubmit: (address: ShippingAddress) => void;
+  allowInternational?: boolean;
 }
 
 // Create a form validator using our address schema
-const addressValidator = createFormValidator(addressSchema);
+const romanianAddressValidator = createFormValidator(addressSchema);
+const internationalAddressValidator = createFormValidator(
+  internationalAddressSchema
+);
 
 // Romanian counties
 const romanianCounties = [
@@ -96,8 +103,13 @@ const countries = [{ code: "RO", name: "România" }];
 export function ShippingAddressForm({
   initialData,
   onSubmit,
+  allowInternational = false,
 }: ShippingAddressFormProps) {
   const { t, locale } = useTranslation();
+  const defaultCountry = allowInternational ? "" : "RO";
+  const addressValidator = allowInternational
+    ? internationalAddressValidator
+    : romanianAddressValidator;
   const [formData, setFormData] = useState<ShippingAddress>(
     initialData || {
       fullName: "",
@@ -106,7 +118,7 @@ export function ShippingAddressForm({
       city: "",
       state: "",
       postalCode: "",
-      country: "RO", // Default to Romania
+      country: defaultCountry,
       phone: "",
     }
   );
@@ -206,7 +218,7 @@ export function ShippingAddressForm({
         city: "",
         state: "",
         postalCode: "",
-        country: "RO",
+        country: defaultCountry,
         phone: "",
       });
     } else {
@@ -237,9 +249,11 @@ export function ShippingAddressForm({
         >
         <h2 className="text-xl font-semibold mb-4 text-slate-100">{t("shippingAddress")}</h2>
 
-        <div className="mb-4 rounded-md border border-sky-400/30 bg-sky-500/10 p-3 text-sm text-sky-100">
-          {t("deliveryOnlyRomania")}
-        </div>
+        {!allowInternational && (
+          <div className="mb-4 rounded-md border border-sky-400/30 bg-sky-500/10 p-3 text-sm text-sky-100">
+            {t("deliveryOnlyRomania")}
+          </div>
+        )}
 
         {isLoadingAddresses ? (
           <div className="flex items-center justify-center py-6">
@@ -392,32 +406,45 @@ export function ShippingAddressForm({
                 <Label htmlFor="state" className="text-slate-200">
                   {t("state")}
                 </Label>
-                <Select
-                  value={formData.state}
-                  onValueChange={value => handleSelectChange("state", value)}
-                >
-                  <SelectTrigger
+                {allowInternational ? (
+                  <Input
+                    id="state"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleChange}
                     className={cn(
-                      "border-white/10 bg-white/5 text-slate-100",
+                      "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
                       errors.state && "border-red-500"
                     )}
+                  />
+                ) : (
+                  <Select
+                    value={formData.state}
+                    onValueChange={value => handleSelectChange("state", value)}
                   >
-                    <SelectValue
-                      placeholder={
-                        locale === "ro"
-                          ? "Selectează un județ"
-                          : "Select a county"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {romanianCounties.map(county => (
-                      <SelectItem key={county.code} value={county.code}>
-                        {county.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    <SelectTrigger
+                      className={cn(
+                        "border-white/10 bg-white/5 text-slate-100",
+                        errors.state && "border-red-500"
+                      )}
+                    >
+                      <SelectValue
+                        placeholder={
+                          locale === "ro"
+                            ? "Selectează un județ"
+                            : "Select a county"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {romanianCounties.map(county => (
+                        <SelectItem key={county.code} value={county.code}>
+                          {county.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 {errors.state && (
                   <p className="mt-1 text-sm text-red-400">{errors.state}</p>
                 )}
@@ -450,33 +477,46 @@ export function ShippingAddressForm({
                 <Label htmlFor="country" className="text-slate-200">
                   {t("country")}
                 </Label>
-                <Select
-                  value={formData.country}
-                  onValueChange={value => handleSelectChange("country", value)}
-                  disabled={true}
-                >
-                  <SelectTrigger
+                {allowInternational ? (
+                  <Input
+                    id="country"
+                    name="country"
+                    value={formData.country}
+                    onChange={handleChange}
                     className={cn(
-                      "border-white/10 bg-white/5 text-slate-100 data-[placeholder]:text-slate-400",
+                      "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
                       errors.country && "border-red-500"
                     )}
+                  />
+                ) : (
+                  <Select
+                    value={formData.country}
+                    onValueChange={value => handleSelectChange("country", value)}
+                    disabled={true}
                   >
-                    <SelectValue
-                      placeholder={
-                        locale === "ro"
-                          ? "Selectează o țară"
-                          : "Select a country"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map(country => (
-                      <SelectItem key={country.code} value={country.code}>
-                        {country.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    <SelectTrigger
+                      className={cn(
+                        "border-white/10 bg-white/5 text-slate-100 data-[placeholder]:text-slate-400",
+                        errors.country && "border-red-500"
+                      )}
+                    >
+                      <SelectValue
+                        placeholder={
+                          locale === "ro"
+                            ? "Selectează o țară"
+                            : "Select a country"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map(country => (
+                        <SelectItem key={country.code} value={country.code}>
+                          {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 {errors.country && (
                   <p className="mt-1 text-sm text-red-400">{errors.country}</p>
                 )}
