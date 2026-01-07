@@ -2,22 +2,18 @@
 
 import {
   CreditCard,
-  Globe2,
   Loader2,
   ShieldCheck,
-  Smartphone,
   Sparkles,
   Package,
+  CheckCircle2,
 } from "lucide-react";
-import React, { /* useState, */ useEffect, useMemo } from "react";
-
-import NTPLogo from "ntp-logo-react";
+import React, { useEffect, useMemo } from "react";
 
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { StripeLogoBadge } from "./StripeLogoBadge";
 
 interface PaymentCard {
   id: string;
@@ -41,8 +37,6 @@ interface PaymentMethodSelectorProps {
   shippingCountry?: string;
 }
 
-const stripeNetworks = ["Visa", "Mastercard", "Apple Pay", "Google Pay", "Revolut"];
-
 type Provider = "netopia" | "stripe" | "cod";
 type PaymentMethodItem = {
   id: string;
@@ -53,35 +47,10 @@ type PaymentMethodItem = {
   fee?: string;
   description?: string;
   badge?: string;
+  color: string;
+  borderColor: string;
+  bgColor: string;
 };
-type ProviderMeta = {
-  title: string;
-  subtitle: string;
-  gradient: string;
-  border: string;
-  chipTone: string;
-  icon: React.ReactNode;
-  helperChips: string[];
-  logo: React.ReactNode;
-};
-
-const StripeMark = () => (
-  <div className="flex items-center gap-2 rounded-lg border border-indigo-200/40 bg-white px-3 py-1.5 text-[#635bff] shadow-sm shadow-indigo-500/10">
-    <span className="text-lg font-black leading-none tracking-tight">stripe</span>
-    <span className="rounded-full bg-[#635bff]/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#2d2597]">
-      Secure
-    </span>
-  </div>
-);
-
-const NetopiaMark = () => (
-  <div className="flex items-center gap-2 rounded-lg border border-sky-200/40 bg-white px-3 py-1.5 text-slate-800 shadow-sm shadow-sky-500/10">
-    <NTPLogo color="#0b2d75" version="horizontal" secret="156180" aria-hidden="true" />
-    <span className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-sky-700">
-      Official
-    </span>
-  </div>
-);
 
 export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   selectedPaymentMethod,
@@ -153,9 +122,12 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
             fee: t("stripeSavedCardFee", "Inclus"),
             description: t(
               "stripeSavedCardDescription",
-              "Salvat în siguranță prin Stripe, plătești instant."
+              "Card salvat, plătești instant"
             ),
             badge: t("stripeOnFile", "Card salvat"),
+            color: "indigo",
+            borderColor: "border-indigo-300/50",
+            bgColor: "bg-indigo-500/10",
           });
         });
       }
@@ -163,20 +135,18 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       methods.push({
         id: "stripe_new",
         type: "new_card",
-        name: t("useNewCard", "Folosește un card nou"),
-        icon: (
-          <div className="flex items-center gap-1 rounded-md bg-indigo-500/20 px-2 py-1 text-[11px] font-semibold text-indigo-50 ring-1 ring-indigo-300/40">
-            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Stripe</span>
-          </div>
-        ),
+        name: t("useNewCard", "Card nou (Stripe)"),
+        icon: <ShieldCheck className="h-5 w-5" />,
         provider: "stripe",
-        fee: t("stripeFee", "0% taxe ascunse"),
+        fee: t("stripeFee", "0% taxe"),
         description: t(
           "stripeSecurePayment",
-          "Plată securizată prin Stripe (Visa, Mastercard, Apple Pay)"
+          "Visa, Mastercard, Apple Pay, Google Pay"
         ),
         badge: t("recommended", "Recomandat"),
+        color: "indigo",
+        borderColor: "border-indigo-300/50",
+        bgColor: "bg-indigo-500/10",
       });
     }
 
@@ -186,40 +156,52 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
           {
             id: "netopia_card",
             type: "netopia_card",
-            name: "Card bancar (Netopia)",
-            icon: <CreditCard className="h-4 w-4 text-blue-600" />,
+            name: "Card bancar",
+            icon: <CreditCard className="h-5 w-5" />,
             provider: "netopia",
             fee: "1.5%",
-            description: "Plată securizată cu card bancar",
+            description: "Plată securizată cu card",
+            color: "sky",
+            borderColor: "border-sky-300/50",
+            bgColor: "bg-sky-500/10",
           },
           {
             id: "netopia_sms",
             type: "netopia_sms",
-            name: "Plată prin SMS (Netopia)",
-            icon: <Sparkles className="h-4 w-4 text-green-500" />,
+            name: "Plată prin SMS",
+            icon: <Sparkles className="h-5 w-5" />,
             provider: "netopia",
             fee: "2.0%",
-            description: "Primești SMS cu link de plată",
+            description: "Primești SMS cu link",
+            color: "sky",
+            borderColor: "border-sky-300/50",
+            bgColor: "bg-sky-500/10",
           },
           {
             id: "netopia_wallet",
             type: "netopia_wallet",
-            name: "Portofel mobilPay (Netopia)",
-            icon: <Sparkles className="h-4 w-4 text-purple-400" />,
+            name: "Portofel mobilPay",
+            icon: <Sparkles className="h-5 w-5" />,
             provider: "netopia",
             fee: "1.2%",
-            description: "Plată rapidă cu portofel electronic",
+            description: "Plată rapidă electronică",
+            color: "sky",
+            borderColor: "border-sky-300/50",
+            bgColor: "bg-sky-500/10",
           }
         );
       } else {
         methods.push({
           id: "netopia_card",
           type: "netopia_card",
-          name: "Credit/Debit Card (Netopia)",
-          icon: <CreditCard className="h-4 w-4 text-blue-600" />,
+          name: "Credit/Debit Card",
+          icon: <CreditCard className="h-5 w-5" />,
           provider: "netopia",
           fee: "1.5%",
-          description: "Secure card payment via Netopia",
+          description: "Secure card payment",
+          color: "sky",
+          borderColor: "border-sky-300/50",
+          bgColor: "bg-sky-500/10",
         });
       }
     }
@@ -229,118 +211,21 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       methods.push({
         id: "cash_on_delivery",
         type: "cash_on_delivery",
-        name: "Plată la livrare (Ramburs)",
-        icon: <Package className="h-4 w-4 text-orange-500" />,
+        name: "Ramburs",
+        icon: <Package className="h-5 w-5" />,
         provider: "cod",
         fee: "3% + 5 RON",
-        description: "Plătești cash la primirea coletului",
-        badge: t("codPopular", "Popular în România"),
+        description: "Plătești cash la livrare",
+        badge: t("codPopular", "Popular"),
+        color: "orange",
+        borderColor: "border-orange-300/50",
+        bgColor: "bg-orange-500/10",
       });
     }
 
     return methods;
   }, [isRomanianUser, netopiaEnabled, savedCards, stripeEnabled, t]);
 
-  const providerDetails: Record<Provider, ProviderMeta> = useMemo(
-    () => ({
-      stripe: {
-        title: t("stripeProviderTitle", "Stripe · Plăți internaționale"),
-        subtitle: t(
-          "stripeProviderSubtitle",
-          "Ideal pentru carduri globale, Apple Pay și Google Pay"
-        ),
-        gradient: "from-indigo-950/70 via-indigo-900/50 to-indigo-900/25",
-        border: "border-indigo-300/40",
-        chipTone:
-          "border-indigo-200/60 bg-indigo-300/10 text-indigo-50 shadow-indigo-500/10",
-        icon: (
-          <div className="rounded-xl bg-indigo-500/15 p-2 text-indigo-100 ring-1 ring-indigo-200/40">
-            <ShieldCheck className="h-5 w-5" aria-hidden />
-          </div>
-        ),
-        helperChips: [
-          t("stripeChipInstant", "Plată instant, fără SMS"),
-          t("stripeChipWallets", "Apple Pay & Google Pay"),
-          t("stripeChipSecurity", "Protecție Stripe Radar"),
-        ],
-        logo: <StripeMark />,
-      },
-      netopia: {
-        title: t("netopiaProviderTitle", "Netopia · Plăți rapide în România"),
-        subtitle: t(
-          "netopiaProviderSubtitle",
-          "Card bancar, SMS sau portofel mobilPay pentru clienții locali"
-        ),
-        gradient: "from-sky-950/70 via-slate-900/55 to-slate-900/25",
-        border: "border-sky-300/45",
-        chipTone:
-          "border-sky-200/60 bg-sky-300/10 text-sky-50 shadow-sky-500/10",
-        icon: (
-          <div className="rounded-xl bg-sky-500/15 p-2 text-sky-100 ring-1 ring-sky-200/40">
-            <CreditCard className="h-5 w-5" aria-hidden />
-          </div>
-        ),
-        helperChips: [
-          t("netopiaChipLocal", "Optimizat pentru carduri din România"),
-          t("netopiaChipSms", "Opțiune SMS & portofel mobilPay"),
-          t("netopiaChipSecure", "3D Secure & GDPR compliant"),
-        ],
-        logo: <NetopiaMark />,
-      },
-      cod: {
-        title: t("codProviderTitle", "Ramburs · Plătești la livrare"),
-        subtitle: t(
-          "codProviderSubtitle",
-          "Plătești cash la primirea coletului - fără card, fără complicații"
-        ),
-        gradient: "from-orange-950/70 via-orange-900/50 to-orange-900/25",
-        border: "border-orange-300/40",
-        chipTone:
-          "border-orange-200/60 bg-orange-300/10 text-orange-50 shadow-orange-500/10",
-        icon: (
-          <div className="rounded-xl bg-orange-500/15 p-2 text-orange-100 ring-1 ring-orange-200/40">
-            <Package className="h-5 w-5" aria-hidden />
-          </div>
-        ),
-        helperChips: [
-          t("codChipPopular", "60%+ din clienții din România preferă"),
-          t("codChipSimple", "Fără card, fără complicații"),
-          t("codChipSecure", "Plătești doar când primești coletul"),
-        ],
-        logo: (
-          <div className="flex items-center gap-2 rounded-lg border border-orange-200/40 bg-white px-3 py-1.5 text-orange-700 shadow-sm shadow-orange-500/10">
-            <Package className="h-4 w-4" />
-            <span className="text-sm font-semibold">Ramburs</span>
-          </div>
-        ),
-      },
-    }),
-    [t]
-  );
-
-  const groupedMethods = useMemo(() => {
-    const providerOrder: Provider[] = ["stripe", "netopia", "cod"];
-
-    return providerOrder
-      .map(provider => {
-        const providerMethods = paymentMethods.filter(
-          method => method.provider === provider
-        );
-
-        if (providerMethods.length === 0) return null;
-
-        return {
-          provider,
-          methods: providerMethods,
-          meta: providerDetails[provider],
-        };
-      })
-      .filter(Boolean) as Array<{
-      provider: Provider;
-      methods: PaymentMethodItem[];
-      meta: ProviderMeta;
-    }>;
-  }, [paymentMethods, providerDetails]);
 
   useEffect(() => {
     if (paymentMethods.length === 0) {
@@ -366,184 +251,108 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
 
   return (
     <div className="mb-6">
-      <Label className="mb-3 block text-base font-semibold text-slate-100">
+      <Label className="mb-4 block text-base font-semibold text-slate-100">
         {t("selectPaymentMethod", "Selectează metoda de plată")}
       </Label>
       <RadioGroup
         value={selectedPaymentMethod}
         onValueChange={onPaymentMethodChange}
-        className="space-y-6"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
       >
-        {groupedMethods.map(group => {
-          const { provider, methods, meta } = group;
+        {paymentMethods.map(method => {
+          const isSelected = selectedPaymentMethod === method.id;
+          const colorClasses = {
+            indigo: {
+              icon: "text-indigo-400",
+              border: "border-indigo-300/50",
+              bg: "bg-indigo-500/10",
+              selectedBorder: "border-indigo-400 ring-indigo-400/50",
+              selectedBg: "bg-indigo-500/20",
+            },
+            sky: {
+              icon: "text-sky-400",
+              border: "border-sky-300/50",
+              bg: "bg-sky-500/10",
+              selectedBorder: "border-sky-400 ring-sky-400/50",
+              selectedBg: "bg-sky-500/20",
+            },
+            orange: {
+              icon: "text-orange-400",
+              border: "border-orange-300/50",
+              bg: "bg-orange-500/10",
+              selectedBorder: "border-orange-400 ring-orange-400/50",
+              selectedBg: "bg-orange-500/20",
+            },
+          };
+          const colors = colorClasses[method.color as keyof typeof colorClasses] || colorClasses.indigo;
 
           return (
-            <div
-              key={provider}
+            <label
+              key={method.id}
+              htmlFor={`payment-${method.id}`}
               className={cn(
-                "relative overflow-hidden rounded-2xl border p-4 sm:p-5 shadow-lg backdrop-blur",
-                meta.border,
-                "bg-gradient-to-br",
-                meta.gradient
+                "relative flex cursor-pointer flex-col rounded-xl border p-5 transition-all duration-200",
+                "hover:scale-[1.02] hover:shadow-lg",
+                isSelected
+                  ? `${colors.selectedBorder} ${colors.selectedBg} ring-2 shadow-lg`
+                  : `${colors.border} ${colors.bg} border-white/10 hover:border-white/30`,
+                "backdrop-blur-sm"
               )}
             >
-              <div className="pointer-events-none absolute inset-0 opacity-60 blur-3xl" />
-              <div className="relative z-10">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-start gap-3">
-                    {meta.icon}
-                    <div>
-                      <p className="text-lg font-semibold text-slate-50">
-                        {meta.title}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className={cn("rounded-lg p-2.5", colors.bg)}>
+                    <div className={colors.icon}>{method.icon}</div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-slate-100">
+                        {method.name}
+                      </span>
+                      {method.badge && (
+                        <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
+                          {method.badge}
+                        </span>
+                      )}
+                    </div>
+                    {method.description && (
+                      <p className="mt-1 text-sm text-slate-300/80">
+                        {method.description}
                       </p>
-                      <p className="text-sm text-slate-200/80">{meta.subtitle}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-start gap-2 sm:items-end">
-                    <div className="flex flex-wrap items-center justify-end gap-2">
-                      {provider === "stripe" ? (
-                        <>
-                          <span className="flex items-center gap-1 rounded-full border border-indigo-300/40 bg-indigo-500/15 px-3 py-1 text-xs font-semibold text-indigo-50">
-                            <Globe2 className="h-3.5 w-3.5" aria-hidden />
-                            {t("globalPayments", "Global payments")}
-                          </span>
-                          <span className="flex items-center gap-1 rounded-full border border-indigo-200/40 bg-indigo-400/10 px-3 py-1 text-xs font-semibold text-indigo-50">
-                            <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-                            {t("stripeSecure", "Stripe secure")}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="flex items-center gap-1 rounded-full border border-sky-300/40 bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-50">
-                            <Smartphone className="h-3.5 w-3.5" aria-hidden />
-                            {t("localPreferred", "Recomandat în România")}
-                          </span>
-                          <span className="flex items-center gap-1 rounded-full border border-sky-200/40 bg-sky-400/10 px-3 py-1 text-xs font-semibold text-sky-50">
-                            <Sparkles className="h-3.5 w-3.5" aria-hidden />
-                            {t("netopiaBadge", "Netopia Payments")}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-end">{meta.logo}</div>
+                    )}
+                    {method.type === "saved_card" && (
+                      <p className="mt-1 text-xs text-slate-400">
+                        {
+                          savedCards.find(card => card.id === method.id)
+                            ?.cardholderName
+                        }
+                      </p>
+                    )}
                   </div>
                 </div>
-
-                <div className="mt-4 space-y-3">
-                  {methods.map(method => {
-                    const isSelected = selectedPaymentMethod === method.id;
-                    const isStripe = method.provider === "stripe";
-
-                    return (
-                      <div
-                        key={method.id}
-                        className={cn(
-                          "relative flex items-start gap-3 rounded-xl border p-4 transition-all duration-200",
-                          isSelected
-                            ? "border-white/60 bg-white/10 shadow-xl shadow-black/20 ring-2 ring-white/35"
-                            : "border-white/10 bg-white/5 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/10",
-                          isStripe ? "backdrop-blur-sm" : "backdrop-blur-sm"
-                        )}
-                      >
-                        <RadioGroupItem
-                          value={method.id}
-                          id={`payment-${method.id}`}
-                          className="mt-1 border-white/40 text-sky-300"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between gap-3">
-                            <Label
-                              htmlFor={`payment-${method.id}`}
-                              className="flex cursor-pointer items-center gap-2 font-semibold text-slate-100"
-                            >
-                              {method.icon}
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span>{method.name}</span>
-                                {method.badge && (
-                                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-50">
-                                    {method.badge}
-                                  </span>
-                                )}
-                                {isStripe && (
-                                  <span className="rounded-full border border-white/20 bg-indigo-500/20 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-50">
-                                    Stripe
-                                  </span>
-                                )}
-                                {method.provider === "netopia" && (
-                                  <span className="rounded border border-sky-400/40 bg-sky-500/20 px-2 py-0.5 text-xs text-sky-50">
-                                    🇷🇴 Netopia
-                                  </span>
-                                )}
-                                {method.provider === "cod" && (
-                                  <span className="rounded border border-orange-400/40 bg-orange-500/20 px-2 py-0.5 text-xs text-orange-50">
-                                    💰 Ramburs
-                                  </span>
-                                )}
-                                {isSelected && (
-                                  <span className="rounded-full border border-emerald-300/60 bg-emerald-400/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-50">
-                                    {t("selected", "Selectat")}
-                                  </span>
-                                )}
-                              </div>
-                            </Label>
-                            {method.fee ? (
-                              <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-slate-100">
-                                {method.fee}
-                              </span>
-                            ) : null}
-                          </div>
-                          {method.description && (
-                            <div className="mt-1 text-sm text-slate-200/90">
-                              {method.description}
-                            </div>
-                          )}
-                          {method.type === "saved_card" && (
-                            <div className="mt-1 text-sm text-slate-300">
-                              {
-                                savedCards.find(card => card.id === method.id)
-                                  ?.cardholderName
-                              }
-                            </div>
-                          )}
-                          {isStripe && (
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {stripeNetworks.map(network => (
-                                <span
-                                  key={network}
-                                  className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-100"
-                                >
-                                  {network}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {meta.helperChips.map(text => (
-                    <span
-                      key={text}
-                      className={cn(
-                        "rounded-full px-3 py-1 text-xs font-semibold shadow-sm",
-                        meta.chipTone
-                      )}
-                    >
-                      {text}
+                <RadioGroupItem
+                  value={method.id}
+                  id={`payment-${method.id}`}
+                  className="mt-0.5 border-white/40 text-sky-300 data-[state=checked]:border-sky-400"
+                />
+              </div>
+              
+              <div className="mt-4 flex items-center justify-between">
+                {method.fee && (
+                  <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-medium text-slate-200">
+                    {method.fee}
+                  </span>
+                )}
+                {isSelected && (
+                  <div className="flex items-center gap-1.5 text-emerald-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="text-xs font-medium">
+                      {t("selected", "Selectat")}
                     </span>
-                  ))}
-                </div>
-
-                {provider === "stripe" && (
-                  <div className="mt-4">
-                    <StripeLogoBadge />
                   </div>
                 )}
               </div>
-            </div>
+            </label>
           );
         })}
       </RadioGroup>
