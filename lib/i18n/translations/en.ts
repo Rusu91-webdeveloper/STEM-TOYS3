@@ -1798,4 +1798,22 @@ export const en = {
     "Make math fun with interactive toys and games that build numerical and logical thinking skills.",
   generalDescription:
     "Explore our complete STEM collection designed to inspire curiosity and learning across all disciplines.",
+
+  // COD (Cash on Delivery) translations
+  codProviderTitle: "Cash on delivery",
+  codProviderSubtitle: "Pay in cash when the courier delivers your package",
+  codChipPopular: "Popular with Romanian customers",
+  codChipSimple: "No card required",
+  codChipSecure: "Pay only when you receive the parcel",
+  codPopular: "Popular in Romania",
+  codFee: "Cash on delivery fee",
+  codFeeBreakdown: "Fee: {percentage} RON (3%) + {fixed} RON fixed",
+  codTotalWithFee: "Total with COD: {total} RON",
+  codNotice:
+    "Pay cash on delivery. The courier will collect the total amount.",
+  codOrderSuccess: "Order placed successfully!",
+  codOrderSuccessMessage:
+    "Your order has been placed. You'll pay cash on delivery. You'll receive a confirmation email soon.",
+  codPaymentMethod: "Cash on delivery",
+  codReviewNotice: "Pay in cash when the courier delivers your package.",
 };

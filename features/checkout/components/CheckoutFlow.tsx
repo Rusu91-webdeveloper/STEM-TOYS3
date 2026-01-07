@@ -278,13 +278,17 @@ export function CheckoutFlow() {
     setOrderError(null);
 
     try {
-      // Check if this is a Netopia payment
+      // Check payment method type
       const isNetopiaPayment =
         checkoutData.paymentMethod?.startsWith("netopia_");
+      const isCODPayment = checkoutData.paymentMethod === "cash_on_delivery";
 
       if (isNetopiaPayment) {
         // For Netopia payments: Create order first, then initiate payment
         await handleNetopiaPayment();
+      } else if (isCODPayment) {
+        // For COD payments: Create order with COD status
+        await handleCODPayment();
       } else {
         // For other payment methods: Create order directly
         await handleRegularOrder();
@@ -419,6 +423,113 @@ export function CheckoutFlow() {
       const userMessage = error instanceof Error 
         ? error.message
         : "Failed to initiate Netopia payment. Please try again or contact support.";
+      
+      setOrderError(userMessage);
+      throw error;
+    } finally {
+      setIsProcessingOrder(false);
+    }
+  };
+
+  const handleCODPayment = async () => {
+    try {
+      // Import COD fee calculator
+      const { calculateCODFee } = await import("@/lib/pricing/cod-fee-calculator");
+
+      // Get tax settings from database
+      let taxRate = 0.21; // Default 21% VAT
+      let includeInPrice = true; // Default: prices include VAT (EU compliance)
+      try {
+        const response = await fetch("/api/checkout/tax-settings");
+        if (response.ok) {
+          const taxData = await response.json();
+          if (taxData.taxSettings?.active) {
+            taxRate = parseFloat(taxData.taxSettings.rate) / 100;
+            includeInPrice = taxData.taxSettings.includeInPrice !== false;
+          }
+        }
+      } catch (error) {
+        console.warn("Failed to fetch tax settings, using default:", error);
+      }
+
+      // Calculate proper total - prices already include VAT for EU compliance
+      const cartTotalIncludingVAT = getCartTotal();
+      const shippingCost = computeShippingCost();
+
+      // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
+      const subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
+      const tax = cartTotalIncludingVAT - subtotalExcludingVAT;
+      
+      // Calculate order total before COD fee
+      const orderTotalBeforeCOD = cartTotalIncludingVAT + shippingCost - discountAmount;
+      
+      // Calculate COD fee (3% + 5 RON fixed)
+      const codFeeResult = calculateCODFee(orderTotalBeforeCOD);
+      const codFee = codFeeResult.fee;
+      
+      // Final total including COD fee
+      const total = orderTotalBeforeCOD + codFee;
+
+      // Prepare order data for COD - create with pending payment status
+      const orderData = {
+        items: cartItems,
+        shippingAddress: checkoutData.shippingAddress!,
+        billingAddress: checkoutData.billingAddressSameAsShipping
+          ? checkoutData.shippingAddress!
+          : checkoutData.billingAddress!,
+        shippingMethod: checkoutData.shippingMethod!,
+        paymentMethod: "cash_on_delivery",
+        couponCode: appliedCoupon?.code || null,
+        discountAmount,
+        subtotal: subtotalExcludingVAT,
+        tax,
+        shippingCost,
+        total,
+        // Mark as COD payment - order will be created with pending status
+        paymentProvider: "cod",
+        paymentStatus: "PENDING",
+        // Store COD fee in metadata
+        codFee,
+        codAmount: total, // Total amount to collect on delivery
+      };
+
+      console.log("🚀 [CHECKOUT] Creating COD order...");
+      console.log("   Order total before COD:", orderTotalBeforeCOD);
+      console.log("   COD fee:", codFee);
+      console.log("   Total with COD:", total);
+
+      // Create order with COD status
+      const order = await createOrder(orderData);
+
+      if (order && order.success) {
+        // Set a flag in session storage to indicate order completion
+        sessionStorage.setItem("orderCompleted", "true");
+        sessionStorage.setItem("orderId", order.orderId);
+        sessionStorage.setItem("paymentMethod", "cash_on_delivery");
+
+        // Show success notification
+        toast({
+          title: t("codOrderSuccess", "Comandă plasată cu succes!"),
+          description: t(
+            "codOrderSuccessMessage",
+            "Comanda ta a fost plasată. Vei plăti cash la primirea coletului. Vei primi un email de confirmare în curând."
+          ),
+          variant: "default",
+        });
+
+        // Set redirect state to trigger navigation
+        setRedirectToConfirmation(order.orderId);
+
+        // Clear cart after setting the flags
+        await clearCart();
+      }
+    } catch (error) {
+      console.error("❌ [CHECKOUT] COD order creation failed:", error);
+      
+      // Provide user-friendly error message
+      const userMessage = error instanceof Error 
+        ? error.message
+        : "Failed to create COD order. Please try again or contact support.";
       
       setOrderError(userMessage);
       throw error;
@@ -663,6 +774,7 @@ export function CheckoutFlow() {
           shippingCost={computeShippingCost()}
           appliedCoupon={appliedCoupon}
           onCouponRemoved={handleCouponRemoved}
+          selectedPaymentMethod={checkoutData.paymentMethod}
         />
       </div>
     </div>

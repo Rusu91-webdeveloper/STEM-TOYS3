@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   Smartphone,
   Sparkles,
+  Package,
 } from "lucide-react";
 import React, { /* useState, */ useEffect, useMemo } from "react";
 
@@ -41,7 +42,7 @@ interface PaymentMethodSelectorProps {
 
 const stripeNetworks = ["Visa", "Mastercard", "Apple Pay", "Google Pay", "Revolut"];
 
-type Provider = "netopia" | "stripe";
+type Provider = "netopia" | "stripe" | "cod";
 type PaymentMethodItem = {
   id: string;
   type: string;
@@ -219,6 +220,20 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       }
     }
 
+    // Add COD option for Romanian users
+    if (isRomanianUser) {
+      methods.push({
+        id: "cash_on_delivery",
+        type: "cash_on_delivery",
+        name: "Plată la livrare (Ramburs)",
+        icon: <Package className="h-4 w-4 text-orange-500" />,
+        provider: "cod",
+        fee: "3% + 5 RON",
+        description: "Plătești cash la primirea coletului",
+        badge: t("codPopular", "Popular în România"),
+      });
+    }
+
     return methods;
   }, [isRomanianUser, netopiaEnabled, savedCards, stripeEnabled, t]);
 
@@ -268,12 +283,39 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
         ],
         logo: <NetopiaMark />,
       },
+      cod: {
+        title: t("codProviderTitle", "Ramburs · Plătești la livrare"),
+        subtitle: t(
+          "codProviderSubtitle",
+          "Plătești cash la primirea coletului - fără card, fără complicații"
+        ),
+        gradient: "from-orange-950/70 via-orange-900/50 to-orange-900/25",
+        border: "border-orange-300/40",
+        chipTone:
+          "border-orange-200/60 bg-orange-300/10 text-orange-50 shadow-orange-500/10",
+        icon: (
+          <div className="rounded-xl bg-orange-500/15 p-2 text-orange-100 ring-1 ring-orange-200/40">
+            <Package className="h-5 w-5" aria-hidden />
+          </div>
+        ),
+        helperChips: [
+          t("codChipPopular", "60%+ din clienții din România preferă"),
+          t("codChipSimple", "Fără card, fără complicații"),
+          t("codChipSecure", "Plătești doar când primești coletul"),
+        ],
+        logo: (
+          <div className="flex items-center gap-2 rounded-lg border border-orange-200/40 bg-white px-3 py-1.5 text-orange-700 shadow-sm shadow-orange-500/10">
+            <Package className="h-4 w-4" />
+            <span className="text-sm font-semibold">Ramburs</span>
+          </div>
+        ),
+      },
     }),
     [t]
   );
 
   const groupedMethods = useMemo(() => {
-    const providerOrder: Provider[] = ["stripe", "netopia"];
+    const providerOrder: Provider[] = ["stripe", "netopia", "cod"];
 
     return providerOrder
       .map(provider => {
@@ -426,6 +468,11 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
                                 {method.provider === "netopia" && (
                                   <span className="rounded border border-sky-400/40 bg-sky-500/20 px-2 py-0.5 text-xs text-sky-50">
                                     🇷🇴 Netopia
+                                  </span>
+                                )}
+                                {method.provider === "cod" && (
+                                  <span className="rounded border border-orange-400/40 bg-orange-500/20 px-2 py-0.5 text-xs text-orange-50">
+                                    💰 Ramburs
                                   </span>
                                 )}
                                 {isSelected && (

@@ -112,6 +112,8 @@ const orderSchema = z.object({
     .optional(),
   paymentProvider: z.string().optional(),
   stripePaymentIntentId: z.string().optional(), // Accept payment intent ID
+  codFee: z.number().optional(), // COD fee amount
+  codAmount: z.number().optional(), // Total COD amount to collect
 });
 
 // Helper function to format Zod errors
@@ -199,6 +201,7 @@ export async function POST(request: Request) {
     // Determine payment provider from order data
     const paymentProvider = orderData.paymentProvider || "netopia";
     const isStripePayment = paymentProvider === "stripe" || Boolean(orderData.stripePaymentIntentId);
+    const isCODPayment = orderData.paymentMethod === "cash_on_delivery" || paymentProvider === "cod";
 
     // Only validate Stripe configuration if this is a Stripe payment
     if (isStripePayment) {
@@ -438,10 +441,31 @@ export async function POST(request: Request) {
       discountAmount = orderData.discountAmount;
     }
 
-    // Calculate total including shipping, tax, and discount
+    // Calculate COD fee if COD payment method
+    let codFee = 0;
+    let codAmount = 0;
+    if (isCODPayment) {
+      // If COD fee is provided in orderData, use it; otherwise calculate it
+      if (orderData.codFee !== undefined) {
+        codFee = orderData.codFee;
+      } else {
+        // Calculate COD fee (3% + 5 RON fixed)
+        const { calculateCODFee } = await import("@/lib/pricing/cod-fee-calculator");
+        const orderTotalBeforeCOD = Math.max(0, subtotal + tax + finalShippingCost - discountAmount);
+        const codFeeResult = calculateCODFee(orderTotalBeforeCOD);
+        codFee = codFeeResult.fee;
+      }
+    }
+
+    // Calculate total including shipping, tax, discount, and COD fee
     const orderTotal =
       orderData.total ||
-      Math.max(0, subtotal + tax + finalShippingCost - discountAmount);
+      Math.max(0, subtotal + tax + finalShippingCost - discountAmount + codFee);
+    
+    // Store COD amount (total to collect on delivery)
+    if (isCODPayment) {
+      codAmount = orderTotal;
+    }
 
     // Validate Stripe payment intent (amount/currency) before creating order
     const expectedAmountMinor = Math.round(orderTotal * 100);
@@ -581,9 +605,17 @@ export async function POST(request: Request) {
             status: "PROCESSING",
             paymentStatus:
               (orderData.paymentStatus as any) ??
-              (isStripePayment ? "PENDING" : "PAID"),
+              (isCODPayment
+                ? "PENDING"
+                : isStripePayment
+                  ? "PENDING"
+                  : "PAID"),
             shippingAddressId,
             stripePaymentIntentId: orderData.stripePaymentIntentId || null,
+            // Store COD information in notes field (we can add proper fields later)
+            notes: isCODPayment
+              ? `COD Order - Fee: ${codFee.toFixed(2)} RON, Amount to Collect: ${codAmount.toFixed(2)} RON${orderData.notes ? ` | ${orderData.notes}` : ""}`
+              : orderData.notes || null,
           },
         });
 

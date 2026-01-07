@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 
 import { useTranslation } from "@/lib/i18n";
+import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 
 interface PaymentSummaryProps {
   appliedCoupon?: any;
@@ -12,6 +13,7 @@ interface PaymentSummaryProps {
   isCalculatingTotal: boolean;
   totalAmount: number;
   getCartTotal: () => number;
+  shippingCost?: number;
 }
 
 export const PaymentSummary = React.memo(function PaymentSummary({
@@ -22,12 +24,26 @@ export const PaymentSummary = React.memo(function PaymentSummary({
   isCalculatingTotal,
   totalAmount,
   getCartTotal,
+  shippingCost = 0,
 }: PaymentSummaryProps) {
   const { t } = useTranslation();
   const isNetopia = selectedPaymentMethod.startsWith("netopia_");
+  const isCOD = selectedPaymentMethod === "cash_on_delivery";
   const isStripeSavedCard =
-    !isNetopia && !useNewCard && selectedPaymentMethod !== "new";
-  const isStripeNewCard = !isNetopia && useNewCard;
+    !isNetopia && !isCOD && !useNewCard && selectedPaymentMethod !== "new";
+  const isStripeNewCard = !isNetopia && !isCOD && useNewCard;
+
+  // Calculate COD fee if COD is selected
+  const codFeeResult = useMemo(() => {
+    if (!isCOD) return null;
+    const orderTotal = getCartTotal() + shippingCost - discountAmount;
+    try {
+      return calculateCODFee(orderTotal);
+    } catch (error) {
+      console.error("Error calculating COD fee:", error);
+      return null;
+    }
+  }, [isCOD, getCartTotal, shippingCost, discountAmount]);
 
   return (
     <>
@@ -97,6 +113,49 @@ export const PaymentSummary = React.memo(function PaymentSummary({
                 {t("calculatingTotal", "Se calculează totalul...")}
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* COD Fee Display */}
+      {isCOD && codFeeResult && (
+        <div className="my-6">
+          <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-orange-800 font-semibold text-sm">
+                {t("codFee", "Taxă ramburs")}:
+              </span>
+              <span className="text-orange-700 font-bold">
+                +{codFeeResult.fee.toFixed(2)} RON
+              </span>
+            </div>
+            <div className="text-xs text-orange-600 space-y-1">
+              <p>
+                {t(
+                  "codFeeBreakdown",
+                  `Taxă: ${codFeeResult.breakdown.percentageFee.toFixed(2)} RON (3%) + ${codFeeResult.breakdown.fixedFee.toFixed(2)} RON fix`,
+                  {
+                    percentage: codFeeResult.breakdown.percentageFee.toFixed(2),
+                    fixed: codFeeResult.breakdown.fixedFee.toFixed(2),
+                  }
+                )}
+              </p>
+              <p className="font-medium">
+                {t(
+                  "codTotalWithFee",
+                  `Total cu ramburs: ${codFeeResult.orderTotalWithFee.toFixed(2)} RON`,
+                  {
+                    total: codFeeResult.orderTotalWithFee.toFixed(2),
+                  }
+                )}
+              </p>
+            </div>
+            <p className="text-xs text-orange-700 mt-2 font-medium">
+              {t(
+                "codNotice",
+                "💡 Plătești cash la primirea coletului. Curierul va colecta suma totală."
+              )}
+            </p>
           </div>
         </div>
       )}

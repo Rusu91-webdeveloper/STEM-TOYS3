@@ -10,6 +10,7 @@ interface OrderSummarySectionProps {
   tax: number;
   shippingCost: number;
   total: number;
+  codFee?: number;
   discountAmount?: number;
   appliedCoupon?: any;
 }
@@ -19,6 +20,7 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
   tax,
   shippingCost,
   total,
+  codFee = 0,
   discountAmount = 0,
   appliedCoupon,
 }: OrderSummarySectionProps) {
@@ -58,6 +60,13 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
           <span>{t("shipping", "Shipping")}</span>
           <span>{formatPrice(shippingCost)}</span>
         </div>
+
+        {codFee > 0 && (
+          <div className="flex justify-between text-sm sm:text-base">
+            <span>{t("codFee", "Cash on delivery fee")}</span>
+            <span>{formatPrice(codFee)}</span>
+          </div>
+        )}
 
         <div className="border-t pt-3 flex justify-between font-semibold text-base sm:text-lg">
           <span>{t("total", "Total")}</span>

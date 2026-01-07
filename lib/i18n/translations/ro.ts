@@ -1983,4 +1983,20 @@ export const ro = {
   All: "Toate",
   Close: "Închide",
   "Filter by Category": "Filtrează după Categorie",
+
+  // COD (Cash on Delivery) translations
+  codProviderTitle: "Ramburs · Plătești la livrare",
+  codProviderSubtitle: "Plătești cash la primirea coletului - fără card, fără complicații",
+  codChipPopular: "60%+ din clienții din România preferă",
+  codChipSimple: "Fără card, fără complicații",
+  codChipSecure: "Plătești doar când primești coletul",
+  codPopular: "Popular în România",
+  codFee: "Taxă ramburs",
+  codFeeBreakdown: "Taxă: {percentage} RON (3%) + {fixed} RON fix",
+  codTotalWithFee: "Total cu ramburs: {total} RON",
+  codNotice: "💡 Plătești cash la primirea coletului. Curierul va colecta suma totală.",
+  codOrderSuccess: "Comandă plasată cu succes!",
+  codOrderSuccessMessage: "Comanda ta a fost plasată. Vei plăti cash la primirea coletului. Vei primi un email de confirmare în curând.",
+  codPaymentMethod: "Plată la livrare (Ramburs)",
+  codReviewNotice: "Plătești cash la primirea coletului. Curierul va colecta suma totală.",
 };

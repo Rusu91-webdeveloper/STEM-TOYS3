@@ -29,6 +29,7 @@ export type PaymentMethod =
   | "netopia_sms"
   | "netopia_wallet"
   | "stripe_new"
+  | "cash_on_delivery"
   | string;
 
 export interface PaymentDetails {

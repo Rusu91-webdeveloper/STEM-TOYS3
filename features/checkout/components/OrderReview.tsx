@@ -70,6 +70,10 @@ export function OrderReview({
       return t("stripeNewCard", "Card nou (Stripe)");
     }
 
+    if (checkoutData.paymentMethod === "cash_on_delivery") {
+      return t("codPaymentMethod", "Plată la livrare (Ramburs)");
+    }
+
     if (checkoutData.paymentDetails?.cardNumber) {
       return t("savedCard", "Card salvat");
     }
@@ -211,6 +215,16 @@ export function OrderReview({
                 )}
               </p>
             </div>
+          ) : checkoutData.paymentMethod === "cash_on_delivery" ? (
+            <div className="text-xs sm:text-sm space-y-1">
+              <p className="font-medium break-words">{paymentMethodLabel}</p>
+              <p className="text-gray-600">
+                {t(
+                  "codReviewNotice",
+                  "Plătești cash la primirea coletului. Curierul va colecta suma totală."
+                )}
+              </p>
+            </div>
           ) : checkoutData.paymentDetails ? (
             <div className="text-xs sm:text-sm">
               <p className="break-words">
@@ -286,14 +300,15 @@ export function OrderReview({
         </div>
       </div>
 
-      <OrderSummarySection
-        subtotal={pricingData.subtotal}
-        tax={pricingData.tax}
-        shippingCost={pricingData.shippingCost}
-        total={pricingData.total}
-        discountAmount={pricingData.discountAmount}
-        appliedCoupon={pricingData.appliedCoupon}
-      />
+        <OrderSummarySection
+          subtotal={pricingData.subtotal}
+          tax={pricingData.tax}
+          shippingCost={pricingData.shippingCost}
+          total={pricingData.total}
+          codFee={pricingData.codFee}
+          discountAmount={pricingData.discountAmount}
+          appliedCoupon={pricingData.appliedCoupon}
+        />
 
       <OrderActions
         onBack={onBack}

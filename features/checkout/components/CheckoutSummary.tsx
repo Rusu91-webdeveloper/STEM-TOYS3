@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { useCart } from "@/features/cart";
 import CouponInput from "@/features/cart/components/CouponInput";
 import { glassCardClass } from "@/features/home/components/homeTheme";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
+import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 
 import { fetchShippingSettings, fetchTaxSettings } from "../lib/checkoutApi";
 
@@ -21,6 +22,7 @@ interface CheckoutSummaryProps {
   onCouponApplied?: (coupon: any, discountAmount: number) => void;
   appliedCoupon?: any;
   onCouponRemoved?: () => void;
+  selectedPaymentMethod?: string;
 }
 
 export function CheckoutSummary({
@@ -28,6 +30,7 @@ export function CheckoutSummary({
   onCouponApplied,
   appliedCoupon,
   onCouponRemoved,
+  selectedPaymentMethod,
 }: CheckoutSummaryProps) {
   const { cartItems, getCartTotal, isLoading } = useCart();
   const { formatPrice } = useCurrency();
@@ -114,6 +117,7 @@ export function CheckoutSummary({
 
   const cartTotalIncludingVAT = getCartTotal();
   const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
+  const isCOD = selectedPaymentMethod === "cash_on_delivery";
 
   // Calculate tax based on settings (prices already include VAT for EU compliance)
   const taxRate = parseFloat(taxSettings.rate) / 100; // Convert percentage to decimal
@@ -145,7 +149,17 @@ export function CheckoutSummary({
 
   // **CALCULATE FINAL TOTAL WITH DISCOUNT**
   const totalBeforeDiscount = cartTotalIncludingVAT + finalShippingCost;
-  const total = Math.max(0, totalBeforeDiscount - discountAmount);
+  const baseTotal = Math.max(0, totalBeforeDiscount - discountAmount);
+  const codFee = useMemo(() => {
+    if (!isCOD) return 0;
+    try {
+      return calculateCODFee(baseTotal).fee;
+    } catch (error) {
+      console.error("Error calculating COD fee:", error);
+      return 0;
+    }
+  }, [baseTotal, isCOD]);
+  const total = baseTotal + codFee;
 
   // Calculate how much more needed for free shipping
   const renderFreeShippingMessage = () => {
@@ -298,6 +312,13 @@ export function CheckoutSummary({
             {formatPrice(finalShippingCost)}
           </span>
         </div>
+
+        {isCOD && (
+          <div className="flex justify-between text-sm text-slate-300 sm:text-base">
+            <span>{t("codFee", "Cash on delivery fee")}</span>
+            <span>{formatPrice(codFee)}</span>
+          </div>
+        )}
 
         {renderFreeShippingMessage()}
 

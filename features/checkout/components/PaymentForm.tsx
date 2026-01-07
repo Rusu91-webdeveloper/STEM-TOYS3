@@ -83,6 +83,7 @@ export function PaymentForm({
   );
   const [totalAmount, setTotalAmount] = useState(0);
   const [isCalculatingTotal, setIsCalculatingTotal] = useState(true);
+  const [calculatedShippingCost, setCalculatedShippingCost] = useState(0);
   const [userLocation, setUserLocation] = useState<string>("");
   const [userLocale, setUserLocale] = useState<string>("");
   const { settings } = useCheckoutSettings();
@@ -159,6 +160,9 @@ export function PaymentForm({
             shippingCost = 0;
           }
         }
+
+        // Store shipping cost for COD fee calculation
+        setCalculatedShippingCost(shippingCost);
 
         const subtotalExcludingVAT = includeInPrice
           ? cartTotalIncludingVAT / (1 + taxRate)
@@ -438,6 +442,26 @@ export function PaymentForm({
       return;
     }
 
+    if (selectedPaymentMethod === "cash_on_delivery") {
+      if (showBillingForm && !currentBillingAddress) {
+        setPaymentError(
+          t(
+            "billingAddressRequired",
+            "Te rugăm să completezi adresa de facturare."
+          )
+        );
+        return;
+      }
+
+      onSubmit({
+        paymentMethod: selectedPaymentMethod,
+        billingAddressSameAsShipping: useSameAddress,
+        billingAddress: useSameAddress ? undefined : currentBillingAddress,
+        stripePaymentIntentId: undefined,
+      });
+      return;
+    }
+
     if (!useNewCard && selectedPaymentMethod !== "stripe_new") {
       const selectedCard = savedCards.find(
         card => card.id === selectedPaymentMethod
@@ -514,6 +538,7 @@ export function PaymentForm({
           isCalculatingTotal={isCalculatingTotal}
           totalAmount={totalAmount}
           getCartTotal={getCartTotal}
+          shippingCost={calculatedShippingCost}
         />
 
         {stripeEnabled && selectedPaymentMethod === "stripe_new" && (

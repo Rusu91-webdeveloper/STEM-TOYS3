@@ -4,6 +4,7 @@ import React from "react";
 
 import { useCart } from "@/features/cart";
 import { useCurrency } from "@/lib/currency";
+import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 
 import { CheckoutData } from "../types";
 import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
@@ -44,6 +45,7 @@ export function usePricingBreakdown({
   // Calculate totals WITH DISCOUNT (prices include VAT for EU compliance)
   const cartTotalIncludingVAT = getCartTotal();
   const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
+  const isCOD = checkoutData.paymentMethod === "cash_on_delivery";
   let shippingCost = 0;
 
   if (hasPhysicalItems) {
@@ -72,13 +74,23 @@ export function usePricingBreakdown({
   const tax = cartTotalIncludingVAT - subtotalExcludingVAT;
   // **UPDATED TOTAL CALCULATION WITH DISCOUNT**
   const totalBeforeDiscount = cartTotalIncludingVAT + shippingCost;
-  const total = Math.max(0, totalBeforeDiscount - discountAmount);
+  const baseTotal = Math.max(0, totalBeforeDiscount - discountAmount);
+  let codFee = 0;
+  if (isCOD) {
+    try {
+      codFee = calculateCODFee(baseTotal).fee;
+    } catch (error) {
+      console.error("Error calculating COD fee:", error);
+    }
+  }
+  const total = baseTotal + codFee;
 
   return {
     subtotal: subtotalExcludingVAT,
     tax,
     shippingCost,
     total,
+    codFee,
     discountAmount,
     appliedCoupon,
   };
