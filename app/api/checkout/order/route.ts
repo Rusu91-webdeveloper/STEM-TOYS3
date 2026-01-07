@@ -1020,21 +1020,30 @@ export async function POST(request: Request) {
     // Send order confirmation email only when payment is already confirmed
     // Netopia: email is sent from the webhook after status 3/5 (success)
     // Stripe: send only if payment intent already succeeded
+    // COD: send immediately (order is confirmed, payment collected on delivery)
     try {
       const paymentProvider = orderData.paymentProvider || "netopia";
       const isNetopia = paymentProvider === "netopia";
       const isStripe = paymentProvider === "stripe";
+      const isCOD = orderData.paymentMethod === "cash_on_delivery" || paymentProvider === "cod";
       const stripeSucceeded = stripePaymentIntent?.status === "succeeded";
       const paymentPending =
         orderData.paymentStatus === "PENDING" ||
         (isNetopia && !stripeSucceeded) ||
         (isStripe && !stripeSucceeded);
 
-      if (paymentPending) {
+      // For COD orders, send email immediately even though payment is pending
+      // COD orders are confirmed - we just collect payment on delivery
+      if (paymentPending && !isCOD) {
         console.log(
           `ℹ️ Order ${dbOrder?.id || orderId}: payment pending (${paymentProvider}); deferring confirmation email`
         );
       } else {
+        if (isCOD) {
+          console.log(
+            `📧 Order ${dbOrder?.id || orderId}: COD order - sending confirmation email immediately`
+          );
+        }
         const recipientEmail =
           (user?.email as string) || orderData?.guestInformation?.email;
 
