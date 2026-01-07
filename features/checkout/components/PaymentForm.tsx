@@ -218,15 +218,20 @@ export function PaymentForm({
     try {
       setUserLocale(navigator.language);
 
-      if (billingAddress?.country) {
-        setUserLocation(billingAddress.country);
+      const resolvedCountry =
+        (useSameAddress ? shippingAddress?.country : currentBillingAddress?.country) ||
+        billingAddress?.country ||
+        shippingAddress?.country;
+
+      if (resolvedCountry) {
+        setUserLocation(resolvedCountry);
       } else if (navigator.language?.startsWith("ro")) {
         setUserLocation("RO");
       }
     } catch (error) {
       console.error("Error detecting user location:", error);
     }
-  }, [billingAddress]);
+  }, [billingAddress, shippingAddress, currentBillingAddress, useSameAddress]);
 
   useEffect(() => {
     const clearStripeIntent = () => {
@@ -527,7 +532,12 @@ export function PaymentForm({
           isLoadingCards={isLoadingCards}
           userLocation={userLocation}
           userLocale={userLocale}
-          billingCountry={billingAddress?.country}
+          billingCountry={
+            (useSameAddress
+              ? shippingAddress?.country
+              : currentBillingAddress?.country) || billingAddress?.country
+          }
+          shippingCountry={shippingAddress?.country}
         />
 
         <PaymentSummary

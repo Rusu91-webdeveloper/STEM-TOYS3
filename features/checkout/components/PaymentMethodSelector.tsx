@@ -38,6 +38,7 @@ interface PaymentMethodSelectorProps {
   userLocation?: string;
   userLocale?: string;
   billingCountry?: string;
+  shippingCountry?: string;
 }
 
 const stripeNetworks = ["Visa", "Mastercard", "Apple Pay", "Google Pay", "Revolut"];
@@ -90,6 +91,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   userLocation,
   userLocale,
   billingCountry,
+  shippingCountry,
 }: PaymentMethodSelectorProps) {
   const { t } = useTranslation();
   const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED !== "false";
@@ -129,9 +131,11 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       userLocale === "ro" ||
       userLocale === "ro-RO" ||
       billingCountry === "Romania" ||
-      billingCountry === "RO"
+      billingCountry === "RO" ||
+      shippingCountry === "Romania" ||
+      shippingCountry === "RO"
     );
-  }, [userLocation, userLocale, billingCountry]);
+  }, [userLocation, userLocale, billingCountry, shippingCountry]);
 
   // Get available payment methods based on user location
   const paymentMethods = useMemo(() => {
