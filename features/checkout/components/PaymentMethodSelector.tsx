@@ -299,7 +299,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
                 "backdrop-blur-sm"
               )}
             >
-              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className={cn("rounded-lg p-2.5", colors.bg)}>
                     <div className={colors.icon}>{method.icon}</div>
@@ -320,6 +320,25 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
                         {method.description}
                       </p>
                     )}
+                      {/* Provider chip */}
+                      <div className="mt-2">
+                        {method.provider === "stripe" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-indigo-300/40 bg-indigo-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-50">
+                            <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+                            {t("processedByStripe", "Procesat de Stripe")}
+                          </span>
+                        ) : method.provider === "netopia" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-sky-300/40 bg-sky-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-sky-50">
+                            <CreditCard className="h-3.5 w-3.5" aria-hidden />
+                            {t("processedByNetopia", "Procesat de Netopia")}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-orange-300/40 bg-orange-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-orange-50">
+                            <Package className="h-3.5 w-3.5" aria-hidden />
+                            {t("cashOnDelivery", "Ramburs")}
+                          </span>
+                        )}
+                      </div>
                     {method.type === "saved_card" && (
                       <p className="mt-1 text-xs text-slate-400">
                         {

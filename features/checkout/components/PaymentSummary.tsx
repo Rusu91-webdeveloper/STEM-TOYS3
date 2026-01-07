@@ -120,37 +120,34 @@ export const PaymentSummary = React.memo(function PaymentSummary({
       {/* COD Fee Display */}
       {isCOD && codFeeResult && (
         <div className="my-6">
-          <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-orange-800 font-semibold text-sm">
-                {t("codFee", "Taxă ramburs")}:
-              </span>
-              <span className="text-orange-700 font-bold">
+          <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-orange-800">
+                  {t("codFee", "Taxă ramburs")}
+                </span>
+                <span className="rounded-full border border-orange-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-orange-600">
+                  {t("cashOnDelivery", "Ramburs")}
+                </span>
+              </div>
+              <span className="text-sm font-bold text-orange-700">
                 +{codFeeResult.fee.toFixed(2)} RON
               </span>
             </div>
-            <div className="text-xs text-orange-600 space-y-1">
-              <p>
-                {t(
-                  "codFeeBreakdown",
-                  `Taxă: ${codFeeResult.breakdown.percentageFee.toFixed(2)} RON (3%) + ${codFeeResult.breakdown.fixedFee.toFixed(2)} RON fix`,
-                  {
-                    percentage: codFeeResult.breakdown.percentageFee.toFixed(2),
-                    fixed: codFeeResult.breakdown.fixedFee.toFixed(2),
-                  }
-                )}
-              </p>
-              <p className="font-medium">
-                {t(
-                  "codTotalWithFee",
-                  `Total cu ramburs: ${codFeeResult.orderTotalWithFee.toFixed(2)} RON`,
-                  {
-                    total: codFeeResult.orderTotalWithFee.toFixed(2),
-                  }
-                )}
-              </p>
+            <div className="mt-2 grid gap-1 text-xs text-orange-700 sm:grid-cols-2">
+              <div>
+                <span className="font-medium">{t("feeBreakdown", "Structură taxă")}:</span>{" "}
+                <span>
+                  3% ({codFeeResult.breakdown.percentageFee.toFixed(2)} RON) +{" "}
+                  {codFeeResult.breakdown.fixedFee.toFixed(2)} RON {t("fixed", "fix")}
+                </span>
+              </div>
+              <div className="sm:text-right">
+                <span className="font-medium">{t("totalWithCOD", "Total cu ramburs")}:</span>{" "}
+                <span>{codFeeResult.orderTotalWithFee.toFixed(2)} RON</span>
+              </div>
             </div>
-            <p className="text-xs text-orange-700 mt-2 font-medium">
+            <p className="mt-2 text-xs font-medium text-orange-700">
               {t(
                 "codNotice",
                 "💡 Plătești cash la primirea coletului. Curierul va colecta suma totală."
