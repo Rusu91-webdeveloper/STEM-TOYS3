@@ -1,11 +1,9 @@
-import { PrismaClient } from "@prisma/client";
 import DOMPurify from "isomorphic-dompurify";
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { blogService } from "@/lib/services/blog-service";
-
-const prisma = new PrismaClient();
 
 // GET a single blog post by slug
 export async function GET(
@@ -26,7 +24,7 @@ export async function GET(
 
     if (slugHasLanguage) {
       // If the slug already has a language suffix, use it directly
-      blog = await prisma.blog.findUnique({
+      blog = await db.blog.findUnique({
         where: { slug },
         include: {
           author: {
@@ -51,7 +49,7 @@ export async function GET(
       const localizedSlug = `${slug}${languageSuffix}`;
 
       // Try to find the localized version first
-      blog = await prisma.blog.findUnique({
+      blog = await db.blog.findUnique({
         where: { slug: localizedSlug },
         include: {
           author: {
@@ -73,7 +71,7 @@ export async function GET(
 
       // If not found, fall back to the original slug
       if (!blog) {
-        blog = await prisma.blog.findUnique({
+        blog = await db.blog.findUnique({
           where: { slug },
           include: {
             author: {
@@ -158,7 +156,25 @@ export async function PUT(
         : null,
       enContentLength: data.multilingual?.en?.content?.length || 0,
       roContentLength: data.multilingual?.ro?.content?.length || 0,
+      hasTitle: !!data.title,
+      hasContent: !!data.content,
+      categoryId: data.categoryId,
     });
+
+    // Validate required fields
+    if (!data.title || !data.title.trim()) {
+      return NextResponse.json(
+        { error: "Title is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!data.excerpt || !data.excerpt.trim()) {
+      return NextResponse.json(
+        { error: "Excerpt is required" },
+        { status: 400 }
+      );
+    }
 
     // Process tags from comma-separated string to array
     let tags: string[] = [];
@@ -172,7 +188,7 @@ export async function PUT(
     }
 
     // Check if blog exists
-    const existingBlog = await prisma.blog.findUnique({
+    const existingBlog = await db.blog.findUnique({
       where: { slug },
     });
 
@@ -185,7 +201,15 @@ export async function PUT(
 
     // For markdown content, we don't need to sanitize as it will be processed by ReactMarkdown
     // Use Romanian content as the main content, or fall back to the provided content
-    const content = data.multilingual?.ro?.content || data.content;
+    const content = data.multilingual?.ro?.content || data.content || existingBlog.content;
+    
+    // Ensure content is not empty
+    if (!content || !content.trim()) {
+      return NextResponse.json(
+        { error: "Content is required" },
+        { status: 400 }
+      );
+    }
 
     // Prepare metadata with multilingual content
     const metadata = (existingBlog.metadata as any) || {};
@@ -214,25 +238,60 @@ export async function PUT(
       console.log("❌ No multilingual data in request");
     }
 
-    // Update blog post using blog service (includes automatic notifications)
-    const updatedBlog = await blogService.updateBlog({
+    // Prepare update data - only include fields that are provided and valid
+    const updateData: any = {
       id: existingBlog.id,
-      title: data.title,
-      excerpt: data.excerpt,
-      content,
-      coverImage: data.coverImage,
-      categoryId: data.categoryId,
-      stemCategory: data.stemCategory,
-      tags,
-      isPublished: data.isPublished,
-    });
+      title: data.title.trim(),
+      excerpt: data.excerpt.trim(),
+      content: content.trim(),
+    };
+
+    // Only include optional fields if they are provided
+    if (data.coverImage !== undefined) {
+      updateData.coverImage = data.coverImage || null;
+    }
+
+    if (data.categoryId && data.categoryId.trim()) {
+      // Verify category exists
+      const category = await db.category.findUnique({
+        where: { id: data.categoryId },
+      });
+      if (!category) {
+        return NextResponse.json(
+          { error: "Invalid category ID" },
+          { status: 400 }
+        );
+      }
+      updateData.categoryId = data.categoryId;
+    }
+
+    if (data.stemCategory) {
+      updateData.stemCategory = data.stemCategory;
+    }
+
+    if (tags.length > 0) {
+      updateData.tags = tags;
+    }
+
+    if (data.isPublished !== undefined) {
+      updateData.isPublished = data.isPublished;
+    }
+
+    // Update blog post using blog service (includes automatic notifications)
+    const updatedBlog = await blogService.updateBlog(updateData);
+
+    // Calculate reading time from the actual content being saved
+    const contentForReadingTime = content || data.content || "";
+    const readingTime = contentForReadingTime
+      ? Math.ceil(contentForReadingTime.split(" ").length / 200)
+      : existingBlog.readingTime || 5;
 
     // Update additional fields including metadata using direct database update
-    await prisma.blog.update({
+    await db.blog.update({
       where: { id: existingBlog.id },
       data: {
         metadata,
-        readingTime: Math.ceil(data.content.split(" ").length / 200), // Rough estimate: 200 words per minute
+        readingTime,
         updatedAt: new Date(),
       },
     });
@@ -244,9 +303,36 @@ export async function PUT(
     return NextResponse.json(updatedBlog);
   } catch (error: any) {
     console.error(`Error updating blog post with slug ${slug}:`, error);
+    console.error(`Error details:`, {
+      name: error?.name,
+      message: error?.message,
+      code: error?.code,
+      meta: error?.meta,
+      stack: error?.stack,
+    });
+
+    // Return more specific error messages
+    let errorMessage = "Failed to update blog post";
+    let statusCode = 500;
+
+    if (error?.code === "P2002") {
+      // Unique constraint violation
+      errorMessage = "A blog post with this slug or title already exists";
+      statusCode = 409;
+    } else if (error?.code === "P2025") {
+      // Record not found
+      errorMessage = "Blog post not found";
+      statusCode = 404;
+    } else if (error?.message) {
+      errorMessage = error.message;
+    }
+
     return NextResponse.json(
-      { error: "Failed to update blog post" },
-      { status: 500 }
+      {
+        error: errorMessage,
+        details: process.env.NODE_ENV === "development" ? error?.message : undefined,
+      },
+      { status: statusCode }
     );
   }
 }
@@ -278,7 +364,7 @@ export async function DELETE(
     }
 
     // Check if blog exists
-    const existingBlog = await prisma.blog.findUnique({
+    const existingBlog = await db.blog.findUnique({
       where: { slug },
     });
 
@@ -289,7 +375,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.blog.delete({
+    await db.blog.delete({
       where: { slug },
     });
 
