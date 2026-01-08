@@ -73,16 +73,21 @@ export async function GET(
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    // Format the response
+    // Format the response - safely handle dates
+    const formatDateSafe = (date: Date | null | undefined): string | undefined => {
+      if (!date) return undefined;
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) return undefined;
+      return dateObj.toISOString();
+    };
+
     const formattedOrder = {
       id: order.id,
       orderNumber: order.orderNumber,
       customer: order.user?.name ?? "Guest User",
       email: order.user?.email ?? "N/A",
-      date: new Date(order.createdAt).toISOString(),
-      deliveredAt: order.deliveredAt
-        ? new Date(order.deliveredAt).toISOString()
-        : undefined,
+      date: formatDateSafe(order.createdAt) || new Date().toISOString(),
+      deliveredAt: formatDateSafe(order.deliveredAt),
       status: order.status,
       paymentStatus: order.paymentStatus,
       paymentMethod: order.paymentMethod,

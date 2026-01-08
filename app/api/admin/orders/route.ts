@@ -124,16 +124,27 @@ export const GET = withRateLimit(
       );
 
       // Format orders for frontend
-      const formattedOrders = orders.map(order => ({
-        id: order.orderNumber ?? order.id,
-        customer: order.user?.name ?? "Guest User",
-        email: order.user?.email ?? "N/A",
-        date: new Date(order.createdAt).toISOString().split("T")[0], // Format as YYYY-MM-DD
-        total: order.total,
-        status: formatStatus(order.status),
-        payment: order.paymentMethod ?? "N/A",
-        items: order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
-      }));
+      const formattedOrders = orders.map(order => {
+        // Safely handle date - check if it's valid before converting
+        let dateStr = "N/A";
+        if (order.createdAt) {
+          const date = new Date(order.createdAt);
+          if (!isNaN(date.getTime())) {
+            dateStr = date.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+          }
+        }
+
+        return {
+          id: order.orderNumber ?? order.id,
+          customer: order.user?.name ?? "Guest User",
+          email: order.user?.email ?? "N/A",
+          date: dateStr,
+          total: order.total,
+          status: formatStatus(order.status),
+          payment: order.paymentMethod ?? "N/A",
+          items: order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
+        };
+      });
 
       // Calculate pagination
       const totalPages = Math.ceil(totalCount / limit);

@@ -52,6 +52,55 @@ export function formatDate(
 }
 
 /**
+ * Safely format a date string or Date object to a human-readable string
+ * Handles null, undefined, and invalid dates gracefully
+ *
+ * @param date - The date string, Date object, or null/undefined
+ * @param locale - Optional locale string (defaults to "en-US")
+ * @param options - Optional Intl.DateTimeFormatOptions for custom formatting
+ * @param fallback - Fallback string to return if date is invalid (defaults to "N/A")
+ * @returns Formatted date string or fallback
+ *
+ * @example
+ * formatDateSafe("2024-01-15")
+ * // Returns: "January 15, 2024"
+ *
+ * @example
+ * formatDateSafe(null)
+ * // Returns: "N/A"
+ *
+ * @example
+ * formatDateSafe("invalid-date")
+ * // Returns: "N/A"
+ */
+export function formatDateSafe(
+  date: string | Date | null | undefined,
+  locale: string = "en-US",
+  options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  },
+  fallback: string = "N/A"
+): string {
+  if (!date) return fallback;
+
+  try {
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    
+    // Check if date is valid
+    if (isNaN(dateObj.getTime())) {
+      return fallback;
+    }
+
+    return new Intl.DateTimeFormat(locale, options).format(dateObj);
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return fallback;
+  }
+}
+
+/**
  * Convert a string to a URL-friendly slug
  *
  * This function creates SEO-friendly URLs by converting text to lowercase,

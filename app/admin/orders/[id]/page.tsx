@@ -270,7 +270,14 @@ export default function OrderDetailsPage() {
           <div>
             <h1 className="text-2xl font-bold">Order #{order.orderNumber}</h1>
             <p className="text-muted-foreground">
-              Placed on {new Date(order.date).toLocaleDateString()}
+              Placed on{" "}
+              {order.date
+                ? new Date(order.date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })
+                : "N/A"}
             </p>
           </div>
         </div>

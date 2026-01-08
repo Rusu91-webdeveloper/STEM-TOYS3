@@ -82,7 +82,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
 import { formatPriceWithCurrency } from "@/lib/currency-converter";
-import { formatDate } from "@/lib/utils";
+import { formatDateSafe } from "@/lib/utils";
 
 // Order status types
 type OrderStatus =
@@ -756,7 +756,7 @@ export default function OrderStatusManagement() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm">{formatDate(order.date)}</div>
+                        <div className="text-sm">{formatDateSafe(order.date)}</div>
                       </TableCell>
                       <TableCell className="font-medium">
                         {formatPriceWithCurrency(order.total, "RON")}
@@ -1100,7 +1100,7 @@ export default function OrderStatusManagement() {
                     <span>→</span>
                     <Badge variant="outline">{history.toStatus}</Badge>
                     <span className="text-sm text-muted-foreground">
-                      {formatDate(history.timestamp)}
+                      {formatDateSafe(history.timestamp)}
                     </span>
                   </div>
                   {history.reason && (

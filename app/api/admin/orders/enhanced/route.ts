@@ -175,35 +175,48 @@ export const GET = withRateLimit(
           const statistics = await calculateOrderStatistics();
 
           // Transform orders data
-          const transformedOrders = orders.map(order => ({
-            id: order.id,
-            orderNumber: order.orderNumber || `ORD-${order.id.slice(-8)}`,
-            customerName: order.user?.name || "Guest",
-            customerEmail: order.user?.email || "",
-            customerPhone: order.user?.phone,
-            date: order.createdAt.toISOString(),
-            total: order.total,
-            status: order.status,
-            paymentStatus: order.paymentStatus || "PENDING",
-            paymentMethod: order.paymentMethod || "UNKNOWN",
-            items: order.items.length,
-            shippingAddress: order.shippingAddress
-              ? {
-                  addressLine1: order.shippingAddress.addressLine1,
-                  city: order.shippingAddress.city,
-                  country: order.shippingAddress.country,
-                  postalCode: order.shippingAddress.postalCode,
-                }
-              : null,
-            trackingNumber: order.trackingNumber,
-            carrier: order.carrier,
-            estimatedDelivery: order.estimatedDelivery?.toISOString(),
-            notes: order.notes,
-            priority: order.priority || "MEDIUM",
-            tags: order.tags || [],
-            lastUpdated: order.updatedAt.toISOString(),
-            updatedBy: order.updatedBy,
-          }));
+          const transformedOrders = orders.map(order => {
+            // Safely handle dates - check if they're valid before converting
+            const createdAt = order.createdAt && !isNaN(order.createdAt.getTime())
+              ? order.createdAt.toISOString()
+              : new Date().toISOString(); // Fallback to current date if invalid
+            const updatedAt = order.updatedAt && !isNaN(order.updatedAt.getTime())
+              ? order.updatedAt.toISOString()
+              : createdAt; // Fallback to createdAt if invalid
+            const estimatedDelivery = order.estimatedDelivery && !isNaN(order.estimatedDelivery.getTime())
+              ? order.estimatedDelivery.toISOString()
+              : undefined;
+
+            return {
+              id: order.id,
+              orderNumber: order.orderNumber || `ORD-${order.id.slice(-8)}`,
+              customerName: order.user?.name || "Guest",
+              customerEmail: order.user?.email || "",
+              customerPhone: order.user?.phone,
+              date: createdAt,
+              total: order.total,
+              status: order.status,
+              paymentStatus: order.paymentStatus || "PENDING",
+              paymentMethod: order.paymentMethod || "UNKNOWN",
+              items: order.items.length,
+              shippingAddress: order.shippingAddress
+                ? {
+                    addressLine1: order.shippingAddress.addressLine1,
+                    city: order.shippingAddress.city,
+                    country: order.shippingAddress.country,
+                    postalCode: order.shippingAddress.postalCode,
+                  }
+                : null,
+              trackingNumber: order.trackingNumber,
+              carrier: order.carrier,
+              estimatedDelivery,
+              notes: order.notes,
+              priority: order.priority || "MEDIUM",
+              tags: order.tags || [],
+              lastUpdated: updatedAt,
+              updatedBy: order.updatedBy,
+            };
+          });
 
           return {
             orders: transformedOrders,
