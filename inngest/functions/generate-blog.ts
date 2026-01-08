@@ -275,9 +275,19 @@ export const generateBlogJob = inngest.createFunction(
 
     console.log(`📊 [Inngest] Save result:`, saveResult);
 
-    // Save blog to database (if generation was successful)
+    // Save blog to database (if generation was successful AND saveToDatabase is true)
     let blogPost = null;
-    if (saveResult.success && result.success && result.generatedBlog) {
+    const shouldSaveToDatabase = options?.saveToDatabase ?? false;
+    console.log(
+      `💾 [Inngest] saveToDatabase option: ${shouldSaveToDatabase} for job ${jobId}`
+    );
+
+    if (
+      saveResult.success &&
+      result.success &&
+      result.generatedBlog &&
+      shouldSaveToDatabase
+    ) {
       blogPost = await step.run("save-to-blog-table", async () => {
         try {
           console.log(
@@ -356,40 +366,60 @@ export const generateBlogJob = inngest.createFunction(
           });
 
           // Don't fail the job if blog save fails - result is already saved
+          // But include detailed error info for debugging
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          const errorCode = (error as any)?.code;
+          const errorMeta = (error as any)?.meta;
+
+          console.error(`❌ [Inngest] Blog save failed with details:`, {
+            message: errorMessage,
+            code: errorCode,
+            meta: errorMeta,
+          });
+
           return {
             success: false,
-            error: error instanceof Error ? error.message : String(error),
+            error: errorMessage,
+            errorCode: errorCode,
+            errorDetails: errorMeta,
           };
         }
       });
 
       console.log(`📊 [Inngest] Blog post result:`, blogPost);
 
-      // Update the AiJob result to include blogPost info
-      if (blogPost?.success) {
-        try {
-          const updatedResult = {
-            ...result,
-            blogPost: blogPost,
-          };
-          await db.aiJob.update({
-            where: { id: jobId },
-            data: {
-              result: JSON.stringify(updatedResult),
-            },
-          });
-          console.log(`✅ [Inngest] Updated AiJob result with blogPost info`);
-        } catch (error) {
-          console.error(
-            `⚠️ [Inngest] Failed to update result with blogPost:`,
-            error
-          );
-        }
+      // Update the AiJob result to include blogPost info (even if save failed)
+      try {
+        const updatedResult = {
+          ...result,
+          blogPost: blogPost || null, // Include blogPost even if null/failed
+        };
+        await db.aiJob.update({
+          where: { id: jobId },
+          data: {
+            result: JSON.stringify(updatedResult),
+          },
+        });
+        console.log(
+          `✅ [Inngest] Updated AiJob result with blogPost info (success: ${blogPost?.success ?? false})`
+        );
+      } catch (error) {
+        console.error(
+          `⚠️ [Inngest] Failed to update result with blogPost:`,
+          error
+        );
       }
     } else {
-      console.log(
-        `⚠️ [Inngest] Skipping blog save - generation not successful`
-      );
+      if (!shouldSaveToDatabase) {
+        console.log(
+          `ℹ️ [Inngest] Skipping blog save - saveToDatabase option is false`
+        );
+      } else {
+        console.log(
+          `⚠️ [Inngest] Skipping blog save - generation not successful or saveResult failed`
+        );
+      }
     }
 
     console.log(`🎉 [Inngest] Blog generation job ${jobId} fully completed`);

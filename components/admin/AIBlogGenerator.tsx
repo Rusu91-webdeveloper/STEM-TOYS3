@@ -169,14 +169,27 @@ export default function AIBlogGenerator({
             // Check if blog was auto-saved to database
             const blogSaved = statusData.blogPost?.success;
             const blogTitle = statusData.blogPost?.title;
+            const blogError = statusData.blogPost?.error;
 
-            setProgress({
-              stage: 1,
-              message: blogSaved
-                ? `Blog "${blogTitle}" generated and saved as draft!`
-                : "Blog generated successfully!",
-              percent: 100,
-            });
+            // If saveToDatabase was true but save failed, show error
+            if (saveToDatabase && !blogSaved && blogError) {
+              setError(
+                `Blog generated but failed to save: ${blogError}. You can try saving manually.`
+              );
+              setProgress({
+                stage: 1,
+                message: "Blog generated but save failed",
+                percent: 100,
+              });
+            } else {
+              setProgress({
+                stage: 1,
+                message: blogSaved
+                  ? `Blog "${blogTitle}" generated and saved as draft!`
+                  : "Blog generated successfully!",
+                percent: 100,
+              });
+            }
 
             if (statusData.result?.generatedBlog) {
               setGeneratedBlog(statusData.result.generatedBlog);
@@ -210,45 +223,56 @@ export default function AIBlogGenerator({
     setError(null);
 
     try {
-      const requestBody = {
-        prompt: generatedBlog.aiMetadata.originalPrompt,
-        options: {
-          includeSEO: true,
-          includeCoverImage: true,
-          targetStemCategory: generatedBlog.stemCategory,
-          saveToDatabase: true,
-          autoPublish: false,
-        },
-      };
-
-      const response = await fetch("/api/admin/blog/ai-generate", {
+      // Save the generated blog using the dedicated endpoint
+      const response = await fetch("/api/admin/blog/save-generated", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          title: generatedBlog.title,
+          slug: generatedBlog.slug,
+          excerpt: generatedBlog.excerpt || generatedBlog.title,
+          content: generatedBlog.content,
+          coverImage: generatedBlog.coverImage || null,
+          stemCategory: generatedBlog.stemCategory || "GENERAL",
+          tags: generatedBlog.tags || [],
+          metadata: {
+            aiGenerated: true,
+            aiMetadata: generatedBlog.aiMetadata,
+            seoMetadata: generatedBlog.seoMetadata,
+          },
+          isPublished: false,
+          readingTime: generatedBlog.readingTime || 5,
+        }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error ?? "Failed to save blog");
+        throw new Error(
+          errorData.error ?? "Failed to save blog. Please try again."
+        );
       }
 
       const data = await response.json();
 
-      if (data.success && data.savedBlog) {
-        // Show success message (could be replaced with a toast notification)
+      if (data.success || data.id) {
+        // Show success message
         setError(null); // Clear any existing errors
         setIsOpen(false);
         resetForm();
         // Optionally refresh the blog list
         window.location.reload();
       } else {
-        throw new Error(data.error ?? "Failed to save blog");
+        throw new Error(data.error ?? "Failed to save blog. Please try again.");
       }
     } catch (err) {
       console.error("Blog save error:", err);
-      setError(err instanceof Error ? err.message : "Failed to save blog");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to save blog. Please try again."
+      );
     } finally {
       setIsGenerating(false);
     }
