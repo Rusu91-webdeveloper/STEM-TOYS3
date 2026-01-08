@@ -173,6 +173,7 @@ export default function OrderDetailsPage() {
       // Add cancellation reason if cancelling the order
       if (
         newStatus.toUpperCase() === "CANCELLED" &&
+        cancellationReason &&
         cancellationReason.trim()
       ) {
         requestBody.cancellationReason = cancellationReason.trim();

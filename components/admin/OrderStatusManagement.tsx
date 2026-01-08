@@ -194,7 +194,13 @@ export default function OrderStatusManagement() {
       if (dateFilter !== "all") params.append("dateFilter", dateFilter);
 
       const response = await fetch(`/api/admin/orders/enhanced?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch orders");
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || `Failed to fetch orders: ${response.statusText}`
+        );
+      }
 
       const result = await response.json();
       if (result.success) {
@@ -206,11 +212,18 @@ export default function OrderStatusManagement() {
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to load orders. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to load orders",
+        description: errorMessage,
         variant: "destructive",
       });
+      // Set empty state on error
+      setOrders([]);
+      setStatistics(null);
     } finally {
       setIsLoading(false);
     }
@@ -424,7 +437,16 @@ export default function OrderStatusManagement() {
   );
 
   const renderOverviewTab = () => {
-    if (!statistics) return null;
+    if (!statistics) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="h-8 w-8 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground">No statistics available</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="space-y-6">
@@ -899,7 +921,10 @@ export default function OrderStatusManagement() {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium">New Status</label>
-              <Select value={newStatus} onValueChange={setNewStatus}>
+              <Select
+                value={newStatus}
+                onValueChange={(value) => setNewStatus(value as OrderStatus)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -958,7 +983,9 @@ export default function OrderStatusManagement() {
               <Checkbox
                 id="send-notification"
                 checked={sendNotification}
-                onCheckedChange={setSendNotification}
+                onCheckedChange={(checked) =>
+                  setSendNotification(checked === true)
+                }
               />
               <label htmlFor="send-notification" className="text-sm">
                 Send notification to customer
@@ -989,7 +1016,10 @@ export default function OrderStatusManagement() {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium">New Status</label>
-              <Select value={newStatus} onValueChange={setNewStatus}>
+              <Select
+                value={newStatus}
+                onValueChange={(value) => setNewStatus(value as OrderStatus)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -1028,7 +1058,9 @@ export default function OrderStatusManagement() {
               <Checkbox
                 id="bulk-send-notification"
                 checked={sendNotification}
-                onCheckedChange={setSendNotification}
+                onCheckedChange={(checked) =>
+                  setSendNotification(checked === true)
+                }
               />
               <label htmlFor="bulk-send-notification" className="text-sm">
                 Send notification to customers

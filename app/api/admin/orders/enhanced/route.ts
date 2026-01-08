@@ -41,9 +41,9 @@ export const GET = withRateLimit(
         where.status = query.status;
       }
 
-      // Priority filter (assuming orders have a priority field)
+      // Priority filter
       if (query.priority && query.priority !== "all") {
-        where.priority = query.priority;
+        where.priority = query.priority.toUpperCase();
       }
 
       // Date filter
@@ -261,7 +261,7 @@ async function calculateOrderStatistics() {
     db.order.count(),
 
     // Orders by status
-    db.order.count({ where: { status: "PROCESSING" } }),
+    db.order.count({ where: { status: "PENDING_REVIEW" } }),
     db.order.count({ where: { status: "PROCESSING" } }),
     db.order.count({ where: { status: "SHIPPED" } }),
     db.order.count({ where: { status: "DELIVERED" } }),

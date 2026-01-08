@@ -166,6 +166,7 @@ export default function OrdersPage() {
       isOpen: true,
       order,
       newStatus: order.status.toUpperCase(),
+      cancellationReason: "",
       updating: false,
     });
   };
@@ -195,6 +196,7 @@ export default function OrdersPage() {
       // Add cancellation reason if cancelling the order
       if (
         statusUpdateModal.newStatus === "CANCELLED" &&
+        statusUpdateModal.cancellationReason &&
         statusUpdateModal.cancellationReason.trim()
       ) {
         requestBody.cancellationReason =
