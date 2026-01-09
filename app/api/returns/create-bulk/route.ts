@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { orderItemIds, reason, details } = await request.json();
+    const { orderItemIds, reason, details, photos } = await request.json();
 
     if (
       !orderItemIds ||
@@ -108,6 +108,7 @@ export async function POST(request: Request) {
       reason: reason as any,
       status: "PENDING" as const,
       details: details || null,
+      photos: Array.isArray(photos) ? photos : [],
     }));
 
     const returnRecords = await db.return.createMany({

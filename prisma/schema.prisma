@@ -687,24 +687,34 @@ model StoreSettingsBackup {
 }
 
 model Return {
-  id           String       @id @default(cuid())
-  userId       String
-  orderId      String
-  orderItemId  String
-  reason       ReturnReason
-  details      String?
-  status       ReturnStatus @default(PENDING)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  refundError  String?
-  refundStatus String?
-  order        Order        @relation(fields: [orderId], references: [id])
-  orderItem    OrderItem    @relation(fields: [orderItemId], references: [id])
-  user         User         @relation(fields: [userId], references: [id])
+  id                          String                    @id @default(cuid())
+  userId                      String
+  orderId                     String
+  orderItemId                 String
+  reason                      ReturnReason
+  details                     String?
+  status                      ReturnStatus              @default(PENDING)
+  createdAt                   DateTime                  @default(now())
+  updatedAt                   DateTime                  @updatedAt
+  refundError                 String?
+  refundStatus                String?
+  // Photo upload for damaged items (required by KidStory)
+  photos                      String[]                  @default([])
+  // Supplier authorization tracking (for KidStory ARP/RMA process)
+  supplierAuthorizationStatus SupplierAuthStatus?      @default(PENDING)
+  supplierAuthorizationDeadline DateTime?
+  supplierAuthorizationRequestedAt DateTime?
+  supplierAuthorizationNumber String?                   // ARP/RMA number from supplier
+  supplierAuthorizationNotes  String?
+  order                       Order                     @relation(fields: [orderId], references: [id])
+  orderItem                   OrderItem                 @relation(fields: [orderItemId], references: [id])
+  user                        User                      @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([orderId])
   @@index([orderItemId])
+  @@index([supplierAuthorizationStatus])
+  @@index([supplierAuthorizationDeadline])
 }
 
 model Review {
@@ -935,6 +945,7 @@ model SupplierOrder {
   supplier          Supplier               @relation(fields: [supplierId], references: [id], onDelete: Cascade)
   supplierInvoice   SupplierInvoice?       @relation(fields: [supplierInvoiceId], references: [id], onDelete: SetNull)
   tracking          SupplierOrderTracking?
+  receivedInvoiceLinks ReceivedInvoiceOrder[]
 
   @@index([orderId])
   @@index([orderItemId])
@@ -1011,6 +1022,10 @@ model Supplier {
   vatNumber                String?
   website                  String?
   yearEstablished          Int?
+  // Dropshipping margin configuration
+  defaultMargin            Float?                       @default(0.30) // Default margin (30% for KidStory)
+  minimumMarginPercentage  Float?                       @default(0.15) // Minimum margin before disabling product (15%)
+  priceChangeThreshold     Float?                       @default(0.10) // Alert if price changes by more than 10%
   products                 Product[]
   user                     User?                        @relation(fields: [userId], references: [id])
   invoices                 SupplierInvoice[]
@@ -1023,6 +1038,7 @@ model Supplier {
   feeds                    SupplierFeed[]
   supplierProducts         SupplierProduct[]
   syncJobs                 SupplierSyncJob[]
+  receivedInvoices         ReceivedSupplierInvoice[]
 
   @@index([userId])
   @@index([email])
@@ -1381,6 +1397,59 @@ model SupplierInvoice {
   @@index([invoiceNumber])
   @@index([status])
   @@index([dueDate])
+}
+
+// Invoices received FROM suppliers (e.g., KidStory) - for reconciliation
+model ReceivedSupplierInvoice {
+  id                String            @id @default(cuid())
+  supplierId        String
+  invoiceNumber     String            @unique
+  invoiceDate       DateTime
+  dueDate           DateTime
+  disputeDeadline   DateTime           // Critical for KidStory - short dispute windows
+  totalAmount       Float
+  currency          String             @default("RON")
+  status            ReceivedInvoiceStatus @default(PENDING)
+  pdfUrl            String?            // Uploaded PDF invoice
+  xmlData           Json?              // Parsed XML data if available
+  discrepancies     Json?              // Track mismatches: { type: "AMOUNT_MISMATCH", expected: 1000, actual: 1200 }
+  reconciliationStatus ReconciliationStatus @default(PENDING)
+  reconciledAt      DateTime?
+  reconciledBy      String?
+  paidAt            DateTime?
+  paymentMethod     String?
+  paymentReference  String?
+  notes             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  supplier          Supplier          @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  linkedOrders       ReceivedInvoiceOrder[]
+
+  @@index([supplierId])
+  @@index([invoiceNumber])
+  @@index([status])
+  @@index([invoiceDate])
+  @@index([dueDate])
+  @@index([disputeDeadline])
+  @@index([reconciliationStatus])
+}
+
+// Link received invoices to supplier orders for reconciliation
+model ReceivedInvoiceOrder {
+  id                      String                  @id @default(cuid())
+  receivedInvoiceId       String
+  supplierOrderId        String
+  expectedAmount          Float
+  actualAmount            Float
+  discrepancy             Float?                   // actualAmount - expectedAmount
+  notes                   String?
+  createdAt               DateTime                @default(now())
+  receivedInvoice         ReceivedSupplierInvoice @relation(fields: [receivedInvoiceId], references: [id], onDelete: Cascade)
+  supplierOrder           SupplierOrder           @relation(fields: [supplierOrderId], references: [id], onDelete: Cascade)
+
+  @@unique([receivedInvoiceId, supplierOrderId])
+  @@index([receivedInvoiceId])
+  @@index([supplierOrderId])
 }
 
 model SupplierPayment {
@@ -2017,6 +2086,14 @@ enum ReturnStatus {
   REFUNDED
 }
 
+enum SupplierAuthStatus {
+  PENDING
+  REQUESTED
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
 enum CouponType {
   PERCENTAGE
   FIXED_AMOUNT
@@ -2079,6 +2156,24 @@ enum InvoiceStatus {
   PAID
   OVERDUE
   CANCELLED
+}
+
+enum ReceivedInvoiceStatus {
+  PENDING
+  RECONCILED
+  DISPUTED
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum ReconciliationStatus {
+  PENDING
+  IN_PROGRESS
+  MATCHED
+  DISCREPANCY
+  RESOLVED
+  FAILED
 }
 
 enum MessageSenderType {

@@ -180,6 +180,26 @@ export const ourFileRouter = {
       return { fileUrl: res.file.ufsUrl }; // Use ufsUrl instead of url
     }),
 
+  // Return photo uploads (for damaged items, required by suppliers like KidStory)
+  returnPhoto: f({ image: { maxFileSize: "5MB", maxFileCount: 5 } })
+    .middleware(async () => {
+      console.log("UploadThing middleware running for returnPhoto");
+
+      // Get the authenticated user from the session
+      const session = await auth();
+
+      // Check if the user is authenticated
+      if (!session?.user) {
+        throw new Error("Unauthorized: You must be logged in to upload return photos");
+      }
+
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(res => {
+      console.log("Return photo upload complete:", res);
+      return { fileUrl: res.file.ufsUrl };
+    }),
+
   // General document uploads
   document: f({ pdf: { maxFileSize: "16MB", maxFileCount: 5 } })
     .middleware(async () => {

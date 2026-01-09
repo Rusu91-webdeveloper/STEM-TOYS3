@@ -1,13 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, ArrowLeft, ShoppingBag, Check } from "lucide-react";
+import { Loader2, ArrowLeft, ShoppingBag, Check, Upload, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, use } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { UploadButton } from "@uploadthing/react";
+import type { OurFileRouter } from "@/app/api/uploadthing/core";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -79,7 +81,24 @@ const returnSchema = z.object({
     }
   ),
   details: z.string().optional(),
-});
+  photos: z.array(z.string()).optional(),
+}).refine(
+  (data) => {
+    // Photos are required for damaged/defective or wrong item shipped
+    const requiresPhotos = 
+      data.reason === "DAMAGED_OR_DEFECTIVE" || 
+      data.reason === "WRONG_ITEM_SHIPPED";
+    
+    if (requiresPhotos && (!data.photos || data.photos.length === 0)) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Photos are required for damaged or wrong item returns",
+    path: ["photos"],
+  }
+);
 
 type ReturnFormValues = z.infer<typeof returnSchema>;
 
@@ -115,11 +134,22 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
       orderItemIds: [],
       reason: undefined,
       details: "",
+      photos: [],
     },
   });
 
   // Add state for already returned item IDs
   const [returnedItemIds, setReturnedItemIds] = useState<string[]>([]);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  
+  // Get photos from form watch
+  const photos = form.watch("photos") || [];
+  const selectedReason = form.watch("reason");
+  
+  // Check if photos are required
+  const photosRequired = 
+    selectedReason === "DAMAGED_OR_DEFECTIVE" || 
+    selectedReason === "WRONG_ITEM_SHIPPED";
 
   // Calculate if order is within 14-day return window (changed from 30 days)
   const isWithin14Days = (order: Order) => {
@@ -214,6 +244,7 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
           orderItemIds: values.orderItemIds,
           reason: values.reason,
           details: values.details,
+          photos: values.photos || [],
         }),
       });
 
@@ -484,6 +515,94 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                           placeholder="Tell us more about why you're returning this item..."
                           {...field}
                         />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Photo Upload Section - Required for damaged/wrong item */}
+              {photosRequired && (
+                <FormField
+                  control={form.control}
+                  name="photos"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Photos <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <div className="space-y-4">
+                          <div className="text-sm text-gray-600">
+                            Please upload photos showing the damage or wrong item. 
+                            This helps us process your return quickly.
+                          </div>
+                          
+                          {/* Upload Button */}
+                          {photos.length < 5 && (
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                              <UploadButton<OurFileRouter>
+                                endpoint="returnPhoto"
+                                onClientUploadComplete={(res) => {
+                                  if (res) {
+                                    const uploadedUrls = res.map((file: any) => file.fileUrl || file.url);
+                                    field.onChange([...field.value, ...uploadedUrls]);
+                                    setUploadingPhotos(false);
+                                  }
+                                }}
+                                onUploadError={(error) => {
+                                  console.error("Upload error:", error);
+                                  setUploadingPhotos(false);
+                                  toast({
+                                    title: "Upload failed",
+                                    description: error.message,
+                                    variant: "destructive",
+                                  });
+                                }}
+                                onUploadBegin={() => {
+                                  setUploadingPhotos(true);
+                                }}
+                                className="ut-button:bg-primary ut-button:hover:bg-primary/90 ut-button:text-white"
+                              />
+                            </div>
+                          )}
+
+                          {/* Display uploaded photos */}
+                          {photos.length > 0 && (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                              {photos.map((photoUrl, index) => (
+                                <div key={index} className="relative group">
+                                  <div className="relative aspect-square rounded-lg overflow-hidden border">
+                                    <Image
+                                      src={photoUrl}
+                                      alt={`Return photo ${index + 1}`}
+                                      fill
+                                      className="object-cover"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newPhotos = photos.filter((_, i) => i !== index);
+                                        field.onChange(newPhotos);
+                                      }}
+                                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {uploadingPhotos && (
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Uploading photos...
+                            </div>
+                          )}
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
