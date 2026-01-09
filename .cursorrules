@@ -27,6 +27,189 @@
 
 ---
 
+## 🚨 PRE-PUSH TO GITHUB SAFETY PROTOCOL - MANDATORY
+
+**BEFORE ANY `git push` THAT INCLUDES DATABASE CHANGES, THE AI MUST:**
+
+### Step 1: Detect Database Changes
+
+When user wants to push to GitHub, AI MUST check if any of these files changed:
+- `prisma/schema.prisma`
+- `prisma/migrations/**/*.sql`
+- Any file in `prisma/migrations/` directory
+
+**If database changes detected → Continue with safety checks**
+**If no database changes → Standard push is OK**
+
+### Step 2: Mandatory Pre-Push Safety Checks
+
+**AI MUST run these checks in order and verify ALL pass:**
+
+```bash
+# 1. Verify using LOCAL database (not production)
+pnpm run db:check-safety
+# Expected output: "✓ Local database detected - Safe to proceed"
+# If shows production database → STOP and alert user
+
+# 2. Check for uncommitted migrations
+git status | grep "prisma/migrations"
+# All migrations MUST be committed before pushing
+
+# 3. Validate all migration files for destructive operations
+# Run migration validation script
+pnpm run validate:migrations
+# MUST show: "✓ All migrations are safe (additive only)"
+# If shows dangerous operations → STOP and alert user
+
+# 4. Verify production backup exists (CRITICAL!)
+# Check if backup was created in last 24 hours
+ls -lt backups/backup_production_*.sql.gz | head -1
+# If no recent backup → MUST create one: pnpm run backup:production
+
+# 5. Verify application builds successfully
+pnpm run build
+# Build MUST succeed before pushing
+```
+
+### Step 3: Migration SQL Review
+
+**AI MUST manually review migration SQL files:**
+
+```bash
+# Find all new/uncommitted migrations
+git diff --cached --name-only | grep "prisma/migrations.*\.sql$"
+# OR for already committed migrations being pushed
+git log origin/main..HEAD --name-only --pretty=format: | grep "prisma/migrations.*\.sql$"
+
+# For each migration file found:
+cat prisma/migrations/[MIGRATION_NAME]/migration.sql
+```
+
+**AI MUST verify each migration contains ONLY:**
+- ✅ `ALTER TABLE ... ADD COLUMN` (safe)
+- ✅ `CREATE TABLE` (safe)
+- ✅ `CREATE INDEX` (safe)
+- ✅ `CREATE TYPE` (safe - enums)
+- ✅ `ALTER TABLE ... ADD CONSTRAINT` (safe - foreign keys)
+
+**AI MUST REJECT and STOP if migration contains:**
+- ❌ `DROP TABLE` (deletes entire tables)
+- ❌ `DROP COLUMN` (deletes columns and data)
+- ❌ `ALTER TABLE ... DROP` (removes columns/constraints)
+- ❌ `DELETE FROM` (deletes rows)
+- ❌ `TRUNCATE` (empties tables)
+
+### Step 4: Pre-Push Checklist Verification
+
+**AI MUST confirm ALL items are checked:**
+
+```
+☐ Safety check passed (local database detected)
+☐ All migration files reviewed (no destructive operations)
+☐ All migrations committed to git
+☐ Production backup created (within last 24 hours)
+☐ Application builds successfully
+☐ Tests pass (if applicable)
+☐ Migration SQL verified (additive only)
+```
+
+**If ANY item unchecked → STOP and complete it before pushing**
+
+### Step 5: Final Confirmation
+
+**Before executing `git push`, AI MUST:**
+
+1. Display a summary:
+   ```
+   🔒 PRE-PUSH SAFETY CHECK SUMMARY
+   
+   Migration files being pushed:
+   - prisma/migrations/[MIGRATION_NAME]/migration.sql
+   
+   Safety verification:
+   ✓ Local database used
+   ✓ No destructive operations detected
+   ✓ Production backup exists
+   ✓ Application builds successfully
+   
+   Ready to push? [Confirm with user]
+   ```
+
+2. Wait for explicit user confirmation before pushing
+3. If user confirms → Execute push
+4. If user denies or questions → STOP and address concerns
+
+### Step 6: Post-Push Monitoring Reminder
+
+**After successful push, AI MUST remind user:**
+
+```
+✅ Push successful!
+
+⚠️ IMPORTANT: Monitor deployment logs for:
+1. Migration application status
+2. Build success
+3. Application startup
+
+If migration fails, production database will auto-rollback.
+Check deployment logs for details.
+```
+
+---
+
+## 🛡️ AUTOMATIC MIGRATION VALIDATION
+
+**The AI MUST use the validation script before any push:**
+
+```bash
+# Run migration validation
+pnpm run validate:migrations
+```
+
+**This script checks:**
+- All migration SQL files for dangerous operations
+- Ensures only additive changes (ADD, CREATE statements)
+- Flags any DROP, DELETE, TRUNCATE operations
+- Reports validation results clearly
+
+**If validation fails → PUSH IS BLOCKED until fixed**
+
+---
+
+## ⚠️ EMERGENCY: If Safety Checks Fail
+
+**If any pre-push check fails, AI MUST:**
+
+1. **STOP immediately** - Do not proceed with push
+2. **Report the issue clearly** to user
+3. **Suggest fix**:
+   - If destructive operations found → Review migration and create safe version
+   - If no backup → Run `pnpm run backup:production` first
+   - If using production DB locally → Switch to local database
+   - If build fails → Fix build errors first
+4. **Wait for user** to fix issues and re-run checks
+5. **Re-verify** all checks pass before allowing push
+
+---
+
+## 📋 Pre-Push Safety Checklist (AI Reference)
+
+**AI MUST verify before EVERY git push with database changes:**
+
+- [ ] **Environment Check**: `pnpm run db:check-safety` shows local database
+- [ ] **Migration Validation**: `pnpm run validate:migrations` passes
+- [ ] **SQL Review**: All migration files contain only safe operations
+- [ ] **Backup Verification**: Recent production backup exists (< 24 hours old)
+- [ ] **Build Check**: `pnpm run build` succeeds
+- [ ] **Git Status**: All migration files are staged/committed
+- [ ] **User Confirmation**: User explicitly confirms push
+
+**ONLY if ALL items checked → Proceed with push**
+
+**If ANY item fails → STOP and fix issues first**
+
+---
+
 ## 📖 Project Setup & Context
 
 - **Always read `PLANNING.md`** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
