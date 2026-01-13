@@ -204,10 +204,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Helper function to convert datetime-local string to UTC Date
+    // datetime-local sends dates like "2025-01-15T14:30" (no timezone info)
+    // We need to interpret this as UTC for consistency
+    const parseDateToUTC = (dateString: string): Date => {
+      // If the string includes timezone info (Z or +/-), use it directly
+      if (dateString.includes("Z") || dateString.match(/[+-]\d{2}:\d{2}$/)) {
+        return new Date(dateString);
+      }
+      // Otherwise, treat as UTC (append Z to make it explicit)
+      // This ensures consistent behavior across different server timezones
+      return new Date(dateString.endsWith("Z") ? dateString : dateString + "Z");
+    };
+
     // Validate dates
     if (validatedData.startsAt && validatedData.expiresAt) {
-      const startsAt = new Date(validatedData.startsAt);
-      const expiresAt = new Date(validatedData.expiresAt);
+      const startsAt = parseDateToUTC(validatedData.startsAt);
+      const expiresAt = parseDateToUTC(validatedData.expiresAt);
 
       if (startsAt >= expiresAt) {
         return NextResponse.json(
@@ -235,10 +248,10 @@ export async function POST(request: NextRequest) {
       data: {
         ...validatedData,
         startsAt: validatedData.startsAt
-          ? new Date(validatedData.startsAt)
+          ? parseDateToUTC(validatedData.startsAt)
           : null,
         expiresAt: validatedData.expiresAt
-          ? new Date(validatedData.expiresAt)
+          ? parseDateToUTC(validatedData.expiresAt)
           : null,
         createdBy: createdByUserId,
       },

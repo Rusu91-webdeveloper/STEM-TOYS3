@@ -60,26 +60,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if coupon has started
-    if (coupon.startsAt && new Date() < coupon.startsAt) {
-      return NextResponse.json(
-        {
-          isValid: false,
-          error: "This coupon is not yet available",
-        },
-        { status: 400 }
-      );
+    // Get current time in UTC for consistent comparison
+    const now = new Date();
+    
+    // Check if coupon has started (compare UTC timestamps)
+    if (coupon.startsAt) {
+      const startsAt = new Date(coupon.startsAt);
+      if (now < startsAt) {
+        return NextResponse.json(
+          {
+            isValid: false,
+            error: "This coupon is not yet available",
+          },
+          { status: 400 }
+        );
+      }
     }
 
-    // Check if coupon has expired
-    if (coupon.expiresAt && new Date() > coupon.expiresAt) {
-      return NextResponse.json(
-        {
-          isValid: false,
-          error: "This coupon has expired",
-        },
-        { status: 400 }
-      );
+    // Check if coupon has expired (compare UTC timestamps)
+    if (coupon.expiresAt) {
+      const expiresAt = new Date(coupon.expiresAt);
+      if (now > expiresAt) {
+        return NextResponse.json(
+          {
+            isValid: false,
+            error: "This coupon has expired",
+          },
+          { status: 400 }
+        );
+      }
     }
 
     // Check maximum uses
