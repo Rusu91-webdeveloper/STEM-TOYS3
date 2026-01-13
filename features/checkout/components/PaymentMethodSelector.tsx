@@ -12,6 +12,7 @@ import React, { useEffect, useMemo } from "react";
 
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useCart } from "@/features/cart";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -63,8 +64,12 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   shippingCountry,
 }: PaymentMethodSelectorProps) {
   const { t } = useTranslation();
+  const { items: cartItems } = useCart();
   const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED !== "false";
   const netopiaEnabled = process.env.NEXT_PUBLIC_NETOPIA_ENABLED === "true";
+
+  // Check if cart contains only digital books (no physical items)
+  const isDigitalOnlyCart = cartItems.length > 0 && cartItems.every(item => item.isBook);
 
   // Get card logo or icon based on card type
   const getCardIcon = (cardType: string) => {
@@ -206,8 +211,9 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       }
     }
 
-    // Add COD option for Romanian users
-    if (isRomanianUser) {
+    // Add COD option for Romanian users, but only if cart contains physical items
+    // Digital books only should not allow COD (cash on delivery)
+    if (isRomanianUser && !isDigitalOnlyCart) {
       methods.push({
         id: "cash_on_delivery",
         type: "cash_on_delivery",
@@ -224,11 +230,20 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     }
 
     return methods;
-  }, [isRomanianUser, netopiaEnabled, savedCards, stripeEnabled, t]);
+  }, [isRomanianUser, isDigitalOnlyCart, netopiaEnabled, savedCards, stripeEnabled, t, cartItems]);
 
 
   useEffect(() => {
     if (paymentMethods.length === 0) {
+      return;
+    }
+
+    // If COD is selected but cart is digital-only, switch to first available method
+    if (selectedPaymentMethod === "cash_on_delivery" && isDigitalOnlyCart) {
+      const nonCODMethod = paymentMethods.find(m => m.id !== "cash_on_delivery");
+      if (nonCODMethod) {
+        onPaymentMethodChange(nonCODMethod.id);
+      }
       return;
     }
 
@@ -239,7 +254,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     if (!hasSelection) {
       onPaymentMethodChange(paymentMethods[0].id);
     }
-  }, [paymentMethods, selectedPaymentMethod, onPaymentMethodChange]);
+  }, [paymentMethods, selectedPaymentMethod, onPaymentMethodChange, isDigitalOnlyCart]);
 
   if (isLoadingCards) {
     return (
