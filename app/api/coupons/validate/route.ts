@@ -64,13 +64,30 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     
     // Check if coupon has started (compare UTC timestamps)
+    // Prisma DateTime fields are already Date objects in UTC
     if (coupon.startsAt) {
-      const startsAt = new Date(coupon.startsAt);
+      const startsAt = coupon.startsAt instanceof Date 
+        ? coupon.startsAt 
+        : new Date(coupon.startsAt);
+      
+      // Debug logging for troubleshooting (remove in production if not needed)
+      console.log(`[Coupon Validation] Code: ${coupon.code}`);
+      console.log(`[Coupon Validation] Current time (UTC): ${now.toISOString()}`);
+      console.log(`[Coupon Validation] Starts at (UTC): ${startsAt.toISOString()}`);
+      console.log(`[Coupon Validation] Now < StartsAt: ${now < startsAt}`);
+      
       if (now < startsAt) {
+        const hoursUntilStart = Math.round((startsAt.getTime() - now.getTime()) / (1000 * 60 * 60));
         return NextResponse.json(
           {
             isValid: false,
             error: "This coupon is not yet available",
+            debug: process.env.NODE_ENV === "development" ? {
+              currentTime: now.toISOString(),
+              startsAt: startsAt.toISOString(),
+              hoursUntilStart,
+              timeDiffMs: startsAt.getTime() - now.getTime(),
+            } : undefined,
           },
           { status: 400 }
         );
@@ -79,7 +96,10 @@ export async function POST(request: NextRequest) {
 
     // Check if coupon has expired (compare UTC timestamps)
     if (coupon.expiresAt) {
-      const expiresAt = new Date(coupon.expiresAt);
+      const expiresAt = coupon.expiresAt instanceof Date 
+        ? coupon.expiresAt 
+        : new Date(coupon.expiresAt);
+      
       if (now > expiresAt) {
         return NextResponse.json(
           {

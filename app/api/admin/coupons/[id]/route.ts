@@ -133,17 +133,20 @@ export async function PUT(
       return NextResponse.json({ error: "Coupon not found" }, { status: 404 });
     }
 
-    // Helper function to convert datetime-local string to UTC Date
+    // Helper function to convert datetime-local string to Date
     // datetime-local sends dates like "2025-01-15T14:30" (no timezone info)
-    // We need to interpret this as UTC for consistency
+    // When no timezone is specified, JavaScript's Date constructor interprets it as local time
+    // To ensure consistency, we'll interpret it as UTC by appending 'Z'
+    // This means the admin should enter dates in UTC, or we treat the datetime-local as UTC
     const parseDateToUTC = (dateString: string): Date => {
       // If the string includes timezone info (Z or +/-), use it directly
       if (dateString.includes("Z") || dateString.match(/[+-]\d{2}:\d{2}$/)) {
         return new Date(dateString);
       }
-      // Otherwise, treat as UTC (append Z to make it explicit)
-      // This ensures consistent behavior across different server timezones
-      return new Date(dateString.endsWith("Z") ? dateString : dateString + "Z");
+      // For datetime-local format (no timezone), interpret as UTC
+      // This is a trade-off: it ensures consistency but means admins should think in UTC
+      // Better solution would be frontend sending timezone-aware ISO strings
+      return new Date(dateString + "Z");
     };
 
     // Validate dates if provided
