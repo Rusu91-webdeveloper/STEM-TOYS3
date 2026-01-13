@@ -13,17 +13,19 @@ import {
   components,
 } from "./design-system";
 
-// Professional Header Component
+// Professional Header Component - Enhanced with modern design
 export function createHeader(storeSettings: any, baseUrl: string): string {
   return `
-    <div style="background: ${gradients.primary}; padding: ${spacing.xl}; text-align: center; border-radius: ${borderRadius.xl} ${borderRadius.xl} 0 0;">
-      <div style="max-width: 600px; margin: 0 auto;">
-        <img src="${baseUrl}/TechTots_LOGO.png" alt="${storeSettings.storeName}" style="max-width: 180px; height: auto; margin-bottom: ${spacing.md};">
+    <div style="background: ${gradients.primary}; padding: ${spacing["2xl"]} ${spacing.xl}; text-align: center; border-radius: ${borderRadius.xl} ${borderRadius.xl} 0 0; box-shadow: ${shadows.lg}; position: relative; overflow: hidden;">
+      <!-- Decorative background pattern -->
+      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.1; background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.2) 0%, transparent 50%);"></div>
+      <div style="max-width: 600px; margin: 0 auto; position: relative; z-index: 1;">
+        <img src="${baseUrl}/TechTots_LOGO.png" alt="${storeSettings.storeName}" style="max-width: 200px; height: auto; margin-bottom: ${spacing.lg}; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));">
         <div style="color: white; margin-bottom: ${spacing.md};">
-          <h1 style="margin: 0; font-size: ${typography.fontSize["2xl"]}; font-weight: ${typography.fontWeight.bold}; font-family: ${typography.fontFamily.primary};">
+          <h1 style="margin: 0; font-size: ${typography.fontSize["3xl"]}; font-weight: ${typography.fontWeight.bold}; font-family: ${typography.fontFamily.primary}; text-shadow: 0 2px 8px rgba(0,0,0,0.2); letter-spacing: -0.5px;">
             ${storeSettings.storeName}
           </h1>
-          <p style="margin: ${spacing.xs} 0 0 0; font-size: ${typography.fontSize.sm}; opacity: 0.9; font-family: ${typography.fontFamily.primary};">
+          <p style="margin: ${spacing.sm} 0 0 0; font-size: ${typography.fontSize.base}; opacity: 0.95; font-family: ${typography.fontFamily.primary}; font-weight: ${typography.fontWeight.medium};">
             ${storeSettings.storeDescription || "Jucării STEM pentru Minți Curioase"}
           </p>
         </div>
@@ -32,7 +34,7 @@ export function createHeader(storeSettings: any, baseUrl: string): string {
   `;
 }
 
-// Professional Hero Section Component
+// Professional Hero Section Component - Enhanced with modern design
 export function createHeroSection(
   title: string,
   subtitle?: string,
@@ -41,24 +43,29 @@ export function createHeroSection(
   const bg = background || gradients.primary;
 
   return `
-    <div style="background: ${bg}; padding: ${spacing["2xl"]} ${spacing.xl}; text-align: center; border-radius: ${borderRadius.xl}; margin: ${spacing.xl} 0;">
-      <h1 style="color: white; margin: 0 0 ${spacing.md} 0; font-size: ${typography.fontSize["3xl"]}; font-weight: ${typography.fontWeight.bold}; font-family: ${typography.fontFamily.primary}; line-height: ${typography.lineHeight.tight};">
-        ${title}
-      </h1>
-      ${
-        subtitle
-          ? `
-        <p style="color: rgba(255, 255, 255, 0.9); margin: 0; font-size: ${typography.fontSize.lg}; font-family: ${typography.fontFamily.primary}; line-height: ${typography.lineHeight.relaxed};">
-          ${subtitle}
-        </p>
-      `
-          : ""
-      }
+    <div style="background: ${bg}; padding: ${spacing["2xl"]} ${spacing.xl}; text-align: center; border-radius: ${borderRadius.xl}; margin: ${spacing.xl} 0; box-shadow: ${shadows.xl}; position: relative; overflow: hidden;">
+      <!-- Decorative background elements -->
+      <div style="position: absolute; top: -50%; right: -20%; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+      <div style="position: absolute; bottom: -30%; left: -10%; width: 150px; height: 150px; background: rgba(255,255,255,0.08); border-radius: 50%;"></div>
+      <div style="position: relative; z-index: 1;">
+        <h1 style="color: white; margin: 0 0 ${spacing.md} 0; font-size: ${typography.fontSize["3xl"]}; font-weight: ${typography.fontWeight.bold}; font-family: ${typography.fontFamily.primary}; line-height: ${typography.lineHeight.tight}; text-shadow: 0 2px 12px rgba(0,0,0,0.2); letter-spacing: -0.5px;">
+          ${title}
+        </h1>
+        ${
+          subtitle
+            ? `
+          <p style="color: rgba(255, 255, 255, 0.95); margin: 0; font-size: ${typography.fontSize.lg}; font-family: ${typography.fontFamily.primary}; line-height: ${typography.lineHeight.relaxed}; font-weight: ${typography.fontWeight.medium}; text-shadow: 0 1px 4px rgba(0,0,0,0.15);">
+            ${subtitle}
+          </p>
+        `
+            : ""
+        }
+      </div>
     </div>
   `;
 }
 
-// Professional Button Component
+// Professional Button Component - Enhanced with modern, appealing design
 export function createButton(
   text: string,
   href: string,
@@ -67,7 +74,7 @@ export function createButton(
 ): string {
   const buttonStyles = components.button[variant];
   const padding =
-    size === "sm" ? "8px 16px" : size === "lg" ? "16px 32px" : "12px 24px";
+    size === "sm" ? "12px 24px" : size === "lg" ? "18px 40px" : "14px 32px";
   const fontSize =
     size === "sm"
       ? typography.fontSize.sm
@@ -77,7 +84,7 @@ export function createButton(
 
   return `
     <a href="${href}" 
-       style="${buttonStyles} padding: ${padding}; font-size: ${fontSize}; display: inline-block; text-align: center; min-width: 120px;">
+       style="${buttonStyles} padding: ${padding}; font-size: ${fontSize}; display: inline-block; text-align: center; min-width: 140px; border: none; cursor: pointer; text-decoration: none; box-shadow: ${shadows.lg}; transform: translateY(0); transition: all 0.3s ease;">
       ${text}
     </a>
   `;
@@ -194,13 +201,9 @@ export function createOrderSummary(
     price: number;
     image?: string;
   }>,
-  totalAmount: number
+  totalAmount: number,
+  shippingCost?: number
 ): string {
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-
   return `
     <div style="background: ${colors.neutral[50]}; border-radius: ${borderRadius.xl}; padding: ${spacing.xl}; border: 1px solid ${colors.neutral[200]};">
       <h3 style="margin: 0 0 ${spacing.lg} 0; font-size: ${typography.fontSize.xl}; font-weight: ${typography.fontWeight.semibold}; color: ${colors.neutral[900]}; text-align: center;">
@@ -237,13 +240,19 @@ export function createOrderSummary(
         .join("")}
       
       <div style="border-top: 2px solid ${colors.primary[200]}; padding-top: ${spacing.md}; margin-top: ${spacing.md};">
+        ${
+          shippingCost !== undefined && shippingCost > 0
+            ? `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${spacing.sm};">
-          <span style="font-weight: ${typography.fontWeight.medium}; color: ${colors.neutral[700]};">Subtotal:</span>
+          <span style="font-weight: ${typography.fontWeight.medium}; color: ${colors.neutral[700]};">Transport:</span>
           <span style="font-weight: ${typography.fontWeight.semibold}; color: ${colors.neutral[800]};">
-            ${new Intl.NumberFormat("ro-RO", { style: "currency", currency: "RON" }).format(subtotal)}
+            ${new Intl.NumberFormat("ro-RO", { style: "currency", currency: "RON" }).format(shippingCost)}
           </span>
         </div>
-        <!-- No VAT line - non-VAT registered SRL, prices are final -->
+        `
+            : ""
+        }
+        <!-- No VAT/TVA line - non-VAT registered SRL, prices are final -->
         <div style="display: flex; justify-content: space-between; align-items: center; padding-top: ${spacing.md}; border-top: 1px solid ${colors.neutral[300]};">
           <span style="font-weight: ${typography.fontWeight.bold}; color: ${colors.neutral[900]}; font-size: ${typography.fontSize.lg};">Total:</span>
           <span style="font-weight: ${typography.fontWeight.bold}; color: ${colors.primary[600]}; font-size: ${typography.fontSize.lg};">
@@ -337,7 +346,7 @@ export function createTestimonial(
   `;
 }
 
-// Professional Footer Component
+// Professional Footer Component - Enhanced with modern design
 export function createProfessionalFooter(
   storeSettings: any,
   baseUrl: string
@@ -345,56 +354,50 @@ export function createProfessionalFooter(
   const year = new Date().getFullYear();
 
   return `
-    <div style="background: ${colors.neutral[900]}; color: white; padding: ${spacing["2xl"]} ${spacing.xl}; border-radius: 0 0 ${borderRadius.xl} ${borderRadius.xl}; margin-top: ${spacing["2xl"]};">
-      <div style="max-width: 600px; margin: 0 auto; text-align: center;">
-        <img src="${baseUrl}/TechTots_LOGO.png" alt="${storeSettings.storeName}" style="max-width: 120px; height: auto; margin-bottom: ${spacing.lg}; opacity: 0.9;">
+    <div style="background: linear-gradient(135deg, ${colors.neutral[900]} 0%, ${colors.neutral[800]} 100%); color: white; padding: ${spacing["2xl"]} ${spacing.xl}; border-radius: 0 0 ${borderRadius.xl} ${borderRadius.xl}; margin-top: ${spacing["2xl"]}; box-shadow: ${shadows.xl}; position: relative; overflow: hidden;">
+      <!-- Subtle background pattern -->
+      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.05; background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px);"></div>
+      <div style="max-width: 600px; margin: 0 auto; text-align: center; position: relative; z-index: 1;">
+        <img src="${baseUrl}/TechTots_LOGO.png" alt="${storeSettings.storeName}" style="max-width: 140px; height: auto; margin-bottom: ${spacing.lg}; opacity: 0.95; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
         
         <div style="margin-bottom: ${spacing.xl};">
-          <h3 style="margin: 0 0 ${spacing.sm} 0; font-size: ${typography.fontSize.lg}; font-weight: ${typography.fontWeight.semibold}; color: white;">
+          <h3 style="margin: 0 0 ${spacing.sm} 0; font-size: ${typography.fontSize.xl}; font-weight: ${typography.fontWeight.bold}; color: white; letter-spacing: -0.3px;">
             ${storeSettings.storeName}
           </h3>
-          <p style="margin: 0; font-size: ${typography.fontSize.sm}; color: ${colors.neutral[400]};">
+          <p style="margin: 0; font-size: ${typography.fontSize.base}; color: ${colors.neutral[300]}; font-weight: ${typography.fontWeight.medium};">
             ${storeSettings.storeDescription || "Jucării STEM pentru Minți Curioase"}
           </p>
         </div>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: ${spacing.lg}; margin-bottom: ${spacing.xl}; text-align: left;">
-          <div>
-            <h4 style="margin: 0 0 ${spacing.sm} 0; font-size: ${typography.fontSize.base}; font-weight: ${typography.fontWeight.semibold}; color: white;">
-              📍 Adresa
-            </h4>
-            <p style="margin: 0; font-size: ${typography.fontSize.sm}; color: ${colors.neutral[400]}; line-height: ${typography.lineHeight.normal};">
-              ${storeSettings.businessAddress}<br>
-              ${storeSettings.businessCity}, ${storeSettings.businessState}
-            </p>
-          </div>
-          
-          <div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: ${spacing.lg}; margin-bottom: ${spacing.xl}; text-align: center;">
+          <div style="background: rgba(255,255,255,0.05); border-radius: ${borderRadius.lg}; padding: ${spacing.lg};">
             <h4 style="margin: 0 0 ${spacing.sm} 0; font-size: ${typography.fontSize.base}; font-weight: ${typography.fontWeight.semibold}; color: white;">
               📞 Contact
             </h4>
-            <p style="margin: 0; font-size: ${typography.fontSize.sm}; color: ${colors.neutral[400]}; line-height: ${typography.lineHeight.normal};">
+            <p style="margin: 0; font-size: ${typography.fontSize.sm}; color: ${colors.neutral[300]}; line-height: ${typography.lineHeight.relaxed};">
               Email: ${storeSettings.contactEmail}<br>
               Telefon: ${storeSettings.contactPhone}
             </p>
           </div>
         </div>
         
-        <div style="border-top: 1px solid ${colors.neutral[700]}; padding-top: ${spacing.lg}; margin-bottom: ${spacing.lg};">
-          <div style="display: flex; justify-content: center; gap: ${spacing.md}; flex-wrap: wrap; margin-bottom: ${spacing.md};">
-            <a href="${baseUrl}/privacy" style="color: ${colors.neutral[400]}; text-decoration: none; font-size: ${typography.fontSize.sm};">
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: ${spacing.lg}; margin-bottom: ${spacing.lg};">
+          <div style="display: flex; justify-content: center; gap: ${spacing.lg}; flex-wrap: wrap; margin-bottom: ${spacing.md};">
+            <a href="${baseUrl}/privacy" style="color: ${colors.neutral[300]}; text-decoration: none; font-size: ${typography.fontSize.sm}; font-weight: ${typography.fontWeight.medium}; transition: color 0.2s;">
               Politica de Confidențialitate
             </a>
-            <a href="${baseUrl}/terms" style="color: ${colors.neutral[400]}; text-decoration: none; font-size: ${typography.fontSize.sm};">
+            <span style="color: ${colors.neutral[600]}; font-size: ${typography.fontSize.sm};">•</span>
+            <a href="${baseUrl}/terms" style="color: ${colors.neutral[300]}; text-decoration: none; font-size: ${typography.fontSize.sm}; font-weight: ${typography.fontWeight.medium}; transition: color 0.2s;">
               Termeni și Condiții
             </a>
-            <a href="${baseUrl}/unsubscribe" style="color: ${colors.neutral[400]}; text-decoration: none; font-size: ${typography.fontSize.sm};">
+            <span style="color: ${colors.neutral[600]}; font-size: ${typography.fontSize.sm};">•</span>
+            <a href="${baseUrl}/unsubscribe" style="color: ${colors.neutral[300]}; text-decoration: none; font-size: ${typography.fontSize.sm}; font-weight: ${typography.fontWeight.medium}; transition: color 0.2s;">
               Dezabonare
             </a>
           </div>
         </div>
         
-        <p style="margin: 0; font-size: ${typography.fontSize.xs}; color: ${colors.neutral[500]};">
+        <p style="margin: 0; font-size: ${typography.fontSize.xs}; color: ${colors.neutral[400]}; font-weight: ${typography.fontWeight.medium};">
           © ${year} ${storeSettings.storeName}. Toate drepturile rezervate.
         </p>
       </div>
@@ -439,7 +442,7 @@ export function createSocialProof(
   `;
 }
 
-// Professional CTA Section Component
+// Professional CTA Section Component - Enhanced with modern design
 export function createCTASection(
   title: string,
   description: string,
@@ -447,18 +450,23 @@ export function createCTASection(
   secondaryButton?: { text: string; url: string }
 ): string {
   return `
-    <div style="background: ${gradients.primary}; border-radius: ${borderRadius.xl}; padding: ${spacing["2xl"]} ${spacing.xl}; text-align: center; margin: ${spacing.xl} 0;">
-      <h2 style="margin: 0 0 ${spacing.md} 0; font-size: ${typography.fontSize["2xl"]}; font-weight: ${typography.fontWeight.bold}; color: white; font-family: ${typography.fontFamily.primary};">
-        ${title}
-      </h2>
-      
-      <p style="margin: 0 0 ${spacing.xl} 0; font-size: ${typography.fontSize.lg}; color: rgba(255, 255, 255, 0.9); line-height: ${typography.lineHeight.relaxed};">
-        ${description}
-      </p>
-      
-      <div style="display: flex; gap: ${spacing.md}; justify-content: center; flex-wrap: wrap;">
-        ${createButton(primaryButton.text, primaryButton.url, "success", "lg")}
-        ${secondaryButton ? createButton(secondaryButton.text, secondaryButton.url, "secondary", "lg") : ""}
+    <div style="background: ${gradients.primary}; border-radius: ${borderRadius.xl}; padding: ${spacing["2xl"]} ${spacing.xl}; text-align: center; margin: ${spacing.xl} 0; box-shadow: ${shadows.xl}; position: relative; overflow: hidden;">
+      <!-- Decorative background elements -->
+      <div style="position: absolute; top: -30%; right: -15%; width: 180px; height: 180px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+      <div style="position: absolute; bottom: -20%; left: -10%; width: 120px; height: 120px; background: rgba(255,255,255,0.08); border-radius: 50%;"></div>
+      <div style="position: relative; z-index: 1;">
+        <h2 style="margin: 0 0 ${spacing.md} 0; font-size: ${typography.fontSize["2xl"]}; font-weight: ${typography.fontWeight.bold}; color: white; font-family: ${typography.fontFamily.primary}; text-shadow: 0 2px 8px rgba(0,0,0,0.2); letter-spacing: -0.3px;">
+          ${title}
+        </h2>
+        
+        <p style="margin: 0 0 ${spacing.xl} 0; font-size: ${typography.fontSize.lg}; color: rgba(255, 255, 255, 0.95); line-height: ${typography.lineHeight.relaxed}; font-weight: ${typography.fontWeight.medium}; text-shadow: 0 1px 4px rgba(0,0,0,0.15);">
+          ${description}
+        </p>
+        
+        <div style="display: flex; gap: ${spacing.md}; justify-content: center; flex-wrap: wrap; margin-top: ${spacing.lg};">
+          ${createButton(primaryButton.text, primaryButton.url, "success", "lg")}
+          ${secondaryButton ? createButton(secondaryButton.text, secondaryButton.url, "secondary", "lg") : ""}
+        </div>
       </div>
     </div>
   `;

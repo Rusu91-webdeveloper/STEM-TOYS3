@@ -128,19 +128,24 @@ export const sendEmailViaUnifiedSystem = {
       <body style="margin: 0; padding: 20px; background-color: #f3f4f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);">
           
-          <!-- Header with Logo -->
-          <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center;">
-            <img src="${logoUrl}" alt="TechTots Logo" style="max-width: 200px; height: auto; margin-bottom: 16px;" onerror="this.src='${faviconUrl}'; this.style.width='48px'; this.style.height='48px';">
-            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">✅ Confirmare Comandă</h1>
+          <!-- Header with Logo - Enhanced Design -->
+          <div style="background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%); padding: 48px 30px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <!-- Decorative background elements -->
+            <div style="position: absolute; top: -30%; right: -15%; width: 200px; height: 200px; background: rgba(255,255,255,0.15); border-radius: 50%;"></div>
+            <div style="position: absolute; bottom: -20%; left: -10%; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+            <div style="position: relative; z-index: 1;">
+              <img src="${logoUrl}" alt="TechTots Logo" style="max-width: 220px; height: auto; margin-bottom: 20px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));" onerror="this.src='${faviconUrl}'; this.style.width='48px'; this.style.height='48px';">
+              <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 700; text-shadow: 0 2px 12px rgba(0,0,0,0.2); letter-spacing: -0.5px;">✅ Confirmare Comandă</h1>
+            </div>
           </div>
           
           <!-- Main Content -->
           <div style="padding: 40px 30px;">
             <p style="font-size: 18px; color: #374151; margin-bottom: 20px; line-height: 1.6;">Îți mulțumim pentru comandă!</p>
             
-            <div style="background-color: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; padding: 20px; margin: 24px 0;">
-              <h2 style="color: #15803d; margin: 0 0 16px 0; font-size: 20px;">📋 Comanda #${order.id}</h2>
-              <p style="color: #15803d; margin: 0;">Am primit comanda ta și o vom procesa în curând!</p>
+            <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #22c55e; border-radius: 16px; padding: 24px; margin: 32px 0; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);">
+              <h2 style="color: #15803d; margin: 0 0 12px 0; font-size: 22px; font-weight: 700; letter-spacing: -0.3px;">📋 Comanda #${order.id}</h2>
+              <p style="color: #15803d; margin: 0; font-size: 16px; font-weight: 600;">Am primit comanda ta și o vom procesa în curând!</p>
             </div>
             
             <h3 style="color: #374151; font-size: 18px; margin: 32px 0 16px 0;">🛒 Produse comandate:</h3>
@@ -158,15 +163,20 @@ export const sendEmailViaUnifiedSystem = {
                 ${itemsHtml}
               </tbody>
               <tfoot>
-                <tr style="background: linear-gradient(135deg, #1f2937 0%, #374151 100%);">
-                  <td colspan="3" style="padding: 16px 8px; text-align: right; color: #ffffff; font-weight: 600; font-size: 16px;">Total Comandă:</td>
-                  <td style="padding: 16px 8px; text-align: right; color: #ffffff; font-weight: 700; font-size: 18px;">${order.total.toFixed(2)} Lei</td>
-                </tr>
+                ${
+                  order.shippingCost > 0
+                    ? `
                 <tr>
                   <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">Transport:</td>
-                  <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${order.shippingCost > 0 ? `${order.shippingCost.toFixed(2)} Lei` : `<span style="color: #10b981;">Gratuit</span>`}</td>
+                  <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${order.shippingCost.toFixed(2)} Lei</td>
+                </tr>`
+                    : ""
+                }
+                <!-- No VAT/TVA line - non-VAT registered SRL, prices are final -->
+                <tr style="background: linear-gradient(135deg, #1f2937 0%, #374151 100%);">
+                  <td colspan="3" style="padding: 16px 8px; text-align: right; color: #ffffff; font-weight: 600; font-size: 16px;">Total:</td>
+                  <td style="padding: 16px 8px; text-align: right; color: #ffffff; font-weight: 700; font-size: 18px;">${order.total.toFixed(2)} Lei</td>
                 </tr>
-                <!-- No VAT line - non-VAT registered SRL, prices are final -->
               </tfoot>
             </table>
             
@@ -175,9 +185,9 @@ export const sendEmailViaUnifiedSystem = {
               <p style="color: #1e40af; margin: 0; line-height: 1.6;">Îți vom trimite un email de confirmare expediere când comanda ta va fi pe drum către tine!</p>
             </div>
             
-            <div style="text-align: center; margin: 32px 0;">
+            <div style="text-align: center; margin: 40px 0;">
               <a href="${baseUrl}/account/orders" 
-                 style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                 style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 17px; display: inline-block; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); letter-spacing: 0.3px; transition: all 0.3s ease;">
                 📋 Vezi Toate Comenzile
               </a>
             </div>
@@ -185,20 +195,23 @@ export const sendEmailViaUnifiedSystem = {
             <p style="font-size: 16px; color: #374151; text-align: center; margin-top: 32px; line-height: 1.6;">Cu respect,<br><strong>Echipa TechTots</strong></p>
           </div>
           
-          <!-- Professional Footer -->
-          <div style="background-color: #1f2937; color: #9ca3af; padding: 30px; text-align: center; font-size: 14px; line-height: 1.5;">
-            <div style="margin-bottom: 16px;">
-              <img src="${logoUrl}" alt="TechTots" style="max-width: 120px; height: auto; opacity: 0.8;" onerror="this.src='${faviconUrl}'; this.style.width='32px'; this.style.height='32px';">
-            </div>
-            <p style="margin: 0 0 8px 0; font-weight: 600; color: #ffffff;">TechTots - Jucării Educaționale STEM</p>
-            <p style="margin: 0 0 16px 0;">Mehedinti 54-56,Bl D5,APT 70, Cluj-Napoca,Cluj</p>
-            <p style="margin: 0 0 16px 0;">📧 webira.rem.srl@gmail.com | 📞 +40 771 248 029</p>
-            <div style="border-top: 1px solid #374151; padding-top: 16px; margin-top: 16px;">
-              <p style="margin: 0; font-size: 12px;">
-                © ${new Date().getFullYear()} TechTots. Toate drepturile rezervate. | 
-                <a href="${baseUrl}/privacy" style="color: #60a5fa; text-decoration: none;">Politica de Confidențialitate</a> | 
-                <a href="${baseUrl}/terms" style="color: #60a5fa; text-decoration: none;">Termeni și Condiții</a>
-              </p>
+          <!-- Professional Footer - Enhanced Design -->
+          <div style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); color: #9ca3af; padding: 40px 30px; text-align: center; font-size: 14px; line-height: 1.5; position: relative; overflow: hidden; box-shadow: 0 -4px 20px rgba(0,0,0,0.1);">
+            <!-- Subtle background pattern -->
+            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.05; background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px);"></div>
+            <div style="position: relative; z-index: 1;">
+              <div style="margin-bottom: 20px;">
+                <img src="${logoUrl}" alt="TechTots" style="max-width: 140px; height: auto; opacity: 0.95; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" onerror="this.src='${faviconUrl}'; this.style.width='32px'; this.style.height='32px';">
+              </div>
+              <p style="margin: 0 0 12px 0; font-weight: 700; color: #ffffff; font-size: 18px; letter-spacing: -0.3px;">TechTots - Jucării Educaționale STEM</p>
+              <p style="margin: 0 0 24px 0; color: #d1d5db; font-size: 15px; font-weight: 500;">📧 webira.rem.srl@gmail.com | 📞 +40 771 248 029</p>
+              <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; margin-top: 20px;">
+                <p style="margin: 0; font-size: 13px; color: #9ca3af; font-weight: 500;">
+                  © ${new Date().getFullYear()} TechTots. Toate drepturile rezervate. | 
+                  <a href="${baseUrl}/privacy" style="color: #60a5fa; text-decoration: none; font-weight: 600;">Politica de Confidențialitate</a> | 
+                  <a href="${baseUrl}/terms" style="color: #60a5fa; text-decoration: none; font-weight: 600;">Termeni și Condiții</a>
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -394,7 +407,6 @@ export const sendEmailViaUnifiedSystem = {
               <img src="${logoUrl}" alt="TechTots" style="max-width: 120px; height: auto; opacity: 0.8;" onerror="this.src='${faviconUrl}'; this.style.width='32px'; this.style.height='32px';">
             </div>
             <p style="margin: 0 0 8px 0; font-weight: 600; color: #ffffff;">TechTots - Jucării Educaționale STEM</p>
-            <p style="margin: 0 0 16px 0;">Mehedinti 54-56,Bl D5,APT 70, Cluj-Napoca,Cluj</p>
             <p style="margin: 0 0 16px 0;">📧 webira.rem.srl@gmail.com | 📞 +40 771 248 029</p>
             <div style="border-top: 1px solid #374151; padding-top: 16px; margin-top: 16px;">
               <p style="margin: 0; font-size: 12px;">

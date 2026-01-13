@@ -88,7 +88,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong><br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                +40 771 248 029
             </p>
         </div>
     </div>
@@ -271,7 +271,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                +40 771 248 029
             </p>
         </div>
     </div>
@@ -453,7 +453,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                +40 771 248 029
             </p>
         </div>
     </div>
@@ -535,7 +535,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                +40 771 248 029
             </p>
         </div>
     </div>
@@ -637,7 +637,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                +40 771 248 029
             </p>
         </div>
     </div>
@@ -726,7 +726,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                +40 771 248 029
             </p>
         </div>
     </div>
@@ -816,7 +816,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                +40 771 248 029
             </p>
         </div>
     </div>
@@ -904,7 +904,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                +40 771 248 029
             </p>
         </div>
     </div>
@@ -993,7 +993,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                +40 771 248 029
             </p>
         </div>
     </div>
@@ -1372,7 +1372,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                +40 771 248 029
             </p>
         </div>
     </div>
@@ -1466,7 +1466,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                +40 771 248 029
             </p>
         </div>
     </div>
@@ -1558,7 +1558,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                +40 771 248 029
             </p>
         </div>
     </div>

@@ -193,8 +193,7 @@ export const emailTemplates = {
               <img src="${logoUrl}" alt="TechTots" style="max-width: 120px; height: auto; opacity: 0.8;" onerror="this.src='${faviconUrl}'; this.style.width='32px'; this.style.height='32px';">
             </div>
             <p style="margin: 0 0 8px 0; font-weight: 600; color: #ffffff;">TechTots - Jucării Educaționale STEM</p>
-            <p style="margin: 0 0 16px 0;">Mehedinti 54-56,Bl D5,APT 70, Cluj-Napoca,Cluj</p>
-            <p style="margin: 0 0 16px 0;">📧 webira.rem.srl@gmail.com | 📞 +40 123 456 789</p>
+            <p style="margin: 0 0 16px 0;">📧 webira.rem.srl@gmail.com | 📞 +40 771 248 029</p>
             <div style="border-top: 1px solid #374151; padding-top: 16px; margin-top: 16px;">
               <p style="margin: 0; font-size: 12px;">
                 © ${new Date().getFullYear()} TechTots. Toate drepturile rezervate. | 
@@ -391,8 +390,6 @@ export const emailTemplates = {
             <p style="margin: 0 0 16px 0; font-weight: 600; color: #f3f4f6;">TechTots - Jucării STEM pentru Minți Curioase</p>
             
             <div style="margin-bottom: 20px;">
-              <p style="margin: 0 0 8px 0;">📍 Mehedinti 54-56, Bl D5, sc 2, apt 70</p>
-              <p style="margin: 0 0 8px 0;">Cluj-Napoca, Cluj, România</p>
               <p style="margin: 0 0 8px 0;">📧 webira.rem.srl@gmail.com</p>
               <p style="margin: 0 0 16px 0;">📞 +40 771 248 029</p>
             </div>
@@ -491,29 +488,34 @@ export const emailTemplates = {
       <body style="margin: 0; padding: 20px; background-color: #f3f4f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);">
           
-          <!-- Header with Logo -->
-          <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center;">
-            <img src="${logoUrl}" alt="TechTots Logo" style="max-width: 200px; height: auto; margin-bottom: 16px;" onerror="this.src='${faviconUrl}'; this.style.width='48px'; this.style.height='48px';">
-            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">🎉 Confirmare Comandă</h1>
-            <p style="margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; color: #ffffff;">Îți mulțumim pentru încrederea acordată!</p>
+          <!-- Header with Logo - Enhanced Design -->
+          <div style="background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%); padding: 48px 30px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <!-- Decorative background elements -->
+            <div style="position: absolute; top: -30%; right: -15%; width: 200px; height: 200px; background: rgba(255,255,255,0.15); border-radius: 50%;"></div>
+            <div style="position: absolute; bottom: -20%; left: -10%; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+            <div style="position: relative; z-index: 1;">
+              <img src="${logoUrl}" alt="TechTots Logo" style="max-width: 220px; height: auto; margin-bottom: 20px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));" onerror="this.src='${faviconUrl}'; this.style.width='48px'; this.style.height='48px';">
+              <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 700; text-shadow: 0 2px 12px rgba(0,0,0,0.2); letter-spacing: -0.5px;">🎉 Confirmare Comandă</h1>
+              <p style="margin: 12px 0 0 0; font-size: 18px; opacity: 0.95; color: #ffffff; font-weight: 500; text-shadow: 0 1px 4px rgba(0,0,0,0.15);">Îți mulțumim pentru încrederea acordată!</p>
+            </div>
           </div>
           
           <!-- Main Content -->
           <div style="padding: 40px 30px;">
             <p style="font-size: 18px; color: #374151; margin-bottom: 20px; line-height: 1.6;">Vă mulțumim pentru comanda dumneavoastră!</p>
             
-            <!-- Order Summary Box -->
-            <div style="background-color: #f0f9ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px; margin: 24px 0;">
+            <!-- Order Summary Box - Enhanced Design -->
+            <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #bfdbfe; border-radius: 16px; padding: 24px; margin: 32px 0; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <div>
-                  <p style="margin: 0; font-size: 18px; font-weight: 700; color: #1f2937;">Comandă #${order.id}</p>
-                  <p style="margin: 4px 0 0; color: #6b7280;">📅 ${order.orderDate ? new Date(order.orderDate).toLocaleDateString("ro-RO") : new Date().toLocaleDateString("ro-RO")}</p>
+                  <p style="margin: 0; font-size: 20px; font-weight: 700; color: #1e40af; letter-spacing: -0.3px;">Comandă #${order.id}</p>
+                  <p style="margin: 6px 0 0; color: #475569; font-size: 15px; font-weight: 500;">📅 ${order.orderDate ? new Date(order.orderDate).toLocaleDateString("ro-RO") : new Date().toLocaleDateString("ro-RO")}</p>
                 </div>
                 <div style="text-align: right;">
-                  <span style="background-color: #10b981; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">CONFIRMATĂ</span>
+                  <span style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; padding: 8px 16px; border-radius: 24px; font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3); letter-spacing: 0.5px;">CONFIRMATĂ</span>
                 </div>
               </div>
-              <p style="margin: 0; color: #1e40af;">Am primit comanda ta și o vom procesa în curând!</p>
+              <p style="margin: 0; color: #1e40af; font-size: 16px; font-weight: 600;">Am primit comanda ta și o vom procesa în curând!</p>
             </div>
             
             <!-- Products Table -->
@@ -532,15 +534,6 @@ export const emailTemplates = {
               </tbody>
               <tfoot style="background-color: #f8fafc;">
                 ${
-                  order.subtotal !== undefined
-                    ? `
-                <tr>
-                  <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">Subtotal:</td>
-                  <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${order.subtotal.toFixed(2)} Lei</td>
-                </tr>`
-                    : ""
-                }
-                ${
                   order.discountAmount && order.discountAmount > 0
                     ? `
                 <tr style="color: #10b981;">
@@ -558,15 +551,9 @@ export const emailTemplates = {
                   <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">Transport${order.shippingMethod ? ` (${order.shippingMethod.name || "Standard"})` : ""}:</td>
                   <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${order.shippingCost.toFixed(2)} Lei</td>
                 </tr>`
-                    : order.shippingCost !== undefined
-                      ? `
-                <tr>
-                  <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">Transport${order.shippingMethod ? ` (${order.shippingMethod.name || "Standard"})` : ""}:</td>
-                  <td style="text-align: right; padding: 12px 16px; font-weight: 600; color: #10b981;">Gratuit</td>
-                </tr>`
-                      : ""
+                    : ""
                 }
-                <!-- No VAT line - non-VAT registered SRL, prices are final -->
+                <!-- No VAT/TVA line - non-VAT registered SRL, prices are final -->
                 <tr style="font-weight: 700; font-size: 18px; background: linear-gradient(135deg, #1f2937 0%, #374151 100%); color: #ffffff;">
                   <td colspan="3" style="text-align: right; padding: 16px; border-top: 2px solid #3b82f6;">TOTAL:</td>
                   <td style="text-align: right; padding: 16px; border-top: 2px solid #3b82f6;">${order.total.toFixed(2)} Lei</td>
@@ -586,10 +573,10 @@ export const emailTemplates = {
 
             ${shippingHtml}
             
-            <!-- Action Button -->
-            <div style="text-align: center; margin: 32px 0;">
+            <!-- Action Button - Enhanced Design -->
+            <div style="text-align: center; margin: 40px 0;">
               <a href="${baseUrl}/account/orders" 
-                 style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                 style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 17px; display: inline-block; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); letter-spacing: 0.3px; transition: all 0.3s ease;">
                 📋 Vezi Toate Comenzile
               </a>
             </div>
@@ -624,8 +611,6 @@ export const emailTemplates = {
             <p style="margin: 0 0 16px 0; font-weight: 600; color: #f3f4f6;">TechTots - Jucării STEM pentru Minți Curioase</p>
             
             <div style="margin-bottom: 20px;">
-              <p style="margin: 0 0 8px 0;">📍 Mehedinti 54-56, Bl D5, sc 2, apt 70</p>
-              <p style="margin: 0 0 8px 0;">Cluj-Napoca, Cluj, România</p>
               <p style="margin: 0 0 8px 0;">📧 webira.rem.srl@gmail.com</p>
               <p style="margin: 0 0 16px 0;">📞 +40 771 248 029</p>
             </div>
@@ -727,8 +712,7 @@ export const emailTemplates = {
               <img src="${logoUrl}" alt="TechTots" style="max-width: 120px; height: auto; opacity: 0.8;" onerror="this.src='${faviconUrl}'; this.style.width='32px'; this.style.height='32px';">
             </div>
             <p style="margin: 0 0 8px 0; font-weight: 600; color: #ffffff;">TechTots - Jucării Educaționale STEM</p>
-            <p style="margin: 0 0 16px 0;">Mehedinti 54-56,Bl D5,APT 70, Cluj-Napoca,Cluj</p>
-            <p style="margin: 0 0 16px 0;">📧 webira.rem.srl@gmail.com | 📞 +40 123 456 789</p>
+            <p style="margin: 0 0 16px 0;">📧 webira.rem.srl@gmail.com | 📞 +40 771 248 029</p>
             <div style="border-top: 1px solid #374151; padding-top: 16px; margin-top: 16px;">
               <p style="margin: 0; font-size: 12px;">
                 © ${new Date().getFullYear()} TechTots. Toate drepturile rezervate. | 

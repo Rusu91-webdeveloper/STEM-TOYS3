@@ -26,7 +26,8 @@ export async function sendCouponEmail({
 }): Promise<void> {
   const storeSettings = await db.storeSettings.findFirst();
   const storeName = storeSettings?.storeName || "TechTots";
-  const baseUrl = storeSettings?.storeUrl || "https://techtots.com";
+  // Use environment variable for base URL to ensure correct domain
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || "https://techtots.ro";
 
   const { generateProfessionalEmail, generatePreviewText } = await import(
     "./base"
@@ -163,16 +164,24 @@ export async function sendCouponEmail({
       },
     ])}
 
+    <div style="text-align: center; margin: ${spacing["2xl"]} 0;">
+      <p style="font-size: ${typography.fontSize.lg}; color: ${colors.neutral[700]}; margin-bottom: ${spacing.md};">
+        <a href="${baseUrl}" style="color: ${colors.primary[600]}; text-decoration: none; font-weight: ${typography.fontWeight.semibold}; font-size: ${typography.fontSize.xl};">
+          🏠 Vizitează Site-ul Nostru
+        </a>
+      </p>
+    </div>
+
     ${createCTASection(
       "Cumpără Acum & Economisește",
       "Nu rata această ofertă specială! Grăbește-te să profiți de reducerea exclusivă.",
       {
         text: "🛒 Cumpără Acum & Economisește",
-        url: baseUrl,
+        url: `${baseUrl}/products`,
       },
       {
         text: "📚 Vezi Cărți Digitale",
-        url: `${baseUrl}/digital-books`,
+        url: `${baseUrl}/products?category=carti-digitale`,
       }
     )}
 

@@ -64,7 +64,7 @@ export function generateEmailFooter(storeSettings: StoreSettings): string {
 }
 
 /**
- * Generate professional email container with advanced styling
+ * Generate professional email container with advanced styling - Enhanced design
  */
 export function generateEmailContainer(content: string): string {
   return `
@@ -78,6 +78,7 @@ export function generateEmailContainer(content: string): string {
       border-radius: ${borderRadius.xl};
       box-shadow: ${shadows["2xl"]};
       overflow: hidden;
+      border: 1px solid ${colors.neutral[100]};
     ">
       <div style="padding: ${spacing["2xl"]} ${spacing.xl};">
         ${content}

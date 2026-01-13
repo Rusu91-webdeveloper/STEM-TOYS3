@@ -35,8 +35,6 @@ export default function StandardEmailFooter({
         Email: {contactEmail}
         <br />
         Telefon: {contactPhone}
-        <br />
-        Adresă: Mehedinți 54-56, Bl D5, sc 2, apt 70, Cluj-Napoca, Cluj, România
       </p>
 
       {/* Social Media Links */}

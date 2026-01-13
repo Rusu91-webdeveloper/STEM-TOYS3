@@ -123,8 +123,6 @@ function generateEmailFooter(storeSettings: StoreSettings): string {
         <p style="margin: 0 0 16px 0; font-weight: 600; color: #1f2937;">${storeSettings.storeName} - Jucării STEM pentru Minți Curioase</p>
         
         <div style="margin-bottom: 20px;">
-          <p style="margin: 0 0 8px 0;"><strong>Adresa:</strong> Mehedinti 54-56, Bl D5, sc 2, apt 70</p>
-                      <p style="margin: 0 0 8px 0;">Mehedinti 54-56,Bl D5,APT 70, Cluj-Napoca,Cluj</p>
           <p style="margin: 0 0 8px 0;"><strong>Email:</strong> webira.rem.srl@gmail.com</p>
           <p style="margin: 0 0 16px 0;"><strong>Telefon:</strong> +40 771 248 029</p>
         </div>

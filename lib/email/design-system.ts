@@ -128,16 +128,17 @@ export const colors = {
   },
 };
 
-// Professional Gradients
+// Professional Gradients - Enhanced with more appealing colors
 export const gradients = {
-  primary: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
-  success: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
-  warning: "linear-gradient(135deg, #ea580c 0%, #f97316 100%)",
-  error: "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)",
-  premium: "linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)",
-  sunset: "linear-gradient(135deg, #f97316 0%, #ec4899 100%)",
-  ocean: "linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)",
-  midnight: "linear-gradient(135deg, #1e293b 0%, #334155 100%)",
+  primary: "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
+  success: "linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)",
+  warning: "linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%)",
+  error: "linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%)",
+  premium: "linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%)",
+  sunset: "linear-gradient(135deg, #f97316 0%, #ec4899 50%, #f472b6 100%)",
+  ocean: "linear-gradient(135deg, #0ea5e9 0%, #14b8a6 50%, #2dd4bf 100%)",
+  midnight: "linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%)",
+  promotional: "linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #fb923c 100%)",
 };
 
 // Professional Typography System
