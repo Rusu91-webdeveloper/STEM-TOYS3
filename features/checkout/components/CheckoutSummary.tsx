@@ -38,6 +38,8 @@ export function CheckoutSummary({
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<
     number | null
   >(null);
+  const [deliveryPrice, setDeliveryPrice] = useState<number>(15.00);
+  const [codConfig, setCodConfig] = useState<{ percentage: number; fixedFee: number } | null>(null);
   const [isFreeShippingActive, setIsFreeShippingActive] = useState(false);
   const [taxSettings, setTaxSettings] = useState<TaxSettings>({
     rate: "21",
@@ -65,6 +67,11 @@ export function CheckoutSummary({
       try {
         // Load shipping settings
         const shippingSettings = await fetchShippingSettings();
+        if (shippingSettings.deliveryPrice?.active) {
+          setDeliveryPrice(
+            parseFloat(shippingSettings.deliveryPrice.price || "15.00")
+          );
+        }
         if (shippingSettings.freeThreshold?.active) {
           setFreeShippingThreshold(
             parseFloat(shippingSettings.freeThreshold.price)
@@ -119,72 +126,80 @@ export function CheckoutSummary({
   const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
   const isCOD = selectedPaymentMethod === "cash_on_delivery";
 
-  // Calculate tax based on settings (prices already include VAT for EU compliance)
-  const taxRate = parseFloat(taxSettings.rate) / 100; // Convert percentage to decimal
-  const includeInPrice = taxSettings.includeInPrice !== false;
-
-  // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
-  const subtotalExcludingVAT = includeInPrice
-    ? cartTotalIncludingVAT / (1 + taxRate)
-    : cartTotalIncludingVAT;
-  const tax = taxSettings.active
-    ? includeInPrice
-      ? cartTotalIncludingVAT - subtotalExcludingVAT
-      : cartTotalIncludingVAT * taxRate
+  // Calculate tax based on taxSettings.active flag
+  const isTaxEnabled = taxSettings?.active === true;
+  const taxRate = isTaxEnabled && taxSettings?.rate
+    ? parseFloat(taxSettings.rate) / 100
     : 0;
+  const includeInPrice = taxSettings?.includeInPrice !== false;
 
-  // Apply free shipping if threshold is met (only for standard shipping)
-  let finalShippingCost = hasPhysicalItems ? shippingCost : 0;
-  // Note: We can't check shipping method here since CheckoutSummary doesn't have access to it
-  // The free shipping logic is handled in the shipping method selector
-  if (
-    isFreeShippingActive &&
-    freeShippingThreshold !== null &&
-    cartTotalIncludingVAT >= freeShippingThreshold &&
-    shippingCost === 0 && // Only show as free if shipping cost is already 0 from method selector
-    hasPhysicalItems
-  ) {
-    finalShippingCost = 0;
+  // Calculate subtotal and tax
+  let subtotal: number;
+  let tax: number;
+
+  if (isTaxEnabled && includeInPrice) {
+    // Tax is included in prices - calculate backwards
+    subtotal = cartTotalIncludingVAT / (1 + taxRate);
+    tax = cartTotalIncludingVAT - subtotal;
+  } else if (isTaxEnabled && !includeInPrice) {
+    // Tax is not included - add it to subtotal
+    subtotal = cartTotalIncludingVAT;
+    tax = subtotal * taxRate;
+  } else {
+    // Tax is disabled - no VAT calculation
+    subtotal = cartTotalIncludingVAT;
+    tax = 0;
   }
 
+  // Calculate shipping: free if >= threshold, otherwise use delivery price from settings
+  const cartSubtotal = cartTotalIncludingVAT;
+  // Use state variable with fallback to 199 if not loaded yet
+  const threshold = freeShippingThreshold ?? 199;
+  let finalShippingCost = hasPhysicalItems
+    ? cartSubtotal >= threshold
+      ? 0
+      : deliveryPrice
+    : 0;
+
   // **CALCULATE FINAL TOTAL WITH DISCOUNT**
-  const totalBeforeDiscount = cartTotalIncludingVAT + finalShippingCost;
+  const totalBeforeDiscount = isTaxEnabled && !includeInPrice
+    ? cartTotalIncludingVAT + finalShippingCost + tax
+    : cartTotalIncludingVAT + finalShippingCost;
   const baseTotal = Math.max(0, totalBeforeDiscount - discountAmount);
   const codFee = useMemo(() => {
     if (!isCOD) return 0;
     try {
-      return calculateCODFee(baseTotal).fee;
+      const config = codConfig ? {
+        percentage: codConfig.percentage,
+        fixedFee: codConfig.fixedFee,
+      } : undefined;
+      return calculateCODFee(baseTotal, config).fee;
     } catch (error) {
       console.error("Error calculating COD fee:", error);
       return 0;
     }
-  }, [baseTotal, isCOD]);
+  }, [baseTotal, isCOD, codConfig]);
   const total = baseTotal + codFee;
 
   // Calculate how much more needed for free shipping
   const renderFreeShippingMessage = () => {
-    if (
-      !isFreeShippingActive ||
-      freeShippingThreshold === null ||
-      !hasPhysicalItems
-    )
-      return null;
+    if (!hasPhysicalItems) return null;
 
-    if (cartTotalIncludingVAT >= freeShippingThreshold) {
+    // Use state variable with fallback to 199 if not loaded yet
+    const threshold = freeShippingThreshold ?? 199;
+    const freeShippingRemaining = Math.max(0, threshold - cartSubtotal);
+
+    if (freeShippingRemaining === 0) {
       return (
         <div className="mt-2 rounded-md bg-emerald-500/10 p-2 text-sm text-emerald-200">
-          {t(
-            "freeStandardShippingApplied",
-            "Free standard shipping available!"
-          )}
+          🎉 Ai accesat transportul gratuit!
         </div>
       );
     }
-    const amountNeeded = freeShippingThreshold - cartTotalIncludingVAT;
+    
     return (
       <div className="mt-2 rounded-md bg-sky-500/10 p-2 text-sm text-sky-200">
-        {t("addMoreForFreeShipping", "Add")} {formatPrice(amountNeeded)}{" "}
-        {t("moreForFreeStandardShipping", "more for free standard shipping")}
+        Adaugă {formatPrice(freeShippingRemaining)} pentru transport gratuit
       </div>
     );
   };
@@ -300,7 +315,14 @@ export function CheckoutSummary({
           </div>
         )}
 
-        {/* VAT line removed - prices already include VAT for EU compliance */}
+        {/* Tax line - only show if tax is enabled */}
+        {isTaxEnabled && tax > 0 && (
+          <div className="flex justify-between text-sm text-slate-300 sm:text-base">
+            <span>{t("tax", "Tax")} ({taxSettings.rate}%)</span>
+            <span>{formatPrice(tax)}</span>
+          </div>
+        )}
+
         <div className="flex justify-between text-sm text-slate-300 sm:text-base">
           <span>{t("shipping", "Shipping")}</span>
           <span>

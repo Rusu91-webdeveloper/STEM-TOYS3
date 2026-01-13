@@ -53,9 +53,13 @@ export async function getStoreSettings() {
         businessCountry: "România",
         businessPostalCode: "400000",
         shippingSettings: {
-          standard: { price: "5.99", active: true },
-          express: { price: "12.99", active: true },
-          freeThreshold: { price: "250.00", active: true },
+          deliveryPrice: { price: "15.00", active: true },
+          freeThreshold: { price: "199.00", active: true },
+        },
+        codSettings: {
+          percentage: "3",
+          fixedFee: "5.00",
+          active: true,
         },
         taxSettings: {
           rate: "21",
@@ -70,10 +74,25 @@ export async function getStoreSettings() {
       return defaultSettings;
     }
 
+    // Extract codSettings from paymentSettings JSON field if it exists
+    // This maintains backward compatibility with code that expects codSettings as a top-level field
+    const paymentSettings = (settings.paymentSettings as Record<string, any>) || {};
+    const codSettings = paymentSettings.codSettings;
+
+    // Transform the database result to include codSettings as a top-level field
+    const transformedSettings = {
+      ...settings,
+      codSettings: codSettings || {
+        percentage: "3",
+        fixedFee: "5.00",
+        active: true,
+      },
+    };
+
     // Cache successful database result
-    cachedStoreSettings = settings;
+    cachedStoreSettings = transformedSettings;
     settingsLastFetched = now;
-    return settings;
+    return transformedSettings;
   } catch (error) {
     console.error("Error fetching store settings:", error);
 
@@ -105,9 +124,13 @@ export async function getStoreSettings() {
       businessCountry: "România",
       businessPostalCode: "400000",
       shippingSettings: {
-        standard: { price: "5.99", active: true },
-        express: { price: "12.99", active: true },
-        freeThreshold: { price: "250.00", active: true },
+        deliveryPrice: { price: "15.00", active: true },
+        freeThreshold: { price: "199.00", active: true },
+      },
+      codSettings: {
+        percentage: "3",
+        fixedFee: "5.00",
+        active: true,
       },
       taxSettings: {
         rate: "21",
@@ -140,9 +163,23 @@ export async function getShippingSettings() {
   const settings = await getStoreSettings();
   return (
     settings.shippingSettings || {
-      standard: { price: "5.99", active: true },
-      express: { price: "12.99", active: true },
-      freeThreshold: { price: "250.00", active: true },
+      deliveryPrice: { price: "15.00", active: true },
+      freeThreshold: { price: "199.00", active: true },
+    }
+  );
+}
+
+/**
+ * Get COD settings with defaults
+ * @returns COD settings object
+ */
+export async function getCODSettings() {
+  const settings = await getStoreSettings();
+  return (
+    settings.codSettings || {
+      percentage: "3",
+      fixedFee: "5.00",
+      active: true,
     }
   );
 }

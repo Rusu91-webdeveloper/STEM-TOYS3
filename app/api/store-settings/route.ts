@@ -9,7 +9,7 @@ export async function GET(_req: NextRequest) {
 
     // Get return threshold from shipping settings
     const shippingSettings = storeSettings.shippingSettings as any;
-    const returnThreshold = shippingSettings?.freeThreshold?.price || "250.00";
+    const returnThreshold = shippingSettings?.freeThreshold?.price || "199.00";
 
     // Return only the fields needed for frontend display
     const frontendSettings = {

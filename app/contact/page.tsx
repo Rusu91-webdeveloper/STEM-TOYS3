@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
@@ -17,6 +17,30 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [contactEmail, setContactEmail] = useState("webira.rem.srl@gmail.com");
+  const [contactPhone, setContactPhone] = useState("+40771 248 029");
+
+  // Fetch store settings for contact info
+  useEffect(() => {
+    async function loadContactInfo() {
+      try {
+        const response = await fetch("/api/store-settings");
+        if (response.ok) {
+          const settings = await response.json();
+          if (settings?.contactEmail) {
+            setContactEmail(settings.contactEmail);
+          }
+          if (settings?.contactPhone) {
+            setContactPhone(settings.contactPhone);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading contact info:", error);
+        // Keep defaults
+      }
+    }
+    loadContactInfo();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -314,18 +338,18 @@ export default function ContactPage() {
                   <p className="mt-2 text-xs text-slate-300 sm:text-sm leading-relaxed">
                     Email:{" "}
                     <a
-                      href="mailto:webira.rem.srl@gmail.com"
+                      href={`mailto:${contactEmail}`}
                       className="text-sky-300 underline decoration-sky-500/30 underline-offset-4 transition hover:text-sky-200"
                     >
-                      webira.rem.srl@gmail.com
+                      {contactEmail}
                     </a>
                     <br />
                     Phone:{" "}
                     <a
-                      href="tel:+40771248029"
+                      href={`tel:${contactPhone.replace(/[^\d+]/g, "")}`}
                       className="text-sky-300 underline decoration-sky-500/30 underline-offset-4 transition hover:text-sky-200"
                     >
-                      +40771 248 029
+                      {contactPhone}
                     </a>
                     <br />
                     <span className="text-xs text-slate-400">
@@ -378,7 +402,7 @@ export default function ContactPage() {
               </p>
               <div className="mt-4 flex flex-wrap gap-3 text-sm">
                 <a
-                  href="https://wa.me/40771248029"
+                  href={`https://wa.me/${contactPhone.replace(/[^\d]/g, "")}`}
                   className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-sky-100 transition hover:border-sky-400/50 hover:text-white"
                 >
                   💬 WhatsApp Direct

@@ -60,31 +60,20 @@ export function CheckoutFlow() {
       return 0;
     }
 
-    const standardShippingPrice = parseFloat(
-      settings?.shippingSettings?.standard?.price ?? "5.99"
-    );
-    const expressShippingPrice = parseFloat(
-      settings?.shippingSettings?.express?.price ?? "12.99"
-    );
-    const freeShippingThreshold = parseFloat(
-      settings?.shippingSettings?.freeThreshold?.price ?? "250"
-    );
-    const freeShippingActive =
-      settings?.shippingSettings?.freeThreshold?.active !== false;
-
-    const baseShippingPrice =
-      checkoutData.shippingMethod?.price ??
-      (checkoutData.shippingMethod?.id === "express"
-        ? expressShippingPrice
-        : standardShippingPrice);
-
-    const qualifiesForFreeShipping =
-      checkoutData.shippingMethod?.id === "standard" &&
-      freeShippingActive &&
-      !Number.isNaN(freeShippingThreshold) &&
-      getCartTotal() >= freeShippingThreshold;
-
-    return qualifiesForFreeShipping ? 0 : baseShippingPrice;
+    const cartSubtotal = getCartTotal();
+    const freeShippingThreshold = settings?.shippingSettings?.freeThreshold?.active
+      ? parseFloat(settings.shippingSettings.freeThreshold.price)
+      : 199;
+    
+    // Get delivery price from settings
+    const deliveryPrice = settings?.shippingSettings?.deliveryPrice?.active
+      ? parseFloat(settings.shippingSettings.deliveryPrice.price || "15.00")
+      : 15.00;
+    
+    // Simple calculation: free shipping if >= threshold, otherwise use delivery price
+    const shipping = cartSubtotal >= freeShippingThreshold ? 0 : deliveryPrice;
+    
+    return shipping;
   };
 
   const updateCheckoutData = (data: Partial<CheckoutData>) => {
@@ -307,14 +296,16 @@ export function CheckoutFlow() {
   const handleNetopiaPayment = async () => {
     try {
       // Get tax settings from database
-      let taxRate = 0.21; // Default 21% VAT
-      let includeInPrice = true; // Default: prices include VAT (EU compliance)
+      let taxRate = 0;
+      let includeInPrice = false;
+      let isTaxEnabled = false;
       try {
         const response = await fetch("/api/checkout/tax-settings");
         if (response.ok) {
           const taxData = await response.json();
           if (taxData.taxSettings?.active) {
-            taxRate = parseFloat(taxData.taxSettings.rate) / 100;
+            isTaxEnabled = true;
+            taxRate = parseFloat(taxData.taxSettings.rate || "21") / 100;
             includeInPrice = taxData.taxSettings.includeInPrice !== false;
           }
         }
@@ -322,13 +313,27 @@ export function CheckoutFlow() {
         console.warn("Failed to fetch tax settings, using default:", error);
       }
 
-      // Calculate proper total - prices already include VAT for EU compliance
+      // Calculate proper total
       const cartTotalIncludingVAT = getCartTotal();
       const shippingCost = computeShippingCost();
 
-      // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
-      const subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
-      const tax = cartTotalIncludingVAT - subtotalExcludingVAT;
+      // Calculate tax based on settings
+      let subtotalExcludingVAT: number;
+      let tax: number;
+
+      if (isTaxEnabled && includeInPrice) {
+        // Tax is included in prices - calculate backwards
+        subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
+        tax = cartTotalIncludingVAT - subtotalExcludingVAT;
+      } else if (isTaxEnabled && !includeInPrice) {
+        // Tax is not included - add it to subtotal
+        subtotalExcludingVAT = cartTotalIncludingVAT;
+        tax = subtotalExcludingVAT * taxRate;
+      } else {
+        // Tax is disabled - no VAT calculation
+        subtotalExcludingVAT = cartTotalIncludingVAT;
+        tax = 0;
+      }
       const total = cartTotalIncludingVAT + shippingCost - discountAmount;
 
       // Prepare order data for Netopia - create with pending payment status
@@ -437,14 +442,16 @@ export function CheckoutFlow() {
       const { calculateCODFee } = await import("@/lib/pricing/cod-fee-calculator");
 
       // Get tax settings from database
-      let taxRate = 0.21; // Default 21% VAT
-      let includeInPrice = true; // Default: prices include VAT (EU compliance)
+      let taxRate = 0;
+      let includeInPrice = false;
+      let isTaxEnabled = false;
       try {
         const response = await fetch("/api/checkout/tax-settings");
         if (response.ok) {
           const taxData = await response.json();
           if (taxData.taxSettings?.active) {
-            taxRate = parseFloat(taxData.taxSettings.rate) / 100;
+            isTaxEnabled = true;
+            taxRate = parseFloat(taxData.taxSettings.rate || "21") / 100;
             includeInPrice = taxData.taxSettings.includeInPrice !== false;
           }
         }
@@ -452,19 +459,50 @@ export function CheckoutFlow() {
         console.warn("Failed to fetch tax settings, using default:", error);
       }
 
-      // Calculate proper total - prices already include VAT for EU compliance
+      // Calculate proper total
       const cartTotalIncludingVAT = getCartTotal();
       const shippingCost = computeShippingCost();
 
-      // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
-      const subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
-      const tax = cartTotalIncludingVAT - subtotalExcludingVAT;
+      // Calculate tax based on settings
+      let subtotalExcludingVAT: number;
+      let tax: number;
+
+      if (isTaxEnabled && includeInPrice) {
+        // Tax is included in prices - calculate backwards
+        subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
+        tax = cartTotalIncludingVAT - subtotalExcludingVAT;
+      } else if (isTaxEnabled && !includeInPrice) {
+        // Tax is not included - add it to subtotal
+        subtotalExcludingVAT = cartTotalIncludingVAT;
+        tax = subtotalExcludingVAT * taxRate;
+      } else {
+        // Tax is disabled - no VAT calculation
+        subtotalExcludingVAT = cartTotalIncludingVAT;
+        tax = 0;
+      }
       
       // Calculate order total before COD fee
       const orderTotalBeforeCOD = cartTotalIncludingVAT + shippingCost - discountAmount;
       
-      // Calculate COD fee (3% + 5 RON fixed)
-      const codFeeResult = calculateCODFee(orderTotalBeforeCOD);
+      // Get COD settings from database
+      let codConfig = undefined;
+      try {
+        const codResponse = await fetch("/api/checkout/cod-settings");
+        if (codResponse.ok) {
+          const codData = await codResponse.json();
+          if (codData?.active) {
+            codConfig = {
+              percentage: parseFloat(codData.percentage || "3") / 100,
+              fixedFee: parseFloat(codData.fixedFee || "5.00"),
+            };
+          }
+        }
+      } catch (error) {
+        console.warn("Failed to fetch COD settings, using default:", error);
+      }
+      
+      // Calculate COD fee using settings from database
+      const codFeeResult = calculateCODFee(orderTotalBeforeCOD, codConfig);
       const codFee = codFeeResult.fee;
       
       // Final total including COD fee
@@ -541,14 +579,16 @@ export function CheckoutFlow() {
   const handleRegularOrder = async () => {
     try {
       // Get tax settings from database
-      let taxRate = 0.21; // Default 21% VAT
-      let includeInPrice = true; // Default: prices include VAT (EU compliance)
+      let taxRate = 0;
+      let includeInPrice = false;
+      let isTaxEnabled = false;
       try {
         const response = await fetch("/api/checkout/tax-settings");
         if (response.ok) {
           const taxData = await response.json();
           if (taxData.taxSettings?.active) {
-            taxRate = parseFloat(taxData.taxSettings.rate) / 100;
+            isTaxEnabled = true;
+            taxRate = parseFloat(taxData.taxSettings.rate || "21") / 100;
             includeInPrice = taxData.taxSettings.includeInPrice !== false;
           }
         }
@@ -556,13 +596,27 @@ export function CheckoutFlow() {
         console.warn("Failed to fetch tax settings, using default:", error);
       }
 
-      // Calculate proper total - prices already include VAT for EU compliance
+      // Calculate proper total
       const cartTotalIncludingVAT = getCartTotal();
       const shippingCost = computeShippingCost();
 
-      // For VAT-inclusive pricing, calculate VAT backwards for breakdown display
-      const subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
-      const tax = cartTotalIncludingVAT - subtotalExcludingVAT;
+      // Calculate tax based on settings
+      let subtotalExcludingVAT: number;
+      let tax: number;
+
+      if (isTaxEnabled && includeInPrice) {
+        // Tax is included in prices - calculate backwards
+        subtotalExcludingVAT = cartTotalIncludingVAT / (1 + taxRate);
+        tax = cartTotalIncludingVAT - subtotalExcludingVAT;
+      } else if (isTaxEnabled && !includeInPrice) {
+        // Tax is not included - add it to subtotal
+        subtotalExcludingVAT = cartTotalIncludingVAT;
+        tax = subtotalExcludingVAT * taxRate;
+      } else {
+        // Tax is disabled - no VAT calculation
+        subtotalExcludingVAT = cartTotalIncludingVAT;
+        tax = 0;
+      }
       const total = cartTotalIncludingVAT + shippingCost - discountAmount;
 
       const stripePaymentIntentId =

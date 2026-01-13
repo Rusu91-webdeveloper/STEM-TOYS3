@@ -231,6 +231,7 @@ const rateLimitedGet = async (req: NextRequest) => {
     
     // Ensure we always return a valid Response
     if (!(response instanceof Response)) {
+      console.error("[Auth Route] GET handler returned non-Response object");
       return new Response(
         JSON.stringify({ error: "Invalid response from auth handler" }),
         {
@@ -240,9 +241,29 @@ const rateLimitedGet = async (req: NextRequest) => {
       );
     }
     
+    // Log OAuth callback requests for debugging
+    const url = new URL(req.url);
+    if (url.pathname.includes("callback")) {
+      console.log("[Auth Route] OAuth callback received:", {
+        pathname: url.pathname,
+        searchParams: Object.fromEntries(url.searchParams),
+      });
+    }
+    
     return response;
   } catch (error) {
     console.error("[Auth Route] GET handler error:", error);
+    
+    // For OAuth callbacks, preserve error information in the redirect
+    const url = new URL(req.url);
+    if (url.pathname.includes("callback")) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      // Redirect to error page with error details
+      const errorUrl = new URL("/auth/error", req.url);
+      errorUrl.searchParams.set("error", "ClientFetchError");
+      errorUrl.searchParams.set("error_description", errorMessage);
+      return Response.redirect(errorUrl);
+    }
     
     // Return a proper error response instead of throwing
     return new Response(

@@ -27,7 +27,7 @@ export function ShippingMethodSelector({
   onBack,
 }: ShippingMethodSelectorProps) {
   const [selectedMethodId, setSelectedMethodId] = useState<string>(
-    initialMethod?.id || "standard"
+    initialMethod?.id || "home"
   );
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,39 +84,30 @@ export function ShippingMethodSelector({
         // Create shipping methods array from settings
         const methods: ShippingMethod[] = [];
 
-        // Add standard shipping if active
-        if (settings.standard?.active) {
-          // Apply free shipping only to standard shipping if threshold is met
-          const standardPrice = isFreeShipping
-            ? 0
-            : parseFloat(settings.standard.price);
-          methods.push({
-            id: "standard",
-            name: t("standardShipping", "Standard Shipping"),
-            description: t("deliveryIn35Days", "Delivery in 3-5 business days"),
-            price: standardPrice,
-            estimatedDelivery: t("businessDays35", "3-5 business days"),
-          });
-        }
+        // Get delivery price from settings (for orders under 199 lei)
+        const deliveryPrice = settings.deliveryPrice?.active
+          ? parseFloat(settings.deliveryPrice.price || "15.00")
+          : 15.00;
 
-        // Add express shipping if active
-        if (settings.express?.active) {
-          methods.push({
-            id: "express",
-            name: t("expressShipping", "Express Shipping"),
-            description: t("deliveryIn12Days", "Delivery in 1-2 business days"),
-            price: parseFloat(settings.express.price),
-            estimatedDelivery: t("businessDays12", "1-2 business days"),
-          });
-        }
+        // Apply free shipping if threshold is met
+        const finalPrice = isFreeShipping ? 0 : deliveryPrice;
 
-        // Add priority shipping (hardcoded for now)
+        // Add Livrare domiciliu (Home delivery)
         methods.push({
-          id: "priority",
-          name: t("priorityShipping", "Priority Shipping"),
-          description: t("deliveryIn24Hours", "Delivery in 24 hours"),
-          price: 19.99,
-          estimatedDelivery: t("hours24", "24 hours"),
+          id: "home",
+          name: "Livrare domiciliu",
+          description: "Livrare la adresa ta",
+          price: finalPrice,
+          estimatedDelivery: "3-5 zile lucrătoare",
+        });
+
+        // Add Livrare Easy Box
+        methods.push({
+          id: "easybox",
+          name: "Livrare Easy Box",
+          description: "Livrare la Easy Box",
+          price: finalPrice,
+          estimatedDelivery: "3-5 zile lucrătoare",
         });
 
         setShippingMethods(methods);
@@ -127,24 +118,16 @@ export function ShippingMethodSelector({
             m => m.id === selectedMethodId
           );
           if (!selectedMethodId || !currentMethodExists) {
-            // If free shipping applies, suggest standard method but don't force it
-            if (isFreeShipping) {
-              const standardMethod = methods.find(m => m.id === "standard");
-              if (standardMethod) {
-                setSelectedMethodId("standard");
-              }
-            } else {
-              setSelectedMethodId(methods[0].id);
-            }
+            // Default to home delivery
+            setSelectedMethodId("home");
           }
         }
       } catch (error) {
         console.error("Error loading shipping settings:", error);
         // Fallback to default methods from store settings
         const defaultSettings = {
-          standard: { price: "5.99", active: true },
-          express: { price: "12.99", active: true },
-          freeThreshold: { price: "250.00", active: true },
+          deliveryPrice: { price: "15.00", active: true },
+          freeThreshold: { price: "199.00", active: true },
         };
 
         const cartTotal = getCartTotal();
@@ -161,30 +144,31 @@ export function ShippingMethodSelector({
 
         const methods: ShippingMethod[] = [];
 
-        // Add standard shipping if active
-        if (defaultSettings.standard?.active) {
-          const standardPrice = isFreeShipping
-            ? 0
-            : parseFloat(defaultSettings.standard.price);
-          methods.push({
-            id: "standard",
-            name: t("standardShipping", "Standard Shipping"),
-            description: t("deliveryIn35Days", "Delivery in 3-5 business days"),
-            price: standardPrice,
-            estimatedDelivery: t("businessDays35", "3-5 business days"),
-          });
-        }
+        // Get delivery price from default settings
+        const deliveryPrice = defaultSettings.deliveryPrice?.active
+          ? parseFloat(defaultSettings.deliveryPrice.price || "15.00")
+          : 15.00;
 
-        // Add express shipping if active
-        if (defaultSettings.express?.active) {
-          methods.push({
-            id: "express",
-            name: t("expressShipping", "Express Shipping"),
-            description: t("deliveryIn12Days", "Delivery in 1-2 business days"),
-            price: parseFloat(defaultSettings.express.price),
-            estimatedDelivery: t("businessDays12", "1-2 business days"),
-          });
-        }
+        // Apply free shipping if threshold is met
+        const finalPrice = isFreeShipping ? 0 : deliveryPrice;
+
+        // Add Livrare domiciliu (Home delivery)
+        methods.push({
+          id: "home",
+          name: "Livrare domiciliu",
+          description: "Livrare la adresa ta",
+          price: finalPrice,
+          estimatedDelivery: "3-5 zile lucrătoare",
+        });
+
+        // Add Livrare Easy Box
+        methods.push({
+          id: "easybox",
+          name: "Livrare Easy Box",
+          description: "Livrare la Easy Box",
+          price: finalPrice,
+          estimatedDelivery: "3-5 zile lucrătoare",
+        });
 
         setShippingMethods(methods);
 
@@ -194,15 +178,8 @@ export function ShippingMethodSelector({
             m => m.id === selectedMethodId
           );
           if (!selectedMethodId || !currentMethodExists) {
-            // If free shipping applies, suggest standard method but don't force it
-            if (isFreeShipping) {
-              const standardMethod = methods.find(m => m.id === "standard");
-              if (standardMethod) {
-                setSelectedMethodId("standard");
-              }
-            } else {
-              setSelectedMethodId(methods[0].id);
-            }
+            // Default to home delivery
+            setSelectedMethodId("home");
           }
         }
       } finally {
@@ -304,11 +281,6 @@ export function ShippingMethodSelector({
                         className="flex items-center gap-2 font-semibold text-slate-100"
                       >
                         <span>{method.name}</span>
-                        {freeShippingApplied && method.id === "priority" && (
-                          <span className="rounded-full border border-amber-300/60 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-100">
-                            Recomandat
-                          </span>
-                        )}
                       </Label>
                       <span
                         className={cn(
@@ -336,11 +308,9 @@ export function ShippingMethodSelector({
                       {method.estimatedDelivery}
                     </p>
                     {method.price === 0 &&
-                      method.id === "standard" &&
                       freeShippingApplied && (
                         <p className="mt-1 text-xs text-emerald-300">
-                          Preț normal: {formatPrice(5.99)} - Economisești{" "}
-                          {formatPrice(5.99)}!
+                          Transport gratuit pentru comenzi peste {formatPrice(threshold || 199)}!
                         </p>
                       )}
                   </div>

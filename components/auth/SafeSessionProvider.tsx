@@ -38,6 +38,13 @@ export function SafeSessionProvider({ children }: SafeSessionProviderProps) {
       refetchInterval={5 * 60} // Refetch every 5 minutes
       refetchOnWindowFocus={false} // Don't refetch on window focus to reduce errors
       refetchWhenOffline={false} // Don't refetch when offline
+      // Add error handling for ClientFetchError
+      onError={(error) => {
+        // Only log if it's not a ClientFetchError (which we handle separately)
+        if (!error?.message?.includes("ClientFetchError")) {
+          console.error("[SessionProvider] Session error:", error);
+        }
+      }}
     >
       {children}
     </SessionProvider>

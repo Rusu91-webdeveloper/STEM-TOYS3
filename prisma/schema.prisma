@@ -425,6 +425,9 @@ model Product {
   status               ProductStatus     @default(IN_PENDING)
   stemDiscipline       String?
   supplierId           String?
+  isBundle             Boolean            @default(false)
+  bundleItems          Json?              // Array of product IDs for bundles: ["product-id-1", "product-id-2"]
+  bundleDiscount       Float?             // Discount percentage for bundle (e.g., 15 for 15% off)
   marketingCosts       MarketingCost[]
   orderItems           OrderItem[]
   category             Category?         @relation(fields: [categoryId], references: [id])
@@ -938,6 +941,7 @@ model SupplierOrder {
   orderItemId       String
   shippedAt         DateTime?
   trackingNumber    String?
+  supplierOrderId   String?                // Supplier's order ID/reference (e.g., Boribon order ID)
   supplierInvoiceId String?
   order             Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderItem         OrderItem              @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
@@ -954,6 +958,7 @@ model SupplierOrder {
   @@index([status])
   @@index([trackingNumber])
   @@index([shippedAt])
+  @@index([supplierOrderId])
   @@index([supplierInvoiceId])
 }
 

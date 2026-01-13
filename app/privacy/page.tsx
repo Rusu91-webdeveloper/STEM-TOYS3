@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { LegalPageShell } from "@/components/legal/LegalPageShell";
@@ -23,11 +24,34 @@ const toc = [
 
 export default function PrivacyPage() {
   const { t } = useTranslation();
+  const [contactEmail, setContactEmail] = useState("webira.rem.srl@gmail.com");
+  const [contactPhone, setContactPhone] = useState("+40 771 248 029");
   const lastUpdated = new Intl.DateTimeFormat("ro-RO", {
     day: "numeric",
     month: "long",
     year: "numeric",
   }).format(new Date());
+
+  // Fetch store settings for contact info
+  useEffect(() => {
+    async function loadContactInfo() {
+      try {
+        const response = await fetch("/api/store-settings");
+        if (response.ok) {
+          const settings = await response.json();
+          if (settings?.contactEmail) {
+            setContactEmail(settings.contactEmail);
+          }
+          if (settings?.contactPhone) {
+            setContactPhone(settings.contactPhone);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading contact info:", error);
+      }
+    }
+    loadContactInfo();
+  }, []);
 
   return (
     <LegalPageShell
@@ -173,14 +197,14 @@ export default function PrivacyPage() {
               <h2>10. Contact</h2>
               <p>
                 Pentru întrebări despre confidențialitate, ne puteți contacta la{" "}
-                <a href="mailto:webira.rem.srl@gmail.com">
-                  webira.rem.srl@gmail.com
+                <a href={`mailto:${contactEmail}`}>
+                  {contactEmail}
                 </a>{" "}
                 sau la adresa: TechTots Educational Solutions, Mehedinți 54-56,
                 Bl. D5, Sc. 2, Ap. 70, Cluj-Napoca, Cluj, România.
               </p>
               <p>
-                Telefon: <a href="tel:+40771248029">+40 771 248 029</a>
+                Telefon: <a href={`tel:${contactPhone.replace(/[^\d+]/g, "")}`}>{contactPhone}</a>
                 <br />
                 Program: Luni-Vineri, 9:00 AM - 6:00 PM CET
               </p>
@@ -225,8 +249,8 @@ export default function PrivacyPage() {
                 size="lg"
                 className="rounded-2xl border border-white/40 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
               >
-                <Link href="mailto:webira.rem.srl@gmail.com">
-                  webira.rem.srl@gmail.com
+                <Link href={`mailto:${contactEmail}`}>
+                  {contactEmail}
                 </Link>
               </Button>
             </div>
@@ -256,10 +280,10 @@ export default function PrivacyPage() {
             <p className="mt-2">
               Email:{" "}
               <a
-                href="mailto:privacy@techtots.com"
+                href={`mailto:${contactEmail}`}
                 className="text-sky-200 underline underline-offset-4 hover:text-white"
               >
-                privacy@techtots.com
+                  {contactEmail}
               </a>
             </p>
             <p className="mt-2">

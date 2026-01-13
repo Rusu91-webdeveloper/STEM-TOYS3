@@ -72,11 +72,7 @@ interface StoreSettings {
   metaDescription: string;
   metaKeywords: string;
   shippingSettings: {
-    standard: {
-      price: string;
-      active: boolean;
-    };
-    express: {
+    deliveryPrice: {
       price: string;
       active: boolean;
     };
@@ -84,6 +80,11 @@ interface StoreSettings {
       price: string;
       active: boolean;
     };
+  } | null;
+  codSettings: {
+    percentage: string;
+    fixedFee: string;
+    active: boolean;
   } | null;
   taxSettings: {
     rate: string;
@@ -402,18 +403,19 @@ const defaultSettings: StoreSettings = {
   metaKeywords:
     "STEM toys, educational toys, science toys, technology toys, engineering toys, math toys",
   shippingSettings: {
-    standard: {
-      price: "5.99",
-      active: true,
-    },
-    express: {
-      price: "12.99",
+    deliveryPrice: {
+      price: "15.00",
       active: true,
     },
     freeThreshold: {
-      price: "75.00",
+      price: "199.00",
       active: true,
     },
+  },
+  codSettings: {
+    percentage: "3",
+    fixedFee: "5.00",
+    active: true,
   },
   taxSettings: {
     rate: "21",
@@ -710,7 +712,7 @@ const defaultSettings: StoreSettings = {
 };
 
 export default function SettingsPage() {
-  const [isSaving, setIsSaving] = useState({
+  const [isSaving, setIsSaving] = useState<Record<string, boolean>>({
     general: false,
     regional: false,
     seo: false,
@@ -755,8 +757,28 @@ export default function SettingsPage() {
           ...defaultSettings,
           ...data,
           // Only set shippingSettings defaults if it's completely missing
-          shippingSettings:
-            data.shippingSettings || defaultSettings.shippingSettings,
+          shippingSettings: (() => {
+            const existing = data.shippingSettings;
+            if (!existing) {
+              return defaultSettings.shippingSettings;
+            }
+            // Migrate from old structure (standard/express) to new structure (deliveryPrice)
+            if (existing.standard || existing.express) {
+              // Use standard price if available, otherwise express, otherwise default
+              const migratedPrice = existing.standard?.price || existing.express?.price || "15.00";
+              return {
+                deliveryPrice: {
+                  price: migratedPrice,
+                  active: existing.standard?.active || existing.express?.active || true,
+                },
+                freeThreshold: existing.freeThreshold || defaultSettings.shippingSettings.freeThreshold,
+              };
+            }
+            // If already in new format, use as-is
+            return existing;
+          })(),
+          // Only set codSettings defaults if it's completely missing
+          codSettings: data.codSettings || defaultSettings.codSettings,
           // Only set taxSettings defaults if it's completely missing
           taxSettings: data.taxSettings || defaultSettings.taxSettings,
           // Only set businessHours defaults if it's completely missing
@@ -915,6 +937,11 @@ export default function SettingsPage() {
             shippingSettings: settings.shippingSettings,
           };
           break;
+        case "cod":
+          sectionData = {
+            codSettings: settings.codSettings,
+          };
+          break;
         case "tax":
           sectionData = {
             taxSettings: settings.taxSettings,
@@ -1013,15 +1040,14 @@ export default function SettingsPage() {
 
   // Handle shipping input change
   const handleShippingPriceChange = (
-    id: "standard" | "express" | "freeThreshold",
+    id: "deliveryPrice" | "freeThreshold",
     value: string
   ) => {
     setSettings(prev => {
       // Initialize shippingSettings if it doesn't exist
       const currentSettings = prev.shippingSettings || {
-        standard: { price: "5.99", active: true },
-        express: { price: "12.99", active: true },
-        freeThreshold: { price: "250.00", active: true },
+        deliveryPrice: { price: "15.00", active: true },
+        freeThreshold: { price: "199.00", active: true },
       };
 
       return {
@@ -1039,15 +1065,14 @@ export default function SettingsPage() {
 
   // Handle shipping switch change
   const handleShippingActiveChange = (
-    id: "standard" | "express" | "freeThreshold",
+    id: "deliveryPrice" | "freeThreshold",
     checked: boolean
   ) => {
     setSettings(prev => {
       // Initialize shippingSettings if it doesn't exist
       const currentSettings = prev.shippingSettings || {
-        standard: { price: "5.99", active: true },
-        express: { price: "12.99", active: true },
-        freeThreshold: { price: "250.00", active: true },
+        deliveryPrice: { price: "15.00", active: true },
+        freeThreshold: { price: "199.00", active: true },
       };
 
       return {
@@ -1057,11 +1082,9 @@ export default function SettingsPage() {
           [id]: {
             ...(currentSettings[id] || {
               price:
-                id === "standard"
-                  ? "5.99"
-                  : id === "express"
-                    ? "12.99"
-                    : "250.00",
+                id === "deliveryPrice"
+                  ? "15.00"
+                  : "199.00",
             }),
             active: checked,
           },
@@ -1103,6 +1126,63 @@ export default function SettingsPage() {
       return {
         ...prev,
         taxSettings: {
+          ...currentSettings,
+          active: checked,
+        },
+      };
+    });
+  };
+
+  // Handle COD percentage change
+  const handleCODPercentageChange = (value: string) => {
+    setSettings(prev => {
+      const currentSettings = prev.codSettings || {
+        percentage: "3",
+        fixedFee: "5.00",
+        active: true,
+      };
+
+      return {
+        ...prev,
+        codSettings: {
+          ...currentSettings,
+          percentage: value,
+        },
+      };
+    });
+  };
+
+  // Handle COD fixed fee change
+  const handleCODFixedFeeChange = (value: string) => {
+    setSettings(prev => {
+      const currentSettings = prev.codSettings || {
+        percentage: "3",
+        fixedFee: "5.00",
+        active: true,
+      };
+
+      return {
+        ...prev,
+        codSettings: {
+          ...currentSettings,
+          fixedFee: value,
+        },
+      };
+    });
+  };
+
+  // Handle COD active change
+  const handleCODActiveChange = (checked: boolean) => {
+    setSettings(prev => {
+      const currentSettings = prev.codSettings || {
+        percentage: "3",
+        fixedFee: "5.00",
+        active: true,
+      };
+
+      return {
+        ...prev,
+        codSettings: {
           ...currentSettings,
           active: checked,
         },
@@ -1156,6 +1236,7 @@ export default function SettingsPage() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="shipping">Shipping</TabsTrigger>
+          <TabsTrigger value="cod">Taxa Ramburs</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="tax">Tax</TabsTrigger>
           <TabsTrigger value="businessHours">Business Hours</TabsTrigger>
@@ -1812,41 +1893,41 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between space-x-2">
                   <div className="flex flex-col space-y-1">
                     <div className="flex items-center gap-1">
-                      <Label htmlFor="standard-shipping">
-                        Standard Shipping
+                      <Label htmlFor="delivery-price">
+                        Delivery Price (for orders under 199 lei)
                       </Label>
                       <HelpTooltip
                         content={
                           <div className="space-y-2">
-                            <p className="font-medium">Standard Shipping</p>
+                            <p className="font-medium">Delivery Price</p>
                             <p>
-                              The default shipping method for most orders. This
-                              is typically the most cost-effective option for
-                              customers who don't need rush delivery.
+                              The delivery price applied to orders under 199 lei.
+                              This price applies to both "Livrare domiciliu" (Home delivery)
+                              and "Livrare Easy Box" options. Orders over 199 lei will have
+                              free shipping.
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              <strong>Example:</strong> Set to €5.99 for 3-5
-                              business days. This is perfect for regular orders
-                              where customers can wait a few days for their STEM
-                              toys to arrive.
+                              <strong>Example:</strong> Set to 15.00 lei. Customers with
+                              orders under 199 lei will pay 15.00 lei for delivery, regardless
+                              of whether they choose home delivery or Easy Box.
                             </p>
                           </div>
                         }
                       />
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      3-5 business days
+                      Applied to both Livrare domiciliu and Livrare Easy Box
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="w-[100px]">
                       <Input
-                        id="standard-shipping"
+                        id="delivery-price"
                         value={
-                          settings.shippingSettings?.standard?.price || "5.99"
+                          settings.shippingSettings?.deliveryPrice?.price || "15.00"
                         }
                         onChange={e =>
-                          handleShippingPriceChange("standard", e.target.value)
+                          handleShippingPriceChange("deliveryPrice", e.target.value)
                         }
                         type="number"
                         min="0"
@@ -1855,66 +1936,12 @@ export default function SettingsPage() {
                     </div>
                     <Switch
                       checked={
-                        settings.shippingSettings?.standard?.active || false
+                        settings.shippingSettings?.deliveryPrice?.active || false
                       }
                       onCheckedChange={checked =>
-                        handleShippingActiveChange("standard", checked)
+                        handleShippingActiveChange("deliveryPrice", checked)
                       }
-                      id="standard-shipping-active"
-                    />
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between space-x-2">
-                  <div className="flex flex-col space-y-1">
-                    <div className="flex items-center gap-1">
-                      <Label htmlFor="express-shipping">Express Shipping</Label>
-                      <HelpTooltip
-                        content={
-                          <div className="space-y-2">
-                            <p className="font-medium">Express Shipping</p>
-                            <p>
-                              A faster shipping option for customers who need
-                              their orders quickly. This typically costs more
-                              but provides faster delivery.
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              <strong>Example:</strong> Set to €12.99 for 1-2
-                              business days. Perfect for customers who need STEM
-                              toys quickly for birthdays, school projects, or
-                              last-minute gifts.
-                            </p>
-                          </div>
-                        }
-                      />
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      1-2 business days
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="w-[100px]">
-                      <Input
-                        id="express-shipping"
-                        value={
-                          settings.shippingSettings?.express?.price || "12.99"
-                        }
-                        onChange={e =>
-                          handleShippingPriceChange("express", e.target.value)
-                        }
-                        type="number"
-                        min="0"
-                        step="0.01"
-                      />
-                    </div>
-                    <Switch
-                      checked={
-                        settings.shippingSettings?.express?.active || false
-                      }
-                      onCheckedChange={checked =>
-                        handleShippingActiveChange("express", checked)
-                      }
-                      id="express-shipping-active"
+                      id="delivery-price-active"
                     />
                   </div>
                 </div>
@@ -2060,26 +2087,186 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Tax Settings */}
-        <TabsContent value="tax" className="space-y-4">
+        {/* COD Settings */}
+        <TabsContent value="cod" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Tax Settings</CardTitle>
+              <CardTitle>Taxa Ramburs (COD Fee) Settings</CardTitle>
               <CardDescription>
-                Configure tax rates and settings
+                Configure the Cash on Delivery fee charged by the courier. This fee is added to orders when customers choose "Ramburs" payment method.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="space-y-4">
                 <div className="flex items-center justify-between space-x-2">
                   <div className="flex flex-col space-y-1">
-                    <Label htmlFor="tax-rate">Tax Rate (%)</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="cod-percentage">
+                        COD Fee Percentage (%)
+                      </Label>
+                      <HelpTooltip
+                        content={
+                          <div className="space-y-2">
+                            <p className="font-medium">COD Fee Percentage</p>
+                            <p>
+                              The percentage of the order total that will be charged as COD fee.
+                              This is set by your courier and typically ranges from 2% to 5%.
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              <strong>Example:</strong> If set to 3%, and the order total is 100 lei,
+                              the percentage fee will be 3 lei. Combined with the fixed fee, the total
+                              COD fee would be 3 lei + fixed fee.
+                            </p>
+                          </div>
+                        }
+                      />
+                    </div>
                     <span className="text-sm text-muted-foreground">
-                      The percentage tax rate to apply to orders
+                      Percentage of order total (e.g., 3 for 3%)
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="w-[100px]">
+                      <Input
+                        id="cod-percentage"
+                        value={
+                          settings.codSettings?.percentage || "3"
+                        }
+                        onChange={e =>
+                          handleCODPercentageChange(e.target.value)
+                        }
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="flex flex-col space-y-1">
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="cod-fixed-fee">
+                        COD Fixed Fee (lei)
+                      </Label>
+                      <HelpTooltip
+                        content={
+                          <div className="space-y-2">
+                            <p className="font-medium">COD Fixed Fee</p>
+                            <p>
+                              A fixed amount in lei that is added to every COD order, regardless of order value.
+                              This is set by your courier and typically ranges from 3 to 10 lei.
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              <strong>Example:</strong> If set to 5 lei, every COD order will have
+                              5 lei added as a fixed fee, plus the percentage fee. For a 100 lei order
+                              with 3% percentage, the total COD fee would be 3 lei + 5 lei = 8 lei.
+                            </p>
+                          </div>
+                        }
+                      />
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      Fixed amount in lei (e.g., 5.00)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-[100px]">
+                      <Input
+                        id="cod-fixed-fee"
+                        value={
+                          settings.codSettings?.fixedFee || "5.00"
+                        }
+                        onChange={e =>
+                          handleCODFixedFeeChange(e.target.value)
+                        }
+                        type="number"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                    <Switch
+                      checked={
+                        settings.codSettings?.active || false
+                      }
+                      onCheckedChange={handleCODActiveChange}
+                      id="cod-active"
+                    />
+                  </div>
+                </div>
+                <div className="rounded-lg bg-muted p-4">
+                  <p className="text-sm font-medium mb-2">COD Fee Calculation Example:</p>
+                  <p className="text-sm text-muted-foreground">
+                    For an order of 100 lei with {settings.codSettings?.percentage || "3"}% + {settings.codSettings?.fixedFee || "5.00"} lei:
+                    <br />
+                    Percentage fee: {((parseFloat(settings.codSettings?.percentage || "3") / 100) * 100).toFixed(2)} lei
+                    <br />
+                    Fixed fee: {settings.codSettings?.fixedFee || "5.00"} lei
+                    <br />
+                    <strong>Total COD fee: {(parseFloat(settings.codSettings?.percentage || "3") / 100 * 100 + parseFloat(settings.codSettings?.fixedFee || "5.00")).toFixed(2)} lei</strong>
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button
+                onClick={() => handleSave("cod")}
+                disabled={isSaving.cod}
+              >
+                {isSaving.cod ? "Saving..." : "Save Changes"}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        {/* Tax Settings */}
+        <TabsContent value="tax" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tax / VAT Settings</CardTitle>
+              <CardDescription>
+                Configure tax rates and settings. Enable this when your company becomes VAT registered.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* Main VAT Enable Toggle */}
+                <div className="rounded-lg border p-4 bg-muted/50">
+                  <div className="flex items-center justify-between space-x-2">
+                    <div className="flex flex-col space-y-1 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="tax-active" className="text-base font-semibold">
+                          Enable VAT / Tax Application
+                        </Label>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {settings.taxSettings?.active
+                          ? "VAT is currently enabled and will be applied to orders based on the tax rate below."
+                          : "VAT is currently disabled. No tax will be applied to orders. Enable this when your company becomes VAT registered."}
+                      </span>
+                    </div>
+                    <Switch
+                      checked={settings.taxSettings?.active || false}
+                      onCheckedChange={handleTaxActiveChange}
+                      id="tax-active"
+                      className="scale-110"
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Tax Rate Configuration */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between space-x-2">
+                    <div className="flex flex-col space-y-1 flex-1">
+                      <Label htmlFor="tax-rate">Tax Rate (%)</Label>
+                      <span className="text-sm text-muted-foreground">
+                        The percentage tax rate to apply to orders when VAT is enabled. Default is 21% (Romanian VAT rate).
+                      </span>
+                    </div>
+                    <div className="w-[120px]">
                       <Input
                         id="tax-rate"
                         value={settings.taxSettings?.rate || "21"}
@@ -2088,31 +2275,31 @@ export default function SettingsPage() {
                         min="0"
                         max="100"
                         step="0.01"
+                        disabled={!settings.taxSettings?.active}
+                        className={!settings.taxSettings?.active ? "opacity-50" : ""}
                       />
                     </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between space-x-2">
+                    <div className="flex flex-col space-y-1 flex-1">
+                      <Label htmlFor="tax-included">
+                        Include Tax in Product Prices
+                      </Label>
+                      <span className="text-sm text-muted-foreground">
+                        If enabled, product prices will be displayed with tax included (EU compliance). If disabled, tax will be added at checkout.
+                      </span>
+                    </div>
                     <Switch
-                      checked={settings.taxSettings?.active || false}
-                      onCheckedChange={handleTaxActiveChange}
-                      id="tax-active"
+                      checked={settings.taxSettings?.includeInPrice || false}
+                      onCheckedChange={handleTaxIncludeInPriceChange}
+                      id="tax-included"
+                      disabled={!settings.taxSettings?.active}
+                      className={!settings.taxSettings?.active ? "opacity-50" : ""}
                     />
                   </div>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between space-x-2">
-                  <div className="flex flex-col space-y-1">
-                    <Label htmlFor="tax-included">
-                      Include Tax in Product Prices
-                    </Label>
-                    <span className="text-sm text-muted-foreground">
-                      If enabled, product prices will be displayed with tax
-                      included
-                    </span>
-                  </div>
-                  <Switch
-                    checked={settings.taxSettings?.includeInPrice || false}
-                    onCheckedChange={handleTaxIncludeInPriceChange}
-                    id="tax-included"
-                  />
                 </div>
               </div>
             </CardContent>

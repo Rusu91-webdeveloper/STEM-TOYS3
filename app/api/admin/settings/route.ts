@@ -25,7 +25,21 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    return NextResponse.json(settings);
+    // Extract codSettings from paymentSettings JSON field for frontend compatibility
+    const paymentSettings = (settings.paymentSettings as Record<string, any>) || {};
+    const codSettings = paymentSettings.codSettings;
+
+    // Transform the database result to include codSettings as a top-level field
+    const transformedSettings = {
+      ...settings,
+      codSettings: codSettings || {
+        percentage: "3",
+        fixedFee: "5.00",
+        active: true,
+      },
+    };
+
+    return NextResponse.json(transformedSettings);
   } catch (error) {
     console.error("Error retrieving settings:", error);
     return new NextResponse(
@@ -59,13 +73,54 @@ export async function PUT(req: NextRequest) {
       });
     }
 
+    // Prepare update data
+    const updateData: Record<string, any> = {};
+
+    // Handle codSettings - store it inside paymentSettings JSON field
+    if (sectionData.codSettings !== undefined) {
+      const currentPaymentSettings = (settings.paymentSettings as Record<string, any>) || {};
+      updateData.paymentSettings = {
+        ...currentPaymentSettings,
+        codSettings: sectionData.codSettings,
+      };
+      // Remove codSettings from sectionData to avoid trying to update it as a direct field
+      delete sectionData.codSettings;
+    }
+
+    // Handle JSON fields that need merging (shippingSettings, taxSettings, etc.)
+    // For other JSON fields, merge with existing data
+    const jsonFields = ['shippingSettings', 'taxSettings', 'metadata'];
+    for (const field of jsonFields) {
+      if (sectionData[field] !== undefined) {
+        updateData[field] = sectionData[field];
+        delete sectionData[field];
+      }
+    }
+
+    // Add all other non-JSON fields
+    Object.assign(updateData, sectionData);
+
     // Update only the fields provided in the request based on section
     const updatedSettings = await prisma.storeSettings.update({
       where: { id: settings.id },
-      data: sectionData,
+      data: updateData,
     });
 
-    return NextResponse.json(updatedSettings);
+    // Extract codSettings from paymentSettings JSON field for frontend compatibility
+    const paymentSettings = (updatedSettings.paymentSettings as Record<string, any>) || {};
+    const codSettings = paymentSettings.codSettings;
+
+    // Transform the database result to include codSettings as a top-level field
+    const transformedSettings = {
+      ...updatedSettings,
+      codSettings: codSettings || {
+        percentage: "3",
+        fixedFee: "5.00",
+        active: true,
+      },
+    };
+
+    return NextResponse.json(transformedSettings);
   } catch (error) {
     console.error("Error updating settings:", error);
     return new NextResponse(

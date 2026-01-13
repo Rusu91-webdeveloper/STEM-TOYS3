@@ -17,21 +17,21 @@ export interface DeliveryFaq {
 
 export const commitments: Commitment[] = [
   {
-    title: "Maximum 7 zile lucrătoare",
+    title: "Livrare în 5-10 zile lucrătoare",
     description:
-      "Monitorizăm fiecare colet prin AI logistics. Dacă depășim 7 zile lucrătoare, îți oferim transport gratuit la următoarea comandă.",
+      "Procesăm comenzile rapid și le transmitem partenerilor noștri de livrare. Timpul exact depinde de procesarea de către furnizor și de zona de livrare.",
     icon: "⏱️",
   },
   {
-    title: "24/7 transparență",
+    title: "Transparență completă",
     description:
-      "Dashboard-ul de urmărire arată starea livrării în timp real, cu dovezi foto la predare și semnătură digitală conform standardelor 2025.",
+      "Primești notificări la fiecare etapă: confirmare comandă, procesare de către furnizor, expediere, și livrare. Urmărește statusul în contul tău.",
     icon: "🛰️",
   },
   {
-    title: "Coordonare logistică activă",
+    title: "Coordonare cu furnizori",
     description:
-      "Analizăm zilnic timpii de livrare și ajustăm fluxurile astfel încât să păstrăm termenul maxim de 7 zile lucrătoare pentru fiecare comandă.",
+      "Lucrăm strâns cu furnizorii noștri pentru a asigura procesare rapidă și livrare sigură. Monitorizăm fiecare comandă și te ținem la curent.",
     icon: "📦",
   },
 ];
@@ -62,10 +62,10 @@ export const timeline: TimelineStep[] = [
       "Monitorizăm traseul coletului și trimitem notificări proactive atunci când apar schimbări în estimarea de livrare.",
   },
   {
-    phase: "Zilele 6-7",
-    title: "Livrare națională garantată",
+    phase: "Zilele 5-10",
+    title: "Livrare națională",
     description:
-      "Ne asigurăm că livrarea nu depășește 7 zile lucrătoare. Dacă întâmpinăm întârzieri, activăm garanția de transport gratuit pentru următoarea comandă.",
+      "Coletul ajunge la destinație. Timpul exact depinde de procesarea de către furnizor și de zona de livrare. Primești notificare când coletul este în tranzit și când ajunge.",
   },
 ];
 
@@ -77,11 +77,11 @@ export interface LogisticsPillar {
 
 export const logisticsPillars: LogisticsPillar[] = [
   {
-    title: "Planificare națională unitară",
-    summary: "Gestionăm livrările în toate regiunile din România cu un termen maxim de 7 zile lucrătoare.",
+    title: "Coordonare cu furnizori",
+    summary: "Lucrăm cu furnizori de încredere care procesează și expediază comenzile rapid.",
     highlights: [
-      "Evaluăm constant partenerii de curierat disponibili",
-      "Alocăm rute în funcție de zona de livrare și de volum",
+      "Monitorizăm procesarea comenzilor de către furnizori",
+      "Coordonăm expedierea și livrarea prin parteneri de curierat",
       "Comunicăm clar orice modificare a termenului estimat",
     ],
   },
@@ -107,9 +107,9 @@ export const logisticsPillars: LogisticsPillar[] = [
 
 export const faqs: DeliveryFaq[] = [
   {
-    question: "Ce înseamnă „maximum 7 zile lucrătoare”?",
+    question: "Cât durează livrarea?",
     answer:
-      "Termenul se calculează din prima zi lucrătoare după confirmarea comenzii. Weekend-urile și sărbătorile legale nu sunt incluse, iar estimarea exactă este confirmată la momentul expedierii.",
+      "Livrarea durează de obicei 5-10 zile lucrătoare de la confirmarea comenzii. Timpul exact depinde de procesarea de către furnizor (1-3 zile) și de zona de livrare (2-7 zile). Primești estimare exactă după ce furnizorul procesează comanda.",
   },
   {
     question: "Cum urmărim coletul în timp real?",

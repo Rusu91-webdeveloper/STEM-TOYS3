@@ -272,8 +272,8 @@ export async function POST(request: Request) {
       items.reduce((total, item) => total + item.price * item.quantity, 0);
 
     // Default shipping fallback values
-    let standardShippingPrice = 5.99;
-    let freeShippingThreshold: number | null = 250;
+    let finalShippingCost = 0;
+    let freeShippingThreshold: number | null = 199; // Updated to 199 lei
     let isFreeShippingActive = true;
 
     // Detect if the order contains only digital items (books)
@@ -321,20 +321,22 @@ export async function POST(request: Request) {
     try {
       // Get tax settings
       const taxSettings = (await getTaxSettings()) as any;
-      if (taxSettings.rate) {
+      const isTaxEnabled = taxSettings?.active === true;
+      
+      if (isTaxEnabled && taxSettings.rate) {
         // Convert percentage to decimal (e.g., 10% -> 0.10)
         taxRatePercentage = taxSettings.rate; // Keep the percentage for display
         taxRate = parseFloat(taxSettings.rate) / 100;
       }
       // Only apply tax if it's active
-      applyTax = taxSettings.active !== false;
-      // Check if prices include VAT (EU compliance) - commented out as not used
-      // const includeInPrice = taxSettings.includeInPrice !== false;
+      applyTax = isTaxEnabled;
+      const includeInPrice = taxSettings?.includeInPrice !== false;
 
-      // Get shipping settings for free shipping threshold
+      // Get shipping settings for delivery price and free shipping threshold
       const shippingSettings = (await getShippingSettings()) as any;
-      if (shippingSettings?.standard?.price) {
-        standardShippingPrice = parseFloat(shippingSettings.standard.price);
+      let deliveryPrice = 15.00; // Default fallback
+      if (shippingSettings?.deliveryPrice?.active) {
+        deliveryPrice = parseFloat(shippingSettings.deliveryPrice.price || "15.00");
       }
       if (shippingSettings.freeThreshold?.active) {
         freeShippingThreshold = parseFloat(
@@ -342,35 +344,37 @@ export async function POST(request: Request) {
         );
         isFreeShippingActive = true;
       }
-      // If no free shipping config is active, keep default threshold at 250
+      // If no free shipping config is active, keep default threshold at 199 lei
       if (!shippingSettings.freeThreshold) {
-        freeShippingThreshold = 250;
+        freeShippingThreshold = 199;
         isFreeShippingActive = true;
+      }
+
+      // Simple shipping calculation: free if >= threshold, otherwise use delivery price
+      if (!isDigitalOnlyOrder) {
+        finalShippingCost = subtotal >= freeShippingThreshold ? 0 : deliveryPrice;
       }
     } catch (error) {
       console.error("Error fetching store settings:", error);
       // Continue with default settings
+      // Default shipping calculation: free if >= 199 lei, otherwise 15 lei
+      if (!isDigitalOnlyOrder) {
+        finalShippingCost = subtotal >= 199 ? 0 : 15.00;
+      }
     }
 
-    // Apply free shipping logic
-    let finalShippingCost = baseShippingCost;
-    const qualifiesForFreeShipping =
-      isFreeShippingActive &&
-      freeShippingThreshold !== null &&
-      subtotal >= freeShippingThreshold;
-
-    if (qualifiesForFreeShipping) {
-      finalShippingCost = 0;
+    // Calculate tax based on taxSettings.active flag
+    let tax = 0;
+    if (applyTax && taxRate > 0) {
+      if (includeInPrice) {
+        // Tax is included in prices - calculate backwards
+        const subtotalExcludingVAT = subtotal / (1 + taxRate);
+        tax = subtotal - subtotalExcludingVAT;
+      } else {
+        // Tax is not included - add it to subtotal
+        tax = subtotal * taxRate;
+      }
     }
-
-    if (!isDigitalOnlyOrder && finalShippingCost === 0 && !qualifiesForFreeShipping) {
-      finalShippingCost = standardShippingPrice;
-    }
-
-    // Calculate tax based on settings (VAT-inclusive pricing for EU compliance)
-    // Note: subtotal already includes VAT, so we calculate VAT backwards for breakdown
-    const tax =
-      orderData.tax || (applyTax ? subtotal - subtotal / (1 + taxRate) : 0);
 
     // Handle coupon application (one-discount-per-order with best selection)
     let appliedCoupon = null;
@@ -449,10 +453,26 @@ export async function POST(request: Request) {
       if (orderData.codFee !== undefined) {
         codFee = orderData.codFee;
       } else {
-        // Calculate COD fee (3% + 5 RON fixed)
+        // Get COD settings from database
+        const { getCODSettings } = await import("@/lib/utils/store-settings");
         const { calculateCODFee } = await import("@/lib/pricing/cod-fee-calculator");
         const orderTotalBeforeCOD = Math.max(0, subtotal + tax + finalShippingCost - discountAmount);
-        const codFeeResult = calculateCODFee(orderTotalBeforeCOD);
+        
+        let codConfig = undefined;
+        try {
+          const codSettings = await getCODSettings();
+          if (codSettings?.active) {
+            codConfig = {
+              percentage: parseFloat(codSettings.percentage || "3") / 100,
+              fixedFee: parseFloat(codSettings.fixedFee || "5.00"),
+            };
+          }
+        } catch (error) {
+          console.error("Error fetching COD settings, using default:", error);
+        }
+        
+        // Calculate COD fee using settings from database
+        const codFeeResult = calculateCODFee(orderTotalBeforeCOD, codConfig);
         codFee = codFeeResult.fee;
       }
     }

@@ -23,23 +23,57 @@ function AuthCallbackContent() {
     setLoading(true);
     setError(null);
 
+    // Check for OAuth errors in URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorParam = urlParams.get("error");
+    const errorDescription = urlParams.get("error_description");
+
+    if (errorParam) {
+      console.error("OAuth error detected:", errorParam, errorDescription);
+      if (isMounted) {
+        setLoading(false);
+        setError(
+          errorDescription ||
+            `Authentication error: ${errorParam}. Please try again.`
+        );
+      }
+      return;
+    }
+
     // Poll for session state
     const pollSession = async () => {
       const start = Date.now();
+      let attempts = 0;
+      const maxAttempts = 20; // 5 seconds max (20 * 250ms)
+
       intervalId = setInterval(async () => {
-        const session = await getSession();
-        if (session && session.user) {
-          clearInterval(intervalId);
-          clearTimeout(timeoutId);
-          if (isMounted) {
-            setLoading(false);
-            router.replace(callbackUrl);
+        attempts++;
+        try {
+          const session = await getSession();
+          if (session && session.user) {
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
+            if (isMounted) {
+              setLoading(false);
+              // Clear the OAuth in-progress flag
+              localStorage.removeItem("googleAuthInProgress");
+              router.replace(callbackUrl);
+            }
+          } else if (attempts >= maxAttempts || Date.now() - start > 5000) {
+            clearInterval(intervalId);
+            if (isMounted) {
+              setLoading(false);
+              setError("Authentication failed or timed out. Please try again.");
+            }
           }
-        } else if (Date.now() - start > 5000) {
-          clearInterval(intervalId);
-          if (isMounted) {
-            setLoading(false);
-            setError("Authentication failed or timed out. Please try again.");
+        } catch (sessionError) {
+          console.error("Error checking session:", sessionError);
+          if (attempts >= maxAttempts) {
+            clearInterval(intervalId);
+            if (isMounted) {
+              setLoading(false);
+              setError("Failed to verify authentication. Please try again.");
+            }
           }
         }
       }, 250);

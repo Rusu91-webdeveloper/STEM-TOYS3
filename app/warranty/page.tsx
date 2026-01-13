@@ -41,7 +41,8 @@ export default function WarrantyPage() {
                   Toate produsele noastre beneficiază de{" "}
                   <strong>garanție legală de 2 ani</strong> împotriva defectelor
                   de conformitate, conform legislației UE. Această garanție este
-                  gratuită și se aplică automat.
+                  gratuită și se aplică automat. Procesăm cererile de garanție în 
+                  coordonare cu furnizorii noștri pentru a asigura rezolvarea rapidă.
                 </p>
 
                 <div className="mt-6 grid gap-4 sm:grid-cols-2 md:gap-6">

@@ -5,6 +5,8 @@ interface StandardEmailFooterProps {
   unsubscribeUrl?: string;
   currentYear?: number;
   siteUrl?: string;
+  contactEmail?: string;
+  contactPhone?: string;
 }
 
 export default function StandardEmailFooter({
@@ -12,6 +14,8 @@ export default function StandardEmailFooter({
   unsubscribeUrl = "#",
   currentYear = new Date().getFullYear(),
   siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://techtots.ro",
+  contactEmail = "webira.rem.srl@gmail.com",
+  contactPhone = "+40 771 248 029",
 }: StandardEmailFooterProps) {
   return (
     <footer
@@ -28,11 +32,11 @@ export default function StandardEmailFooter({
 
       {/* Contact Information */}
       <p>
-        Email: contact@techtots.ro
+        Email: {contactEmail}
         <br />
-        Telefon: +40 712 345 678
+        Telefon: {contactPhone}
         <br />
-        Adresă: Strada Exemplu 123, Sector 1, București, România
+        Adresă: Mehedinți 54-56, Bl D5, sc 2, apt 70, Cluj-Napoca, Cluj, România
       </p>
 
       {/* Social Media Links */}

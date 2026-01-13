@@ -243,12 +243,7 @@ export function createOrderSummary(
             ${new Intl.NumberFormat("ro-RO", { style: "currency", currency: "RON" }).format(subtotal)}
           </span>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${spacing.sm};">
-          <span style="font-weight: ${typography.fontWeight.medium}; color: ${colors.neutral[700]};">TVA:</span>
-          <span style="font-weight: ${typography.fontWeight.semibold}; color: ${colors.neutral[800]};">
-            ${new Intl.NumberFormat("ro-RO", { style: "currency", currency: "RON" }).format(totalAmount - subtotal)}
-          </span>
-        </div>
+        <!-- No VAT line - non-VAT registered SRL, prices are final -->
         <div style="display: flex; justify-content: space-between; align-items: center; padding-top: ${spacing.md}; border-top: 1px solid ${colors.neutral[300]};">
           <span style="font-weight: ${typography.fontWeight.bold}; color: ${colors.neutral[900]}; font-size: ${typography.fontSize.lg};">Total:</span>
           <span style="font-weight: ${typography.fontWeight.bold}; color: ${colors.primary[600]}; font-size: ${typography.fontSize.lg};">

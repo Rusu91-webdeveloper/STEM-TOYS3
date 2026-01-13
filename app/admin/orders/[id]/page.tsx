@@ -13,6 +13,9 @@ import {
   AlertCircle,
   Save,
   RefreshCw,
+  ShoppingCart,
+  Plus,
+  Edit,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -84,6 +87,25 @@ type OrderDetails = {
     phone?: string;
   };
   items: OrderItem[];
+  supplierOrders?: SupplierOrder[];
+};
+
+type SupplierOrder = {
+  id: string;
+  supplierId: string;
+  supplierName: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitCost: number;
+  totalCost: number;
+  status: string;
+  trackingNumber?: string | null;
+  supplierOrderId?: string | null;
+  carrier?: string | null;
+  shippedAt?: string | null;
+  estimatedDelivery?: string | null;
+  notes?: string | null;
 };
 
 // Helper functions
@@ -132,6 +154,10 @@ export default function OrderDetailsPage() {
   const [updating, setUpdating] = useState(false);
   const [newStatus, setNewStatus] = useState<string>("");
   const [cancellationReason, setCancellationReason] = useState<string>("");
+  const [creatingSupplierOrder, setCreatingSupplierOrder] = useState(false);
+  const [editingTracking, setEditingTracking] = useState<string | null>(null);
+  const [trackingInput, setTrackingInput] = useState("");
+  const [awbInput, setAwbInput] = useState("");
 
   const orderId = params.id as string;
 
@@ -159,6 +185,81 @@ export default function OrderDetailsPage() {
       setLoading(false);
     }
   }, [orderId, toast]);
+
+  // Create supplier order
+  const createSupplierOrder = async () => {
+    if (!order) return;
+
+    setCreatingSupplierOrder(true);
+    try {
+      const response = await fetch("/api/admin/orders/process", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create supplier order");
+      }
+
+      const data = await response.json();
+      
+      toast({
+        title: "Success",
+        description: `Created ${data.data.supplierOrdersCreated} supplier order(s)`,
+      });
+
+      // Refresh order details to show supplier orders
+      await fetchOrderDetails();
+    } catch (error) {
+      console.error("Error creating supplier order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create supplier order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingSupplierOrder(false);
+    }
+  };
+
+  // Update tracking number
+  const updateTrackingNumber = async (supplierOrderId: string) => {
+    try {
+      const response = await fetch(`/api/admin/supplier-orders/${supplierOrderId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          trackingNumber: trackingInput,
+          carrier: "Fan Courier", // Default carrier, can be made configurable
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update tracking number");
+      }
+
+      toast({
+        title: "Success",
+        description: "Tracking number updated",
+      });
+
+      setEditingTracking(null);
+      setTrackingInput("");
+      await fetchOrderDetails();
+    } catch (error) {
+      console.error("Error updating tracking:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update tracking number",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Update order status
   const updateOrderStatus = async () => {
@@ -518,6 +619,162 @@ export default function OrderDetailsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Supplier Orders Section */}
+          {order.paymentStatus === "PAID" && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <ShoppingCart className="h-5 w-5" />
+                    Supplier Orders
+                  </CardTitle>
+                  {(!order.supplierOrders || order.supplierOrders.length === 0) && (
+                    <Button
+                      onClick={createSupplierOrder}
+                      disabled={creatingSupplierOrder}
+                      size="sm"
+                    >
+                      {creatingSupplierOrder ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Plus className="h-4 w-4 mr-2" />
+                      )}
+                      Create Supplier Order
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {order.supplierOrders && order.supplierOrders.length > 0 ? (
+                  <div className="space-y-4">
+                    {order.supplierOrders.map(so => (
+                      <div
+                        key={so.id}
+                        className="p-4 border rounded-lg space-y-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{so.supplierName}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {so.productName} × {so.quantity}
+                            </p>
+                          </div>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                              so.status === "SHIPPED"
+                                ? "bg-purple-100 text-purple-800"
+                                : so.status === "DELIVERED"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {so.status}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Cost:</span>
+                            <span className="ml-2 font-medium">
+                              {formatPrice(so.totalCost)}
+                            </span>
+                          </div>
+                          {so.supplierOrderId && (
+                            <div>
+                              <span className="text-muted-foreground">
+                                Supplier Order ID:
+                              </span>
+                              <span className="ml-2 font-medium">
+                                {so.supplierOrderId}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Tracking Number */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-sm font-medium">
+                              Tracking Number (AWB):
+                            </label>
+                            {editingTracking === so.id ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingTracking(null);
+                                  setTrackingInput("");
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingTracking(so.id);
+                                  setTrackingInput(so.trackingNumber || "");
+                                }}
+                              >
+                                <Edit className="h-3 w-3 mr-1" />
+                                {so.trackingNumber ? "Edit" : "Add"}
+                              </Button>
+                            )}
+                          </div>
+                          {editingTracking === so.id ? (
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={trackingInput}
+                                onChange={e => setTrackingInput(e.target.value)}
+                                placeholder="Enter AWB/tracking number"
+                                className="flex-1 px-3 py-2 border rounded-md text-sm"
+                              />
+                              <Button
+                                size="sm"
+                                onClick={() => updateTrackingNumber(so.id)}
+                              >
+                                Save
+                              </Button>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">
+                              {so.trackingNumber || "No tracking number"}
+                            </p>
+                          )}
+                        </div>
+
+                        {so.carrier && (
+                          <div className="text-sm">
+                            <span className="text-muted-foreground">Carrier:</span>
+                            <span className="ml-2">{so.carrier}</span>
+                          </div>
+                        )}
+
+                        {so.shippedAt && (
+                          <div className="text-sm">
+                            <span className="text-muted-foreground">Shipped:</span>
+                            <span className="ml-2">
+                              {new Date(so.shippedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <p>No supplier orders created yet</p>
+                    <p className="text-xs mt-1">
+                      Click "Create Supplier Order" to process this order
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

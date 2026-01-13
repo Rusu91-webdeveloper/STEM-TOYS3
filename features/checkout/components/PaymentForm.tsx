@@ -113,33 +113,19 @@ export function PaymentForm({
         const subtotal = getCartTotal();
         const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
 
-        const standardShippingPrice = parseFloat(
-          settings?.shippingSettings?.standard?.price ?? "5.99"
-        );
-        const expressShippingPrice = parseFloat(
-          settings?.shippingSettings?.express?.price ?? "12.99"
-        );
+        const deliveryPrice = settings?.shippingSettings?.deliveryPrice?.active
+          ? parseFloat(settings.shippingSettings.deliveryPrice.price || "15.00")
+          : 15.00;
         const freeShippingThreshold = parseFloat(
-          settings?.shippingSettings?.freeThreshold?.price ?? "250"
+          settings?.shippingSettings?.freeThreshold?.price ?? "199"
         );
         const freeShippingActive =
           settings?.shippingSettings?.freeThreshold?.active !== false;
 
+        // Simple shipping calculation: free if >= threshold, otherwise use delivery price
         let shippingCost = 0;
         if (hasPhysicalItems) {
-          const baseShippingPrice =
-            shippingMethod?.price ??
-            (shippingMethod?.id === "express"
-              ? expressShippingPrice
-              : standardShippingPrice);
-
-          const qualifiesForFreeShipping =
-            shippingMethod?.id === "standard" &&
-            freeShippingActive &&
-            !Number.isNaN(freeShippingThreshold) &&
-            subtotal >= freeShippingThreshold;
-
-          shippingCost = qualifiesForFreeShipping ? 0 : baseShippingPrice;
+          shippingCost = subtotal >= freeShippingThreshold ? 0 : deliveryPrice;
         }
 
         const taxRate = settings?.taxSettings?.active
@@ -149,17 +135,7 @@ export function PaymentForm({
 
         const cartTotalIncludingVAT = subtotal;
 
-        if (
-          settings?.shippingSettings?.freeThreshold?.active &&
-          shippingMethod?.id === "standard"
-        ) {
-          const threshold = parseFloat(
-            settings.shippingSettings.freeThreshold.price
-          );
-          if (cartTotalIncludingVAT >= threshold) {
-            shippingCost = 0;
-          }
-        }
+        // Shipping already calculated above (free if >= threshold, otherwise use delivery price)
 
         // Store shipping cost for COD fee calculation
         setCalculatedShippingCost(shippingCost);

@@ -11,9 +11,7 @@ export interface CheckoutSettings {
     includeInPrice: boolean;
   };
   shippingSettings: {
-    standard: { price: string; active: boolean };
-    express: { price: string; active: boolean };
-    priority: { price: string; active: boolean };
+    deliveryPrice: { price: string; active: boolean };
     freeThreshold: { active: boolean; price: string };
   };
 }

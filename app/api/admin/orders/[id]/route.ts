@@ -66,6 +66,24 @@ export async function GET(
           },
         },
         shippingAddress: true,
+        supplierOrders: {
+          include: {
+            supplier: {
+              select: {
+                id: true,
+                name: true,
+                companyName: true,
+              },
+            },
+            product: {
+              select: {
+                id: true,
+                name: true,
+                images: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -127,6 +145,23 @@ export async function GET(
               coverImage: item.book.coverImage,
             }
           : null,
+      })),
+      supplierOrders: order.supplierOrders.map(so => ({
+        id: so.id,
+        supplierId: so.supplierId,
+        supplierName: so.supplier.name || so.supplier.companyName,
+        productId: so.productId,
+        productName: so.product.name,
+        quantity: so.quantity,
+        unitCost: so.unitCost,
+        totalCost: so.totalCost,
+        status: so.status,
+        trackingNumber: so.trackingNumber,
+        supplierOrderId: so.supplierOrderId,
+        carrier: so.carrier,
+        shippedAt: formatDateSafe(so.shippedAt),
+        estimatedDelivery: formatDateSafe(so.estimatedDelivery),
+        notes: so.notes,
       })),
     };
 

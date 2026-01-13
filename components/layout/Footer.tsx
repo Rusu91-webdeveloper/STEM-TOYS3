@@ -59,7 +59,7 @@ export default function Footer({
   // Format the return threshold for display
   const formatReturnThreshold = (threshold: string) => {
     const amount = parseFloat(threshold);
-    if (isNaN(amount)) return "€50 / 250 lei";
+    if (isNaN(amount)) return "199 lei";
 
     // The database value is in lei, convert to euros for display (assuming 1 EUR = 5 RON)
     const leiAmount = amount; // This is already in lei from the database
@@ -70,7 +70,7 @@ export default function Footer({
 
   const returnThreshold = storeSettings?.returnThreshold
     ? formatReturnThreshold(storeSettings.returnThreshold)
-    : "€50 / 250 lei";
+    : "199 lei";
 
   // Helper function to interpolate threshold into translation
   const getReturnPolicyText = () => {

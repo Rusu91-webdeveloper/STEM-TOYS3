@@ -125,9 +125,8 @@ export async function fetchShippingSettings() {
     console.error("Failed to fetch shipping settings:", error);
     // Return default settings if fetch fails
     return {
-      standard: { price: "5.99", active: true },
-      express: { price: "12.99", active: true },
-      freeThreshold: { price: "250.00", active: true },
+      deliveryPrice: { price: "15.00", active: true },
+      freeThreshold: { price: "199.00", active: true },
     };
   }
 }
@@ -146,6 +145,29 @@ export async function fetchTaxSettings() {
       rate: "21",
       active: true,
       includeInPrice: false,
+    };
+  }
+}
+
+/**
+ * Fetch COD settings from the database
+ */
+export async function fetchCODSettings() {
+  try {
+    const response = await fetch("/api/checkout/cod-settings");
+    if (!response.ok) {
+      throw new Error(
+        `Error fetching COD settings: ${response.statusText}`
+      );
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch COD settings:", error);
+    // Return default settings if fetch fails
+    return {
+      percentage: "3",
+      fixedFee: "5.00",
+      active: true,
     };
   }
 }

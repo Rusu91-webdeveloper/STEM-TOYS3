@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { LegalPageShell } from "@/components/legal/LegalPageShell";
@@ -25,7 +26,26 @@ const toc = [
 
 export default function TermsPage() {
   const { t } = useTranslation();
+  const [contactEmail, setContactEmail] = useState("webira.rem.srl@gmail.com");
   const lastUpdated = t("termsLastUpdated", "9 august 2024");
+
+  // Fetch store settings for contact info
+  useEffect(() => {
+    async function loadContactInfo() {
+      try {
+        const response = await fetch("/api/store-settings");
+        if (response.ok) {
+          const settings = await response.json();
+          if (settings?.contactEmail) {
+            setContactEmail(settings.contactEmail);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading contact info:", error);
+      }
+    }
+    loadContactInfo();
+  }, []);
 
   return (
     <LegalPageShell
@@ -192,7 +212,7 @@ export default function TermsPage() {
               <h2>12. Contact</h2>
               <p>
                 Pentru întrebări despre termeni, ne puteți contacta la{" "}
-                <a href="mailto:legal@techtots.com">legal@techtots.com</a>.
+                <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
               </p>
             </section>
           </div>
@@ -232,7 +252,7 @@ export default function TermsPage() {
                 size="lg"
                 className="rounded-2xl border border-white/40 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
               >
-                <Link href="mailto:legal@techtots.com">legal@techtots.com</Link>
+                <Link href={`mailto:${contactEmail}`}>{contactEmail}</Link>
               </Button>
             </div>
           </div>
@@ -261,10 +281,10 @@ export default function TermsPage() {
             <p className="mt-2">
               Email:{" "}
               <a
-                href="mailto:legal@techtots.com"
+                href={`mailto:${contactEmail}`}
                 className="text-emerald-200 underline underline-offset-4 hover:text-white"
               >
-                legal@techtots.com
+                  {contactEmail}
               </a>
             </p>
             <p className="mt-2">

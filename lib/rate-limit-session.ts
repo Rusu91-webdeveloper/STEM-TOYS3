@@ -17,7 +17,7 @@ const memoryStore = new Map<string, { count: number; reset: number }>();
 
 export async function sessionRateLimit(
   identifier: string,
-  limit: number = 60, // 60 requests per window (much higher for session checks)
+  limit: number = process.env.NODE_ENV === "development" ? 300 : 100, // Much higher limit in development, higher in production too
   window: number = 60 // 60 second window
 ): Promise<RateLimitResult> {
   const now = Date.now();

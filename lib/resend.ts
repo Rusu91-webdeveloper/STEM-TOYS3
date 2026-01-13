@@ -166,10 +166,7 @@ export const sendEmailViaUnifiedSystem = {
                   <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">Transport:</td>
                   <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${order.shippingCost > 0 ? `${order.shippingCost.toFixed(2)} Lei` : `<span style="color: #10b981;">Gratuit</span>`}</td>
                 </tr>
-                <tr>
-                  <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">TVA (${order.taxRatePercentage || "21"}%):</td>
-                  <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${order.tax.toFixed(2)} Lei</td>
-                </tr>
+                <!-- No VAT line - non-VAT registered SRL, prices are final -->
               </tfoot>
             </table>
             

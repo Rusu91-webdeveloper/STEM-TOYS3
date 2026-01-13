@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 
 import { auth } from "@/lib/server/auth";
+import { getStoreSettings } from "@/lib/utils/store-settings";
 
 const lastUpdated = new Intl.DateTimeFormat("ro-RO", {
   day: "numeric",
@@ -12,7 +13,7 @@ const lastUpdated = new Intl.DateTimeFormat("ro-RO", {
 const quickSummaryLeft = [
   "14 zile pentru returnare fără justificare",
   "2 ani garanție legală pentru produse defecte",
-  "Returnare gratuită pentru comenzi peste 50 € sau 250 lei",
+  "Returnare gratuită pentru comenzi peste 199 lei",
 ];
 
 const quickSummaryRight = [
@@ -99,13 +100,16 @@ const legalItems = [
 export const metadata: Metadata = {
   title: "Politica de Returnare | TechTots Educational Solutions",
   description:
-    "Politica de returnare pentru produsele STEM educaționale. Returnări gratuite în 14 zile pentru comenzi peste 50 € sau 250 lei, conformă cu legislația UE din 2025.",
+    "Politica de returnare pentru produsele STEM educaționale. Returnări gratuite în 14 zile pentru comenzi peste 199 lei, conformă cu legislația UE din 2025.",
   keywords:
     "politica returnare, returnare produse, garanție, drepturile consumatorului, UE, România",
 };
 
 export default async function ReturnsPage() {
   const session = await auth();
+  const storeSettings = await getStoreSettings();
+  const contactEmail = storeSettings?.contactEmail ?? "webira.rem.srl@gmail.com";
+  const contactPhone = storeSettings?.contactPhone ?? "+40 771 248 029";
   const isAuthenticated = Boolean(session?.user);
   const ordersLinkHref = isAuthenticated ? "/account/orders" : "/auth/login";
   const ordersLinkCtaLabel = isAuthenticated
@@ -234,7 +238,14 @@ export default async function ReturnsPage() {
                     <li>Apasă pe butonul "Returnează Produs" de lângă articolul dorit</li>
                     <li>Completează formularul de returnare cu motivul (opțional pentru perioada de răgândire)</li>
                     <li>
+                      <strong>Pentru produse defecte:</strong> Încarcă fotografiile/videoclipurile solicitate (obligatoriu)
+                    </li>
+                    <li>
                       <strong>Vei primi automat un email cu eticheta de returnare</strong> și instrucțiuni detaliate
+                    </li>
+                    <li>
+                      <strong>Notă:</strong> Pentru anumiți furnizori, returnările pot necesita autorizare (ARP/RMA). 
+                      În acest caz, vei primi un număr de autorizare în email după procesarea cererii.
                     </li>
                     <li>Printează eticheta și atașează-o pe pachet</li>
                     <li>Împachetează produsul în ambalajul original (dacă este posibil)</li>
@@ -247,8 +258,8 @@ export default async function ReturnsPage() {
                 <ol className="ml-3 mt-2 list-decimal space-y-1.5 text-xs text-slate-200 sm:ml-5 sm:space-y-2 sm:text-sm">
                   <li>
                     Contactează-ne prin email la{" "}
-                    <a href="mailto:webira.rem.srl@gmail.com" className="text-sky-200 underline underline-offset-4 hover:text-sky-100">
-                      webira.rem.srl@gmail.com
+                    <a href={`mailto:${contactEmail}`} className="text-sky-200 underline underline-offset-4 hover:text-sky-100">
+                      {contactEmail}
                     </a>{" "}
                     sau telefon la 0771 248 029
                   </li>
@@ -286,7 +297,7 @@ export default async function ReturnsPage() {
                 <ul className="mt-3 space-y-2 text-amber-100/90">
                   <li>
                     • <strong>Returnări în perioada de răgândire (14 zile):</strong> Returnare gratuită pentru comenzi ≥{" "}
-                    <strong>50 € sau 250 lei</strong>, altfel costurile sunt suportate de client
+                    <strong>199 lei</strong>, altfel costurile sunt suportate de client
                   </li>
                   <li>
                     • <strong>Produse defecte sau neconforme:</strong> Suportăm noi toate costurile de returnare
@@ -377,8 +388,8 @@ export default async function ReturnsPage() {
                   <div className="mt-3 space-y-2 text-xs text-slate-100 sm:text-sm">
                     <p>
                       📧 Email:{" "}
-                      <a href="mailto:webira.rem.srl@gmail.com" className="text-sky-100 underline underline-offset-4 hover:text-white">
-                        webira.rem.srl@gmail.com
+                      <a href={`mailto:${contactEmail}`} className="text-sky-100 underline underline-offset-4 hover:text-white">
+                        {contactEmail}
                       </a>
                     </p>
                     <p>

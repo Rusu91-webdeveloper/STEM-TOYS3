@@ -61,16 +61,16 @@ export function calculateVATFromExclusivePrice(
 }
 
 /**
- * Get VAT indication text for price displays (Romanian/EU compliance)
+ * Get VAT indication text for price displays
+ * NOTE: For non-VAT registered SRL, this returns empty string
+ * Prices are shown as final prices only, no VAT indication needed
  *
  * @param locale - Language locale ('ro' or 'en')
- * @returns Appropriate VAT indication text
+ * @returns Empty string (no VAT indication for non-VAT registered SRL)
  */
 export function getVATIndicationText(locale: string = "ro"): string {
-  if (locale === "ro") {
-    return "inclusiv TVA";
-  }
-  return "VAT included";
+  // Non-VAT registered SRL - no VAT indication
+  return "";
 }
 
 /**

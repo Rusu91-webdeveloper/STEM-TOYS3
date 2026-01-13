@@ -138,10 +138,27 @@ export function isCODAvailable(
 }
 
 /**
- * Get COD fee configuration from environment or store settings
- * Can be overridden by admin settings
+ * Get COD fee configuration from store settings
+ * Falls back to environment variables or defaults if settings not available
  */
-export function getCODFeeConfig(): CODFeeConfig {
+export async function getCODFeeConfig(): Promise<CODFeeConfig> {
+  try {
+    const { getCODSettings } = await import("@/lib/utils/store-settings");
+    const codSettings = await getCODSettings();
+    
+    if (codSettings?.active) {
+      return {
+        percentage: parseFloat(codSettings.percentage || "3") / 100, // Convert percentage to decimal
+        fixedFee: parseFloat(codSettings.fixedFee || "5.00"),
+        minimumOrderValue: undefined,
+        maximumCODAmount: undefined,
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching COD settings, using defaults:", error);
+  }
+
+  // Fallback to environment variables or defaults
   const percentage = parseFloat(
     process.env.COD_FEE_PERCENTAGE || "0.03"
   );

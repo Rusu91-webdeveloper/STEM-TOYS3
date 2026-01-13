@@ -81,21 +81,18 @@ const returnSchema = z.object({
     }
   ),
   details: z.string().optional(),
-  photos: z.array(z.string()).optional(),
+  photos: z.array(z.string()).min(1, "At least one photo is required for claims"),
 }).refine(
   (data) => {
-    // Photos are required for damaged/defective or wrong item shipped
-    const requiresPhotos = 
-      data.reason === "DAMAGED_OR_DEFECTIVE" || 
-      data.reason === "WRONG_ITEM_SHIPPED";
-    
-    if (requiresPhotos && (!data.photos || data.photos.length === 0)) {
+    // Photos are ALWAYS required for claims (missing parts, defects, damage-in-transit)
+    // This ensures proper documentation for supplier processing
+    if (!data.photos || data.photos.length === 0) {
       return false;
     }
     return true;
   },
   {
-    message: "Photos are required for damaged or wrong item returns",
+    message: "Photos/videos are required for all return claims. Please upload at least one photo showing the issue.",
     path: ["photos"],
   }
 );
@@ -146,10 +143,8 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
   const photos = form.watch("photos") || [];
   const selectedReason = form.watch("reason");
   
-  // Check if photos are required
-  const photosRequired = 
-    selectedReason === "DAMAGED_OR_DEFECTIVE" || 
-    selectedReason === "WRONG_ITEM_SHIPPED";
+  // Photos are ALWAYS required for claims (per plan requirement)
+  const photosRequired = true;
 
   // Calculate if order is within 14-day return window (changed from 30 days)
   const isWithin14Days = (order: Order) => {
@@ -522,7 +517,7 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                 />
               )}
 
-              {/* Photo Upload Section - Required for damaged/wrong item */}
+              {/* Photo Upload Section - ALWAYS Required for claims */}
               {photosRequired && (
                 <FormField
                   control={form.control}
@@ -535,7 +530,7 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                       <FormControl>
                         <div className="space-y-4">
                           <div className="text-sm text-gray-600">
-                            Please upload photos showing the damage or wrong item. 
+                            Please upload photos/videos showing the issue (missing parts, defects, or damage-in-transit). At least one photo is required. 
                             This helps us process your return quickly.
                           </div>
                           

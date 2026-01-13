@@ -1749,7 +1749,7 @@ export const ro = {
   days: "zile",
   directShipping: "Livrare directă în toate statele membre UE",
   realTimeTracking: "Urmărire în timp real și confirmarea livrării",
-  freeShipping: "Livrare gratuită pentru comenzi peste 50€",
+  freeShipping: "Livrare gratuită pentru comenzi peste 199 lei",
   multipleShippingOptions:
     "Multiple opțiuni de livrare (Standard, Express, Premium)",
   customsHandling: "Gestionarea vamală și procedurile de import",

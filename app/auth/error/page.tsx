@@ -31,6 +31,19 @@ function AuthErrorContent() {
         "Verifică că URL-ul de redirect în Google OAuth este corect",
       ],
     },
+    ClientFetchError: {
+      title: "Eroare de Conectare",
+      message: "Nu s-a putut conecta la serverul de autentificare.",
+      description:
+        "Această eroare apare când browserul nu poate comunica cu serverul de autentificare.",
+      solutions: [
+        "Verifică conexiunea la internet",
+        "Verifică că NEXTAUTH_URL este setat corect",
+        "Verifică că serverul este accesibil",
+        "Încearcă să ștergi cookie-urile și să te conectezi din nou",
+        "Verifică că URL-ul de callback Google OAuth este corect configurat în Google Cloud Console",
+      ],
+    },
     missing_token: {
       title: "Token Lipsă",
       message: "Tokenul de verificare lipsește.",

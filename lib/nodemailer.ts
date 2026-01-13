@@ -566,15 +566,7 @@ export const emailTemplates = {
                 </tr>`
                       : ""
                 }
-                ${
-                  order.tax !== undefined && order.tax > 0
-                    ? `
-                <tr>
-                  <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">TVA (${order.taxRatePercentage || "21"}%):</td>
-                  <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${order.tax.toFixed(2)} Lei</td>
-                </tr>`
-                    : ""
-                }
+                <!-- No VAT line - non-VAT registered SRL, prices are final -->
                 <tr style="font-weight: 700; font-size: 18px; background: linear-gradient(135deg, #1f2937 0%, #374151 100%); color: #ffffff;">
                   <td colspan="3" style="text-align: right; padding: 16px; border-top: 2px solid #3b82f6;">TOTAL:</td>
                   <td style="text-align: right; padding: 16px; border-top: 2px solid #3b82f6;">${order.total.toFixed(2)} Lei</td>

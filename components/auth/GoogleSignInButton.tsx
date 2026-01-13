@@ -30,15 +30,27 @@ export function GoogleSignInButton({
         localStorage.removeItem("googleAuthInProgress");
       }, 60000); // 1 minute timeout
 
-      // Use /auth/callback as the callbackUrl, and pass through the intended callbackUrl as a query param
-      const url = new URL("/auth/callback", window.location.origin);
-      if (callbackUrl && callbackUrl !== "/account") {
-        url.searchParams.set("callbackUrl", callbackUrl);
-      }
-      await signIn("google", {
-        callbackUrl: url.toString(),
+      // Use the standard NextAuth callback URL format
+      // NextAuth will handle the OAuth callback at /api/auth/callback/google
+      // Then redirect to our custom callback page with the intended destination
+      const finalCallbackUrl = callbackUrl || "/account";
+      
+      // Build the callback URL that NextAuth will redirect to after OAuth
+      const customCallbackUrl = new URL("/auth/callback", window.location.origin);
+      customCallbackUrl.searchParams.set("callbackUrl", finalCallbackUrl);
+
+      // Use signIn with proper error handling
+      // Note: When redirect: true, signIn will redirect the browser
+      // so the code after this may not execute
+      const result = await signIn("google", {
+        callbackUrl: customCallbackUrl.toString(),
         redirect: true,
       });
+
+      // If signIn returns an error (shouldn't happen with redirect: true, but handle it)
+      if (result?.error) {
+        throw new Error(result.error);
+      }
 
       // Clear the timeout if the function completes normally
       clearTimeout(timeoutId);
@@ -47,6 +59,9 @@ export function GoogleSignInButton({
       // Clear the in-progress flag if there's an error
       localStorage.removeItem("googleAuthInProgress");
       setIsLoading(false);
+      
+      // Re-throw the error so it can be handled by error boundaries
+      throw error;
     }
   };
 

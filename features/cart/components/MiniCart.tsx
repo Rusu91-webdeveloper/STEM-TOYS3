@@ -35,6 +35,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
     isLoading,
     isEmpty,
     getTotal,
+    getCartTotal,
     removeItem,
     updateItemQuantity,
     clearCart,
@@ -394,15 +395,76 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                   <div
                     className={`${glassPanelClass} flex-shrink-0 space-y-4 border-white/10 p-4 text-slate-100 shadow-lg`}
                   >
-                    {/* Total with enhanced styling */}
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-lg font-semibold text-slate-200">
-                        {t("total")}
-                      </span>
-                      <span className="text-xl font-bold text-slate-100">
-                        {formatPrice(getTotal())}
-                      </span>
-                    </div>
+                    {/* Shipping breakdown */}
+                    {(() => {
+                      const cartSubtotal = getCartTotal();
+                      const hasPhysicalItems = items.some(item => !item.isBook);
+                      const freeShippingThreshold = 199;
+                      const shipping = hasPhysicalItems
+                        ? cartSubtotal >= freeShippingThreshold
+                          ? 0
+                          : 15
+                        : 0;
+                      const total = cartSubtotal + shipping;
+                      const freeShippingRemaining = Math.max(
+                        0,
+                        freeShippingThreshold - cartSubtotal
+                      );
+
+                      return (
+                        <>
+                          {/* Subtotal */}
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-slate-300">
+                              {t("subtotal", "Subtotal")}
+                            </span>
+                            <span className="font-semibold text-slate-200">
+                              {formatPrice(cartSubtotal)}
+                            </span>
+                          </div>
+
+                          {/* Shipping */}
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-slate-300">
+                              {t("shipping", "Shipping")}
+                            </span>
+                            <span className="font-semibold text-slate-200">
+                              {shipping === 0 ? (
+                                <span className="text-emerald-300">Gratuit</span>
+                              ) : (
+                                formatPrice(shipping)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Free shipping progress message */}
+                          {hasPhysicalItems && (
+                            <div className="rounded-md bg-sky-500/10 p-2 text-xs text-sky-200">
+                              {freeShippingRemaining > 0 ? (
+                                <span>
+                                  Adaugă {formatPrice(freeShippingRemaining)}{" "}
+                                  pentru transport gratuit
+                                </span>
+                              ) : (
+                                <span className="text-emerald-300">
+                                  🎉 Ai accesat transportul gratuit!
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Total */}
+                          <div className="flex items-center justify-between border-t border-white/10 pt-2">
+                            <span className="text-lg font-semibold text-slate-200">
+                              {t("total", "Total")}
+                            </span>
+                            <span className="text-xl font-bold text-slate-100">
+                              {formatPrice(total)}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
 
                     {/* Action buttons with improved spacing */}
                     <div className="space-y-3">
