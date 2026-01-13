@@ -135,8 +135,15 @@ export async function POST(request: Request) {
           },
         });
 
-        if (updatedOrder && (paymentStatusCode === 3 || paymentStatusCode === 5)) {
-          console.log("✅ [WEBHOOK] Payment successful - processing order fulfillment");
+        // ⚠️ CRITICAL: Only process digital books if payment was actually verified as successful
+        // paymentStatusCode 3 = Paid, 5 = Confirmed (both indicate successful payment)
+        // Also verify the order was actually marked as PAID in the database
+        if (
+          updatedOrder &&
+          (paymentStatusCode === 3 || paymentStatusCode === 5) &&
+          updatedOrder.paymentStatus === "PAID"
+        ) {
+          console.log("✅ [WEBHOOK] Payment successful and verified - processing order fulfillment");
           
           // Check if order contains digital books
           const digitalItems = await db.orderItem.findMany({

@@ -171,7 +171,8 @@ async function handleSuccessfulPayment(
     const hasDigitalItems =
       order.items.length > 0 && order.items.every(item => item.isDigital);
 
-    // Update payment status; only auto-complete digital-only orders
+    // ⚠️ CRITICAL: Update payment status first, then verify before processing digital books
+    // Only process digital books after payment is verified as PAID
     await db.order.update({
       where: { id: order.id },
       data: {
@@ -181,7 +182,12 @@ async function handleSuccessfulPayment(
       },
     });
 
+    // Verify payment status was updated before processing digital books
+    // processDigitalBookOrder will also verify payment status as an additional safeguard
     if (hasDigitalItems) {
+      console.log(
+        `✅ [STRIPE][WEBHOOK] Payment verified for order ${order.id} - processing digital books`
+      );
       await processDigitalBookOrder(order.id);
     } else if (userEmail) {
       // For physical orders send confirmation email

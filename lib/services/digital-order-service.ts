@@ -46,6 +46,37 @@ export async function processDigitalBookOrder(
   try {
     console.log(`🔄 Processing digital book order: ${orderId}`);
 
+    // ⚠️ CRITICAL SAFEGUARD: Verify payment status before processing digital books
+    // Digital books should ONLY be delivered when payment is verified as PAID
+    const orderPaymentCheck = (await db.$queryRaw`
+      SELECT "paymentStatus", "paymentMethod"
+      FROM "Order"
+      WHERE id = ${orderId}
+    `) as Array<{ paymentStatus: string; paymentMethod: string }>;
+
+    if (!orderPaymentCheck || orderPaymentCheck.length === 0) {
+      console.error(`❌ Order ${orderId} not found - cannot process digital books`);
+      throw new Error(`Order ${orderId} not found`);
+    }
+
+    const paymentStatus = orderPaymentCheck[0]?.paymentStatus;
+    const paymentMethod = orderPaymentCheck[0]?.paymentMethod;
+
+    // Only allow processing if payment status is PAID
+    // COD orders should NOT process digital books (payment is collected on delivery)
+    if (paymentStatus !== "PAID") {
+      console.error(
+        `❌ [SAFEGUARD] Cannot process digital books for order ${orderId}: Payment status is ${paymentStatus}, not PAID`
+      );
+      throw new Error(
+        `Cannot process digital books: Order payment status is ${paymentStatus}. Digital books can only be delivered after payment is verified as PAID.`
+      );
+    }
+
+    console.log(
+      `✅ [SAFEGUARD] Payment verified: Order ${orderId} has paymentStatus PAID (${paymentMethod}) - proceeding with digital book delivery`
+    );
+
     // Use raw query to avoid TypeScript issues
     const orderData = (await db.$queryRaw`
       SELECT 

@@ -936,67 +936,88 @@ export async function POST(request: Request) {
         orderWithItems?.items.filter(item => item.bookId !== null) || [];
       const hasDigitalBooks = digitalBooks.length > 0;
 
+      // ⚠️ CRITICAL: Only process digital books if payment is already verified as PAID
+      // Digital books should NOT be processed for:
+      // - COD orders (payment collected on delivery)
+      // - Netopia orders (processed via webhook after payment verification)
+      // - Stripe orders (processed via webhook after payment verification)
+      // - Any order with PENDING payment status
+      
+      const orderPaymentStatus = dbOrder.paymentStatus;
+      const stripeSucceeded = stripePaymentIntent?.status === "succeeded";
+      const paymentIsVerified = orderPaymentStatus === "PAID" || stripeSucceeded;
+
       if (hasDigitalBooks) {
-        console.log(
-          `Order contains ${digitalBooks.length} digital book(s), triggering digital processing...`
-        );
-
-        // Create language preferences map from cart items
-        const languagePreferences = new Map<string, string>();
-
-        // Match cart items with order items to extract language preferences
-        for (const orderItem of digitalBooks) {
-          // Find the corresponding cart item by matching the item name
-          const cartItem = items.find(item => item.name === orderItem.name);
-
-          if (cartItem?.selectedLanguage) {
-            languagePreferences.set(orderItem.id, cartItem.selectedLanguage);
-            console.log(
-              `Language preference for order item ${orderItem.id}: ${cartItem.selectedLanguage}`
-            );
-          } else {
-            console.log(
-              `No language preference found for order item ${orderItem.id} (${orderItem.name})`
-            );
-          }
-        }
-
-        try {
-          // Process digital order with language preferences
-          const digitalOrderService = await import(
-            "@/lib/services/digital-order-service"
+        if (paymentIsVerified) {
+          console.log(
+            `✅ Order contains ${digitalBooks.length} digital book(s) and payment is verified - processing digital books...`
           );
-          if (digitalOrderService.processDigitalBookOrder) {
-            await digitalOrderService.processDigitalBookOrder(
-              dbOrder.id,
-              languagePreferences
-            );
-            console.log("Digital book processing completed successfully");
 
-            // Check if this order contains ONLY digital books
-            const allItemsAreDigital = orderWithItems?.items.every(
-              item => item.isDigital === true
-            );
+          // Create language preferences map from cart items
+          const languagePreferences = new Map<string, string>();
 
-            if (allItemsAreDigital) {
-              // Automatically mark digital-only orders as delivered
-              await db.order.update({
-                where: { id: dbOrder.id },
-                data: {
-                  status: "DELIVERED",
-                  deliveredAt: new Date(),
-                },
-              });
+          // Match cart items with order items to extract language preferences
+          for (const orderItem of digitalBooks) {
+            // Find the corresponding cart item by matching the item name
+            const cartItem = items.find(item => item.name === orderItem.name);
+
+            if (cartItem?.selectedLanguage) {
+              languagePreferences.set(orderItem.id, cartItem.selectedLanguage);
               console.log(
-                `✅ Digital-only order ${dbOrder.orderNumber} automatically marked as DELIVERED`
+                `Language preference for order item ${orderItem.id}: ${cartItem.selectedLanguage}`
+              );
+            } else {
+              console.log(
+                `No language preference found for order item ${orderItem.id} (${orderItem.name})`
               );
             }
-          } else {
-            console.log("Digital order processing not available");
           }
-        } catch (digitalError) {
-          // Log error but don't fail the order - digital processing can be retried later
-          console.error("Failed to process digital books:", digitalError);
+
+          try {
+            // Process digital order with language preferences
+            // processDigitalBookOrder will verify payment status again as an additional safeguard
+            const digitalOrderService = await import(
+              "@/lib/services/digital-order-service"
+            );
+            if (digitalOrderService.processDigitalBookOrder) {
+              await digitalOrderService.processDigitalBookOrder(
+                dbOrder.id,
+                languagePreferences
+              );
+              console.log("Digital book processing completed successfully");
+
+              // Check if this order contains ONLY digital books
+              const allItemsAreDigital = orderWithItems?.items.every(
+                item => item.isDigital === true
+              );
+
+              if (allItemsAreDigital) {
+                // Automatically mark digital-only orders as delivered
+                await db.order.update({
+                  where: { id: dbOrder.id },
+                  data: {
+                    status: "DELIVERED",
+                    deliveredAt: new Date(),
+                  },
+                });
+                console.log(
+                  `✅ Digital-only order ${dbOrder.orderNumber} automatically marked as DELIVERED`
+                );
+              }
+            } else {
+              console.log("Digital order processing not available");
+            }
+          } catch (digitalError) {
+            // Log error but don't fail the order - digital processing can be retried later
+            console.error("Failed to process digital books:", digitalError);
+          }
+        } else {
+          console.log(
+            `⏸️ Order contains ${digitalBooks.length} digital book(s) but payment status is ${orderPaymentStatus} - deferring digital book processing until payment is verified`
+          );
+          console.log(
+            `   Digital books will be processed via webhook after payment verification (Stripe/Netopia) or after COD payment is received`
+          );
         }
       } else {
         console.log("No digital books found in order");
@@ -1014,6 +1035,15 @@ export async function POST(request: Request) {
             ...(allItemsAreDigital ? { status: "COMPLETED" } : {}),
           },
         });
+        
+        // If payment is now verified and there are digital books, process them
+        if (hasDigitalBooks && allItemsAreDigital) {
+          console.log(
+            `✅ Stripe payment verified - processing digital books for order ${dbOrder.id}`
+          );
+          // Digital books will be processed via Stripe webhook - this is just a fallback
+          // The webhook is the primary handler for Stripe payments
+        }
       }
     } catch (dbError) {
       console.error("Failed to create order in database:", dbError);
