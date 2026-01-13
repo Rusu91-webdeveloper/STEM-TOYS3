@@ -310,7 +310,7 @@ export function ShippingMethodSelector({
                     {method.price === 0 &&
                       freeShippingApplied && (
                         <p className="mt-1 text-xs text-emerald-300">
-                          Transport gratuit pentru comenzi peste {formatPrice(threshold || 199)}!
+                          Transport gratuit pentru comenzi peste {formatPrice(freeShippingThreshold || 199)}!
                         </p>
                       )}
                   </div>
