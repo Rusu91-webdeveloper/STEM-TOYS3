@@ -943,6 +943,8 @@ export async function POST(request: Request) {
       const digitalBooks =
         orderWithItems?.items.filter(item => item.bookId !== null) || [];
       const hasDigitalBooks = digitalBooks.length > 0;
+      const allItemsAreDigital =
+        orderWithItems?.items.every(item => item.isDigital === true) === true;
 
       // ⚠️ CRITICAL: Only process digital books if payment is already verified as PAID
       // Digital books should NOT be processed for:
@@ -951,8 +953,24 @@ export async function POST(request: Request) {
       // - Stripe orders (processed via webhook after payment verification)
       // - Any order with PENDING payment status
       
-      const orderPaymentStatus = dbOrder.paymentStatus;
       const stripeSucceeded = stripePaymentIntent?.status === "succeeded";
+
+      if (stripeSucceeded) {
+        await db.order.update({
+          where: { id: dbOrder.id },
+          data: {
+            paymentStatus: "PAID",
+            ...(orderData.stripePaymentIntentId
+              ? { stripePaymentIntentId: orderData.stripePaymentIntentId }
+              : {}),
+            ...(allItemsAreDigital
+              ? { status: "DELIVERED", deliveredAt: new Date() }
+              : {}),
+          },
+        });
+      }
+
+      const orderPaymentStatus = stripeSucceeded ? "PAID" : dbOrder.paymentStatus;
       const paymentIsVerified = orderPaymentStatus === "PAID" || stripeSucceeded;
 
       if (hasDigitalBooks) {
@@ -995,10 +1013,6 @@ export async function POST(request: Request) {
               console.log("Digital book processing completed successfully");
 
               // Check if this order contains ONLY digital books
-              const allItemsAreDigital = orderWithItems?.items.every(
-                item => item.isDigital === true
-              );
-
               if (allItemsAreDigital) {
                 // Automatically mark digital-only orders as delivered
                 await db.order.update({
@@ -1031,31 +1045,6 @@ export async function POST(request: Request) {
         console.log("No digital books found in order");
       }
 
-      // If Stripe payment already succeeded, mark order as paid (and auto-deliver digital-only orders)
-      if (stripePaymentIntent?.status === "succeeded") {
-        const allItemsAreDigital =
-          orderWithItems?.items.every(item => item.isDigital) === true;
-
-        await db.order.update({
-          where: { id: dbOrder.id },
-          data: {
-            paymentStatus: "PAID",
-            // For digital-only orders, set status to DELIVERED (not COMPLETED)
-            ...(allItemsAreDigital
-              ? { status: "DELIVERED", deliveredAt: new Date() }
-              : {}),
-          },
-        });
-        
-        // If payment is now verified and there are digital books, process them
-        if (hasDigitalBooks && allItemsAreDigital) {
-          console.log(
-            `✅ Stripe payment verified - processing digital books for order ${dbOrder.id}`
-          );
-          // Digital books will be processed via Stripe webhook - this is just a fallback
-          // The webhook is the primary handler for Stripe payments
-        }
-      }
     } catch (dbError) {
       console.error("Failed to create order in database:", dbError);
       console.error("Error details:", {

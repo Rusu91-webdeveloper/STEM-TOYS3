@@ -14,6 +14,7 @@ import { ro as roTranslations } from "@/lib/i18n/translations/ro";
 import { prisma } from "@/lib/prisma";
 
 import { sendEmailWithBrevo } from "./brevo";
+import { sendEmailViaUnifiedSystem as sendEmailViaSmtp } from "./nodemailer";
 
 // Type for SEO metadata
 type SEOMetadata = {
@@ -300,12 +301,22 @@ export const sendEmailViaUnifiedSystem = {
       </html>
     `;
 
-    return sendEmailWithBrevo({
-      to,
-      subject: `📚 Cărțile tale digitale sunt gata pentru descărcare! - Comanda #${orderId}`,
-      html,
-      params: { email: to },
-    });
+    const subject = `📚 Cărțile tale digitale sunt gata pentru descărcare! - Comanda #${orderId}`;
+
+    try {
+      return await sendEmailWithBrevo({
+        to,
+        subject,
+        html,
+        params: { email: to },
+      });
+    } catch (error) {
+      console.error(
+        "❌ Brevo digital delivery failed, falling back to SMTP:",
+        error
+      );
+      return sendEmailViaSmtp({ to, subject, html });
+    }
   },
 
   /**

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { EMAIL_TEMPLATES } from "./template-library";
 
 export interface DatabaseEmailTemplate {
   id: string;
@@ -209,8 +210,13 @@ export class DatabaseTemplateService {
     messageId?: string;
   }> {
     try {
-      // Get template from database
-      const template = await this.getTemplateBySlug(options.templateSlug);
+      // Get template from database, fallback to bundled templates if missing
+      const template =
+        (await this.getTemplateBySlug(options.templateSlug)) ||
+        EMAIL_TEMPLATES.find(
+          fallback =>
+            fallback.slug === options.templateSlug && fallback.isActive
+        );
 
       if (!template) {
         return {
