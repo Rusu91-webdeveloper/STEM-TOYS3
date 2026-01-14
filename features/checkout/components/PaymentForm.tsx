@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/features/cart";
@@ -66,6 +66,7 @@ export function PaymentForm({
   const { getCartTotal, items: cartItems } = useCart();
   const { t } = useTranslation();
   const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
+  const stripeAttemptIdRef = useRef<string | null>(null);
 
   const [useSameAddress, setUseSameAddress] = useState(
     billingAddressSameAsShipping
@@ -250,8 +251,16 @@ export function PaymentForm({
       setIsCreatingStripeIntent(true);
       setStripeIntentError(null);
       try {
+        const checkoutAttemptId =
+          stripeAttemptIdRef.current ||
+          (typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}${Math.random().toString(36).slice(2)}`);
+        stripeAttemptIdRef.current = checkoutAttemptId;
+
         const payload: Record<string, unknown> = {
           amount: amountInMinorUnits,
+          checkoutAttemptId,
           metadata: {
             checkoutStep: "payment",
             shippingCountry: shippingAddress?.country || "",

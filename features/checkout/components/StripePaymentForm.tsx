@@ -49,6 +49,15 @@ export function StripePaymentForm({
   const { formatPrice } = useCurrency();
   const { stripeFailed } = useStripeBypass();
 
+  const buildPaymentDetails = (paymentIntent?: any): PaymentDetails => ({
+    cardNumber: "•••• •••• •••• 0000",
+    cardholderName: billingDetails?.name || "Card Holder",
+    expiryDate: "**/**",
+    cvv: "***",
+    cardType: paymentIntent?.payment_method_types?.[0] || "card",
+    stripePaymentIntentId: paymentIntent?.id || paymentIntentId,
+  });
+
   // Check if Stripe is properly loaded
   React.useEffect(() => {
     // Add a timeout to detect when Stripe fails to load
@@ -89,6 +98,20 @@ export function StripePaymentForm({
     setCardError(undefined);
 
     try {
+      const { paymentIntent: existingIntent } =
+        await stripe.retrievePaymentIntent(clientSecret);
+      if (existingIntent?.status === "succeeded") {
+        onSuccess(buildPaymentDetails(existingIntent));
+        return;
+      }
+      if (existingIntent?.status === "processing") {
+        const processingMessage =
+          "Plata este încă în procesare. Te rugăm să verifici statusul comenzii.";
+        setCardError(processingMessage);
+        onError(processingMessage);
+        return;
+      }
+
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         redirect: "if_required",
@@ -113,43 +136,26 @@ export function StripePaymentForm({
         // Handle payment_intent_unexpected_state error specifically
         // This occurs when trying to confirm a PaymentIntent that's already in a terminal state
         if (error.code === "payment_intent_unexpected_state") {
-          // If we have a paymentIntentId, check if it already succeeded
-          // The error message indicates it has already been confirmed
-          if (paymentIntentId) {
-            console.log(
-              `PaymentIntent ${paymentIntentId} already in terminal state. Checking status...`
-            );
-            // The PaymentIntent has already been confirmed - this usually means
-            // the payment succeeded. Since we can't confirm it again, we should
-            // treat this as a successful payment if the error indicates it succeeded.
-            // However, Stripe's error doesn't tell us the status, so we'll show
-            // a helpful message asking the user to check their order status.
-            const unexpectedStateError =
-              "Această plată a fost deja procesată. Verifică statusul comenzii în contul tău.";
-            setCardError(unexpectedStateError);
-            onError(unexpectedStateError);
-          } else {
-            const unexpectedStateError =
-              "Această plată a fost deja procesată sau anulată. Te rugăm să reîncerci sau să contactezi suportul.";
-            setCardError(unexpectedStateError);
-            onError(unexpectedStateError);
+          if (stripe && clientSecret) {
+            const { paymentIntent: existingIntent } =
+              await stripe.retrievePaymentIntent(clientSecret);
+            if (existingIntent?.status === "succeeded") {
+              onSuccess(buildPaymentDetails(existingIntent));
+              return;
+            }
           }
+
+          const unexpectedStateError =
+            "Această plată a fost deja procesată sau anulată. Te rugăm să reîncerci sau să contactezi suportul.";
+          setCardError(unexpectedStateError);
+          onError(unexpectedStateError);
           return;
         }
         throw new Error(error.message || "Payment failed");
       }
 
       if (paymentIntent?.status === "succeeded") {
-        const cardInfo: PaymentDetails = {
-          cardNumber: "•••• •••• •••• 0000",
-          cardholderName: billingDetails?.name || "Card Holder",
-          expiryDate: "**/**",
-          cvv: "***",
-          cardType: paymentIntent.payment_method_types?.[0] || "card",
-          stripePaymentIntentId: paymentIntent.id || paymentIntentId,
-        };
-
-        onSuccess(cardInfo);
+        onSuccess(buildPaymentDetails(paymentIntent));
       } else {
         throw new Error("Payment processing failed");
       }

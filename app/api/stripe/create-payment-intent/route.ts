@@ -20,6 +20,7 @@ import {
 const createRequestSchema = z.object({
   amount: z.number().int().positive(),
   paymentIntentId: z.string().optional(),
+  checkoutAttemptId: z.string().min(1).optional(),
   currency: z.string().optional(),
   metadata: z
     .record(z.union([z.string(), z.number(), z.boolean()]))
@@ -85,19 +86,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { amount, paymentIntentId, metadata } = parsedBody.data;
+    const { amount, paymentIntentId, metadata, checkoutAttemptId } =
+      parsedBody.data;
 
     const baseMetadata = {
       ...sanitizeMetadata(metadata),
       userId: session.user.id,
       userEmail: session.user.email || "",
+      ...(checkoutAttemptId ? { checkoutAttemptId } : {}),
     };
 
     const idempotencyKey = paymentIntentId
-      ? paymentIntentId
-      : createHash("sha256")
-          .update(`${session.user.id}:${amount}:${normalizedCurrency}`)
-          .digest("hex");
+      ? `pi:${paymentIntentId}`
+      : checkoutAttemptId
+        ? `checkout:${checkoutAttemptId}`
+        : createHash("sha256")
+            .update(`${session.user.id}:${Date.now()}:${Math.random()}`)
+            .digest("hex");
 
     const createParams: Stripe.PaymentIntentCreateParams = {
       amount,
