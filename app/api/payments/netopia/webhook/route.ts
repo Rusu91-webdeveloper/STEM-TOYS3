@@ -72,14 +72,30 @@ export async function POST(request: Request) {
         let paymentStatus = "PENDING";
         let orderStatus = "PROCESSING";
 
+        // First, check if order has digital books to determine correct status
+        const orderBeforeUpdate = await db.order.findUnique({
+          where: { id: orderID },
+          include: {
+            items: true,
+          },
+        });
+
+        const allItemsAreDigital =
+          orderBeforeUpdate?.items &&
+          orderBeforeUpdate.items.length > 0 &&
+          orderBeforeUpdate.items.every(item => item.isDigital === true);
+
         // Map Netopia status codes to our status
         console.log(`🔄 [WEBHOOK] Mapping status code ${paymentStatusCode}...`);
         switch (paymentStatusCode) {
           case 3: // Paid
           case 5: // Confirmed
             paymentStatus = "PAID";
-            orderStatus = "COMPLETED";
-            console.log("✅ [WEBHOOK] Payment successful");
+            // For digital-only orders, use DELIVERED instead of COMPLETED
+            orderStatus = allItemsAreDigital ? "DELIVERED" : "PROCESSING";
+            console.log(
+              `✅ [WEBHOOK] Payment successful (${allItemsAreDigital ? "Digital order - DELIVERED" : "Physical order - PROCESSING"})`
+            );
             break;
           case 4: // Cancelled
             paymentStatus = "FAILED";
@@ -116,10 +132,12 @@ export async function POST(request: Request) {
             paymentStatus: paymentStatus as any,
             status: orderStatus as any,
             netopiaTransactionId: ntpID,
-            completedAt:
-              paymentStatusCode === 3 || paymentStatusCode === 5
-                ? new Date()
-                : undefined,
+            // Set deliveredAt for digital orders, completedAt for others
+            ...(allItemsAreDigital && (paymentStatusCode === 3 || paymentStatusCode === 5)
+              ? { deliveredAt: new Date() }
+              : paymentStatusCode === 3 || paymentStatusCode === 5
+              ? { completedAt: new Date() }
+              : {}),
           },
         });
         console.log("✅ [WEBHOOK] Order updated successfully");
@@ -161,8 +179,61 @@ export async function POST(request: Request) {
             const { processDigitalBookOrder } = await import(
               "@/lib/services/digital-order-service"
             );
-            await processDigitalBookOrder(orderID);
-            console.log("✅ [WEBHOOK] Digital books processed");
+            try {
+              await processDigitalBookOrder(orderID);
+              console.log("✅ [WEBHOOK] Digital books processed and delivery email sent");
+            } catch (digitalError) {
+              console.error(
+                `❌ [WEBHOOK] Failed to process digital books:`,
+                digitalError
+              );
+              // Continue to send confirmation email even if digital processing fails
+            }
+
+            // Send confirmation email for digital orders (in addition to delivery email)
+            if (updatedOrder.user?.email) {
+              try {
+                const { DatabaseTemplateService } = await import(
+                  "@/lib/email/database-template-service"
+                );
+
+                const orderNumberForEmail =
+                  updatedOrder.orderNumber || updatedOrder.id;
+
+                const sendResult =
+                  await DatabaseTemplateService.sendOrderConfirmationEmail(
+                    updatedOrder.user.email,
+                    {
+                      customerName:
+                        updatedOrder.shippingAddress?.fullName ||
+                        updatedOrder.user?.name ||
+                        "Client",
+                      orderNumber: String(orderNumberForEmail),
+                      orderTotal: updatedOrder.total,
+                      items: (updatedOrder.items || []).map((item: any) => ({
+                        name: item.name,
+                        quantity: item.quantity,
+                        price: item.price,
+                      })),
+                      shippingAddress: updatedOrder.shippingAddress || null,
+                    }
+                  );
+
+                if (!sendResult.success) {
+                  console.error(
+                    `❌ [WEBHOOK] Failed to send order confirmation email:`,
+                    sendResult.error
+                  );
+                } else {
+                  console.log("✅ [WEBHOOK] Order confirmation email sent");
+                }
+              } catch (emailError) {
+                console.error(
+                  `❌ [WEBHOOK] Failed to send order confirmation email:`,
+                  emailError
+                );
+              }
+            }
           } else {
             console.log("📦 [WEBHOOK] Processing physical product order...");
             // Send order confirmation email for physical products

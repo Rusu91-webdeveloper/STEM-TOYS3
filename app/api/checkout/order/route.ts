@@ -1031,7 +1031,7 @@ export async function POST(request: Request) {
         console.log("No digital books found in order");
       }
 
-      // If Stripe payment already succeeded, mark order as paid (and auto-complete digital-only orders)
+      // If Stripe payment already succeeded, mark order as paid (and auto-deliver digital-only orders)
       if (stripePaymentIntent?.status === "succeeded") {
         const allItemsAreDigital =
           orderWithItems?.items.every(item => item.isDigital) === true;
@@ -1040,7 +1040,10 @@ export async function POST(request: Request) {
           where: { id: dbOrder.id },
           data: {
             paymentStatus: "PAID",
-            ...(allItemsAreDigital ? { status: "COMPLETED" } : {}),
+            // For digital-only orders, set status to DELIVERED (not COMPLETED)
+            ...(allItemsAreDigital
+              ? { status: "DELIVERED", deliveredAt: new Date() }
+              : {}),
           },
         });
         

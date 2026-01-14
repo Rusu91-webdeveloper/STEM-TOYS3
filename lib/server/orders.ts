@@ -93,7 +93,14 @@ export async function getOrders() {
             zipCode: order.shippingAddress.postalCode,
             country: order.shippingAddress.country,
           }
-        : null,
+        : {
+            name: "",
+            street: "",
+            city: "",
+            state: "",
+            zipCode: "",
+            country: "",
+          },
     })
   ) as any;
 }
