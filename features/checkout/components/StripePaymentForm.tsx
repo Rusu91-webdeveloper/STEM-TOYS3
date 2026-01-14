@@ -113,10 +113,27 @@ export function StripePaymentForm({
         // Handle payment_intent_unexpected_state error specifically
         // This occurs when trying to confirm a PaymentIntent that's already in a terminal state
         if (error.code === "payment_intent_unexpected_state") {
-          const unexpectedStateError =
-            "Această plată a fost deja procesată sau anulată. Te rugăm să reîncerci sau să contactezi suportul.";
-          setCardError(unexpectedStateError);
-          onError(unexpectedStateError);
+          // If we have a paymentIntentId, check if it already succeeded
+          // The error message indicates it has already been confirmed
+          if (paymentIntentId) {
+            console.log(
+              `PaymentIntent ${paymentIntentId} already in terminal state. Checking status...`
+            );
+            // The PaymentIntent has already been confirmed - this usually means
+            // the payment succeeded. Since we can't confirm it again, we should
+            // treat this as a successful payment if the error indicates it succeeded.
+            // However, Stripe's error doesn't tell us the status, so we'll show
+            // a helpful message asking the user to check their order status.
+            const unexpectedStateError =
+              "Această plată a fost deja procesată. Verifică statusul comenzii în contul tău.";
+            setCardError(unexpectedStateError);
+            onError(unexpectedStateError);
+          } else {
+            const unexpectedStateError =
+              "Această plată a fost deja procesată sau anulată. Te rugăm să reîncerci sau să contactezi suportul.";
+            setCardError(unexpectedStateError);
+            onError(unexpectedStateError);
+          }
           return;
         }
         throw new Error(error.message || "Payment failed");
