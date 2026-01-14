@@ -23,6 +23,8 @@ interface CheckoutSummaryProps {
   appliedCoupon?: any;
   onCouponRemoved?: () => void;
   selectedPaymentMethod?: string;
+  stripePaymentIntentId?: string;
+  currentStep?: string;
 }
 
 export function CheckoutSummary({
@@ -31,6 +33,8 @@ export function CheckoutSummary({
   appliedCoupon,
   onCouponRemoved,
   selectedPaymentMethod,
+  stripePaymentIntentId,
+  currentStep,
 }: CheckoutSummaryProps) {
   const { cartItems, getCartTotal, isLoading } = useCart();
   const { formatPrice } = useCurrency();
@@ -125,6 +129,11 @@ export function CheckoutSummary({
   const cartTotalIncludingVAT = getCartTotal();
   const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
   const isCOD = selectedPaymentMethod === "cash_on_delivery";
+  
+  // Disable discount code input if a Stripe payment intent has been created (payment amount is locked)
+  // Note: We also hide the discount field completely on the review step
+  const isStripePayment = selectedPaymentMethod === "stripe_new";
+  const isDiscountDisabled = isStripePayment && Boolean(stripePaymentIntentId) && currentStep !== "shipping-address";
 
   // Calculate tax based on taxSettings.active flag
   const isTaxEnabled = taxSettings?.active === true;
@@ -260,6 +269,36 @@ export function CheckoutSummary({
         {t("orderSummary", "Order Summary")}
       </h2>
 
+      {/* **COUPON INPUT SECTION** - Show prominently on first step, hide on review step */}
+      {currentStep !== "review" && (
+        <div
+          className={
+            currentStep === "shipping-address"
+              ? "bg-gradient-to-br from-emerald-500/20 via-green-500/15 to-emerald-400/10 rounded-lg p-4 border-2 border-emerald-400/40 shadow-lg shadow-emerald-500/10 mb-4"
+              : "border-t border-white/10 pt-4"
+          }
+        >
+          {currentStep === "shipping-address" && (
+            <div className="mb-3 text-center">
+              <h3 className="text-lg font-bold text-emerald-300 mb-1.5 flex items-center justify-center gap-2">
+                <span className="text-2xl">🎁</span>
+                {t("haveDiscountCode", "Have a Discount Code?")}
+              </h3>
+              <p className="text-sm text-emerald-200/90 font-medium">
+                {t("applyDiscountEarly", "Apply your discount code now to save on your order!")}
+              </p>
+            </div>
+          )}
+          <CouponInput
+            cartTotal={cartTotalIncludingVAT}
+            appliedCoupon={localAppliedCoupon}
+            onCouponApplied={handleCouponApplied}
+            onCouponRemoved={handleCouponRemoved}
+            disabled={isDiscountDisabled}
+          />
+        </div>
+      )}
+
       <div className="max-h-60 space-y-3 overflow-y-auto sm:max-h-80">
         {cartItems.map(item => (
           <div key={item.id} className="flex gap-3 sm:gap-4">
@@ -285,16 +324,6 @@ export function CheckoutSummary({
             </div>
           </div>
         ))}
-      </div>
-
-      {/* **COUPON INPUT SECTION** */}
-      <div className="border-t border-white/10 pt-4">
-        <CouponInput
-          cartTotal={cartTotalIncludingVAT}
-          appliedCoupon={localAppliedCoupon}
-          onCouponApplied={handleCouponApplied}
-          onCouponRemoved={handleCouponRemoved}
-        />
       </div>
 
       <div className="space-y-2 border-t border-white/10 pt-4">

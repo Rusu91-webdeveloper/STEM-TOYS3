@@ -829,6 +829,11 @@ export function CheckoutFlow() {
           appliedCoupon={appliedCoupon}
           onCouponRemoved={handleCouponRemoved}
           selectedPaymentMethod={checkoutData.paymentMethod}
+          stripePaymentIntentId={
+            checkoutData.stripePaymentIntentId ||
+            checkoutData.paymentDetails?.stripePaymentIntentId
+          }
+          currentStep={currentStep}
         />
       </div>
     </div>

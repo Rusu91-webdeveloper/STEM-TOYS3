@@ -510,11 +510,19 @@ export async function POST(request: Request) {
         );
 
         if (stripePaymentIntent.amount !== expectedAmountMinor) {
+          console.error(
+            `Payment amount mismatch: Payment intent amount (${stripePaymentIntent.amount}) does not match order total (${expectedAmountMinor}). This usually happens when a discount code is applied after the payment intent was created.`
+          );
           return NextResponse.json(
             {
               success: false,
-              message: "Payment amount mismatch. Please refresh and try again.",
+              message: "Payment amount mismatch. This may occur if you applied a discount code after selecting your payment method. Please go back and apply the discount code before selecting your payment method, or refresh the page and try again.",
               error: "AMOUNT_MISMATCH",
+              details: {
+                paymentIntentAmount: stripePaymentIntent.amount,
+                expectedAmount: expectedAmountMinor,
+                difference: stripePaymentIntent.amount - expectedAmountMinor,
+              },
             },
             { status: 400 }
           );
