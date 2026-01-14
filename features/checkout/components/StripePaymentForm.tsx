@@ -110,6 +110,15 @@ export function StripePaymentForm({
       });
 
       if (error) {
+        // Handle payment_intent_unexpected_state error specifically
+        // This occurs when trying to confirm a PaymentIntent that's already in a terminal state
+        if (error.code === "payment_intent_unexpected_state") {
+          const unexpectedStateError =
+            "Această plată a fost deja procesată sau anulată. Te rugăm să reîncerci sau să contactezi suportul.";
+          setCardError(unexpectedStateError);
+          onError(unexpectedStateError);
+          return;
+        }
         throw new Error(error.message || "Payment failed");
       }
 
@@ -130,8 +139,21 @@ export function StripePaymentForm({
     } catch (error) {
       const errorMessage =
         (error as Error).message || "An error occurred with your payment";
-      setCardError(errorMessage);
-      onError(errorMessage);
+      
+      // Handle payment_intent_unexpected_state error (fallback check)
+      // This occurs when trying to confirm a PaymentIntent that's already in a terminal state
+      if (
+        errorMessage.includes("payment_intent_unexpected_state") ||
+        errorMessage.includes("unexpected_state")
+      ) {
+        const unexpectedStateError =
+          "Această plată a fost deja procesată sau anulată. Te rugăm să reîncerci sau să contactezi suportul.";
+        setCardError(unexpectedStateError);
+        onError(unexpectedStateError);
+      } else {
+        setCardError(errorMessage);
+        onError(errorMessage);
+      }
     } finally {
       setIsProcessing(false);
     }

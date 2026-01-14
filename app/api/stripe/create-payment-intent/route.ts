@@ -33,6 +33,13 @@ const REUSABLE_STATUSES: Stripe.PaymentIntent.Status[] = [
   "processing",
 ];
 
+// Terminal states that cannot be reused or confirmed
+const TERMINAL_STATUSES: Stripe.PaymentIntent.Status[] = [
+  "succeeded",
+  "canceled",
+  "payment_failed",
+];
+
 export async function POST(request: NextRequest) {
   try {
     // Initialize Stripe lazily at request time to prevent build-time failures
@@ -152,6 +159,15 @@ async function reuseOrCreatePaymentIntent(
   try {
     const existing = await stripe.paymentIntents.retrieve(paymentIntentId);
 
+    // Explicitly reject PaymentIntents in terminal states
+    if (TERMINAL_STATUSES.includes(existing.status)) {
+      console.log(
+        `PaymentIntent ${paymentIntentId} is in terminal state (${existing.status}). Creating new PaymentIntent.`
+      );
+      return stripe.paymentIntents.create(createParams, { idempotencyKey });
+    }
+
+    // Only reuse PaymentIntents in reusable states
     if (
       existing.currency === normalizedCurrency &&
       REUSABLE_STATUSES.includes(existing.status)
@@ -161,6 +177,11 @@ async function reuseOrCreatePaymentIntent(
         metadata,
       });
     }
+
+    // If status is not reusable and not terminal, create a new one
+    console.log(
+      `PaymentIntent ${paymentIntentId} has status ${existing.status} which is not reusable. Creating new PaymentIntent.`
+    );
   } catch (intentError) {
     console.warn(
       `Unable to reuse payment intent ${paymentIntentId}:`,
