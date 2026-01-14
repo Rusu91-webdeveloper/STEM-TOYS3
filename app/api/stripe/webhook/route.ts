@@ -168,8 +168,20 @@ async function handleSuccessfulPayment(
       return;
     }
 
+    // Check if order has ANY digital items (books with bookId or isDigital flag)
+    // Fix: Changed from every() to some() to detect ANY digital items, not just ALL
     const hasDigitalItems =
-      order.items.length > 0 && order.items.every(item => item.isDigital);
+      order.items.length > 0 &&
+      order.items.some(
+        item => item.isDigital === true || (item as any).bookId !== null
+      );
+
+    // Check if order is digital-only (ALL items are digital)
+    const allItemsAreDigital =
+      order.items.length > 0 &&
+      order.items.every(
+        item => item.isDigital === true || (item as any).bookId !== null
+      );
 
     // ⚠️ CRITICAL: Update payment status first, then verify before processing digital books
     // Only process digital books after payment is verified as PAID
@@ -178,7 +190,10 @@ async function handleSuccessfulPayment(
       data: {
         paymentStatus: "PAID",
         stripePaymentIntentId: paymentIntentId,
-        ...(hasDigitalItems ? { status: "COMPLETED" } : {}),
+        // Fix: For digital-only orders, set status to DELIVERED (Livrat) instead of COMPLETED
+        ...(allItemsAreDigital
+          ? { status: "DELIVERED", deliveredAt: new Date() }
+          : {}),
       },
     });
 
@@ -186,11 +201,27 @@ async function handleSuccessfulPayment(
     // processDigitalBookOrder will also verify payment status as an additional safeguard
     if (hasDigitalItems) {
       console.log(
-        `✅ [STRIPE][WEBHOOK] Payment verified for order ${order.id} - processing digital books`
+        `✅ [STRIPE][WEBHOOK] Payment verified for order ${order.id} - processing digital books (has ${order.items.filter(item => item.isDigital === true || (item as any).bookId !== null).length} digital item(s))`
       );
-      await processDigitalBookOrder(order.id);
-    } else if (userEmail) {
-      // For physical orders send confirmation email
+      try {
+        await processDigitalBookOrder(order.id);
+        console.log(
+          `✅ [STRIPE][WEBHOOK] Digital books processed and email sent for order ${order.id}`
+        );
+      } catch (digitalError) {
+        console.error(
+          `❌ [STRIPE][WEBHOOK] Failed to process digital books for order ${order.id}:`,
+          digitalError
+        );
+        // Continue to send confirmation email even if digital processing fails
+      }
+    }
+
+    // Send confirmation email for all orders (both digital and physical)
+    // Digital orders get delivery email from processDigitalBookOrder,
+    // but we also send confirmation email for consistency
+    if (userEmail || order.user?.email) {
+      const recipientEmail = userEmail || order.user?.email;
       try {
         const { DatabaseTemplateService } = await import(
           "@/lib/email/database-template-service"
@@ -200,7 +231,7 @@ async function handleSuccessfulPayment(
 
         const sendResult =
           await DatabaseTemplateService.sendOrderConfirmationEmail(
-            userEmail,
+            recipientEmail,
             {
               customerName:
                 order?.shippingAddress?.fullName ||
@@ -217,14 +248,21 @@ async function handleSuccessfulPayment(
             }
           );
 
-        if (!sendResult.success) {
+        if (sendResult.success) {
+          console.log(
+            `✅ [STRIPE][WEBHOOK] Order confirmation email sent to ${recipientEmail} for order ${order.id}`
+          );
+        } else {
           console.error(
-            `Failed to send order confirmation email via template service:`,
+            `❌ [STRIPE][WEBHOOK] Failed to send order confirmation email via template service:`,
             sendResult.error
           );
         }
       } catch (emailError) {
-        console.error(`Failed to send order confirmation email:`, emailError);
+        console.error(
+          `❌ [STRIPE][WEBHOOK] Failed to send order confirmation email:`,
+          emailError
+        );
       }
     }
   } catch (error) {
