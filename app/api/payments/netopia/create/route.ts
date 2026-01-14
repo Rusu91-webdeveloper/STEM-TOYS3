@@ -7,15 +7,12 @@ export async function POST(request: Request) {
   console.log("═══════════════════════════════════════════════════════════");
   console.log("🚀 [API] Netopia Payment Creation Request Received");
   console.log("═══════════════════════════════════════════════════════════");
-  
+  let orderId: string | undefined;
+
   try {
-    const {
-      orderId,
-      amount,
-      currency = "RON",
-      customerData,
-      paymentMethod,
-    } = await request.json();
+    const body = await request.json();
+    orderId = body?.orderId;
+    const { amount, currency = "RON", customerData, paymentMethod } = body;
 
     console.log("📋 [API] Request Parameters:");
     console.log(`   Order ID: ${orderId}`);
@@ -28,6 +25,9 @@ export async function POST(request: Request) {
       console.error("❌ [API] Validation failed - missing required fields");
       console.error(`   Order ID: ${orderId ? "✓" : "✗"}`);
       console.error(`   Amount: ${amount > 0 ? "✓" : "✗ (must be > 0)"}`);
+      if (orderId) {
+        await markOrderFailed(orderId, "validation_failed");
+      }
       return NextResponse.json(
         { error: "Missing required fields: orderId, amount" },
         { status: 400 }
@@ -44,6 +44,9 @@ export async function POST(request: Request) {
       console.log("✅ [API] Netopia provider initialized successfully");
     } catch (providerError) {
       console.error("❌ [API] Failed to initialize Netopia provider:", providerError);
+      if (orderId) {
+        await markOrderFailed(orderId, "provider_init_failed");
+      }
       return NextResponse.json(
         { 
           error: "Netopia payment gateway initialization failed",
@@ -157,6 +160,9 @@ export async function POST(request: Request) {
       }
     } catch (conversionError) {
       console.error("❌ [API] Currency conversion failed:", conversionError);
+      if (orderId) {
+        await markOrderFailed(orderId, "currency_conversion_failed");
+      }
       return NextResponse.json(
         {
           error: "Currency conversion failed",
@@ -209,6 +215,9 @@ export async function POST(request: Request) {
       console.error("❌ [API] Invalid payment result");
       console.error("   Payment URL:", paymentResult.paymentUrl ? "Present" : "Missing");
       console.error("   Transaction ID:", paymentResult.transactionId ? "Present" : "Missing");
+      if (orderId) {
+        await markOrderFailed(orderId, "invalid_payment_result");
+      }
       return NextResponse.json(
         { error: "Netopia did not return a payment URL" },
         { status: 502 }
@@ -283,6 +292,10 @@ export async function POST(request: Request) {
     console.error("Error details:", error);
     console.error("");
 
+    if (orderId) {
+      await markOrderFailed(orderId, "payment_creation_failed");
+    }
+
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
 
@@ -293,6 +306,27 @@ export async function POST(request: Request) {
           process.env.NODE_ENV === "development" || process.env.NETOPIA_DEBUG_MODE === "true" ? errorMessage : "An error occurred while processing your payment. Please try again or contact support.",
       },
       { status: 500 }
+    );
+  }
+}
+
+async function markOrderFailed(orderId: string, reason: string) {
+  try {
+    const { db } = await import("@/lib/db");
+    await db.order.update({
+      where: { id: orderId },
+      data: {
+        paymentStatus: "FAILED",
+        status: "CANCELLED",
+      },
+    });
+    console.warn(
+      `⚠️ [API] Order ${orderId} marked as FAILED/CANCELLED (${reason})`
+    );
+  } catch (updateError) {
+    console.error(
+      `❌ [API] Failed to mark order ${orderId} as failed (${reason}):`,
+      updateError
     );
   }
 }
