@@ -1647,11 +1647,11 @@ export const ro = {
       UNKNOWN_ERROR: "Eroare Necunoscută",
     },
     networkError:
-      "Eroare de conexiune. Te rugăm să verifici conexiunea la internet și să încerci din nou.",
+      "Nu am putut comunica cu serviciul de plată. Verifică conexiunea și încearcă din nou.",
     timeoutError: "Cererea a expirat. Te rugăm să încerci din nou.",
     authError: "Te rugăm să te conectezi din nou pentru a continua.",
     paymentError:
-      "Eroare la procesarea plății. Te rugăm să verifici detaliile de plată și să încerci din nou.",
+      "Plata nu a putut fi procesată. Verifică detaliile sau alege o altă metodă de plată.",
     settingsError: "Eșec la încărcarea setărilor. Te rugăm să încerci din nou.",
     unknownError: "A apărut o eroare neașteptată. Te rugăm să încerci din nou.",
     action: {

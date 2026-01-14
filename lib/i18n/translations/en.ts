@@ -1450,11 +1450,11 @@ export const en = {
       UNKNOWN_ERROR: "Unknown Error",
     },
     networkError:
-      "Connection error. Please check your internet connection and try again.",
+      "We couldn't reach the payment service. Please check your connection and try again.",
     timeoutError: "Request timed out. Please try again.",
     authError: "Please log in again to continue.",
     paymentError:
-      "Payment processing error. Please check your payment details and try again.",
+      "We couldn't process the payment. Check your details or choose another method.",
     settingsError: "Failed to load settings. Please try again.",
     unknownError: "An unexpected error occurred. Please try again.",
     action: {

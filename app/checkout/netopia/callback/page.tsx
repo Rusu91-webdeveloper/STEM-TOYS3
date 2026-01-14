@@ -73,7 +73,9 @@ export default function NetopiaCallback() {
           }, 2000);
         } else if (result.status === "failed" || paymentStatus === "failed") {
           setStatus("error");
-          setMessage("Plata a eșuat. Vă rugăm să încercați din nou.");
+          setMessage(
+            "Plata nu a fost finalizată. Nu s-a efectuat nicio taxare."
+          );
         } else if (result.status === "pending" || paymentStatus === "pending") {
           // After a few attempts on localhost, stop looping and offer a manual dev override.
           attemptRef += 1;
@@ -103,7 +105,9 @@ export default function NetopiaCallback() {
       } catch (error) {
         console.error("Error handling Netopia callback:", error);
         setStatus("error");
-        setMessage("A apărut o eroare la verificarea plății.");
+        setMessage(
+          "Nu am reușit să verificăm plata în acest moment. Te rugăm să încerci din nou."
+        );
       }
     };
 
@@ -157,8 +161,18 @@ export default function NetopiaCallback() {
 
   const handleContactSupport = () => {
     // You could open a support chat, email, or redirect to support page
+    const subject = encodeURIComponent(
+      orderId
+        ? `Problemă plată Netopia - Comanda ${orderId}`
+        : "Problemă plată Netopia"
+    );
+    const body = encodeURIComponent(
+      orderId
+        ? `Bună ziua,\n\nAcesta este un raport automat pentru comanda ${orderId}.\nDescriere problemă:\n`
+        : "Bună ziua,\n\nDescriere problemă:\n"
+    );
     window.location.href =
-      "mailto:support@techtots.com?subject=Problemă cu plata Netopia";
+      `mailto:support@techtots.com?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -189,29 +203,50 @@ export default function NetopiaCallback() {
 
         {status === "error" && (
           <>
-            <XCircle className="mx-auto h-12 w-12 text-red-600 mb-4" />
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">
-            Problemă cu plata
-          </h1>
-          <p className="text-gray-600 mb-6">{message}</p>
-          <div className="space-y-3">
-            {isLocalhost && orderId && (
-              <Button
-                onClick={handleForceComplete}
-                variant="secondary"
-                disabled={isForcing}
-                className="w-full"
-              >
-                {isForcing
-                  ? "Marchez plata..."
-                  : "Finalizează manual (dev localhost)"}
-              </Button>
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
+              <XCircle className="h-7 w-7" />
+            </div>
+            <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+              Plată nefinalizată
+            </h1>
+            <p className="text-gray-600 mb-4">{message}</p>
+            {orderId && (
+              <div className="mb-5 text-xs text-gray-500">
+                ID comandă:{" "}
+                <span className="font-mono text-gray-700">{orderId}</span>
+              </div>
             )}
-            <Button onClick={handleRetry} className="w-full">
-              Încearcă din nou
-            </Button>
-            <Button
-              onClick={handleContactSupport}
+            <div className="rounded-lg border border-red-100 bg-red-50/40 p-4 text-left text-sm text-gray-700">
+              <p className="font-medium text-gray-900 mb-2">
+                Ce poți face acum
+              </p>
+              <ul className="space-y-2">
+                <li>Încearcă din nou sau alege o altă metodă de plată.</li>
+                <li>Verifică dacă banca a autorizat tranzacția.</li>
+                <li>
+                  Contactează suportul și menționează ID-ul comenzii pentru
+                  verificare rapidă.
+                </li>
+              </ul>
+            </div>
+            <div className="space-y-3 mt-6">
+              {isLocalhost && orderId && (
+                <Button
+                  onClick={handleForceComplete}
+                  variant="secondary"
+                  disabled={isForcing}
+                  className="w-full"
+                >
+                  {isForcing
+                    ? "Marchez plata..."
+                    : "Finalizează manual (dev localhost)"}
+                </Button>
+              )}
+              <Button onClick={handleRetry} className="w-full">
+                Înapoi la checkout
+              </Button>
+              <Button
+                onClick={handleContactSupport}
                 variant="outline"
                 className="w-full"
               >
