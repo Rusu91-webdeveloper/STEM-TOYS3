@@ -7,10 +7,8 @@ design.
 
 ## 📚 Documentation
 
-Comprehensive documentation for the entire project:
+### Core Documentation
 
-- **[DATABASE_SAFETY.md](./DATABASE_SAFETY.md)** - Complete database protection
-  guide, backup/restore procedures
 - **[PROJECT_ARCHITECTURE.md](./PROJECT_ARCHITECTURE.md)** - Codebase structure,
   tech stack, and architecture patterns
 - **[API_REFERENCE.md](./API_REFERENCE.md)** - All API endpoints with
@@ -19,6 +17,22 @@ Comprehensive documentation for the entire project:
   technical implementation
 - **[ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md)** - Environment variables,
   development setup, and deployment guide
+
+### Database & Safety
+
+- **[DATABASE_SAFETY.md](./DATABASE_SAFETY.md)** - Complete database protection
+  guide, backup/restore procedures
+- **[CURSOR_DATABASE_SAFETY_RULE.md](./CURSOR_DATABASE_SAFETY_RULE.md)** - AI safety rules for database operations
+- **[PRE_PUSH_SAFETY_GUIDE.md](./PRE_PUSH_SAFETY_GUIDE.md)** - Pre-push safety checks and migration validation
+
+### Operations & Launch
+
+- **[LAUNCH_CHECKLIST.md](./LAUNCH_CHECKLIST.md)** - Launch blueprint and checklist
+- **[docs/SOP_DAILY_OPERATIONS.md](./docs/SOP_DAILY_OPERATIONS.md)** - Standard operating procedures for daily operations
+- **[docs/PRODUCT_IMPORT_GUIDE.md](./docs/PRODUCT_IMPORT_GUIDE.md)** - Guide for importing products
+- **[docs/BUNDLE_CREATION_GUIDE.md](./docs/BUNDLE_CREATION_GUIDE.md)** - Guide for creating product bundles
+- **[docs/SUPPLIER_SYNC_PLAN.md](./docs/SUPPLIER_SYNC_PLAN.md)** - Supplier synchronization plan
+- **[docs/CUSTOMER_SUPPORT_MACROS.md](./docs/CUSTOMER_SUPPORT_MACROS.md)** - Customer support macros and templates
 
 ## 🚀 Features
 
@@ -290,12 +304,6 @@ The platform supports multiple languages:
 Language switching is available throughout the application with proper RTL
 support and localized content.
 
-## 📚 Additional Documentation
-
-- [Technical Stack Documentation](./TECHNICAL_STACK.md) - Detailed information
-  about all libraries and frameworks
-- [API Documentation](./API_DOCUMENTATION.md) - Complete API reference
-- [Deployment Guide](./DEPLOYMENT_GUIDE.md) - Detailed deployment instructions
 
 ## 🤝 Contributing
 
