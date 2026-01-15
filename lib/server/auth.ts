@@ -143,27 +143,22 @@ const createAuthOptions = (): NextAuthConfig => {
   if (!authConfigLogged) {
     // Validate Google OAuth configuration
     if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
-      console.log("✅ Google OAuth configured successfully");
-      console.log(
-        "🔧 Google Client ID:",
-        `${env.GOOGLE_CLIENT_ID.substring(0, 20)}...`
-      );
-      console.log(
-        "🔧 Google Client Secret:",
-        `${env.GOOGLE_CLIENT_SECRET.substring(0, 10)}...`
-      );
+      logger.info("Google OAuth configured successfully");
+      logger.info("Google OAuth client ID prefix", {
+        clientIdPrefix: `${env.GOOGLE_CLIENT_ID.substring(0, 8)}...`,
+      });
     } else {
-      console.log(
-        "⚠️ Google OAuth not configured - authentication will work with credentials only"
+      logger.warn(
+        "Google OAuth not configured - authentication will work with credentials only"
       );
-      console.log("🔍 Available env vars:", {
+      logger.info("Available auth env vars", {
         AUTH_GOOGLE_ID: !!process.env.AUTH_GOOGLE_ID,
         AUTH_GOOGLE_SECRET: !!process.env.AUTH_GOOGLE_SECRET,
         GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
         GOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET,
       });
-      console.log(
-        "💡 To enable Google OAuth, add AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET to your environment variables"
+      logger.info(
+        "To enable Google OAuth, add AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET to your environment variables"
       );
     }
     authConfigLogged = true;

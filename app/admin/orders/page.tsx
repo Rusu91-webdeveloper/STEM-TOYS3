@@ -14,10 +14,21 @@ import {
   Ban,
   Save,
   X,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect, useCallback } from "react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -125,6 +136,11 @@ export default function OrdersPage() {
     newStatus: "",
     cancellationReason: "",
     updating: false,
+  });
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    order: null as Order | null,
+    deleting: false,
   });
 
   // Function to fetch orders from the API
@@ -242,6 +258,62 @@ export default function OrdersPage() {
       });
     } finally {
       setStatusUpdateModal(prev => ({ ...prev, updating: false }));
+    }
+  };
+
+  const openDeleteModal = (order: Order) => {
+    setDeleteModal({ isOpen: true, order, deleting: false });
+  };
+
+  const closeDeleteModal = () => {
+    if (deleteModal.deleting) return;
+    setDeleteModal({ isOpen: false, order: null, deleting: false });
+  };
+
+  const handleDeleteDialogChange = (open: boolean) => {
+    if (!open) {
+      closeDeleteModal();
+    }
+  };
+
+  const deleteOrder = async () => {
+    if (!deleteModal.order || deleteModal.deleting) return;
+
+    setDeleteModal(prev => ({ ...prev, deleting: true }));
+
+    try {
+      const response = await fetch(
+        `/api/admin/orders/${deleteModal.order.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to delete order");
+      }
+
+      toast({
+        title: "Order deleted",
+        description: `Order ${deleteModal.order.id} has been deleted.`,
+      });
+
+      setDeleteModal({ isOpen: false, order: null, deleting: false });
+      await fetchOrders();
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to delete order",
+        variant: "destructive",
+      });
+      setDeleteModal(prev => ({ ...prev, deleting: false }));
     }
   };
 
@@ -442,6 +514,14 @@ export default function OrdersPage() {
                               >
                                 Update Status
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => openDeleteModal(order)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Order
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>
@@ -593,6 +673,33 @@ export default function OrdersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={deleteModal.isOpen}
+        onOpenChange={handleDeleteDialogChange}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this order?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the order and its related records.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteModal.deleting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={deleteOrder}
+              disabled={deleteModal.deleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleteModal.deleting ? "Deleting..." : "Delete Order"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

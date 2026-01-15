@@ -1,7 +1,7 @@
 "use client";
 
 import { Info } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
  * Shows on admin pages to indicate read-only access
  */
 export function DemoModeBanner() {
-  const { data: session } = useSession();
+  const { data: session } = useOptimizedSession();
 
   // Only show for VISITOR role
   if (session?.user?.role !== "VISITOR") {

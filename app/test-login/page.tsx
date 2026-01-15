@@ -1,10 +1,11 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
+
 export default function TestLoginPage() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useOptimizedSession();
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 

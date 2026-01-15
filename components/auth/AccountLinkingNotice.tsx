@@ -1,13 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useEffect, useState } from "react";
 
 import { useToast } from "@/components/ui/use-toast";
 
 export function AccountLinkingNotice() {
-  const { data: session } = useSession();
+  const { data: session } = useOptimizedSession();
   const { toast } = useToast();
   const router = useRouter();
   const [noticeShown, setNoticeShown] = useState(false);

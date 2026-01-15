@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { useSession } from "next-auth/react";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -103,7 +103,7 @@ interface Pagination {
 }
 
 export default function EmailTemplatesPage() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useOptimizedSession();
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);

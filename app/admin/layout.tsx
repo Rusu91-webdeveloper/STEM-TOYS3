@@ -4,10 +4,11 @@ import { LogOut, Menu, X, Settings, User, Home, Package } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation } from "@/lib/i18n";
 
 import SidebarNav, { adminNavItems } from "./components/sidebar-nav";
@@ -17,7 +18,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useOptimizedSession();
   const router = useRouter();
   const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);

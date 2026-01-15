@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
+import { invalidateCachePattern } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { invalidateAnalyticsOnOrderChange } from "@/lib/cache/analytics-cache";
 
@@ -379,6 +380,82 @@ export async function PATCH(
 
     return NextResponse.json(
       { error: "Failed to update order" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+    }
+
+    const { id: orderIdOrNumber } = await params;
+
+    const order = await db.order.findFirst({
+      where: {
+        OR: [{ id: orderIdOrNumber }, { orderNumber: orderIdOrNumber }],
+      },
+      select: {
+        id: true,
+        orderNumber: true,
+        items: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    const orderItemIds = order.items.map(item => item.id);
+
+    await db.$transaction(async tx => {
+      if (orderItemIds.length > 0) {
+        await tx.review.deleteMany({
+          where: { orderItemId: { in: orderItemIds } },
+        });
+        await tx.return.deleteMany({
+          where: { orderItemId: { in: orderItemIds } },
+        });
+      }
+
+      await tx.return.deleteMany({
+        where: { orderId: order.id },
+      });
+
+      await tx.campaignApplication.updateMany({
+        where: { orderId: order.id },
+        data: { orderId: null },
+      });
+
+      await tx.order.delete({
+        where: { id: order.id },
+      });
+    });
+
+    await invalidateAnalyticsOnOrderChange();
+    await Promise.all([
+      invalidateCachePattern("admin-orders*"),
+      invalidateCachePattern("enhanced-orders*"),
+    ]);
+
+    return NextResponse.json({
+      message: `Order ${order.orderNumber} deleted successfully`,
+    });
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    return NextResponse.json(
+      { error: "Failed to delete order" },
       { status: 500 }
     );
   }

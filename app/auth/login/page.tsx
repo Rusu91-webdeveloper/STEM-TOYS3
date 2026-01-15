@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { signIn, useSession, signOut } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 import React, { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Separator } from "@/components/ui/separator";
 import { AuthExperienceLayout } from "@/app/auth/components/AuthExperienceLayout";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { loginSchema } from "@/lib/validations";
@@ -52,7 +53,7 @@ const clearProblemCookies = () => {
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const { data: session, status } = useSession();
+  const { data: session, status } = useOptimizedSession();
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);

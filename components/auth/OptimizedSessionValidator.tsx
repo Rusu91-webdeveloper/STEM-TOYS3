@@ -1,14 +1,13 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useEffect, useRef, useState } from "react";
 
 import {
   validateSessionSmart,
   shouldAutoRedirect,
   getAuthPreferences,
-  clearAuthCookies,
 } from "@/lib/auth/smartSessionManager";
 
 /**
@@ -16,7 +15,7 @@ import {
  * Uses smart session management to prevent performance issues
  */
 export function OptimizedSessionValidator() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useOptimizedSession();
   const router = useRouter();
   const pathname = usePathname();
   const [validationError, setValidationError] = useState<string | null>(null);
