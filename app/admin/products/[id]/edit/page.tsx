@@ -36,6 +36,7 @@ async function getProduct(id: string) {
         categoryId: "cat_1",
         tags: ["mock", "development"],
         isActive: true,
+        featured: false,
         // SEO fields
         metaTitle: "Mock Product | STEM Toys",
         metaDescription: "A mock product for development purposes.",
@@ -80,6 +81,7 @@ async function getProduct(id: string) {
       categoryId: product.categoryId || "",
       tags: Array.isArray(product.tags) ? product.tags : [],
       isActive: product.isActive,
+      featured: product.featured || false,
       // SEO fields from metadata
       metaTitle: metadata.metaTitle || product.name || "",
       metaDescription:

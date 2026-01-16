@@ -53,7 +53,7 @@ export class GoogleSearchConsoleService {
   private searchconsole: any;
   private siteUrl: string;
 
-  constructor(siteUrl: string = "https://techtots.ro/") {
+  constructor(siteUrl: string = "https://www.techtots.ro") {
     // Prefer env override for site URL if provided
     const envSiteUrl =
       process.env.GSC_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
@@ -246,7 +246,7 @@ export class GoogleSearchConsoleService {
         clicks: Math.floor(Math.random() * 100),
         impressions: Math.floor(Math.random() * 1000),
         ctr: Math.random() * 10,
-        url: `https://techtots.ro/blog/${keyword.replace(/\s+/g, "-")}`,
+        url: `https://www.techtots.ro/blog/${keyword.replace(/\s+/g, "-")}`,
         lastUpdated: new Date(),
       }));
     }
@@ -747,7 +747,7 @@ export class GoogleSearchConsoleService {
   }
 
   /**
-   * Calculate SEO health score
+   * Calculate SEO health score based on real data
    */
   async getSEOHealthScore(): Promise<{
     overallScore: number;
@@ -763,42 +763,236 @@ export class GoogleSearchConsoleService {
     strengths: string[];
     weaknesses: string[];
   }> {
-    // For now, return mock health score based on available data
-    // In production, this would analyze real SEO data
-    const mockScore = {
-      overallScore: Math.floor(Math.random() * 30) + 70, // 70-100 range
-      categoryScores: {
-        technical: Math.floor(Math.random() * 20) + 75,
-        content: Math.floor(Math.random() * 25) + 70,
-        backlinks: Math.floor(Math.random() * 30) + 60,
-        local: Math.floor(Math.random() * 15) + 80,
-        mobile: Math.floor(Math.random() * 10) + 85,
-        performance: Math.floor(Math.random() * 20) + 75,
-      },
-      recommendations: [
-        "Implement structured data markup for better rich snippets",
-        "Optimize page load speed - current average is 2.8 seconds",
-        "Increase internal linking between related content",
-        "Create more comprehensive FAQ sections",
-        "Improve mobile user experience and Core Web Vitals",
-        "Build high-quality backlinks from educational institutions",
-      ],
-      strengths: [
-        "Strong local SEO presence in Romanian market",
-        "Good keyword targeting and content relevance",
-        "Effective use of Romanian language and cultural context",
-        "Well-structured internal linking strategy",
-        "Competitive pricing and clear value propositions",
-      ],
-      weaknesses: [
-        "Limited backlink profile from authoritative domains",
-        "Some pages missing meta descriptions",
-        "Could improve technical SEO (crawling, indexing)",
-        "Mobile performance could be optimized further",
-      ],
-    };
+    try {
+      const { PrismaClient } = require("@prisma/client");
+      const prisma = new PrismaClient();
 
-    return mockScore;
+      // Get recent SEO analytics data (last 30 days)
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - 30);
+
+      const recentData = await prisma.sEOAnalytics.findMany({
+        where: {
+          dateRecorded: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        orderBy: {
+          dateRecorded: "desc",
+        },
+        take: 1000, // Analyze up to 1000 recent records
+      });
+
+      await prisma.$disconnect();
+
+      // Calculate scores based on real data
+      let technicalScore = 70;
+      let contentScore = 70;
+      let backlinksScore = 60;
+      let localScore = 80;
+      let mobileScore = 85;
+      let performanceScore = 75;
+
+      const strengths: string[] = [];
+      const weaknesses: string[] = [];
+      const recommendations: string[] = [];
+
+      if (recentData.length > 0) {
+        // Calculate average position (lower is better)
+        const avgPosition =
+          recentData.reduce((sum, r) => sum + r.position, 0) /
+          recentData.length;
+
+        // Calculate average CTR
+        const avgCTR =
+          recentData.reduce((sum, r) => sum + r.ctr, 0) / recentData.length;
+
+        // Calculate total clicks and impressions
+        const totalClicks = recentData.reduce((sum, r) => sum + r.clicks, 0);
+        const totalImpressions = recentData.reduce(
+          (sum, r) => sum + r.impressions,
+          0
+        );
+
+        // Technical SEO Score (based on average position)
+        if (avgPosition <= 3) {
+          technicalScore = 95;
+          strengths.push("Excellent average search position (top 3)");
+        } else if (avgPosition <= 5) {
+          technicalScore = 85;
+          strengths.push("Good average search position (top 5)");
+        } else if (avgPosition <= 10) {
+          technicalScore = 75;
+        } else if (avgPosition <= 20) {
+          technicalScore = 65;
+          weaknesses.push("Average position could be improved (currently >10)");
+        } else {
+          technicalScore = 50;
+          weaknesses.push("Poor average position (currently >20)");
+          recommendations.push(
+            "Focus on improving keyword rankings - current average position is above 20"
+          );
+        }
+
+        // Performance Score (based on CTR)
+        if (avgCTR >= 5) {
+          performanceScore = 90;
+          strengths.push("Excellent click-through rate (CTR > 5%)");
+        } else if (avgCTR >= 3) {
+          performanceScore = 80;
+          strengths.push("Good click-through rate (CTR > 3%)");
+        } else if (avgCTR >= 2) {
+          performanceScore = 70;
+        } else {
+          performanceScore = 60;
+          weaknesses.push("Low click-through rate (CTR < 2%)");
+          recommendations.push(
+            "Improve meta titles and descriptions to increase CTR"
+          );
+        }
+
+        // Content Score (based on keyword diversity and coverage)
+        const uniqueKeywords = new Set(recentData.map((r) => r.keyword)).size;
+        if (uniqueKeywords >= 50) {
+          contentScore = 85;
+          strengths.push(`Strong keyword coverage (${uniqueKeywords} keywords)`);
+        } else if (uniqueKeywords >= 30) {
+          contentScore = 75;
+        } else if (uniqueKeywords >= 15) {
+          contentScore = 65;
+        } else {
+          contentScore = 55;
+          weaknesses.push("Limited keyword coverage");
+          recommendations.push(
+            "Expand content to target more relevant keywords"
+          );
+        }
+
+        // Local SEO Score (based on Romanian keywords)
+        const romanianKeywords = recentData.filter((r) =>
+          this.isRomanianSTEMKeyword(r.keyword)
+        ).length;
+        const romanianPercentage = (romanianKeywords / recentData.length) * 100;
+        if (romanianPercentage >= 60) {
+          localScore = 90;
+          strengths.push("Strong Romanian market presence");
+        } else if (romanianPercentage >= 40) {
+          localScore = 80;
+        } else if (romanianPercentage >= 20) {
+          localScore = 70;
+        } else {
+          localScore = 60;
+          weaknesses.push("Limited Romanian keyword targeting");
+          recommendations.push(
+            "Increase focus on Romanian-specific keywords and local SEO"
+          );
+        }
+
+        // Check for position improvements (trend analysis)
+        const keywordsWithHistory = recentData.filter((r) => r.previousPosition);
+        if (keywordsWithHistory.length > 0) {
+          const improvedKeywords = keywordsWithHistory.filter(
+            (r) => r.previousPosition && r.position < r.previousPosition
+          ).length;
+          const improvementRate =
+            (improvedKeywords / keywordsWithHistory.length) * 100;
+
+          if (improvementRate >= 50) {
+            strengths.push(
+              `Strong ranking improvements (${improvementRate.toFixed(0)}% of keywords improving)`
+            );
+          } else if (improvementRate < 20) {
+            weaknesses.push("Limited ranking improvements recently");
+            recommendations.push(
+              "Review and optimize underperforming keywords"
+            );
+          }
+        }
+
+        // Check for high-performing keywords
+        const topKeywords = recentData
+          .filter((r) => r.position <= 3)
+          .length;
+        if (topKeywords >= 10) {
+          strengths.push(`${topKeywords} keywords ranking in top 3`);
+        }
+
+        // Check for low-performing keywords
+        const lowKeywords = recentData.filter((r) => r.position > 20).length;
+        if (lowKeywords > recentData.length * 0.5) {
+          weaknesses.push(
+            `${lowKeywords} keywords ranking below position 20`
+          );
+          recommendations.push(
+            "Focus on improving rankings for keywords currently below position 20"
+          );
+        }
+      } else {
+        // No data available - use default recommendations
+        recommendations.push(
+          "Start collecting SEO analytics data to get accurate health scores"
+        );
+        weaknesses.push("No recent SEO data available for analysis");
+      }
+
+      // Calculate overall score (weighted average)
+      const overallScore = Math.round(
+        technicalScore * 0.2 +
+          contentScore * 0.2 +
+          backlinksScore * 0.15 +
+          localScore * 0.15 +
+          mobileScore * 0.15 +
+          performanceScore * 0.15
+      );
+
+      // Add default recommendations if none exist
+      if (recommendations.length === 0) {
+        recommendations.push(
+          "Continue monitoring keyword performance and optimize based on data"
+        );
+      }
+
+      // Add default strengths if none exist
+      if (strengths.length === 0 && recentData.length > 0) {
+        strengths.push("SEO data collection is active and tracking performance");
+      }
+
+      return {
+        overallScore,
+        categoryScores: {
+          technical: technicalScore,
+          content: contentScore,
+          backlinks: backlinksScore,
+          local: localScore,
+          mobile: mobileScore,
+          performance: performanceScore,
+        },
+        recommendations,
+        strengths,
+        weaknesses,
+      };
+    } catch (error) {
+      console.error("Failed to calculate SEO health score:", error);
+      // Return default scores if database query fails
+      return {
+        overallScore: 70,
+        categoryScores: {
+          technical: 70,
+          content: 70,
+          backlinks: 60,
+          local: 80,
+          mobile: 85,
+          performance: 75,
+        },
+        recommendations: [
+          "Unable to calculate health score - check database connection",
+        ],
+        strengths: [],
+        weaknesses: ["Health score calculation failed"],
+      };
+    }
   }
 
   /**
@@ -876,6 +1070,32 @@ export class GoogleSearchConsoleService {
           () => Math.random() * 5 + 3
         ),
       };
+    }
+  }
+
+  /**
+   * Get the last database update timestamp
+   */
+  async getLastDatabaseUpdate(): Promise<Date | null> {
+    try {
+      const { PrismaClient } = require("@prisma/client");
+      const prisma = new PrismaClient();
+
+      const lastRecord = await prisma.sEOAnalytics.findFirst({
+        orderBy: {
+          dateRecorded: "desc",
+        },
+        select: {
+          dateRecorded: true,
+        },
+      });
+
+      await prisma.$disconnect();
+
+      return lastRecord?.dateRecorded || null;
+    } catch (error) {
+      console.error("Failed to get last database update:", error);
+      return null;
     }
   }
 }

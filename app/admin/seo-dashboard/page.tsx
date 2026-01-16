@@ -106,39 +106,73 @@ export default function SEODashboardPage() {
   } | null>(null);
   const [savingAnalytics, setSavingAnalytics] = useState(false);
   const [analyticsMessage, setAnalyticsMessage] = useState<string | null>(null);
+  const [lastDatabaseUpdate, setLastDatabaseUpdate] = useState<Date | null>(
+    null
+  );
+  const [keywordHistorySource, setKeywordHistorySource] = useState<
+    "database" | "mock" | null
+  >(null);
 
   const fetchKeywordHistory = async (keyword: string) => {
     try {
+      // First try to get real data from database
       const response = await fetch(
-        `/api/admin/seo/google-search-console?action=keywords&keywords=${encodeURIComponent(keyword)}`
+        `/api/admin/seo/google-search-console?action=keyword-history&keyword=${encodeURIComponent(keyword)}&days=30`
       );
       if (response.ok) {
         const payload = await response.json();
         const data = payload.data;
-        // For now, we'll simulate historical data since we don't have real historical data yet
+        
+        // Track data source
+        setKeywordHistorySource(payload.dataSource || "mock");
+        
+        // If we have real data from database, use it
+        if (data && data.dates && data.dates.length > 0) {
+          setKeywordHistory({
+            dates: data.dates,
+            positions: data.positions,
+            clicks: data.clicks,
+            impressions: data.impressions,
+            ctr: data.ctr,
+          });
+          return;
+        }
+      }
+      
+      // Fallback: Try to get current keyword data and generate trend
+      // This is used when no historical data exists yet
+      const currentResponse = await fetch(
+        `/api/admin/seo/google-search-console?action=keywords&keywords=${encodeURIComponent(keyword)}`
+      );
+      if (currentResponse.ok) {
+        const currentPayload = await currentResponse.json();
+        const currentData = currentPayload.data;
+        const currentPosition = currentData?.[0]?.position || 5;
+        
+        // Generate placeholder data based on current position
+        // This will be replaced once daily analytics start collecting data
         setKeywordHistory({
           dates: Array.from({ length: 30 }, (_, i) => {
             const date = new Date();
             date.setDate(date.getDate() - (29 - i));
             return date.toISOString().split("T")[0];
           }),
-          positions: Array.from({ length: 30 }, (_, i) => {
-            const basePosition = data?.[0]?.position || 5;
-            return Math.max(1, basePosition + (Math.random() - 0.5) * 4);
-          }),
-          clicks: Array.from(
-            { length: 30 },
-            () => Math.floor(Math.random() * 50) + 10
-          ),
-          impressions: Array.from(
-            { length: 30 },
-            () => Math.floor(Math.random() * 500) + 100
-          ),
-          ctr: Array.from({ length: 30 }, () => Math.random() * 5 + 2),
+          positions: Array.from({ length: 30 }, () => currentPosition),
+          clicks: Array.from({ length: 30 }, () => 0),
+          impressions: Array.from({ length: 30 }, () => 0),
+          ctr: Array.from({ length: 30 }, () => 0),
         });
       }
     } catch (err) {
       console.error("Error fetching keyword history:", err);
+      // Set empty data on error
+      setKeywordHistory({
+        dates: [],
+        positions: [],
+        clicks: [],
+        impressions: [],
+        ctr: [],
+      });
     }
   };
 
@@ -201,6 +235,22 @@ export default function SEODashboardPage() {
         const payload = await response.json();
         setDataSource(payload.dataSource ?? null);
         setSeoData(payload.data);
+        
+        // Fetch last database update timestamp
+        try {
+          const dbResponse = await fetch(
+            "/api/admin/seo/google-search-console?action=last-update"
+          );
+          if (dbResponse.ok) {
+            const dbData = await dbResponse.json();
+            if (dbData.lastUpdate) {
+              setLastDatabaseUpdate(new Date(dbData.lastUpdate));
+            }
+          }
+        } catch (err) {
+          // Silently fail - this is optional data
+          console.log("Could not fetch last database update:", err);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
         console.error("Error fetching SEO data:", err);
@@ -278,12 +328,29 @@ export default function SEODashboardPage() {
           <h1 className="text-4xl font-bold text-gray-800">
             🚀 SEO Performance Dashboard
           </h1>
-          <div className="flex items-center space-x-4">
-            <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-              Source: {dataSource || "unknown"}
+          <div className="flex items-center space-x-4 flex-wrap gap-2">
+            <span
+              className={`px-2 py-1 rounded text-xs font-medium border ${
+                dataSource === "live"
+                  ? "bg-green-100 text-green-800 border-green-300"
+                  : dataSource === "database"
+                    ? "bg-blue-100 text-blue-800 border-blue-300"
+                    : "bg-yellow-100 text-yellow-800 border-yellow-300"
+              }`}
+            >
+              {dataSource === "live"
+                ? "🟢 Live Data (GSC)"
+                : dataSource === "database"
+                  ? "🔵 Database Data"
+                  : "⚠️ Mock Data"}
             </span>
-            <div className="text-sm text-gray-500">
-              Last updated: {new Date().toLocaleDateString()}
+            {lastDatabaseUpdate && (
+              <div className="text-xs text-gray-500">
+                DB Updated: {lastDatabaseUpdate.toLocaleString()}
+              </div>
+            )}
+            <div className="text-xs text-gray-500">
+              Page Updated: {new Date().toLocaleString()}
             </div>
             <button
               onClick={saveAnalyticsData}
@@ -401,7 +468,12 @@ export default function SEODashboardPage() {
         {/* SEO Health Score */}
         {healthScore && (
           <div className="bg-white rounded-lg shadow-lg p-8 mb-12">
-            <h2 className="text-2xl font-bold mb-6">🏥 SEO Health Score</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">🏥 SEO Health Score</h2>
+              <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
+                🔵 Calculated from Database
+              </span>
+            </div>
 
             {/* Overall Score */}
             <div className="text-center mb-8">
@@ -684,7 +756,12 @@ export default function SEODashboardPage() {
 
         {/* Competitor Analysis */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-12">
-          <h2 className="text-2xl font-bold mb-6">🏆 Competitor Analysis</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">🏆 Competitor Analysis</h2>
+            <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-300">
+              ⚠️ Mock Data (Feature in Development)
+            </span>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full table-auto">
               <thead>
@@ -780,9 +857,31 @@ export default function SEODashboardPage() {
           {/* Keyword History Chart */}
           {keywordHistory && (
             <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">
-                30-Day Position Trend: {selectedKeyword}
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">
+                  30-Day Position Trend: {selectedKeyword}
+                </h3>
+                {keywordHistorySource && (
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium ${
+                      keywordHistorySource === "database"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {keywordHistorySource === "database"
+                      ? "🔵 Real Data"
+                      : "⚠️ Placeholder"}
+                  </span>
+                )}
+              </div>
+              {keywordHistorySource === "mock" &&
+                keywordHistory.positions.every((p) => p === 0) && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+                    💡 No historical data yet. Historical data will appear here
+                    once daily analytics collection starts running.
+                  </div>
+                )}
               <div className="grid md:grid-cols-4 gap-4 mb-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">

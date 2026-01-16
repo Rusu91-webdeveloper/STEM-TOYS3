@@ -5,7 +5,7 @@ import Image from "next/image";
 import React from "react";
 import Link from "next/link";
 import { useEffect } from "react";
-import { useABTest, useConversionTracking } from "@/hooks/useABTest";
+import { useConversionTracking } from "@/lib/conversion-tracking";
 
 interface CategoryIconInfo {
   icon: LucideIcon;
@@ -37,10 +37,23 @@ export function ProductsHeroSection({
   t,
 }: ProductsHeroSectionProps) {
   const IconComponent = activeCategoryInfo.icon;
-  const { variantName, isControl, trackConversion } = useABTest(
-    "products_hero_headline"
-  );
-  const { trackEvent } = useConversionTracking();
+  const { getVariant, trackConversion } = useConversionTracking();
+  const variant = getVariant("products_hero_headline");
+  const variantName = variant?.id || "control";
+  const isControl = variant?.isControl ?? true;
+  
+  // Create trackEvent wrapper that matches the expected signature
+  const trackEvent = (action: string, category: string, options?: {
+    label?: string;
+    value?: number;
+    element?: string;
+    variant?: string;
+  }) => {
+    trackConversion(action, category, {
+      ...options,
+      variant: variant?.name,
+    });
+  };
 
   // Compute headline/subheadline based on AB variant (only for all-products view)
   const headline =
@@ -55,6 +68,7 @@ export function ProductsHeroSection({
     trackConversion("hero_headline_impression", "products", {
       label: variantName,
       element: "products-hero",
+      variant: variant?.name,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

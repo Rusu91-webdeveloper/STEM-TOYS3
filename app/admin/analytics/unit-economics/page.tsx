@@ -11,12 +11,12 @@ import { validateUnitEconomicsRequest } from "@/lib/validations/unit-economics";
 import UnitEconomicsDashboard from "@/components/admin/UnitEconomicsDashboard";
 
 interface UnitEconomicsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     timeRange?: string;
     categoryId?: string;
     supplierId?: string;
     includeInactive?: string;
-  };
+  }>;
 }
 
 export default async function UnitEconomicsPage({
@@ -33,11 +33,14 @@ export default async function UnitEconomicsPage({
     redirect("/admin");
   }
 
+  // Await searchParams before accessing properties (Next.js 15 requirement)
+  const params = await searchParams;
+
   // Default to 30 days
-  const timeRange = searchParams.timeRange || "30d";
-  const categoryId = searchParams.categoryId;
-  const supplierId = searchParams.supplierId;
-  const includeInactive = searchParams.includeInactive === "true";
+  const timeRange = params.timeRange || "30d";
+  const categoryId = params.categoryId;
+  const supplierId = params.supplierId;
+  const includeInactive = params.includeInactive === "true";
 
   try {
     // Validate request parameters

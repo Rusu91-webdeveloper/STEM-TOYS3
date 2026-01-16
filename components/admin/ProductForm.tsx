@@ -88,6 +88,7 @@ const formSchema = z.object({
   }),
   tags: z.array(z.string()),
   isActive: z.boolean(),
+  featured: z.boolean().default(false),
   // SEO fields
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
@@ -170,6 +171,7 @@ export default function ProductForm({
       categoryId: "",
       tags: [],
       isActive: true,
+      featured: false,
       metaTitle: "",
       metaDescription: "",
       metaKeywords: [],
@@ -685,6 +687,29 @@ export default function ProductForm({
                           </FormLabel>
                           <FormDescription>
                             Enable to make this product visible on your store.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="featured"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            Featured Product
+                          </FormLabel>
+                          <FormDescription>
+                            Enable to feature this product on the home page. Featured products appear in the hero section and featured products grid.
                           </FormDescription>
                         </div>
                         <FormControl>

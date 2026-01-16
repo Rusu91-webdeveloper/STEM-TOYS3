@@ -71,47 +71,139 @@ if [ -z "$DB_URL" ]; then
     exit 1
 fi
 
-# Extract database connection details
-# Format: postgresql://user:password@host:port/database
-if [[ $DB_URL =~ postgresql://([^:]+):([^@]+)@([^:]+):([^/]+)/([^\?]+) ]]; then
+# Extract database connection details using a more robust method
+# Try using pg_dump's built-in connection string parsing first
+# If that fails, fall back to manual parsing
+
+# Remove query parameters for parsing (but keep them for connection)
+DB_URL_CLEAN="${DB_URL%%\?*}"
+
+# Try to parse using multiple regex patterns
+PARSED=false
+
+# Pattern 1: postgresql://user:password@host:port/database
+if [[ $DB_URL_CLEAN =~ ^postgresql://([^:]+):([^@]+)@([^:]+):([0-9]+)/(.+)$ ]]; then
     DB_USER="${BASH_REMATCH[1]}"
     DB_PASSWORD="${BASH_REMATCH[2]}"
     DB_HOST="${BASH_REMATCH[3]}"
     DB_PORT="${BASH_REMATCH[4]}"
     DB_NAME="${BASH_REMATCH[5]}"
+    PARSED=true
+# Pattern 2: postgresql://user:password@host/database (no port)
+elif [[ $DB_URL_CLEAN =~ ^postgresql://([^:]+):([^@]+)@([^/]+)/(.+)$ ]]; then
+    DB_USER="${BASH_REMATCH[1]}"
+    DB_PASSWORD="${BASH_REMATCH[2]}"
+    # Check if host contains port
+    HOST_PART="${BASH_REMATCH[3]}"
+    if [[ $HOST_PART =~ ^(.+):([0-9]+)$ ]]; then
+        DB_HOST="${BASH_REMATCH[1]}"
+        DB_PORT="${BASH_REMATCH[2]}"
+    else
+        DB_HOST="$HOST_PART"
+        DB_PORT="5432"
+    fi
+    DB_NAME="${BASH_REMATCH[4]}"
+    PARSED=true
+# Pattern 3: postgres:// (alternative protocol)
+elif [[ $DB_URL_CLEAN =~ ^postgres://([^:]+):([^@]+)@([^:]+):([0-9]+)/(.+)$ ]]; then
+    DB_USER="${BASH_REMATCH[1]}"
+    DB_PASSWORD="${BASH_REMATCH[2]}"
+    DB_HOST="${BASH_REMATCH[3]}"
+    DB_PORT="${BASH_REMATCH[4]}"
+    DB_NAME="${BASH_REMATCH[5]}"
+    PARSED=true
+elif [[ $DB_URL_CLEAN =~ ^postgres://([^:]+):([^@]+)@([^/]+)/(.+)$ ]]; then
+    DB_USER="${BASH_REMATCH[1]}"
+    DB_PASSWORD="${BASH_REMATCH[2]}"
+    HOST_PART="${BASH_REMATCH[3]}"
+    if [[ $HOST_PART =~ ^(.+):([0-9]+)$ ]]; then
+        DB_HOST="${BASH_REMATCH[1]}"
+        DB_PORT="${BASH_REMATCH[2]}"
+    else
+        DB_HOST="$HOST_PART"
+        DB_PORT="5432"
+    fi
+    DB_NAME="${BASH_REMATCH[4]}"
+    PARSED=true
+fi
+
+if [ "$PARSED" = false ]; then
+    echo -e "${YELLOW}⚠️${NC} Could not parse DATABASE_URL using standard patterns"
+    echo -e "${YELLOW}Attempting to use connection string directly...${NC}"
+    echo ""
+    
+    # Try to extract database name for display (simple extraction)
+    if [[ $DB_URL =~ /([^/\?]+) ]]; then
+        DB_NAME="${BASH_REMATCH[1]}"
+        echo -e "Database: ${GREEN}$DB_NAME${NC}"
+    else
+        echo -e "Database: ${YELLOW}(will be determined from connection string)${NC}"
+    fi
+    echo ""
+    
+    # Set flag to use connection string directly
+    USE_CONNECTION_STRING=true
 else
-    echo -e "${RED}✗${NC} Could not parse DATABASE_URL"
-    exit 1
+    USE_CONNECTION_STRING=false
 fi
 
-echo ""
-echo -e "Database: ${GREEN}$DB_NAME${NC}"
-echo -e "Host: ${GREEN}$DB_HOST${NC}"
-echo -e "Port: ${GREEN}$DB_PORT${NC}"
-echo ""
-
-# Confirm backup
-read -p "$(echo -e ${YELLOW}Do you want to proceed with the backup? [y/N]:${NC} )" -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo -e "${RED}✗${NC} Backup cancelled"
-    exit 1
+# If we couldn't parse, use connection string directly
+if [ "$USE_CONNECTION_STRING" = true ]; then
+    # Confirm backup
+    read -p "$(echo -e ${YELLOW}Do you want to proceed with the backup? [y/N]:${NC} )" -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${RED}✗${NC} Backup cancelled"
+        exit 1
+    fi
+    
+    echo ""
+    echo -e "${YELLOW}Creating backup using connection string...${NC}"
+    
+    # Use connection string directly (most robust method)
+    pg_dump "$DB_URL" --no-owner --no-acl --clean --if-exists -f "$BACKUP_FILE"
+else
+    # URL-decode password if needed (handle % encoding)
+    # Note: This is a simple implementation - for complex cases, consider using a proper URL decoder
+    DB_PASSWORD=$(printf '%b' "${DB_PASSWORD//%/\\x}")
+    
+    echo ""
+    echo -e "Database: ${GREEN}$DB_NAME${NC}"
+    echo -e "Host: ${GREEN}$DB_HOST${NC}"
+    echo -e "Port: ${GREEN}$DB_PORT${NC}"
+    echo ""
+    
+    # Confirm backup
+    read -p "$(echo -e ${YELLOW}Do you want to proceed with the backup? [y/N]:${NC} )" -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${RED}✗${NC} Backup cancelled"
+        exit 1
+    fi
+    
+    echo ""
+    echo -e "${YELLOW}Creating backup...${NC}"
+    
+    # Try using pg_dump with connection string first (most robust)
+    # If that fails, fall back to individual parameters
+    if pg_dump "$DB_URL" --no-owner --no-acl --clean --if-exists -f "$BACKUP_FILE" 2>/dev/null; then
+        # Success using connection string
+        echo -e "${GREEN}✓${NC} Backup created using connection string"
+    else
+        # Fall back to individual parameters
+        echo -e "${YELLOW}Trying with individual parameters...${NC}"
+        PGPASSWORD="$DB_PASSWORD" pg_dump \
+            -h "$DB_HOST" \
+            -p "$DB_PORT" \
+            -U "$DB_USER" \
+            -d "$DB_NAME" \
+            --no-owner \
+            --no-acl \
+            --clean \
+            --if-exists \
+            -f "$BACKUP_FILE"
+    fi
 fi
-
-echo ""
-echo -e "${YELLOW}Creating backup...${NC}"
-
-# Create backup using pg_dump
-PGPASSWORD="$DB_PASSWORD" pg_dump \
-    -h "$DB_HOST" \
-    -p "$DB_PORT" \
-    -U "$DB_USER" \
-    -d "$DB_NAME" \
-    --no-owner \
-    --no-acl \
-    --clean \
-    --if-exists \
-    -f "$BACKUP_FILE"
 
 if [ $? -eq 0 ]; then
     # Compress the backup

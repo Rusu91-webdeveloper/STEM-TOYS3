@@ -17,7 +17,9 @@
 tests/**/*.png
 tests/**/*.webm
 tests/**/*.md
-prisma/migrations/
+# Note: prisma/migrations/ should be committed to version control
+# Uncomment the line below only if you want to ignore migrations (not recommended)
+# prisma/migrations/
 
 # next.js
 /.next/

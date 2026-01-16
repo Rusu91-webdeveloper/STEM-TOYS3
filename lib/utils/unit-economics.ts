@@ -359,24 +359,33 @@ export async function generateUnitEconomicsSummary(
       ? (totalMonthlyProfit / totalMonthlyRevenue) * 100
       : 0;
 
+  const totalMonthlySales = products.reduce((sum, p) => sum + p.monthlySales, 0);
   const averageOrderValue =
-    products.length > 0
-      ? totalMonthlyRevenue /
-        products.reduce((sum, p) => sum + p.monthlySales, 0)
+    products.length > 0 && totalMonthlySales > 0
+      ? totalMonthlyRevenue / totalMonthlySales
       : 0;
+  
+  // Ensure all values are valid numbers (not NaN or Infinity)
+  const safeAverageOrderValue = Number.isFinite(averageOrderValue) ? averageOrderValue : 0;
+  
   const averageCustomerAcquisitionCost =
     products.length > 0
-      ? products.reduce((sum, p) => sum + p.customerAcquisitionCost, 0) /
+      ? products.reduce((sum, p) => sum + (p.customerAcquisitionCost || 0), 0) /
         products.length
       : 0;
+  const safeAverageCAC = Number.isFinite(averageCustomerAcquisitionCost) ? averageCustomerAcquisitionCost : 0;
+  
   const averageLifetimeValue =
     products.length > 0
-      ? products.reduce((sum, p) => sum + p.lifetimeValue, 0) / products.length
+      ? products.reduce((sum, p) => sum + (p.lifetimeValue || 0), 0) / products.length
       : 0;
+  const safeAverageLTV = Number.isFinite(averageLifetimeValue) ? averageLifetimeValue : 0;
+  
   const averageLtvToCacRatio =
     products.length > 0
-      ? products.reduce((sum, p) => sum + p.ltvToCacRatio, 0) / products.length
+      ? products.reduce((sum, p) => sum + (p.ltvToCacRatio || 0), 0) / products.length
       : 0;
+  const safeAverageLtvToCac = Number.isFinite(averageLtvToCacRatio) ? averageLtvToCacRatio : 0;
 
   const mostProfitableProduct =
     products.length > 0
@@ -422,11 +431,11 @@ export async function generateUnitEconomicsSummary(
     totalMonthlyRevenue,
     totalMonthlyCosts,
     totalMonthlyProfit,
-    overallProfitMargin,
-    averageOrderValue,
-    averageCustomerAcquisitionCost,
-    averageLifetimeValue,
-    averageLtvToCacRatio,
+    overallProfitMargin: Number.isFinite(overallProfitMargin) ? overallProfitMargin : 0,
+    averageOrderValue: safeAverageOrderValue,
+    averageCustomerAcquisitionCost: safeAverageCAC,
+    averageLifetimeValue: safeAverageLTV,
+    averageLtvToCacRatio: safeAverageLtvToCac,
     mostProfitableProduct,
     leastProfitableProduct,
     highestVolumeProduct,

@@ -143,9 +143,8 @@ async function fetchFeaturedProductsOptimized(): Promise<Product[]> {
         stockQuantity: true,
         averageRating: true,
         reviewCount: true,
-        ageRange: true,
+        ageGroup: true,
         stemDiscipline: true,
-        isBook: true,
         tags: true,
         category: {
           select: {
@@ -160,12 +159,28 @@ async function fetchFeaturedProductsOptimized(): Promise<Product[]> {
       take: 8, // Show 8 products in the grid for better e-commerce showcase
     });
 
-    // **PERFORMANCE**: Add 500ms timeout to prevent slow database queries from blocking LCP
-    const timeoutPromise = new Promise<Product[]>(resolve => {
-      setTimeout(() => resolve([]), 500);
+    // **PERFORMANCE**: Add timeout to prevent slow database queries from blocking LCP
+    // In development, use longer timeout to allow debugging
+    const timeoutMs = process.env.NODE_ENV === "development" ? 5000 : 500;
+    const timeoutPromise = new Promise<Product[]>((resolve) => {
+      setTimeout(() => {
+        if (process.env.NODE_ENV === "development") {
+          console.warn(
+            `[Featured Products] Query timed out after ${timeoutMs}ms`
+          );
+        }
+        resolve([]);
+      }, timeoutMs);
     });
 
     const products = await Promise.race([queryPromise, timeoutPromise]);
+
+    // **DEBUG**: Log results in development
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `[Featured Products] Found ${products?.length || 0} products`
+      );
+    }
 
     // **PERFORMANCE**: Return raw data without any processing to minimize server time
     return products || [];

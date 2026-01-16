@@ -6,12 +6,43 @@ import {
   validateUnitEconomicsRequest,
   validateUnitEconomicsSummary,
   validateProductProfitability,
+  UnitEconomicsSummary,
 } from "@/lib/validations/unit-economics";
 import {
   fetchAllProductsProfitability,
   generateUnitEconomicsSummary,
   fetchProductProfitability,
 } from "@/lib/utils/unit-economics";
+
+/**
+ * Sanitize summary data to ensure all numeric fields are valid numbers (not null, NaN, or Infinity)
+ * This handles cached data that may have been stored with null values from previous code versions
+ */
+function sanitizeSummaryData(summary: any): UnitEconomicsSummary {
+  const sanitizeNumber = (value: any): number => {
+    if (value == null || !Number.isFinite(value)) return 0;
+    return value;
+  };
+
+  return {
+    ...summary,
+    totalProducts: sanitizeNumber(summary.totalProducts),
+    profitableProducts: sanitizeNumber(summary.profitableProducts),
+    unprofitableProducts: sanitizeNumber(summary.unprofitableProducts),
+    totalMonthlyRevenue: sanitizeNumber(summary.totalMonthlyRevenue),
+    totalMonthlyCosts: sanitizeNumber(summary.totalMonthlyCosts),
+    totalMonthlyProfit: sanitizeNumber(summary.totalMonthlyProfit),
+    overallProfitMargin: sanitizeNumber(summary.overallProfitMargin),
+    averageOrderValue: sanitizeNumber(summary.averageOrderValue),
+    averageCustomerAcquisitionCost: sanitizeNumber(summary.averageCustomerAcquisitionCost),
+    averageLifetimeValue: sanitizeNumber(summary.averageLifetimeValue),
+    averageLtvToCacRatio: sanitizeNumber(summary.averageLtvToCacRatio),
+    mostProfitableProduct: summary.mostProfitableProduct,
+    leastProfitableProduct: summary.leastProfitableProduct,
+    highestVolumeProduct: summary.highestVolumeProduct,
+    productsToDiscontinue: summary.productsToDiscontinue || [],
+  };
+}
 
 export const GET = withRateLimit(
   async (request: NextRequest) => {
@@ -94,9 +125,10 @@ export const GET = withRateLimit(
           generatedAt: new Date().toISOString(),
         });
       } else {
-        const validatedSummary = validateUnitEconomicsSummary(
-          unitEconomicsData.data.summary
-        );
+        // Sanitize cached data: convert null/NaN/Infinity to 0 for numeric fields
+        // This handles cached data from previous code versions that may have null values
+        const sanitizedSummary = sanitizeSummaryData(unitEconomicsData.data.summary);
+        const validatedSummary = validateUnitEconomicsSummary(sanitizedSummary);
         const validatedProducts = unitEconomicsData.data.products.map(p =>
           validateProductProfitability(p)
         );
@@ -115,9 +147,20 @@ export const GET = withRateLimit(
     } catch (error) {
       console.error("Error fetching unit economics data:", error);
 
-      // Handle validation errors
+      // Handle validation errors - invalidate cache if validation fails (likely stale data)
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
+      
+      // If it's a validation error, invalidate the cache to force regeneration
+      if (errorMessage.includes("ZodError") || errorMessage.includes("Expected number")) {
+        try {
+          await invalidateCachePattern("unit-economics:*");
+          console.log("Cache invalidated due to validation error");
+        } catch (cacheError) {
+          console.error("Failed to invalidate cache:", cacheError);
+        }
+      }
+
       if (errorMessage.includes("Invalid request parameters")) {
         return NextResponse.json(
           {

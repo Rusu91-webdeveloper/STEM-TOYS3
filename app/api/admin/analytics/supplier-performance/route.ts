@@ -161,6 +161,15 @@ export async function GET(request: NextRequest) {
         // Issue resolution rate (placeholder)
         const issueResolutionRate = 0; // Placeholder
 
+        // Calculate overall score (0-100) based on performance metrics
+        const fulfillmentScore = Math.min(fulfillmentRate, 100) * 0.4; // 40%
+        const deliveryScore = Math.min(onTimeDeliveryRate, 100) * 0.3; // 30%
+        const qualityScoreWeighted = Math.min((qualityScore / 5) * 100, 100) * 0.2; // 20%
+        const returnScore = Math.max(0, 100 - returnRate * 10) * 0.1; // 10% (penalty for returns)
+        const overallScore = Math.round(
+          (fulfillmentScore + deliveryScore + qualityScoreWeighted + returnScore) * 100
+        ) / 100;
+
         return {
           supplierId: supplier.id,
           supplierName: supplier.companyName || supplier.name,
@@ -186,6 +195,7 @@ export async function GET(request: NextRequest) {
             qualityScore,
             returnRate,
           }),
+          overallScore,
         };
       })
     );

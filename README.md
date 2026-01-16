@@ -33,6 +33,7 @@ design.
 - **[docs/BUNDLE_CREATION_GUIDE.md](./docs/BUNDLE_CREATION_GUIDE.md)** - Guide for creating product bundles
 - **[docs/SUPPLIER_SYNC_PLAN.md](./docs/SUPPLIER_SYNC_PLAN.md)** - Supplier synchronization plan
 - **[docs/CUSTOMER_SUPPORT_MACROS.md](./docs/CUSTOMER_SUPPORT_MACROS.md)** - Customer support macros and templates
+- **[docs/GOOGLE_SEARCH_CONSOLE_SETUP.md](./docs/GOOGLE_SEARCH_CONSOLE_SETUP.md)** - Complete guide for setting up Google Search Console API for live SEO data
 
 ## 🚀 Features
 

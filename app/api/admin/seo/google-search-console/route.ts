@@ -71,6 +71,32 @@ export async function GET(request: NextRequest) {
           data: healthScore,
         });
 
+      case "keyword-history":
+        const keyword = searchParams.get("keyword");
+        if (!keyword) {
+          return NextResponse.json(
+            { error: "Keyword parameter is required" },
+            { status: 400 }
+          );
+        }
+        const historyDays = parseInt(searchParams.get("days") || "30");
+        const keywordHistory = await gscService.getKeywordRankingHistory(
+          keyword,
+          historyDays
+        );
+        // Determine data source: if we have records, it's from database (could be from live or saved data)
+        const hasData = keywordHistory.dates.length > 0;
+        return NextResponse.json({
+          dataSource: hasData ? "database" : "mock",
+          data: keywordHistory,
+        });
+
+      case "last-update":
+        const lastUpdate = await gscService.getLastDatabaseUpdate();
+        return NextResponse.json({
+          lastUpdate: lastUpdate?.toISOString() || null,
+        });
+
       default:
         // Return comprehensive dashboard data by default
         const dashboardData = await gscService.getDashboardData(days);
@@ -105,7 +131,7 @@ function generateMockSEOData() {
         clicks: Math.floor(Math.random() * 1000) + 800,
         impressions: Math.floor(Math.random() * 5000) + 5000,
         ctr: Math.random() * 5 + 10,
-        url: "https://techtots.ro/categorii/jucarii-stem-romania",
+        url: "https://www.techtots.ro/categorii/jucarii-stem-romania",
         lastUpdated: new Date().toISOString(),
       },
       {
@@ -114,7 +140,7 @@ function generateMockSEOData() {
         clicks: Math.floor(Math.random() * 800) + 500,
         impressions: Math.floor(Math.random() * 4000) + 3000,
         ctr: Math.random() * 4 + 8,
-        url: "https://techtots.ro/products",
+        url: "https://www.techtots.ro/products",
         lastUpdated: new Date().toISOString(),
       },
       {
@@ -123,7 +149,7 @@ function generateMockSEOData() {
         clicks: Math.floor(Math.random() * 600) + 300,
         impressions: Math.floor(Math.random() * 3000) + 2000,
         ctr: Math.random() * 3 + 6,
-        url: "https://techtots.ro/categories/robotics",
+        url: "https://www.techtots.ro/categories/robotics",
         lastUpdated: new Date().toISOString(),
       },
       {
@@ -132,7 +158,7 @@ function generateMockSEOData() {
         clicks: Math.floor(Math.random() * 400) + 200,
         impressions: Math.floor(Math.random() * 2000) + 1500,
         ctr: Math.random() * 2 + 4,
-        url: "https://techtots.ro/bucuresti",
+        url: "https://www.techtots.ro/bucuresti",
         lastUpdated: new Date().toISOString(),
       },
       {
@@ -141,7 +167,7 @@ function generateMockSEOData() {
         clicks: Math.floor(Math.random() * 500) + 250,
         impressions: Math.floor(Math.random() * 2500) + 2000,
         ctr: Math.random() * 3 + 5,
-        url: "https://techtots.ro/blog",
+        url: "https://www.techtots.ro/blog",
         lastUpdated: new Date().toISOString(),
       },
     ],

@@ -94,6 +94,7 @@ const productSchema = baseProductSchema
     categoryId: z.string().min(1, "Category is required"),
     images: z.array(z.string()).default([]),
     isActive: z.boolean().default(true),
+    featured: z.boolean().default(false),
     stock: z
       .number()
       .int()
@@ -358,6 +359,7 @@ export async function POST(request: NextRequest) {
           },
           metadata,
           isActive: data.isActive,
+          featured: data.featured ?? false,
           // Admin-created products should be automatically approved
           status: "APPROVED",
         },
@@ -492,6 +494,7 @@ export async function PUT(request: NextRequest) {
     }
     if (data.tags !== undefined) updateData.tags = data.tags;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
+    if (data.featured !== undefined) updateData.featured = data.featured;
     if (data.stock !== undefined) updateData.stockQuantity = data.stock;
 
     // Add new categorization fields if they exist
