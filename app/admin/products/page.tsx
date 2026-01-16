@@ -102,11 +102,35 @@ async function getProducts(filters?: {
     const limit = filters?.limit || 20;
     const offset = (page - 1) * limit;
 
+    // Base conditions: active products, exclude educational-books category
+    const baseConditions: any[] = [
+      { isActive: true },
+      {
+        OR: [
+          // Products with no category
+          { categoryId: null },
+          // Products with category that is not educational-books
+          { category: { slug: { not: "educational-books" } } },
+        ],
+      },
+    ];
+
+    // Add search query conditions if provided
+    if (filters?.q) {
+      baseConditions.push({
+        OR: [
+          { name: { contains: filters.q, mode: "insensitive" } },
+          { description: { contains: filters.q, mode: "insensitive" } },
+          { sku: { contains: filters.q, mode: "insensitive" } },
+        ],
+      });
+    }
+
     const where: any = {
-      isActive: true,
-      category: { slug: { not: "educational-books" } },
+      AND: baseConditions,
     };
 
+    // Add additional filters
     if (filters) {
       if (filters.status) where.status = filters.status;
       if (filters.supplierId) {
@@ -117,13 +141,6 @@ async function getProducts(filters?: {
         where.price = {} as any;
         if (filters.priceMin != null) where.price.gte = filters.priceMin;
         if (filters.priceMax != null) where.price.lte = filters.priceMax;
-      }
-      if (filters.q) {
-        where.OR = [
-          { name: { contains: filters.q, mode: "insensitive" } },
-          { description: { contains: filters.q, mode: "insensitive" } },
-          { sku: { contains: filters.q, mode: "insensitive" } },
-        ];
       }
     }
 

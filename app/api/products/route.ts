@@ -257,6 +257,11 @@ async function fetchProductsFromDatabase(params: {
   const where: Prisma.ProductWhereInput = {
     isActive: true,
     status: "APPROVED",
+    // Always exclude products in "educational-books" category
+    // Books are handled separately via the /api/books endpoint or included via includeBooks logic below
+    category: {
+      slug: { not: "educational-books" },
+    },
   };
 
   // **PERFORMANCE**: Optimized category filtering with better query patterns
@@ -270,33 +275,31 @@ async function fetchProductsFromDatabase(params: {
     ];
 
     // Build category conditions with optimized patterns
-    const categoryConditions = categories.map(normalizedCategory => {
-      const isValidStemDiscipline =
-        validStemDisciplines.includes(normalizedCategory);
+    const categoryConditions = categories
+      .map(normalizedCategory => {
+        const isValidStemDiscipline =
+          validStemDisciplines.includes(normalizedCategory);
 
-      if (isValidStemDiscipline) {
-        // **PERFORMANCE**: Use single field check first for better index utilization
-        return {
-          stemDiscipline: normalizedCategory.toUpperCase() as any,
-        };
-      } else if (normalizedCategory === "educational-books") {
-        // Special handling for educational-books category
-        return {
-          category: {
-            slug: normalizedCategory,
-            isActive: true,
-          },
-        };
-      } else {
-        // For other categories, check category slug
-        return {
-          category: {
-            slug: normalizedCategory,
-            isActive: true,
-          },
-        };
-      }
-    });
+        if (isValidStemDiscipline) {
+          // **PERFORMANCE**: Use single field check first for better index utilization
+          return {
+            stemDiscipline: normalizedCategory.toUpperCase() as any,
+          };
+        } else if (normalizedCategory === "educational-books") {
+          // Skip educational-books category in products query
+          // Books are handled separately via the /api/books endpoint or included via includeBooks logic
+          return null; // This will be filtered out
+        } else {
+          // For other categories, check category slug
+          return {
+            category: {
+              slug: normalizedCategory,
+              isActive: true,
+            },
+          };
+        }
+      })
+      .filter((condition): condition is NonNullable<typeof condition> => condition !== null);
 
     // **PERFORMANCE**: Use more efficient OR conditions
     if (categoryConditions.length > 1) {

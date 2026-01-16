@@ -33,8 +33,9 @@ export const GET = withRateLimit(
       const language = filters.language ? String(filters.language) : undefined;
       const cacheKey = getCacheKey("books", { slug, language, page, limit });
 
-      // Build where clause
+      // Build where clause - only return active books
       const where = {
+        isActive: true, // Only return active books
         ...(slug ? { slug } : {}),
       };
 
