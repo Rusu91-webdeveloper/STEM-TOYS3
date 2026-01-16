@@ -112,8 +112,8 @@ export function ABTestForm({ initialData, isEditing = false }: ABTestFormProps) 
         try {
             setIsSubmitting(true);
             const url = isEditing
-                ?\`/api/admin/ab-tests/\${initialData.id}\`
-        : "/api/admin/ab-tests";
+                ? `/api/admin/ab-tests/${initialData.id}`
+                : "/api/admin/ab-tests";
       
       const method = isEditing ? "PATCH" : "POST";
 
@@ -130,7 +130,7 @@ export function ABTestForm({ initialData, isEditing = false }: ABTestFormProps) 
 
       toast({
         title: "Success",
-        description: `A / B Test ${ isEditing ? "updated" : "created" } successfully.`,
+        description: `A / B Test ${isEditing ? "updated" : "created"} successfully.`,
         variant: "default", 
       });
 

@@ -36,7 +36,7 @@ export function ABTestDashboard({ test }: ABTestDashboardProps) {
     async function handleStatusChange(action: "START" | "PAUSE" | "STOP") {
         try {
             setIsUpdating(true);
-            const response = await fetch(\`/api/admin/ab-tests/\${test.id}/status\`, {
+            const response = await fetch(`/api/admin/ab-tests/${test.id}/status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
@@ -46,7 +46,7 @@ export function ABTestDashboard({ test }: ABTestDashboardProps) {
       
       toast({
         title: "Status Updated",
-        description: `Test status changed to ${ action }`,
+        description: `Test status changed to ${action}`,
       });
       
       router.refresh();
@@ -168,7 +168,7 @@ export function ABTestDashboard({ test }: ABTestDashboardProps) {
              const isWinner = variant.isWinner;
              
              return (
-                 <Card key={variant.id} className={\`overflow-hidden \${isWinner ? 'border-green-500 ring-1 ring-green-500' : ''}\`}>
+                 <Card key={variant.id} className={`overflow-hidden ${isWinner ? 'border-green-500 ring-1 ring-green-500' : ''}`}>
                      <CardHeader className="pb-2 bg-muted/40">
                          <div className="flex justify-between items-center">
                              <div className="flex items-center gap-2">
