@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { Product } from "@/types/product";
 
 import { OptimizedProductImage } from "./OptimizedProductImage";
-import { productsGlassCardClass } from "./productsTheme";
+
 
 interface ProductCardProps {
   product: Product;
@@ -25,66 +25,45 @@ interface ProductCardProps {
 export function ProductCard({
   product,
   className,
-  // imageHeight = 280,
   layout = "grid",
   priority = false, // Default to false, set to true for above-the-fold images
 }: ProductCardProps) {
   // CRITICAL: All hooks must be called unconditionally at the top level
-  // Do not add any early returns or conditional logic before all hooks are called
   const { formatPrice } = useCurrency();
   const { addItem } = useShoppingCart();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
-  
+
   // Validate product exists - but only after all hooks are called
   if (!product || !product.id) {
     return null;
   }
-  
+
   // Non-hook code after all hooks
   const isOnSale =
     product.compareAtPrice && product.compareAtPrice > product.price;
-  // For proper SSR hydration when getting window dimensions
-  // const [screenWidth, setScreenWidth] = useState(0);
-
-  // useEffect(() => {
-  //   // Set dimensions after mount to prevent hydration mismatch
-  //   setScreenWidth(window.innerWidth);
-
-  //   const handleResize = () => {
-  //     setScreenWidth(window.innerWidth);
-  //   };
-
-  //   window.addEventListener("resize", handleResize);
-  //   return () => window.removeEventListener("resize", handleResize);
-  // }, []);
-
-  // Calculate appropriate image height based on screen size
-  // const calculatedHeight = screenWidth
-  //   ? Math.min(imageHeight, screenWidth < 640 ? 200 : imageHeight)
-  //   : imageHeight;
 
   // Render star rating - compact for mobile
   const renderRating = () => {
     if (!product.rating) return null;
 
     return (
-      <div className="flex items-center space-x-0.5 sm:space-x-1">
-        <div className="flex">
+      <div className="flex items-center gap-1">
+        <div className="flex text-amber-400">
           {[...Array(5)].map((_, i) => (
             <StarIcon
               key={i}
               className={cn(
-                "h-3 w-3 sm:h-4 sm:w-4",
+                "h-3 w-3",
                 i < Math.floor(product.rating || 0)
-                  ? "text-yellow-400 fill-yellow-400"
-                  : "text-gray-300"
+                  ? "fill-current"
+                  : "text-slate-200 fill-slate-200"
               )}
             />
           ))}
         </div>
         {product.reviewCount && (
-          <span className="text-[9px] sm:text-xs text-slate-500">
+          <span className="text-[10px] font-medium text-slate-400">
             ({product.reviewCount})
           </span>
         )}
@@ -95,21 +74,21 @@ export function ProductCard({
   // Detect if this is a book by checking for book-specific attributes or explicit flag
   const isBook = Boolean(
     product.isBook ||
-      product.attributes?.author ||
-      product.tags?.includes("book") ||
-      (product.category as any)?.slug === "educational-books" ||
-      (product.category as any)?.name === "Educational Books"
+    product.attributes?.author ||
+    product.tags?.includes("book") ||
+    (product.category as any)?.slug === "educational-books" ||
+    (product.category as any)?.name === "Educational Books"
   );
 
   // Handle add to cart on image click
-  const handleImageAddToCart = async (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (isAddingToCart || product.stockQuantity === 0) return;
-    
+
     setIsAddingToCart(true);
-    
+
     try {
       const item = {
         productId: product.id,
@@ -120,7 +99,7 @@ export function ProductCard({
         isBook,
         slug: product.slug,
       };
-      
+
       addItem(item, 1);
       setJustAdded(true);
       setTimeout(() => {
@@ -149,291 +128,259 @@ export function ProductCard({
       ? product.images[0]
       : "/placeholder-product.png";
 
+  const isOutOfStock = product.stockQuantity === 0;
+  const isLowStock = product.stockQuantity !== undefined && product.stockQuantity > 0 && product.stockQuantity < 4;
+
   if (layout === "list") {
     return (
       <div
         className={cn(
-          `${productsGlassCardClass} relative flex flex-col xs:flex-row overflow-hidden transition-all duration-200 group`,
+          "group relative flex flex-col xs:flex-row overflow-hidden rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300",
           className
         )}
       >
-        <div className="relative z-10 w-full xs:w-1/3 h-48 xs:h-48 sm:h-56 xs:max-w-[240px] overflow-hidden bg-slate-50/80 border-r border-slate-100">
-          <button
-            onClick={handleImageAddToCart}
-            disabled={isAddingToCart || product.stockQuantity === 0}
-            className="group/image block h-full w-full relative cursor-pointer disabled:cursor-not-allowed"
-          >
-            <div className="relative z-10 flex h-full w-full items-center justify-center p-4">
-              <OptimizedProductImage
-                src={imageUrl}
-                alt={product.name}
-                fill
-                className="object-contain object-center transition-transform duration-300 group-hover/image:scale-105"
-                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 240px"
-                priority={priority}
-                quality={85}
-                placeholder="blur"
-              />
-            </div>
-            
-            {/* Hover overlay */}
-            <div className="absolute inset-0 bg-slate-900/35 opacity-0 group-hover/image:opacity-100 transition-opacity duration-200 flex items-center justify-center z-20">
-              {isAddingToCart ? (
-                <div className="bg-white rounded-lg px-3 py-1.5 text-xs font-medium text-slate-900">
-                  Adding...
-                </div>
-              ) : justAdded ? (
-                <div className="bg-green-500 rounded-lg px-3 py-1.5 text-xs font-medium text-white">
-                  Added!
-                </div>
-              ) : product.stockQuantity === 0 ? (
-                <div className="bg-slate-500 rounded-lg px-3 py-1.5 text-xs font-medium text-white">
-                  Out of Stock
-                </div>
-              ) : (
-                <div className="bg-white rounded-lg px-3 py-1.5 text-xs font-medium text-slate-900 flex items-center gap-1.5">
-                  <ShoppingCart className="h-3.5 w-3.5" />
-                  Add to Cart
-                </div>
-              )}
-            </div>
-          </button>
-        </div>
-        <div className="relative z-10 flex flex-col flex-1 p-4 sm:p-5 justify-between">
-          <div className="space-y-2.5">
-            <Link href={`/products/${product.slug}`} className="block">
-                <h3 className="font-semibold text-base sm:text-lg line-clamp-2 text-slate-900 transition-colors leading-tight hover:text-sky-700">
-                {product.name}
-              </h3>
-            </Link>
+        <div className="relative z-10 w-full xs:w-2/5 sm:w-1/3 aspect-[4/3] xs:aspect-auto xs:h-auto overflow-hidden bg-slate-50">
+          <Link href={`/products/${product.slug}`} className="block h-full w-full">
+            <OptimizedProductImage
+              src={imageUrl}
+              alt={product.name}
+              fill
+              className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
+              sizes="(max-width: 640px) 100vw, 300px"
+              priority={priority}
+            />
+          </Link>
 
-            {/* Category badge under title */}
-            {categoryName && (
-              <Badge
-                  className="w-fit capitalize text-xs px-2 py-0.5 bg-sky-50 text-sky-700 border border-sky-100 rounded-md font-medium"
-                variant="outline"
-              >
-                {categoryName}
+          {/* Badges - Floating over image */}
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20">
+            {isOnSale && (
+              <Badge className="bg-rose-500 hover:bg-rose-600 text-white border-0 shadow-sm px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                -{discountPercentage}%
               </Badge>
             )}
+            {isOutOfStock && (
+              <Badge className="bg-slate-900 text-white border-0 shadow-sm px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                Sold Out
+              </Badge>
+            )}
+          </div>
+        </div>
 
-            <div className="flex flex-wrap items-center gap-1.5">
-              {product.ageRange && (
-                <div className="bg-emerald-50 text-emerald-700 text-xs px-2 py-0.5 rounded-md font-medium border border-emerald-200">
-                  Ages: {product.ageRange}
-                </div>
-              )}
-
-              {product.stockQuantity !== undefined &&
-                product.stockQuantity === 0 && (
-                  <div className="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded-md font-medium border border-red-200 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                    Out of stock
-                  </div>
+        <div className="flex flex-col flex-1 p-4 sm:p-6 justify-between">
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                {categoryName && (
+                  <span className="text-[10px] font-bold tracking-wider text-sky-600 uppercase">
+                    {categoryName}
+                  </span>
                 )}
-
-              {product.stockQuantity !== undefined &&
-                product.stockQuantity > 0 &&
-                product.stockQuantity < 4 && (
-                  <div className="bg-amber-50 text-amber-700 text-xs px-2 py-0.5 rounded-md font-medium border border-amber-200">
-                    Only {product.stockQuantity} left
-                  </div>
-                )}
-
+                <Link href={`/products/${product.slug}`} className="block group-hover:text-sky-600 transition-colors">
+                  <h3 className="font-bold text-lg text-slate-900 leading-tight line-clamp-2">
+                    {product.name}
+                  </h3>
+                </Link>
+              </div>
               {renderRating()}
             </div>
 
-            <p className="text-sm line-clamp-2 text-slate-600 leading-relaxed">
+            <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
               {product.description}
             </p>
-          </div>
-          <div className="mt-4 space-y-3">
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <div className="text-xl font-bold text-slate-900">
-                {formatPrice(product.price)}
-              </div>
-              {isOnSale && product.compareAtPrice && (
-                <>
-                  <div className="text-sm text-slate-500 line-through">
-                    {formatPrice(product.compareAtPrice)}
-                  </div>
-                  <Badge className="bg-red-500 text-white text-xs px-2 py-0.5">
-                    -{discountPercentage}%
-                  </Badge>
-                </>
+
+            <div className="flex flex-wrap gap-2">
+              {product.ageRange && (
+                <div className="inline-flex items-center px-2 py-1 rounded-md bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600">
+                  Ages {product.ageRange}
+                </div>
+              )}
+              {isLowStock && (
+                <div className="inline-flex items-center px-2 py-1 rounded-md bg-amber-50 border border-amber-100 text-xs font-medium text-amber-700">
+                  Only {product.stockQuantity} left
+                </div>
               )}
             </div>
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <Button
-                onClick={handleImageAddToCart}
-                disabled={isAddingToCart || product.stockQuantity === 0}
-                className="w-full bg-sky-600 hover:bg-sky-700 text-white shadow-sm"
-                size="sm"
-              >
-                {isAddingToCart ? (
-                  "Adding..."
-                ) : justAdded ? (
-                  "Added!"
-                ) : product.stockQuantity === 0 ? (
-                  "Out of Stock"
-                ) : (
-                  <>
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Add to Cart
-                  </>
+          </div>
+
+          <div className="mt-5 flex items-end justify-between gap-4 pt-4 border-t border-slate-50">
+            <div className="space-y-0.5">
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl font-bold text-slate-900">
+                  {formatPrice(product.price)}
+                </span>
+                {isOnSale && (
+                  <span className="text-sm text-slate-400 line-through font-medium">
+                    {formatPrice(product.compareAtPrice!)}
+                  </span>
                 )}
-              </Button>
+              </div>
+              {/* Optional: Add unit text if needed, e.g. "per item" */}
             </div>
+
+            <Button
+              onClick={handleAddToCart}
+              disabled={isAddingToCart || isOutOfStock}
+              className={cn(
+                "px-6 shadow-sm transition-all duration-300",
+                isAddingToCart
+                  ? "bg-slate-100 text-slate-400"
+                  : justAdded
+                    ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                    : "bg-slate-900 hover:bg-slate-800 text-white hover:shadow-md"
+              )}
+              size="sm"
+            >
+              {isAddingToCart ? (
+                <span className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                  Adding...
+                </span>
+              ) : justAdded ? (
+                <span className="flex items-center gap-2 font-medium">
+                  <ShoppingCart className="h-4 w-4" /> Added
+                </span>
+              ) : isOutOfStock ? (
+                "Out of Stock"
+              ) : (
+                <span className="flex items-center gap-2 font-medium">
+                  Add to Cart
+                </span>
+              )}
+            </Button>
           </div>
         </div>
       </div>
     );
   }
 
-  // Default grid layout - Modern e-commerce design
+  // Modern Grid Layout - "Stunning E-commerce"
   return (
     <div
       className={cn(
-        `${productsGlassCardClass} relative group overflow-hidden h-full flex flex-col transition-all duration-200 hover:shadow-lg`,
+        "group relative flex flex-col h-full bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden",
         className
       )}
     >
-      {/* Image container - clickable to add to cart */}
-      <div className="relative z-10 overflow-hidden aspect-[3/2] sm:aspect-square bg-slate-50/80 border-b border-slate-100">
-        <button
-          onClick={handleImageAddToCart}
-          disabled={isAddingToCart || product.stockQuantity === 0}
-          className="group/image block h-full w-full relative cursor-pointer disabled:cursor-not-allowed"
-        >
-          <div className="relative z-10 flex h-full w-full items-center justify-center p-4 sm:p-6">
+      {/* Image Container */}
+      <div className="relative aspect-square overflow-hidden bg-slate-50">
+        <Link href={`/products/${product.slug}`} className="block w-full h-full">
+          <div className="w-full h-full p-6 flex items-center justify-center">
             <OptimizedProductImage
               src={imageUrl}
               alt={product.name}
               fill
-              className="object-contain object-center transition-transform duration-300 group-hover/image:scale-105"
+              className="object-contain transition-transform duration-500 group-hover:scale-110"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               priority={priority}
               quality={90}
-              placeholder="blur"
             />
           </div>
-          
-          {/* Hover overlay with add to cart button */}
-          <div className="absolute inset-0 bg-slate-900/35 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-20">
-            {isAddingToCart ? (
-              <div className="bg-white rounded-lg px-4 py-2 text-sm font-medium text-slate-900">
-                Adding...
-              </div>
-            ) : justAdded ? (
-              <div className="bg-green-500 rounded-lg px-4 py-2 text-sm font-medium text-white">
-                Added!
-              </div>
-            ) : product.stockQuantity === 0 ? (
-              <div className="bg-slate-500 rounded-lg px-4 py-2 text-sm font-medium text-white">
-                Out of Stock
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg px-4 py-2 text-sm font-medium text-slate-900 flex items-center gap-2">
-                <ShoppingCart className="h-4 w-4" />
-                Add to Cart
-              </div>
-            )}
-          </div>
-        </button>
-      </div>
-
-      {/* Content section with clean spacing */}
-      <div className="relative z-10 flex flex-col flex-1 p-4 space-y-2">
-        {/* Title as link */}
-        <Link href={`/products/${product.slug}`} className="block">
-          <h3 className="font-semibold text-sm leading-tight line-clamp-2 text-slate-900 transition-colors hover:text-sky-700">
-            {product.name}
-          </h3>
         </Link>
 
-        {/* Category badge under title */}
-        {categoryName && (
-          <Badge
-            className="w-fit capitalize text-xs px-2 py-0.5 bg-sky-50 text-sky-700 border border-sky-100 rounded-md font-medium"
-            variant="outline"
-          >
-            {categoryName}
-          </Badge>
-        )}
-
-        {/* Low stock banner - only show if quantity < 4 */}
-        {product.stockQuantity !== undefined &&
-          product.stockQuantity > 0 &&
-          product.stockQuantity < 4 && (
-            <div className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-amber-700 text-xs font-medium">
-              Only{" "}
-              <span className="font-semibold">{product.stockQuantity}</span>{" "}
-              {product.stockQuantity === 1 ? "item" : "items"} left
-            </div>
+        {/* Floating Badges */}
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20">
+          {isOnSale && (
+            <Badge className="bg-rose-500 text-white border-0 shadow-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md bg-opacity-95">
+              -{discountPercentage}%
+            </Badge>
           )}
-
-        {/* Badges section */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          {renderRating()}
-
-          {product.ageRange && (
-            <div className="bg-emerald-50 text-emerald-700 text-xs px-2 py-0.5 rounded-md font-medium border border-emerald-200">
-              Ages: {product.ageRange}
-            </div>
+          {isOutOfStock && (
+            <Badge className="bg-slate-900 text-white border-0 shadow-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
+              Sold Out
+            </Badge>
           )}
-
-          {product.stockQuantity !== undefined &&
-            product.stockQuantity === 0 && (
-              <div className="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded-md font-medium border border-red-200 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                Out of stock
-              </div>
-            )}
+          {!isOutOfStock && isLowStock && (
+            <Badge className="bg-amber-500 text-white border-0 shadow-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
+              Low Stock
+            </Badge>
+          )}
         </div>
 
-        {/* Price section with discount badge */}
-        <div className="flex flex-col mt-auto pt-2">
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <div className="text-lg font-bold text-slate-900">
-              {formatPrice(product.price)}
-            </div>
-            {isOnSale && product.compareAtPrice && (
-              <>
-                <div className="text-sm text-slate-500 line-through">
-                  {formatPrice(product.compareAtPrice)}
-                </div>
-                <Badge className="bg-red-500 text-white text-xs px-2 py-0.5">
-                  -{discountPercentage}%
-                </Badge>
-              </>
-            )}
-          </div>
-          <div className="text-xs text-slate-500 mt-0.5">
-            inclusiv TVA
-          </div>
-        </div>
-
-        {/* Add button - only visible on hover */}
-        <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        {/* Quick Add Overlay Button (Desktop) & Mobile Icon */}
+        <div className="absolute bottom-3 right-3 z-20">
           <Button
-            onClick={handleImageAddToCart}
-            disabled={isAddingToCart || product.stockQuantity === 0}
-            className="w-full bg-sky-600 hover:bg-sky-700 text-white shadow-sm"
-            size="sm"
+            onClick={handleAddToCart}
+            disabled={isAddingToCart || isOutOfStock}
+            size="icon"
+            className={cn(
+              "h-10 w-10 rounded-full shadow-md transition-all duration-300 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 sm:flex hidden",
+              justAdded ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-white hover:bg-slate-50 text-slate-900 hover:text-sky-600"
+            )}
+            title="Quick Add"
           >
             {isAddingToCart ? (
-              "Adding..."
+              <div className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
             ) : justAdded ? (
-              "Added!"
-            ) : product.stockQuantity === 0 ? (
-              "Out of Stock"
+              <ShoppingCart className="h-4 w-4" />
             ) : (
-              <>
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Add to Cart
-              </>
+              <ShoppingCart className="h-4 w-4" />
             )}
           </Button>
+
+          {/* Always visible safe cart button for Mobile */}
+          <Button
+            onClick={handleAddToCart}
+            disabled={isAddingToCart || isOutOfStock}
+            size="icon"
+            className={cn(
+              "h-9 w-9 rounded-full shadow-sm sm:hidden flex",
+              justAdded ? "bg-emerald-500 text-white" : "bg-white/90 backdrop-blur-sm text-slate-900 border border-slate-100"
+            )}
+          >
+            {isAddingToCart ? (
+              <div className="h-3.5 w-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+            ) : (
+              <ShoppingCart className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-col flex-1 p-4 pt-5 gap-3">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            {categoryName && (
+              <span className="text-[10px] font-bold tracking-wider text-sky-600 uppercase truncate">
+                {categoryName}
+              </span>
+            )}
+            {renderRating()}
+          </div>
+
+          <Link href={`/products/${product.slug}`} className="block group-hover:text-sky-600 transition-colors">
+            <h3 className="font-bold text-base text-slate-900 leading-snug line-clamp-2 h-10">
+              {product.name}
+            </h3>
+          </Link>
+        </div>
+
+        <div className="mt-auto flex items-center justify-between pt-2">
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-2">
+              <span className="text-lg font-bold text-slate-900">
+                {formatPrice(product.price)}
+              </span>
+              {isOnSale && (
+                <span className="text-xs text-slate-400 line-through font-medium">
+                  {formatPrice(product.compareAtPrice!)}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Add to Cart Text Button (Visible on hover desktop, always elsewhere if desired, but we have the icon) 
+              Let's make this a subtle "View Details" or just keep it clean? 
+              Actually, let's add a nice "Add" button that expands on hover or just a clean text button.
+          */}
+          {/* <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 px-2 text-xs font-medium text-slate-500 hover:text-sky-600 hover:bg-sky-50 -mr-2"
+            onClick={handleAddToCart}
+          >
+            Add to Bag
+          </Button> */}
         </div>
       </div>
     </div>
