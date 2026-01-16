@@ -1,6 +1,16 @@
 "use client";
 
-import { Instagram, Mail, MapPin, Phone } from "lucide-react";
+import {
+  ChevronDown,
+  Instagram,
+  Mail,
+  MapPin,
+  Phone,
+  Facebook,
+  Youtube,
+  Linkedin,
+  Twitter,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import NTPLogo from "ntp-logo-react";
@@ -30,6 +40,16 @@ export default function Footer({
   const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(
     initialStoreSettings ?? null
   );
+
+  // State for mobile accordion sections
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (title: string) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }));
+  };
 
   useEffect(() => {
     if (storeSettings) return; // Already have settings from SSR
@@ -102,14 +122,7 @@ export default function Footer({
       className:
         "hover:border-[#1877F2]/50 hover:bg-[#1877F2]/20 focus-visible:ring-[#1877F2]",
       icon: (className: string) => (
-        <svg
-          className={className}
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-        </svg>
+        <Facebook className={className} aria-hidden="true" />
       ),
     },
     {
@@ -127,14 +140,7 @@ export default function Footer({
       className:
         "hover:border-white/40 hover:bg-white/10 focus-visible:ring-white/70",
       icon: (className: string) => (
-        <svg
-          className={className}
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-        </svg>
+        <Twitter className={className} aria-hidden="true" />
       ),
     },
     {
@@ -159,14 +165,7 @@ export default function Footer({
       className:
         "hover:border-[#0A66C2]/50 hover:bg-[#0A66C2]/20 focus-visible:ring-[#0A66C2]",
       icon: (className: string) => (
-        <svg
-          className={className}
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-        </svg>
+        <Linkedin className={className} aria-hidden="true" />
       ),
     },
     {
@@ -175,14 +174,7 @@ export default function Footer({
       className:
         "hover:border-[#FF0000]/50 hover:bg-[#FF0000]/20 focus-visible:ring-[#FF0000]",
       icon: (className: string) => (
-        <svg
-          className={className}
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-        </svg>
+        <Youtube className={className} aria-hidden="true" />
       ),
     },
   ];
@@ -282,217 +274,188 @@ export default function Footer({
     "h-[14px] w-[14px] text-gray-300 transition-colors group-hover:text-white sm:h-5 sm:w-5";
 
   return (
-    <footer className="bg-gray-950 text-white">
+    <footer className="border-t border-white/5 bg-gray-950 text-white">
       {/* Newsletter always visible at top */}
       <NewsletterSignup />
 
-      {/* Main footer content */}
-      <div className="container mx-auto px-3 py-4 sm:py-6 md:py-8 lg:py-10">
-        <div className="mb-5 flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-center text-[0.85rem] text-gray-200 shadow-sm backdrop-blur-sm sm:mb-8 sm:px-6 sm:py-4 sm:text-sm">
-          <span>
-            {getReturnPolicyText()} ·{" "}
-            <Link href="/returns" className="underline">
-              {t("seeReturnPolicy", "See return policy")}
-            </Link>
-          </span>
+      {/* Main footer content - Reduced padding for cleaner look */}
+      <div className="container mx-auto px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+        {/* Top Info Bar (Returns) */}
+        <div className="mb-6 flex items-center justify-center text-center sm:mb-10">
+          <div className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-xs font-medium text-gray-300 shadow-sm backdrop-blur-sm sm:px-6 sm:py-2 sm:text-sm">
+            <span>
+              {getReturnPolicyText()} ·{" "}
+              <Link
+                href="/returns"
+                className="text-sky-300 underline underline-offset-2 transition-colors hover:text-sky-200"
+              >
+                {t("seeReturnPolicy", "See policy")}
+              </Link>
+            </span>
+          </div>
         </div>
-        <div className="flex flex-col gap-6 sm:gap-10">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-10">
-            <div className="flex flex-col justify-between gap-6 rounded-3xl border border-white/10 bg-white/[0.03] p-3 shadow-lg shadow-black/10 backdrop-blur-sm sm:p-6 lg:col-span-5">
-              <div>
-                <div className="flex items-center gap-3">
-                  <div className="relative h-9 w-24 sm:h-11 sm:w-28 md:h-13 md:w-36">
+
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-12">
+          {/* Brand Column */}
+          <div className="flex flex-col gap-6 lg:col-span-4">
+            <div className="flex flex-col gap-4">
+              <Link href="/" className="relative block h-10 w-32 sm:h-12 sm:w-40">
                 <Image
                   src="/TechTots_LOGO.png"
                   alt={`${storeName} Logo`}
                   fill
-                  sizes="(max-width: 640px) 6rem, (max-width: 768px) 7rem, (max-width: 1024px) 8rem, 8rem"
-                  className="object-contain"
+                  sizes="(max-width: 640px) 120px, 160px"
+                  className="object-contain object-left"
                   priority={false}
                 />
-              </div>
+              </Link>
+
+              <p className="max-w-xs text-sm leading-relaxed text-gray-400">
+                {storeDescription}
+              </p>
             </div>
 
-            <p className="mt-4 text-[0.92rem] leading-relaxed text-gray-300 sm:text-base">
-              {storeDescription}
-            </p>
-              </div>
+            {/* Socials - Compact */}
+            <div className="flex flex-wrap gap-2">
+              {socialLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  aria-label={link.name}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${socialBaseClass} ${link.className}`}
+                >
+                  {link.icon(socialIconClass)}
+                </Link>
+              ))}
+            </div>
 
-              <div className="flex flex-wrap gap-2.5 sm:gap-4">
-                {socialLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    aria-label={link.name}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`${socialBaseClass} ${link.className}`}
-                  >
-                    {link.icon(socialIconClass)}
-                    <span className="absolute -bottom-6 left-1/2 w-max -translate-x-1/2 text-[11px] font-medium uppercase tracking-[0.18em] text-gray-400 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                      {link.name}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-
-              <div className="grid gap-2.5 sm:grid-cols-2">
-                {contactDetails.map((detail) => (
-                  <div
-                    key={detail.label}
-                    className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.02] px-3.5 py-2.5 text-left transition-colors duration-300 hover:border-white/25 hover:bg-white/[0.05]"
-                  >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.04] text-sky-300">
-                      <detail.icon className="h-4 w-4" aria-hidden="true" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400">
-                        {detail.label}
-                      </p>
-                      {detail.href ? (
-                        <a
-                          href={detail.href}
-                          className="text-sm font-medium text-white transition-colors hover:text-sky-200"
-                        >
-                          {detail.value}
-                        </a>
-                      ) : (
-                        <p className="text-sm font-medium text-white">
-                          {detail.value}
-                        </p>
-                      )}
-                    </div>
+            {/* Contact Info - Compact List */}
+            <div className="flex flex-col gap-3">
+              {contactDetails.map((detail) => (
+                <div key={detail.label} className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-white/5 text-sky-400">
+                    <detail.icon className="h-3 w-3" aria-hidden="true" />
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="lg:col-span-7">
-              <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 md:grid-cols-3">
-                {navSections.map((section) => (
-                  <nav
-                    key={section.title}
-                    aria-label={section.title}
-                    className="rounded-3xl border border-white/5 bg-white/[0.01] p-2.5 shadow-[0px_20px_45px_-20px_rgba(15,23,42,0.45)] transition duration-300 hover:border-white/15 hover:bg-white/[0.04] sm:p-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr ${section.accent} text-[0.7rem] font-bold uppercase tracking-[0.22em] text-white sm:h-8 sm:w-8`}
+                  <div className="text-sm">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                      {detail.label}
+                    </p>
+                    {detail.href ? (
+                      <a
+                        href={detail.href}
+                        className="font-medium text-gray-300 transition-colors hover:text-white"
                       >
-                        {section.title.charAt(0)}
-                      </span>
-                      <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-200 sm:text-xs md:text-[13px]">
-                        {section.title}
-                      </h3>
-                    </div>
-                    <ul className="mt-3 space-y-1.5">
-                      {section.items.map((item) => (
-                        <li key={item.label}>
-                          <Link
-                            href={item.href}
-                            className="group flex items-center justify-between rounded-xl px-2 py-1 text-[11px] text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white sm:text-xs"
-                            {...(item.tracking ?? {})}
-                          >
-                            <span className="flex items-center gap-2">
-                              <span
-                                className={`inline-flex h-1.5 w-1.5 rounded-full bg-gradient-to-tr ${section.accent}`}
-                              />
-                              {item.label}
-                            </span>
-                            <span className="text-[11px] font-semibold opacity-0 transition-all duration-200 group-hover:translate-x-1 group-hover:opacity-100">
-                              &gt;
-                            </span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </nav>
-                ))}
-              </div>
+                        {detail.value}
+                      </a>
+                    ) : (
+                      <p className="font-medium text-gray-300 leading-snug max-w-[250px]">
+                        {detail.value}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-4 shadow-[0px_20px_45px_-20px_rgba(15,23,42,0.55)] backdrop-blur-sm sm:p-5">
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-start lg:gap-10">
-              <div className="flex flex-col gap-2.5 text-center text-[11px] text-gray-400 sm:text-xs lg:text-left">
-                <p className="text-[0.85rem] font-semibold text-white sm:text-[0.95rem]">
-                  © 2025 {storeName} {t("allRightsReserved")}
-                </p>
-                <p className="text-[0.8rem] leading-relaxed text-gray-400 sm:text-[0.9rem]">
-                  {t(
-                    "footerPromise",
-                    "Inspiring the next generation of innovators with curated STEM learning experiences."
-                  )}
-                </p>
-                <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
-                  <Link
-                    href="/privacy"
-                    className="text-[11px] font-medium uppercase tracking-[0.2em] text-gray-400 transition-colors hover:text-white sm:text-xs"
+          {/* Navigation Columns - Accordion on Mobile */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-3 lg:gap-8">
+            {navSections.map((section) => {
+              const isOpen = openSections[section.title];
+              return (
+                <div
+                  key={section.title}
+                  className="border-b border-white/10 pb-4 lg:border-none lg:pb-0"
+                >
+                  <button
+                    onClick={() => toggleSection(section.title)}
+                    className="flex w-full items-center justify-between py-2 text-left lg:block lg:cursor-default lg:py-0"
+                    aria-expanded={isOpen}
                   >
-                    {t("privacyPolicy")}
-                  </Link>
-                  <Link
-                    href="/terms"
-                    className="text-[11px] font-medium uppercase tracking-[0.2em] text-gray-400 transition-colors hover:text-white sm:text-xs"
-                  >
-                    {t("termsOfService")}
-                  </Link>
-                  <Link
-                    href="/gdpr"
-                    className="text-[11px] font-medium uppercase tracking-[0.2em] text-gray-400 transition-colors hover:text-white sm:text-xs"
-                  >
-                    GDPR
-                  </Link>
-                </div>
-              </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`hidden h-6 w-6 items-center justify-center rounded bg-gradient-to-tr ${section.accent} text-[10px] font-bold uppercase text-white lg:inline-flex`}
+                      >
+                        {section.title.charAt(0)}
+                      </span>
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-gray-100 lg:text-xs lg:text-gray-400">
+                        {section.title}
+                      </h3>
+                    </div>
+                    <ChevronDown
+                      className={`h-4 w-4 text-gray-500 transition-transform lg:hidden ${
+                        isOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
 
+                  <ul
+                    className={`mt-2 space-y-1 overflow-hidden transition-all lg:block lg:h-auto lg:overflow-visible ${
+                      isOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0 lg:opacity-100"
+                    }`}
+                  >
+                    {section.items.map((item) => (
+                      <li key={item.label}>
+                        <Link
+                          href={item.href}
+                          className="group flex items-center gap-2 py-2 text-sm text-gray-400 transition-colors hover:text-white lg:py-1.5 lg:text-xs"
+                          {...(item.tracking ?? {})}
+                        >
+                          <span className="hidden h-1 w-1 rounded-full bg-white/20 transition-colors group-hover:bg-white lg:block" />
+                          {item.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Bottom Bar: Payments & Copyright */}
+        <div className="mt-12 border-t border-white/5 pt-8">
+          <div className="flex flex-col-reverse justify-between gap-6 lg:flex-row lg:items-center">
+            {/* Copyright & Legal */}
+            <div className="flex flex-col gap-4 text-center lg:text-left">
+              <p className="text-xs text-gray-500">
+                © {new Date().getFullYear()} {storeName}. {t("allRightsReserved")}
+              </p>
+              <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 lg:justify-start">
+                {["Privacy Policy", "Terms of Service", "GDPR"].map((item) => (
+                  <Link
+                    key={item}
+                    href={`/${item.toLowerCase().replace(/\s+/g, "-")}`}
+                    className="text-xs font-medium text-gray-400 transition-colors hover:text-white"
+                  >
+                    {item === "Privacy Policy"
+                      ? t("privacyPolicy")
+                      : item === "Terms of Service"
+                      ? t("termsOfService")
+                      : item}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Trust/Payment */}
+            <div className="flex flex-col items-center gap-4 lg:items-end">
               <Link
                 href="https://netopia-payments.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative flex w-full max-w-xs flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.04] via-white/[0.02] to-white/[0.04] px-4 py-3.5 text-white shadow-[0px_20px_45px_-20px_rgba(37,99,235,0.55)] transition-all duration-300 hover:shadow-[0px_25px_55px_-20px_rgba(37,99,235,0.75)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400 sm:max-w-sm lg:mx-auto"
-                aria-label="Netopia secure payments"
+                className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 transition-colors hover:bg-white/10"
               >
-                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-100/90">
-                  Plăți securizate Netopia
-                </span>
-                <div className="flex items-center justify-center">
-                  <NTPLogo
-                    color="#ffffff"
-                    version="horizontal"
-                    secret="156180"
-                    aria-hidden="true"
-                  />
-                </div>
-                <span className="text-[11px] uppercase tracking-[0.22em] text-blue-200/70">
-                  {t("footerPaymentSecurity", "SSL 256-bit Encryption")}
+                <NTPLogo color="#ffffff" version="horizontal" secret="156180" aria-hidden="true" />
+                <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
+                  Secure Payment
                 </span>
               </Link>
-
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-3.5 py-3 text-left text-xs text-gray-200 shadow-inner sm:text-sm lg:ml-auto">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-400">
-                  {t("footerLegalInfoLabel", "Date companie")}
-                </p>
-                <address className="mt-3 space-y-1.5 not-italic">
-                  <p className="text-sm font-semibold text-white sm:text-base">
-                    WEBIRA REM S.R.L.
-                  </p>
-                  <p className="text-sm leading-relaxed text-gray-300">
-                    {companyAddress}
-                  </p>
-                  <p className="text-sm leading-relaxed text-gray-300">
-                    {t(
-                      "footerLegalCui",
-                      "Cod unic de înregistrare: 51813997 (20.05.2025)"
-                    )}
-                  </p>
-                  <p className="text-sm leading-relaxed text-gray-300">
-                    {t(
-                      "footerLegalRegCom",
-                      "Registrul Comerțului: J2025035239005 (19.05.2025)"
-                    )}
-                  </p>
-                </address>
+              <div className="text-[10px] text-gray-600">
+                {t("footerLegalCui", "CUI: 51813997")} •{" "}
+                {t("footerLegalRegCom", "J20/352/2025")}
               </div>
             </div>
           </div>

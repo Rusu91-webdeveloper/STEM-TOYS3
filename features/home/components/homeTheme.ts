@@ -8,7 +8,7 @@ export const homeOverlayBottomClass =
   "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(165,180,252,0.14),_transparent_60%)]";
 
 export const homeContentWrapperClass =
-  "relative z-10 flex flex-col gap-6 sm:gap-8 lg:gap-12";
+  "relative z-10 flex flex-col gap-4 sm:gap-8 lg:gap-16";
 
 export const glassPanelClass =
   "rounded-3xl border border-white/10 bg-white/5 shadow-lg shadow-black/30 backdrop-blur";
