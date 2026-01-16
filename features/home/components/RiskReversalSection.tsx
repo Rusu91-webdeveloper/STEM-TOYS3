@@ -1,11 +1,9 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import {
   glassCardClass,
   glassPanelClass,
-  gradientButtonClass,
 } from "@/features/home/components/homeTheme";
 
 interface RiskReversalSectionProps {
@@ -37,23 +35,6 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
       icon: "🚚",
       title: "Livrare Rapidă",
       description: "Primiți jucăriile în 24-48 ore cu tracking complet",
-    },
-  ];
-
-  const testimonials = [
-    {
-      name: "Maria P.",
-      location: "București",
-      story:
-        "În prima săptămână, fiul meu a trecut de la 'urăsc matematica' la 'când facem următorul experiment?'. Garanția m-a făcut să încerc fără teamă!",
-      rating: 5,
-    },
-    {
-      name: "Alexandru M.",
-      location: "Cluj-Napoca",
-      story:
-        "Consultarea gratuită a fost exact ce aveam nevoie. Am primit recomandări perfecte pentru vârsta fiicei mele. Rezultatul? Ea îmi explică acum cum funcționează roboții!",
-      rating: 5,
     },
   ];
 
@@ -107,76 +88,6 @@ function RiskReversalSection({ t }: RiskReversalSectionProps) {
                 </p>
               </div>
             ))}
-          </div>
-
-          {/* Consultation Booking Section */}
-          <div className={`${glassPanelClass} border-white/15 p-4 sm:p-6`}>
-            <div className="text-center">
-              <div className="inline-flex items-center gap-2">
-                <span className="text-xl">🎯</span>
-                <span className="rounded-full border border-emerald-300/40 bg-emerald-400/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-100">
-                  Consultare Gratuită
-                </span>
-              </div>
-
-              <h3 className="mt-4 text-lg font-bold text-white sm:text-xl">
-                Obține Recomandări Pentru Copilul Tău
-              </h3>
-
-              <p className="mt-3 text-xs text-slate-200/80 sm:text-sm">
-                În 15 minute, expertul nostru STEM îți va recomanda jucăriile
-                potrivite pentru copilul tău.
-              </p>
-
-              <div className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:justify-center">
-                <Link
-                  href="/contact"
-                  className={`${gradientButtonClass} inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold sm:px-5 sm:py-2.5 sm:text-sm`}
-                >
-                  <span>📅</span>
-                  Programează Consultare Gratuită
-                </Link>
-
-                <Link
-                  href="/products"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white/90 transition hover:border-white/30 hover:bg-white/15 sm:px-5 sm:py-2.5 sm:text-sm"
-                >
-                  Vezi Jucăriile
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Final Risk Reversal CTA */}
-          <div className="rounded-3xl border border-emerald-400/40 bg-gradient-to-r from-emerald-500/40 via-sky-500/30 to-indigo-500/40 p-4 text-center text-white shadow-lg shadow-emerald-500/25 sm:p-6">
-            <h3 className="text-base font-bold sm:text-xl">
-              Începe Transformarea Copilului Tău
-            </h3>
-            <p className="mt-3 text-[0.85rem] text-white/85 sm:text-sm">
-              Alătură-te miilor de părinți care au transformat învățarea copiilor
-              lor cu jucăriile noastre STEM de calitate.
-            </p>
-
-            <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:mt-5 sm:flex-row">
-              <Link
-                href="/products"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-emerald-600 transition hover:bg-white/90 sm:px-5 sm:py-2.5 sm:text-sm"
-              >
-                <span>🚀</span>
-                Începe Transformarea
-              </Link>
-
-              <div className="flex items-center gap-2 text-white/85">
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="text-xs font-medium">Calitate Garantată</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

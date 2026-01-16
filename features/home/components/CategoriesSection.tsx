@@ -50,9 +50,9 @@ const CategoriesSectionComponent = ({
   });
 
   return (
-    <section className="py-4 sm:py-6 md:py-8">
-      <div className="container mx-auto max-w-4xl px-3 sm:px-4">
-        <div className="mb-5 text-center sm:mb-8">
+    <section className="py-4 sm:py-6 md:py-8 h-full">
+      <div className="h-full flex flex-col">
+        <div className="mb-5 text-center sm:mb-6 flex-shrink-0">
           <h2 className="bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-xl font-bold tracking-tight text-transparent sm:text-3xl">
             {t("stemCategories", "Explore STEM Categories")}
           </h2>
@@ -76,10 +76,10 @@ const CategoriesSectionComponent = ({
           data-conversion-category="navigation"
           data-conversion-action="explore_all_categories"
           data-conversion-element="categories_main_card"
-          className={`${glassPanelClass} block w-full max-w-3xl transform rounded-3xl border-white/15 transition duration-300 hover:-translate-y-1 hover:border-emerald-400/60 hover:shadow-emerald-500/20`}
+          className={`${glassPanelClass} block w-full flex-1 transform rounded-3xl border-white/15 transition duration-300 hover:-translate-y-1 hover:border-emerald-400/60 hover:shadow-emerald-500/20 flex flex-col`}
         >
           {/* Image collage section */}
-          <div className="relative h-[180px] w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-slate-900/80 via-indigo-900/80 to-slate-900/90 sm:h-[230px]">
+          <div className="relative h-[160px] sm:h-[180px] lg:h-[200px] w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-slate-900/80 via-indigo-900/80 to-slate-900/90 flex-shrink-0">
             <div className="absolute inset-0">
               <svg
                 className="h-full w-full text-white/10"
@@ -156,7 +156,7 @@ const CategoriesSectionComponent = ({
           </div>
 
           {/* Content section */}
-          <div className="px-4 py-4 sm:px-7 sm:py-6">
+          <div className="px-4 py-4 sm:px-6 sm:py-5 flex-1 flex flex-col">
             <h3 className="text-base font-semibold text-white sm:text-xl">
               {t("exploreAllCategories", "Explore All STEM Categories")}
             </h3>
@@ -181,7 +181,7 @@ const CategoriesSectionComponent = ({
             </div>
 
             {/* Call to action */}
-            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-4 text-sm sm:flex-row sm:text-base">
+            <div className="mt-auto pt-4 flex flex-col items-center justify-between gap-3 border-t border-white/10 text-sm sm:flex-row sm:text-base">
               <div className="flex items-center gap-2 font-semibold text-emerald-200">
                 {t("viewAllCategories", "View all categories")}
                 <svg

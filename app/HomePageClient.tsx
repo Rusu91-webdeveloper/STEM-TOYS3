@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import {
   CategoriesSection,
   FeaturedProductsAccordion,
+  FeaturedProductsGrid,
   FeaturedProductsSkeleton,
   PerformanceOptimizer,
   PillarSection,
@@ -23,13 +24,6 @@ import { getBaseUrl } from "@/lib/site";
 // Code-split below-the-fold sections with better loading strategy
 const ValuePropositionSection = dynamic(
   () => import("@/features/home/components/ValuePropositionSection"),
-  {
-    loading: () => null,
-    ssr: false, // Disable SSR for better LCP
-  }
-);
-const RiskReversalSection = dynamic(
-  () => import("@/features/home/components/RiskReversalSection"),
   {
     loading: () => null,
     ssr: false, // Disable SSR for better LCP
@@ -322,6 +316,15 @@ export default function HomePageClient({
         {/* **PERFORMANCE**: Hero Section - Critical for FCP */}
         <HeroSection t={t} />
 
+        {/* Featured Products Grid - Modern e-commerce showcase - Load with suspense for better performance */}
+        <Suspense fallback={<FeaturedProductsLoader />}>
+          <FeaturedProductsGrid
+            products={initialFeaturedProducts}
+            t={t}
+            isLoading={initialFeaturedProducts.length === 0}
+          />
+        </Suspense>
+
         {/* **PERFORMANCE**: Trust badges and age links - Keep above fold for UX but optimize loading */}
         <div className="-mt-1 sm:-mt-2 mb-3 sm:mb-5">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -349,33 +352,25 @@ export default function HomePageClient({
           <PillarSection />
         </Suspense>
 
+        {/* Categories and Value Proposition - Side by side on desktop, stacked on mobile */}
         <Suspense
           fallback={
             <div className="mx-4 max-w-7xl animate-pulse rounded-xl bg-white/5 backdrop-blur sm:mx-6 lg:mx-8"></div>
           }
         >
-          <CategoriesSection categories={categories} t={t} />
-        </Suspense>
-
-        <Suspense
-          fallback={
-            <div className="mx-4 max-w-7xl animate-pulse rounded-xl bg-white/5 backdrop-blur sm:mx-6 lg:mx-8"></div>
-          }
-        >
-          <ValuePropositionSection t={t} />
-        </Suspense>
-
-        {/* Risk Reversal Section - Guarantees and Consultation */}
-        <RiskReversalSection t={t} />
-
-        {/* Featured Products Accordion - Load with suspense for better performance */}
-        <Suspense fallback={<FeaturedProductsLoader />}>
-          <FeaturedProductsAccordion
-            products={initialFeaturedProducts}
-            formatPrice={formatPrice}
-            t={t}
-            isLoading={initialFeaturedProducts.length === 0}
-          />
+          <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-stretch lg:gap-6">
+              {/* Categories Section - Takes 50% on desktop */}
+              <div className="w-full lg:w-1/2 lg:flex-shrink-0">
+                <CategoriesSection categories={categories} t={t} />
+              </div>
+              
+              {/* Value Proposition Section (Carousel) - Takes 50% on desktop */}
+              <div className="w-full lg:w-1/2 lg:flex-shrink-0">
+                <ValuePropositionSection t={t} />
+              </div>
+            </div>
+          </div>
         </Suspense>
 
         {/* Supplier Banner - Only visible on Home page */}

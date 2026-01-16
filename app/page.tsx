@@ -136,9 +136,17 @@ async function fetchFeaturedProductsOptimized(): Promise<Product[]> {
         id: true,
         name: true,
         slug: true,
+        description: true,
         price: true,
         compareAtPrice: true,
         images: true,
+        stockQuantity: true,
+        averageRating: true,
+        reviewCount: true,
+        ageRange: true,
+        stemDiscipline: true,
+        isBook: true,
+        tags: true,
         category: {
           select: {
             name: true,
@@ -149,7 +157,7 @@ async function fetchFeaturedProductsOptimized(): Promise<Product[]> {
       orderBy: {
         createdAt: "desc",
       },
-      take: 6,
+      take: 8, // Show 8 products in the grid for better e-commerce showcase
     });
 
     // **PERFORMANCE**: Add 500ms timeout to prevent slow database queries from blocking LCP

@@ -1,5 +1,6 @@
 "use client";
 
+import { Brain, Rocket, Sparkles, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect } from "react";
@@ -72,6 +73,30 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
         return t("ctaShopNow", "Cumpără Jucării STEM");
     }
   };
+
+  // Benefits of STEM toys with icons
+  const stemBenefits = [
+    {
+      icon: Brain,
+      titleKey: "cognitiveDevelopment",
+      descKey: "cognitiveDevelopmentDesc",
+    },
+    {
+      icon: Sparkles,
+      titleKey: "creativityInnovation",
+      descKey: "creativityInnovationDesc",
+    },
+    {
+      icon: Rocket,
+      titleKey: "futureReady",
+      descKey: "futureReadyDesc",
+    },
+    {
+      icon: Star,
+      titleKey: "funLearning",
+      descKey: "funLearningDesc",
+    },
+  ];
 
   return (
     <section
@@ -217,6 +242,94 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
                 />
               </svg>
               <span>{t("guarantee")}</span>
+            </div>
+          </div>
+
+          {/* STEM Benefits Section - Integrated into Hero */}
+          <div className="mt-8 w-full max-w-6xl animate-fade-in sm:mt-10 md:mt-12">
+            {/* Section Title */}
+            <div className="mb-4 text-center sm:mb-6">
+              <h2 className="text-base font-bold text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] sm:text-lg md:text-xl">
+                {t("whyStemEssential", "De Ce Jucăriile STEM Sunt Esențiale")}
+              </h2>
+              <div className="mx-auto mt-2 h-0.5 w-16 rounded-full bg-gradient-to-r from-transparent via-sky-400/60 to-transparent sm:w-20" />
+            </div>
+
+            {/* Benefits Grid */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 md:gap-4">
+              {stemBenefits.map((benefit, index) => {
+                const BenefitIcon = benefit.icon;
+                const colorSchemes = [
+                  {
+                    // Cognitive Development - Blue/Indigo
+                    iconBg: "from-blue-500/90 to-indigo-600/90",
+                    border: "border-blue-400/30",
+                    hoverBorder: "hover:border-blue-400/60",
+                    glow: "hover:shadow-blue-500/30",
+                    titleGradient: "from-blue-200 to-indigo-200",
+                  },
+                  {
+                    // Creativity and Innovation - Purple/Pink
+                    iconBg: "from-purple-500/90 via-pink-500/90 to-purple-600/90",
+                    border: "border-purple-400/30",
+                    hoverBorder: "hover:border-purple-400/60",
+                    glow: "hover:shadow-purple-500/30",
+                    titleGradient: "from-purple-200 to-pink-200",
+                  },
+                  {
+                    // Prepare for the Future - Orange/Amber
+                    iconBg: "from-orange-500/90 via-amber-500/90 to-orange-600/90",
+                    border: "border-orange-400/30",
+                    hoverBorder: "hover:border-orange-400/60",
+                    glow: "hover:shadow-orange-500/30",
+                    titleGradient: "from-orange-200 to-amber-200",
+                  },
+                  {
+                    // Fun Learning - Green/Emerald
+                    iconBg: "from-emerald-500/90 via-teal-500/90 to-emerald-600/90",
+                    border: "border-emerald-400/30",
+                    hoverBorder: "hover:border-emerald-400/60",
+                    glow: "hover:shadow-emerald-500/30",
+                    titleGradient: "from-emerald-200 to-teal-200",
+                  },
+                ];
+                const colorScheme = colorSchemes[index] || colorSchemes[0];
+
+                return (
+                  <div
+                    key={index}
+                    className={`group relative rounded-xl border ${colorScheme.border} ${colorScheme.hoverBorder} bg-white/5 backdrop-blur-md p-3 shadow-lg ${colorScheme.glow} transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] flex flex-col items-center text-center sm:rounded-2xl sm:p-4`}
+                  >
+                    {/* Icon container with gradient */}
+                    <div
+                      className={`relative mb-2 rounded-lg bg-gradient-to-br ${colorScheme.iconBg} p-2 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 sm:mb-3 sm:p-2.5 sm:rounded-xl`}
+                    >
+                      <BenefitIcon className="h-4 w-4 text-white sm:h-5 sm:w-5" />
+                      {/* Icon glow effect */}
+                      <div
+                        className={`absolute inset-0 rounded-lg bg-gradient-to-br ${colorScheme.iconBg} opacity-50 blur-md transition-opacity duration-300 group-hover:opacity-75`}
+                      />
+                    </div>
+
+                    {/* Title with gradient text */}
+                    <h3
+                      className={`relative mb-1.5 text-xs font-bold bg-gradient-to-r ${colorScheme.titleGradient} bg-clip-text text-transparent transition-transform duration-300 group-hover:scale-105 sm:mb-2 sm:text-sm md:text-base`}
+                    >
+                      {t(benefit.titleKey)}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="relative text-[10px] leading-relaxed text-slate-200/90 transition-colors duration-300 group-hover:text-slate-100 sm:text-xs">
+                      {t(benefit.descKey)}
+                    </p>
+
+                    {/* Bottom accent line */}
+                    <div
+                      className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-gradient-to-r ${colorScheme.iconBg} opacity-0 transition-opacity duration-300 group-hover:opacity-60`}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
