@@ -28,6 +28,7 @@ import {
   shouldAlertHighValueOrder,
   getNotificationSettings,
 } from "@/lib/utils/order-processing";
+import { calculateDeclaredValue } from "@/lib/shipping/declared-value";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripeClient = stripeSecretKey
@@ -323,9 +324,9 @@ export async function POST(request: Request) {
       isDigitalOnlyOrder
         ? 0
         : orderData.shippingCost ||
-          (orderData.shippingMethod?.price
-            ? parseFloat(orderData.shippingMethod.price.toString())
-            : 0);
+        (orderData.shippingMethod?.price
+          ? parseFloat(orderData.shippingMethod.price.toString())
+          : 0);
 
     shippingBasePrice = baseShippingCost;
     shippingTotalEstimate = baseShippingCost;
@@ -357,10 +358,10 @@ export async function POST(request: Request) {
             };
           })
           .filter(Boolean) as Array<{
-          quantity: number;
-          weightKg?: number | null;
-          dimensions?: Record<string, unknown>;
-        }>;
+            quantity: number;
+            weightKg?: number | null;
+            dimensions?: Record<string, unknown>;
+          }>;
 
         const service = resolveShippingService(orderData.shippingMethod?.id);
         if (service && shippingItems.length > 0) {
@@ -515,7 +516,7 @@ export async function POST(request: Request) {
     const orderTotal =
       orderData.total ||
       Math.max(0, subtotal + tax + finalShippingCost - discountAmount + codFee);
-    
+
     // Store COD amount (total to collect on delivery)
     if (isCODPayment) {
       codAmount = orderTotal;
@@ -525,6 +526,47 @@ export async function POST(request: Request) {
       orderData.shippingAddress,
       orderData.billingAddress,
     ]);
+
+    // Calculate declared value for insurance (bundles and high-value orders)
+    let declaredValue: number | null = null;
+    if (!isDigitalOnlyOrder) {
+      // Fetch product bundle status if we have product IDs
+      const cartProductIds = items
+        .filter(item => item.productId && item.isBook !== true)
+        .map(item => item.productId);
+
+      if (cartProductIds.length > 0) {
+        const productBundleInfo = await db.product.findMany({
+          where: { id: { in: cartProductIds } },
+          select: { id: true, isBundle: true },
+        });
+
+        // Fetch insurance threshold from admin settings
+        const { getInsuranceThreshold } = await import("@/lib/shipping/declared-value");
+        const insuranceThreshold = await getInsuranceThreshold();
+
+        const declaredValueResult = calculateDeclaredValue({
+          cartTotal: orderTotal,
+          items: items
+            .filter(item => item.productId && item.isBook !== true)
+            .map(item => ({
+              productId: item.productId,
+              price: item.price,
+              quantity: item.quantity,
+              isBundle: productBundleInfo.find(p => p.id === item.productId)?.isBundle || false,
+            })),
+          threshold: insuranceThreshold,
+        });
+
+        declaredValue = declaredValueResult.declaredValue;
+
+        if (declaredValue) {
+          console.log(
+            `[Order] Declared value set to ${declaredValue} RON (reason: ${declaredValueResult.reason})`
+          );
+        }
+      }
+    }
 
     if (isCODPayment) {
       const codThreshold = getCodThreshold(recipientType);
@@ -706,6 +748,7 @@ export async function POST(request: Request) {
             lockerId: orderData.lockerId || null,
             lockerAddressSnapshot: orderData.lockerAddressSnapshot || null,
             recipientType,
+            declaredValue,
             codAmount: isCODPayment ? codAmount : null,
             currency: "RON",
             status: "PROCESSING",
@@ -1032,7 +1075,7 @@ export async function POST(request: Request) {
       // - Netopia orders (processed via webhook after payment verification)
       // - Stripe orders (processed via webhook after payment verification)
       // - Any order with PENDING payment status
-      
+
       const stripeSucceeded = stripePaymentIntent?.status === "succeeded";
 
       if (stripeSucceeded) {

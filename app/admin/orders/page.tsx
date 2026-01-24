@@ -15,6 +15,7 @@ import {
   Save,
   X,
   Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect, useCallback } from "react";
@@ -69,6 +70,8 @@ type Order = {
   status: string;
   payment: string;
   items: number;
+  manualShippingReviewRequired?: boolean;
+  shippingReviewReason?: string | null;
 };
 
 type Pagination = {
@@ -387,6 +390,7 @@ export default function OrdersPage() {
                     <SelectItem value="processing">Processing</SelectItem>
                     <SelectItem value="shipped">Shipped</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="shipping_review">⚠️ Needs Shipping Review</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
@@ -466,6 +470,12 @@ export default function OrdersPage() {
                           >
                             {order.id}
                           </Link>
+                          {order.manualShippingReviewRequired && (
+                            <div className="mt-1 flex items-center gap-1 text-amber-600" title={order.shippingReviewReason || "Requires shipping review"}>
+                              <AlertTriangle className="h-3 w-3" />
+                              <span className="text-xs font-medium">Shipping Review</span>
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-4">{order.date}</td>
                         <td className="px-4 py-4">
@@ -660,7 +670,7 @@ export default function OrdersPage() {
                 statusUpdateModal.updating ||
                 !statusUpdateModal.newStatus ||
                 statusUpdateModal.newStatus ===
-                  statusUpdateModal.order?.status.toUpperCase()
+                statusUpdateModal.order?.status.toUpperCase()
               }
             >
               {statusUpdateModal.updating ? (

@@ -4,9 +4,8 @@ import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 
 import ConversionTrackingProvider from "@/components/conversion-tracking/ConversionTrackingProvider";
-import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
-import FacebookPixel from "@/components/analytics/FacebookPixel";
 import PerformanceMonitor from "@/components/analytics/PerformanceMonitor";
+import AnalyticsWrapper from "@/components/analytics/AnalyticsWrapper";
 import ClientLayout from "@/components/layout/ClientLayout";
 import { getStoreSettings } from "@/lib/utils/store-settings";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
@@ -76,10 +75,8 @@ export default async function RootLayout({
           crossOrigin="anonymous"
         />
 
-        {/* Google Analytics 4 */}
-        <GoogleAnalytics />
-        {/* Facebook Pixel for Romanian Viral Tracking */}
-        <FacebookPixel />
+        {/* Analytics Components (Client-only to avoid SSR issues) */}
+        <AnalyticsWrapper />
         {/* Performance Monitoring */}
         <PerformanceMonitor />
         {/* Organization Schema for Site-wide SEO */}

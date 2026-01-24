@@ -5,6 +5,10 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "@/features/cart";
 import { useCurrency } from "@/lib/currency";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
+import {
+  resolveShippingPrice,
+  checkFreeShipping,
+} from "@/lib/shipping/shipping-price-resolver";
 
 import { CheckoutData } from "../types";
 import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
@@ -46,9 +50,6 @@ export function usePricingBreakdown({
     loadCODSettings();
   }, []);
 
-  const deliveryPrice = settings?.shippingSettings?.deliveryPrice?.active
-    ? parseFloat(settings.shippingSettings.deliveryPrice.price || "0") || 0
-    : 0;
   // Calculate totals WITH DISCOUNT (prices are final, no VAT)
   const cartSubtotal = getCartTotal();
   const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
@@ -56,11 +57,20 @@ export function usePricingBreakdown({
   let shippingCost = 0;
 
   if (hasPhysicalItems) {
-    // Use the price from selected shipping method, or fallback to delivery price
-    const baseShippingPrice =
-      checkoutData.shippingMethod?.price ?? deliveryPrice;
-
-    shippingCost = baseShippingPrice;
+    // Check free shipping threshold first
+    if (checkFreeShipping(cartSubtotal, settings?.shippingSettings)) {
+      shippingCost = 0;
+    } else if (checkoutData.shippingMethod?.price !== undefined) {
+      // Use explicitly selected shipping method price (e.g., Sameday Easybox)
+      shippingCost = checkoutData.shippingMethod.price;
+    } else {
+      // Use payment-method-aware pricing (19.99 online / 24.99 ramburs)
+      const resolved = resolveShippingPrice(
+        checkoutData.paymentMethod || "card",
+        settings?.shippingSettings
+      );
+      shippingCost = resolved.price;
+    }
   }
 
   // Calculate tax based on taxSettings.active flag

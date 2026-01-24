@@ -80,6 +80,12 @@ interface StoreSettings {
       price: string;
       active: boolean;
     };
+    /** Online payment shipping price (card, bank transfer) */
+    onlinePaymentPrice?: string;
+    /** Ramburs (COD) shipping price - higher to cover handling */
+    rambursPrice?: string;
+    /** Insurance threshold - orders above this value get declared value */
+    insuranceThreshold?: string;
   } | null;
   codSettings: {
     percentage: string;
@@ -411,6 +417,9 @@ const defaultSettings: StoreSettings = {
       price: "199.00",
       active: true,
     },
+    onlinePaymentPrice: "19.99",
+    rambursPrice: "24.99",
+    insuranceThreshold: "500",
   },
   codSettings: {
     percentage: "3",
@@ -2010,6 +2019,147 @@ export default function SettingsPage() {
                       id="free-shipping-active"
                     />
                   </div>
+                </div>
+                <Separator />
+                {/* Payment-Aware Shipping Prices */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <h4 className="font-medium">Payment Method Pricing</h4>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">
+                            Payment Method Shipping Pricing
+                          </p>
+                          <p>
+                            Different shipping prices based on payment method.
+                            Ramburs (COD) orders are priced higher to cover
+                            cash handling costs and courier fees.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Set different shipping prices for online payments vs. cash on delivery (ramburs)
+                  </p>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="online-payment-price">
+                        Online Payment Price (RON)
+                      </Label>
+                      <Input
+                        id="online-payment-price"
+                        value={
+                          settings.shippingSettings?.onlinePaymentPrice || "19.99"
+                        }
+                        onChange={e =>
+                          setSettings(prev => ({
+                            ...prev,
+                            shippingSettings: {
+                              ...prev.shippingSettings!,
+                              onlinePaymentPrice: e.target.value,
+                            },
+                          }))
+                        }
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="19.99"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        For card, bank transfer payments
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="ramburs-price">
+                        Ramburs (COD) Price (RON)
+                      </Label>
+                      <Input
+                        id="ramburs-price"
+                        value={
+                          settings.shippingSettings?.rambursPrice || "24.99"
+                        }
+                        onChange={e =>
+                          setSettings(prev => ({
+                            ...prev,
+                            shippingSettings: {
+                              ...prev.shippingSettings!,
+                              rambursPrice: e.target.value,
+                            },
+                          }))
+                        }
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="24.99"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Cash on delivery - higher to cover handling
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <Separator />
+                {/* Insurance Threshold */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-muted-foreground" />
+                    <h4 className="font-medium">Insurance Threshold</h4>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">
+                            Declared Value Insurance
+                          </p>
+                          <p>
+                            Orders with a total value equal to or above this threshold
+                            will have a "declared value" sent to the courier. This provides
+                            insurance coverage if the package is lost or damaged.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Also triggers for:</strong> Any bundle in the order,
+                            or any single product priced at or above this threshold.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Orders above this amount will have declared value (insurance) when creating shipping labels
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-[150px]">
+                      <Label htmlFor="insurance-threshold" className="sr-only">
+                        Insurance Threshold (RON)
+                      </Label>
+                      <Input
+                        id="insurance-threshold"
+                        value={
+                          settings.shippingSettings?.insuranceThreshold || "500"
+                        }
+                        onChange={e =>
+                          setSettings(prev => ({
+                            ...prev,
+                            shippingSettings: {
+                              ...prev.shippingSettings!,
+                              insuranceThreshold: e.target.value,
+                            },
+                          }))
+                        }
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="500"
+                      />
+                    </div>
+                    <span className="text-sm text-muted-foreground">RON</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Example: If set to 500 RON, an order with 10 × 50 RON items (= 500 RON total) will be insured.
+                  </p>
                 </div>
               </div>
             </CardContent>

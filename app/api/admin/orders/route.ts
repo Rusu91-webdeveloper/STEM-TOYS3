@@ -33,6 +33,7 @@ export const GET = withRateLimit(
       // Build where clause for filtering
       const where: {
         status?: string;
+        manualShippingReviewRequired?: boolean;
         createdAt?: { gte: Date };
         OR?: Array<{
           orderNumber?: { contains: string; mode: "insensitive" };
@@ -46,7 +47,12 @@ export const GET = withRateLimit(
       } = {};
 
       if (filters.status && filters.status !== "all") {
-        where.status = String(filters.status).toUpperCase();
+        // Handle special shipping_review filter
+        if (filters.status === "shipping_review") {
+          where.manualShippingReviewRequired = true;
+        } else {
+          where.status = String(filters.status).toUpperCase();
+        }
       }
 
       if (filters.period && filters.period !== "all") {
@@ -143,6 +149,8 @@ export const GET = withRateLimit(
           status: formatStatus(order.status),
           payment: order.paymentMethod ?? "N/A",
           items: order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
+          manualShippingReviewRequired: order.manualShippingReviewRequired ?? false,
+          shippingReviewReason: order.shippingReviewReason ?? null,
         };
       });
 

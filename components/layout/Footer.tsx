@@ -111,9 +111,9 @@ export default function Footer({
     companyAddressParts.length > 0
       ? companyAddressParts.join(", ")
       : t(
-          "footerLegalAddress",
-          "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70"
-        );
+        "footerLegalAddress",
+        "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70"
+      );
 
   const socialLinks = [
     {
@@ -196,6 +196,7 @@ export default function Footer({
       items: [
         { label: t("contact"), href: "/contact" },
         { label: t("returns"), href: "/returns" },
+        { label: t("shipping", "Shipping"), href: "/shipping" },
         { label: t("delivery", "Delivery"), href: "/delivery" },
         { label: t("warrantyLink"), href: "/warranty" },
         {
@@ -249,24 +250,24 @@ export default function Footer({
     href?: string;
     icon: typeof Phone;
   }> = [
-    {
-      label: t("footerPhoneLabel", "Phone"),
-      value: resolvedPhone,
-      href: `tel:${resolvedPhone.replace(/[^\d+]/g, "")}`,
-      icon: Phone,
-    },
-    {
-      label: t("footerEmailLabel", "Email"),
-      value: resolvedEmail,
-      href: `mailto:${resolvedEmail}`,
-      icon: Mail,
-    },
-    {
-      label: t("footerAddressLabel", "Headquarters"),
-      value: companyAddress,
-      icon: MapPin,
-    },
-  ];
+      {
+        label: t("footerPhoneLabel", "Phone"),
+        value: resolvedPhone,
+        href: `tel:${resolvedPhone.replace(/[^\d+]/g, "")}`,
+        icon: Phone,
+      },
+      {
+        label: t("footerEmailLabel", "Email"),
+        value: resolvedEmail,
+        href: `mailto:${resolvedEmail}`,
+        icon: Mail,
+      },
+      {
+        label: t("footerAddressLabel", "Headquarters"),
+        value: companyAddress,
+        icon: MapPin,
+      },
+    ];
 
   const socialBaseClass =
     "group relative flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 sm:h-11 sm:w-11";
@@ -385,16 +386,14 @@ export default function Footer({
                       </h3>
                     </div>
                     <ChevronDown
-                      className={`h-4 w-4 text-gray-500 transition-transform lg:hidden ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
+                      className={`h-4 w-4 text-gray-500 transition-transform lg:hidden ${isOpen ? "rotate-180" : ""
+                        }`}
                     />
                   </button>
 
                   <ul
-                    className={`mt-2 space-y-1 overflow-hidden transition-all lg:block lg:h-auto lg:overflow-visible ${
-                      isOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0 lg:opacity-100"
-                    }`}
+                    className={`mt-2 space-y-1 overflow-hidden transition-all lg:block lg:h-auto lg:overflow-visible ${isOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0 lg:opacity-100"
+                      }`}
                   >
                     {section.items.map((item) => (
                       <li key={item.label}>
@@ -433,8 +432,8 @@ export default function Footer({
                     {item === "Privacy Policy"
                       ? t("privacyPolicy")
                       : item === "Terms of Service"
-                      ? t("termsOfService")
-                      : item}
+                        ? t("termsOfService")
+                        : item}
                   </Link>
                 ))}
               </div>

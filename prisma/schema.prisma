@@ -591,6 +591,10 @@ model Order {
   shippingCost          Float
   shippingBasePrice     Float               @default(0)
   shippingTotalEstimate Float               @default(0)
+  declaredValue         Float?              // Insurance declared value for shipment
+  manualShippingReviewRequired Boolean      @default(false) // Flag orders needing manual shipping review
+  shippingReviewReason  String?             // Reason for manual review (extra km, remote locality)
+  courierErrorMessage   String?             // Last courier API error message
   codFeeEstimate        Float?
   pricingVersion        String?
   discountAmount        Float                 @default(0)
@@ -647,6 +651,7 @@ model Shipment {
   courier     String
   awbNumber   String?
   status      String?
+  declaredValue Float?             // Declared value passed to courier for insurance
   payload     Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
