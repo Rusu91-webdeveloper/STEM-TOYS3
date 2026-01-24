@@ -5,8 +5,10 @@ import {
   Loader2,
   ShieldCheck,
   Sparkles,
-  Package,
-  CheckCircle2,
+  Banknote,
+  Check,
+  Smartphone,
+  Wallet,
 } from "lucide-react";
 import React, { useEffect, useMemo } from "react";
 
@@ -48,6 +50,7 @@ type PaymentMethodItem = {
   fee?: string;
   description?: string;
   badge?: string;
+  badgeVariant?: "recommended" | "popular" | "saved";
   color: string;
   borderColor: string;
   bgColor: string;
@@ -76,24 +79,27 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     switch (cardType.toLowerCase()) {
       case "visa":
         return (
-          <div className="bg-blue-500 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            VISA
+          <div className="flex h-6 items-center justify-center rounded bg-[#1A1F71] px-1.5">
+            <span className="text-[10px] font-bold italic text-white tracking-tight">VISA</span>
           </div>
         );
       case "mastercard":
         return (
-          <div className="bg-red-500 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            MC
+          <div className="flex h-6 w-8 items-center justify-center">
+            <div className="relative flex">
+              <div className="h-4 w-4 rounded-full bg-[#EB001B]" />
+              <div className="h-4 w-4 -ml-2 rounded-full bg-[#F79E1B] opacity-80" />
+            </div>
           </div>
         );
       case "amex":
         return (
-          <div className="bg-blue-700 text-white font-bold text-xs px-1.5 py-0.5 rounded">
-            AMEX
+          <div className="flex h-6 items-center justify-center rounded bg-[#006FCF] px-1">
+            <span className="text-[9px] font-bold text-white">AMEX</span>
           </div>
         );
       default:
-        return <CreditCard className="h-4 w-4 text-slate-200" />;
+        return <CreditCard className="h-5 w-5 text-slate-600" />;
     }
   };
 
@@ -124,15 +130,16 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
             name: `${card.cardType.toUpperCase()} •••• ${card.lastFourDigits}`,
             icon: getCardIcon(card.cardType),
             provider: "stripe",
-            fee: t("stripeSavedCardFee", "Inclus"),
+            fee: t("stripeSavedCardFee", "Fără taxe"),
             description: t(
               "stripeSavedCardDescription",
-              "Card salvat, plătești instant"
+              "Plată instant cu cardul salvat"
             ),
-            badge: t("stripeOnFile", "Card salvat"),
-            color: "indigo",
-            borderColor: "border-indigo-300/50",
-            bgColor: "bg-indigo-500/10",
+            badge: t("stripeOnFile", "Salvat"),
+            badgeVariant: "saved",
+            color: "violet",
+            borderColor: "border-violet-200",
+            bgColor: "bg-violet-50",
           });
         });
       }
@@ -140,8 +147,8 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       methods.push({
         id: "stripe_new",
         type: "new_card",
-        name: t("useNewCard", "Card nou (Stripe)"),
-        icon: <ShieldCheck className="h-5 w-5" />,
+        name: t("useNewCard", "Folosește un card nou"),
+        icon: <ShieldCheck className="h-6 w-6" />,
         provider: "stripe",
         fee: t("stripeFee", "0% taxe"),
         description: t(
@@ -149,9 +156,10 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
           "Visa, Mastercard, Apple Pay, Google Pay"
         ),
         badge: t("recommended", "Recomandat"),
-        color: "indigo",
-        borderColor: "border-indigo-300/50",
-        bgColor: "bg-indigo-500/10",
+        badgeVariant: "recommended",
+        color: "violet",
+        borderColor: "border-violet-200",
+        bgColor: "bg-violet-50",
       });
     }
 
@@ -162,37 +170,37 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
             id: "netopia_card",
             type: "netopia_card",
             name: "Card bancar",
-            icon: <CreditCard className="h-5 w-5" />,
+            icon: <CreditCard className="h-6 w-6" />,
             provider: "netopia",
             fee: "1.5%",
-            description: "Plată securizată cu card",
-            color: "sky",
-            borderColor: "border-sky-300/50",
-            bgColor: "bg-sky-500/10",
+            description: "Plată securizată cu card Visa sau Mastercard",
+            color: "blue",
+            borderColor: "border-blue-200",
+            bgColor: "bg-blue-50",
           },
           {
             id: "netopia_sms",
             type: "netopia_sms",
             name: "Plată prin SMS",
-            icon: <Sparkles className="h-5 w-5" />,
+            icon: <Smartphone className="h-6 w-6" />,
             provider: "netopia",
             fee: "2.0%",
-            description: "Primești SMS cu link",
-            color: "sky",
-            borderColor: "border-sky-300/50",
-            bgColor: "bg-sky-500/10",
+            description: "Primești SMS cu link securizat de plată",
+            color: "blue",
+            borderColor: "border-blue-200",
+            bgColor: "bg-blue-50",
           },
           {
             id: "netopia_wallet",
             type: "netopia_wallet",
             name: "Portofel mobilPay",
-            icon: <Sparkles className="h-5 w-5" />,
+            icon: <Wallet className="h-6 w-6" />,
             provider: "netopia",
             fee: "1.2%",
-            description: "Plată rapidă electronică",
-            color: "sky",
-            borderColor: "border-sky-300/50",
-            bgColor: "bg-sky-500/10",
+            description: "Plată rapidă din portofelul electronic",
+            color: "blue",
+            borderColor: "border-blue-200",
+            bgColor: "bg-blue-50",
           }
         );
       } else {
@@ -200,13 +208,13 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
           id: "netopia_card",
           type: "netopia_card",
           name: "Credit/Debit Card",
-          icon: <CreditCard className="h-5 w-5" />,
+          icon: <CreditCard className="h-6 w-6" />,
           provider: "netopia",
           fee: "1.5%",
-          description: "Secure card payment",
-          color: "sky",
-          borderColor: "border-sky-300/50",
-          bgColor: "bg-sky-500/10",
+          description: "Secure payment with Visa or Mastercard",
+          color: "blue",
+          borderColor: "border-blue-200",
+          bgColor: "bg-blue-50",
         });
       }
     }
@@ -218,14 +226,15 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
         id: "cash_on_delivery",
         type: "cash_on_delivery",
         name: "Ramburs",
-        icon: <Package className="h-5 w-5" />,
+        icon: <Banknote className="h-6 w-6" />,
         provider: "cod",
         fee: "3% + 5 RON",
-        description: "Plătești cash la livrare",
-        badge: t("codPopular", "Popular"),
-        color: "orange",
-        borderColor: "border-orange-300/50",
-        bgColor: "bg-orange-500/10",
+        description: "Plătești numerar la primirea coletului",
+        badge: t("codPopular", "Popular în România"),
+        badgeVariant: "popular",
+        color: "amber",
+        borderColor: "border-amber-200",
+        bgColor: "bg-amber-50",
       });
     }
 
@@ -258,138 +267,219 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
 
   if (isLoadingCards) {
     return (
-      <div className="flex items-center justify-center py-6">
-        <Loader2 className="h-8 w-8 animate-spin text-sky-300" />
+      <div className="flex items-center justify-center py-12">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+          <p className="text-sm text-slate-500">Se încarcă metodele de plată...</p>
+        </div>
       </div>
     );
   }
 
+  // Badge styling based on variant
+  const getBadgeStyles = (variant?: "recommended" | "popular" | "saved") => {
+    switch (variant) {
+      case "recommended":
+        return "bg-gradient-to-r from-violet-500 to-purple-500 text-white";
+      case "popular":
+        return "bg-gradient-to-r from-amber-500 to-orange-500 text-white";
+      case "saved":
+        return "bg-gradient-to-r from-emerald-500 to-teal-500 text-white";
+      default:
+        return "bg-slate-100 text-slate-600";
+    }
+  };
+
+  // Provider chip styling
+  const getProviderStyles = (provider: Provider) => {
+    switch (provider) {
+      case "stripe":
+        return {
+          bg: "bg-violet-100",
+          text: "text-violet-700",
+          icon: <ShieldCheck className="h-3.5 w-3.5" />,
+          label: "Stripe",
+        };
+      case "netopia":
+        return {
+          bg: "bg-blue-100",
+          text: "text-blue-700",
+          icon: <CreditCard className="h-3.5 w-3.5" />,
+          label: "Netopia",
+        };
+      case "cod":
+        return {
+          bg: "bg-amber-100",
+          text: "text-amber-700",
+          icon: <Banknote className="h-3.5 w-3.5" />,
+          label: "Ramburs",
+        };
+    }
+  };
+
+  // Color config for each payment method type
+  const getColorConfig = (color: string, isSelected: boolean) => {
+    const configs: Record<string, { icon: string; ring: string; bg: string; border: string; selectedBg: string }> = {
+      violet: {
+        icon: "text-violet-600",
+        ring: "ring-violet-500",
+        bg: "bg-violet-50",
+        border: "border-violet-200",
+        selectedBg: "bg-violet-50",
+      },
+      blue: {
+        icon: "text-blue-600",
+        ring: "ring-blue-500",
+        bg: "bg-blue-50",
+        border: "border-blue-200",
+        selectedBg: "bg-blue-50",
+      },
+      amber: {
+        icon: "text-amber-600",
+        ring: "ring-amber-500",
+        bg: "bg-amber-50",
+        border: "border-amber-200",
+        selectedBg: "bg-amber-50",
+      },
+    };
+    return configs[color] || configs.violet;
+  };
+
   return (
-    <div className="mb-6">
-      <Label className="mb-4 block text-base font-semibold text-slate-100">
-        {t("selectPaymentMethod", "Selectează metoda de plată")}
-      </Label>
+    <div className="space-y-4">
+      {/* Section Header */}
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25">
+          <CreditCard className="h-5 w-5 text-white" />
+        </div>
+        <div>
+          <Label className="block text-lg font-semibold text-slate-800">
+            {t("selectPaymentMethod", "Metodă de plată")}
+          </Label>
+          <p className="text-sm text-slate-500">
+            {t("paymentMethodSubtitle", "Alege cum dorești să plătești")}
+          </p>
+        </div>
+      </div>
+
+      {/* Payment Methods Grid */}
       <RadioGroup
         value={selectedPaymentMethod}
         onValueChange={onPaymentMethodChange}
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        className="grid gap-3"
       >
         {paymentMethods.map(method => {
           const isSelected = selectedPaymentMethod === method.id;
-          const colorClasses = {
-            indigo: {
-              icon: "text-indigo-400",
-              border: "border-indigo-300/50",
-              bg: "bg-indigo-500/10",
-              selectedBorder: "border-indigo-400 ring-indigo-400/50",
-              selectedBg: "bg-indigo-500/20",
-            },
-            sky: {
-              icon: "text-sky-400",
-              border: "border-sky-300/50",
-              bg: "bg-sky-500/10",
-              selectedBorder: "border-sky-400 ring-sky-400/50",
-              selectedBg: "bg-sky-500/20",
-            },
-            orange: {
-              icon: "text-orange-400",
-              border: "border-orange-300/50",
-              bg: "bg-orange-500/10",
-              selectedBorder: "border-orange-400 ring-orange-400/50",
-              selectedBg: "bg-orange-500/20",
-            },
-          };
-          const colors = colorClasses[method.color as keyof typeof colorClasses] || colorClasses.indigo;
+          const colorConfig = getColorConfig(method.color, isSelected);
+          const providerStyles = getProviderStyles(method.provider);
 
           return (
             <label
               key={method.id}
               htmlFor={`payment-${method.id}`}
               className={cn(
-                "relative flex cursor-pointer flex-col rounded-xl border p-5 transition-all duration-200",
-                "hover:scale-[1.02] hover:shadow-lg",
+                "group relative flex cursor-pointer rounded-2xl border-2 bg-white p-4 transition-all duration-200",
                 isSelected
-                  ? `${colors.selectedBorder} ${colors.selectedBg} ring-2 shadow-lg`
-                  : `${colors.border} ${colors.bg} border-white/10 hover:border-white/30`,
-                "backdrop-blur-sm"
+                  ? `${colorConfig.border} ${colorConfig.ring} ring-2 shadow-lg`
+                  : "border-slate-200 hover:border-slate-300 hover:shadow-md",
               )}
             >
-                <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className={cn("rounded-lg p-2.5", colors.bg)}>
-                    <div className={colors.icon}>{method.icon}</div>
+              {/* Selection indicator */}
+              <div className={cn(
+                "absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full transition-all duration-200",
+                isSelected
+                  ? "bg-gradient-to-br from-violet-500 to-purple-600 shadow-md"
+                  : "border-2 border-slate-300 bg-white"
+              )}>
+                {isSelected && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
+              </div>
+
+              {/* Hidden radio input */}
+              <RadioGroupItem
+                value={method.id}
+                id={`payment-${method.id}`}
+                className="sr-only"
+              />
+
+              {/* Card content */}
+              <div className="flex flex-1 items-start gap-4">
+                {/* Icon container */}
+                <div className={cn(
+                  "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl transition-colors",
+                  isSelected ? colorConfig.bg : "bg-slate-100 group-hover:bg-slate-50"
+                )}>
+                  <div className={cn(
+                    "transition-colors",
+                    isSelected ? colorConfig.icon : "text-slate-500 group-hover:text-slate-600"
+                  )}>
+                    {method.icon}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-slate-100">
-                        {method.name}
+                </div>
+
+                {/* Text content */}
+                <div className="min-w-0 flex-1 pr-8">
+                  {/* Method name + badge row */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-semibold text-slate-800">
+                      {method.name}
+                    </h3>
+                    {method.badge && (
+                      <span className={cn(
+                        "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
+                        getBadgeStyles(method.badgeVariant)
+                      )}>
+                        {method.badge}
                       </span>
-                      {method.badge && (
-                        <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
-                          {method.badge}
-                        </span>
-                      )}
-                    </div>
-                    {method.description && (
-                      <p className="mt-1 text-sm text-slate-300/80">
-                        {method.description}
-                      </p>
                     )}
-                      {/* Provider chip */}
-                      <div className="mt-2">
-                        {method.provider === "stripe" ? (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-indigo-300/40 bg-indigo-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-50">
-                            <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-                            {t("processedByStripe", "Procesat de Stripe")}
-                          </span>
-                        ) : method.provider === "netopia" ? (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-sky-300/40 bg-sky-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-sky-50">
-                            <CreditCard className="h-3.5 w-3.5" aria-hidden />
-                            {t("processedByNetopia", "Procesat de Netopia")}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-orange-300/40 bg-orange-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-orange-50">
-                            <Package className="h-3.5 w-3.5" aria-hidden />
-                            {t("cashOnDelivery", "Ramburs")}
-                          </span>
-                        )}
-                      </div>
-                    {method.type === "saved_card" && (
-                      <p className="mt-1 text-xs text-slate-400">
-                        {
-                          savedCards.find(card => card.id === method.id)
-                            ?.cardholderName
-                        }
-                      </p>
+                  </div>
+
+                  {/* Description */}
+                  {method.description && (
+                    <p className="mt-1 text-sm text-slate-500 line-clamp-2">
+                      {method.description}
+                    </p>
+                  )}
+
+                  {/* Saved card holder name */}
+                  {method.type === "saved_card" && (
+                    <p className="mt-1 text-xs text-slate-400">
+                      {savedCards.find(card => card.id === method.id)?.cardholderName}
+                    </p>
+                  )}
+
+                  {/* Footer: Provider + Fee */}
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {/* Provider chip */}
+                    <span className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
+                      providerStyles.bg,
+                      providerStyles.text
+                    )}>
+                      {providerStyles.icon}
+                      {providerStyles.label}
+                    </span>
+
+                    {/* Fee chip */}
+                    {method.fee && (
+                      <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                        {method.fee}
+                      </span>
                     )}
                   </div>
                 </div>
-                <RadioGroupItem
-                  value={method.id}
-                  id={`payment-${method.id}`}
-                  className="mt-0.5 border-white/40 text-sky-300 data-[state=checked]:border-sky-400"
-                />
-              </div>
-              
-              <div className="mt-4 flex items-center justify-between">
-                {method.fee && (
-                  <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-medium text-slate-200">
-                    {method.fee}
-                  </span>
-                )}
-                {isSelected && (
-                  <div className="flex items-center gap-1.5 text-emerald-400">
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span className="text-xs font-medium">
-                      {t("selected", "Selectat")}
-                    </span>
-                  </div>
-                )}
               </div>
             </label>
           );
         })}
       </RadioGroup>
+
+      {/* Security footer */}
+      <div className="flex items-center justify-center gap-2 rounded-xl bg-slate-50 px-4 py-3">
+        <ShieldCheck className="h-4 w-4 text-emerald-500" />
+        <p className="text-xs text-slate-500">
+          {t("securePayment", "Plățile tale sunt protejate și criptate end-to-end")}
+        </p>
+      </div>
     </div>
   );
 });

@@ -331,6 +331,8 @@ model Address {
   id               String  @id @default(cuid())
   userId           String
   name             String
+  companyName      String?
+  cui              String?
   fullName         String
   addressLine1     String
   addressLine2     String?
@@ -587,12 +589,22 @@ model Order {
   subtotal              Float
   tax                   Float
   shippingCost          Float
+  shippingBasePrice     Float               @default(0)
+  shippingTotalEstimate Float               @default(0)
+  codFeeEstimate        Float?
+  pricingVersion        String?
   discountAmount        Float                 @default(0)
   couponCode            String?
   couponId              String?
   status                OrderStatus           @default(PROCESSING)
   paymentStatus         PaymentStatus         @default(PENDING)
   paymentMethod         String
+  shippingMethod        String?
+  lockerId              String?
+  lockerAddressSnapshot Json?
+  recipientType         String?
+  codAmount             Float?
+  currency              String                @default("RON")
   notes                 String?
   shippingAddressId     String
   billingAddressId      String?
@@ -617,6 +629,7 @@ model Order {
   shippingAddress       Address               @relation(fields: [shippingAddressId], references: [id])
   user                  User                  @relation(fields: [userId], references: [id])
   items                 OrderItem[]
+  shipments             Shipment[]
   statusHistory         OrderStatusHistory[]
   returns               Return[]
   supplierOrders        SupplierOrder[]
@@ -626,6 +639,37 @@ model Order {
   @@index([paymentStatus])
   @@index([orderNumber])
   @@index([couponId])
+}
+
+model Shipment {
+  id          String   @id @default(cuid())
+  orderId     String
+  courier     String
+  awbNumber   String?
+  status      String?
+  payload     Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  awbEvents   AwbEvent[]
+
+  @@index([orderId])
+  @@index([courier])
+  @@index([awbNumber])
+}
+
+model AwbEvent {
+  id           String   @id @default(cuid())
+  shipmentId   String
+  eventType    String
+  requestJson  Json?
+  responseJson Json?
+  createdAt    DateTime @default(now())
+  shipment     Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@index([eventType])
+  @@index([createdAt])
 }
 
 model OrderItem {
