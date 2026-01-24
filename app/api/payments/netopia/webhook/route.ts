@@ -162,7 +162,34 @@ export async function POST(request: Request) {
           updatedOrder.paymentStatus === "PAID"
         ) {
           console.log("✅ [WEBHOOK] Payment successful and verified - processing order fulfillment");
-          
+
+          const hasPhysicalItems = updatedOrder.items.some(
+            item => item.isDigital !== true
+          );
+          if (hasPhysicalItems) {
+            try {
+              const { createAwbForOrder } = await import(
+                "@/lib/shipping/sameday-awb"
+              );
+              const awbResult = await createAwbForOrder(orderID);
+              if (awbResult.success) {
+                console.log(
+                  `✅ [WEBHOOK] AWB created for order ${orderID}: ${awbResult.awbNumber}`
+                );
+              } else {
+                console.warn(
+                  `⚠️ [WEBHOOK] AWB creation failed for order ${orderID}:`,
+                  awbResult.error
+                );
+              }
+            } catch (awbError) {
+              console.error(
+                `❌ [WEBHOOK] AWB creation error for order ${orderID}:`,
+                awbError
+              );
+            }
+          }
+
           // Check if order contains digital books
           const digitalItems = await db.orderItem.findMany({
             where: {
@@ -216,6 +243,11 @@ export async function POST(request: Request) {
                         price: item.price,
                       })),
                       shippingAddress: updatedOrder.shippingAddress || null,
+                      subtotal: updatedOrder.subtotal,
+                      tax: updatedOrder.tax,
+                      shippingCost: updatedOrder.shippingCost,
+                      discountAmount: updatedOrder.discountAmount ?? 0,
+                      codFee: updatedOrder.codFeeEstimate ?? 0,
                     }
                   );
 
@@ -262,6 +294,11 @@ export async function POST(request: Request) {
                         price: item.price,
                       })),
                       shippingAddress: updatedOrder.shippingAddress || null,
+                      subtotal: updatedOrder.subtotal,
+                      tax: updatedOrder.tax,
+                      shippingCost: updatedOrder.shippingCost,
+                      discountAmount: updatedOrder.discountAmount ?? 0,
+                      codFee: updatedOrder.codFeeEstimate ?? 0,
                     }
                   );
 

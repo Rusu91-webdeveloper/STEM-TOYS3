@@ -323,7 +323,8 @@ export class DatabaseTemplateService {
   }
 
   /**
-   * Send order confirmation email using database template
+   * Send order confirmation email using database template.
+   * Pass dynamic subtotal, tax, shipping, COD, discount so templates can show a full breakdown.
    */
   static async sendOrderConfirmationEmail(
     to: string,
@@ -333,28 +334,61 @@ export class DatabaseTemplateService {
       orderTotal: number;
       items: Array<{ name: string; quantity: number; price: number }>;
       shippingAddress: any;
+      subtotal?: number;
+      tax?: number;
+      shippingCost?: number;
+      discountAmount?: number;
+      codFee?: number;
+      taxRatePercentage?: string;
     }
   ): Promise<{ success: boolean; error?: string; messageId?: string }> {
+    const fmt = (n: number) =>
+      new Intl.NumberFormat("ro-RO", { minimumFractionDigits: 2 }).format(n);
+    const order = {
+      number: orderData.orderNumber,
+      total: orderData.orderTotal.toFixed(2) + " RON",
+      subtotal:
+        orderData.subtotal != null ? fmt(orderData.subtotal) + " RON" : undefined,
+      tax: orderData.tax != null ? fmt(orderData.tax) + " RON" : undefined,
+      shippingCost:
+        orderData.shippingCost != null
+          ? fmt(orderData.shippingCost) + " RON"
+          : undefined,
+      discountAmount:
+        orderData.discountAmount != null && orderData.discountAmount > 0
+          ? fmt(orderData.discountAmount) + " RON"
+          : undefined,
+      codFee:
+        orderData.codFee != null && orderData.codFee > 0
+          ? fmt(orderData.codFee) + " RON"
+          : undefined,
+      taxRatePercentage: orderData.taxRatePercentage ?? undefined,
+    };
+
     return this.sendEmailWithTemplate({
       to,
       templateSlug: "order-confirmation",
       data: {
-        // Use simple variables instead of nested properties
-        orderNumber: orderData.orderNumber, // Instead of order.id
+        orderNumber: orderData.orderNumber,
         orderTotal: orderData.orderTotal.toFixed(2) + " RON",
-        // Also provide nested structure for templates using dot-notation
-        order: {
-          number: orderData.orderNumber,
-          total: orderData.orderTotal.toFixed(2) + " RON",
-        },
+        order,
         items: orderData.items.map(item => ({
           name: item.name,
           quantity: item.quantity,
-          price: item.price.toFixed(2) + " RON",
+          price:
+            typeof item.price === "number"
+              ? item.price.toFixed(2) + " RON"
+              : String(item.price),
         })),
         customerName: orderData.customerName,
         orderDate: new Date().toLocaleDateString("ro-RO"),
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+        subtotal: order.subtotal,
+        tax: order.tax,
+        shippingCost: order.shippingCost,
+        discountAmount: order.discountAmount,
+        codFee: order.codFee,
+        taxRatePercentage: order.taxRatePercentage,
       },
     });
   }

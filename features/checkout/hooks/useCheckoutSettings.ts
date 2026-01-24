@@ -27,7 +27,7 @@ interface UseCheckoutSettingsReturn {
 // Cache for settings to avoid repeated API calls
 let settingsCache: CheckoutSettings | null = null;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 1 * 60 * 1000; // 1 minute so admin changes appear quickly
 
 // Track pending requests to prevent duplicate calls
 let pendingRequest: Promise<CheckoutSettings> | null = null;

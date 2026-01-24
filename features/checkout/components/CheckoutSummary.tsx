@@ -9,7 +9,7 @@ import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 
-import { fetchShippingSettings, fetchTaxSettings } from "../lib/checkoutApi";
+import { fetchCODSettings, fetchTaxSettings } from "../lib/checkoutApi";
 
 interface TaxSettings {
   rate: string;
@@ -39,17 +39,8 @@ export function CheckoutSummary({
   const { cartItems, getCartTotal, isLoading } = useCart();
   const { formatPrice } = useCurrency();
   const { t } = useTranslation();
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState<
-    number | null
-  >(null);
-  const [deliveryPrice, setDeliveryPrice] = useState<number>(15.00);
   const [codConfig, setCodConfig] = useState<{ percentage: number; fixedFee: number } | null>(null);
-  const [isFreeShippingActive, setIsFreeShippingActive] = useState(false);
-  const [taxSettings, setTaxSettings] = useState<TaxSettings>({
-    rate: "21",
-    active: true,
-    includeInPrice: false,
-  });
+  const [taxSettings, setTaxSettings] = useState<TaxSettings | null>(null);
 
   // **COUPON STATE** - Local coupon management for checkout summary
   const [localAppliedCoupon, setLocalAppliedCoupon] = useState(appliedCoupon);
@@ -65,44 +56,33 @@ export function CheckoutSummary({
     }
   }, [appliedCoupon]);
 
-  // Fetch free shipping threshold and tax settings
+  // Fetch tax and COD settings (dynamic from admin)
   useEffect(() => {
+    let isActive = true;
+
     async function loadSettings() {
       try {
-        // Load shipping settings
-        const shippingSettings = await fetchShippingSettings();
-        if (shippingSettings.deliveryPrice?.active) {
-          setDeliveryPrice(
-            parseFloat(shippingSettings.deliveryPrice.price || "15.00")
-          );
-        }
-        if (shippingSettings.freeThreshold?.active) {
-          setFreeShippingThreshold(
-            parseFloat(shippingSettings.freeThreshold.price)
-          );
-          setIsFreeShippingActive(true);
-        } else {
-          setFreeShippingThreshold(null);
-          setIsFreeShippingActive(false);
-        }
-
-        // Load tax settings
-        try {
-          const taxSettings = await fetchTaxSettings();
-          setTaxSettings(taxSettings);
-        } catch (taxError) {
-          console.error("Error loading tax settings:", taxError);
-          // Keep default tax settings
+        const [tax, cod] = await Promise.all([
+          fetchTaxSettings(),
+          fetchCODSettings().catch(() => null),
+        ]);
+        if (!isActive) return;
+        setTaxSettings(tax);
+        if (cod?.active) {
+          setCodConfig({
+            percentage: parseFloat(cod.percentage || "0") / 100,
+            fixedFee: parseFloat(cod.fixedFee || "0") || 0,
+          });
         }
       } catch (error) {
-        console.error("Error loading settings:", error);
-        // Don't enable free shipping by default if there's an error
-        setFreeShippingThreshold(null);
-        setIsFreeShippingActive(false);
+        console.error("Error loading checkout settings:", error);
       }
     }
 
     loadSettings();
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   // **COUPON HANDLERS**
@@ -160,15 +140,8 @@ export function CheckoutSummary({
     tax = 0;
   }
 
-  // Calculate shipping: free if >= threshold, otherwise use delivery price from settings
-  const cartSubtotal = cartTotalIncludingVAT;
-  // Use state variable with fallback to 199 if not loaded yet
-  const threshold = freeShippingThreshold ?? 199;
-  let finalShippingCost = hasPhysicalItems
-    ? cartSubtotal >= threshold
-      ? 0
-      : deliveryPrice
-    : 0;
+  // Use provided shipping cost (tariff-based)
+  const finalShippingCost = hasPhysicalItems ? shippingCost : 0;
 
   // **CALCULATE FINAL TOTAL WITH DISCOUNT**
   const totalBeforeDiscount = isTaxEnabled && !includeInPrice
@@ -191,27 +164,6 @@ export function CheckoutSummary({
   const total = baseTotal + codFee;
 
   // Calculate how much more needed for free shipping
-  const renderFreeShippingMessage = () => {
-    if (!hasPhysicalItems) return null;
-
-    // Use state variable with fallback to 199 if not loaded yet
-    const threshold = freeShippingThreshold ?? 199;
-    const freeShippingRemaining = Math.max(0, threshold - cartSubtotal);
-
-    if (freeShippingRemaining === 0) {
-      return (
-        <div className="mt-2 rounded-md bg-emerald-500/10 p-2 text-sm text-emerald-200">
-          🎉 Ai accesat transportul gratuit!
-        </div>
-      );
-    }
-    
-    return (
-      <div className="mt-2 rounded-md bg-sky-500/10 p-2 text-sm text-sky-200">
-        Adaugă {formatPrice(freeShippingRemaining)} pentru transport gratuit
-      </div>
-    );
-  };
 
   if (isLoading) {
     return (
@@ -371,7 +323,6 @@ export function CheckoutSummary({
           </div>
         )}
 
-        {renderFreeShippingMessage()}
 
         <div className="flex justify-between border-t border-white/10 pt-2 text-base font-semibold sm:text-lg">
           <span className="text-slate-100">{t("total", "Total")}</span>

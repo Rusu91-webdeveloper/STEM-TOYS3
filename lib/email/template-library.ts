@@ -232,9 +232,39 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                     </div>
                 </div>
                 <div style="border-top: 1px solid #e5e7eb; padding-top: 15px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                    {{#if order.subtotal}}
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="color: #374151;">Subtotal:</span>
+                        <span style="color: #1f2937;">{{order.subtotal}}</span>
+                    </div>
+                    {{/if}}
+                    {{#if order.shippingCost}}
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="color: #374151;">Transport:</span>
+                        <span style="color: #1f2937;">{{order.shippingCost}}</span>
+                    </div>
+                    {{/if}}
+                    {{#if order.tax}}
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="color: #374151;">TVA{{#if order.taxRatePercentage}} ({{order.taxRatePercentage}}%){{/if}}:</span>
+                        <span style="color: #1f2937;">{{order.tax}}</span>
+                    </div>
+                    {{/if}}
+                    {{#if order.discountAmount}}
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="color: #374151;">Reducere:</span>
+                        <span style="color: #16a34a;">-{{order.discountAmount}}</span>
+                    </div>
+                    {{/if}}
+                    {{#if order.codFee}}
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="color: #374151;">Taxă ramburs:</span>
+                        <span style="color: #1f2937;">{{order.codFee}}</span>
+                    </div>
+                    {{/if}}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #e5e7eb; margin-top: 8px;">
                         <strong style="color: #1f2937; font-size: 18px;">Total:</strong>
-                        <span style="color: #1f2937; font-size: 20px; font-weight: 700;">{{order.total}} RON</span>
+                        <span style="color: #1f2937; font-size: 20px; font-weight: 700;">{{order.total}}</span>
                     </div>
                 </div>
             </div>

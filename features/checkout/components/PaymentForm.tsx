@@ -6,6 +6,11 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/features/cart";
 import { useTranslation } from "@/lib/i18n";
+import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
+import {
+  getCodThreshold,
+  getRecipientType,
+} from "@/lib/shipping/cod-thresholds";
 
 import {
   PaymentDetails,
@@ -20,6 +25,7 @@ import { PaymentSummary } from "./PaymentSummary";
 import { StripePaymentForm } from "./StripePaymentForm";
 import { StripeProvider } from "./StripeProvider";
 import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
+import { fetchCODSettings } from "../lib/checkoutApi";
 
 interface PaymentCard {
   id: string;
@@ -88,6 +94,10 @@ export function PaymentForm({
   const [userLocation, setUserLocation] = useState<string>("");
   const [userLocale, setUserLocale] = useState<string>("");
   const { settings } = useCheckoutSettings();
+  const [codConfig, setCodConfig] = useState<{
+    percentage: number;
+    fixedFee: number;
+  } | null>(null);
   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(
     null
   );
@@ -106,6 +116,33 @@ export function PaymentForm({
     () => selectedPaymentMethod.startsWith("netopia_"),
     [selectedPaymentMethod]
   );
+  const recipientType = useMemo(() => {
+    const billing = useSameAddress ? shippingAddress : currentBillingAddress;
+    return getRecipientType([shippingAddress, billing]);
+  }, [shippingAddress, currentBillingAddress, useSameAddress]);
+  const codThreshold = useMemo(
+    () => getCodThreshold(recipientType),
+    [recipientType]
+  );
+  const codTotals = useMemo(() => {
+    if (selectedPaymentMethod !== "cash_on_delivery") return null;
+    const baseTotal = Math.max(0, totalAmount);
+    try {
+      const fee = calculateCODFee(baseTotal, codConfig || undefined).fee;
+      return {
+        baseTotal,
+        fee,
+        total: Math.round((baseTotal + fee) * 100) / 100,
+      };
+    } catch (error) {
+      console.error("Error calculating COD total:", error);
+      return { baseTotal, fee: 0, total: baseTotal };
+    }
+  }, [selectedPaymentMethod, totalAmount, codConfig]);
+  const isCodLimitExceeded =
+    selectedPaymentMethod === "cash_on_delivery" &&
+    codTotals !== null &&
+    codTotals.total > codThreshold;
 
   useEffect(() => {
     function calculateTotal() {
@@ -115,18 +152,17 @@ export function PaymentForm({
         const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
 
         const deliveryPrice = settings?.shippingSettings?.deliveryPrice?.active
-          ? parseFloat(settings.shippingSettings.deliveryPrice.price || "15.00")
-          : 15.00;
-        const freeShippingThreshold = parseFloat(
-          settings?.shippingSettings?.freeThreshold?.price ?? "199"
-        );
-        const freeShippingActive =
-          settings?.shippingSettings?.freeThreshold?.active !== false;
+          ? parseFloat(settings.shippingSettings.deliveryPrice.price || "0") || 0
+          : 0;
 
-        // Simple shipping calculation: free if >= threshold, otherwise use delivery price
+        const baseShippingPrice =
+          shippingMethod?.price !== undefined && shippingMethod.price >= 0
+            ? shippingMethod.price
+            : deliveryPrice;
+
         let shippingCost = 0;
         if (hasPhysicalItems) {
-          shippingCost = subtotal >= freeShippingThreshold ? 0 : deliveryPrice;
+          shippingCost = baseShippingPrice;
         }
 
         const taxRate = settings?.taxSettings?.active
@@ -156,10 +192,36 @@ export function PaymentForm({
       }
     }
 
-    if (settings) {
-      calculateTotal();
-    }
+    calculateTotal();
   }, [cartItems, discountAmount, getCartTotal, settings, shippingMethod]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadCodSettings = async () => {
+      try {
+        const codSettings = await fetchCODSettings();
+        if (!isActive) return;
+        setCodConfig({
+          percentage: parseFloat(codSettings.percentage || "3") / 100,
+          fixedFee: parseFloat(codSettings.fixedFee || "5.00"),
+        });
+      } catch (error) {
+        console.error("Error loading COD settings:", error);
+        if (!isActive) return;
+        setCodConfig({
+          percentage: 0.03,
+          fixedFee: 5.0,
+        });
+      }
+    };
+
+    loadCodSettings();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   useEffect(() => {
     const fetchPaymentCards = async () => {
@@ -412,6 +474,22 @@ export function PaymentForm({
   };
 
   const handleContinue = () => {
+    if (isCodLimitExceeded) {
+      setPaymentError(
+        t(
+          "codLimitExceeded",
+          "Plata ramburs este disponibilă până la {threshold} RON pentru {recipientType}. Redu valoarea coșului sau alege altă metodă de plată.",
+          {
+            threshold: codThreshold.toFixed(2),
+            recipientType:
+              recipientType === "B2B"
+                ? t("recipientCompany", "companie")
+                : t("recipientIndividual", "persoană fizică"),
+          }
+        )
+      );
+      return;
+    }
     if (isNetopia) {
       if (showBillingForm && !currentBillingAddress) {
         setPaymentError(
@@ -534,7 +612,24 @@ export function PaymentForm({
           totalAmount={totalAmount}
           getCartTotal={getCartTotal}
           shippingCost={calculatedShippingCost}
+          codConfig={codConfig}
         />
+
+        {selectedPaymentMethod === "cash_on_delivery" && isCodLimitExceeded && (
+          <div className="my-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {t(
+              "codLimitExceededInline",
+              "Plata ramburs depășește limita de {threshold} RON pentru {recipientType}. Alege altă metodă de plată sau ajustează coșul.",
+              {
+                threshold: codThreshold.toFixed(2),
+                recipientType:
+                  recipientType === "B2B"
+                    ? t("recipientCompany", "companie")
+                    : t("recipientIndividual", "persoană fizică"),
+              }
+            )}
+          </div>
+        )}
 
         {stripeEnabled && selectedPaymentMethod === "stripe_new" && (
           <div className="my-6 space-y-4">
@@ -616,7 +711,7 @@ export function PaymentForm({
           <Button
             onClick={handleContinue}
             className="text-sm sm:text-base"
-            disabled={!selectedPaymentMethod}
+            disabled={!selectedPaymentMethod || isCodLimitExceeded}
           >
             {t("continueToReview", "Continuă la verificare")}
           </Button>

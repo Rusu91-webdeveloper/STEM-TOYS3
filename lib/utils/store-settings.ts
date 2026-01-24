@@ -1,10 +1,27 @@
 import { prisma } from "@/lib/prisma";
-import { getCached } from "@/lib/cache";
+import { getCached, invalidateCache, CacheKeys } from "@/lib/cache";
 
 // **PERFORMANCE**: Cache store settings at module level to avoid repeated database calls
 let cachedStoreSettings: any = null;
 let settingsLastFetched = 0;
 const SETTINGS_CACHE_DURATION = 60 * 60 * 1000; // 1 hour cache for store settings
+
+/**
+ * Invalidate all store-settings–related caches. Call this when admin updates
+ * shipping, tax, or COD settings so checkout and emails use fresh values.
+ */
+export async function invalidateStoreSettingsCache(): Promise<void> {
+  cachedStoreSettings = null;
+  settingsLastFetched = 0;
+  try {
+    await invalidateCache("store_settings_v1");
+    await invalidateCache(CacheKeys.product("shipping-settings"));
+    await invalidateCache(CacheKeys.product("tax-settings"));
+    await invalidateCache(CacheKeys.product("cod-settings"));
+  } catch (err) {
+    console.error("Error invalidating store settings cache:", err);
+  }
+}
 
 /**
  * Get store settings from the database with aggressive caching

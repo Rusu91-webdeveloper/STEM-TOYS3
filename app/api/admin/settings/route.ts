@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { invalidateStoreSettingsCache } from "@/lib/utils/store-settings";
 
 // GET - Retrieve current store settings
 export async function GET(req: NextRequest) {
@@ -105,6 +106,9 @@ export async function PUT(req: NextRequest) {
       where: { id: settings.id },
       data: updateData,
     });
+
+    // Invalidate store settings caches so checkout and emails use fresh shipping/tax/COD
+    await invalidateStoreSettingsCache();
 
     // Extract codSettings from paymentSettings JSON field for frontend compatibility
     const paymentSettings = (updatedSettings.paymentSettings as Record<string, any>) || {};

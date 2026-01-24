@@ -25,48 +25,30 @@ export function usePricingBreakdown({
   const { settings, isLoading: settingsLoading } = useCheckoutSettings();
   const [codConfig, setCodConfig] = useState<{ percentage: number; fixedFee: number } | null>(null);
 
-  // Fetch COD settings
+  // Fetch COD settings (dynamic from admin)
   useEffect(() => {
     async function loadCODSettings() {
       try {
         const codSettings = await fetchCODSettings();
         if (codSettings?.active) {
           setCodConfig({
-            percentage: parseFloat(codSettings.percentage || "3") / 100,
-            fixedFee: parseFloat(codSettings.fixedFee || "5.00"),
+            percentage: parseFloat(codSettings.percentage || "0") / 100,
+            fixedFee: parseFloat(codSettings.fixedFee || "0") || 0,
           });
         } else {
-          // Default config if COD is not active
-          setCodConfig({
-            percentage: 0.03,
-            fixedFee: 5.00,
-          });
+          setCodConfig(null);
         }
       } catch (error) {
         console.error("Error loading COD settings:", error);
-        // Default config on error
-        setCodConfig({
-          percentage: 0.03,
-          fixedFee: 5.00,
-        });
+        setCodConfig(null);
       }
     }
     loadCODSettings();
   }, []);
 
-  // Extract settings with defaults
-  // No VAT calculation - prices are final (non-VAT registered SRL)
   const deliveryPrice = settings?.shippingSettings?.deliveryPrice?.active
-    ? parseFloat(settings.shippingSettings.deliveryPrice.price || "15.00")
-    : 15.00;
-  const freeShippingThreshold = settings?.shippingSettings?.freeThreshold
-    ?.active
-    ? parseFloat(settings.shippingSettings.freeThreshold.price)
-    : 199; // Updated to 199 lei
-
-  const isFreeShippingActive =
-    settings?.shippingSettings?.freeThreshold?.active !== false;
-
+    ? parseFloat(settings.shippingSettings.deliveryPrice.price || "0") || 0
+    : 0;
   // Calculate totals WITH DISCOUNT (prices are final, no VAT)
   const cartSubtotal = getCartTotal();
   const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
@@ -79,16 +61,6 @@ export function usePricingBreakdown({
       checkoutData.shippingMethod?.price ?? deliveryPrice;
 
     shippingCost = baseShippingPrice;
-  }
-
-  // Apply free shipping if threshold is met (applies to both home and easybox)
-  if (
-    isFreeShippingActive &&
-    freeShippingThreshold !== null &&
-    cartSubtotal >= freeShippingThreshold &&
-    hasPhysicalItems
-  ) {
-    shippingCost = 0;
   }
 
   // Calculate tax based on taxSettings.active flag

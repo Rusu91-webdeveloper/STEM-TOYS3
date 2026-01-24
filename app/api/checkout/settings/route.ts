@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getServerSession } from "@/lib/auth/server";
 import {
   getShippingSettings,
   getTaxSettings,
@@ -8,12 +7,7 @@ import {
 
 export async function GET(_request: NextRequest) {
   try {
-    const session = await getServerSession();
-
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    // Public endpoint: checkout pricing (shipping, tax) is not sensitive
     const taxSettings = await getTaxSettings();
     const shippingSettings = await getShippingSettings();
 

@@ -217,6 +217,31 @@ async function handleSuccessfulPayment(
       }
     }
 
+    const hasPhysicalItems = order.items.some(item => item.isDigital !== true);
+    if (hasPhysicalItems) {
+      try {
+        const { createAwbForOrder } = await import(
+          "@/lib/shipping/sameday-awb"
+        );
+        const awbResult = await createAwbForOrder(order.id);
+        if (awbResult.success) {
+          console.log(
+            `✅ [STRIPE][WEBHOOK] AWB created for order ${order.id}: ${awbResult.awbNumber}`
+          );
+        } else {
+          console.warn(
+            `⚠️ [STRIPE][WEBHOOK] AWB creation failed for order ${order.id}:`,
+            awbResult.error
+          );
+        }
+      } catch (awbError) {
+        console.error(
+          `❌ [STRIPE][WEBHOOK] AWB creation error for order ${order.id}:`,
+          awbError
+        );
+      }
+    }
+
     // Send confirmation email for all orders (both digital and physical)
     // Digital orders get delivery email from processDigitalBookOrder,
     // but we also send confirmation email for consistency
@@ -245,6 +270,11 @@ async function handleSuccessfulPayment(
                 price: item.price,
               })),
               shippingAddress: order.shippingAddress || null,
+              subtotal: order.subtotal,
+              tax: order.tax,
+              shippingCost: order.shippingCost,
+              discountAmount: order.discountAmount ?? 0,
+              codFee: order.codFeeEstimate ?? 0,
             }
           );
 
