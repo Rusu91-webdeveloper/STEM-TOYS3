@@ -57,15 +57,15 @@ export function ProductHeader({
     : "0.0";
 
   return (
-    <div className="space-y-4 text-slate-100">
+    <div className="space-y-4 text-slate-900">
       {/* Title and Action Buttons */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1 min-w-0">
           <h1
             className={
               size === "sm"
-                ? "text-2xl font-bold leading-tight text-slate-100 sm:text-3xl"
-                : "text-3xl font-bold leading-tight text-slate-100 xl:text-4xl"
+                ? "text-2xl font-bold leading-tight text-slate-900 sm:text-3xl"
+                : "text-3xl font-bold leading-tight text-slate-900 xl:text-4xl"
             }
           >
             {name}
@@ -101,8 +101,8 @@ export function ProductHeader({
           <span
             className={
               size === "sm"
-                ? "text-3xl font-semibold text-emerald-300 sm:text-4xl"
-                : "text-4xl font-semibold text-emerald-300 xl:text-5xl"
+                ? "text-3xl font-bold text-slate-900 sm:text-4xl"
+                : "text-4xl font-bold text-slate-900 xl:text-5xl"
             }
           >
             {formatPrice(price)}
@@ -111,8 +111,8 @@ export function ProductHeader({
             <span
               className={
                 size === "sm"
-                  ? "text-sm sm:text-base text-slate-300/80 line-through"
-                  : "text-base xl:text-lg text-slate-300/80 line-through"
+                  ? "text-sm sm:text-base text-slate-400 line-through font-medium"
+                  : "text-base xl:text-lg text-slate-400 line-through font-medium"
               }
             >
               {formatPrice(compareAtPrice)}
@@ -132,28 +132,31 @@ export function ProductHeader({
         <div className="flex flex-wrap items-center gap-2">
           {hasDiscount && (
             <Badge
-              variant="destructive"
-              className="border-none text-xs shadow-lg shadow-red-500/30"
+              className="border-none bg-rose-500 hover:bg-rose-600 text-white shadow-sm px-3 py-1 font-bold tracking-wide"
             >
               {discountPercentage}% {t("off", "reducere")}
             </Badge>
           )}
-          <Badge
-            variant="secondary"
-            className="border-white/20 bg-white/10 text-xs text-slate-100 shadow-lg shadow-indigo-500/20 hover:bg-white/20"
-          >
-            {totalSold} {t("sold", "vândute")}
-          </Badge>
+          {totalSold > 0 && (
+            <Badge
+              variant="secondary"
+              className="bg-slate-100 text-slate-700 border border-slate-200 shadow-sm"
+            >
+              {totalSold} {t("sold", "vândute")}
+            </Badge>
+          )}
         </div>
         <div
-          className={`${size === "sm" ? "text-xs" : "text-sm"} text-slate-300`}
+          className={`${size === "sm" ? "text-xs" : "text-sm"} font-medium`}
         >
           {stockQuantity > 0 ? (
-            <span className="text-emerald-300">
-              {t("inStock", "În stoc")} ({stockQuantity})
+            <span className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              {t("inStock", "În stoc")}
             </span>
           ) : (
-            <span className="text-rose-300">
+            <span className="flex items-center gap-1.5 text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
               {t("outOfStock", "Stoc epuizat")}
             </span>
           )}
@@ -176,30 +179,28 @@ function RatingBadge({
 }) {
   return (
     <div
-      className={`flex w-full flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-900/40 px-3 py-2 text-slate-50 backdrop-blur-sm shadow-inner shadow-black/30 transition sm:w-auto sm:flex-nowrap sm:justify-start`}
+      className={`flex w-full flex-wrap items-center justify-between gap-1.5 rounded-full border border-slate-100 bg-white px-3 py-1.5 text-slate-900 shadow-sm transition sm:w-auto sm:flex-nowrap sm:justify-start`}
     >
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         {[...Array(5)].map((_, i) => (
           <Star
             key={i}
-            className={`${size === "sm" ? "h-3 w-3" : "h-4 w-4"} ${
-              i < Math.round(averageRating)
-                ? "text-yellow-400 fill-current drop-shadow"
-                : "text-gray-400"
-            }`}
+            className={`${size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4"} ${i < Math.round(averageRating)
+                ? "text-amber-400 fill-current"
+                : "text-slate-200 fill-slate-200"
+              }`}
           />
         ))}
       </div>
-      <div className="flex items-baseline gap-2">
+      <div className="flex items-baseline gap-1.5 ml-1">
         <span
-          className={`font-semibold ${
-            size === "sm" ? "text-sm" : "text-base"
-          } text-white`}
+          className={`font-bold ${size === "sm" ? "text-sm" : "text-base"
+            } text-slate-900`}
         >
           {displayRating}
         </span>
         <span
-          className={`${size === "sm" ? "text-xs" : "text-sm"} text-slate-200`}
+          className={`${size === "sm" ? "text-xs" : "text-sm"} text-slate-500 font-medium`}
         >
           ({reviewCount})
         </span>

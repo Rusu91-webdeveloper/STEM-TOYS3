@@ -131,6 +131,21 @@ export async function fetchShippingSettings() {
   }
 }
 
+export async function fetchShippingQuotes() {
+  try {
+    const response = await fetch("/api/checkout/shipping-quote");
+    if (!response.ok) {
+      throw new Error(
+        `Error fetching shipping quotes: ${response.statusText}`
+      );
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch shipping quotes:", error);
+    return null;
+  }
+}
+
 export async function fetchTaxSettings() {
   try {
     const response = await fetch("/api/checkout/tax-settings");

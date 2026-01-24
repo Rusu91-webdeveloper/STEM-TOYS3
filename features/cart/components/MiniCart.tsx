@@ -18,6 +18,8 @@ import {
 } from "@/features/home/components/homeTheme";
 import { cn } from "@/lib/utils";
 
+import { fetchShippingSettings } from "@/features/checkout/lib/checkoutApi";
+
 import { BulkCartOperations } from "./BulkCartOperations";
 
 interface MiniCartProps {
@@ -49,9 +51,47 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
   const itemsContainerRef = useRef<HTMLDivElement>(null);
   const [isClient, setIsClient] = useState(false);
 
+  // Dynamic shipping: delivery price and free threshold from admin settings
+  const [deliveryPrice, setDeliveryPrice] = useState<number>(0);
+  const [freeThreshold, setFreeThreshold] = useState<number | null>(null);
+
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let isActive = true;
+
+    async function loadShippingSettings() {
+      try {
+        const settings = await fetchShippingSettings();
+        if (!isActive) return;
+        const delivery = settings?.deliveryPrice;
+        const free = settings?.freeThreshold;
+        setDeliveryPrice(
+          delivery?.active && delivery?.price
+            ? parseFloat(String(delivery.price)) || 0
+            : 0
+        );
+        setFreeThreshold(
+          free?.active && free?.price
+            ? parseFloat(String(free.price)) || null
+            : null
+        );
+      } catch (e) {
+        if (isActive) {
+          setDeliveryPrice(0);
+          setFreeThreshold(null);
+        }
+      }
+    }
+
+    loadShippingSettings();
+    return () => {
+      isActive = false;
+    };
+  }, [isOpen]);
 
   // Prevent body scroll when mini cart is open
   useEffect(() => {
@@ -395,21 +435,25 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                   <div
                     className={`${glassPanelClass} flex-shrink-0 space-y-4 border-white/10 p-4 text-slate-100 shadow-lg`}
                   >
-                    {/* Shipping breakdown */}
+                    {/* Shipping breakdown – delivery & threshold from admin settings */}
                     {(() => {
                       const cartSubtotal = getCartTotal();
                       const hasPhysicalItems = items.some(item => !item.isBook);
-                      const freeShippingThreshold = 199;
+                      const threshold = freeThreshold ?? 0;
                       const shipping = hasPhysicalItems
-                        ? cartSubtotal >= freeShippingThreshold
+                        ? threshold > 0 && cartSubtotal >= threshold
                           ? 0
-                          : 15
+                          : deliveryPrice
                         : 0;
                       const total = cartSubtotal + shipping;
-                      const freeShippingRemaining = Math.max(
-                        0,
-                        freeShippingThreshold - cartSubtotal
-                      );
+                      const freeShippingRemaining =
+                        hasPhysicalItems &&
+                        threshold > 0 &&
+                        cartSubtotal < threshold
+                          ? Math.max(0, threshold - cartSubtotal)
+                          : 0;
+                      const showFreeShippingMessage =
+                        hasPhysicalItems && threshold > 0;
 
                       return (
                         <>
@@ -426,7 +470,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                           {/* Shipping */}
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-slate-300">
-                              {t("shipping", "Shipping")}
+                              {t("shipping", "Livrare")}
                             </span>
                             <span className="font-semibold text-slate-200">
                               {shipping === 0 ? (
@@ -437,13 +481,13 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                             </span>
                           </div>
 
-                          {/* Free shipping progress message */}
-                          {hasPhysicalItems && (
+                          {/* Free shipping progress message – only when threshold from admin */}
+                          {showFreeShippingMessage && (
                             <div className="rounded-md bg-sky-500/10 p-2 text-xs text-sky-200">
                               {freeShippingRemaining > 0 ? (
                                 <span>
                                   Adaugă {formatPrice(freeShippingRemaining)}{" "}
-                                  pentru transport gratuit
+                                  {t("moreForFreeShipping", "pentru transport gratuit")}
                                 </span>
                               ) : (
                                 <span className="text-emerald-300">

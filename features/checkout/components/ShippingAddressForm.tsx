@@ -28,6 +28,8 @@ import { ShippingAddress } from "../types";
 interface Address {
   id: string;
   name: string;
+  companyName?: string;
+  cui?: string;
   fullName: string;
   addressLine1: string;
   addressLine2?: string;
@@ -112,6 +114,8 @@ export function ShippingAddressForm({
     : romanianAddressValidator;
   const [formData, setFormData] = useState<ShippingAddress>(
     initialData || {
+      companyName: "",
+      cui: "",
       fullName: "",
       addressLine1: "",
       addressLine2: "",
@@ -147,6 +151,8 @@ export function ShippingAddressForm({
           if (defaultAddress && !initialData) {
             setSelectedAddressId(defaultAddress.id);
             const shippingAddress: ShippingAddress = {
+              companyName: defaultAddress.companyName || "",
+              cui: defaultAddress.cui || "",
               fullName: defaultAddress.fullName,
               addressLine1: defaultAddress.addressLine1,
               addressLine2: defaultAddress.addressLine2 || "",
@@ -212,6 +218,8 @@ export function ShippingAddressForm({
     if (addressId === "new") {
       // Reset form for new address
       setFormData({
+        companyName: "",
+        cui: "",
         fullName: "",
         addressLine1: "",
         addressLine2: "",
@@ -228,6 +236,8 @@ export function ShippingAddressForm({
       );
       if (selectedAddress) {
         const shippingAddress: ShippingAddress = {
+          companyName: selectedAddress.companyName || "",
+          cui: selectedAddress.cui || "",
           fullName: selectedAddress.fullName,
           addressLine1: selectedAddress.addressLine1,
           addressLine2: selectedAddress.addressLine2 || "",
@@ -301,6 +311,10 @@ export function ShippingAddressForm({
                       </Label>
                       <div className="mt-1 space-y-0.5 text-sm text-slate-300">
                         <div>{address.fullName}</div>
+                        {address.companyName && (
+                          <div>{address.companyName}</div>
+                        )}
+                        {address.cui && <div>CUI: {address.cui}</div>}
                         <div>{address.addressLine1}</div>
                         {address.addressLine2 && (
                           <div>{address.addressLine2}</div>
@@ -346,6 +360,48 @@ export function ShippingAddressForm({
               {errors.fullName && (
                 <p className="mt-1 text-sm text-red-400">{errors.fullName}</p>
               )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="companyName" className="text-slate-200">
+                  {t("companyNameOptional", "Company name (optional)")}
+                </Label>
+                <Input
+                  id="companyName"
+                  name="companyName"
+                  value={formData.companyName || ""}
+                  onChange={handleChange}
+                  className={cn(
+                    "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                    errors.companyName && "border-red-500"
+                  )}
+                />
+                {errors.companyName && (
+                  <p className="mt-1 text-sm text-red-400">
+                    {errors.companyName}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="cui" className="text-slate-200">
+                  {t("cuiOptional", "CUI/VAT (optional)")}
+                </Label>
+                <Input
+                  id="cui"
+                  name="cui"
+                  value={formData.cui || ""}
+                  onChange={handleChange}
+                  className={cn(
+                    "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                    errors.cui && "border-red-500"
+                  )}
+                />
+                {errors.cui && (
+                  <p className="mt-1 text-sm text-red-400">{errors.cui}</p>
+                )}
+              </div>
             </div>
 
             <div>

@@ -1,45 +1,51 @@
 import {
-  glassCardClass,
-  glassPanelClass,
-  homeBackgroundClass,
-  homeContentWrapperClass,
-  homeOverlayBottomClass,
-  homeOverlayTopClass,
-  subtleDividerClass,
-} from "@/features/home/components/homeTheme";
+  productsGlassCardClass,
+  productsGlassPanelClass,
+  productsBackgroundClass,
+  productsOverlayTopClass,
+  productsOverlayBottomClass,
+  productsMutedDividerClass,
+  productsAccentPillClass,
+} from "./productsTheme";
 
-export const productBackgroundClass = `${homeBackgroundClass} text-slate-100`;
+// Re-export common theme constants to ensure consistency
+export {
+  productsBackgroundClass as productBackgroundClass,
+  productsOverlayTopClass as productOverlayTopClass,
+  productsOverlayBottomClass as productOverlayBottomClass,
+  productsGlassPanelClass,
+  productsGlassCardClass
+};
 
-export const productOverlayTopClass = homeOverlayTopClass;
+export const productContentWrapperClass = "relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12";
 
-export const productOverlayBottomClass = homeOverlayBottomClass;
-
-export const productContentWrapperClass = `${homeContentWrapperClass} py-8 sm:py-10 lg:py-16`;
-
-export const productPrimaryPanelClass = `${glassPanelClass} mx-auto w-full max-w-6xl border-white/15 bg-slate-950/70 px-4 py-6 shadow-black/40 sm:px-6 lg:px-10 lg:py-10`;
+// Primary panel (Main product details) - Clean white card
+export const productPrimaryPanelClass = "bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-8 lg:p-10";
 
 export const productHeroGridClass =
-  "grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:gap-12";
+  "grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] xl:gap-16 items-start";
 
-export const productSecondaryPanelClass = `${glassPanelClass} mx-auto w-full max-w-6xl border-white/12 bg-slate-950/60 px-4 py-6 shadow-black/30 sm:px-6 lg:px-10 lg:py-10`;
+// Secondary panel (Reviews etc) - Clean white card
+export const productSecondaryPanelClass = "bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-8 lg:p-10 mt-8";
 
-export const productSectionCardClass = `${glassCardClass} border-white/15 bg-slate-900/70 p-4 sm:p-6`;
+// Sub-cards (Specs, Features)
+export const productSectionCardClass = "bg-slate-50/50 rounded-xl border border-slate-100 p-5 sm:p-6";
 
-export const productSectionStackClass =
-  "grid gap-5 lg:grid-cols-2 xl:gap-8 mt-8";
+export const productSectionStackClass = "grid gap-6 lg:grid-cols-2 xl:gap-8 mt-10";
 
-export const productSubSectionCardClass = `${glassCardClass} border-white/15 bg-slate-900/60 p-4 sm:p-6`;
+// Smaller sub-cards
+export const productSubSectionCardClass = "bg-white rounded-xl border border-slate-100 p-4 sm:p-6 shadow-sm";
 
 export const productTitleClass =
-  "text-base font-semibold tracking-tight text-slate-100 sm:text-lg";
+  "text-lg font-bold tracking-tight text-slate-900 sm:text-xl";
 
-export const productMutedTextClass = "text-sm text-slate-300";
+export const productMutedTextClass = "text-sm text-slate-500";
 
-export const productBodyTextClass = "text-sm leading-relaxed text-slate-200";
+export const productBodyTextClass = "text-sm leading-relaxed text-slate-600";
 
-export const productDividerClass = subtleDividerClass;
+export const productDividerClass = productsMutedDividerClass;
 
-export const productAccentPillClass =
-  "inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-400/90 via-indigo-400/90 to-purple-400/90 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white shadow-lg shadow-indigo-900/40";
+export const productAccentPillClass = productsAccentPillClass;
+
 
 

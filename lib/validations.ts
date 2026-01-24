@@ -1,6 +1,14 @@
 import { z } from "zod";
 
 // Common validation schemas that can be reused across the application
+const optionalNonEmptyString = (message: string) =>
+  z.preprocess(
+    value =>
+      typeof value === "string" && value.trim().length === 0
+        ? undefined
+        : value,
+    z.string().min(2, message).optional()
+  );
 
 // User validation schemas
 export const userSchema = z.object({
@@ -23,6 +31,10 @@ export const loginSchema = z.object({
 
 // Address validation schemas
 export const addressSchema = z.object({
+  companyName: optionalNonEmptyString(
+    "Company name must be at least 2 characters"
+  ),
+  cui: optionalNonEmptyString("CUI must be at least 2 characters"),
   fullName: z.string().min(2, "Full name is required"),
   addressLine1: z.string().min(5, "Address line 1 is required"),
   addressLine2: z.string().optional(),
@@ -41,6 +53,10 @@ export const addressSchema = z.object({
 });
 
 export const internationalAddressSchema = z.object({
+  companyName: optionalNonEmptyString(
+    "Company name must be at least 2 characters"
+  ),
+  cui: optionalNonEmptyString("CUI must be at least 2 characters"),
   fullName: z.string().min(2, "Full name is required"),
   addressLine1: z.string().min(5, "Address line 1 is required"),
   addressLine2: z.string().optional(),

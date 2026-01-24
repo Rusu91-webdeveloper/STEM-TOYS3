@@ -74,6 +74,48 @@ design.
 - 📝 **Rich Text Editor**: TinyMCE integration for content management
 - 🎨 **Modern UI**: Beautiful, accessible design with Shadcn/UI components
 
+## 🚚 Sameday Shipping & COD (Romania)
+
+- ✅ **COD guardrails**: B2C/B2B thresholds enforced in UI + server; recipient type inferred from company fields
+- 📦 **Easybox-first flow**: Easybox preselected when eligible (<= 20kg); locker selection required
+- 🧮 **Pricing calculator**: Tariff-based quotes with volumetric weight and configurable surcharges
+- 🧾 **Order persistence**: Pricing breakdown and COD metadata stored on orders for auditability
+- 🧭 **AWB automation**: Server-side validation + auto-create on payment webhooks, with admin manual fallback
+
+### Configuration (see `env.example` for full list)
+
+```env
+# COD thresholds
+COD_MAX_B2C=10000
+COD_MAX_B2B=5000
+NEXT_PUBLIC_COD_MAX_B2C=10000
+NEXT_PUBLIC_COD_MAX_B2B=5000
+
+# Shipping pricing
+SHIPPING_PRICING_VERSION=sameday-2025-10-05
+SHIPPING_EASYBOX_BASE_PRICE=19
+SHIPPING_HOME_BASE_PRICE=25
+SHIPPING_ADDITIONAL_KG_PRICE=2.5
+SHIPPING_FUEL_INDEX_PERCENT=0
+SHIPPING_EXTRA_RETEA_FEE=8.39
+SHIPPING_ATIPIC_FEE=50
+SHIPPING_APPLY_FUEL_INDEX=false
+SHIPPING_APPLY_EXTRA_RETEA=false
+SHIPPING_APPLY_ATIPIC_FEE=false
+
+# Sameday integration
+SAMEDAY_USERNAME=your-sameday-username
+SAMEDAY_PASSWORD=your-sameday-password
+SAMEDAY_BASE_URL=https://api.sameday.ro
+SAMEDAY_TOKEN_HEADER=X-AUTH-TOKEN
+SAMEDAY_CREATE_AWB_PATH=/api/awb
+SAMEDAY_PICKUP_POINTS_PATH=/api/pickup-points
+SAMEDAY_SERVICES_PATH=/api/services
+SAMEDAY_COUNTIES_PATH=/api/counties
+SAMEDAY_CITIES_PATH=/api/cities
+SAMEDAY_REFERENCE_TTL_MINUTES=1440
+```
+
 ## 🛠️ Tech Stack
 
 ### Frontend

@@ -116,6 +116,8 @@ export function AddressForm({
     resolver: zodResolver(extendedAddressSchema) as any,
     defaultValues: {
       name: initialData?.name || "",
+      companyName: initialData?.companyName || "",
+      cui: initialData?.cui || "",
       fullName: initialData?.fullName || "",
       addressLine1: initialData?.addressLine1 || "",
       addressLine2: initialData?.addressLine2 || "",
@@ -215,6 +217,34 @@ export function AddressForm({
             className={inputClasses(!!errors.fullName)}
           />
           {renderError(errors.fullName?.message)}
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="companyName" className="text-sm font-medium text-slate-200">
+              Denumire firmă (opțional)
+            </Label>
+            <Input
+              id="companyName"
+              placeholder="TechTots SRL"
+              {...register("companyName")}
+              className={inputClasses(!!errors.companyName)}
+            />
+            {renderError(errors.companyName?.message)}
+          </div>
+
+          <div>
+            <Label htmlFor="cui" className="text-sm font-medium text-slate-200">
+              CUI/VAT (opțional)
+            </Label>
+            <Input
+              id="cui"
+              placeholder="RO12345678"
+              {...register("cui")}
+              className={inputClasses(!!errors.cui)}
+            />
+            {renderError(errors.cui?.message)}
+          </div>
         </div>
 
         <div>

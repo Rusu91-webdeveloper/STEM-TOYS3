@@ -14,6 +14,7 @@ interface PaymentSummaryProps {
   totalAmount: number;
   getCartTotal: () => number;
   shippingCost?: number;
+  codConfig?: { percentage: number; fixedFee: number } | null;
 }
 
 export const PaymentSummary = React.memo(function PaymentSummary({
@@ -25,6 +26,7 @@ export const PaymentSummary = React.memo(function PaymentSummary({
   totalAmount,
   getCartTotal,
   shippingCost = 0,
+  codConfig = null,
 }: PaymentSummaryProps) {
   const { t } = useTranslation();
   const isNetopia = selectedPaymentMethod.startsWith("netopia_");
@@ -32,18 +34,21 @@ export const PaymentSummary = React.memo(function PaymentSummary({
   const isStripeSavedCard =
     !isNetopia && !isCOD && !useNewCard && selectedPaymentMethod !== "new";
   const isStripeNewCard = !isNetopia && !isCOD && useNewCard;
+  const codPercentageLabel = codConfig?.percentage
+    ? Math.round(codConfig.percentage * 10000) / 100
+    : 3;
 
   // Calculate COD fee if COD is selected
   const codFeeResult = useMemo(() => {
     if (!isCOD) return null;
     const orderTotal = getCartTotal() + shippingCost - discountAmount;
     try {
-      return calculateCODFee(orderTotal);
+      return calculateCODFee(orderTotal, codConfig || undefined);
     } catch (error) {
       console.error("Error calculating COD fee:", error);
       return null;
     }
-  }, [isCOD, getCartTotal, shippingCost, discountAmount]);
+  }, [isCOD, getCartTotal, shippingCost, discountAmount, codConfig]);
 
   return (
     <>
@@ -138,7 +143,7 @@ export const PaymentSummary = React.memo(function PaymentSummary({
               <div>
                 <span className="font-medium">{t("feeBreakdown", "Structură taxă")}:</span>{" "}
                 <span>
-                  3% ({codFeeResult.breakdown.percentageFee.toFixed(2)} RON) +{" "}
+                  {codPercentageLabel}% ({codFeeResult.breakdown.percentageFee.toFixed(2)} RON) +{" "}
                   {codFeeResult.breakdown.fixedFee.toFixed(2)} RON {t("fixed", "fix")}
                 </span>
               </div>

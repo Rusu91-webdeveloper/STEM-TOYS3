@@ -60,6 +60,15 @@ type OrderItem = {
   } | null;
 };
 
+type ShipmentSummary = {
+  id: string;
+  courier: string;
+  awbNumber: string | null;
+  status: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 type OrderDetails = {
   id: string;
   orderNumber: string;
@@ -87,6 +96,7 @@ type OrderDetails = {
     phone?: string;
   };
   items: OrderItem[];
+  shipments?: ShipmentSummary[];
   supplierOrders?: SupplierOrder[];
 };
 
@@ -157,7 +167,7 @@ export default function OrderDetailsPage() {
   const [creatingSupplierOrder, setCreatingSupplierOrder] = useState(false);
   const [editingTracking, setEditingTracking] = useState<string | null>(null);
   const [trackingInput, setTrackingInput] = useState("");
-  const [awbInput, setAwbInput] = useState("");
+  const [creatingAwb, setCreatingAwb] = useState(false);
 
   const orderId = params.id as string;
 
@@ -261,6 +271,45 @@ export default function OrderDetailsPage() {
     }
   };
 
+  const createAwb = async () => {
+    if (!order) return;
+
+    setCreatingAwb(true);
+    try {
+      const response = await fetch("/api/shipping/sameday/create-awb", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || data?.message || "Failed to create AWB");
+      }
+
+      toast({
+        title: "AWB created",
+        description: data?.awbNumber
+          ? `AWB ${data.awbNumber} created successfully.`
+          : "AWB created successfully.",
+      });
+
+      await fetchOrderDetails();
+    } catch (error) {
+      console.error("Error creating AWB:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create AWB. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingAwb(false);
+    }
+  };
+
   // Update order status
   const updateOrderStatus = async () => {
     if (!order || !newStatus || newStatus === order.status) return;
@@ -355,6 +404,11 @@ export default function OrderDetailsPage() {
       </div>
     );
   }
+
+  const samedayShipment = order.shipments?.find(
+    shipment => shipment.courier === "SAMEDAY"
+  );
+  const hasPhysicalItems = order.items.some(item => item.isDigital !== true);
 
   return (
     <div className="space-y-6">
@@ -585,6 +639,46 @@ export default function OrderDetailsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Sameday Shipment */}
+          {hasPhysicalItems && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Truck className="h-5 w-5" />
+                  Sameday Shipment
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span>AWB:</span>
+                  <span className="font-medium">
+                    {samedayShipment?.awbNumber || "Not created"}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Status:</span>
+                  <span className="font-medium">
+                    {samedayShipment?.status || "Pending"}
+                  </span>
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    onClick={createAwb}
+                    size="sm"
+                    disabled={creatingAwb || Boolean(samedayShipment?.awbNumber)}
+                  >
+                    {creatingAwb ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Package className="h-4 w-4 mr-2" />
+                    )}
+                    {samedayShipment?.awbNumber ? "AWB Created" : "Create AWB"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Order Summary */}
           <Card>

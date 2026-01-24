@@ -67,6 +67,9 @@ export async function GET(
           },
         },
         shippingAddress: true,
+        shipments: {
+          orderBy: { createdAt: "desc" },
+        },
         supplierOrders: {
           include: {
             supplier: {
@@ -117,6 +120,14 @@ export async function GET(
       couponCode: order.couponCode,
       total: order.total,
       shippingAddress: order.shippingAddress,
+      shipments: order.shipments.map(shipment => ({
+        id: shipment.id,
+        courier: shipment.courier,
+        awbNumber: shipment.awbNumber,
+        status: shipment.status,
+        createdAt: formatDateSafe(shipment.createdAt),
+        updatedAt: formatDateSafe(shipment.updatedAt),
+      })),
       items: order.items.map(item => ({
         id: item.id,
         name:

@@ -3,8 +3,10 @@ services:
     image: postgres:15-alpine
     environment:
       POSTGRES_PASSWORD: Admin1234!
+      POSTGRES_USER: postgres
+      POSTGRES_DB: stemtoys_dev
     ports:
-      - '5433:5432'
+      - '5434:5432'
 
   app:
     build:

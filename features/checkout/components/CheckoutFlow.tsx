@@ -60,20 +60,11 @@ export function CheckoutFlow() {
       return 0;
     }
 
-    const cartSubtotal = getCartTotal();
-    const freeShippingThreshold = settings?.shippingSettings?.freeThreshold?.active
-      ? parseFloat(settings.shippingSettings.freeThreshold.price)
-      : 199;
-    
-    // Get delivery price from settings
     const deliveryPrice = settings?.shippingSettings?.deliveryPrice?.active
       ? parseFloat(settings.shippingSettings.deliveryPrice.price || "15.00")
-      : 15.00;
-    
-    // Simple calculation: free shipping if >= threshold, otherwise use delivery price
-    const shipping = cartSubtotal >= freeShippingThreshold ? 0 : deliveryPrice;
-    
-    return shipping;
+      : 15.0;
+
+    return checkoutData.shippingMethod?.price ?? deliveryPrice;
   };
 
   const updateCheckoutData = (data: Partial<CheckoutData>) => {

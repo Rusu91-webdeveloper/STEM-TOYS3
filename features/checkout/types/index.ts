@@ -6,6 +6,8 @@ export type CheckoutStep =
   | "review";
 
 export interface ShippingAddress {
+  companyName?: string;
+  cui?: string;
   fullName: string;
   addressLine1: string;
   addressLine2?: string;
