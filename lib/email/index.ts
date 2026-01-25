@@ -39,6 +39,13 @@ export {
 // Export all coupon templates
 export { sendCouponEmail } from "./coupon-templates";
 
+// Export all return templates
+export {
+  sendReturnApprovedEmail,
+  sendReturnRejectedEmail,
+  sendBulkReturnApprovedEmail,
+} from "./return-templates";
+
 // Export base utilities for custom templates
 export {
   getStoreSettings,

@@ -1,22 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
-import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 import { db } from "@/lib/db";
 import { generateReturnLabel } from "@/lib/return-label";
+import { sendBulkReturnApprovedEmail } from "@/lib/email/return-templates";
 
 // Increase timeout for this route (Vercel)
 export const maxDuration = 60; // 60 seconds
-
-// Return reason display labels
-const reasonLabelsRo = {
-  DOES_NOT_MEET_EXPECTATIONS: "Nu îndeplinește așteptările",
-  DAMAGED_OR_DEFECTIVE: "Deteriorat sau defect",
-  WRONG_ITEM_SHIPPED: "Produs greșit expediat",
-  CHANGED_MIND: "M-am răzgândit",
-  ORDERED_WRONG_PRODUCT: "Am comandat produsul greșit",
-  OTHER: "Alt motiv",
-};
 
 export async function POST(request: Request) {
   try {
@@ -155,7 +145,7 @@ export async function POST(request: Request) {
     // This runs in background after we return the response
     console.log(`📧 Queueing emails for ${processedOrders.length} orders...`);
     
-    sendBulkApprovalEmailsAsync(returnsByOrder, reasonLabelsRo).catch(err => {
+    sendBulkApprovalEmailsAsync(returnsByOrder).catch(err => {
       console.error("❌ Background bulk email sending failed:", err);
     });
 
@@ -179,10 +169,7 @@ export async function POST(request: Request) {
 }
 
 // Async helper function to send bulk approval emails - runs in background
-async function sendBulkApprovalEmailsAsync(
-  returnsByOrder: Record<string, any[]>,
-  reasonLabelsRo: Record<string, string>
-) {
+async function sendBulkApprovalEmailsAsync(returnsByOrder: Record<string, any[]>) {
   console.log(`📧 Background: Starting bulk email processing...`);
   
   for (const [orderId, orderReturns] of Object.entries(returnsByOrder)) {
@@ -220,127 +207,39 @@ async function sendBulkApprovalEmailsAsync(
         language: "ro",
       });
 
+      console.log(`✅ Background: PDF generated for order ${order.orderNumber}`);
+
       const orderDate = new Date(order.createdAt).toLocaleDateString("ro-RO", {
         year: "numeric",
         month: "long",
         day: "numeric",
       });
 
-      const itemsList = orderReturns
-        .map(
-          (returnItem: any) =>
-            `<tr style="border-bottom: 1px solid #e5e7eb;">
-          <td style="padding: 8px 0;">${returnItem.orderItem.name}</td>
-          <td style="padding: 8px 0; text-align: center;">${returnItem.orderItem.quantity}</td>
-          <td style="padding: 8px 0;">${reasonLabelsRo[returnItem.reason as keyof typeof reasonLabelsRo] || returnItem.reason}</td>
-        </tr>`
-        )
-        .join("");
-
-      const emailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333333;">
-          <div style="background-color: #4f46e5; padding: 20px; text-align: center;">
-            <h1 style="color: white; margin: 0;">TechTots</h1>
-            <p style="color: white; margin: 5px 0 0 0;">Magazin de Jucării STEM</p>
-          </div>
-          
-          <div style="padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
-            <h2 style="color: #4f46e5; margin-top: 0;">Solicitările de returnare au fost aprobate - Comanda #${order.orderNumber}</h2>
-            
-            <p style="font-size: 16px;">Salut ${customer.name || "Client"},</p>
-            
-            <p>Ne pare rău să aflăm că doriți să returnați aceste produse din comanda dumneavoastră. Am aprobat toate solicitările de returnare și am atașat o singură etichetă de returnare pentru toate articolele.</p>
-            
-            <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin: 20px 0;">
-              <h3 style="margin-top: 0;">Detalii Returnare:</h3>
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Număr Comandă:</strong></td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${order.orderNumber}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Data Comenzii:</strong></td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${orderDate}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Numărul total de articole returnate:</strong></td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${orderReturns.length}</td>
-                </tr>
-              </table>
-            </div>
-
-            <h3>Articole pentru returnare:</h3>
-            <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin: 10px 0;">
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr style="border-bottom: 2px solid #e5e7eb; font-weight: bold;">
-                  <td style="padding: 8px 0;">Produs</td>
-                  <td style="padding: 8px 0; text-align: center;">Cantitate</td>
-                  <td style="padding: 8px 0;">Motiv</td>
-                </tr>
-                ${itemsList}
-              </table>
-            </div>
-            
-            <h3>Instrucțiuni pentru Returnare:</h3>
-            <ol style="line-height: 1.6;">
-              <li><strong>Printați eticheta de returnare atașată acestui email.</strong></li>
-              <li><strong>Împachetați TOATE produsele în același pachet</strong> (folosiți ambalajul original dacă este posibil).</li>
-              <li>Atașați eticheta de returnare pe pachet.</li>
-              <li>Duceți pachetul la orice oficiu poștal sau punct de curierat.</li>
-              <li>Păstrați dovada de expediere până la procesarea returnării.</li>
-            </ol>
-
-            <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 15px; margin: 20px 0;">
-              <p style="margin: 0; color: #92400e; font-weight: bold;">⚠️ Important:</p>
-              <p style="margin: 5px 0 0 0; color: #92400e;">Toate articolele trebuie să fie returnate într-un singur pachet folosind eticheta atașată. Nu folosiți etichete separate pentru fiecare articol.</p>
-            </div>
-            
-            <p style="margin-top: 20px; color: #b91c1c; font-weight: bold;">Aveți la dispoziție 14 zile de la aprobarea acestei returnări pentru a expedia pachetul.</p>
-            
-            <p>Veți primi o confirmare email când vom procesa returnarea și ramburarea dumneavoastră.</p>
-            
-            <p style="margin-top: 30px;">Dacă aveți întrebări despre procesul de returnare, vă rugăm să ne contactați la support@techtots.com.</p>
-            
-            <p>Mulțumim că ați ales TechTots!</p>
-          </div>
-          
-          <div style="background-color: #f3f4f6; padding: 20px; text-align: center; font-size: 12px; color: #6b7280;">
-            <p style="margin: 0;">© ${new Date().getFullYear()} TechTots STEM Store. Toate drepturile rezervate.</p>
-            <p style="margin: 5px 0 0 0;">Mehedinti 54-56, Bl D5, sc 2, apt 70, Cluj-Napoca, Cluj, România</p>
-            <p style="margin: 15px 0 0 0;">
-              <a href="https://techtots.com/terms" style="color: #4f46e5; text-decoration: none; margin: 0 10px;">Termeni și Condiții</a> | 
-              <a href="https://techtots.com/privacy" style="color: #4f46e5; text-decoration: none; margin: 0 10px;">Politica de Confidențialitate</a>
-            </p>
-          </div>
-        </div>
-      `;
-
       const pdfBase64 = pdfBuffer.toString("base64");
 
       console.log(`📧 Background: Sending email to ${customer.email}...`);
 
-      await sendEmailViaUnifiedSystem({
+      // Use the proper email template via UnifiedEmailService
+      const result = await sendBulkReturnApprovedEmail({
         to: customer.email,
-        subject: `TechTots - Returnare aprobată pentru ${orderReturns.length} articol(e) - Comanda #${order.orderNumber}`,
-        html: emailHtml,
-        attachments: [
-          {
-            filename: `TechTots_Eticheta_Returnare_Bulk_${order.orderNumber}.pdf`,
-            content: pdfBase64,
-            encoding: "base64",
-            contentType: "application/pdf",
-          },
-        ],
+        customerName: customer.name || "Client",
+        orderNumber: order.orderNumber,
+        orderDate,
+        items: orderReturns.map((r: any) => ({
+          productName: r.orderItem.name,
+          quantity: r.orderItem.quantity,
+          reason: r.reason,
+        })),
+        pdfBase64,
       });
 
-      console.log(
-        `✅ Background: Email sent to ${customer.email} for order ${order.orderNumber}`
-      );
+      if (result.success) {
+        console.log(`✅ Background: Email sent to ${customer.email} for order ${order.orderNumber}`);
+      } else {
+        console.error(`❌ Background: Email failed for ${customer.email}:`, result.error);
+      }
     } catch (emailError) {
-      console.error(
-        `❌ Background: Error sending email for order ${orderId}:`,
-        emailError
-      );
+      console.error(`❌ Background: Error sending email for order ${orderId}:`, emailError);
       // Continue processing other orders even if one fails
     }
   }
