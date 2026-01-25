@@ -75,6 +75,7 @@ export async function getOrders() {
           image,
           hasReviewed: typedItem.reviews && typedItem.reviews.length > 0,
           isDigital: typedItem.isDigital,
+          returnStatus: typedItem.returnStatus || "NONE",
           type: isBook ? "book" : "product",
           ...(isBook && {
             author: typedItem.book!.author,

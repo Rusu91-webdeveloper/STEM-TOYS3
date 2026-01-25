@@ -38,6 +38,7 @@ export interface OrderItem {
   image: string;
   hasReviewed: boolean;
   isDigital: boolean;
+  returnStatus?: string;
 }
 
 // Define order type
@@ -95,9 +96,12 @@ const isWithinReturnWindow = (order: Order) => {
   return diffDays <= 14;
 };
 
-// Helper function to check if order has returnable items (non-digital items)
+// Helper function to check if order has returnable items 
+// (non-digital items that haven't already been returned/requested)
 const hasReturnableItems = (order: Order) =>
-  order.items.some(item => !item.isDigital);
+  order.items.some(
+    item => !item.isDigital && (!item.returnStatus || item.returnStatus === "NONE")
+  );
 
 const TABS = [
   { value: "all", labelKey: "all", fallback: "Toate" },
@@ -296,6 +300,11 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
                       </Link>
                     </Button>
 
+                    {/* Return Items Button - Active only when:
+                        1. Order is delivered
+                        2. Within 14-day return window
+                        3. Has items that can be returned (non-digital, no existing return request)
+                    */}
                     {order.status === "delivered" &&
                       isWithinReturnWindow(order) &&
                       hasReturnableItems(order) && (
@@ -309,6 +318,37 @@ export function OrderHistory({ initialOrders }: OrderHistoryProps) {
                             <ArrowRight className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                             {t("returnItem", "Return Items")}
                           </Link>
+                        </Button>
+                      )}
+
+                    {/* Disabled Return Button - When 14-day window expired */}
+                    {order.status === "delivered" &&
+                      !isWithinReturnWindow(order) &&
+                      order.items.some(item => !item.isDigital) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled
+                          className="h-9 w-full cursor-not-allowed border-slate-500/40 bg-slate-500/15 text-xs text-slate-400 opacity-60 sm:h-10 sm:w-auto sm:text-sm"
+                        >
+                          <Package className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                          {t("returnWindowExpired", "Return window expired (14 days)")}
+                        </Button>
+                      )}
+
+                    {/* Disabled Return Button - When all items already have return requests */}
+                    {order.status === "delivered" &&
+                      isWithinReturnWindow(order) &&
+                      order.items.some(item => !item.isDigital) &&
+                      !hasReturnableItems(order) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled
+                          className="h-9 w-full cursor-not-allowed border-amber-400/40 bg-amber-500/15 text-xs text-amber-300 opacity-60 sm:h-10 sm:w-auto sm:text-sm"
+                        >
+                          <Package className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                          {t("returnAlreadyRequested", "Return already requested")}
                         </Button>
                       )}
                   </CardFooter>
