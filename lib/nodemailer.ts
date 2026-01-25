@@ -245,22 +245,105 @@ export const emailTemplates = {
       from: EMAIL_FROM || process.env.EMAIL_FROM || "webira.rem.srl@gmail.com",
     });
 
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://techtots.ro";
+    const logoUrl = `${baseUrl}/TechTots_LOGO.png`;
+    const faviconUrl = `${baseUrl}/favicon.ico`;
+
     const html = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #333;">New Return Request Received</h1>
-        <p>A customer has initiated a return request:</p>
-        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0;">
-          <p><strong>Return ID:</strong> ${returnId}</p>
-          <p><strong>Order:</strong> #${orderNumber}</p>
-          <p><strong>Product:</strong> ${productName} ${productSku ? `(SKU: ${productSku})` : ""}</p>
-          <p><strong>Customer:</strong> ${customerName}</p>
-          <p><strong>Email:</strong> ${customerEmail}</p>
-          <p><strong>Reason:</strong> ${reason}</p>
-          ${details ? `<p><strong>Details:</strong> ${details}</p>` : ""}
-          <p><strong>Date Requested:</strong> ${new Date().toLocaleString()}</p>
+      <!DOCTYPE html>
+      <html lang="ro">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cerere de Returnare Nouă - TechTots Admin</title>
+      </head>
+      <body style="margin: 0; padding: 20px; background-color: #f3f4f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header with Logo -->
+          <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 30px; text-align: center;">
+            <img src="${logoUrl}" alt="TechTots Logo" style="max-width: 160px; height: auto; margin-bottom: 16px;" onerror="this.src='${faviconUrl}'; this.style.width='48px'; this.style.height='48px';">
+            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">🔄 Cerere de Returnare Nouă</h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Necesită atenție administrativă</p>
+          </div>
+          
+          <!-- Main Content -->
+          <div style="padding: 40px 30px;">
+            <p style="font-size: 16px; color: #374151; margin-bottom: 24px; line-height: 1.6;">Un client a inițiat o cerere de returnare și necesită aprobare. Vă rugăm să verificați detaliile de mai jos:</p>
+            
+            <!-- Return Details Box -->
+            <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 24px; margin: 24px 0;">
+              <h3 style="color: #92400e; margin: 0 0 16px 0; font-size: 18px;">📋 Detalii Returnare</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; color: #92400e; font-weight: 600; width: 40%;">ID Returnare:</td>
+                  <td style="padding: 8px 0; color: #1f2937; font-family: monospace; font-size: 14px;">${returnId}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #92400e; font-weight: 600;">Comanda:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">#${orderNumber}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #92400e; font-weight: 600;">Produs:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${productName}${productSku ? ` (SKU: ${productSku})` : ""}</td>
+                </tr>
+              </table>
+            </div>
+            
+            <!-- Customer Info Box -->
+            <div style="background-color: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 24px; margin: 24px 0;">
+              <h3 style="color: #1e40af; margin: 0 0 16px 0; font-size: 18px;">👤 Informații Client</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; color: #1e40af; font-weight: 600; width: 40%;">Nume:</td>
+                  <td style="padding: 8px 0; color: #1f2937;">${customerName}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #1e40af; font-weight: 600;">Email:</td>
+                  <td style="padding: 8px 0; color: #1f2937;"><a href="mailto:${customerEmail}" style="color: #3b82f6; text-decoration: none;">${customerEmail}</a></td>
+                </tr>
+              </table>
+            </div>
+            
+            <!-- Reason Box -->
+            <div style="background-color: #fef2f2; border: 1px solid #ef4444; border-radius: 8px; padding: 24px; margin: 24px 0;">
+              <h3 style="color: #991b1b; margin: 0 0 12px 0; font-size: 18px;">📝 Motivul Returnării</h3>
+              <p style="margin: 0 0 8px 0; color: #1f2937; font-weight: 600;">${reason}</p>
+              ${details ? `<p style="margin: 0; color: #6b7280; font-style: italic;">${details}</p>` : ""}
+            </div>
+            
+            <!-- Timestamp -->
+            <div style="background-color: #f8fafc; border-radius: 8px; padding: 16px; margin: 24px 0; text-align: center;">
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                <strong>Data solicitării:</strong> ${new Date().toLocaleString("ro-RO", { dateStyle: "full", timeStyle: "short" })}
+              </p>
+            </div>
+            
+            <!-- Action Button -->
+            <div style="text-align: center; margin: 32px 0;">
+              <a href="${baseUrl}/admin/returns/${returnId}" 
+                 style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                📋 Gestionează Returnarea
+              </a>
+            </div>
+          </div>
+          
+          <!-- Professional Footer -->
+          <div style="background-color: #1f2937; color: #9ca3af; padding: 30px; text-align: center; font-size: 14px; line-height: 1.5;">
+            <div style="margin-bottom: 16px;">
+              <img src="${logoUrl}" alt="TechTots" style="max-width: 120px; height: auto; opacity: 0.8;" onerror="this.src='${faviconUrl}'; this.style.width='32px'; this.style.height='32px';">
+            </div>
+            <p style="margin: 0 0 8px 0; font-weight: 600; color: #ffffff;">TechTots Admin - Notificare Internă</p>
+            <p style="margin: 0 0 16px 0;">📧 webira.rem.srl@gmail.com | 📞 +40 771 248 029</p>
+            <div style="border-top: 1px solid #374151; padding-top: 16px; margin-top: 16px;">
+              <p style="margin: 0; font-size: 12px;">
+                © ${new Date().getFullYear()} TechTots. Toate drepturile rezervate.
+              </p>
+            </div>
+          </div>
         </div>
-        <p>Please review this return request in your <a href="${process.env.NEXT_PUBLIC_BASE_URL || "https://techtots.com"}/admin/returns">admin dashboard</a>.</p>
-      </div>
+      </body>
+      </html>
     `;
 
     // Force the use of the EMAIL_FROM environment variable
@@ -313,11 +396,11 @@ export const emailTemplates = {
           <p style="color: #1e40af; margin: 0 0 12px 0;">Consultă articolele noastre populare despre educația STEM:</p>
           <ul style="margin: 0; padding-left: 20px; color: #1f2937; line-height: 1.5;">
             ${latestBlogs
-              .map(
-                blog =>
-                  `<li style="margin-bottom: 8px;"><a href="${baseUrl}/blog/${blog.slug}" style="color: #3b82f6; text-decoration: none;">${blog.title}</a></li>`
-              )
-              .join("")}
+          .map(
+            blog =>
+              `<li style="margin-bottom: 8px;"><a href="${baseUrl}/blog/${blog.slug}" style="color: #3b82f6; text-decoration: none;">${blog.title}</a></li>`
+          )
+          .join("")}
           </ul>
         </div>
       `;
@@ -533,41 +616,38 @@ export const emailTemplates = {
                 ${itemsHtml}
               </tbody>
               <tfoot style="background-color: #f8fafc;">
-                ${
-                  order.discountAmount && order.discountAmount > 0
-                    ? `
+                ${order.discountAmount && order.discountAmount > 0
+        ? `
                 <tr style="color: #10b981;">
                   <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">
                     Reducere ${order.couponCode ? `(${order.couponCode})` : ""}:
                   </td>
                   <td style="text-align: right; padding: 12px 16px; font-weight: 700;">-${order.discountAmount.toFixed(2)} Lei</td>
                 </tr>`
-                    : ""
-                }
-                ${
-                  order.shippingCost !== undefined && order.shippingCost > 0
-                    ? `
+        : ""
+      }
+                ${order.shippingCost !== undefined && order.shippingCost > 0
+        ? `
                 <tr>
                   <td colspan="3" style="text-align: right; padding: 12px 16px; font-weight: 600;">Transport${order.shippingMethod ? ` (${order.shippingMethod.name || "Standard"})` : ""}:</td>
                   <td style="text-align: right; padding: 12px 16px; font-weight: 600;">${order.shippingCost.toFixed(2)} Lei</td>
                 </tr>`
-                    : ""
-                }
+        : ""
+      }
                 <!-- No VAT/TVA line - non-VAT registered SRL, prices are final -->
                 <tr style="font-weight: 700; font-size: 18px; background: linear-gradient(135deg, #1f2937 0%, #374151 100%); color: #ffffff;">
                   <td colspan="3" style="text-align: right; padding: 16px; border-top: 2px solid #3b82f6;">TOTAL:</td>
                   <td style="text-align: right; padding: 16px; border-top: 2px solid #3b82f6;">${order.total.toFixed(2)} Lei</td>
                 </tr>
-                ${
-                  order.discountAmount && order.discountAmount > 0
-                    ? `
+                ${order.discountAmount && order.discountAmount > 0
+        ? `
                 <tr>
                   <td colspan="4" style="text-align: center; padding: 8px; background-color: #ecfdf5; color: #059669; font-size: 14px; font-weight: 600;">
                     🎉 Ai economisit ${order.discountAmount.toFixed(2)} Lei cu acest cupon!
                   </td>
                 </tr>`
-                    : ""
-                }
+        : ""
+      }
               </tfoot>
             </table>
 

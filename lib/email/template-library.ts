@@ -6,34 +6,34 @@
  */
 
 export interface EmailTemplate {
-  id: string;
-  name: string;
-  slug: string;
-  subject: string;
-  content: string;
-  variables: string[];
-  category: string;
-  isActive: boolean;
-  createdBy: string;
-  metadata?: {
-    provider?: string;
-    tags?: string[];
-    priority?: number;
-    estimatedOpenRate?: number;
-    description?: string;
-  };
+    id: string;
+    name: string;
+    slug: string;
+    subject: string;
+    content: string;
+    variables: string[];
+    category: string;
+    isActive: boolean;
+    createdBy: string;
+    metadata?: {
+        provider?: string;
+        tags?: string[];
+        priority?: number;
+        estimatedOpenRate?: number;
+        description?: string;
+    };
 }
 
 import { ADDITIONAL_EMAIL_TEMPLATES } from "./additional-templates";
 
 export const EMAIL_TEMPLATES: EmailTemplate[] = [
-  // AUTHENTICATION TEMPLATES
-  {
-    id: "welcome-email",
-    name: "Welcome Email",
-    slug: "welcome",
-    subject: "Bun venit la TechTots STEM Store! 🎉",
-    content: `
+    // AUTHENTICATION TEMPLATES
+    {
+        id: "welcome-email",
+        name: "Welcome Email",
+        slug: "welcome",
+        subject: "Bun venit la TechTots STEM Store! 🎉",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -94,24 +94,24 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: ["userName", "siteUrl"],
-    category: "authentication",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["welcome", "onboarding", "authentication"],
-      priority: 1,
-      estimatedOpenRate: 0.85,
-      description: "Email de bun venit pentru utilizatori noi",
+        variables: ["userName", "siteUrl"],
+        category: "authentication",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["welcome", "onboarding", "authentication"],
+            priority: 1,
+            estimatedOpenRate: 0.85,
+            description: "Email de bun venit pentru utilizatori noi",
+        },
     },
-  },
 
-  {
-    id: "email-verification",
-    name: "Email Verification",
-    slug: "email-verification",
-    subject: "Verifică-ți adresa de email - TechTots",
-    content: `
+    {
+        id: "email-verification",
+        name: "Email Verification",
+        slug: "email-verification",
+        subject: "Verifică-ți adresa de email - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -167,25 +167,25 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: ["userName", "verificationLink"],
-    category: "authentication",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["verification", "authentication", "security"],
-      priority: 1,
-      estimatedOpenRate: 0.75,
-      description: "Email pentru verificarea adresei de email",
+        variables: ["userName", "verificationLink"],
+        category: "authentication",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["verification", "authentication", "security"],
+            priority: 1,
+            estimatedOpenRate: 0.75,
+            description: "Email pentru verificarea adresei de email",
+        },
     },
-  },
 
-  // ORDER TEMPLATES
-  {
-    id: "order-confirmation",
-    name: "Order Confirmation",
-    slug: "order-confirmation",
-    subject: "Confirmare comandă #{{order.number}} - TechTots",
-    content: `
+    // ORDER TEMPLATES
+    {
+        id: "order-confirmation",
+        name: "Order Confirmation",
+        slug: "order-confirmation",
+        subject: "Confirmare comandă #{{order.number}} - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -307,32 +307,32 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "customerName",
-      "order.number",
-      "orderDate",
-      "order.total",
-      "items",
-      "siteUrl",
-    ],
-    category: "orders",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["order", "confirmation", "ecommerce"],
-      priority: 1,
-      estimatedOpenRate: 0.9,
-      description: "Email de confirmare pentru comenzi",
+        variables: [
+            "customerName",
+            "order.number",
+            "orderDate",
+            "order.total",
+            "items",
+            "siteUrl",
+        ],
+        category: "orders",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["order", "confirmation", "ecommerce"],
+            priority: 1,
+            estimatedOpenRate: 0.9,
+            description: "Email de confirmare pentru comenzi",
+        },
     },
-  },
 
-  // MARKETING TEMPLATES
-  {
-    id: "newsletter-welcome",
-    name: "Newsletter Welcome",
-    slug: "newsletter-welcome",
-    subject: "Bun venit în comunitatea TechTots! 🚀",
-    content: `
+    // MARKETING TEMPLATES
+    {
+        id: "newsletter-welcome",
+        name: "Newsletter Welcome",
+        slug: "newsletter-welcome",
+        subject: "Bun venit în comunitatea TechTots! 🚀",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -402,25 +402,25 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: ["siteUrl", "unsubscribeUrl"],
-    category: "marketing",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["newsletter", "welcome", "marketing"],
-      priority: 2,
-      estimatedOpenRate: 0.8,
-      description: "Email de bun venit pentru newsletter",
+        variables: ["siteUrl", "unsubscribeUrl"],
+        category: "marketing",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["newsletter", "welcome", "marketing"],
+            priority: 2,
+            estimatedOpenRate: 0.8,
+            description: "Email de bun venit pentru newsletter",
+        },
     },
-  },
 
-  // AUTHENTICATION & SECURITY TEMPLATES
-  {
-    id: "password-change-confirmation",
-    name: "Password Change Confirmation",
-    slug: "password-change-confirmation",
-    subject: "Parola a fost schimbată cu succes - TechTots",
-    content: `
+    // AUTHENTICATION & SECURITY TEMPLATES
+    {
+        id: "password-change-confirmation",
+        name: "Password Change Confirmation",
+        slug: "password-change-confirmation",
+        subject: "Parola a fost schimbată cu succes - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -489,24 +489,24 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: ["userName", "changeTime", "deviceInfo", "ipAddress", "siteUrl"],
-    category: "authentication",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["password", "security", "authentication"],
-      priority: 1,
-      estimatedOpenRate: 0.95,
-      description: "Confirmare schimbare parolă",
+        variables: ["userName", "changeTime", "deviceInfo", "ipAddress", "siteUrl"],
+        category: "authentication",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["password", "security", "authentication"],
+            priority: 1,
+            estimatedOpenRate: 0.95,
+            description: "Confirmare schimbare parolă",
+        },
     },
-  },
 
-  {
-    id: "new-device-login",
-    name: "New Device Login Alert",
-    slug: "new-device-login",
-    subject: "Conectare de pe dispozitiv nou - TechTots",
-    content: `
+    {
+        id: "new-device-login",
+        name: "New Device Login Alert",
+        slug: "new-device-login",
+        subject: "Conectare de pe dispozitiv nou - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -571,32 +571,32 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "userName",
-      "loginTime",
-      "deviceInfo",
-      "location",
-      "ipAddress",
-      "siteUrl",
-    ],
-    category: "authentication",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["security", "login", "device", "authentication"],
-      priority: 1,
-      estimatedOpenRate: 0.9,
-      description: "Alertă conectare dispozitiv nou",
+        variables: [
+            "userName",
+            "loginTime",
+            "deviceInfo",
+            "location",
+            "ipAddress",
+            "siteUrl",
+        ],
+        category: "authentication",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["security", "login", "device", "authentication"],
+            priority: 1,
+            estimatedOpenRate: 0.9,
+            description: "Alertă conectare dispozitiv nou",
+        },
     },
-  },
 
-  // ORDER LIFECYCLE TEMPLATES
-  {
-    id: "order-processing",
-    name: "Order Processing",
-    slug: "order-processing",
-    subject: "Comanda #{{order.number}} este în procesare - TechTots",
-    content: `
+    // ORDER LIFECYCLE TEMPLATES
+    {
+        id: "order-processing",
+        name: "Order Processing",
+        slug: "order-processing",
+        subject: "Comanda #{{order.number}} este în procesare - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -673,30 +673,30 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "customerName",
-      "orderNumber",
-      "orderDate",
-      "estimatedDelivery",
-      "siteUrl",
-    ],
-    category: "orders",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["order", "processing", "status"],
-      priority: 1,
-      estimatedOpenRate: 0.85,
-      description: "Notificare comandă în procesare",
+        variables: [
+            "customerName",
+            "orderNumber",
+            "orderDate",
+            "estimatedDelivery",
+            "siteUrl",
+        ],
+        category: "orders",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["order", "processing", "status"],
+            priority: 1,
+            estimatedOpenRate: 0.85,
+            description: "Notificare comandă în procesare",
+        },
     },
-  },
 
-  {
-    id: "order-shipped",
-    name: "Order Shipped",
-    slug: "order-shipped",
-    subject: "Comanda #{{order.number}} a fost expediată! 🚚",
-    content: `
+    {
+        id: "order-shipped",
+        name: "Order Shipped",
+        slug: "order-shipped",
+        subject: "Comanda #{{order.number}} a fost expediată! 🚚",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -731,7 +731,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                     📦 Informații despre expediere
                 </h3>
                 <p style="color: #155724; margin: 5px 0;"><strong>Număr de urmărire:</strong> {{trackingNumber}}</p>
-                <p style="color: #155724; margin: 5px 0;"><strong>Curier:</strong> {{carrier}}</p>
+                <p style="color: #155724; margin: 5px 0;"><strong>Curier:</strong> FanCourier</p>
                 <p style="color: #155724; margin: 5px 0;"><strong>Data expedierii:</strong> {{shippingDate}}</p>
             </div>
             
@@ -745,9 +745,9 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{{trackingUrl}}" 
+                <a href="https://www.fancourier.ro/awb-tracking/?tracking={{trackingNumber}}" 
                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
-                    🚚 Urmărește comanda
+                    🚚 Urmărește pe FanCourier
                 </a>
             </div>
         </div>
@@ -762,32 +762,32 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "customerName",
-      "orderNumber",
-      "trackingNumber",
-      "carrier",
-      "shippingDate",
-      "trackingUrl",
-    ],
-    category: "orders",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["order", "shipped", "tracking"],
-      priority: 1,
-      estimatedOpenRate: 0.9,
-      description: "Notificare comandă expediată",
+        variables: [
+            "customerName",
+            "orderNumber",
+            "trackingNumber",
+            "carrier",
+            "shippingDate",
+            "trackingUrl",
+        ],
+        category: "orders",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["order", "shipped", "tracking"],
+            priority: 1,
+            estimatedOpenRate: 0.9,
+            description: "Notificare comandă expediată",
+        },
     },
-  },
 
-  // ORDER LIFECYCLE TEMPLATES (CONTINUED)
-  {
-    id: "order-delivered",
-    name: "Order Delivered",
-    slug: "order-delivered",
-    subject: "Comanda #{{order.number}} a fost livrată! 📦",
-    content: `
+    // ORDER LIFECYCLE TEMPLATES (CONTINUED)
+    {
+        id: "order-delivered",
+        name: "Order Delivered",
+        slug: "order-delivered",
+        subject: "Comanda #{{order.number}} a fost livrată! 📦",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -852,30 +852,30 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "customerName",
-      "orderNumber",
-      "deliveryDate",
-      "reviewUrl",
-      "siteUrl",
-    ],
-    category: "orders",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["order", "delivered", "review"],
-      priority: 1,
-      estimatedOpenRate: 0.85,
-      description: "Notificare comandă livrată",
+        variables: [
+            "customerName",
+            "orderNumber",
+            "deliveryDate",
+            "reviewUrl",
+            "siteUrl",
+        ],
+        category: "orders",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["order", "delivered", "review"],
+            priority: 1,
+            estimatedOpenRate: 0.85,
+            description: "Notificare comandă livrată",
+        },
     },
-  },
 
-  {
-    id: "order-cancelled",
-    name: "Order Cancelled",
-    slug: "order-cancelled",
-    subject: "Comanda #{{order.number}} a fost anulată - TechTots",
-    content: `
+    {
+        id: "order-cancelled",
+        name: "Order Cancelled",
+        slug: "order-cancelled",
+        subject: "Comanda #{{order.number}} a fost anulată - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -940,31 +940,31 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "customerName",
-      "orderNumber",
-      "cancellationReason",
-      "cancellationDate",
-      "refundInfo",
-      "siteUrl",
-    ],
-    category: "orders",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["order", "cancelled", "refund"],
-      priority: 1,
-      estimatedOpenRate: 0.9,
-      description: "Notificare comandă anulată",
+        variables: [
+            "customerName",
+            "orderNumber",
+            "cancellationReason",
+            "cancellationDate",
+            "refundInfo",
+            "siteUrl",
+        ],
+        category: "orders",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["order", "cancelled", "refund"],
+            priority: 1,
+            estimatedOpenRate: 0.9,
+            description: "Notificare comandă anulată",
+        },
     },
-  },
 
-  {
-    id: "order-failed",
-    name: "Order Failed",
-    slug: "order-failed",
-    subject: "Probleme cu comanda #{{order.number}} - TechTots",
-    content: `
+    {
+        id: "order-failed",
+        name: "Order Failed",
+        slug: "order-failed",
+        subject: "Probleme cu comanda #{{order.number}} - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -1029,32 +1029,32 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "customerName",
-      "orderNumber",
-      "failureReason",
-      "failureDate",
-      "retryUrl",
-      "siteUrl",
-    ],
-    category: "orders",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["order", "failed", "error"],
-      priority: 1,
-      estimatedOpenRate: 0.95,
-      description: "Notificare comandă eșuată",
+        variables: [
+            "customerName",
+            "orderNumber",
+            "failureReason",
+            "failureDate",
+            "retryUrl",
+            "siteUrl",
+        ],
+        category: "orders",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["order", "failed", "error"],
+            priority: 1,
+            estimatedOpenRate: 0.95,
+            description: "Notificare comandă eșuată",
+        },
     },
-  },
 
-  // MARKETING TEMPLATES (CONTINUED)
-  {
-    id: "blog-post-notification",
-    name: "Blog Post Notification",
-    slug: "blog-post-notification",
-    subject: "Nou articol: {{blogTitle}} - TechTots",
-    content: `
+    // MARKETING TEMPLATES (CONTINUED)
+    {
+        id: "blog-post-notification",
+        name: "Blog Post Notification",
+        slug: "blog-post-notification",
+        subject: "Nou articol: {{blogTitle}} - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -1124,32 +1124,32 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "subscriberName",
-      "blogTitle",
-      "blogExcerpt",
-      "blogUrl",
-      "unsubscribeUrl",
-      "siteUrl",
-    ],
-    category: "marketing",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["blog", "newsletter", "content"],
-      priority: 2,
-      estimatedOpenRate: 0.75,
-      description: "Notificare articol nou pe blog",
+        variables: [
+            "subscriberName",
+            "blogTitle",
+            "blogExcerpt",
+            "blogUrl",
+            "unsubscribeUrl",
+            "siteUrl",
+        ],
+        category: "marketing",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["blog", "newsletter", "content"],
+            priority: 2,
+            estimatedOpenRate: 0.75,
+            description: "Notificare articol nou pe blog",
+        },
     },
-  },
 
-  {
-    id: "coupon-distribution",
-    name: "Coupon Distribution",
-    slug: "coupon-distribution",
-    subject:
-      "🎁 Ofertă specială pentru tine! {{discountAmount}} reducere - TechTots",
-    content: `
+    {
+        id: "coupon-distribution",
+        name: "Coupon Distribution",
+        slug: "coupon-distribution",
+        subject:
+            "🎁 Ofertă specială pentru tine! {{discountAmount}} reducere - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -1222,31 +1222,31 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "customerName",
-      "couponCode",
-      "discountAmount",
-      "expiryDate",
-      "siteUrl",
-      "unsubscribeUrl",
-    ],
-    category: "marketing",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["coupon", "promotion", "discount"],
-      priority: 2,
-      estimatedOpenRate: 0.8,
-      description: "Distribuție cupoane de reducere",
+        variables: [
+            "customerName",
+            "couponCode",
+            "discountAmount",
+            "expiryDate",
+            "siteUrl",
+            "unsubscribeUrl",
+        ],
+        category: "marketing",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["coupon", "promotion", "discount"],
+            priority: 2,
+            estimatedOpenRate: 0.8,
+            description: "Distribuție cupoane de reducere",
+        },
     },
-  },
 
-  {
-    id: "flash-sale-alert",
-    name: "Flash Sale Alert",
-    slug: "flash-sale-alert",
-    subject: "⚡ Vânzare flash! {{saleTitle}} - TechTots",
-    content: `
+    {
+        id: "flash-sale-alert",
+        name: "Flash Sale Alert",
+        slug: "flash-sale-alert",
+        subject: "⚡ Vânzare flash! {{saleTitle}} - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -1313,32 +1313,32 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "customerName",
-      "saleTitle",
-      "discountPercent",
-      "saleEndTime",
-      "siteUrl",
-      "unsubscribeUrl",
-    ],
-    category: "marketing",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["flash-sale", "promotion", "urgent"],
-      priority: 1,
-      estimatedOpenRate: 0.85,
-      description: "Alertă vânzare flash",
+        variables: [
+            "customerName",
+            "saleTitle",
+            "discountPercent",
+            "saleEndTime",
+            "siteUrl",
+            "unsubscribeUrl",
+        ],
+        category: "marketing",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["flash-sale", "promotion", "urgent"],
+            priority: 1,
+            estimatedOpenRate: 0.85,
+            description: "Alertă vânzare flash",
+        },
     },
-  },
 
-  // SUPPLIER TEMPLATES
-  {
-    id: "supplier-registration-confirmation",
-    name: "Supplier Registration Confirmation",
-    slug: "supplier-registration-confirmation",
-    subject: "Confirmare înregistrare furnizor - TechTots",
-    content: `
+    // SUPPLIER TEMPLATES
+    {
+        id: "supplier-registration-confirmation",
+        name: "Supplier Registration Confirmation",
+        slug: "supplier-registration-confirmation",
+        subject: "Confirmare înregistrare furnizor - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -1408,30 +1408,30 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "companyName",
-      "contactPersonName",
-      "contactPersonEmail",
-      "registrationDate",
-      "siteUrl",
-    ],
-    category: "suppliers",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["supplier", "registration", "confirmation"],
-      priority: 1,
-      estimatedOpenRate: 0.9,
-      description: "Confirmare înregistrare furnizor",
+        variables: [
+            "companyName",
+            "contactPersonName",
+            "contactPersonEmail",
+            "registrationDate",
+            "siteUrl",
+        ],
+        category: "suppliers",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["supplier", "registration", "confirmation"],
+            priority: 1,
+            estimatedOpenRate: 0.9,
+            description: "Confirmare înregistrare furnizor",
+        },
     },
-  },
 
-  {
-    id: "supplier-approval",
-    name: "Supplier Approval",
-    slug: "supplier-approval",
-    subject: "Felicitări! Contul de furnizor a fost aprobat - TechTots",
-    content: `
+    {
+        id: "supplier-approval",
+        name: "Supplier Approval",
+        slug: "supplier-approval",
+        subject: "Felicitări! Contul de furnizor a fost aprobat - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -1502,31 +1502,31 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "companyName",
-      "contactPersonName",
-      "commissionRate",
-      "paymentTerms",
-      "minimumOrderValue",
-      "siteUrl",
-    ],
-    category: "suppliers",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["supplier", "approval", "success"],
-      priority: 1,
-      estimatedOpenRate: 0.95,
-      description: "Notificare aprobare furnizor",
+        variables: [
+            "companyName",
+            "contactPersonName",
+            "commissionRate",
+            "paymentTerms",
+            "minimumOrderValue",
+            "siteUrl",
+        ],
+        category: "suppliers",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["supplier", "approval", "success"],
+            priority: 1,
+            estimatedOpenRate: 0.95,
+            description: "Notificare aprobare furnizor",
+        },
     },
-  },
 
-  {
-    id: "supplier-rejection",
-    name: "Supplier Rejection",
-    slug: "supplier-rejection",
-    subject: "Decizie privind cererea de furnizor - TechTots",
-    content: `
+    {
+        id: "supplier-rejection",
+        name: "Supplier Rejection",
+        slug: "supplier-rejection",
+        subject: "Decizie privind cererea de furnizor - TechTots",
+        content: `
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -1594,74 +1594,74 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     </div>
 </body>
 </html>`,
-    variables: [
-      "companyName",
-      "contactPersonName",
-      "rejectionReason",
-      "siteUrl",
-    ],
-    category: "suppliers",
-    isActive: true,
-    createdBy: "system",
-    metadata: {
-      tags: ["supplier", "rejection", "feedback"],
-      priority: 1,
-      estimatedOpenRate: 0.9,
-      description: "Notificare respingere furnizor",
+        variables: [
+            "companyName",
+            "contactPersonName",
+            "rejectionReason",
+            "siteUrl",
+        ],
+        category: "suppliers",
+        isActive: true,
+        createdBy: "system",
+        metadata: {
+            tags: ["supplier", "rejection", "feedback"],
+            priority: 1,
+            estimatedOpenRate: 0.9,
+            description: "Notificare respingere furnizor",
+        },
     },
-  },
 
-  // ADDITIONAL TEMPLATES
-  ...ADDITIONAL_EMAIL_TEMPLATES,
+    // ADDITIONAL TEMPLATES
+    ...ADDITIONAL_EMAIL_TEMPLATES,
 ];
 
 /**
  * Get template by slug
  */
 export function getTemplateBySlug(slug: string): EmailTemplate | undefined {
-  return EMAIL_TEMPLATES.find(
-    template => template.slug === slug && template.isActive
-  );
+    return EMAIL_TEMPLATES.find(
+        template => template.slug === slug && template.isActive
+    );
 }
 
 /**
  * Get templates by category
  */
 export function getTemplatesByCategory(category: string): EmailTemplate[] {
-  return EMAIL_TEMPLATES.filter(
-    template => template.category === category && template.isActive
-  );
+    return EMAIL_TEMPLATES.filter(
+        template => template.category === category && template.isActive
+    );
 }
 
 /**
  * Get all active templates
  */
 export function getAllTemplates(): EmailTemplate[] {
-  return EMAIL_TEMPLATES.filter(template => template.isActive);
+    return EMAIL_TEMPLATES.filter(template => template.isActive);
 }
 
 /**
  * Search templates by name or description
  */
 export function searchTemplates(query: string): EmailTemplate[] {
-  const lowercaseQuery = query.toLowerCase();
-  return EMAIL_TEMPLATES.filter(
-    template =>
-      template.isActive &&
-      (template.name.toLowerCase().includes(lowercaseQuery) ||
-        template.description.toLowerCase().includes(lowercaseQuery) ||
-        template.metadata?.tags?.some(tag =>
-          tag.toLowerCase().includes(lowercaseQuery)
-        ))
-  );
+    const lowercaseQuery = query.toLowerCase();
+    return EMAIL_TEMPLATES.filter(
+        template =>
+            template.isActive &&
+            (template.name.toLowerCase().includes(lowercaseQuery) ||
+                template.description.toLowerCase().includes(lowercaseQuery) ||
+                template.metadata?.tags?.some(tag =>
+                    tag.toLowerCase().includes(lowercaseQuery)
+                ))
+    );
 }
 
 /**
  * Get template categories
  */
 export function getTemplateCategories(): string[] {
-  const categories = new Set(
-    EMAIL_TEMPLATES.map(template => template.category)
-  );
-  return Array.from(categories).sort();
+    const categories = new Set(
+        EMAIL_TEMPLATES.map(template => template.category)
+    );
+    return Array.from(categories).sort();
 }

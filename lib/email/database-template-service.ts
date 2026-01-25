@@ -534,4 +534,140 @@ export class DatabaseTemplateService {
       },
     });
   }
+
+  /**
+   * Send shipping notification email using database template (FanCourier)
+   */
+  static async sendShippingNotificationEmail(
+    to: string,
+    shippingData: {
+      customerName: string;
+      orderNumber: string;
+      trackingNumber: string;
+      estimatedDelivery: string;
+      courierName?: string;
+    }
+  ): Promise<{ success: boolean; error?: string; messageId?: string }> {
+    // Try FanCourier-specific template first, fallback to generic
+    const templateSlug = shippingData.courierName === "FanCourier"
+      ? "order-shipped-fancourier"
+      : "order-shipped";
+
+    return this.sendEmailWithTemplate({
+      to,
+      templateSlug,
+      data: {
+        customerName: shippingData.customerName,
+        orderNumber: shippingData.orderNumber,
+        trackingNumber: shippingData.trackingNumber,
+        estimatedDelivery: shippingData.estimatedDelivery,
+        courierName: shippingData.courierName || "FanCourier",
+        trackingUrl: `https://www.fancourier.ro/awb-tracking/?tracking=${shippingData.trackingNumber}`,
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+        storeName: "TechTots STEM Store",
+        contactEmail: "webira.rem.srl@gmail.com",
+        contactPhone: "+40 771 248 029",
+      },
+    });
+  }
+
+  /**
+   * Send order cancelled email using database template
+   */
+  static async sendOrderCancelledEmail(
+    to: string,
+    orderData: {
+      customerName: string;
+      orderNumber: string;
+      cancellationReason?: string;
+      refundInfo?: string;
+    }
+  ): Promise<{ success: boolean; error?: string; messageId?: string }> {
+    return this.sendEmailWithTemplate({
+      to,
+      templateSlug: "order-cancelled",
+      data: {
+        customerName: orderData.customerName,
+        orderNumber: orderData.orderNumber,
+        order: { number: orderData.orderNumber },
+        cancellationReason: orderData.cancellationReason || "Cererea clientului",
+        cancellationDate: new Date().toLocaleDateString("ro-RO"),
+        refundInfo: orderData.refundInfo || "Rambursarea va fi procesată în 3-5 zile lucrătoare.",
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+      },
+    });
+  }
+
+  /**
+   * Send order delivered email using database template
+   */
+  static async sendOrderDeliveredEmail(
+    to: string,
+    orderData: {
+      customerName: string;
+      orderNumber: string;
+      deliveryDate: string;
+    }
+  ): Promise<{ success: boolean; error?: string; messageId?: string }> {
+    return this.sendEmailWithTemplate({
+      to,
+      templateSlug: "order-delivered",
+      data: {
+        customerName: orderData.customerName,
+        orderNumber: orderData.orderNumber,
+        order: { number: orderData.orderNumber },
+        deliveryDate: orderData.deliveryDate,
+        reviewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/account/orders`,
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+      },
+    });
+  }
+
+  /**
+   * Send newsletter welcome email using database template
+   */
+  static async sendNewsletterWelcomeEmail(
+    to: string,
+    data?: { firstName?: string }
+  ): Promise<{ success: boolean; error?: string; messageId?: string }> {
+    return this.sendEmailWithTemplate({
+      to,
+      templateSlug: "newsletter-welcome",
+      data: {
+        firstName: data?.firstName || "",
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+        unsubscribeUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/newsletter/unsubscribe?email=${encodeURIComponent(to)}`,
+      },
+    });
+  }
+
+  /**
+   * Send return confirmation to customer using database template
+   */
+  static async sendReturnConfirmationToCustomer(
+    to: string,
+    returnData: {
+      customerName: string;
+      orderNumber: string;
+      returnId: string;
+      productName: string;
+      reason: string;
+    }
+  ): Promise<{ success: boolean; error?: string; messageId?: string }> {
+    return this.sendEmailWithTemplate({
+      to,
+      templateSlug: "return-confirmation-customer",
+      data: {
+        customerName: returnData.customerName,
+        orderNumber: returnData.orderNumber,
+        returnId: returnData.returnId,
+        productName: returnData.productName,
+        reason: returnData.reason,
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+        storeName: "TechTots STEM Store",
+        contactEmail: "webira.rem.srl@gmail.com",
+        contactPhone: "+40 771 248 029",
+      },
+    });
+  }
 }

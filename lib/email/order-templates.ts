@@ -72,9 +72,9 @@ export async function sendDigitalBookDeliveryEmail({
       <h3 style="color: #047857; margin: 0 0 16px 0; text-align: center;">📖 Cărțile tale achiziționate (${formatPrice(totalValue)})</h3>
       
       ${books
-        .map((book, index) => {
-          const bookLinks = bookDownloads[book.name] || [];
-          return `
+      .map((book, index) => {
+        const bookLinks = bookDownloads[book.name] || [];
+        return `
           <div style="border: 1px solid #d1fae5; border-radius: 8px; padding: 16px; margin-bottom: ${index < books.length - 1 ? "16px" : "0"}; background-color: #ffffff;">
             <div style="display: flex; align-items: center; margin-bottom: 12px;">
               ${book.coverImage ? `<img src="${book.coverImage}" alt="${book.name}" style="width: 60px; height: 80px; object-fit: cover; border-radius: 4px; margin-right: 16px;">` : ""}
@@ -88,8 +88,8 @@ export async function sendDigitalBookDeliveryEmail({
             <div style="background-color: #f8fafc; border-radius: 6px; padding: 12px;">
               <p style="margin: 0 0 8px 0; color: #374151; font-weight: 600; font-size: 14px;">📥 Link-uri de descărcare:</p>
               ${bookLinks
-                .map(
-                  link => `
+            .map(
+              link => `
                 <div style="margin-bottom: 8px;">
                   <a href="${link.downloadUrl}" 
                      style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px; display: inline-block; margin-right: 8px;">
@@ -97,13 +97,13 @@ export async function sendDigitalBookDeliveryEmail({
                   </a>
                 </div>
               `
-                )
-                .join("")}
+            )
+            .join("")}
             </div>
           </div>
         `;
-        })
-        .join("")}
+      })
+      .join("")}
     </div>
     
     <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 24px 0;">
@@ -208,10 +208,10 @@ export async function sendOrderConfirmationEmail({
   // Professional order confirmation content
   const content = `
     ${createHeroSection(
-      "✅ Comanda Confirmată!",
-      "Mulțumim pentru comanda ta! Am primit comanda și o procesăm cu atenție.",
-      gradients.success
-    )}
+    "✅ Comanda Confirmată!",
+    "Mulțumim pentru comanda ta! Am primit comanda și o procesăm cu atenție.",
+    gradients.success
+  )}
 
     <div style="text-align: center; margin: ${spacing.xl} 0;">
       <p style="font-size: ${typography.fontSize.lg}; margin-bottom: ${spacing.md}; color: ${colors.neutral[700]};">
@@ -251,54 +251,54 @@ export async function sendOrderConfirmationEmail({
     </div>
 
     ${createAlert(
-      `<strong>Procesarea comenzii:</strong> Comanda ta va fi procesată în următoarele 24-48 de ore. Vei primi un email când comanda va fi expediată, cu numărul de urmărire.`,
-      "info",
-      "⏱️"
-    )}
+    `<strong>Procesarea comenzii:</strong> Comanda ta va fi procesată în următoarele 24-48 de ore. Vei primi un email când comanda va fi expediată, cu numărul de urmărire.`,
+    "info",
+    "⏱️"
+  )}
 
     ${createFeatureGrid([
-      {
-        icon: "📱",
-        title: "Urmărire în Timp Real",
-        description:
-          "Urmărește statusul comenzii tale din contul personal sau prin notificări email.",
-        color: colors.primary[600],
-      },
-      {
-        icon: "🚚",
-        title: "Livrare Rapidă",
-        description:
-          "Livrare în 2-5 zile lucrătoare în toată România, cu curier de încredere.",
-        color: colors.success[600],
-      },
-      {
-        icon: "🛡️",
-        title: "Garanție Completă",
-        description:
-          "Toate produsele beneficiază de garanție de 2 ani și retur gratuit în 30 de zile.",
-        color: colors.warning[600],
-      },
-      {
-        icon: "💬",
-        title: "Suport 24/7",
-        description:
-          "Echipa noastră de suport este disponibilă pentru orice întrebare despre comanda ta.",
-        color: colors.accent.purple,
-      },
-    ])}
+    {
+      icon: "📱",
+      title: "Urmărire în Timp Real",
+      description:
+        "Urmărește statusul comenzii tale din contul personal sau prin notificări email.",
+      color: colors.primary[600],
+    },
+    {
+      icon: "🚚",
+      title: "Livrare Rapidă",
+      description:
+        "Livrare în 2-5 zile lucrătoare în toată România, cu curier de încredere.",
+      color: colors.success[600],
+    },
+    {
+      icon: "🛡️",
+      title: "Garanție Completă",
+      description:
+        "Toate produsele beneficiază de garanție de 2 ani și retur gratuit în 30 de zile.",
+      color: colors.warning[600],
+    },
+    {
+      icon: "💬",
+      title: "Suport 24/7",
+      description:
+        "Echipa noastră de suport este disponibilă pentru orice întrebare despre comanda ta.",
+      color: colors.accent.purple,
+    },
+  ])}
 
     ${createCTASection(
-      "Urmărește Comanda Ta",
-      "Accesează contul tău pentru a vedea statusul comenzii în timp real și pentru a gestiona toate comenzile tale.",
-      {
-        text: "👁️ Vezi Comanda",
-        url: `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
-      },
-      {
-        text: "📋 Toate Comenzile",
-        url: `${baseUrl}/account/orders`,
-      }
-    )}
+    "Urmărește Comanda Ta",
+    "Accesează contul tău pentru a vedea statusul comenzii în timp real și pentru a gestiona toate comenzile tale.",
+    {
+      text: "👁️ Vezi Comanda",
+      url: `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
+    },
+    {
+      text: "📋 Toate Comenzile",
+      url: `${baseUrl}/account/orders`,
+    }
+  )}
 
     <div style="background: ${colors.neutral[50]}; border-radius: ${borderRadius.xl}; padding: ${spacing.xl}; margin: ${spacing.xl} 0; text-align: center;">
       <h3 style="margin: 0 0 ${spacing.md} 0; font-size: ${typography.fontSize.xl}; font-weight: ${typography.fontWeight.semibold}; color: ${colors.neutral[900]};">
@@ -376,7 +376,8 @@ export async function sendShippingNotificationEmail({
   orderId,
   trackingNumber,
   estimatedDelivery,
-  courierName = "Curier",
+  courierName = "FanCourier",
+  trackingUrl,
 }: {
   to: string;
   customerName: string;
@@ -384,9 +385,16 @@ export async function sendShippingNotificationEmail({
   trackingNumber: string;
   estimatedDelivery: string;
   courierName?: string;
+  trackingUrl?: string;
 }) {
   const storeSettings = await getStoreSettings();
   const baseUrl = getBaseUrl();
+
+  // Generate FanCourier tracking URL if not provided
+  const fanCourierTrackingUrl = trackingUrl ||
+    (courierName === "FanCourier"
+      ? `https://www.fancourier.ro/awb-tracking/?tracking=${trackingNumber}`
+      : `${baseUrl}/account/orders/${orderId}`);
 
   // Import professional components
   const {
@@ -408,10 +416,10 @@ export async function sendShippingNotificationEmail({
   // Professional shipping notification content
   const content = `
     ${createHeroSection(
-      "🚚 Comanda Ta Este în Drum!",
-      "Vestea bună! Comanda ta a fost expediată și este în drum către tine.",
-      gradients.success
-    )}
+    "🚚 Comanda Ta Este în Drum!",
+    "Vestea bună! Comanda ta a fost expediată și este în drum către tine.",
+    gradients.success
+  )}
 
     <div style="text-align: center; margin: ${spacing.xl} 0;">
       <p style="font-size: ${typography.fontSize.lg}; margin-bottom: ${spacing.md}; color: ${colors.neutral[700]};">
@@ -460,54 +468,54 @@ export async function sendShippingNotificationEmail({
     </div>
 
     ${createAlert(
-      `<strong>Urmărire în timp real:</strong> Poți urmări statusul coletului folosind numărul de urmărire de mai sus. Vei primi notificări despre fiecare etapă a livrării.`,
-      "info",
-      "📱"
-    )}
+    `<strong>Urmărire în timp real:</strong> Poți urmări statusul coletului folosind numărul de urmărire de mai sus. Vei primi notificări despre fiecare etapă a livrării.`,
+    "info",
+    "📱"
+  )}
 
     ${createFeatureGrid([
-      {
-        icon: "📱",
-        title: "Urmărire în Timp Real",
-        description:
-          "Urmărește statusul coletului în timp real prin aplicația curierului sau site-ul nostru.",
-        color: colors.primary[600],
-      },
-      {
-        icon: "🏠",
-        title: "Livrare la Adresa Ta",
-        description:
-          "Coletul va fi livrat la adresa specificată în comandă, cu semnătura ta.",
-        color: colors.success[600],
-      },
-      {
-        icon: "📞",
-        title: "Notificări SMS/Email",
-        description:
-          "Primești notificări despre fiecare etapă a livrării prin SMS și email.",
-        color: colors.warning[600],
-      },
-      {
-        icon: "🛡️",
-        title: "Asigurare Completă",
-        description:
-          "Coletul este asigurat împotriva deteriorării și pierderii în timpul transportului.",
-        color: colors.accent.purple,
-      },
-    ])}
+    {
+      icon: "📱",
+      title: "Urmărire în Timp Real",
+      description:
+        "Urmărește statusul coletului în timp real prin aplicația curierului sau site-ul nostru.",
+      color: colors.primary[600],
+    },
+    {
+      icon: "🏠",
+      title: "Livrare la Adresa Ta",
+      description:
+        "Coletul va fi livrat la adresa specificată în comandă, cu semnătura ta.",
+      color: colors.success[600],
+    },
+    {
+      icon: "📞",
+      title: "Notificări SMS/Email",
+      description:
+        "Primești notificări despre fiecare etapă a livrării prin SMS și email.",
+      color: colors.warning[600],
+    },
+    {
+      icon: "🛡️",
+      title: "Asigurare Completă",
+      description:
+        "Coletul este asigurat împotriva deteriorării și pierderii în timpul transportului.",
+      color: colors.accent.purple,
+    },
+  ])}
 
     ${createCTASection(
-      "Urmărește Coletul Ta",
-      "Accesează link-ul de urmărire pentru a vedea statusul exact al coletului și pentru a primi notificări în timp real.",
-      {
-        text: "📦 Urmărește Coletul",
-        url: `${baseUrl}/account/orders/${orderId}`,
-      },
-      {
-        text: "📱 Vezi Site-ul",
-        url: `${baseUrl}/`,
-      }
-    )}
+    "Urmărește Coletul Tău",
+    "Accesează link-ul de urmărire FanCourier pentru a vedea statusul exact al coletului în timp real.",
+    {
+      text: "📦 Urmărește pe FanCourier",
+      url: fanCourierTrackingUrl,
+    },
+    {
+      text: "📋 Vezi Comanda",
+      url: `${baseUrl}/account/orders/${orderId}`,
+    }
+  )}
 
     <div style="background: ${colors.warning[50]}; border-radius: ${borderRadius.xl}; padding: ${spacing.xl}; margin: ${spacing.xl} 0; border: 1px solid ${colors.warning[200]};">
       <h3 style="margin: 0 0 ${spacing.md} 0; font-size: ${typography.fontSize.xl}; font-weight: ${typography.fontWeight.semibold}; color: ${colors.warning[800]}; text-align: center;">
@@ -650,10 +658,10 @@ export async function sendOrderCompletedEmail({
   // Professional order completion content
   const content = `
     ${createHeroSection(
-      "🎉 Comanda Ta a Fost Finalizată cu Succes!",
-      "Mulțumim că ai ales ${storeSettings.storeName} pentru jucăriile STEM ale copilului tău!",
-      gradients.success
-    )}
+    "🎉 Comanda Ta a Fost Finalizată cu Succes!",
+    "Mulțumim că ai ales ${storeSettings.storeName} pentru jucăriile STEM ale copilului tău!",
+    gradients.success
+  )}
 
     <div style="text-align: center; margin: ${spacing.xl} 0;">
       <p style="font-size: ${typography.fontSize.lg}; margin-bottom: ${spacing.md}; color: ${colors.neutral[700]};">
@@ -668,86 +676,86 @@ export async function sendOrderCompletedEmail({
     ${createOrderSummary(orderItems, totalAmount)}
 
     ${createAlert(
-      `<strong>📦 Informații de livrare:</strong><br>
+    `<strong>📦 Informații de livrare:</strong><br>
        <strong>Adresa:</strong> ${shippingAddress}<br>
        <strong>Status:</strong> <span style="color: ${colors.success[600]}; font-weight: ${typography.fontWeight.semibold};">✅ Finalizată cu succes</span>`,
-      "success",
-      "📦"
-    )}
+    "success",
+    "📦"
+  )}
 
     ${createAlert(
-      `<strong>⭐ Părerea ta contează pentru noi!</strong><br>
+    `<strong>⭐ Părerea ta contează pentru noi!</strong><br>
        Ajută-ne să îmbunătățim experiența pentru alți părinți și să recomandăm produsele tale favorite.`,
-      "warning",
-      "⭐"
-    )}
+    "warning",
+    "⭐"
+  )}
 
     ${createCTASection(
-      "Lasă un Review",
-      "Ajută alți părinți să facă alegerea potrivită prin părerea ta valoroasă.",
-      {
-        text: "✍️ Lasă un Review",
-        url:
-          orderItems.length > 0
-            ? `${baseUrl}/orders/${orderId}/review?itemId=${orderItems[0].id}&productId=${orderItems[0].productId}&email=${encodeURIComponent(to)}`
-            : `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
-      },
-      {
-        text: "👁️ Vezi Comanda",
-        url: `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
-      }
-    )}
+    "Lasă un Review",
+    "Ajută alți părinți să facă alegerea potrivită prin părerea ta valoroasă.",
+    {
+      text: "✍️ Lasă un Review",
+      url:
+        orderItems.length > 0
+          ? `${baseUrl}/orders/${orderId}/review?itemId=${orderItems[0].id}&productId=${orderItems[0].productId}&email=${encodeURIComponent(to)}`
+          : `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
+    },
+    {
+      text: "👁️ Vezi Comanda",
+      url: `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
+    }
+  )}
 
     ${createFeatureGrid([
-      {
-        icon: "🧩",
-        title: "Puzzle-uri STEM",
-        description:
-          "Dezvoltă logica și creativitatea prin jocuri educaționale interactive.",
-        color: colors.primary[600],
-      },
-      {
-        icon: "🤖",
-        title: "Roboți Educaționali",
-        description:
-          "Introduce-te în lumea tehnologiei cu roboți programabili și inteligent.",
-        color: colors.accent.purple,
-      },
-      {
-        icon: "🔬",
-        title: "Seturi de Experimente",
-        description:
-          "Descoperă lumea științei prin experimente practice și interactive.",
-        color: colors.success[600],
-      },
-      {
-        icon: "🎯",
-        title: "Jocuri de Logică",
-        description:
-          "Îmbunătățește abilitățile cognitive prin jocuri strategice.",
-        color: colors.warning[600],
-      },
-    ])}
+    {
+      icon: "🧩",
+      title: "Puzzle-uri STEM",
+      description:
+        "Dezvoltă logica și creativitatea prin jocuri educaționale interactive.",
+      color: colors.primary[600],
+    },
+    {
+      icon: "🤖",
+      title: "Roboți Educaționali",
+      description:
+        "Introduce-te în lumea tehnologiei cu roboți programabili și inteligent.",
+      color: colors.accent.purple,
+    },
+    {
+      icon: "🔬",
+      title: "Seturi de Experimente",
+      description:
+        "Descoperă lumea științei prin experimente practice și interactive.",
+      color: colors.success[600],
+    },
+    {
+      icon: "🎯",
+      title: "Jocuri de Logică",
+      description:
+        "Îmbunătățește abilitățile cognitive prin jocuri strategice.",
+      color: colors.warning[600],
+    },
+  ])}
 
     ${createTestimonial(
-      "Produsele STEM de la ${storeSettings.storeName} au transformat complet modul în care copilul meu învață. Recomand cu încredere!",
-      "Maria Popescu",
-      "Mamă de 2 copii",
-      5
-    )}
+    "Produsele STEM de la ${storeSettings.storeName} au transformat complet modul în care copilul meu învață. Recomand cu încredere!",
+    "Maria Popescu",
+    "Mamă de 2 copii",
+    5
+  )}
 
     ${createCTASection(
-      "Descoperă Mai Multe Produse",
-      "Explorează colecția noastră completă de jucării STEM și găsește următoarea aventură educațională.",
-      {
-        text: "🛍️ Vezi Produse Noi",
-        url: `${baseUrl}/products`,
-      },
-      {
-        text: "📚 Vezi Cărți Digitale",
-        url: `${baseUrl}/account/digital-library`,
-      }
-    )}
+    "Descoperă Mai Multe Produse",
+    "Explorează colecția noastră completă de jucării STEM și găsește următoarea aventură educațională.",
+    {
+      text: "🛍️ Vezi Produse Noi",
+      url: `${baseUrl}/products`,
+    },
+    {
+      text: "📚 Vezi Cărți Digitale",
+      url: `${baseUrl}/account/digital-library`,
+    }
+  )}
 
     <div style="background: ${colors.primary[50]}; border-radius: ${borderRadius.xl}; padding: ${spacing.xl}; margin: ${spacing.xl} 0; border: 1px solid ${colors.primary[200]};">
       <h3 style="margin: 0 0 ${spacing.md} 0; font-size: ${typography.fontSize.xl}; font-weight: ${typography.fontWeight.semibold}; color: ${colors.primary[800]}; text-align: center;">
@@ -759,17 +767,17 @@ export async function sendOrderCompletedEmail({
       
       <div style="display: flex; justify-content: center; gap: ${spacing.md}; flex-wrap: wrap;">
         ${createButton(
-          "📞 Contact Suport",
-          `${baseUrl}/contact`,
-          "primary",
-          "md"
-        )}
+    "📞 Contact Suport",
+    `${baseUrl}/contact`,
+    "primary",
+    "md"
+  )}
         ${createButton(
-          "❓ Întrebări Frecvente",
-          `${baseUrl}/faq`,
-          "secondary",
-          "md"
-        )}
+    "❓ Întrebări Frecvente",
+    `${baseUrl}/faq`,
+    "secondary",
+    "md"
+  )}
       </div>
     </div>
 
@@ -857,10 +865,10 @@ export async function sendOrderDeliveredEmail({
   // Professional order delivered content
   const content = `
     ${createHeroSection(
-      "📦 Comanda Ta a Fost Livrată cu Succes!",
-      "Sperăm că totul este în regulă cu produsele primite și că copilul tău se bucură de jucăriile STEM!",
-      gradients.success
-    )}
+    "📦 Comanda Ta a Fost Livrată cu Succes!",
+    "Sperăm că totul este în regulă cu produsele primite și că copilul tău se bucură de jucăriile STEM!",
+    gradients.success
+  )}
 
     <div style="text-align: center; margin: ${spacing.xl} 0;">
       <p style="font-size: ${typography.fontSize.lg}; margin-bottom: ${spacing.md}; color: ${colors.neutral[700]};">
@@ -875,87 +883,87 @@ export async function sendOrderDeliveredEmail({
     ${createOrderSummary(orderItems, totalAmount)}
 
     ${createAlert(
-      `<strong>📦 Informații de livrare:</strong><br>
+    `<strong>📦 Informații de livrare:</strong><br>
        <strong>Adresa:</strong> ${shippingAddress}<br>
        <strong>Livrat la data:</strong> ${deliveredAt}<br>
        <strong>Status:</strong> <span style="color: ${colors.success[600]}; font-weight: ${typography.fontWeight.semibold};">✅ Livrat cu succes</span>`,
-      "success",
-      "📦"
-    )}
+    "success",
+    "📦"
+  )}
 
     ${createAlert(
-      `<strong>💬 Feedback:</strong><br>
+    `<strong>💬 Feedback:</strong><br>
        Te rugăm să ne spui dacă totul a fost în regulă cu comanda ta sau dacă ai întâmpinat probleme. Părerea ta contează pentru noi!`,
-      "warning",
-      "💬"
-    )}
+    "warning",
+    "💬"
+  )}
 
     ${createCTASection(
-      "Lasă un Review",
-      "Ajută alți părinți să facă alegerea potrivită prin părerea ta valoroasă despre produsele primite.",
-      {
-        text: "✍️ Lasă un Review",
-        url:
-          orderItems.length > 0
-            ? `${baseUrl}/orders/${orderId}/review?itemId=${orderItems[0].id}&productId=${orderItems[0].productId}&email=${encodeURIComponent(to)}`
-            : `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
-      },
-      {
-        text: "👁️ Vezi Comanda",
-        url: `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
-      }
-    )}
+    "Lasă un Review",
+    "Ajută alți părinți să facă alegerea potrivită prin părerea ta valoroasă despre produsele primite.",
+    {
+      text: "✍️ Lasă un Review",
+      url:
+        orderItems.length > 0
+          ? `${baseUrl}/orders/${orderId}/review?itemId=${orderItems[0].id}&productId=${orderItems[0].productId}&email=${encodeURIComponent(to)}`
+          : `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
+    },
+    {
+      text: "👁️ Vezi Comanda",
+      url: `${baseUrl}/orders/${orderId}?email=${encodeURIComponent(to)}`,
+    }
+  )}
 
     ${createFeatureGrid([
-      {
-        icon: "🎯",
-        title: "Calitate Garantată",
-        description:
-          "Toate produsele noastre sunt testate și aprobate pentru siguranța copiilor.",
-        color: colors.success[600],
-      },
-      {
-        icon: "🚚",
-        title: "Livrare Rapidă",
-        description:
-          "Livrăm în toată România cu curieri de încredere și tracking în timp real.",
-        color: colors.primary[600],
-      },
-      {
-        icon: "🛡️",
-        title: "Garanție Extinsă",
-        description:
-          "Oferim garanție extinsă pentru toate produsele STEM din colecția noastră.",
-        color: colors.warning[600],
-      },
-      {
-        icon: "💬",
-        title: "Suport Dedicat",
-        description:
-          "Echipa noastră este aici să te ajute cu orice întrebare despre produse.",
-        color: colors.accent.purple,
-      },
-    ])}
+    {
+      icon: "🎯",
+      title: "Calitate Garantată",
+      description:
+        "Toate produsele noastre sunt testate și aprobate pentru siguranța copiilor.",
+      color: colors.success[600],
+    },
+    {
+      icon: "🚚",
+      title: "Livrare Rapidă",
+      description:
+        "Livrăm în toată România cu curieri de încredere și tracking în timp real.",
+      color: colors.primary[600],
+    },
+    {
+      icon: "🛡️",
+      title: "Garanție Extinsă",
+      description:
+        "Oferim garanție extinsă pentru toate produsele STEM din colecția noastră.",
+      color: colors.warning[600],
+    },
+    {
+      icon: "💬",
+      title: "Suport Dedicat",
+      description:
+        "Echipa noastră este aici să te ajute cu orice întrebare despre produse.",
+      color: colors.accent.purple,
+    },
+  ])}
 
     ${createTestimonial(
-      "Livrarea a fost perfectă și copilul meu este încântat de jucăriile STEM! Recomand cu încredere ${storeSettings.storeName}.",
-      "Alexandru Ionescu",
-      "Tată de 2 copii",
-      5
-    )}
+    "Livrarea a fost perfectă și copilul meu este încântat de jucăriile STEM! Recomand cu încredere ${storeSettings.storeName}.",
+    "Alexandru Ionescu",
+    "Tată de 2 copii",
+    5
+  )}
 
     ${createCTASection(
-      "Descoperă Mai Multe Produse",
-      "Explorează colecția noastră completă de jucării STEM și găsește următoarea aventură educațională.",
-      {
-        text: "🛍️ Vezi Produse Noi",
-        url: `${baseUrl}/products`,
-      },
-      {
-        text: "📚 Vezi Cărți Digitale",
-        url: `${baseUrl}/account/digital-library`,
-      }
-    )}
+    "Descoperă Mai Multe Produse",
+    "Explorează colecția noastră completă de jucării STEM și găsește următoarea aventură educațională.",
+    {
+      text: "🛍️ Vezi Produse Noi",
+      url: `${baseUrl}/products`,
+    },
+    {
+      text: "📚 Vezi Cărți Digitale",
+      url: `${baseUrl}/account/digital-library`,
+    }
+  )}
 
     <div style="background: ${colors.primary[50]}; border-radius: ${borderRadius.xl}; padding: ${spacing.xl}; margin: ${spacing.xl} 0; border: 1px solid ${colors.primary[200]};">
       <h3 style="margin: 0 0 ${spacing.md} 0; font-size: ${typography.fontSize.xl}; font-weight: ${typography.fontWeight.semibold}; color: ${colors.primary[800]}; text-align: center;">
@@ -967,17 +975,17 @@ export async function sendOrderDeliveredEmail({
       
       <div style="display: flex; justify-content: center; gap: ${spacing.md}; flex-wrap: wrap;">
         ${createButton(
-          "📞 Contact Suport",
-          `${baseUrl}/contact`,
-          "primary",
-          "md"
-        )}
+    "📞 Contact Suport",
+    `${baseUrl}/contact`,
+    "primary",
+    "md"
+  )}
         ${createButton(
-          "❓ Întrebări Frecvente",
-          `${baseUrl}/faq`,
-          "secondary",
-          "md"
-        )}
+    "❓ Întrebări Frecvente",
+    `${baseUrl}/faq`,
+    "secondary",
+    "md"
+  )}
       </div>
     </div>
 
@@ -1062,10 +1070,10 @@ export async function sendOrderCancellationEmail({
   // Professional order cancellation content
   const content = `
     ${createHeroSection(
-      "❌ Comanda Ta a Fost Anulată",
-      "Înțelegem că circumstanțele se pot schimba. Suntem aici să te ajutăm.",
-      gradients.error
-    )}
+    "❌ Comanda Ta a Fost Anulată",
+    "Înțelegem că circumstanțele se pot schimba. Suntem aici să te ajutăm.",
+    gradients.error
+  )}
 
     <div style="text-align: center; margin: ${spacing.xl} 0;">
       <p style="font-size: ${typography.fontSize.lg}; margin-bottom: ${spacing.md}; color: ${colors.neutral[700]};">
@@ -1076,15 +1084,14 @@ export async function sendOrderCancellationEmail({
       </p>
     </div>
 
-    ${
-      cancellationReason
-        ? createAlert(
-            `<strong>📝 Motivul anulării:</strong><br>
+    ${cancellationReason
+      ? createAlert(
+        `<strong>📝 Motivul anulării:</strong><br>
              <em>"${cancellationReason}"</em>`,
-            "error",
-            "📝"
-          )
-        : ""
+        "error",
+        "📝"
+      )
+      : ""
     }
 
     ${createOrderSummary(orderItems, totalAmount)}
@@ -1149,17 +1156,17 @@ export async function sendOrderCancellationEmail({
       
       <div style="display: flex; justify-content: center; gap: ${spacing.md}; flex-wrap: wrap;">
         ${createButton(
-          "📞 Contact Suport",
-          `${baseUrl}/contact`,
-          "primary",
-          "md"
-        )}
+      "📞 Contact Suport",
+      `${baseUrl}/contact`,
+      "primary",
+      "md"
+    )}
         ${createButton(
-          "❓ Întrebări Frecvente",
-          `${baseUrl}/faq`,
-          "secondary",
-          "md"
-        )}
+      "❓ Întrebări Frecvente",
+      `${baseUrl}/faq`,
+      "secondary",
+      "md"
+    )}
       </div>
     </div>
 
