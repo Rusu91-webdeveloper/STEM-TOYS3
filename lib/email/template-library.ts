@@ -234,7 +234,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                 <div style="border-top: 1px solid #e5e7eb; padding-top: 15px;">
                     {{#if order.subtotal}}
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="color: #374151;">Subtotal:</span>
+                        <span style="color: #374151;">Subtotal produse:</span>
                         <span style="color: #1f2937;">{{order.subtotal}}</span>
                     </div>
                     {{/if}}
@@ -244,27 +244,24 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
                         <span style="color: #1f2937;">{{order.shippingCost}}</span>
                     </div>
                     {{/if}}
-                    {{#if order.tax}}
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="color: #374151;">TVA{{#if order.taxRatePercentage}} ({{order.taxRatePercentage}}%){{/if}}:</span>
-                        <span style="color: #1f2937;">{{order.tax}}</span>
-                    </div>
-                    {{/if}}
                     {{#if order.discountAmount}}
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="color: #374151;">Reducere:</span>
-                        <span style="color: #16a34a;">-{{order.discountAmount}}</span>
+                        <span style="color: #16a34a;">Reducere aplicată:</span>
+                        <span style="color: #16a34a; font-weight: 600;">-{{order.discountAmount}}</span>
                     </div>
                     {{/if}}
                     {{#if order.codFee}}
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="color: #374151;">Taxă ramburs:</span>
+                        <span style="color: #374151;">Taxă plată la livrare (ramburs):</span>
                         <span style="color: #1f2937;">{{order.codFee}}</span>
                     </div>
                     {{/if}}
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #e5e7eb; margin-top: 8px;">
-                        <strong style="color: #1f2937; font-size: 18px;">Total:</strong>
-                        <span style="color: #1f2937; font-size: 20px; font-weight: 700;">{{order.total}}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 2px solid #3b82f6; margin-top: 12px;">
+                        <div>
+                            <strong style="color: #1f2937; font-size: 18px;">Total de plată</strong>
+                            <br><span style="color: #6b7280; font-size: 12px;">(TVA inclus în prețuri)</span>
+                        </div>
+                        <span style="color: #3b82f6; font-size: 24px; font-weight: 700;">{{order.total}}</span>
                     </div>
                 </div>
             </div>
