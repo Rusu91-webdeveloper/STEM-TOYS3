@@ -210,18 +210,29 @@ export async function PATCH(
       where: {
         OR: [{ id: orderId }, { orderNumber: orderId }],
       },
-      select: { id: true, status: true },
+      select: {
+        id: true,
+        status: true,
+        paymentMethod: true,
+        paymentStatus: true,
+      },
     });
 
     if (!existingOrder) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
+    // Check if this is a COD order
+    const isCODOrder =
+      existingOrder.paymentMethod === "cash_on_delivery" ||
+      existingOrder.paymentMethod === "cod";
+
     // Prepare update data
     const updateData: {
       status: OrderStatus;
       deliveredAt?: Date;
       notes?: string;
+      paymentStatus?: string;
     } = {
       status: status as OrderStatus,
     };
@@ -229,6 +240,15 @@ export async function PATCH(
     // If changing status to DELIVERED, set deliveredAt to current time
     if (status === "DELIVERED" && existingOrder.status !== "DELIVERED") {
       updateData.deliveredAt = new Date();
+
+      // For COD orders: automatically mark payment as PAID when delivered
+      // This reflects real-world business logic where payment is collected on delivery
+      if (isCODOrder && existingOrder.paymentStatus !== "PAID") {
+        updateData.paymentStatus = "PAID";
+        console.log(
+          `✅ COD Order ${orderId}: Automatically updating paymentStatus to PAID (order delivered)`
+        );
+      }
     }
 
     // If cancelling order and cancellation reason is provided, save it in notes

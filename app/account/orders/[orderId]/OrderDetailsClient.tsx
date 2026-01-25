@@ -67,6 +67,21 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
 
+  // Helper function to format payment method for display
+  const formatPaymentMethod = (method: string) => {
+    switch (method) {
+      case "cash_on_delivery":
+      case "cod":
+        return t("cashOnDelivery") || "Cash on Delivery";
+      case "stripe":
+        return "Card (Stripe)";
+      case "netopia":
+        return "Card (Netopia)";
+      default:
+        return method;
+    }
+  };
+
   // Helper function to get status badge variant
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -387,7 +402,7 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
             <div className="text-sm">
               <p>
                 <span className="font-medium">{t("method")}: </span>
-                {order.paymentMethod}
+                {formatPaymentMethod(order.paymentMethod)}
               </p>
               <p>
                 <span className="font-medium">{t("status")}: </span>

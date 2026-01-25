@@ -90,6 +90,7 @@ export const en = {
   editShippingMethod: "Edit Shipping Method",
   editPayment: "Edit Payment",
   paymentMethod: "Payment Method",
+  cashOnDelivery: "Cash on Delivery",
   deliveryOnlyRomania: "Delivery is only available in Romania",
   preparingCheckout: "Preparing Checkout...",
   gettingOrderReady:

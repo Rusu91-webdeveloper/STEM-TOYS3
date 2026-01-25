@@ -72,16 +72,40 @@ export async function PATCH(
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
+    // Check if this is a COD order
+    const isCODOrder =
+      order.paymentMethod === "cash_on_delivery" ||
+      order.paymentMethod === "cod";
+
+    // Prepare update data
+    const updateData: {
+      status: string;
+      trackingNumber?: string;
+      carrier?: string;
+      deliveredAt?: Date;
+      updatedAt: Date;
+      paymentStatus?: string;
+    } = {
+      status,
+      trackingNumber: trackingNumber || order.paymentMethod,
+      carrier: carrier || order.carrier,
+      deliveredAt: status === "DELIVERED" ? new Date() : order.deliveredAt,
+      updatedAt: new Date(),
+    };
+
+    // For COD orders: automatically mark payment as PAID when delivered
+    // This reflects real-world business logic where payment is collected on delivery
+    if (isCODOrder && status === "DELIVERED" && order.paymentStatus !== "PAID") {
+      updateData.paymentStatus = "PAID";
+      console.log(
+        `✅ COD Order ${orderId}: Automatically updating paymentStatus to PAID (order delivered)`
+      );
+    }
+
     // Update the order status
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
-      data: {
-        status,
-        trackingNumber: trackingNumber || order.trackingNumber,
-        carrier: carrier || order.carrier,
-        deliveredAt: status === "DELIVERED" ? new Date() : order.deliveredAt,
-        updatedAt: new Date(),
-      },
+      data: updateData,
     });
 
     // Prepare additional data for email triggers
