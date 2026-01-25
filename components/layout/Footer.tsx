@@ -422,17 +422,21 @@ export default function Footer({
                 © {new Date().getFullYear()} {storeName}. {t("allRightsReserved")}
               </p>
               <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 lg:justify-start">
-                {["Privacy Policy", "Terms of Service", "GDPR"].map((item) => (
+                {[
+                  { name: "Privacy Policy", href: "/privacy" },
+                  { name: "Terms of Service", href: "/terms" },
+                  { name: "GDPR", href: "/gdpr" }
+                ].map((item) => (
                   <Link
-                    key={item}
-                    href={`/${item.toLowerCase().replace(/\s+/g, "-")}`}
+                    key={item.name}
+                    href={item.href}
                     className="text-xs font-medium text-gray-400 transition-colors hover:text-white"
                   >
-                    {item === "Privacy Policy"
+                    {item.name === "Privacy Policy"
                       ? t("privacyPolicy")
-                      : item === "Terms of Service"
+                      : item.name === "Terms of Service"
                         ? t("termsOfService")
-                        : item}
+                        : item.name}
                   </Link>
                 ))}
               </div>
