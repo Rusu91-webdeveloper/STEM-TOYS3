@@ -398,6 +398,12 @@ export async function PATCH(
     // Invalidate analytics cache since order update affects analytics
     await invalidateAnalyticsOnOrderChange();
 
+    // Invalidate admin orders cache to ensure dashboard shows updated status
+    await Promise.all([
+      invalidateCachePattern("admin-orders*"),
+      invalidateCachePattern("enhanced-orders*"),
+    ]);
+
     return NextResponse.json({ order: formattedOrder });
   } catch (error) {
     console.error("Error updating order:", error);

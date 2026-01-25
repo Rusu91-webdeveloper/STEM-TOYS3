@@ -158,7 +158,12 @@ export default function OrdersPage() {
       params.append("page", pagination.page.toString());
       params.append("limit", pagination.limit.toString());
 
-      const response = await fetch(`/api/admin/orders?${params.toString()}`);
+      const response = await fetch(`/api/admin/orders?${params.toString()}`, {
+        cache: "no-store", // Prevent browser caching
+        headers: {
+          "Cache-Control": "no-cache", // Additional cache prevention
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch orders");
@@ -230,6 +235,7 @@ export default function OrdersPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(requestBody),
+          cache: "no-store", // Prevent caching of the update request
         }
       );
 
@@ -237,21 +243,20 @@ export default function OrdersPage() {
         throw new Error("Failed to update order status");
       }
 
-      // Update the order in the local state
-      setOrders(prevOrders =>
-        prevOrders.map(order =>
-          order.id === statusUpdateModal.order!.id
-            ? { ...order, status: formatStatus(statusUpdateModal.newStatus) }
-            : order
-        )
-      );
+      const data = await response.json();
 
+      // Close modal first
+      closeStatusUpdateModal();
+
+      // Show success message
       toast({
         title: "Success",
         description: `Order status updated to ${formatStatus(statusUpdateModal.newStatus)}`,
       });
 
-      closeStatusUpdateModal();
+      // Re-fetch orders from server to ensure we have the latest data
+      // This prevents any sync issues between frontend and backend
+      await fetchOrders();
     } catch (error) {
       console.error("Error updating order status:", error);
       toast({
@@ -259,7 +264,6 @@ export default function OrdersPage() {
         description: "Failed to update order status. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setStatusUpdateModal(prev => ({ ...prev, updating: false }));
     }
   };
