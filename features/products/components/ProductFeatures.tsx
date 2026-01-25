@@ -43,7 +43,7 @@ export function ProductFeatures({
               <ShoppingCart className="h-4 w-4 text-emerald-300" />
             </div>
             <div>
-              <div className="text-sm font-semibold text-slate-100">
+              <div className="text-sm font-semibold text-slate-900">
                 {t("securePayment", "Plată securizată")}
               </div>
               <div className={`${productMutedTextClass} text-xs`}>
@@ -56,7 +56,7 @@ export function ProductFeatures({
               <Truck className="h-4 w-4 text-sky-300" />
             </div>
             <div>
-              <div className="text-sm font-semibold text-slate-100">
+              <div className="text-sm font-semibold text-slate-900">
                 {t("freeShipping", "Transport gratuit")}
               </div>
               <div className={`${productMutedTextClass} text-xs`}>
@@ -71,7 +71,7 @@ export function ProductFeatures({
               <RotateCcw className="h-4 w-4 text-orange-300" />
             </div>
             <div>
-              <div className="text-sm font-semibold text-slate-100">
+              <div className="text-sm font-semibold text-slate-900">
                 {t("easyReturns", "Retur simplu")}
               </div>
               <div className={`${productMutedTextClass} text-xs`}>

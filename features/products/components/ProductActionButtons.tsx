@@ -114,49 +114,50 @@ export function ProductActionButtons({
   return (
     <ProductActionButtonsErrorBoundary onError={handleError}>
       <div className="flex flex-shrink-0 items-center space-x-1">
-        {/* Favorite Button - Now works for both products and books */}
+        {/* Favorite Button - Red theme */}
         <Button
-          variant={isFavorited ? "default" : "ghost"}
+          variant={isFavorited ? "default" : "outline"}
           size="icon"
-          className={`${buttonSize} border border-white/20 bg-white/10 text-slate-100 shadow-md shadow-primary/20 transition hover:bg-white/20`}
+          className={`${buttonSize} transition ${isFavorited
+              ? "bg-rose-600 hover:bg-rose-700 text-white border-rose-600 shadow-md shadow-rose-200"
+              : "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700"
+            }`}
           onClick={onFavoriteClick}
           disabled={isFavoriteLoading}
           title={favoriteTitle}
         >
           <Heart
-            className={`${iconSize} ${
-              isFavorited ? "text-red-500 fill-current" : ""
-            }`}
+            className={`${iconSize} ${isFavorited ? "fill-current" : ""
+              }`}
           />
         </Button>
 
-        {/* Share Button */}
+        {/* Share Button - Blue theme */}
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon"
-          className={`${buttonSize} border border-white/15 bg-white/10 text-slate-100 shadow-md shadow-indigo-500/10 transition hover:bg-white/20`}
+          className={`${buttonSize} border-blue-200 bg-blue-50 text-blue-600 shadow-sm transition hover:bg-blue-100 hover:text-blue-700 hover:border-blue-300`}
           onClick={onShareClick}
           title={shareTitle}
         >
           <Share2 className={iconSize} />
         </Button>
 
-        {/* Quick Add to Cart Button (optional) */}
+        {/* Quick Add to Cart Button - Black theme */}
         {onQuickAddToCart && (
           <Button
-            variant={justAddedToCart ? "default" : "ghost"}
+            variant={justAddedToCart ? "default" : "outline"}
             size="icon"
-            className={`${buttonSize} transition-all ${
-              justAddedToCart
-                ? "bg-green-600 hover:bg-green-700 border-green-600"
-                : "border border-emerald-200/30 bg-emerald-400/10 text-slate-100 shadow-md shadow-emerald-500/20 hover:bg-emerald-400/20"
-            }`}
+            className={`${buttonSize} transition-all ${justAddedToCart
+                ? "bg-green-600 hover:bg-green-700 border-green-600 text-white"
+                : "bg-slate-900 border-slate-900 text-white hover:bg-slate-800 hover:text-white shadow-md"
+              }`}
             onClick={onQuickAddToCart}
             disabled={isAddingToCart || justAddedToCart}
             title={addToCartTitle}
           >
             {justAddedToCart ? (
-              <Check className={`${iconSize} text-white`} />
+              <Check className={`${iconSize}`} />
             ) : (
               <ShoppingCart className={iconSize} />
             )}
