@@ -305,7 +305,7 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                               </div>
                             )}
                             
-                            {/* Return Item Button - Only show for non-digital items that haven't been returned */}
+                            {/* Return Item Button - Only show for non-digital items that haven't been returned and within 14-day window */}
                             {isWithinReturnWindow() && 
                              !item.isDigital && 
                              (!item.returnStatus || item.returnStatus === "NONE") && (
@@ -322,6 +322,14 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                                   {t("returnItem")}
                                 </Link>
                               </Button>
+                            )}
+                            
+                            {/* Show message if return window has expired */}
+                            {!isWithinReturnWindow() && !item.isDigital && (!item.returnStatus || item.returnStatus === "NONE") && (
+                              <div className="flex items-center text-sm text-muted-foreground mt-2">
+                                <Package className="h-4 w-4 mr-1" />
+                                Return window expired (14 days)
+                              </div>
                             )}
                             {/* Info message for digital items */}
                             {item.isDigital && (
