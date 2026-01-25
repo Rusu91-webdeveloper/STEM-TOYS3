@@ -83,7 +83,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if any items are already returned
+    // Check if any items are already returned or have pending returns
     const alreadyReturnedItems = orderItems.filter(
       item => item.returnStatus !== "NONE"
     );
@@ -100,7 +100,37 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create return records for all items
+    // Additional check: verify no pending returns exist for these items
+    // This prevents duplicate returns if the previous request timed out but still created records
+    const existingReturns = await db.return.findMany({
+      where: {
+        orderItemId: { in: orderItemIds },
+        userId: session.user.id,
+        status: {
+          in: ["PENDING", "APPROVED", "RECEIVED"],
+        },
+      },
+    });
+
+    if (existingReturns.length > 0) {
+      const affectedItemIds = existingReturns.map(r => r.orderItemId);
+      const affectedItems = orderItems.filter(item =>
+        affectedItemIds.includes(item.id)
+      );
+      const affectedNames = affectedItems.map(item => item.name);
+
+      return NextResponse.json(
+        {
+          error: `Some items already have pending or active returns: ${affectedNames.join(
+            ", "
+          )}. Please check your returns page.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Create return records for all items using a transaction
+    // This ensures atomicity - either all succeed or none
     const returnData = orderItems.map(item => ({
       orderItemId: item.id,
       orderId: item.orderId,
@@ -111,30 +141,36 @@ export async function POST(request: Request) {
       photos: Array.isArray(photos) ? photos : [],
     }));
 
-    const returnRecords = await db.return.createMany({
-      data: returnData,
-    });
+    // Use transaction to ensure data consistency
+    const createdReturns = await db.$transaction(async tx => {
+      // Create return records
+      await tx.return.createMany({
+        data: returnData,
+      });
 
-    // Update order items return status
-    await db.orderItem.updateMany({
-      where: {
-        id: { in: orderItemIds },
-      },
-      data: {
-        returnStatus: "REQUESTED",
-      },
-    });
+      // Update order items return status
+      await tx.orderItem.updateMany({
+        where: {
+          id: { in: orderItemIds },
+        },
+        data: {
+          returnStatus: "REQUESTED",
+        },
+      });
 
-    // Get the created return records for email
-    const createdReturns = await db.return.findMany({
-      where: {
-        orderItemId: { in: orderItemIds },
-        userId: session.user.id,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: orderItems.length,
+      // Get the created return records
+      const returns = await tx.return.findMany({
+        where: {
+          orderItemId: { in: orderItemIds },
+          userId: session.user.id,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: orderItems.length,
+      });
+
+      return returns;
     });
 
     // Get user info for emails
@@ -157,46 +193,23 @@ export async function POST(request: Request) {
       OTHER: "Other reason",
     };
 
-    // Send consolidated emails
-    try {
-      // Send admin notification for bulk return using professional template
-      console.log(
-        "Sending bulk return admin notification email to:",
-        adminEmail
-      );
-
-      const { sendBulkReturnNotificationEmail } = await import(
-        "@/lib/email/migration-helper"
-      );
-      await sendBulkReturnNotificationEmail({
-        to: adminEmail,
-        customerName: user?.name || "Unknown Customer",
-        customerEmail: user?.email || "unknown@email.com",
-        orderNumber: order.orderNumber,
-        returnItems: orderItems.map(item => ({
-          name: item.name,
-          quantity: item.quantity,
-          sku: item.product?.sku || undefined,
-        })),
-        reason,
-        details,
-        returnIds: createdReturns.map(r => r.id),
-      });
-
-      // Send customer confirmation email using professional template
-      const userEmail = session.user.email;
-      if (typeof userEmail === "string" && userEmail) {
+    // Send consolidated emails asynchronously (don't await - fire and forget)
+    // This prevents email sending from blocking the API response
+    const sendEmailsAsync = async () => {
+      try {
+        // Send admin notification for bulk return using professional template
         console.log(
-          "Sending bulk return customer confirmation email to:",
-          userEmail
+          "Sending bulk return admin notification email to:",
+          adminEmail
         );
 
-        const { sendBulkReturnConfirmationEmail } = await import(
+        const { sendBulkReturnNotificationEmail } = await import(
           "@/lib/email/migration-helper"
         );
-        await sendBulkReturnConfirmationEmail({
-          to: userEmail,
-          customerName: user?.name || "Valued Customer",
+        await sendBulkReturnNotificationEmail({
+          to: adminEmail,
+          customerName: user?.name || "Unknown Customer",
+          customerEmail: user?.email || "unknown@email.com",
           orderNumber: order.orderNumber,
           returnItems: orderItems.map(item => ({
             name: item.name,
@@ -207,15 +220,46 @@ export async function POST(request: Request) {
           details,
           returnIds: createdReturns.map(r => r.id),
         });
-      } else {
-        console.warn(
-          "User email is missing or invalid, skipping return confirmation email."
-        );
+
+        // Send customer confirmation email using professional template
+        const userEmail = session.user.email;
+        if (typeof userEmail === "string" && userEmail) {
+          console.log(
+            "Sending bulk return customer confirmation email to:",
+            userEmail
+          );
+
+          const { sendBulkReturnConfirmationEmail } = await import(
+            "@/lib/email/migration-helper"
+          );
+          await sendBulkReturnConfirmationEmail({
+            to: userEmail,
+            customerName: user?.name || "Valued Customer",
+            orderNumber: order.orderNumber,
+            returnItems: orderItems.map(item => ({
+              name: item.name,
+              quantity: item.quantity,
+              sku: item.product?.sku || undefined,
+            })),
+            reason,
+            details,
+            returnIds: createdReturns.map(r => r.id),
+          });
+        } else {
+          console.warn(
+            "User email is missing or invalid, skipping return confirmation email."
+          );
+        }
+      } catch (emailError) {
+        console.error("Error sending bulk return emails:", emailError);
+        // Don't fail the request if email fails
       }
-    } catch (emailError) {
-      console.error("Error sending bulk return emails:", emailError);
-      // Don't fail the request if email fails
-    }
+    };
+
+    // Fire and forget - don't wait for emails to send
+    sendEmailsAsync().catch(err =>
+      console.error("Background email sending failed:", err)
+    );
 
     return NextResponse.json({
       success: true,
