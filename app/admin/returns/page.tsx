@@ -18,6 +18,12 @@ import {
   DollarSign,
   RefreshCw,
   BarChart3,
+  Eye,
+  ImageIcon,
+  ExternalLink,
+  Send,
+  Truck,
+  Building2,
 } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -35,10 +41,18 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -119,8 +133,13 @@ interface ReturnItem {
   details: string | null;
   status: ReturnStatus;
   createdAt: string;
+  updatedAt?: string;
   refundStatus?: string | null;
   refundError?: string | null;
+  photos?: string[];
+  supplierAuthorizationStatus?: string | null;
+  supplierAuthorizationNumber?: string | null;
+  supplierAuthorizationNotes?: string | null;
   user: {
     id: string;
     name: string;
@@ -204,6 +223,11 @@ export default function AdminReturnsPage() {
   // Bulk operations
   const [selectedReturns, setSelectedReturns] = useState<string[]>([]);
   const [bulkProcessing, setBulkProcessing] = useState(false);
+
+  // Detail modal
+  const [selectedReturnForDetails, setSelectedReturnForDetails] = useState<ReturnItem | null>(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [sendingReport, setSendingReport] = useState<"supplier" | "courier" | null>(null);
 
   const { toast } = useToast();
 
@@ -513,6 +537,52 @@ export default function AdminReturnsPage() {
     const startDate = dateRange?.from?.toISOString();
     const endDate = dateRange?.to?.toISOString();
     fetchAnalytics(startDate, endDate);
+  };
+
+  // View return details
+  const handleViewDetails = (returnItem: ReturnItem) => {
+    setSelectedReturnForDetails(returnItem);
+    setDetailsModalOpen(true);
+  };
+
+  // Send return report to supplier or courier
+  const handleSendReport = async (recipientType: "supplier" | "courier") => {
+    if (!selectedReturnForDetails) return;
+
+    try {
+      setSendingReport(recipientType);
+
+      const response = await fetch(
+        `/api/returns/${selectedReturnForDetails.id}/send-report`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ recipientType }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Trimiterea a eșuat");
+      }
+
+      toast({
+        title: recipientType === "supplier" ? "Raport trimis la furnizor" : "Reclamație trimisă la curier",
+        description: data.message,
+      });
+    } catch (error) {
+      console.error("Error sending report:", error);
+      toast({
+        title: "Eroare",
+        description: error instanceof Error ? error.message : "Nu s-a putut trimite raportul",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingReport(null);
+    }
   };
 
   const filteredReturns = searchTerm
@@ -1125,6 +1195,13 @@ export default function AdminReturnsPage() {
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                   <DropdownMenuItem
+                                    onClick={() => handleViewDetails(returnItem)}
+                                  >
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Details
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
                                     onClick={() =>
                                       handleUpdateStatus(
                                         returnItem.id,
@@ -1215,6 +1292,326 @@ export default function AdminReturnsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Return Details Modal */}
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Return Details
+            </DialogTitle>
+            <DialogDescription>
+              Return ID: {selectedReturnForDetails?.id.slice(-8)}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedReturnForDetails && (
+            <div className="space-y-6">
+              {/* Status Badge */}
+              <div className="flex items-center justify-between">
+                <Badge
+                  className={`text-sm px-3 py-1 ${statusBadges[selectedReturnForDetails.status].color}`}
+                >
+                  {statusBadges[selectedReturnForDetails.status].label}
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  Requested:{" "}
+                  {format(
+                    new Date(selectedReturnForDetails.createdAt),
+                    "MMM dd, yyyy 'at' HH:mm"
+                  )}
+                </span>
+              </div>
+
+              {/* Customer Info */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Customer Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Name:</span>
+                    <p className="font-medium">
+                      {selectedReturnForDetails.user.name}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Email:</span>
+                    <p className="font-medium">
+                      {selectedReturnForDetails.user.email}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Product Info */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Product Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-4">
+                    {selectedReturnForDetails.orderItem.product.images?.[0] && (
+                      <div className="relative h-24 w-24 rounded-lg overflow-hidden border">
+                        <Image
+                          src={
+                            selectedReturnForDetails.orderItem.product.images[0]
+                          }
+                          alt={selectedReturnForDetails.orderItem.name}
+                          className="object-cover"
+                          fill
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1 space-y-2">
+                      <h4 className="font-medium">
+                        {selectedReturnForDetails.orderItem.name}
+                      </h4>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <p>
+                          SKU:{" "}
+                          {selectedReturnForDetails.orderItem.product.sku ||
+                            "N/A"}
+                        </p>
+                        <p>
+                          Quantity: {selectedReturnForDetails.orderItem.quantity}
+                        </p>
+                        <p>
+                          Price: ${selectedReturnForDetails.orderItem.price.toFixed(2)}
+                        </p>
+                        <p>
+                          Order #{selectedReturnForDetails.order.orderNumber}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Return Reason */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Return Reason</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Badge variant="outline" className="text-sm">
+                    {reasonLabels[selectedReturnForDetails.reason]}
+                  </Badge>
+                  {selectedReturnForDetails.details && (
+                    <div className="mt-3 p-3 bg-muted rounded-md">
+                      <p className="text-sm font-medium mb-1">
+                        Additional Details:
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedReturnForDetails.details}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Photos Section */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4" />
+                    Uploaded Photos
+                    {selectedReturnForDetails.photos &&
+                      selectedReturnForDetails.photos.length > 0 && (
+                        <Badge variant="secondary" className="ml-2">
+                          {selectedReturnForDetails.photos.length} photo(s)
+                        </Badge>
+                      )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {selectedReturnForDetails.photos &&
+                  selectedReturnForDetails.photos.length > 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {selectedReturnForDetails.photos.map((photo, index) => (
+                        <div
+                          key={index}
+                          className="relative aspect-square rounded-lg overflow-hidden border group"
+                        >
+                          <Image
+                            src={photo}
+                            alt={`Return photo ${index + 1}`}
+                            className="object-cover"
+                            fill
+                          />
+                          <a
+                            href={photo}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                          >
+                            <ExternalLink className="h-6 w-6 text-white" />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>No photos uploaded for this return</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Supplier Authorization (if applicable) */}
+              {(selectedReturnForDetails.supplierAuthorizationStatus ||
+                selectedReturnForDetails.supplierAuthorizationNumber) && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">
+                      Supplier Authorization
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    {selectedReturnForDetails.supplierAuthorizationStatus && (
+                      <div>
+                        <span className="text-muted-foreground">Status: </span>
+                        <Badge variant="outline">
+                          {selectedReturnForDetails.supplierAuthorizationStatus}
+                        </Badge>
+                      </div>
+                    )}
+                    {selectedReturnForDetails.supplierAuthorizationNumber && (
+                      <div>
+                        <span className="text-muted-foreground">
+                          RMA/ARP Number:{" "}
+                        </span>
+                        <span className="font-mono">
+                          {selectedReturnForDetails.supplierAuthorizationNumber}
+                        </span>
+                      </div>
+                    )}
+                    {selectedReturnForDetails.supplierAuthorizationNotes && (
+                      <div className="mt-2 p-2 bg-muted rounded">
+                        <p className="text-muted-foreground">
+                          {selectedReturnForDetails.supplierAuthorizationNotes}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Refund Info (if refunded) */}
+              {selectedReturnForDetails.status === "REFUNDED" && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Refund Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Status: </span>
+                      <span
+                        className={
+                          selectedReturnForDetails.refundStatus === "SUCCESS"
+                            ? "text-green-600 font-medium"
+                            : selectedReturnForDetails.refundStatus === "FAILED"
+                              ? "text-red-600 font-medium"
+                              : ""
+                        }
+                      >
+                        {selectedReturnForDetails.refundStatus || "Unknown"}
+                      </span>
+                    </div>
+                    {selectedReturnForDetails.refundError && (
+                      <div className="p-2 bg-red-50 border border-red-200 rounded text-red-700">
+                        <p className="font-medium">Error:</p>
+                        <p>{selectedReturnForDetails.refundError}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Send Report Actions */}
+              <Card className="bg-blue-50 border-blue-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Send className="h-4 w-4" />
+                    Trimite Raport
+                  </CardTitle>
+                  <CardDescription>
+                    Trimite detaliile returnării și fotografiile către furnizor sau curier
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700"
+                    onClick={() => handleSendReport("supplier")}
+                    disabled={sendingReport !== null}
+                  >
+                    {sendingReport === "supplier" ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Building2 className="h-4 w-4 mr-2" />
+                    )}
+                    Trimite la Furnizor (RMA)
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-orange-300 bg-orange-50 hover:bg-orange-100 text-orange-700"
+                    onClick={() => handleSendReport("courier")}
+                    disabled={sendingReport !== null}
+                  >
+                    {sendingReport === "courier" ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Truck className="h-4 w-4 mr-2" />
+                    )}
+                    Trimite la Curier (Reclamație)
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Quick Actions */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setDetailsModalOpen(false)}
+                >
+                  Închide
+                </Button>
+                {selectedReturnForDetails.status === "PENDING" && (
+                  <>
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        handleUpdateStatus(selectedReturnForDetails.id, "REJECTED");
+                        setDetailsModalOpen(false);
+                      }}
+                    >
+                      Respinge Returnarea
+                    </Button>
+                    <Button
+                      className="bg-green-600 hover:bg-green-700"
+                      onClick={() => {
+                        handleUpdateStatus(selectedReturnForDetails.id, "APPROVED");
+                        setDetailsModalOpen(false);
+                      }}
+                    >
+                      Aprobă Returnarea
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

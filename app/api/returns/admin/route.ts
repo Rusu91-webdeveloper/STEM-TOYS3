@@ -46,10 +46,22 @@ export async function GET(request: Request) {
       // We'll handle customer segment filtering in the query with includes
     }
 
-    // Get returns with pagination
+    // Get returns with pagination - using select to include photos field
     let returnsQuery = {
       where,
-      include: {
+      select: {
+        id: true,
+        reason: true,
+        details: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        refundStatus: true,
+        refundError: true,
+        photos: true,
+        supplierAuthorizationStatus: true,
+        supplierAuthorizationNumber: true,
+        supplierAuthorizationNotes: true,
         user: {
           select: {
             id: true,
@@ -95,9 +107,24 @@ export async function GET(request: Request) {
       // Get all returns that match other filters first
       const allReturns = await prisma.return.findMany({
         where,
-        include: {
+        select: {
+          id: true,
+          reason: true,
+          details: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+          refundStatus: true,
+          refundError: true,
+          photos: true,
+          supplierAuthorizationStatus: true,
+          supplierAuthorizationNumber: true,
+          supplierAuthorizationNotes: true,
           user: {
-            include: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
               orders: {
                 select: {
                   total: true,
