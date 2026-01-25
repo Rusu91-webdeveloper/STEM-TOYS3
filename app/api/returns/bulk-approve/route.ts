@@ -38,7 +38,41 @@ export async function POST(request: Request) {
 
     console.log("Processing bulk approval for returns:", returnIds);
 
-    // Get all returns with order and product details
+    // First, check what returns exist with these IDs (regardless of status)
+    const existingReturns = await db.return.findMany({
+      where: {
+        id: { in: returnIds },
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    console.log("Existing returns found:", existingReturns);
+
+    // If no returns found at all, the IDs are invalid
+    if (existingReturns.length === 0) {
+      return NextResponse.json(
+        { error: "Nu s-au găsit returnări cu ID-urile furnizate" },
+        { status: 404 }
+      );
+    }
+
+    // Check if all returns are already processed (not PENDING)
+    const nonPendingReturns = existingReturns.filter(r => r.status !== "PENDING");
+    if (nonPendingReturns.length === existingReturns.length) {
+      const statusInfo = existingReturns.map(r => `${r.id.slice(-6)}: ${r.status}`).join(", ");
+      return NextResponse.json(
+        { 
+          error: `Toate returnările selectate au fost deja procesate. Status curent: ${statusInfo}`,
+          details: existingReturns
+        },
+        { status: 400 }
+      );
+    }
+
+    // Get all returns with order and product details (only PENDING ones)
     const returns = await db.return.findMany({
       where: {
         id: { in: returnIds },
@@ -64,9 +98,14 @@ export async function POST(request: Request) {
 
     if (returns.length === 0) {
       return NextResponse.json(
-        { error: "No pending returns found with the provided IDs" },
+        { error: "Nu s-au găsit returnări în așteptare cu ID-urile furnizate" },
         { status: 404 }
       );
+    }
+    
+    // Log if some returns were skipped
+    if (returns.length < returnIds.length) {
+      console.log(`⚠️ Only ${returns.length} of ${returnIds.length} returns are PENDING. Skipping ${returnIds.length - returns.length} already processed returns.`);
     }
 
     // Group returns by order ID to handle bulk returns per order
