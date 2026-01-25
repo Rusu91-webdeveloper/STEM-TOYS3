@@ -28,6 +28,7 @@ interface OrderItem {
     id: string;
   }[];
   isDigital?: boolean;
+  returnStatus?: string;
 }
 
 interface ShippingAddress {
@@ -296,8 +297,18 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                                 </Link>
                               </Button>
                             )}
-                            {/* Return Item Button - Only show for non-digital items */}
-                            {isWithinReturnWindow() && !item.isDigital && (
+                            
+                            {/* Return status badge */}
+                            {item.returnStatus && item.returnStatus !== "NONE" && (
+                              <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mt-2 mr-2">
+                                Return {item.returnStatus.toLowerCase()}
+                              </div>
+                            )}
+                            
+                            {/* Return Item Button - Only show for non-digital items that haven't been returned */}
+                            {isWithinReturnWindow() && 
+                             !item.isDigital && 
+                             (!item.returnStatus || item.returnStatus === "NONE") && (
                               <Button
                                 variant="outline"
                                 size="sm"

@@ -51,6 +51,7 @@ interface OrderItem {
     images: string[];
   };
   isDigital: boolean;
+  returnStatus: string;
 }
 
 interface Order {
@@ -135,8 +136,7 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
     },
   });
 
-  // Add state for already returned item IDs
-  const [returnedItemIds, setReturnedItemIds] = useState<string[]>([]);
+  // Add state for uploading photos
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   
   // Get photos from form watch
@@ -204,25 +204,6 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
 
     fetchOrder();
   }, [orderId, router, toast]);
-
-  // Fetch user's returns for this order
-  useEffect(() => {
-    if (!orderId) return;
-    const fetchReturns = async () => {
-      try {
-        const response = await fetch("/api/returns/user");
-        if (!response.ok) return;
-        const data = await response.json();
-        // Get IDs of items already returned for this order
-        const ids = (data.returns || [])
-          .filter((r: any) => r.order.orderNumber === order?.orderNumber)
-          .map((r: any) => r.orderItem?.id)
-          .filter(Boolean);
-        setReturnedItemIds(ids);
-      } catch {}
-    };
-    fetchReturns();
-  }, [orderId, order?.orderNumber]);
 
   // Handle form submission
   const onSubmit = async (values: ReturnFormValues) => {
@@ -356,7 +337,7 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                 {order.items.filter(
                   item =>
                     order.status === "DELIVERED" &&
-                    !returnedItemIds.includes(item.id) &&
+                    item.returnStatus === "NONE" &&
                     !item.isDigital
                 ).length === 0 ? (
                   <div className="text-sm text-muted-foreground">
@@ -374,13 +355,13 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                               .filter(
                                 item =>
                                   order.status === "DELIVERED" &&
-                                  !returnedItemIds.includes(item.id) &&
+                                  item.returnStatus === "NONE" &&
                                   !item.isDigital
                               )
                               .map(item => {
                                 const disabled =
                                   order.status !== "DELIVERED" ||
-                                  returnedItemIds.includes(item.id) ||
+                                  item.returnStatus !== "NONE" ||
                                   item.isDigital;
                                 return (
                                   <div
@@ -411,8 +392,11 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                                     </FormControl>
 
                                     <div
-                                      className="flex flex-1 items-center space-x-4 cursor-pointer"
+                                      className={`flex flex-1 items-center space-x-4 ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
                                       onClick={() => {
+                                        // Prevent interaction with disabled items
+                                        if (disabled) return;
+                                        
                                         if (field.value.includes(item.id)) {
                                           field.onChange(
                                             field.value.filter(
@@ -446,6 +430,13 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                                           Quantity: {item.quantity} ·{" "}
                                           {formatPrice(item.price)}
                                         </div>
+                                        {item.returnStatus !== "NONE" && (
+                                          <div className="mt-2">
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                              Return {item.returnStatus.toLowerCase()}
+                                            </span>
+                                          </div>
+                                        )}
                                       </div>
 
                                       <div
