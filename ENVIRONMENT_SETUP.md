@@ -521,6 +521,8 @@ npm run db:reset
 
 ### Vercel Deployment
 
+This project runs **Prisma migrations automatically** on each deploy. The build uses `build:production` (see `vercel.json` → `buildCommand`), which runs `prisma migrate deploy` before `next build`. Ensure `DATABASE_URL` and `DIRECT_DATABASE_URL` are set in Vercel for Production.
+
 **1. Install Vercel CLI:**
 
 ```bash
@@ -619,12 +621,12 @@ docker run -p 3000:3000 \
 
 **1. Run Migrations:**
 
-```bash
-# Via Vercel
-vercel env pull
-npx prisma migrate deploy
+Migrations run automatically during Vercel build (`build:production`). To apply pending migrations **manually** (e.g. to fix /admin/orders 500 before redeploying):
 
-# Or set up automatic migrations in build command
+```bash
+vercel env pull
+# Use production DB; then:
+pnpm run db:migrate:deploy
 ```
 
 **2. Verify Deployment:**
@@ -653,6 +655,13 @@ railway logs
 - Set up error alerts (Sentry)
 - Monitor performance (Vercel Analytics)
 - Track Core Web Vitals
+
+**5. Troubleshooting: /admin/orders 500 (P2022)**
+
+If `/admin/orders` returns 500 with `PrismaClientKnownRequestError` code `P2022` and `column: "Order.shippingBasePrice"`, the production DB is missing columns added by migrations. Fix:
+
+1. **Redeploy** – Build now runs `build:production` (migrations + build). Push and redeploy so `prisma migrate deploy` runs against production.
+2. **Or apply migrations now** – Run `pnpm run db:migrate:deploy` against production `DATABASE_URL` (e.g. after `vercel env pull`). Then reload /admin/orders.
 
 ---
 
