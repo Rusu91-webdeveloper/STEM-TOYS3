@@ -13,7 +13,7 @@
     "dev:clean": "rm -rf .next && next dev",
     "dev:memory": "NODE_OPTIONS=\"--max-old-space-size=2048\" next dev",
     "dev:performance": "NODE_OPTIONS=\"--max-old-space-size=4096\" next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "build:production": "prisma generate && chmod +x scripts/migrate-with-retry.sh && scripts/migrate-with-retry.sh && next build",
     "build:analyze": "ANALYZE=true prisma generate && next build",
     "start": "next start",
@@ -72,8 +72,13 @@
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
-    "*.{json,md,yaml,yml}": ["prettier --write"]
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yaml,yml}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
