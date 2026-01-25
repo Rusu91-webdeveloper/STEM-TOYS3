@@ -196,8 +196,7 @@ export default function Footer({
       items: [
         { label: t("contact"), href: "/contact" },
         { label: t("returns"), href: "/returns" },
-        { label: t("shipping", "Shipping"), href: "/shipping" },
-        { label: t("delivery", "Delivery"), href: "/delivery" },
+        { label: t("shipping", "Livrare"), href: "/shipping" },
         { label: t("warrantyLink"), href: "/warranty" },
         {
           label: "FAQ",

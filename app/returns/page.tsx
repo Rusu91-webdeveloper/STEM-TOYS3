@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 
 import { auth } from "@/lib/server/auth";
-import { getStoreSettings } from "@/lib/utils/store-settings";
+import { getStoreSettings, getShippingSettings } from "@/lib/utils/store-settings";
 
 const lastUpdated = new Intl.DateTimeFormat("ro-RO", {
   day: "numeric",
@@ -10,10 +10,11 @@ const lastUpdated = new Intl.DateTimeFormat("ro-RO", {
   year: "numeric",
 }).format(new Date());
 
-const quickSummaryLeft = [
+// These will be populated with dynamic threshold
+const getQuickSummaryLeft = (threshold: string) => [
   "14 zile pentru returnare fără justificare",
   "2 ani garanție legală pentru produse defecte",
-  "Returnare gratuită pentru comenzi peste 199 lei",
+  `Returnare gratuită pentru comenzi peste ${threshold} lei`,
 ];
 
 const quickSummaryRight = [
@@ -108,6 +109,15 @@ export const metadata: Metadata = {
 export default async function ReturnsPage() {
   const session = await auth();
   const storeSettings = await getStoreSettings();
+  const shippingSettings = await getShippingSettings();
+
+  // Get free shipping threshold from database (synced with /shipping page)
+  const freeThreshold = shippingSettings?.freeThreshold?.price || "199";
+  const formattedThreshold = new Intl.NumberFormat("ro-RO", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(parseFloat(freeThreshold));
+
   const contactEmail = storeSettings?.contactEmail ?? "webira.rem.srl@gmail.com";
   const contactPhone = storeSettings?.contactPhone ?? "+40 771 248 029";
   const isAuthenticated = Boolean(session?.user);
@@ -119,6 +129,9 @@ export default async function ReturnsPage() {
   const ordersLinkInlineLabel = isAuthenticated
     ? "Comenzile Mele (/account/orders)"
     : "Autentifică-te pentru a accesa Comenzile Mele";
+
+  // Generate dynamic quick summary with threshold
+  const quickSummaryLeft = getQuickSummaryLeft(formattedThreshold);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100">
@@ -244,7 +257,7 @@ export default async function ReturnsPage() {
                       <strong>Vei primi automat un email cu eticheta de returnare</strong> și instrucțiuni detaliate
                     </li>
                     <li>
-                      <strong>Notă:</strong> Pentru anumiți furnizori, returnările pot necesita autorizare (ARP/RMA). 
+                      <strong>Notă:</strong> Pentru anumiți furnizori, returnările pot necesita autorizare (ARP/RMA).
                       În acest caz, vei primi un număr de autorizare în email după procesarea cererii.
                     </li>
                     <li>Printează eticheta și atașează-o pe pachet</li>
@@ -297,7 +310,7 @@ export default async function ReturnsPage() {
                 <ul className="mt-3 space-y-2 text-amber-100/90">
                   <li>
                     • <strong>Returnări în perioada de răgândire (14 zile):</strong> Returnare gratuită pentru comenzi ≥{" "}
-                    <strong>199 lei</strong>, altfel costurile sunt suportate de client
+                    <strong>{formattedThreshold} lei</strong>, altfel costurile sunt suportate de client
                   </li>
                   <li>
                     • <strong>Produse defecte sau neconforme:</strong> Suportăm noi toate costurile de returnare
