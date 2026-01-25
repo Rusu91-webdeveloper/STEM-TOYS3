@@ -59,34 +59,34 @@ interface ReturnItem {
 
 const STATUS_BADGES: Record<ReturnStatus, { label: string; classes: string }> = {
   PENDING: {
-    label: "Pending",
+    label: "În așteptare",
     classes: "border-amber-400/40 bg-amber-500/20 text-amber-100",
   },
   APPROVED: {
-    label: "Approved",
+    label: "Aprobat",
     classes: "border-sky-400/40 bg-sky-500/20 text-sky-100",
   },
   REJECTED: {
-    label: "Rejected",
+    label: "Respins",
     classes: "border-rose-400/40 bg-rose-500/20 text-rose-100",
   },
   RECEIVED: {
-    label: "Received",
+    label: "Primit",
     classes: "border-purple-400/40 bg-purple-500/20 text-purple-100",
   },
   REFUNDED: {
-    label: "Refunded",
+    label: "Rambursat",
     classes: "border-emerald-400/40 bg-emerald-500/20 text-emerald-100",
   },
 };
 
 const REASON_LABELS: Record<ReturnReason, string> = {
-  DOES_NOT_MEET_EXPECTATIONS: "Does not meet expectations",
-  DAMAGED_OR_DEFECTIVE: "Damaged or defective",
-  WRONG_ITEM_SHIPPED: "Wrong item shipped",
-  CHANGED_MIND: "Changed my mind",
-  ORDERED_WRONG_PRODUCT: "Ordered wrong product",
-  OTHER: "Other reason",
+  DOES_NOT_MEET_EXPECTATIONS: "Nu corespunde așteptărilor",
+  DAMAGED_OR_DEFECTIVE: "Deteriorat sau defect",
+  WRONG_ITEM_SHIPPED: "Produs greșit livrat",
+  CHANGED_MIND: "M-am răzgândit",
+  ORDERED_WRONG_PRODUCT: "Am comandat produsul greșit",
+  OTHER: "Alt motiv",
 };
 
 export default function ReturnsPage() {
@@ -143,9 +143,9 @@ export default function ReturnsPage() {
           "mt-6 space-y-4 rounded-3xl border-white/10 bg-slate-900/70 p-10 text-center text-slate-100 shadow-xl shadow-black/30"
         )}
       >
-        <h3 className="text-lg font-semibold">No returns found</h3>
+        <h3 className="text-lg font-semibold">Nu ai returnări</h3>
         <p className="text-slate-300">
-          You haven't initiated any returns yet. Explore your orders to start a return.
+          Nu ai inițiat încă nicio returnare. Verifică comenzile pentru a iniția o returnare.
         </p>
         <Button
           asChild
@@ -154,7 +154,7 @@ export default function ReturnsPage() {
             gradientButtonClass
           )}
         >
-          <Link href={emptyStateHref}>{emptyStateCtaLabel}</Link>
+          <Link href={emptyStateHref}>{isAuthenticated ? "Vezi comenzile tale" : "Autentifică-te"}</Link>
         </Button>
       </div>
     );
@@ -168,9 +168,9 @@ export default function ReturnsPage() {
           "flex flex-col gap-1 border-white/10 bg-slate-900/70 px-5 py-4 shadow-xl shadow-black/30"
         )}
       >
-        <h1 className="text-2xl font-bold tracking-tight">Your Returns</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Returnările Tale</h1>
         <p className="text-sm text-slate-300">
-          Track the status of every item you've requested to send back.
+          Urmărește statusul fiecărui produs pe care l-ai solicitat pentru returnare.
         </p>
       </div>
 
@@ -213,7 +213,7 @@ export default function ReturnsPage() {
                       )}
                     </div>
                     <div className="text-sm">
-                      <span className="text-slate-400">Reason:</span>{" "}
+                      <span className="text-slate-400">Motiv:</span>{" "}
                       <span className="font-medium text-slate-100">
                         {REASON_LABELS[returnItem.reason]}
                       </span>
@@ -236,9 +236,21 @@ export default function ReturnsPage() {
                 </Badge>
               </div>
 
+              {returnItem.status === "PENDING" && (
+                <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-500/15 p-4 text-sm text-amber-100">
+                  Cererea ta de returnare este în așteptare. Vei primi un email când va fi procesată.
+                </div>
+              )}
+              
               {returnItem.status === "APPROVED" && (
                 <div className="mt-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/15 p-4 text-sm text-emerald-100">
-                  Your return has been approved. Check your email for the return shipping label.
+                  Returnarea ta a fost aprobată. Verifică emailul pentru eticheta de retur.
+                </div>
+              )}
+              
+              {returnItem.status === "REJECTED" && (
+                <div className="mt-4 rounded-2xl border border-rose-400/30 bg-rose-500/15 p-4 text-sm text-rose-100">
+                  Cererea de returnare a fost respinsă. Contactează-ne pentru detalii.
                 </div>
               )}
             </div>
