@@ -238,6 +238,18 @@ export async function PATCH(
       });
     }
 
+    // If status is changed to REJECTED, send rejection email (non-blocking)
+    if (status === "REJECTED") {
+      console.log(
+        `📧 Queueing return rejection email for return ${returnId}`
+      );
+      
+      // Fire-and-forget: Don't await this - let it run in background
+      sendRejectionEmailAsync(updatedReturn, reasonLabelsRo).catch(err => {
+        console.error("❌ Background rejection email sending failed:", err);
+      });
+    }
+
     // Always return the updated return object (with refundStatus/refundError if set)
     const finalReturn = await db.return.findUnique({
       where: { id: returnId },
@@ -442,6 +454,110 @@ async function sendApprovalEmailAsync(
       orderNumber: updatedReturn.order.orderNumber,
     });
     // Error is already caught by the caller's .catch()
+    throw emailError;
+  }
+}
+
+// Async helper function to send rejection email - runs in background
+async function sendRejectionEmailAsync(
+  updatedReturn: any,
+  reasonLabelsRo: Record<string, string>
+) {
+  try {
+    console.log(`📧 Background: Starting rejection email for return ${updatedReturn.id}`);
+
+    // Format order date
+    const orderDate = new Date(
+      updatedReturn.order.createdAt
+    ).toLocaleDateString("ro-RO", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    // Create email content with professional Romanian template
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333333;">
+        <div style="background-color: #4f46e5; padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0;">TechTots</h1>
+          <p style="color: white; margin: 5px 0 0 0;">Magazin de Jucării STEM</p>
+        </div>
+        
+        <div style="padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
+          <h2 style="color: #dc2626; margin-top: 0;">Cererea de Returnare a fost Respinsă</h2>
+          
+          <p style="font-size: 16px;">Salut ${updatedReturn.user.name ?? "Client"},</p>
+          
+          <p>Ne pare rău să vă informăm că cererea dumneavoastră de returnare pentru produsul <strong>${updatedReturn.orderItem.name}</strong> din comanda <strong>#${updatedReturn.order.orderNumber}</strong> a fost respinsă.</p>
+          
+          <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 15px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #dc2626;">Detalii Returnare:</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #fecaca;"><strong>Număr Comandă:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #fecaca;">${updatedReturn.order.orderNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #fecaca;"><strong>Data Comenzii:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #fecaca;">${orderDate}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #fecaca;"><strong>Produs:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #fecaca;">${updatedReturn.orderItem.name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>Motiv Solicitare:</strong></td>
+                <td style="padding: 8px 0;">${reasonLabelsRo[updatedReturn.reason as keyof typeof reasonLabelsRo] || updatedReturn.reason}</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div style="background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 15px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #c2410c;">Ce puteți face?</h3>
+            <ul style="line-height: 1.6; margin-bottom: 0;">
+              <li>Contactați-ne pentru mai multe detalii despre motivul respingerii</li>
+              <li>Furnizați informații suplimentare sau fotografii care ar putea susține cererea</li>
+              <li>Solicitați o reevaluare a cererii de returnare</li>
+            </ul>
+          </div>
+          
+          <p style="margin-top: 20px;">Dacă considerați că această decizie este incorectă sau aveți întrebări, vă rugăm să ne contactați la <a href="mailto:support@techtots.com" style="color: #4f46e5;">support@techtots.com</a> sau apelați serviciul nostru de relații cu clienții.</p>
+          
+          <p>Vă mulțumim pentru înțelegere!</p>
+        </div>
+        
+        <div style="background-color: #f3f4f6; padding: 20px; text-align: center; font-size: 12px; color: #6b7280;">
+          <p style="margin: 0;">© ${new Date().getFullYear()} TechTots STEM Store. Toate drepturile rezervate.</p>
+          <p style="margin: 5px 0 0 0;">Mehedinti 54-56, Bl D5, sc 2, apt 70, Cluj-Napoca, Cluj, România</p>
+          <p style="margin: 15px 0 0 0;">
+            <a href="https://techtots.com/terms" style="color: #4f46e5; text-decoration: none; margin: 0 10px;">Termeni și Condiții</a> | 
+            <a href="https://techtots.com/privacy" style="color: #4f46e5; text-decoration: none; margin: 0 10px;">Politica de Confidențialitate</a>
+          </p>
+        </div>
+      </div>
+    `;
+
+    console.log(`📧 Background: Sending rejection email to ${updatedReturn.user.email}...`);
+
+    // Send email (no attachment needed for rejection)
+    await sendEmailViaUnifiedSystem({
+      to: updatedReturn.user.email,
+      subject: `TechTots - Cerere de Returnare Respinsă - Comanda #${updatedReturn.order.orderNumber}`,
+      html: emailHtml,
+    });
+
+    console.log(
+      `✅ Background: Rejection email sent to ${updatedReturn.user.email}`
+    );
+  } catch (emailError) {
+    console.error("❌ Background rejection email error:", emailError);
+    console.error("❌ Email error details:", {
+      errorMessage:
+        emailError instanceof Error ? emailError.message : "Unknown error",
+      returnId: updatedReturn.id,
+      customerEmail: updatedReturn.user.email,
+      orderNumber: updatedReturn.order.orderNumber,
+    });
     throw emailError;
   }
 }

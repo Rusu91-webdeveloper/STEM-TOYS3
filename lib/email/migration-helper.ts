@@ -12,12 +12,22 @@ import { DatabaseTemplateService } from "./database-template-service";
 /**
  * Send email using the queue system when available, fallback to direct sending
  * This provides the benefits of queuing while maintaining compatibility
+ * 
+ * Supports two signatures:
+ * 1. Old: sendEmailViaUnifiedSystem(to, subject, html, options?)
+ * 2. New: sendEmailViaUnifiedSystem({ to, subject, html, attachments?, ...options })
  */
 export async function sendEmailViaUnifiedSystem(
-  to: string | string[],
-  subject: string,
-  html: string,
-  options?: {
+  toOrParams: string | string[] | {
+    to: string | string[];
+    subject: string;
+    html: string;
+    attachments?: Array<{
+      filename: string;
+      content: string;
+      encoding?: string;
+      contentType?: string;
+    }>;
     template?: string;
     variables?: Record<string, any>;
     priority?: 1 | 2 | 3;
@@ -25,9 +35,50 @@ export async function sendEmailViaUnifiedSystem(
     tracking?: boolean;
     userId?: string;
     personalization?: boolean;
-    forceDirect?: boolean; // Force direct sending, skip queue
+    forceDirect?: boolean;
+  },
+  subjectArg?: string,
+  htmlArg?: string,
+  optionsArg?: {
+    template?: string;
+    variables?: Record<string, any>;
+    priority?: 1 | 2 | 3;
+    campaignId?: string;
+    tracking?: boolean;
+    userId?: string;
+    personalization?: boolean;
+    forceDirect?: boolean;
   }
 ): Promise<{ success: boolean; jobId?: string; error?: string }> {
+  // Parse arguments - support both old and new signatures
+  let to: string | string[];
+  let subject: string;
+  let html: string;
+  let attachments: Array<{
+    filename: string;
+    content: string;
+    encoding?: string;
+    contentType?: string;
+  }> | undefined;
+  let options: typeof optionsArg;
+
+  if (typeof toOrParams === 'object' && !Array.isArray(toOrParams) && 'to' in toOrParams) {
+    // New object-based signature
+    to = toOrParams.to;
+    subject = toOrParams.subject;
+    html = toOrParams.html;
+    attachments = toOrParams.attachments;
+    const { to: _, subject: __, html: ___, attachments: ____, ...rest } = toOrParams;
+    options = rest;
+  } else {
+    // Old positional signature
+    to = toOrParams as string | string[];
+    subject = subjectArg!;
+    html = htmlArg!;
+    attachments = undefined;
+    options = optionsArg;
+  }
+
   try {
     let finalSubject = subject;
     let finalHtml = html;
@@ -113,6 +164,7 @@ export async function sendEmailViaUnifiedSystem(
       subject: finalSubject,
       html: finalHtml,
       text: options?.variables?.textContent || "",
+      attachments: attachments || [],
     });
 
     return {

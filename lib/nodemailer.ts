@@ -74,12 +74,19 @@ export async function sendEmailViaUnifiedSystem({
   html,
   text,
   from = EMAIL_FROM,
+  attachments,
 }: {
   to: string | string[];
   subject: string;
   html: string;
   text?: string;
   from?: string;
+  attachments?: Array<{
+    filename: string;
+    content: string;
+    encoding?: string;
+    contentType?: string;
+  }>;
 }) {
   try {
     // In development mode with missing credentials, use the dev transporter
@@ -92,6 +99,7 @@ export async function sendEmailViaUnifiedSystem({
         to: typeof to === "string" ? to : to.join(", "),
         subject,
         contentPreview: `${html.substring(0, 100)}...`,
+        hasAttachments: !!attachments?.length,
       });
       return { success: true, messageId: `dev-${Date.now()}@localhost` };
     }
@@ -103,6 +111,11 @@ export async function sendEmailViaUnifiedSystem({
       subject,
       text,
       html,
+      attachments: attachments?.map(att => ({
+        filename: att.filename,
+        content: Buffer.from(att.content, (att.encoding as BufferEncoding) || 'base64'),
+        contentType: att.contentType,
+      })),
     });
 
     logger.info("Email sent successfully", { messageId: info.messageId });
