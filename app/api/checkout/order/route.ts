@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
 import { DatabaseTemplateService } from "@/lib/email/database-template-service";
+import { AdminNotificationService } from "@/lib/email/admin-notification-service";
 import { getStripeApiVersion, getStripeCurrency } from "@/lib/stripe-config";
 import { getTaxSettings } from "@/lib/utils/store-settings";
 import {
@@ -1029,20 +1030,52 @@ export async function POST(request: Request) {
             console.log(
               `High value order alert triggered for order ${dbOrder.id} (${orderTotal} RON)`
             );
-            // TODO: Send admin alert email
+            // Send high value order alert to admin
+            AdminNotificationService.sendOrderIssueNotification(
+              dbOrder.id,
+              "HIGH_VALUE_ORDER",
+              `High value order received: ${orderTotal.toFixed(2)} RON`,
+              "MEDIUM"
+            ).catch(err => {
+              console.error(`Failed to send high value order alert:`, err);
+            });
           }
         }
 
         if (notificationSettings?.adminAlerts.outOfStockItems) {
-          // Check for out of stock items
-          const outOfStockItems = items.filter(item => {
-            // This would need to be implemented based on your inventory logic
-            return false; // Placeholder
-          });
+          // Check for low stock items after inventory decrement
+          const physicalProductIds = items
+            .filter(item => item.isBook !== true && item.productId)
+            .map(item => item.productId);
 
-          if (outOfStockItems.length > 0) {
-            console.log(`Out of stock alert triggered for order ${dbOrder.id}`);
-            // TODO: Send out of stock alert email
+          if (physicalProductIds.length > 0) {
+            const productsWithStock = await db.product.findMany({
+              where: { id: { in: physicalProductIds } },
+              select: {
+                id: true,
+                name: true,
+                stockQuantity: true,
+                reorderPoint: true,
+              },
+            });
+
+            // Check each product for low stock
+            for (const product of productsWithStock) {
+              const minimumStock = product.reorderPoint || 5; // Default to 5 if no reorderPoint set
+              if (product.stockQuantity <= minimumStock) {
+                console.log(
+                  `⚠️ Low stock alert: ${product.name} has ${product.stockQuantity} units (minimum: ${minimumStock})`
+                );
+                // Send low stock alert email (async, don't await to not block order)
+                AdminNotificationService.sendLowStockAlert(
+                  product.id,
+                  product.stockQuantity,
+                  minimumStock
+                ).catch(err => {
+                  console.error(`Failed to send low stock alert for ${product.name}:`, err);
+                });
+              }
+            }
           }
         }
       } catch (notificationError) {

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 import { getRequiredEnvVar } from "@/lib/env";
+import { AdminNotificationService } from "@/lib/email/admin-notification-service";
 import {
   getStripeApiVersion,
   getStripeWebhookSecret,
@@ -518,7 +519,20 @@ async function handleDispute(dispute: Stripe.Dispute, stripe: Stripe) {
         },
       });
 
-      // TODO: Send alert to admin team about the dispute
+      // Send urgent alert to admin team about the dispute
+      const disputeDescription = `Payment dispute received for order ${order.orderNumber}. ` +
+        `Dispute ID: ${dispute.id}, Amount: ${(dispute.amount / 100).toFixed(2)} ${dispute.currency.toUpperCase()}, ` +
+        `Reason: ${dispute.reason || "Not specified"}. ` +
+        `Respond within the deadline to avoid automatic loss.`;
+
+      AdminNotificationService.sendOrderIssueNotification(
+        order.id,
+        "PAYMENT_DISPUTE",
+        disputeDescription,
+        "URGENT"
+      ).catch(err => {
+        console.error(`Failed to send dispute alert for order ${order.id}:`, err);
+      });
     } else {
       console.warn(
         `No order found for disputed payment intent ${paymentIntentId}`

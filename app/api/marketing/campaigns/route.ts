@@ -6,6 +6,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { CampaignService } from "@/lib/campaigns/campaign-service";
+import { getFilterParams } from "@/lib/utils/filtering";
+import { getPaginationParams } from "@/lib/utils/pagination";
+import { db } from "@/lib/db";
 
 // POST - Create new campaign
 export async function POST(req: NextRequest) {
@@ -108,8 +111,104 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      // TODO: Implement get all campaigns with filters
-      campaigns = [];
+      // Get pagination params
+      const { page, limit, skip } = getPaginationParams(searchParams, {
+        defaultLimit: 20,
+        maxLimit: 100,
+      });
+
+      // Get filter params
+      const filters = getFilterParams(searchParams, [
+        "status",
+        "type",
+        "search",
+        "startDateFrom",
+        "startDateTo",
+        "endDateFrom",
+        "endDateTo",
+        "isActive",
+      ]);
+
+      // Build where clause
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const where: any = {};
+
+      // Status filter
+      if (filters.status && filters.status !== "all") {
+        where.status = String(filters.status);
+      }
+
+      // Type filter
+      if (filters.type && filters.type !== "all") {
+        where.type = String(filters.type);
+      }
+
+      // Search filter (search in name)
+      if (filters.search) {
+        where.name = {
+          contains: String(filters.search),
+          mode: "insensitive",
+        };
+      }
+
+      // Date range filters
+      if (filters.startDateFrom || filters.startDateTo) {
+        where.startDate = {};
+        if (filters.startDateFrom) {
+          where.startDate.gte = new Date(String(filters.startDateFrom));
+        }
+        if (filters.startDateTo) {
+          where.startDate.lte = new Date(String(filters.startDateTo));
+        }
+      }
+
+      if (filters.endDateFrom || filters.endDateTo) {
+        where.endDate = {};
+        if (filters.endDateFrom) {
+          where.endDate.gte = new Date(String(filters.endDateFrom));
+        }
+        if (filters.endDateTo) {
+          where.endDate.lte = new Date(String(filters.endDateTo));
+        }
+      }
+
+      // Active filter (campaigns currently within date range and active status)
+      if (filters.isActive === true) {
+        const now = new Date();
+        where.status = "active";
+        where.startDate = { ...where.startDate, lte: now };
+        where.endDate = { ...where.endDate, gte: now };
+      }
+
+      // Execute queries in parallel
+      const [campaignsList, totalCount] = await Promise.all([
+        db.campaign.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { createdAt: "desc" },
+          include: {
+            _count: {
+              select: { applications: true },
+            },
+          },
+        }),
+        db.campaign.count({ where }),
+      ]);
+
+      campaigns = campaignsList;
+
+      return NextResponse.json({
+        success: true,
+        campaigns,
+        pagination: {
+          total: totalCount,
+          page,
+          limit,
+          pages: Math.ceil(totalCount / limit),
+        },
+        message: "Campaigns retrieved successfully",
+      });
     }
 
     return NextResponse.json({
