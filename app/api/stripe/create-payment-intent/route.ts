@@ -112,6 +112,8 @@ export async function POST(request: NextRequest) {
         allow_redirects: "always",
       },
       metadata: baseMetadata,
+      // Automatically send Stripe receipt to customer's email when payment succeeds
+      receipt_email: session.user.email || undefined,
     };
 
     let paymentIntent: Stripe.PaymentIntent;
@@ -124,7 +126,8 @@ export async function POST(request: NextRequest) {
         amount,
         baseMetadata,
         createParams,
-        idempotencyKey
+        idempotencyKey,
+        session.user.email || undefined
       );
     } else {
       paymentIntent = await stripe.paymentIntents.create(createParams, {
@@ -159,7 +162,8 @@ async function reuseOrCreatePaymentIntent(
   amount: number,
   metadata: Record<string, string>,
   createParams: Stripe.PaymentIntentCreateParams,
-  idempotencyKey: string
+  idempotencyKey: string,
+  receiptEmail?: string
 ): Promise<Stripe.PaymentIntent> {
   try {
     const existing = await stripe.paymentIntents.retrieve(paymentIntentId);
@@ -180,6 +184,8 @@ async function reuseOrCreatePaymentIntent(
       return stripe.paymentIntents.update(paymentIntentId, {
         amount,
         metadata,
+        // Update receipt email in case user changed
+        receipt_email: receiptEmail,
       });
     }
 
