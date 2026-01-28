@@ -115,7 +115,8 @@ export function StripePaymentForm({
     try {
       const { paymentIntent: existingIntent } =
         await stripe.retrievePaymentIntent(clientSecret);
-      if (existingIntent?.status === "succeeded") {
+      // With manual capture, "requires_capture" means payment is authorized and ready
+      if (existingIntent?.status === "succeeded" || existingIntent?.status === "requires_capture") {
         onSuccess(buildPaymentDetails(existingIntent));
         return;
       }
@@ -154,7 +155,8 @@ export function StripePaymentForm({
           if (stripe && clientSecret) {
             const { paymentIntent: existingIntent } =
               await stripe.retrievePaymentIntent(clientSecret);
-            if (existingIntent?.status === "succeeded") {
+            // With manual capture, "requires_capture" means payment is authorized and ready
+            if (existingIntent?.status === "succeeded" || existingIntent?.status === "requires_capture") {
               onSuccess(buildPaymentDetails(existingIntent));
               return;
             }
@@ -169,7 +171,9 @@ export function StripePaymentForm({
         throw new Error(error.message || "Payment failed");
       }
 
-      if (paymentIntent?.status === "succeeded") {
+      // With manual capture, status will be "requires_capture" after successful authorization
+      // The actual capture happens when the order is created
+      if (paymentIntent?.status === "succeeded" || paymentIntent?.status === "requires_capture") {
         onSuccess(buildPaymentDetails(paymentIntent));
       } else {
         throw new Error("Payment processing failed");

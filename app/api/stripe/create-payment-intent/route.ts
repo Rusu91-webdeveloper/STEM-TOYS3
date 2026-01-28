@@ -114,6 +114,9 @@ export async function POST(request: NextRequest) {
       metadata: baseMetadata,
       // Automatically send Stripe receipt to customer's email when payment succeeds
       receipt_email: session.user.email || undefined,
+      // Use manual capture - funds are authorized (held) but not captured until order is created
+      // This prevents charging customers who cancel before completing the order
+      capture_method: "manual",
     };
 
     let paymentIntent: Stripe.PaymentIntent;

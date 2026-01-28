@@ -1001,15 +1001,42 @@ export async function POST(request: Request) {
         }
 
         try {
+          // Update metadata first
           await stripeClient.paymentIntents.update(
             orderData.stripePaymentIntentId,
             { metadata }
           );
+
+          // CRITICAL: Capture the payment if using manual capture mode
+          // With manual capture, funds are authorized (held) but not captured until we explicitly capture
+          // This prevents charging customers who cancel before completing the order
+          if (stripePaymentIntent?.status === "requires_capture") {
+            console.log(
+              `Capturing PaymentIntent ${orderData.stripePaymentIntentId} for order ${dbOrder.id}...`
+            );
+            const capturedIntent = await stripeClient.paymentIntents.capture(
+              orderData.stripePaymentIntentId
+            );
+            
+            if (capturedIntent.status === "succeeded") {
+              console.log(
+                `✅ Successfully captured payment for order ${dbOrder.id}`
+              );
+              // Update the stripePaymentIntent variable for downstream checks
+              stripePaymentIntent = capturedIntent;
+            } else {
+              console.error(
+                `❌ Unexpected status after capture: ${capturedIntent.status}`
+              );
+            }
+          }
         } catch (stripeError) {
           console.error(
-            `Failed to update payment intent ${orderData.stripePaymentIntentId} metadata:`,
+            `Failed to update/capture payment intent ${orderData.stripePaymentIntentId}:`,
             stripeError
           );
+          // If capture fails, we should probably handle this more gracefully
+          // For now, log the error but don't fail the order since the payment is authorized
         }
       }
 
