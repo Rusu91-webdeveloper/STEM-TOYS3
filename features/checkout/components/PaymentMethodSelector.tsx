@@ -4,11 +4,8 @@ import {
   CreditCard,
   Loader2,
   ShieldCheck,
-  Sparkles,
   Banknote,
   Check,
-  Smartphone,
-  Wallet,
 } from "lucide-react";
 import React, { useEffect, useMemo } from "react";
 
@@ -164,59 +161,21 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     }
 
     if (netopiaEnabled) {
-      if (isRomanianUser) {
-        methods.push(
-          {
-            id: "netopia_card",
-            type: "netopia_card",
-            name: "Card bancar",
-            icon: <CreditCard className="h-6 w-6" />,
-            provider: "netopia",
-            fee: "1.5%",
-            description: "Plată securizată cu card Visa sau Mastercard",
-            color: "blue",
-            borderColor: "border-blue-200",
-            bgColor: "bg-blue-50",
-          },
-          {
-            id: "netopia_sms",
-            type: "netopia_sms",
-            name: "Plată prin SMS",
-            icon: <Smartphone className="h-6 w-6" />,
-            provider: "netopia",
-            fee: "2.0%",
-            description: "Primești SMS cu link securizat de plată",
-            color: "blue",
-            borderColor: "border-blue-200",
-            bgColor: "bg-blue-50",
-          },
-          {
-            id: "netopia_wallet",
-            type: "netopia_wallet",
-            name: "Portofel mobilPay",
-            icon: <Wallet className="h-6 w-6" />,
-            provider: "netopia",
-            fee: "1.2%",
-            description: "Plată rapidă din portofelul electronic",
-            color: "blue",
-            borderColor: "border-blue-200",
-            bgColor: "bg-blue-50",
-          }
-        );
-      } else {
-        methods.push({
-          id: "netopia_card",
-          type: "netopia_card",
-          name: "Credit/Debit Card",
-          icon: <CreditCard className="h-6 w-6" />,
-          provider: "netopia",
-          fee: "1.5%",
-          description: "Secure payment with Visa or Mastercard",
-          color: "blue",
-          borderColor: "border-blue-200",
-          bgColor: "bg-blue-50",
-        });
-      }
+      // Netopia v2 API only supports card payments
+      methods.push({
+        id: "netopia_card",
+        type: "netopia_card",
+        name: isRomanianUser ? "Card bancar" : "Credit/Debit Card",
+        icon: <CreditCard className="h-6 w-6" />,
+        provider: "netopia",
+        fee: "1.5%",
+        description: isRomanianUser 
+          ? "Plată securizată cu card Visa sau Mastercard" 
+          : "Secure payment with Visa or Mastercard",
+        color: "blue",
+        borderColor: "border-blue-200",
+        bgColor: "bg-blue-50",
+      });
     }
 
     // Add COD option for Romanian users, but only if cart contains physical items

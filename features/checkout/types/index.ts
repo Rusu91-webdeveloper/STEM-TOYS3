@@ -28,8 +28,6 @@ export interface ShippingMethod {
 
 export type PaymentMethod =
   | "netopia_card"
-  | "netopia_sms"
-  | "netopia_wallet"
   | "stripe_new"
   | "cash_on_delivery"
   | string;

@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 import { fetchShippingQuotes, fetchShippingSettings } from "../lib/checkoutApi";
 import { ShippingMethod } from "../types";
+import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 
 interface ShippingMethodSelectorProps {
   initialMethod?: ShippingMethod;
@@ -37,7 +38,7 @@ export function ShippingMethodSelector({
   >(null);
   const { formatPrice } = useCurrency();
   const { t } = useTranslation();
-  const { items: cartItems } = useCart();
+  const { items: cartItems, getCartTotal } = useCart();
 
   const isDigitalOnlyCart =
     cartItems.length > 0 && cartItems.every(item => item.isBook);
@@ -67,6 +68,16 @@ export function ShippingMethodSelector({
 
       try {
         const quoteResponse = await fetchShippingQuotes();
+        const settings = await fetchShippingSettings();
+        
+        // Get cart total to check free shipping threshold
+        const cartTotal = getCartTotal();
+        const isFreeShipping = checkFreeShipping(cartTotal, settings);
+        
+        // Extract threshold value for display
+        const thresholdValue = settings?.freeThreshold?.active
+          ? parseFloat(settings.freeThreshold.price || "0")
+          : null;
 
         let methods: ShippingMethod[] = [];
 
@@ -83,23 +94,23 @@ export function ShippingMethodSelector({
               name: method.name,
               description: method.description,
               estimatedDelivery: method.estimatedDelivery,
-              price: method.price,
+              // Apply free shipping if threshold is exceeded
+              price: isFreeShipping ? 0 : method.price,
             })
           );
-          setFreeShippingApplied(false);
-          setFreeShippingThreshold(null);
         } else {
-          const settings = await fetchShippingSettings();
-
           const deliveryPrice = settings.deliveryPrice?.active
             ? parseFloat(settings.deliveryPrice.price || "15.00")
             : 15.0;
+
+          // Apply free shipping if threshold is exceeded
+          const finalPrice = isFreeShipping ? 0 : deliveryPrice;
 
           methods.push({
             id: "home",
             name: "Livrare domiciliu",
             description: "Livrare la adresa ta",
-            price: deliveryPrice,
+            price: finalPrice,
             estimatedDelivery: "3-5 zile lucrătoare",
           });
 
@@ -107,14 +118,16 @@ export function ShippingMethodSelector({
             id: "easybox",
             name: "Livrare Easy Box",
             description: "Livrare la Easy Box",
-            price: deliveryPrice,
+            price: finalPrice,
             estimatedDelivery: "3-5 zile lucrătoare",
           });
-          setFreeShippingApplied(false);
-          setFreeShippingThreshold(null);
         }
 
+        // Set free shipping state based on threshold check
+        setFreeShippingApplied(isFreeShipping);
+        setFreeShippingThreshold(thresholdValue);
         setShippingMethods(methods);
+        
         const currentMethodExists = methods.some(
           method => method.id === selectedMethodId
         );
@@ -123,26 +136,33 @@ export function ShippingMethodSelector({
         }
       } catch (error) {
         console.error("Error loading shipping settings:", error);
+        
+        // Even in fallback, check free shipping based on cart total
+        const cartTotal = getCartTotal();
+        // Can't check threshold without settings, use default threshold of 199
+        const defaultThreshold = 199;
+        const isFreeShipping = cartTotal >= defaultThreshold;
+        
         const fallbackMethods: ShippingMethod[] = [
           {
             id: "home",
             name: "Livrare domiciliu",
             description: "Livrare la adresa ta",
-            price: 25,
+            price: isFreeShipping ? 0 : 25,
             estimatedDelivery: "3-5 zile lucrătoare",
           },
           {
             id: "easybox",
             name: "Livrare Easy Box",
             description: "Livrare la Easy Box",
-            price: 19,
+            price: isFreeShipping ? 0 : 19,
             estimatedDelivery: "3-5 zile lucrătoare",
           },
         ];
 
         setShippingMethods(fallbackMethods);
-        setFreeShippingApplied(false);
-        setFreeShippingThreshold(null);
+        setFreeShippingApplied(isFreeShipping);
+        setFreeShippingThreshold(isFreeShipping ? defaultThreshold : null);
         if (!selectedMethodId) {
           setSelectedMethodId("home");
         }
@@ -152,7 +172,7 @@ export function ShippingMethodSelector({
     }
 
     loadShippingSettings();
-  }, [t, isDigitalOnlyCart]);
+  }, [t, isDigitalOnlyCart, getCartTotal]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

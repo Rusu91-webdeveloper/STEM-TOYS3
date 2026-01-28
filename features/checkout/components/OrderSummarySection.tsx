@@ -57,8 +57,17 @@ export const OrderSummarySection = React.memo(function OrderSummarySection({
         </div>
 
         <div className="flex justify-between text-sm sm:text-base">
-          <span>{t("shipping", "Shipping")}</span>
-          <span>{formatPrice(shippingCost)}</span>
+          <span>
+            {t("shipping", "Shipping")}
+            {shippingCost === 0 && (
+              <span className="ml-2 text-xs text-emerald-600 font-medium">
+                (Transport gratuit!)
+              </span>
+            )}
+          </span>
+          <span className={shippingCost === 0 ? "text-emerald-600 font-medium" : ""}>
+            {shippingCost === 0 ? "GRATUIT" : formatPrice(shippingCost)}
+          </span>
         </div>
 
         {codFee > 0 && (

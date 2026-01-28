@@ -18,6 +18,7 @@ import { ShippingAddressForm } from "./ShippingAddressForm";
 import { ShippingMethodSelector } from "./ShippingMethodSelector";
 import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
 import { CheckoutData, CheckoutStep } from "../types";
+import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 
 export function CheckoutFlow() {
   const router = useRouter();
@@ -58,6 +59,12 @@ export function CheckoutFlow() {
   const computeShippingCost = () => {
     if (!hasPhysicalItems) {
       return 0;
+    }
+
+    // Check free shipping threshold FIRST - this is the key fix!
+    const cartSubtotal = getCartTotal();
+    if (checkFreeShipping(cartSubtotal, settings?.shippingSettings)) {
+      return 0; // Free shipping when threshold is exceeded
     }
 
     const deliveryPrice = settings?.shippingSettings?.deliveryPrice?.active

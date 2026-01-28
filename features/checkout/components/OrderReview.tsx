@@ -54,16 +54,8 @@ export function OrderReview({
     if (!checkoutData.paymentMethod) return null;
 
     if (checkoutData.paymentMethod.startsWith("netopia_")) {
-      switch (checkoutData.paymentMethod) {
-        case "netopia_card":
-          return t("netopiaCard", "Card bancar (Netopia)");
-        case "netopia_sms":
-          return t("netopiaSms", "Plată prin SMS (Netopia)");
-        case "netopia_wallet":
-          return t("netopiaWallet", "Portofel mobilPay (Netopia)");
-        default:
-          return t("netopiaPayment", "Plată Netopia");
-      }
+      // Netopia v2 API only supports card payments
+      return t("netopiaCard", "Card bancar (Netopia)");
     }
 
     if (checkoutData.paymentMethod === "stripe_new") {
@@ -177,8 +169,19 @@ export function OrderReview({
                 Estimated delivery:{" "}
                 {checkoutData.shippingMethod.estimatedDelivery}
               </p>
-              <p className="font-medium">
-                {formatPrice(checkoutData.shippingMethod.price)}
+              <p className={`font-medium ${pricingData.shippingCost === 0 ? "text-emerald-600" : ""}`}>
+                {pricingData.shippingCost === 0 ? (
+                  <>
+                    {checkoutData.shippingMethod.price > 0 && (
+                      <span className="line-through text-gray-400 mr-2">
+                        {formatPrice(checkoutData.shippingMethod.price)}
+                      </span>
+                    )}
+                    <span>GRATUIT (Transport gratuit!)</span>
+                  </>
+                ) : (
+                  formatPrice(pricingData.shippingCost)
+                )}
               </p>
             </div>
           ) : (

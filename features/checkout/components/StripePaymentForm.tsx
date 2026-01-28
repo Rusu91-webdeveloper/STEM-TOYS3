@@ -1,6 +1,6 @@
 "use client";
 
-import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { PaymentElement, useStripe, useElements, type StripePaymentElementOptions } from "@stripe/react-stripe-js";
 import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 
@@ -86,6 +86,21 @@ export function StripePaymentForm({
 
   // Convert amount from cents to major currency for display
   const displayAmount = amount / 100;
+
+  // PaymentElement options to enable Google Pay and Apple Pay
+  const paymentElementOptions: StripePaymentElementOptions = {
+    layout: {
+      type: 'tabs',
+      defaultCollapsed: false,
+    },
+    wallets: {
+      applePay: 'auto',
+      googlePay: 'auto',
+    },
+    business: {
+      name: 'STEM Toys',
+    },
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -216,7 +231,11 @@ export function StripePaymentForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-white rounded-lg border p-4 space-y-4">
         <div className="border rounded-md p-3">
-          <PaymentElement id="payment-element" key={clientSecret} />
+          <PaymentElement 
+            id="payment-element" 
+            key={clientSecret}
+            options={paymentElementOptions}
+          />
         </div>
         {cardError && (
           <p className="text-red-500 text-sm mt-1">{cardError}</p>

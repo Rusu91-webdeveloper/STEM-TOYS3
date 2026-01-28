@@ -11,6 +11,7 @@ import {
   getCodThreshold,
   getRecipientType,
 } from "@/lib/shipping/cod-thresholds";
+import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 
 import {
   PaymentDetails,
@@ -162,7 +163,12 @@ export function PaymentForm({
 
         let shippingCost = 0;
         if (hasPhysicalItems) {
-          shippingCost = baseShippingPrice;
+          // Check free shipping threshold FIRST - key fix for consistent UX!
+          if (checkFreeShipping(subtotal, settings?.shippingSettings)) {
+            shippingCost = 0; // Free shipping when threshold is exceeded
+          } else {
+            shippingCost = baseShippingPrice;
+          }
         }
 
         const taxRate = settings?.taxSettings?.active
@@ -171,8 +177,6 @@ export function PaymentForm({
         const includeInPrice = settings?.taxSettings?.includeInPrice !== false;
 
         const cartTotalIncludingVAT = subtotal;
-
-        // Shipping already calculated above (free if >= threshold, otherwise use delivery price)
 
         // Store shipping cost for COD fee calculation
         setCalculatedShippingCost(shippingCost);

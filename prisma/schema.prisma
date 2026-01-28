@@ -2158,6 +2158,7 @@ enum ProductStatus {
   APPROVED
   DENIED
   REJECTED
+  PUBLISHED
 }
 
 enum EmailCampaignStatus {

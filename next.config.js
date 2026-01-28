@@ -117,6 +117,11 @@ const nextConfig = {
         hostname: "images.unsplash.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "www.boribon.ro",
+        pathname: "/**",
+      },
     ],
   },
   // Configure uploadthing directories

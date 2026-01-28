@@ -9,7 +9,8 @@ import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
 import { calculateCODFee } from "@/lib/pricing/cod-fee-calculator";
 
-import { fetchCODSettings, fetchTaxSettings } from "../lib/checkoutApi";
+import { fetchCODSettings, fetchTaxSettings, fetchShippingSettings } from "../lib/checkoutApi";
+import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 
 interface TaxSettings {
   rate: string;
@@ -41,6 +42,7 @@ export function CheckoutSummary({
   const { t } = useTranslation();
   const [codConfig, setCodConfig] = useState<{ percentage: number; fixedFee: number } | null>(null);
   const [taxSettings, setTaxSettings] = useState<TaxSettings | null>(null);
+  const [shippingSettings, setShippingSettings] = useState<any>(null);
 
   // **COUPON STATE** - Local coupon management for checkout summary
   const [localAppliedCoupon, setLocalAppliedCoupon] = useState(appliedCoupon);
@@ -56,18 +58,20 @@ export function CheckoutSummary({
     }
   }, [appliedCoupon]);
 
-  // Fetch tax and COD settings (dynamic from admin)
+  // Fetch tax, COD, and shipping settings (dynamic from admin)
   useEffect(() => {
     let isActive = true;
 
     async function loadSettings() {
       try {
-        const [tax, cod] = await Promise.all([
+        const [tax, cod, shipping] = await Promise.all([
           fetchTaxSettings(),
           fetchCODSettings().catch(() => null),
+          fetchShippingSettings().catch(() => null),
         ]);
         if (!isActive) return;
         setTaxSettings(tax);
+        setShippingSettings(shipping);
         if (cod?.active) {
           setCodConfig({
             percentage: parseFloat(cod.percentage || "0") / 100,
@@ -140,8 +144,16 @@ export function CheckoutSummary({
     tax = 0;
   }
 
-  // Use provided shipping cost (tariff-based)
-  const finalShippingCost = hasPhysicalItems ? shippingCost : 0;
+  // Check free shipping threshold - defensive check to ensure consistency
+  const isFreeShippingEligible = checkFreeShipping(cartTotalIncludingVAT, shippingSettings);
+  
+  // Use provided shipping cost (tariff-based) but override to 0 if free shipping applies
+  const finalShippingCost = hasPhysicalItems 
+    ? (isFreeShippingEligible ? 0 : shippingCost) 
+    : 0;
+  
+  // Store original cost for strikethrough display
+  const originalShippingCost = hasPhysicalItems ? shippingCost : 0;
 
   // **CALCULATE FINAL TOTAL WITH DISCOUNT**
   const totalBeforeDiscount = isTaxEnabled && !includeInPrice
@@ -305,14 +317,25 @@ export function CheckoutSummary({
         )}
 
         <div className="flex justify-between text-sm text-slate-300 sm:text-base">
-          <span>{t("shipping", "Shipping")}</span>
           <span>
-            {finalShippingCost === 0 && shippingCost > 0 ? (
-              <span className="mr-2 line-through text-slate-400/80">
-                {formatPrice(shippingCost)}
+            {t("shipping", "Shipping")}
+            {isFreeShippingEligible && (
+              <span className="ml-2 text-xs text-emerald-400 font-medium">
+                (Transport gratuit!)
               </span>
-            ) : null}
-            {formatPrice(finalShippingCost)}
+            )}
+          </span>
+          <span>
+            {isFreeShippingEligible && originalShippingCost > 0 ? (
+              <>
+                <span className="mr-2 line-through text-slate-400/80">
+                  {formatPrice(originalShippingCost)}
+                </span>
+                <span className="text-emerald-400 font-medium">GRATUIT</span>
+              </>
+            ) : (
+              formatPrice(finalShippingCost)
+            )}
           </span>
         </div>
 
