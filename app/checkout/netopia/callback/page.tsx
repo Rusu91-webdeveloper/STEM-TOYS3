@@ -8,20 +8,18 @@ import { Button } from "@/components/ui/button";
 export default function NetopiaCallback() {
   const router = useRouter();
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [status, setStatus] = useState<"loading" | "success" | "error" | "processing">(
-    "loading"
-  );
+  const [status, setStatus] = useState<
+    "loading" | "success" | "error" | "processing"
+  >("loading");
   const [message, setMessage] = useState("Verificare plată...");
   const [isForcing, setIsForcing] = useState(false);
   const [attemptCount, setAttemptCount] = useState(0);
+  const [isSandbox, setIsSandbox] = useState(false);
 
   const isLocalhost =
     typeof window !== "undefined" &&
     (window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1");
-  
-  // Sandbox mode detection - check if using sandbox credentials
-  const isSandbox = process.env.NEXT_PUBLIC_NETOPIA_SANDBOX === "true";
   
   // Max attempts: 15 attempts x 3 seconds = ~45 seconds of polling
   const MAX_ATTEMPTS = 15;
@@ -57,6 +55,11 @@ export default function NetopiaCallback() {
         );
         const result = await response.json();
 
+        // Update sandbox mode from API response
+        if (result.sandboxMode !== undefined) {
+          setIsSandbox(result.sandboxMode);
+        }
+
         if (result.status === "paid" || result.status === "refunded") {
           setStatus("success");
           setMessage("Plata a fost procesată cu succes!");
@@ -84,7 +87,7 @@ export default function NetopiaCallback() {
         } else if (result.status === "pending" || paymentStatus === "pending") {
           attemptRef += 1;
           setAttemptCount(attemptRef);
-          
+
           // After max attempts, stop polling and show appropriate message
           if (attemptRef >= MAX_ATTEMPTS) {
             // In sandbox or localhost, show dev-friendly message
@@ -186,8 +189,7 @@ export default function NetopiaCallback() {
         ? `Bună ziua,\n\nAcesta este un raport automat pentru comanda ${orderId}.\nDescriere problemă:\n`
         : "Bună ziua,\n\nDescriere problemă:\n"
     );
-    window.location.href =
-      `mailto:support@techtots.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:support@techtots.com?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -232,12 +234,12 @@ export default function NetopiaCallback() {
               </div>
             )}
             <div className="rounded-lg border border-amber-100 bg-amber-50/40 p-4 text-left text-sm text-gray-700">
-              <p className="font-medium text-gray-900 mb-2">
-                Ce urmează
-              </p>
+              <p className="font-medium text-gray-900 mb-2">Ce urmează</p>
               <ul className="space-y-2">
                 <li>✓ Plata a fost trimisă către Netopia</li>
-                <li>✓ Vei primi un email de confirmare când plata este procesată</li>
+                <li>
+                  ✓ Vei primi un email de confirmare când plata este procesată
+                </li>
                 <li>✓ Poți verifica statusul comenzii în contul tău</li>
               </ul>
             </div>

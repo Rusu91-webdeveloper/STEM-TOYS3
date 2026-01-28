@@ -82,9 +82,16 @@ export async function GET(request: Request) {
         });
       }
 
-      // Handle force complete for local development testing
-      if (forceComplete && process.env.NODE_ENV === "development") {
-        console.log("[NETOPIA][STATUS] Force completing order for dev testing");
+      // Handle force complete for development or sandbox testing
+      const isSandboxMode = process.env.NETOPIA_SANDBOX === "true";
+      const isDevelopment = process.env.NODE_ENV === "development";
+      
+      if (forceComplete && (isDevelopment || isSandboxMode)) {
+        console.log("[NETOPIA][STATUS] Force completing order for sandbox/dev testing", {
+          orderId: orderRecord.id,
+          isSandboxMode,
+          isDevelopment,
+        });
         const { db } = await import("@/lib/db");
         await db.order.update({
           where: { id: orderRecord.id },
@@ -104,6 +111,9 @@ export async function GET(request: Request) {
       }
     }
 
+    // Check if we're in sandbox mode (for client to show force complete button)
+    const sandboxMode = process.env.NETOPIA_SANDBOX === "true";
+
     // PRIORITY 2: If no transaction ID, we can't query Netopia API
     if (!finalTransactionId) {
       // Return pending status - webhook hasn't arrived yet
@@ -115,6 +125,7 @@ export async function GET(request: Request) {
         timestamp: new Date().toISOString(),
         source: "no_transaction_id",
         message: "Waiting for payment confirmation from Netopia",
+        sandboxMode,
       });
     }
 
@@ -159,6 +170,7 @@ export async function GET(request: Request) {
         timestamp: new Date().toISOString(),
         source: "netopia_api_fallback",
         message: "Waiting for webhook confirmation from Netopia",
+        sandboxMode,
       });
     }
   } catch (error) {
@@ -166,6 +178,7 @@ export async function GET(request: Request) {
 
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
+    const sandboxMode = process.env.NETOPIA_SANDBOX === "true";
 
     return NextResponse.json(
       {
