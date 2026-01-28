@@ -2,24 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function NetopiaCallback() {
   const router = useRouter();
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [status, setStatus] = useState<"loading" | "success" | "error">(
+  const [status, setStatus] = useState<"loading" | "success" | "error" | "processing">(
     "loading"
   );
   const [message, setMessage] = useState("Verificare plată...");
   const [isForcing, setIsForcing] = useState(false);
-  const [, setAttempts] = useState(0);
+  const [attemptCount, setAttemptCount] = useState(0);
 
   const isLocalhost =
     typeof window !== "undefined" &&
     (window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1");
-  const MAX_ATTEMPTS = 6;
+  
+  // Sandbox mode detection - check if using sandbox credentials
+  const isSandbox = process.env.NEXT_PUBLIC_NETOPIA_SANDBOX === "true";
+  
+  // Max attempts: 15 attempts x 3 seconds = ~45 seconds of polling
+  const MAX_ATTEMPTS = 15;
 
   useEffect(() => {
     let cancelled = false;
@@ -77,27 +82,37 @@ export default function NetopiaCallback() {
             "Plata nu a fost finalizată. Nu s-a efectuat nicio taxare."
           );
         } else if (result.status === "pending" || paymentStatus === "pending") {
-          // After a few attempts on localhost, stop looping and offer a manual dev override.
           attemptRef += 1;
-          if (attemptRef >= MAX_ATTEMPTS && isLocalhost) {
-            setStatus("error");
-            setMessage(
-              "Plata este încă în curs de confirmare. Pe localhost, webhook-ul Netopia nu poate ajunge aici. Finalizează manual sau încearcă din nou."
-            );
+          setAttemptCount(attemptRef);
+          
+          // After max attempts, stop polling and show appropriate message
+          if (attemptRef >= MAX_ATTEMPTS) {
+            // In sandbox or localhost, show dev-friendly message
+            if (isLocalhost || isSandbox) {
+              setStatus("processing");
+              setMessage(
+                "Plata a fost înregistrată de Netopia, dar confirmarea webhook-ului nu a sosit încă. Aceasta este o comportare normală în modul sandbox."
+              );
+            } else {
+              // In production, show user-friendly processing message
+              setStatus("processing");
+              setMessage(
+                "Plata ta este în curs de procesare. Vei primi un email de confirmare în curând."
+              );
+            }
             return;
           }
 
           setStatus("loading");
           setMessage(
-            "Plata este în curs de confirmare. Vă rugăm să așteptați..."
+            `Plata este în curs de confirmare. Vă rugăm să așteptați... (${attemptRef}/${MAX_ATTEMPTS})`
           );
-          setAttempts(prev => prev + 1);
 
           setTimeout(() => {
             if (!cancelled) {
               handleCallback();
             }
-          }, 4000);
+          }, 3000); // Poll every 3 seconds
         } else {
           setStatus("error");
           setMessage("Statusul plății este necunoscut. Contactați suportul.");
@@ -198,6 +213,58 @@ export default function NetopiaCallback() {
             <p className="text-sm text-gray-500">
               Veți fi redirecționat către pagina de succes...
             </p>
+          </>
+        )}
+
+        {status === "processing" && (
+          <>
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+              <Clock className="h-7 w-7" />
+            </div>
+            <h1 className="text-xl font-semibold text-gray-900 mb-2">
+              Plată în procesare
+            </h1>
+            <p className="text-gray-600 mb-4">{message}</p>
+            {orderId && (
+              <div className="mb-5 text-xs text-gray-500">
+                ID comandă:{" "}
+                <span className="font-mono text-gray-700">{orderId}</span>
+              </div>
+            )}
+            <div className="rounded-lg border border-amber-100 bg-amber-50/40 p-4 text-left text-sm text-gray-700">
+              <p className="font-medium text-gray-900 mb-2">
+                Ce urmează
+              </p>
+              <ul className="space-y-2">
+                <li>✓ Plata a fost trimisă către Netopia</li>
+                <li>✓ Vei primi un email de confirmare când plata este procesată</li>
+                <li>✓ Poți verifica statusul comenzii în contul tău</li>
+              </ul>
+            </div>
+            <div className="space-y-3 mt-6">
+              {(isLocalhost || isSandbox) && orderId && (
+                <Button
+                  onClick={handleForceComplete}
+                  variant="secondary"
+                  disabled={isForcing}
+                  className="w-full"
+                >
+                  {isForcing
+                    ? "Marchez plata..."
+                    : "Marchează ca plătit (sandbox/dev)"}
+                </Button>
+              )}
+              <Button onClick={() => router.push("/")} className="w-full">
+                Înapoi la magazin
+              </Button>
+              <Button
+                onClick={() => router.push("/account/orders")}
+                variant="outline"
+                className="w-full"
+              >
+                Vezi comenzile mele
+              </Button>
+            </div>
           </>
         )}
 
