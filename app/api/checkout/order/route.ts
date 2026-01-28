@@ -767,9 +767,11 @@ export async function POST(request: Request) {
             declaredValue,
             codAmount: isCODPayment ? codAmount : null,
             currency: "RON",
-            // For Netopia we keep the order in a true "pending payment" state
-            // until the IPN/webhook confirms success or failure.
-            status: isNetopiaPayment ? "PENDING" : "PROCESSING",
+            // For Netopia we keep the order in a "pending review" state
+            // (valid OrderStatus enum) until the IPN/webhook confirms
+            // payment success or failure. The actual payment lifecycle
+            // is represented by paymentStatus = PENDING/PAID/FAILED.
+            status: isNetopiaPayment ? "PENDING_REVIEW" : "PROCESSING",
             paymentStatus:
               (orderData.paymentStatus as any) ??
               (isCODPayment || isStripePayment || isNetopiaPayment
