@@ -23,6 +23,9 @@ export default function NetopiaCallback() {
 
   // Max attempts: 15 attempts x 3 seconds = ~45 seconds of polling
   const MAX_ATTEMPTS = 15;
+  // After showing an error in production, gently redirect
+  // back to checkout so the customer can retry.
+  const ERROR_REDIRECT_DELAY_MS = 8000;
 
   useEffect(() => {
     let cancelled = false;
@@ -82,7 +85,7 @@ export default function NetopiaCallback() {
         } else if (result.status === "failed" || paymentStatus === "failed") {
           setStatus("error");
           setMessage(
-            "Plata nu a fost finalizată. Nu s-a efectuat nicio taxare."
+            "Plata nu a fost finalizată. Tranzacția a fost respinsă și nu s-a efectuat nicio taxare pe cardul tău."
           );
         } else if (result.status === "pending" || paymentStatus === "pending") {
           attemptRef += 1;
@@ -104,7 +107,7 @@ export default function NetopiaCallback() {
               // by the webhook if it eventually arrives.
               setStatus("error");
               setMessage(
-                "Nu am reușit să confirmăm plata. Dacă pe pagina Netopia ai văzut un mesaj de eroare de la bancă, tranzacția NU a fost efectuată. Te rugăm să încerci din nou cu un alt card sau o altă metodă de plată."
+                "Nu am reușit să confirmăm plata în timpul alocat. Dacă pe pagina Netopia ai văzut un mesaj de eroare de la bancă, tranzacția NU a fost efectuată. Te rugăm să revii la checkout și să încerci din nou cu același sau cu un alt card."
               );
             }
             return;
@@ -180,6 +183,22 @@ export default function NetopiaCallback() {
       setIsForcing(false);
     }
   };
+
+  // In production, when we reach a terminal error state, gently
+  // auto-redirect the customer back to checkout after a short delay.
+  useEffect(() => {
+    if (status !== "error") return;
+    if (!orderId) return;
+
+    // Keep sandbox / localhost fully manual for easier debugging.
+    if (isLocalhost || isSandbox) return;
+
+    const timer = setTimeout(() => {
+      router.push(`/checkout?payment=failed&orderId=${orderId}`);
+    }, ERROR_REDIRECT_DELAY_MS);
+
+    return () => clearTimeout(timer);
+  }, [status, orderId, isLocalhost, isSandbox, router]);
 
   const handleContactSupport = () => {
     // You could open a support chat, email, or redirect to support page
@@ -294,11 +313,22 @@ export default function NetopiaCallback() {
                 Ce poți face acum
               </p>
               <ul className="space-y-2">
-                <li>Încearcă din nou sau alege o altă metodă de plată.</li>
-                <li>Verifică dacă banca a autorizat tranzacția.</li>
                 <li>
-                  Contactează suportul și menționează ID-ul comenzii pentru
-                  verificare rapidă.
+                  Dacă pe pagina Netopia ai văzut mesajul{" "}
+                  <span className="font-semibold">
+                    „Tranzacția nu a fost finalizată / Eroare la banca emitentă”
+                  </span>
+                  , tranzacția a fost respinsă de bancă și cardul nu a fost
+                  debitat.
+                </li>
+                <li>
+                  Poți reveni în siguranță la checkout pentru a încerca din nou
+                  plata sau pentru a alege o altă metodă de plată.
+                </li>
+                <li>
+                  Dacă problema persistă, contactează banca emitentă a cardului
+                  sau scrie-ne și menționează ID-ul comenzii pentru verificare
+                  rapidă.
                 </li>
               </ul>
             </div>
