@@ -20,7 +20,7 @@ export default function NetopiaCallback() {
     typeof window !== "undefined" &&
     (window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1");
-  
+
   // Max attempts: 15 attempts x 3 seconds = ~45 seconds of polling
   const MAX_ATTEMPTS = 15;
 

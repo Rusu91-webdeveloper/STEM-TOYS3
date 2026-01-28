@@ -85,13 +85,16 @@ export async function GET(request: Request) {
       // Handle force complete for development or sandbox testing
       const isSandboxMode = process.env.NETOPIA_SANDBOX === "true";
       const isDevelopment = process.env.NODE_ENV === "development";
-      
+
       if (forceComplete && (isDevelopment || isSandboxMode)) {
-        console.log("[NETOPIA][STATUS] Force completing order for sandbox/dev testing", {
-          orderId: orderRecord.id,
-          isSandboxMode,
-          isDevelopment,
-        });
+        console.log(
+          "[NETOPIA][STATUS] Force completing order for sandbox/dev testing",
+          {
+            orderId: orderRecord.id,
+            isSandboxMode,
+            isDevelopment,
+          }
+        );
         const { db } = await import("@/lib/db");
         await db.order.update({
           where: { id: orderRecord.id },

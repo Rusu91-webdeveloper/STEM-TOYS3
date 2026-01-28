@@ -27,6 +27,14 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -35,6 +43,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -84,6 +93,17 @@ export default function CustomersPage() {
     null
   );
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createEmail, setCreateEmail] = useState("");
+  const [createPassword, setCreatePassword] = useState("");
+  const [createRole, setCreateRole] = useState<"CUSTOMER" | "ADMIN">(
+    "CUSTOMER"
+  );
+  const [createStatus, setCreateStatus] = useState<"active" | "inactive">(
+    "active"
+  );
+  const [isCreating, setIsCreating] = useState(false);
 
   // Function to fetch customers from the API
   const fetchCustomers = async () => {
@@ -154,6 +174,70 @@ export default function CustomersPage() {
   const handleRoleChanged = () => {
     fetchCustomers(); // Refresh the customers list
     setSelectedCustomer(null);
+  };
+
+  const handleCreateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreating(true);
+    try {
+      const response = await fetch("/api/admin/customers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: createName,
+          email: createEmail,
+          password: createPassword || undefined,
+          role: createRole,
+          isActive: createStatus === "active",
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Failed to create customer";
+        try {
+          const error = await response.json();
+          errorMessage = error.error || error.message || errorMessage;
+        } catch {
+          // ignore JSON parse errors
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      let description =
+        data.message || "Customer account created successfully.";
+      if (data.password) {
+        description += ` Temporary password: ${data.password}`;
+      }
+
+      toast({
+        title: "Success",
+        description,
+      });
+
+      setIsCreateDialogOpen(false);
+      setCreateName("");
+      setCreateEmail("");
+      setCreatePassword("");
+      setCreateRole("CUSTOMER");
+      setCreateStatus("active");
+
+      // Refresh list
+      fetchCustomers();
+    } catch (error) {
+      console.error("Error creating customer:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to create customer",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   // Add function to handle user status toggle
@@ -269,6 +353,13 @@ export default function CustomersPage() {
           <Button variant="outline" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
             <span>Export</span>
+          </Button>
+          <Button
+            className="flex items-center gap-2"
+            onClick={() => setIsCreateDialogOpen(true)}
+          >
+            <User className="h-4 w-4" />
+            <span>Create Customer</span>
           </Button>
         </div>
       </div>
@@ -542,6 +633,101 @@ export default function CustomersPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Create Customer Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Customer Account</DialogTitle>
+            <DialogDescription>
+              Create a new customer account and optionally set them as active or
+              an admin.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateCustomer} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="create-name">Name</Label>
+              <Input
+                id="create-name"
+                value={createName}
+                onChange={e => setCreateName(e.target.value)}
+                placeholder="Customer name"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-email">Email</Label>
+              <Input
+                id="create-email"
+                type="email"
+                value={createEmail}
+                onChange={e => setCreateEmail(e.target.value)}
+                placeholder="customer@example.com"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-password">Password (optional)</Label>
+              <Input
+                id="create-password"
+                type="password"
+                value={createPassword}
+                onChange={e => setCreatePassword(e.target.value)}
+                placeholder="Leave blank to generate a random password"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <Select
+                  value={createRole}
+                  onValueChange={value =>
+                    setCreateRole(value as "CUSTOMER" | "ADMIN")
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CUSTOMER">Customer</SelectItem>
+                    <SelectItem value="ADMIN">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select
+                  value={createStatus}
+                  onValueChange={value =>
+                    setCreateStatus(value as "active" | "inactive")
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCreateDialogOpen(false)}
+                disabled={isCreating}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isCreating}>
+                {isCreating ? "Creating..." : "Create Account"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Role Change Dialog */}
       {selectedCustomer && (
