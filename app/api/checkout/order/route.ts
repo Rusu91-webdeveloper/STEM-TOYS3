@@ -215,8 +215,15 @@ export async function POST(request: Request) {
 
     // Determine payment provider from order data
     const paymentProvider = orderData.paymentProvider || "netopia";
-    const isStripePayment = paymentProvider === "stripe" || Boolean(orderData.stripePaymentIntentId);
-    const isCODPayment = orderData.paymentMethod === "cash_on_delivery" || paymentProvider === "cod";
+    const isStripePayment =
+      paymentProvider === "stripe" || Boolean(orderData.stripePaymentIntentId);
+    const isCODPayment =
+      orderData.paymentMethod === "cash_on_delivery" ||
+      paymentProvider === "cod";
+    const isNetopiaPayment =
+      paymentProvider === "netopia" &&
+      typeof orderData.paymentMethod === "string" &&
+      orderData.paymentMethod.startsWith("netopia_");
 
     // Only validate Stripe configuration if this is a Stripe payment
     if (isStripePayment) {
@@ -236,7 +243,8 @@ export async function POST(request: Request) {
           return NextResponse.json(
             {
               success: false,
-              message: "Stripe payment configuration error. Please contact support.",
+              message:
+                "Stripe payment configuration error. Please contact support.",
               error: "STRIPE_NOT_CONFIGURED",
             },
             { status: 500 }
@@ -321,10 +329,9 @@ export async function POST(request: Request) {
     const isDigitalOnlyOrder = items.length > 0 && !hasPhysicalItems;
 
     // Get initial shipping method cost (default to 0 if not provided)
-    const baseShippingCost =
-      isDigitalOnlyOrder
-        ? 0
-        : orderData.shippingCost ||
+    const baseShippingCost = isDigitalOnlyOrder
+      ? 0
+      : orderData.shippingCost ||
         (orderData.shippingMethod?.price
           ? parseFloat(orderData.shippingMethod.price.toString())
           : 0);
@@ -359,10 +366,10 @@ export async function POST(request: Request) {
             };
           })
           .filter(Boolean) as Array<{
-            quantity: number;
-            weightKg?: number | null;
-            dimensions?: Record<string, unknown>;
-          }>;
+          quantity: number;
+          weightKg?: number | null;
+          dimensions?: Record<string, unknown>;
+        }>;
 
         const service = resolveShippingService(orderData.shippingMethod?.id);
         if (service && shippingItems.length > 0) {
@@ -543,7 +550,9 @@ export async function POST(request: Request) {
         });
 
         // Fetch insurance threshold from admin settings
-        const { getInsuranceThreshold } = await import("@/lib/shipping/declared-value");
+        const { getInsuranceThreshold } = await import(
+          "@/lib/shipping/declared-value"
+        );
         const insuranceThreshold = await getInsuranceThreshold();
 
         const declaredValueResult = calculateDeclaredValue({
@@ -554,7 +563,9 @@ export async function POST(request: Request) {
               productId: item.productId,
               price: item.price,
               quantity: item.quantity,
-              isBundle: productBundleInfo.find(p => p.id === item.productId)?.isBundle || false,
+              isBundle:
+                productBundleInfo.find(p => p.id === item.productId)
+                  ?.isBundle || false,
             })),
           threshold: insuranceThreshold,
         });
@@ -618,7 +629,8 @@ export async function POST(request: Request) {
           return NextResponse.json(
             {
               success: false,
-              message: "Payment amount mismatch. This may occur if you applied a discount code after selecting your payment method. Please go back and apply the discount code before selecting your payment method, or refresh the page and try again.",
+              message:
+                "Payment amount mismatch. This may occur if you applied a discount code after selecting your payment method. Please go back and apply the discount code before selecting your payment method, or refresh the page and try again.",
               error: "AMOUNT_MISMATCH",
               details: {
                 paymentIntentAmount: stripePaymentIntent.amount,
@@ -634,7 +646,8 @@ export async function POST(request: Request) {
           return NextResponse.json(
             {
               success: false,
-              message: "Payment currency mismatch. Please refresh and try again.",
+              message:
+                "Payment currency mismatch. Please refresh and try again.",
               error: "CURRENCY_MISMATCH",
             },
             { status: 400 }
@@ -668,7 +681,9 @@ export async function POST(request: Request) {
       const shippingCompanyName = normalizeOptionalString(
         orderData.shippingAddress.companyName
       );
-      const shippingCui = normalizeOptionalString(orderData.shippingAddress.cui);
+      const shippingCui = normalizeOptionalString(
+        orderData.shippingAddress.cui
+      );
 
       // Check if user has an existing address with the same details
       const existingAddress = await db.address.findFirst({
@@ -752,19 +767,23 @@ export async function POST(request: Request) {
             declaredValue,
             codAmount: isCODPayment ? codAmount : null,
             currency: "RON",
-            status: "PROCESSING",
+            // For Netopia we keep the order in a true "pending payment" state
+            // until the IPN/webhook confirms success or failure.
+            status: isNetopiaPayment ? "PENDING" : "PROCESSING",
             paymentStatus:
               (orderData.paymentStatus as any) ??
-              (isCODPayment
+              (isCODPayment || isStripePayment || isNetopiaPayment
                 ? "PENDING"
-                : isStripePayment
-                  ? "PENDING"
-                  : "PAID"),
+                : "PAID"),
             shippingAddressId,
             stripePaymentIntentId: orderData.stripePaymentIntentId || null,
             // Store COD information in notes field (we can add proper fields later)
             notes: isCODPayment
-              ? `COD Order - Fee: ${codFee.toFixed(2)} RON, Amount to Collect: ${codAmount.toFixed(2)} RON${orderData.notes ? ` | ${orderData.notes}` : ""}`
+              ? `COD Order - Fee: ${codFee.toFixed(
+                  2
+                )} RON, Amount to Collect: ${codAmount.toFixed(2)} RON${
+                  orderData.notes ? ` | ${orderData.notes}` : ""
+                }`
               : orderData.notes || null,
           },
         });
@@ -1017,7 +1036,7 @@ export async function POST(request: Request) {
             const capturedIntent = await stripeClient.paymentIntents.capture(
               orderData.stripePaymentIntentId
             );
-            
+
             if (capturedIntent.status === "succeeded") {
               console.log(
                 `✅ Successfully captured payment for order ${dbOrder.id}`
@@ -1099,7 +1118,10 @@ export async function POST(request: Request) {
                   product.stockQuantity,
                   minimumStock
                 ).catch(err => {
-                  console.error(`Failed to send low stock alert for ${product.name}:`, err);
+                  console.error(
+                    `Failed to send low stock alert for ${product.name}:`,
+                    err
+                  );
                 });
               }
             }
@@ -1153,8 +1175,11 @@ export async function POST(request: Request) {
         });
       }
 
-      const orderPaymentStatus = stripeSucceeded ? "PAID" : dbOrder.paymentStatus;
-      const paymentIsVerified = orderPaymentStatus === "PAID" || stripeSucceeded;
+      const orderPaymentStatus = stripeSucceeded
+        ? "PAID"
+        : dbOrder.paymentStatus;
+      const paymentIsVerified =
+        orderPaymentStatus === "PAID" || stripeSucceeded;
 
       if (hasDigitalBooks) {
         if (paymentIsVerified) {
@@ -1251,7 +1276,6 @@ export async function POST(request: Request) {
           );
         }
       }
-
     } catch (dbError) {
       console.error("Failed to create order in database:", dbError);
       console.error("Error details:", {
@@ -1282,7 +1306,9 @@ export async function POST(request: Request) {
       const paymentProvider = orderData.paymentProvider || "netopia";
       const isNetopia = paymentProvider === "netopia";
       const isStripe = paymentProvider === "stripe";
-      const isCOD = orderData.paymentMethod === "cash_on_delivery" || paymentProvider === "cod";
+      const isCOD =
+        orderData.paymentMethod === "cash_on_delivery" ||
+        paymentProvider === "cod";
       const stripeSucceeded = stripePaymentIntent?.status === "succeeded";
       const paymentPending =
         orderData.paymentStatus === "PENDING" ||

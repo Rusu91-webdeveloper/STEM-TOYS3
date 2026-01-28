@@ -90,17 +90,21 @@ export default function NetopiaCallback() {
 
           // After max attempts, stop polling and show appropriate message
           if (attemptRef >= MAX_ATTEMPTS) {
-            // In sandbox or localhost, show dev-friendly message
+            // In sandbox or localhost, keep the more technical "processing" state
+            // so developers understand the webhook might simply not have arrived yet.
             if (isLocalhost || isSandbox) {
               setStatus("processing");
               setMessage(
                 "Plata a fost înregistrată de Netopia, dar confirmarea webhook-ului nu a sosit încă. Aceasta este o comportare normală în modul sandbox."
               );
             } else {
-              // In production, show user-friendly processing message
-              setStatus("processing");
+              // On the live site, if we still don't have a final status after
+              // all polling attempts, treat this as a *visible* failure for UX.
+              // The order remains PENDING in the backend and will be corrected
+              // by the webhook if it eventually arrives.
+              setStatus("error");
               setMessage(
-                "Plata ta este în curs de procesare. Vei primi un email de confirmare în curând."
+                "Nu am reușit să confirmăm plata. Dacă pe pagina Netopia ai văzut un mesaj de eroare de la bancă, tranzacția NU a fost efectuată. Te rugăm să încerci din nou cu un alt card sau o altă metodă de plată."
               );
             }
             return;
