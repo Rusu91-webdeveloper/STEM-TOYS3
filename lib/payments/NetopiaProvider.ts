@@ -47,13 +47,13 @@ export class NetopiaProvider implements IPaymentProvider {
     const overrideBase = process.env.NETOPIA_API_BASE_URL?.trim();
     const defaultBases = this.isLive
       ? [
-          "https://secure.mobilpay.ro/",
-          "https://secure.netopia-payments.com/",
-        ]
+        "https://secure.mobilpay.ro/",
+        "https://secure.netopia-payments.com/",
+      ]
       : [
-          "https://secure-sandbox.netopia-payments.com/",
-          "https://sandboxsecure.mobilpay.ro/",
-        ];
+        "https://secure-sandbox.netopia-payments.com/",
+        "https://sandboxsecure.mobilpay.ro/",
+      ];
 
     this.gatewayBaseCandidates = [
       ...(overrideBase ? [overrideBase] : []),
@@ -118,7 +118,7 @@ export class NetopiaProvider implements IPaymentProvider {
       alg: "RS512",
       publicKeyStr: publicKeyCertificate || "", // Certificate for webhook verification
     });
-    
+
     console.log("✅ [NETOPIA] IPN handler initialized for webhook verification");
   }
 
@@ -256,7 +256,7 @@ export class NetopiaProvider implements IPaymentProvider {
       try {
         console.log("⏳ [NETOPIA] Making direct API call (bypassing buggy SDK)...");
         const axios = (await import("axios")).default;
-        
+
         const requestPayload = {
           config: configData,
           payment: paymentData,
@@ -268,12 +268,12 @@ export class NetopiaProvider implements IPaymentProvider {
 
         const endpointPaths = this.isLive
           ? [
-              "pay/payment/card/start", // Production (mobilpay)
-              "payment/card/start",     // Fallback
-            ]
+            "pay/payment/card/start", // Production (mobilpay)
+            "payment/card/start",     // Fallback
+          ]
           : [
-              "payment/card/start", // Sandbox endpoint; avoid noisy 404 on /pay/payment
-            ];
+            "payment/card/start", // Sandbox endpoint; avoid noisy 404 on /pay/payment
+          ];
 
         const candidateEndpoints = this.gatewayBaseCandidates
           .flatMap(base =>
@@ -308,7 +308,7 @@ export class NetopiaProvider implements IPaymentProvider {
             console.log("📥 [NETOPIA] Raw API Response:");
             console.log(`   Status: ${directResponse.status}`);
             console.log(`   Status Text: ${directResponse.statusText}`);
-            
+
             if (process.env.NODE_ENV === "development") {
               console.log("🔍 [NETOPIA] Full response headers:");
               console.log(JSON.stringify(directResponse.headers, null, 2));
@@ -319,14 +319,14 @@ export class NetopiaProvider implements IPaymentProvider {
             if (directResponse.status >= 400) {
               console.error("❌ [NETOPIA] API returned error status:", directResponse.status);
               console.error("   Response data:", JSON.stringify(directResponse.data, null, 2));
-              
+
               const errorMessage = typeof directResponse.data === "object"
                 ? JSON.stringify(directResponse.data, null, 2)
                 : String(directResponse.data);
-              
+
               const errorMsg = `Netopia API error (HTTP ${directResponse.status}) at ${candidate.url}: ${errorMessage}`;
               errors.push(errorMsg);
-              
+
               lastError = new NetopiaPaymentError(
                 NetopiaErrorCode.API_ERROR,
                 errorMsg
@@ -335,9 +335,9 @@ export class NetopiaProvider implements IPaymentProvider {
               // 404 just means wrong endpoint, continue.
               // 401/403 means auth failed -> definitive configuration error.
               if (directResponse.status === 401 || directResponse.status === 403) {
-                 throw lastError;
+                throw lastError;
               }
-              
+
               continue;
             }
 
@@ -346,7 +346,7 @@ export class NetopiaProvider implements IPaymentProvider {
               console.error("❌ [NETOPIA] API returned error:");
               console.error(`   Error Code: ${apiData.error.code}`);
               console.error(`   Error Message: ${apiData.error.message}`);
-              
+
               const errorMsg = `Netopia API error (${apiData.error.code}) at ${candidate.url}: ${apiData.error.message}`;
               errors.push(errorMsg);
 
@@ -359,16 +359,16 @@ export class NetopiaProvider implements IPaymentProvider {
               // it means we hit the right server but have bad config. Stop trying other URLs.
               // 99: POS not approved
               if (String(apiData.error.code) === "99") {
-                  throw lastError;
+                throw lastError;
               }
 
               continue;
             }
-            
+
             if (!apiData?.payment?.paymentURL) {
               console.error("❌ [NETOPIA] API response missing paymentURL");
               console.error("   Response structure:", JSON.stringify(apiData, null, 2));
-              
+
               const errorMsg = `Netopia API response missing payment URL at ${candidate.url}. Full response: ${JSON.stringify(apiData)}`;
               errors.push(errorMsg);
 
@@ -394,7 +394,7 @@ export class NetopiaProvider implements IPaymentProvider {
           } catch (attemptError: any) {
             console.error("❌ [NETOPIA] API attempt failed for:", candidate.url);
             console.error(`   Message: ${attemptError?.message || "Unknown error"}`);
-            
+
             const errorMsg = `Failed to call Netopia API at ${candidate.url}: ${attemptError?.message || "Unknown error"}`;
             errors.push(errorMsg);
 
@@ -403,13 +403,13 @@ export class NetopiaProvider implements IPaymentProvider {
               // If we explicitly threw a NetopiaPaymentError from within the try block (e.g. code 99),
               // it means we want to stop trying other candidates.
               if (attemptError.code === NetopiaErrorCode.PAYMENT_DECLINED || attemptError.code === NetopiaErrorCode.API_ERROR) {
-                  // Check if it's the specific POS error or Auth error we want to fail fast on
-                  if (attemptError.message.includes("POS is not approved") || 
-                      attemptError.message.includes("Error 99") ||
-                      attemptError.message.includes("HTTP 401") ||
-                      attemptError.message.includes("HTTP 403")) {
-                      break; 
-                  }
+                // Check if it's the specific POS error or Auth error we want to fail fast on
+                if (attemptError.message.includes("POS is not approved") ||
+                  attemptError.message.includes("Error 99") ||
+                  attemptError.message.includes("HTTP 401") ||
+                  attemptError.message.includes("HTTP 403")) {
+                  break;
+                }
               }
             } else {
               lastError = new NetopiaPaymentError(
@@ -430,20 +430,20 @@ export class NetopiaProvider implements IPaymentProvider {
         console.error("❌ [NETOPIA] API call failed:");
         console.error(`   Error Type: ${error?.constructor?.name || "Unknown"}`);
         console.error(`   Message: ${error?.message || "No message provided"}`);
-        
+
         if (process.env.NODE_ENV === "development" && error?.stack) {
           console.error(`   Stack trace:`, error.stack);
         }
-        
+
         if (error instanceof NetopiaPaymentError) {
           throw error;
         }
-        
+
         if (error?.response) {
           console.error("   HTTP Status:", error.response.status);
           console.error("   Response Data:", JSON.stringify(error.response.data, null, 2));
         }
-        
+
         throw new NetopiaPaymentError(
           NetopiaErrorCode.NETWORK_ERROR,
           `Failed to call Netopia API: ${error?.message || "Unknown error"}. Check logs for details.`
@@ -466,7 +466,7 @@ export class NetopiaProvider implements IPaymentProvider {
       // Handle different response code formats
       // Use nullish coalescing (??) instead of || because 0 is falsy but valid
       const responseCode = response.code ?? response.statusCode ?? response.status;
-      
+
       // Check for SDK internal errors FIRST (code 0 means SDK caught an exception)
       // This happens when the SDK tries to access paymentURL from a failed API response
       // Must check for 0 explicitly (not falsy, since 0 is falsy in JavaScript)
@@ -477,7 +477,7 @@ export class NetopiaProvider implements IPaymentProvider {
           errorData: typeof errorData === "string" ? errorData : JSON.stringify(errorData),
           fullResponse: process.env.NODE_ENV === "development" ? response : undefined,
         });
-        
+
         // Check if it's a paymentURL access error (SDK bug - API returned error but SDK tried to parse success response)
         if (typeof errorData === "string" && errorData.includes("paymentURL")) {
           throw new NetopiaPaymentError(
@@ -494,13 +494,13 @@ export class NetopiaProvider implements IPaymentProvider {
             "- Contact Netopia support if credentials are correct but still failing"
           );
         }
-        
+
         throw new NetopiaPaymentError(
           NetopiaErrorCode.NETWORK_ERROR,
           `Netopia SDK error: ${response.message || "Unknown error"}${typeof errorData === "string" ? ` - ${errorData}` : ""}`
         );
       }
-      
+
       // Handle other non-200 status codes
       if (responseCode !== 200 && responseCode !== "200") {
         console.error("❌ [NETOPIA] createOrder failed:", {
@@ -509,7 +509,7 @@ export class NetopiaProvider implements IPaymentProvider {
           data: response.data,
           response: process.env.NODE_ENV === "development" ? response : undefined,
         });
-        
+
         // Provide more specific error messages based on status code
         let errorMessage = response.message || response.error || "Payment creation failed";
         if (responseCode === 400) {
@@ -519,7 +519,7 @@ export class NetopiaProvider implements IPaymentProvider {
         } else if (responseCode === 404) {
           errorMessage = "API endpoint not found. Please check your Netopia SDK configuration.";
         }
-        
+
         throw new NetopiaPaymentError(
           NetopiaErrorCode.PAYMENT_DECLINED,
           errorMessage
@@ -568,18 +568,18 @@ export class NetopiaProvider implements IPaymentProvider {
         console.error("   Response structure:");
         console.error(`     - Top level keys: ${Object.keys(response).join(", ")}`);
         console.error(`     - Data keys: ${response.data ? Object.keys(response.data).join(", ") : "No data object"}`);
-        
+
         if (process.env.NODE_ENV === "development") {
           console.error("   Full response:", JSON.stringify(response, null, 2));
         }
-        
+
         console.error("");
         console.error("   Possible causes:");
         console.error("   1. Invalid API credentials (check NETOPIA_API_KEY and NETOPIA_SIGNATURE)");
         console.error("   2. Incorrect environment (check NETOPIA_SANDBOX setting)");
         console.error("   3. Account not properly configured in Netopia dashboard");
         console.error("   4. API request format doesn't match Netopia expectations");
-        
+
         throw new NetopiaPaymentError(
           NetopiaErrorCode.PAYMENT_DECLINED,
           "Netopia did not return a payment URL. Check your API credentials, environment settings, and the console logs for details."
@@ -603,7 +603,7 @@ export class NetopiaProvider implements IPaymentProvider {
       };
     } catch (error) {
       console.error("❌ [NETOPIA] Payment creation failed");
-      
+
       if (error instanceof NetopiaPaymentError) {
         console.error(`   Error Code: ${error.code}`);
         console.error(`   Error Message: ${error.message}`);
@@ -611,7 +611,7 @@ export class NetopiaProvider implements IPaymentProvider {
       }
 
       console.error(`   Unexpected error: ${error instanceof Error ? error.message : "Unknown error"}`);
-      
+
       throw new NetopiaPaymentError(
         NetopiaErrorCode.NETWORK_ERROR,
         `Payment creation failed: ${error instanceof Error ? error.message : "Unknown error"}`
@@ -631,9 +631,15 @@ export class NetopiaProvider implements IPaymentProvider {
           : payloadOrRaw;
 
       // Verify the webhook signature
-      // BYPASS for local testing
-      if (process.env.NODE_ENV === "development" && signature === "TEST_SIGNATURE") {
-        console.warn("⚠️ [NETOPIA] Bypassing signature verification for testing");
+      // BYPASS for local testing or sandbox mode
+      const isSandboxMode = process.env.NETOPIA_SANDBOX === "true";
+      const isDevelopment = process.env.NODE_ENV === "development";
+
+      if ((isDevelopment || isSandboxMode) && signature === "TEST_SIGNATURE") {
+        console.warn("⚠️ [NETOPIA] Bypassing signature verification for testing (sandbox/dev)");
+      } else if (isSandboxMode && !signature) {
+        // In sandbox mode, some webhooks may arrive without proper signatures
+        console.warn("⚠️ [NETOPIA] No signature in sandbox mode - proceeding with caution");
       } else {
         const verificationResult = await this.ipn.verify(signature, rawBody);
         if (

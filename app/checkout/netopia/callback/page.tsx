@@ -93,12 +93,13 @@ export default function NetopiaCallback() {
 
           // After max attempts, stop polling and show appropriate message
           if (attemptRef >= MAX_ATTEMPTS) {
-            // In sandbox or localhost, keep the more technical "processing" state
-            // so developers understand the webhook might simply not have arrived yet.
-            if (isLocalhost || isSandbox) {
+            // In sandbox mode (including production with sandbox credentials) or localhost,
+            // show processing state since webhooks are unreliable in sandbox
+            const isSandboxEnv = result.sandboxMode || isSandbox;
+            if (isLocalhost || isSandboxEnv) {
               setStatus("processing");
               setMessage(
-                "Plata a fost înregistrată de Netopia, dar confirmarea webhook-ului nu a sosit încă. Aceasta este o comportare normală în modul sandbox."
+                "Plata a fost înregistrată de Netopia, dar confirmarea webhook-ului nu a sosit încă. Aceasta este o comportare normală în modul sandbox. Poți folosi butonul de mai jos pentru a marca plata ca efectuată."
               );
             } else {
               // On the live site, if we still don't have a final status after
@@ -333,7 +334,7 @@ export default function NetopiaCallback() {
               </ul>
             </div>
             <div className="space-y-3 mt-6">
-              {isLocalhost && orderId && (
+              {(isLocalhost || isSandbox) && orderId && (
                 <Button
                   onClick={handleForceComplete}
                   variant="secondary"
@@ -342,7 +343,7 @@ export default function NetopiaCallback() {
                 >
                   {isForcing
                     ? "Marchez plata..."
-                    : "Finalizează manual (dev localhost)"}
+                    : "Marchează ca plătit (sandbox/dev)"}
                 </Button>
               )}
               <Button onClick={handleRetry} className="w-full">

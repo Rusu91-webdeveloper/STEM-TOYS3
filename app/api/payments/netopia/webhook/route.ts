@@ -6,8 +6,10 @@ export async function POST(request: Request) {
   console.log("");
   console.log("═══════════════════════════════════════════════════════════");
   console.log("🔔 [WEBHOOK] Netopia IPN Received");
+  console.log("🕐 [WEBHOOK] Timestamp:", new Date().toISOString());
+  console.log("🌍 [WEBHOOK] Environment:", process.env.NETOPIA_SANDBOX === "true" ? "SANDBOX" : "PRODUCTION");
   console.log("═══════════════════════════════════════════════════════════");
-  
+
   try {
     const body = await request.text();
     const headersList = await headers();
@@ -64,7 +66,7 @@ export async function POST(request: Request) {
 
     if (orderID) {
       console.log(`🗄️  [WEBHOOK] Processing order ${orderID}...`);
-      
+
       try {
         const { db } = await import("@/lib/db");
 
@@ -136,8 +138,8 @@ export async function POST(request: Request) {
             ...(allItemsAreDigital && (paymentStatusCode === 3 || paymentStatusCode === 5)
               ? { deliveredAt: new Date() }
               : paymentStatusCode === 3 || paymentStatusCode === 5
-              ? { completedAt: new Date() }
-              : {}),
+                ? { completedAt: new Date() }
+                : {}),
           },
         });
         console.log("✅ [WEBHOOK] Order updated successfully");
@@ -341,7 +343,7 @@ export async function POST(request: Request) {
     console.log("✅ [WEBHOOK] Webhook processed successfully");
     console.log("═══════════════════════════════════════════════════════════");
     console.log("");
-    
+
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("");
