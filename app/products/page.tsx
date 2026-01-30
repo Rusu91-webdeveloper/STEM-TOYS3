@@ -63,7 +63,8 @@ export default async function ProductsPage({
     // This allows the client-side filtering to work properly with all available products
     const [booksResult, productsResult] = await Promise.allSettled([
       getBooks(),
-      getProducts(), // Always fetch all products for client-side filtering
+      // Fetch a large batch to enable client-side filtering + pagination
+      getProducts({ limit: 1000 }),
     ]);
 
     if (booksResult.status === "fulfilled") {

@@ -634,8 +634,12 @@ export function AdminSupplierList() {
                 </TableHeader>
                 <TableBody>
                   {filteredSuppliers.map(supplier => {
-                    const statusInfo = statusConfig[supplier.status];
-                    const StatusIcon = statusInfo.icon;
+                    const statusInfo = statusConfig[supplier.status] || {
+                      label: supplier.status || "Unknown",
+                      color: "bg-slate-100 text-slate-800 border-slate-200",
+                      icon: AlertTriangle,
+                    };
+                    const StatusIcon = statusInfo.icon || AlertTriangle;
 
                     return (
                       <TableRow key={supplier.id}>

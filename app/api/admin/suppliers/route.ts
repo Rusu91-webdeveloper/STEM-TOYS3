@@ -100,13 +100,17 @@ export const GET = async (request: NextRequest) => {
       },
     });
 
-    const statusCountsMap = statusCounts.reduce(
-      (acc, item) => {
-        acc[item.status] = item._count.status;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
+    const normalizeStatus = (value?: string | null) => {
+      if (!value) return "PENDING";
+      if (value === "ACTIVE") return "APPROVED";
+      return value;
+    };
+
+    const statusCountsMap = statusCounts.reduce((acc, item) => {
+      const normalized = normalizeStatus(item.status);
+      acc[normalized] = (acc[normalized] || 0) + item._count.status;
+      return acc;
+    }, {} as Record<string, number>);
 
     // Transform suppliers to match frontend expectations and calculate revenue
     const suppliersWithRevenue = await Promise.all(
@@ -161,7 +165,7 @@ export const GET = async (request: NextRequest) => {
 
           // Status and approval
           isActive: supplier.isActive,
-          status: supplier.status,
+          status: normalizeStatus(supplier.status),
           approvedAt: supplier.approvedAt,
           approvedBy: supplier.approvedBy,
           rejectionReason: supplier.rejectionReason,

@@ -29,7 +29,7 @@ interface Product {
   description: string;
   category: {
     name: string;
-  };
+  } | null;
   tags?: string[];
   ageGroup?: string;
   stemDiscipline?: string;
@@ -252,7 +252,9 @@ export function ProductEnhancementModal({
         <div className="bg-muted/50 rounded-lg p-4 space-y-2">
           <h3 className="font-semibold">{product.name}</h3>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Badge variant="outline">{product.category.name}</Badge>
+            <Badge variant="outline">
+              {product.category?.name || "Fără categorie"}
+            </Badge>
             <span>{formatPrice(product.price)}</span>
           </div>
         </div>

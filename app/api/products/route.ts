@@ -257,12 +257,21 @@ async function fetchProductsFromDatabase(params: {
   const where: Prisma.ProductWhereInput = {
     isActive: true,
     status: "APPROVED",
-    // Always exclude products in "educational-books" category
-    // Books are handled separately via the /api/books endpoint or included via includeBooks logic below
-    category: {
-      slug: { not: "educational-books" },
-    },
   };
+
+  // Always exclude products in "educational-books" category
+  // Books are handled separately via the /api/books endpoint or included via includeBooks logic below
+  if (!category) {
+    // Include uncategorized products in the default listing
+    where.OR = [
+      { category: { slug: { not: "educational-books" } } },
+      { categoryId: null },
+    ];
+  } else {
+    where.category = {
+      slug: { not: "educational-books" },
+    };
+  }
 
   // **PERFORMANCE**: Optimized category filtering with better query patterns
   if (category) {

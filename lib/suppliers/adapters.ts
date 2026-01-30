@@ -33,6 +33,8 @@ function normalizeMapping(raw: unknown): FieldMapping {
     images: mapping.images || mapping.Images,
     currency: mapping.currency || mapping.Currency,
     categoryPath: mapping.categoryPath || mapping.CategoryPath,
+    allowedSkus: Array.isArray(mapping.allowedSkus) ? mapping.allowedSkus : undefined,
+    blockedSkus: Array.isArray(mapping.blockedSkus) ? mapping.blockedSkus : undefined,
   };
 }
 
@@ -43,6 +45,17 @@ function parseImages(value: unknown): string[] {
   }
   const raw = String(value);
   return raw.split(/[|,;]/).map(v => v.trim()).filter(Boolean);
+}
+
+function resolveMappedValues(
+  record: Record<string, any>,
+  field?: string | string[]
+): unknown[] {
+  if (!field) return [];
+  const fields = Array.isArray(field) ? field : [field];
+  return fields
+    .map(key => record[key])
+    .filter(value => value !== undefined && value !== null && String(value).trim() !== "");
 }
 
 function mapRecordToItem(
@@ -65,6 +78,9 @@ function mapRecordToItem(
     ? Number(record[mapping.stock] ?? 0)
     : undefined;
 
+  const imageValues = resolveMappedValues(record, mapping.images);
+  const categoryValues = resolveMappedValues(record, mapping.categoryPath);
+
   return {
     supplierSku,
     name: mapping.name ? String(record[mapping.name] ?? "") : undefined,
@@ -77,10 +93,8 @@ function mapRecordToItem(
         ? String(record[mapping.currency] ?? fallbackCurrency ?? "")
         : fallbackCurrency) || undefined,
     stock: Number.isFinite(stockValue) ? stockValue : undefined,
-    images: mapping.images ? parseImages(record[mapping.images]) : [],
-    categoryPath: mapping.categoryPath
-      ? parseImages(record[mapping.categoryPath])
-      : [],
+    images: imageValues.flatMap(value => parseImages(value)),
+    categoryPath: categoryValues.flatMap(value => parseImages(value)),
     attributes: record,
     raw: record,
   };

@@ -23,6 +23,20 @@ type RunSyncParams = {
   jobType?: SupplierSyncJobType;
 };
 
+function normalizeSkuList(value: unknown): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value.map(v => String(v).trim()).filter(Boolean);
+  }
+  if (typeof value === "string") {
+    return value
+      .split(/[,\n\r\t]+/)
+      .map(v => v.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
 export async function runSupplierFeedSync(
   params: RunSyncParams = {}
 ): Promise<
@@ -68,7 +82,19 @@ export async function runSupplierFeedSync(
     try {
       const mapping: FieldMapping = (feed.mapping as FieldMapping) || {};
       const connector = getConnector(feed, mapping);
-      const items = await connector.fetchProducts();
+      let items = await connector.fetchProducts();
+
+      const allowList = normalizeSkuList((mapping as any).allowedSkus);
+      const blockList = normalizeSkuList((mapping as any).blockedSkus);
+      const allowSet = allowList.length > 0 ? new Set(allowList) : null;
+      const blockSet = blockList.length > 0 ? new Set(blockList) : null;
+
+      if (allowSet) {
+        items = items.filter(item => allowSet.has(item.supplierSku));
+      }
+      if (blockSet) {
+        items = items.filter(item => !blockSet.has(item.supplierSku));
+      }
 
       const { imported, updated, failed } = await upsertProducts(feed, items);
 
@@ -299,12 +325,34 @@ async function upsertProducts(
 
       // Log significant price changes for admin review
       if (priceChangeSignificant && existing?.productId) {
+        const percentChange =
+          oldSupplierPrice > 0
+            ? ((supplierPrice - oldSupplierPrice) / oldSupplierPrice) * 100
+            : 0;
+        const formattedChange = percentChange.toFixed(2);
+
         console.warn(
           `[SUPPLIER SYNC] Significant price change for product ${supplierProduct.productId}: ` +
             `Supplier price changed from ${oldSupplierPrice} to ${supplierPrice} ` +
-            `(${((supplierPrice - oldSupplierPrice) / oldSupplierPrice * 100).toFixed(2)}%)`
+            `(${formattedChange}%)`
         );
-        // TODO: Create admin notification for significant price changes
+
+        await db.supplierNotification.create({
+          data: {
+            supplierId: feed.supplierId,
+            type: "WARNING",
+            title: "Significant supplier price change",
+            message: `SKU ${item.supplierSku}: ${oldSupplierPrice} → ${supplierPrice} RON (${formattedChange}%).`,
+            actionUrl: `/admin/products/${existing.productId}/edit`,
+            metadata: {
+              supplierSku: item.supplierSku,
+              oldSupplierPrice,
+              newSupplierPrice: supplierPrice,
+              percentChange: Number(formattedChange),
+              feedId: feed.id,
+            },
+          },
+        });
       }
     }
   }

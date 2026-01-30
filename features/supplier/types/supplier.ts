@@ -28,6 +28,9 @@ export interface Supplier {
   commissionRate: number;
   paymentTerms: number;
   minimumOrderValue: number;
+  defaultMargin?: number;
+  minimumMarginPercentage?: number;
+  priceChangeThreshold?: number;
   logo?: string;
   catalogUrl?: string;
   termsAccepted: boolean;

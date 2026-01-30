@@ -122,6 +122,11 @@ const nextConfig = {
         hostname: "www.boribon.ro",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdnmpro.com",
+        pathname: "/**",
+      },
     ],
   },
   // Configure uploadthing directories

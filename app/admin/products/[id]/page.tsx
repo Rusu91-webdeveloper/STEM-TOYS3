@@ -256,8 +256,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {product.tags && product.tags.length > 0 ? (
-                      product.tags.map(tag => (
-                        <Badge key={tag} variant="secondary">
+                      product.tags.map((tag, index) => (
+                        <Badge key={`${tag}-${index}`} variant="secondary">
                           {tag}
                         </Badge>
                       ))

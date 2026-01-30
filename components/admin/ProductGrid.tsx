@@ -41,7 +41,7 @@ interface Product {
   description: string;
   category: {
     name: string;
-  };
+  } | null;
   stockQuantity?: number;
   isActive: boolean;
   images: string[];
@@ -132,7 +132,7 @@ function ProductCard({ product }: { product: Product }) {
               {product.name}
             </CardTitle>
             <CardDescription className="mt-1">
-              {product.category.name}
+              {product.category?.name || "Fără categorie"}
             </CardDescription>
             <div className="flex items-center gap-2 mt-2">
               <Badge variant="default" className="bg-purple-600">

@@ -227,10 +227,12 @@ export async function getAllCategoriesForSidebar(
             // Count products the same way the frontend filters them
             // This matches the logic in ClientProductsPage.tsx lines 330-338
             const matchingProducts = allProducts.filter(product => {
-              // For STEM categories, prioritize stemDiscipline over category.name
-              // This ensures products with stemDiscipline values are properly categorized
-              const productCategory = product.stemDiscipline
-                ? product.stemDiscipline.toLowerCase()
+            // For STEM categories, prioritize stemDiscipline over category.name,
+            // but treat GENERAL as a fallback to category name.
+            const stemValue = product.stemDiscipline?.toLowerCase();
+            const productCategory =
+              stemValue && stemValue !== "general"
+                ? stemValue
                 : (product.category?.name ?? "").toLowerCase();
 
               const normalizedProductCategory =

@@ -124,6 +124,12 @@ export async function GET(request: NextRequest) {
       take: 5,
     });
 
+    const normalizeStatus = (value?: string | null) => {
+      if (!value) return "PENDING";
+      if (value === "ACTIVE") return "APPROVED";
+      return value;
+    };
+
     // Transform supplier to match frontend expectations
     const transformedSupplier = {
       id: supplier.id,
@@ -154,13 +160,16 @@ export async function GET(request: NextRequest) {
       certifications: supplier.certifications,
       productCategories: supplier.productCategories,
       isActive: supplier.isActive,
-      status: supplier.status,
+      status: normalizeStatus(supplier.status),
       approvedAt: supplier.approvedAt,
       approvedBy: supplier.approvedBy,
       rejectionReason: supplier.rejectionReason,
       commissionRate: supplier.commissionRate,
       paymentTerms: supplier.paymentTerms,
       minimumOrderValue: supplier.minimumOrderValue,
+      defaultMargin: supplier.defaultMargin,
+      minimumMarginPercentage: supplier.minimumMarginPercentage,
+      priceChangeThreshold: supplier.priceChangeThreshold,
       adresaSediu: supplier.adresaSediu,
       anpcApproval: supplier.anpcApproval,
       educationalCertification: supplier.educationalCertification,
@@ -239,6 +248,9 @@ export async function PUT(request: NextRequest) {
       commissionRate,
       paymentTerms,
       minimumOrderValue,
+      defaultMargin,
+      minimumMarginPercentage,
+      priceChangeThreshold,
       rejectionReason,
       notes,
     } = body;
@@ -268,6 +280,59 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const normalizePercent = (value: number | undefined) => {
+      if (value === undefined || value === null) return undefined;
+      if (Number.isNaN(value)) return undefined;
+      const numeric = Number(value);
+      if (numeric > 1) return numeric / 100;
+      return numeric;
+    };
+
+    const normalizedDefaultMargin = normalizePercent(defaultMargin);
+    const normalizedMinimumMargin = normalizePercent(minimumMarginPercentage);
+    const normalizedPriceChangeThreshold = normalizePercent(priceChangeThreshold);
+
+    if (
+      normalizedDefaultMargin !== undefined &&
+      (normalizedDefaultMargin < 0 || normalizedDefaultMargin > 1)
+    ) {
+      return NextResponse.json(
+        { error: "Default margin must be between 0 and 1 (or 0-100%)" },
+        { status: 400 }
+      );
+    }
+
+    if (
+      normalizedMinimumMargin !== undefined &&
+      (normalizedMinimumMargin < 0 || normalizedMinimumMargin > 1)
+    ) {
+      return NextResponse.json(
+        { error: "Minimum margin must be between 0 and 1 (or 0-100%)" },
+        { status: 400 }
+      );
+    }
+
+    if (
+      normalizedPriceChangeThreshold !== undefined &&
+      (normalizedPriceChangeThreshold < 0 || normalizedPriceChangeThreshold > 1)
+    ) {
+      return NextResponse.json(
+        { error: "Price change threshold must be between 0 and 1 (or 0-100%)" },
+        { status: 400 }
+      );
+    }
+
+    if (
+      normalizedDefaultMargin !== undefined &&
+      normalizedMinimumMargin !== undefined &&
+      normalizedMinimumMargin > normalizedDefaultMargin
+    ) {
+      return NextResponse.json(
+        { error: "Minimum margin cannot exceed default margin" },
+        { status: 400 }
+      );
+    }
+
     // Build update data
     const updateData: any = {};
 
@@ -292,6 +357,12 @@ export async function PUT(request: NextRequest) {
     if (paymentTerms !== undefined) updateData.paymentTerms = paymentTerms;
     if (minimumOrderValue !== undefined)
       updateData.minimumOrderValue = minimumOrderValue;
+    if (normalizedDefaultMargin !== undefined)
+      updateData.defaultMargin = normalizedDefaultMargin;
+    if (normalizedMinimumMargin !== undefined)
+      updateData.minimumMarginPercentage = normalizedMinimumMargin;
+    if (normalizedPriceChangeThreshold !== undefined)
+      updateData.priceChangeThreshold = normalizedPriceChangeThreshold;
 
     try {
       const supplier = await db.supplier.update({
@@ -413,13 +484,16 @@ export async function PUT(request: NextRequest) {
         certifications: supplier.certifications,
         productCategories: supplier.productCategories,
         isActive: supplier.isActive,
-        status: supplier.status,
+      status: normalizeStatus(supplier.status),
         approvedAt: supplier.approvedAt,
         approvedBy: supplier.approvedBy,
         rejectionReason: supplier.rejectionReason,
         commissionRate: supplier.commissionRate,
         paymentTerms: supplier.paymentTerms,
         minimumOrderValue: supplier.minimumOrderValue,
+        defaultMargin: supplier.defaultMargin,
+        minimumMarginPercentage: supplier.minimumMarginPercentage,
+        priceChangeThreshold: supplier.priceChangeThreshold,
         adresaSediu: supplier.adresaSediu,
         anpcApproval: supplier.anpcApproval,
         educationalCertification: supplier.educationalCertification,

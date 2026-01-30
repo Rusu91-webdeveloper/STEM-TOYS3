@@ -12,11 +12,13 @@ import {
   LucideIcon,
 } from "lucide-react";
 import React, { useState, useEffect, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { ProductVariantProvider } from "@/features/products";
 import { useTranslation } from "@/lib/i18n";
 import { normalizeCategory } from "@/lib/utils/product-filters-url";
 import type { Product } from "@/types/product";
+import { ProductsPagination } from "./ProductsPagination";
 
 import { useProductFilters } from "../hooks/useProductFilters";
 
@@ -176,6 +178,20 @@ function ClientProductsPageContent({
     useProductFilters();
   const [products] = useState<ProductData[]>(initialProducts);
   const [isHydrated, setIsHydrated] = useState(true); // Start as hydrated to prevent CLS
+  const urlSearchParams = useSearchParams();
+  const PAGE_SIZE = 12;
+
+  const parsedPage = useMemo(() => {
+    const value = urlSearchParams?.get("page");
+    const pageNumber = value ? Number.parseInt(value, 10) : 1;
+    return Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
+  }, [urlSearchParams]);
+
+  const [page, setPage] = useState(parsedPage);
+
+  useEffect(() => {
+    setPage(parsedPage);
+  }, [parsedPage]);
 
   // Initialize from search params on mount
   useEffect(() => {
@@ -282,9 +298,11 @@ function ClientProductsPageContent({
       filtered = filtered.filter(product => {
         // For STEM categories, prioritize stemDiscipline over category.name
         // This ensures products with stemDiscipline values are properly categorized
-        const productCategory = product.stemDiscipline
-          ? product.stemDiscipline.toLowerCase()
-          : product.category?.name?.toLowerCase() || "";
+        const stemValue = product.stemDiscipline?.toLowerCase();
+        const productCategory =
+          stemValue && stemValue !== "general"
+            ? stemValue
+            : product.category?.name?.toLowerCase() || "";
 
         return state.selectedCategories.some(selectedCategory => {
           const normalizedSelected = normalizeCategory(selectedCategory);
@@ -441,6 +459,78 @@ function ClientProductsPageContent({
     state.selectedSpecialCategories,
     state.searchQuery,
   ]);
+
+  const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
+
+  const displayedProducts = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    const end = page * PAGE_SIZE;
+    return filteredProducts.slice(start, end);
+  }, [filteredProducts, page]);
+
+  useEffect(() => {
+    if (totalPages > 0 && page > totalPages) {
+      setPage(1);
+    }
+  }, [page, totalPages]);
+
+  const paginationSearchParams = useMemo(() => {
+    const params: Record<string, string> = {};
+
+    if (state.selectedCategories.length > 0) {
+      const uniqueCategories = Array.from(
+        new Set(state.selectedCategories.map(cat => normalizeCategory(cat)))
+      ).filter(Boolean);
+      if (uniqueCategories.length > 0) {
+        params.category = uniqueCategories.join(",");
+      }
+    }
+
+    if (!state.noPriceFilter) {
+      const minPrice = state.priceRangeFilter[0];
+      const maxPrice = state.priceRangeFilter[1];
+
+      if (minPrice !== undefined && minPrice !== null) {
+        params.minPrice = minPrice.toString();
+      }
+      if (maxPrice !== undefined && maxPrice !== null) {
+        params.maxPrice = maxPrice.toString();
+      }
+    }
+
+    if (state.searchQuery) {
+      params.search = state.searchQuery;
+    }
+
+    if (state.selectedAgeGroup) {
+      params.ageGroup = state.selectedAgeGroup;
+    }
+
+    if (state.sortBy !== "relevance") {
+      params.sort = state.sortBy;
+    }
+
+    if (state.viewMode !== "grid") {
+      params.view = state.viewMode;
+    }
+
+    if (state.selectedLearningOutcomes.length > 0) {
+      params.learningOutcomes = state.selectedLearningOutcomes.join(",");
+    }
+
+    if (state.selectedSpecialCategories.length > 0) {
+      params.specialCategories = state.selectedSpecialCategories.join(",");
+    }
+
+    if (
+      !state.noPriceFilter &&
+      (state.priceRangeFilter[0] > 0 || state.priceRangeFilter[1] < 1000)
+    ) {
+      params.noPriceFilter = "false";
+    }
+
+    return params;
+  }, [state]);
 
   // Get active category for hero section
   const activeCategory = useMemo(() => {
@@ -676,17 +766,30 @@ function ClientProductsPageContent({
                   window.location.reload();
                 }}
               >
-                <ProductsMainDisplay
-                  activeCategory={activeCategory}
-                  categoryInfo={categoryInfo}
-                  filteredProducts={filteredProducts}
-                  displayedProducts={filteredProducts}
-                  viewMode={state.viewMode}
-                  getLearningTitle={getLearningTitle}
-                  getLearningDescription={getLearningDescription}
-                  getProductCardContent={getProductCardContent}
-                  t={t}
-                />
+                <div className="flex-1">
+                  <ProductsMainDisplay
+                    activeCategory={activeCategory}
+                    categoryInfo={categoryInfo}
+                    filteredProducts={filteredProducts}
+                    displayedProducts={displayedProducts}
+                    viewMode={state.viewMode}
+                    getLearningTitle={getLearningTitle}
+                    getLearningDescription={getLearningDescription}
+                    getProductCardContent={getProductCardContent}
+                    t={t}
+                  />
+                  {totalPages > 1 && (
+                    <div className="mt-6">
+                      <ProductsPagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        baseUrl="/products"
+                        searchParams={paginationSearchParams}
+                        totalItems={filteredProducts.length}
+                      />
+                    </div>
+                  )}
+                </div>
               </ProductGridErrorBoundary>
             </div>
           </div>

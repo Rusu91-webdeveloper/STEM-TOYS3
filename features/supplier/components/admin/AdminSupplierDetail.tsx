@@ -47,6 +47,7 @@ import {
   type Supplier,
   type SupplierStatus,
 } from "@/features/supplier/types/supplier";
+import { Input } from "@/components/ui/input";
 
 const statusConfig = {
   PENDING: {
@@ -88,10 +89,27 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectionDialog, setShowRejectionDialog] = useState(false);
+  const [marginForm, setMarginForm] = useState({
+    defaultMargin: "",
+    minimumMarginPercentage: "",
+    priceChangeThreshold: "",
+  });
+  const [isSavingMargins, setIsSavingMargins] = useState(false);
 
   useEffect(() => {
     fetchSupplier();
   }, [supplierId]);
+
+  useEffect(() => {
+    if (!supplier) return;
+    const toPercent = (value?: number) =>
+      value === undefined || value === null ? "" : String(value * 100);
+    setMarginForm({
+      defaultMargin: toPercent(supplier.defaultMargin),
+      minimumMarginPercentage: toPercent(supplier.minimumMarginPercentage),
+      priceChangeThreshold: toPercent(supplier.priceChangeThreshold),
+    });
+  }, [supplier]);
 
   const fetchSupplier = async () => {
     try {
@@ -169,6 +187,46 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
     } catch (err) {
       console.error("Error sending notification:", err);
       setError("Failed to send notification email");
+    }
+  };
+
+  const handleMarginUpdate = async () => {
+    try {
+      setIsSavingMargins(true);
+      setError(null);
+
+      const parsePercent = (value: string) => {
+        if (!value) return undefined;
+        const numeric = Number(value);
+        if (Number.isNaN(numeric)) return undefined;
+        return numeric;
+      };
+
+      const payload = {
+        defaultMargin: parsePercent(marginForm.defaultMargin),
+        minimumMarginPercentage: parsePercent(marginForm.minimumMarginPercentage),
+        priceChangeThreshold: parsePercent(marginForm.priceChangeThreshold),
+      };
+
+      const response = await fetch(`/api/admin/suppliers/${supplierId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to update margin settings");
+      }
+
+      await fetchSupplier();
+    } catch (err) {
+      console.error("Error updating margin settings:", err);
+      setError(err instanceof Error ? err.message : "Failed to update margins");
+    } finally {
+      setIsSavingMargins(false);
     }
   };
 
@@ -618,6 +676,74 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                 <p className="text-gray-900">
                   {formatPriceWithCurrency(supplier.minimumOrderValue, "RON")}
                 </p>
+              </div>
+              <div className="pt-2 border-t border-gray-100">
+                <div className="text-sm font-medium text-gray-700 mb-2">
+                  Pricing & Margin (applied on next feed sync)
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="text-xs text-gray-600">
+                      Default Margin (%)
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={marginForm.defaultMargin}
+                      onChange={e =>
+                        setMarginForm(prev => ({
+                          ...prev,
+                          defaultMargin: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">
+                      Minimum Margin (%)
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={marginForm.minimumMarginPercentage}
+                      onChange={e =>
+                        setMarginForm(prev => ({
+                          ...prev,
+                          minimumMarginPercentage: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">
+                      Price Change Alert Threshold (%)
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={marginForm.priceChangeThreshold}
+                      onChange={e =>
+                        setMarginForm(prev => ({
+                          ...prev,
+                          priceChangeThreshold: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <Button
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    onClick={handleMarginUpdate}
+                    disabled={isSavingMargins}
+                  >
+                    {isSavingMargins ? "Saving..." : "Save Margin Settings"}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

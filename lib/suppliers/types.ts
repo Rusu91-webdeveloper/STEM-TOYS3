@@ -6,9 +6,11 @@ export type FieldMapping = {
   description?: string;
   price?: string;
   stock?: string;
-  images?: string;
+  images?: string | string[];
   currency?: string;
-  categoryPath?: string;
+  categoryPath?: string | string[];
+  allowedSkus?: string[];
+  blockedSkus?: string[];
 };
 
 export type SupplierAuthConfig = {
