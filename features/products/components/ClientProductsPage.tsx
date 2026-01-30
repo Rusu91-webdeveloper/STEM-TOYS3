@@ -778,7 +778,7 @@ function ClientProductsPageContent({
                     getProductCardContent={getProductCardContent}
                     t={t}
                   />
-                  {totalPages > 1 && (
+                  {filteredProducts.length > 0 && (
                     <div className="mt-6">
                       <ProductsPagination
                         currentPage={page}

@@ -25,7 +25,8 @@ export function ProductsPagination({
   searchParams = {},
   totalItems,
 }: ProductsPaginationProps) {
-  if (totalPages <= 1) return null;
+  // Show pagination even for single page so the UI is visible (e.g. "Page 1 of 1 · 12 items")
+  if (totalPages < 1) return null;
 
   const createPageUrl = (page: number) => {
     const params = new URLSearchParams();
