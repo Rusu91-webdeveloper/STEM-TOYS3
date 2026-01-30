@@ -10,6 +10,9 @@ export async function POST(request: Request) {
   console.log("🌍 [WEBHOOK] Environment:", process.env.NETOPIA_SANDBOX === "true" ? "SANDBOX" : "PRODUCTION");
   console.log("═══════════════════════════════════════════════════════════");
 
+  const ok = (extra?: Record<string, unknown>) =>
+    NextResponse.json({ received: true, ...extra });
+
   try {
     const body = await request.text();
     const headersList = await headers();
@@ -26,10 +29,8 @@ export async function POST(request: Request) {
       console.log("✅ [WEBHOOK] Payload parsed successfully");
     } catch (parseError) {
       console.error("❌ [WEBHOOK] Failed to parse payload:", parseError);
-      return NextResponse.json(
-        { error: "Invalid JSON payload" },
-        { status: 400 }
-      );
+      // Netopia requires HTTP 200 on notifyURL even on errors.
+      return ok({ error: "Invalid JSON payload" });
     }
 
     // Initialize Netopia provider
@@ -42,8 +43,12 @@ export async function POST(request: Request) {
       await netopiaProvider.handleWebhook(body, signature);
       console.log("✅ [WEBHOOK] Signature verified successfully");
     } catch (verificationError) {
-      console.error("❌ [WEBHOOK] Signature verification failed:", verificationError);
-      throw verificationError;
+      console.error(
+        "❌ [WEBHOOK] Signature verification failed:",
+        verificationError
+      );
+      // Do not process further, but still acknowledge with HTTP 200.
+      return ok({ error: "Signature verification failed" });
     }
 
     // Netopia IPN structure nests payment/order info
@@ -331,10 +336,8 @@ export async function POST(request: Request) {
           `❌ [WEBHOOK] Failed to process order ${orderID}:`,
           dbError
         );
-        return NextResponse.json(
-          { error: "Database update failed" },
-          { status: 500 }
-        );
+        // Netopia requires HTTP 200 on notifyURL even on errors.
+        return ok({ error: "Database update failed" });
       }
     } else {
       console.warn("⚠️  [WEBHOOK] No order ID in payload - skipping database update");
@@ -344,7 +347,7 @@ export async function POST(request: Request) {
     console.log("═══════════════════════════════════════════════════════════");
     console.log("");
 
-    return NextResponse.json({ received: true });
+    return ok();
   } catch (error) {
     console.error("");
     console.error("═══════════════════════════════════════════════════════════");
@@ -356,13 +359,11 @@ export async function POST(request: Request) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown webhook error";
 
-    return NextResponse.json(
-      {
-        error: "Webhook processing failed",
-        details:
-          process.env.NODE_ENV === "development" ? errorMessage : undefined,
-      },
-      { status: 500 }
-    );
+    // Netopia requires HTTP 200 on notifyURL even on errors.
+    return ok({
+      error: "Webhook processing failed",
+      details:
+        process.env.NODE_ENV === "development" ? errorMessage : undefined,
+    });
   }
 }
