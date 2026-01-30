@@ -132,11 +132,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // Apply CSRF protection for API routes with state-changing methods
-  // But skip routes that handle CSRF validation internally
+  // But skip routes that handle CSRF validation internally or are server-to-server webhooks
   const skipCSRFMiddleware = [
     "/api/checkout/order", // Handles CSRF internally
     "/api/auth/", // NextAuth handles its own CSRF
-    "/api/stripe/", // Stripe webhooks
+    "/api/stripe/", // Stripe webhooks (no CSRF token from Stripe)
+    "/api/payments/netopia/", // Netopia IPN webhook (no CSRF token; must return 200)
   ];
 
   const shouldApplyCSRF =

@@ -647,6 +647,14 @@ export function getRateLimitConfig(pathname: string): RateLimitOptions | null {
     return rateLimitConfig.cart;
   }
 
+  // Payment provider webhooks (must accept all retries; no rate limit)
+  if (
+    pathname === "/api/payments/netopia/webhook" ||
+    pathname.startsWith("/api/stripe/webhook")
+  ) {
+    return null;
+  }
+
   // Public content (products, categories, blog)
   if (
     pathname.startsWith("/api/products") ||

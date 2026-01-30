@@ -51,7 +51,12 @@ const defaultConfig: CompressionConfig = {
     "application/font-woff2",
   ],
   exclude: {
-    paths: ["/api/uploadthing", "/api/stripe/webhook", "/api/download"],
+    paths: [
+      "/api/uploadthing",
+      "/api/stripe/webhook",
+      "/api/payments/netopia/webhook",
+      "/api/download",
+    ],
     extensions: [
       ".jpg",
       ".jpeg",
