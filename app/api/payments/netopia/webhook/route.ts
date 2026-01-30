@@ -16,7 +16,11 @@ export async function POST(request: Request) {
   try {
     const body = await request.text();
     const headersList = await headers();
-    const signature = headersList.get("x-netopia-signature") || "";
+    const signature =
+      headersList.get("x-netopia-signature") ||
+      headersList.get("verification-token") ||
+      headersList.get("Verification-token") ||
+      "";
 
     console.log("📩 [WEBHOOK] Request details:");
     console.log(`   Content-Length: ${body.length} bytes`);
