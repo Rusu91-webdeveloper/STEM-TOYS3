@@ -108,15 +108,20 @@ export class NetopiaProvider implements IPaymentProvider {
     }
 
     // Get the public key certificate from environment
-    const publicKeyCertificate = process.env.NETOPIA_WEBHOOK_SECRET;
-    console.log(`   Webhook Secret: ${publicKeyCertificate ? "SET" : "NOT SET (optional)"}`);
+    const publicKeyCertificateRaw = process.env.NETOPIA_WEBHOOK_SECRET;
+    const publicKeyCertificate = publicKeyCertificateRaw
+      ? publicKeyCertificateRaw.replace(/\\n/g, "\n").trim()
+      : "";
+    console.log(
+      `   Webhook Secret: ${publicKeyCertificate ? "SET" : "NOT SET (optional)"}`
+    );
 
     this.ipn = new Ipn({
       posSignature: signature,
       posSignatureSet: [signature],
       hashMethod: "sha512",
       alg: "RS512",
-      publicKeyStr: publicKeyCertificate || "", // Certificate for webhook verification
+      publicKeyStr: publicKeyCertificate, // Certificate for webhook verification
     });
 
     console.log("✅ [NETOPIA] IPN handler initialized for webhook verification");
