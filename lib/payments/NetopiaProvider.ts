@@ -636,20 +636,52 @@ export class NetopiaProvider implements IPaymentProvider {
       const isDevelopment = process.env.NODE_ENV === "development";
 
       if ((isDevelopment || isSandboxMode) && signature === "TEST_SIGNATURE") {
-        console.warn("⚠️ [NETOPIA] Bypassing signature verification for testing (sandbox/dev)");
-      } else if (isSandboxMode && !signature) {
-        // In sandbox mode, some webhooks may arrive without proper signatures
-        console.warn("⚠️ [NETOPIA] No signature in sandbox mode - proceeding with caution");
-      } else {
-        const verificationResult = await this.ipn.verify(signature, rawBody);
-        if (
-          verificationResult.errorType !== 0 ||
-          verificationResult.status !== 1
-        ) {
+        console.warn(
+          "⚠️ [NETOPIA] Bypassing signature verification for testing (sandbox/dev)"
+        );
+      } else if (!signature) {
+        if (isSandboxMode) {
+          // In sandbox mode, some webhooks may arrive without proper signatures
+          console.warn(
+            "⚠️ [NETOPIA] No signature in sandbox mode - proceeding with caution"
+          );
+        } else {
           throw new NetopiaPaymentError(
             NetopiaErrorCode.INVALID_SIGNATURE,
-            "Invalid webhook signature"
+            "Missing webhook signature"
           );
+        }
+      } else {
+        try {
+          const verificationResult = await this.ipn.verify(signature, rawBody);
+          if (
+            verificationResult.errorType !== 0 ||
+            verificationResult.status !== 1
+          ) {
+            if (isSandboxMode) {
+              console.warn(
+                "⚠️ [NETOPIA] Signature verification failed in sandbox - proceeding with caution",
+                verificationResult
+              );
+            } else {
+              throw new NetopiaPaymentError(
+                NetopiaErrorCode.INVALID_SIGNATURE,
+                "Invalid webhook signature"
+              );
+            }
+          }
+        } catch (verifyError) {
+          if (isSandboxMode) {
+            console.warn(
+              "⚠️ [NETOPIA] Signature verification error in sandbox - proceeding with caution",
+              verifyError
+            );
+          } else {
+            throw new NetopiaPaymentError(
+              NetopiaErrorCode.INVALID_SIGNATURE,
+              "Invalid webhook signature"
+            );
+          }
         }
       }
 

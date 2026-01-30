@@ -52,7 +52,8 @@ export async function POST(request: Request) {
         verificationError
       );
       // Do not process further, but still acknowledge with HTTP 200.
-      return ok({ error: "Signature verification failed" });
+      const exposeErrors = process.env.NODE_ENV === "development";
+      return ok(exposeErrors ? { error: "Signature verification failed" } : undefined);
     }
 
     // Netopia IPN structure nests payment/order info
