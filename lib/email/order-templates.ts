@@ -391,8 +391,13 @@ export async function sendShippingNotificationEmail({
   const baseUrl = getBaseUrl();
 
   // Generate FanCourier tracking URL if not provided
+  const normalizedCourier = (courierName || "")
+    .toLowerCase()
+    .replace(/\s+/g, "");
+  const isFanCourier = normalizedCourier.includes("fancourier");
+
   const fanCourierTrackingUrl = trackingUrl ||
-    (courierName === "FanCourier"
+    (isFanCourier
       ? `https://www.fancourier.ro/awb-tracking/?tracking=${trackingNumber}`
       : `${baseUrl}/account/orders/${orderId}`);
 

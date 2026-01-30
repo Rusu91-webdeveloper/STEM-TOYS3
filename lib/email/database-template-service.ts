@@ -549,7 +549,11 @@ export class DatabaseTemplateService {
     }
   ): Promise<{ success: boolean; error?: string; messageId?: string }> {
     // Try FanCourier-specific template first, fallback to generic
-    const templateSlug = shippingData.courierName === "FanCourier"
+    const normalizedCourier = (shippingData.courierName || "")
+      .toLowerCase()
+      .replace(/\s+/g, "");
+    const isFanCourier = normalizedCourier.includes("fancourier");
+    const templateSlug = isFanCourier
       ? "order-shipped-fancourier"
       : "order-shipped";
 
@@ -562,7 +566,9 @@ export class DatabaseTemplateService {
         trackingNumber: shippingData.trackingNumber,
         estimatedDelivery: shippingData.estimatedDelivery,
         courierName: shippingData.courierName || "FanCourier",
-        trackingUrl: `https://www.fancourier.ro/awb-tracking/?tracking=${shippingData.trackingNumber}`,
+        trackingUrl: isFanCourier
+          ? `https://www.fancourier.ro/awb-tracking/?tracking=${shippingData.trackingNumber}`
+          : undefined,
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
         storeName: "TechTots STEM Store",
         contactEmail: "webira.rem.srl@gmail.com",

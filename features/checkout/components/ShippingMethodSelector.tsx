@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { fetchShippingQuotes, fetchShippingSettings } from "../lib/checkoutApi";
 import { ShippingMethod } from "../types";
 import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
+import { DEFAULT_COURIERS } from "@/lib/shipping/couriers";
 
 interface ShippingMethodSelectorProps {
   initialMethod?: ShippingMethod;
@@ -27,8 +28,15 @@ export function ShippingMethodSelector({
   onSubmit,
   onBack,
 }: ShippingMethodSelectorProps) {
+  const defaultMethodId =
+    initialMethod?.id ||
+    (() => {
+      const courier = DEFAULT_COURIERS.find(c => c.enabled) || DEFAULT_COURIERS[0];
+      const service = courier?.services?.find(s => s.enabled !== false) || courier?.services?.[0];
+      return courier && service ? `${courier.id}:${service.id}` : "home";
+    })();
   const [selectedMethodId, setSelectedMethodId] = useState<string>(
-    initialMethod?.id || "home"
+    defaultMethodId
   );
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -103,24 +111,33 @@ export function ShippingMethodSelector({
             ? parseFloat(settings.deliveryPrice.price || "15.00")
             : 15.0;
 
-          // Apply free shipping if threshold is exceeded
           const finalPrice = isFreeShipping ? 0 : deliveryPrice;
 
-          methods.push({
-            id: "home",
-            name: "Livrare domiciliu",
-            description: "Livrare la adresa ta",
-            price: finalPrice,
-            estimatedDelivery: "3-5 zile lucrătoare",
-          });
+          const configuredCouriers =
+            settings?.couriers && Array.isArray(settings.couriers)
+              ? settings.couriers
+              : DEFAULT_COURIERS;
 
-          methods.push({
-            id: "easybox",
-            name: "Livrare Easy Box",
-            description: "Livrare la Easy Box",
-            price: finalPrice,
-            estimatedDelivery: "3-5 zile lucrătoare",
-          });
+          const fallbackMethods: ShippingMethod[] = configuredCouriers
+            .filter((courier: any) => courier.enabled !== false)
+            .flatMap((courier: any) =>
+              (courier.services || [])
+                .filter((service: any) => service.enabled !== false)
+                .map((service: any) => ({
+                  id: `${courier.id}:${service.id}`,
+                  name: service.name,
+                  description: service.description,
+                  price:
+                    service.priceOverride !== undefined &&
+                    service.priceOverride !== null &&
+                    service.priceOverride !== ""
+                      ? Number(service.priceOverride)
+                      : finalPrice,
+                  estimatedDelivery: service.estimatedDelivery,
+                }))
+            );
+
+          methods.push(...fallbackMethods);
         }
 
         // Set free shipping state based on threshold check
@@ -132,7 +149,7 @@ export function ShippingMethodSelector({
           method => method.id === selectedMethodId
         );
         if (!selectedMethodId || !currentMethodExists) {
-          setSelectedMethodId(methods[0]?.id || "home");
+          setSelectedMethodId(methods[0]?.id || defaultMethodId);
         }
       } catch (error) {
         console.error("Error loading shipping settings:", error);
@@ -143,28 +160,29 @@ export function ShippingMethodSelector({
         const defaultThreshold = 199;
         const isFreeShipping = cartTotal >= defaultThreshold;
         
-        const fallbackMethods: ShippingMethod[] = [
-          {
-            id: "home",
-            name: "Livrare domiciliu",
-            description: "Livrare la adresa ta",
-            price: isFreeShipping ? 0 : 25,
-            estimatedDelivery: "3-5 zile lucrătoare",
-          },
-          {
-            id: "easybox",
-            name: "Livrare Easy Box",
-            description: "Livrare la Easy Box",
-            price: isFreeShipping ? 0 : 19,
-            estimatedDelivery: "3-5 zile lucrătoare",
-          },
-        ];
+        const fallbackMethods: ShippingMethod[] = DEFAULT_COURIERS.filter(
+          courier => courier.enabled !== false
+        ).flatMap(courier =>
+          courier.services
+            .filter(service => service.enabled !== false)
+            .map(service => ({
+              id: `${courier.id}:${service.id}`,
+              name: service.name,
+              description: service.description,
+              price: isFreeShipping
+                ? 0
+                : service.methodType === "easybox"
+                  ? 19
+                  : 25,
+              estimatedDelivery: service.estimatedDelivery,
+            }))
+        );
 
         setShippingMethods(fallbackMethods);
         setFreeShippingApplied(isFreeShipping);
         setFreeShippingThreshold(isFreeShipping ? defaultThreshold : null);
         if (!selectedMethodId) {
-          setSelectedMethodId("home");
+          setSelectedMethodId(defaultMethodId);
         }
       } finally {
         setIsLoading(false);

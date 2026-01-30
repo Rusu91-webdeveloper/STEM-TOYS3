@@ -1257,10 +1257,10 @@ export async function POST(request: Request) {
 
       if (isCODPayment && hasPhysicalItems) {
         try {
-          const { createAwbForOrder } = await import(
-            "@/lib/shipping/sameday-awb"
+          const { createCourierAwbForOrder } = await import(
+            "@/lib/shipping/awb-dispatcher"
           );
-          const awbResult = await createAwbForOrder(dbOrder.id);
+          const awbResult = await createCourierAwbForOrder(dbOrder.id);
           if (awbResult.success) {
             console.log(
               `✅ Order ${dbOrder.id}: AWB created for COD order: ${awbResult.awbNumber}`

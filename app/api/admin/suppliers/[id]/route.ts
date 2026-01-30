@@ -253,6 +253,15 @@ export async function PUT(request: NextRequest) {
       priceChangeThreshold,
       rejectionReason,
       notes,
+      businessAddress,
+      businessCity,
+      businessState,
+      businessPostalCode,
+      businessCountry,
+      contactPersonName,
+      contactPersonEmail,
+      contactPersonPhone,
+      phone,
     } = body;
 
     // Validate input
@@ -363,6 +372,22 @@ export async function PUT(request: NextRequest) {
       updateData.minimumMarginPercentage = normalizedMinimumMargin;
     if (normalizedPriceChangeThreshold !== undefined)
       updateData.priceChangeThreshold = normalizedPriceChangeThreshold;
+
+    if (businessAddress !== undefined)
+      updateData.businessAddress = businessAddress;
+    if (businessCity !== undefined) updateData.businessCity = businessCity;
+    if (businessState !== undefined) updateData.businessState = businessState;
+    if (businessPostalCode !== undefined)
+      updateData.businessPostalCode = businessPostalCode;
+    if (businessCountry !== undefined)
+      updateData.businessCountry = businessCountry;
+    if (contactPersonName !== undefined)
+      updateData.contactPersonName = contactPersonName;
+    if (contactPersonEmail !== undefined)
+      updateData.contactPersonEmail = contactPersonEmail;
+    if (contactPersonPhone !== undefined)
+      updateData.contactPersonPhone = contactPersonPhone;
+    if (phone !== undefined) updateData.phone = phone;
 
     try {
       const supplier = await db.supplier.update({

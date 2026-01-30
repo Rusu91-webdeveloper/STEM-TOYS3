@@ -170,10 +170,10 @@ export async function POST(request: Request) {
           );
           if (hasPhysicalItems) {
             try {
-              const { createAwbForOrder } = await import(
-                "@/lib/shipping/sameday-awb"
+              const { createCourierAwbForOrder } = await import(
+                "@/lib/shipping/awb-dispatcher"
               );
-              const awbResult = await createAwbForOrder(orderID);
+              const awbResult = await createCourierAwbForOrder(orderID);
               if (awbResult.success) {
                 console.log(
                   `✅ [WEBHOOK] AWB created for order ${orderID}: ${awbResult.awbNumber}`

@@ -48,6 +48,8 @@ import {
   type SupplierStatus,
 } from "@/features/supplier/types/supplier";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 const statusConfig = {
   PENDING: {
@@ -95,6 +97,18 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
     priceChangeThreshold: "",
   });
   const [isSavingMargins, setIsSavingMargins] = useState(false);
+  const [pickupForm, setPickupForm] = useState({
+    businessAddress: "",
+    businessCity: "",
+    businessState: "",
+    businessPostalCode: "",
+    businessCountry: "Romania",
+    contactPersonName: "",
+    contactPersonEmail: "",
+    contactPersonPhone: "",
+    phone: "",
+  });
+  const [isSavingPickup, setIsSavingPickup] = useState(false);
 
   useEffect(() => {
     fetchSupplier();
@@ -108,6 +122,17 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
       defaultMargin: toPercent(supplier.defaultMargin),
       minimumMarginPercentage: toPercent(supplier.minimumMarginPercentage),
       priceChangeThreshold: toPercent(supplier.priceChangeThreshold),
+    });
+    setPickupForm({
+      businessAddress: supplier.businessAddress || "",
+      businessCity: supplier.businessCity || "",
+      businessState: supplier.businessState || "",
+      businessPostalCode: supplier.businessPostalCode || "",
+      businessCountry: supplier.businessCountry || "Romania",
+      contactPersonName: supplier.contactPersonName || "",
+      contactPersonEmail: supplier.contactPersonEmail || "",
+      contactPersonPhone: supplier.contactPersonPhone || "",
+      phone: supplier.phone || "",
     });
   }, [supplier]);
 
@@ -227,6 +252,45 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
       setError(err instanceof Error ? err.message : "Failed to update margins");
     } finally {
       setIsSavingMargins(false);
+    }
+  };
+
+  const handlePickupUpdate = async () => {
+    try {
+      setIsSavingPickup(true);
+      setError(null);
+
+      const response = await fetch(`/api/admin/suppliers/${supplierId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          businessAddress: pickupForm.businessAddress,
+          businessCity: pickupForm.businessCity,
+          businessState: pickupForm.businessState,
+          businessPostalCode: pickupForm.businessPostalCode,
+          businessCountry: pickupForm.businessCountry,
+          contactPersonName: pickupForm.contactPersonName,
+          contactPersonEmail: pickupForm.contactPersonEmail,
+          contactPersonPhone: pickupForm.contactPersonPhone,
+          phone: pickupForm.phone,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to update pickup details");
+      }
+
+      await fetchSupplier();
+    } catch (err) {
+      console.error("Error updating pickup details:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to update pickup details"
+      );
+    } finally {
+      setIsSavingPickup(false);
     }
   };
 
@@ -413,6 +477,152 @@ export function AdminSupplierDetail({ supplierId }: AdminSupplierDetailProps) {
                 >
                   {supplier.contactPersonEmail}
                 </a>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pickup Address (FanCourier) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="w-5 h-5" />
+                Pickup Address (FanCourier)
+              </CardTitle>
+              <CardDescription>
+                This address is used for courier pickup and AWB label delivery.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pickup-business-address">Address</Label>
+                  <Input
+                    id="pickup-business-address"
+                    value={pickupForm.businessAddress}
+                    onChange={e =>
+                      setPickupForm(prev => ({
+                        ...prev,
+                        businessAddress: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pickup-business-city">City</Label>
+                  <Input
+                    id="pickup-business-city"
+                    value={pickupForm.businessCity}
+                    onChange={e =>
+                      setPickupForm(prev => ({
+                        ...prev,
+                        businessCity: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pickup-business-state">County/State</Label>
+                  <Input
+                    id="pickup-business-state"
+                    value={pickupForm.businessState}
+                    onChange={e =>
+                      setPickupForm(prev => ({
+                        ...prev,
+                        businessState: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pickup-business-postal">Postal Code</Label>
+                  <Input
+                    id="pickup-business-postal"
+                    value={pickupForm.businessPostalCode}
+                    onChange={e =>
+                      setPickupForm(prev => ({
+                        ...prev,
+                        businessPostalCode: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pickup-business-country">Country</Label>
+                  <Input
+                    id="pickup-business-country"
+                    value={pickupForm.businessCountry}
+                    onChange={e =>
+                      setPickupForm(prev => ({
+                        ...prev,
+                        businessCountry: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pickup-contact-name">Contact Name</Label>
+                  <Input
+                    id="pickup-contact-name"
+                    value={pickupForm.contactPersonName}
+                    onChange={e =>
+                      setPickupForm(prev => ({
+                        ...prev,
+                        contactPersonName: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pickup-contact-email">Contact Email</Label>
+                  <Input
+                    id="pickup-contact-email"
+                    type="email"
+                    value={pickupForm.contactPersonEmail}
+                    onChange={e =>
+                      setPickupForm(prev => ({
+                        ...prev,
+                        contactPersonEmail: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pickup-contact-phone">Contact Phone</Label>
+                  <Input
+                    id="pickup-contact-phone"
+                    value={pickupForm.contactPersonPhone}
+                    onChange={e =>
+                      setPickupForm(prev => ({
+                        ...prev,
+                        contactPersonPhone: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pickup-main-phone">Main Phone</Label>
+                  <Input
+                    id="pickup-main-phone"
+                    value={pickupForm.phone}
+                    onChange={e =>
+                      setPickupForm(prev => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={handlePickupUpdate} disabled={isSavingPickup}>
+                  {isSavingPickup ? "Saving..." : "Save Pickup Details"}
+                </Button>
               </div>
             </CardContent>
           </Card>

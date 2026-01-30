@@ -41,7 +41,7 @@ export interface ShippingPricingConfig {
   includeAtipicFee: boolean;
 }
 
-const DEFAULT_PRICING_VERSION = "sameday-2025-10-05";
+const DEFAULT_PRICING_VERSION = "fancourier-2026-01-30";
 
 const parseNumber = (value: string | undefined, fallback: number) => {
   if (!value) return fallback;
@@ -233,10 +233,21 @@ export const resolveShippingService = (
   methodId?: string | null
 ): ShippingService | null => {
   if (!methodId) return null;
-  if (methodId === "easybox" || methodId === "SAMEDAY_EASYBOX") {
+  const normalized = methodId.includes(":")
+    ? methodId.split(":")[1]
+    : methodId;
+  if (
+    normalized === "easybox" ||
+    normalized === "fanbox" ||
+    normalized === "SAMEDAY_EASYBOX"
+  ) {
     return "SAMEDAY_EASYBOX";
   }
-  if (methodId === "home" || methodId === "SAMEDAY_NEXTDAY_HOME") {
+  if (
+    normalized === "home" ||
+    normalized === "standard" ||
+    normalized === "SAMEDAY_NEXTDAY_HOME"
+  ) {
     return "SAMEDAY_NEXTDAY_HOME";
   }
   return null;

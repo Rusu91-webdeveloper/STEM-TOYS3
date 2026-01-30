@@ -55,7 +55,9 @@ import {
   DollarSign,
   Clock,
   Save,
+  Truck,
 } from "lucide-react";
+import { DEFAULT_COURIERS } from "@/lib/shipping/couriers";
 
 interface StoreSettings {
   id?: string;
@@ -86,6 +88,28 @@ interface StoreSettings {
     rambursPrice?: string;
     /** Insurance threshold - orders above this value get declared value */
     insuranceThreshold?: string;
+    fanCourierPickup?: {
+      enabled: boolean;
+      windowStart: string;
+      windowEnd: string;
+      offsetDays?: number;
+      observations?: string;
+    };
+    couriers?: Array<{
+      id: string;
+      name: string;
+      enabled: boolean;
+      isDefault?: boolean;
+      services: Array<{
+        id: string;
+        name: string;
+        description: string;
+        estimatedDelivery: string;
+        methodType: "home" | "easybox";
+        enabled?: boolean;
+        priceOverride?: string;
+      }>;
+    }>;
   } | null;
   codSettings: {
     percentage: string;
@@ -420,6 +444,14 @@ const defaultSettings: StoreSettings = {
     onlinePaymentPrice: "19.99",
     rambursPrice: "24.99",
     insuranceThreshold: "500",
+    fanCourierPickup: {
+      enabled: false,
+      windowStart: "09:00",
+      windowEnd: "16:00",
+      offsetDays: 0,
+      observations: "",
+    },
+    couriers: DEFAULT_COURIERS,
   },
   codSettings: {
     percentage: "3",
@@ -780,11 +812,52 @@ export default function SettingsPage() {
                   price: migratedPrice,
                   active: existing.standard?.active || existing.express?.active || true,
                 },
-                freeThreshold: existing.freeThreshold || defaultSettings.shippingSettings.freeThreshold,
+                freeThreshold:
+                  existing.freeThreshold ||
+                  defaultSettings.shippingSettings.freeThreshold,
+                onlinePaymentPrice:
+                  existing.onlinePaymentPrice ||
+                  defaultSettings.shippingSettings.onlinePaymentPrice,
+                rambursPrice:
+                  existing.rambursPrice ||
+                  defaultSettings.shippingSettings.rambursPrice,
+                insuranceThreshold:
+                  existing.insuranceThreshold ||
+                  defaultSettings.shippingSettings.insuranceThreshold,
+                fanCourierPickup: {
+                  ...defaultSettings.shippingSettings.fanCourierPickup,
+                  ...(existing.fanCourierPickup || {}),
+                },
+                couriers:
+                  existing.couriers ||
+                  defaultSettings.shippingSettings.couriers,
               };
             }
-            // If already in new format, use as-is
-            return existing;
+            return {
+              ...existing,
+              deliveryPrice:
+                existing.deliveryPrice ||
+                defaultSettings.shippingSettings.deliveryPrice,
+              freeThreshold:
+                existing.freeThreshold ||
+                defaultSettings.shippingSettings.freeThreshold,
+              onlinePaymentPrice:
+                existing.onlinePaymentPrice ||
+                defaultSettings.shippingSettings.onlinePaymentPrice,
+              rambursPrice:
+                existing.rambursPrice ||
+                defaultSettings.shippingSettings.rambursPrice,
+              insuranceThreshold:
+                existing.insuranceThreshold ||
+                defaultSettings.shippingSettings.insuranceThreshold,
+              fanCourierPickup: {
+                ...defaultSettings.shippingSettings.fanCourierPickup,
+                ...(existing.fanCourierPickup || {}),
+              },
+              couriers:
+                existing.couriers ||
+                defaultSettings.shippingSettings.couriers,
+            };
           })(),
           // Only set codSettings defaults if it's completely missing
           codSettings: data.codSettings || defaultSettings.codSettings,
@@ -1057,6 +1130,13 @@ export default function SettingsPage() {
       const currentSettings = prev.shippingSettings || {
         deliveryPrice: { price: "15.00", active: true },
         freeThreshold: { price: "199.00", active: true },
+        fanCourierPickup: {
+          enabled: false,
+          windowStart: "09:00",
+          windowEnd: "16:00",
+          offsetDays: 0,
+          observations: "",
+        },
       };
 
       return {
@@ -1082,6 +1162,13 @@ export default function SettingsPage() {
       const currentSettings = prev.shippingSettings || {
         deliveryPrice: { price: "15.00", active: true },
         freeThreshold: { price: "199.00", active: true },
+        fanCourierPickup: {
+          enabled: false,
+          windowStart: "09:00",
+          windowEnd: "16:00",
+          offsetDays: 0,
+          observations: "",
+        },
       };
 
       return {
@@ -1100,6 +1187,186 @@ export default function SettingsPage() {
         },
       };
     });
+  };
+
+  const handleFanCourierPickupChange = (
+    value: Partial<{
+      enabled: boolean;
+      windowStart: string;
+      windowEnd: string;
+      offsetDays: number;
+      observations: string;
+    }>
+  ) => {
+    setSettings(prev => {
+      const currentSettings = prev.shippingSettings || {
+        deliveryPrice: { price: "15.00", active: true },
+        freeThreshold: { price: "199.00", active: true },
+        fanCourierPickup: {
+          enabled: false,
+          windowStart: "09:00",
+          windowEnd: "16:00",
+          offsetDays: 0,
+          observations: "",
+        },
+      };
+
+      return {
+        ...prev,
+        shippingSettings: {
+          ...currentSettings,
+          fanCourierPickup: {
+            ...currentSettings.fanCourierPickup,
+            ...value,
+          },
+        },
+      };
+    });
+    setHasUnsavedChanges(true);
+  };
+
+  const updateCouriers = (
+    updater: (couriers: NonNullable<StoreSettings["shippingSettings"]>["couriers"]) => NonNullable<StoreSettings["shippingSettings"]>["couriers"]
+  ) => {
+    setSettings(prev => {
+      const currentSettings = prev.shippingSettings || {
+        deliveryPrice: { price: "15.00", active: true },
+        freeThreshold: { price: "199.00", active: true },
+        fanCourierPickup: {
+          enabled: false,
+          windowStart: "09:00",
+          windowEnd: "16:00",
+          offsetDays: 0,
+          observations: "",
+        },
+        couriers: DEFAULT_COURIERS,
+      };
+
+      return {
+        ...prev,
+        shippingSettings: {
+          ...currentSettings,
+          couriers: updater(currentSettings.couriers || DEFAULT_COURIERS),
+        },
+      };
+    });
+    setHasUnsavedChanges(true);
+  };
+
+  const handleCourierChange = (
+    index: number,
+    value: Partial<{
+      id: string;
+      name: string;
+      enabled: boolean;
+      isDefault: boolean;
+    }>
+  ) => {
+    updateCouriers(couriers =>
+      couriers?.map((courier, idx) =>
+        idx === index ? { ...courier, ...value } : courier
+      )
+    );
+  };
+
+  const setDefaultCourier = (index: number) => {
+    updateCouriers(couriers =>
+      couriers?.map((courier, idx) => ({
+        ...courier,
+        isDefault: idx === index,
+      }))
+    );
+  };
+
+  const addCourier = () => {
+    updateCouriers(couriers => [
+      ...(couriers || []),
+      {
+        id: `courier-${Date.now()}`,
+        name: "New Courier",
+        enabled: false,
+        services: [
+          {
+            id: "home",
+            name: "Home Delivery",
+            description: "Livrare la adresa ta",
+            estimatedDelivery: "24-48h",
+            methodType: "home",
+            enabled: true,
+          },
+        ],
+      },
+    ]);
+  };
+
+  const removeCourier = (index: number) => {
+    updateCouriers(couriers => {
+      const next = (couriers || []).filter((_, idx) => idx !== index);
+      if (!next.find(courier => courier.isDefault) && next.length > 0) {
+        next[0].isDefault = true;
+      }
+      return next;
+    });
+  };
+
+  const addCourierService = (courierIndex: number) => {
+    updateCouriers(couriers =>
+      couriers?.map((courier, idx) => {
+        if (idx !== courierIndex) return courier;
+        return {
+          ...courier,
+          services: [
+            ...(courier.services || []),
+            {
+              id: `service-${Date.now()}`,
+              name: "New Service",
+              description: "Service description",
+              estimatedDelivery: "24-48h",
+              methodType: "home",
+              enabled: true,
+            },
+          ],
+        };
+      })
+    );
+  };
+
+  const removeCourierService = (courierIndex: number, serviceIndex: number) => {
+    updateCouriers(couriers =>
+      couriers?.map((courier, idx) => {
+        if (idx !== courierIndex) return courier;
+        return {
+          ...courier,
+          services: courier.services.filter((_, sIdx) => sIdx !== serviceIndex),
+        };
+      })
+    );
+  };
+
+  const updateCourierService = (
+    courierIndex: number,
+    serviceIndex: number,
+    value: Partial<{
+      id: string;
+      name: string;
+      description: string;
+      estimatedDelivery: string;
+      methodType: "home" | "easybox";
+      enabled: boolean;
+      priceOverride: string;
+    }>
+  ) => {
+    updateCouriers(couriers =>
+      couriers?.map((courier, idx) => {
+        if (idx !== courierIndex) return courier;
+        return {
+          ...courier,
+          services: courier.services.map((service, sIdx) =>
+            sIdx === serviceIndex ? { ...service, ...value } : service
+          ),
+        };
+      })
+    );
   };
 
   // Handle tax rate change
@@ -1911,21 +2178,21 @@ export default function SettingsPage() {
                             <p className="font-medium">Delivery Price</p>
                             <p>
                               The delivery price applied to orders under 199 lei.
-                              This price applies to both "Livrare domiciliu" (Home delivery)
-                              and "Livrare Easy Box" options. Orders over 199 lei will have
+                              This price applies to both "FanCourier Standard" (Home delivery)
+                              and "FanCourier FANbox" options. Orders over 199 lei will have
                               free shipping.
                             </p>
                             <p className="text-xs text-muted-foreground">
                               <strong>Example:</strong> Set to 15.00 lei. Customers with
                               orders under 199 lei will pay 15.00 lei for delivery, regardless
-                              of whether they choose home delivery or Easy Box.
+                              of whether they choose home delivery or FANbox.
                             </p>
                           </div>
                         }
                       />
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      Applied to both Livrare domiciliu and Livrare Easy Box
+                      Applied to both FanCourier Standard and FanCourier FANbox
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
@@ -2160,6 +2427,373 @@ export default function SettingsPage() {
                   <p className="text-xs text-muted-foreground">
                     Example: If set to 500 RON, an order with 10 × 50 RON items (= 500 RON total) will be insured.
                   </p>
+                </div>
+                <Separator />
+                {/* FanCourier Pickup Scheduling */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-muted-foreground" />
+                    <h4 className="font-medium">FanCourier Pickup</h4>
+                    <HelpTooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-medium">Pickup Scheduling</p>
+                          <p>
+                            When enabled, the system will create a pickup request
+                            automatically after an AWB is created.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Use this if your supplier needs FAN Courier to pick up
+                            parcels from their warehouse.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between space-x-2">
+                    <div className="flex flex-col space-y-1">
+                      <Label>Auto schedule pickup</Label>
+                      <span className="text-sm text-muted-foreground">
+                        Creates a pickup request after AWB creation
+                      </span>
+                    </div>
+                    <Switch
+                      checked={
+                        settings.shippingSettings?.fanCourierPickup?.enabled ||
+                        false
+                      }
+                      onCheckedChange={checked =>
+                        handleFanCourierPickupChange({ enabled: checked })
+                      }
+                    />
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="fan-pickup-start">Window Start</Label>
+                      <Input
+                        id="fan-pickup-start"
+                        type="time"
+                        value={
+                          settings.shippingSettings?.fanCourierPickup
+                            ?.windowStart || "09:00"
+                        }
+                        onChange={e =>
+                          handleFanCourierPickupChange({
+                            windowStart: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="fan-pickup-end">Window End</Label>
+                      <Input
+                        id="fan-pickup-end"
+                        type="time"
+                        value={
+                          settings.shippingSettings?.fanCourierPickup?.windowEnd ||
+                          "16:00"
+                        }
+                        onChange={e =>
+                          handleFanCourierPickupChange({
+                            windowEnd: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="fan-pickup-offset">
+                        Pickup Offset (days)
+                      </Label>
+                      <Input
+                        id="fan-pickup-offset"
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={
+                          settings.shippingSettings?.fanCourierPickup
+                            ?.offsetDays ?? 0
+                        }
+                        onChange={e =>
+                          handleFanCourierPickupChange({
+                            offsetDays: Number(e.target.value || 0),
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="fan-pickup-observations">
+                      Pickup Observations (optional)
+                    </Label>
+                    <Textarea
+                      id="fan-pickup-observations"
+                      value={
+                        settings.shippingSettings?.fanCourierPickup?.observations ||
+                        ""
+                      }
+                      onChange={e =>
+                        handleFanCourierPickupChange({
+                          observations: e.target.value,
+                        })
+                      }
+                      placeholder="Example: Collect between 09:00-12:00, call before arrival"
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                </div>
+                <Separator />
+                {/* Courier Management */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Truck className="h-4 w-4 text-muted-foreground" />
+                      <h4 className="font-medium">Couriers</h4>
+                    </div>
+                    <Button size="sm" onClick={addCourier}>
+                      Add Courier
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {(settings.shippingSettings?.couriers || DEFAULT_COURIERS).map(
+                      (courier, courierIndex) => (
+                        <Card key={`${courier.id}-${courierIndex}`}>
+                          <CardHeader>
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="text-base">
+                                {courier.name || "Courier"}
+                              </CardTitle>
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
+                                  <Label htmlFor={`courier-default-${courierIndex}`}>
+                                    Default
+                                  </Label>
+                                  <Switch
+                                    checked={courier.isDefault || false}
+                                    onCheckedChange={checked => {
+                                      if (checked) {
+                                        setDefaultCourier(courierIndex);
+                                      }
+                                    }}
+                                  />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Label htmlFor={`courier-enabled-${courierIndex}`}>
+                                    Enabled
+                                  </Label>
+                                  <Switch
+                                    checked={courier.enabled}
+                                    onCheckedChange={checked =>
+                                      handleCourierChange(courierIndex, {
+                                        enabled: checked,
+                                      })
+                                    }
+                                  />
+                                </div>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => removeCourier(courierIndex)}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor={`courier-id-${courierIndex}`}>
+                                  Courier ID
+                                </Label>
+                                <Input
+                                  id={`courier-id-${courierIndex}`}
+                                  value={courier.id}
+                                  onChange={e =>
+                                    handleCourierChange(courierIndex, {
+                                      id: e.target.value,
+                                    })
+                                  }
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`courier-name-${courierIndex}`}>
+                                  Courier Name
+                                </Label>
+                                <Input
+                                  id={`courier-name-${courierIndex}`}
+                                  value={courier.name}
+                                  onChange={e =>
+                                    handleCourierChange(courierIndex, {
+                                      name: e.target.value,
+                                    })
+                                  }
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <h5 className="font-medium">Services</h5>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => addCourierService(courierIndex)}
+                              >
+                                Add Service
+                              </Button>
+                            </div>
+
+                            <div className="space-y-4">
+                              {courier.services.map((service, serviceIndex) => (
+                                <div
+                                  key={`${service.id}-${serviceIndex}`}
+                                  className="rounded-lg border p-4 space-y-4"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <h6 className="font-medium">
+                                      {service.name || "Service"}
+                                    </h6>
+                                    <div className="flex items-center gap-2">
+                                      <Label
+                                        htmlFor={`service-enabled-${courierIndex}-${serviceIndex}`}
+                                      >
+                                        Enabled
+                                      </Label>
+                                      <Switch
+                                        checked={service.enabled !== false}
+                                        onCheckedChange={checked =>
+                                          updateCourierService(
+                                            courierIndex,
+                                            serviceIndex,
+                                            { enabled: checked }
+                                          )
+                                        }
+                                      />
+                                      <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() =>
+                                          removeCourierService(
+                                            courierIndex,
+                                            serviceIndex
+                                          )
+                                        }
+                                      >
+                                        Remove
+                                      </Button>
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                      <Label>Service ID</Label>
+                                      <Input
+                                        value={service.id}
+                                        onChange={e =>
+                                          updateCourierService(
+                                            courierIndex,
+                                            serviceIndex,
+                                            { id: e.target.value }
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label>Service Name</Label>
+                                      <Input
+                                        value={service.name}
+                                        onChange={e =>
+                                          updateCourierService(
+                                            courierIndex,
+                                            serviceIndex,
+                                            { name: e.target.value }
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label>Description</Label>
+                                      <Input
+                                        value={service.description}
+                                        onChange={e =>
+                                          updateCourierService(
+                                            courierIndex,
+                                            serviceIndex,
+                                            { description: e.target.value }
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label>Estimated Delivery</Label>
+                                      <Input
+                                        value={service.estimatedDelivery}
+                                        onChange={e =>
+                                          updateCourierService(
+                                            courierIndex,
+                                            serviceIndex,
+                                            { estimatedDelivery: e.target.value }
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label>Method Type</Label>
+                                      <Select
+                                        value={service.methodType}
+                                        onValueChange={value =>
+                                          updateCourierService(
+                                            courierIndex,
+                                            serviceIndex,
+                                            {
+                                              methodType: value as
+                                                | "home"
+                                                | "easybox",
+                                            }
+                                          )
+                                        }
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="home">
+                                            Home delivery
+                                          </SelectItem>
+                                          <SelectItem value="easybox">
+                                            Locker/Easybox
+                                          </SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label>Price Override (RON)</Label>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={service.priceOverride || ""}
+                                        onChange={e =>
+                                          updateCourierService(
+                                            courierIndex,
+                                            serviceIndex,
+                                            { priceOverride: e.target.value }
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )
+                    )}
+                  </div>
                 </div>
               </div>
             </CardContent>

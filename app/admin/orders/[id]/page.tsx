@@ -245,7 +245,7 @@ export default function OrderDetailsPage() {
         },
         body: JSON.stringify({
           trackingNumber: trackingInput,
-          carrier: "Fan Courier", // Default carrier, can be made configurable
+          carrier: "FanCourier", // Default carrier, can be made configurable
         }),
       });
 
@@ -276,7 +276,7 @@ export default function OrderDetailsPage() {
 
     setCreatingAwb(true);
     try {
-      const response = await fetch("/api/shipping/sameday/create-awb", {
+      const response = await fetch("/api/shipping/create-awb", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -405,8 +405,17 @@ export default function OrderDetailsPage() {
     );
   }
 
-  const samedayShipment = order.shipments?.find(
-    shipment => shipment.courier === "SAMEDAY"
+  const courierKey = order.shippingMethod?.includes(":")
+    ? order.shippingMethod.split(":")[0]
+    : order.shippingMethod;
+  const courierName =
+    courierKey?.toLowerCase() === "sameday"
+      ? "SAMEDAY"
+      : courierKey?.toLowerCase() === "fancourier"
+        ? "FANCOURIER"
+        : "FANCOURIER";
+  const activeShipment = order.shipments?.find(
+    shipment => shipment.courier === courierName
   );
   const hasPhysicalItems = order.items.some(item => item.isDigital !== true);
 
@@ -640,40 +649,42 @@ export default function OrderDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Sameday Shipment */}
+          {/* Shipment */}
           {hasPhysicalItems && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Truck className="h-5 w-5" />
-                  Sameday Shipment
+                  {courierName === "SAMEDAY" ? "Sameday" : "FanCourier"} Shipment
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span>AWB:</span>
                   <span className="font-medium">
-                    {samedayShipment?.awbNumber || "Not created"}
+                    {activeShipment?.awbNumber || "Not created"}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Status:</span>
                   <span className="font-medium">
-                    {samedayShipment?.status || "Pending"}
+                    {activeShipment?.status || "Pending"}
                   </span>
                 </div>
                 <div className="flex justify-end">
                   <Button
                     onClick={createAwb}
                     size="sm"
-                    disabled={creatingAwb || Boolean(samedayShipment?.awbNumber)}
+                    disabled={creatingAwb || Boolean(activeShipment?.awbNumber)}
                   >
                     {creatingAwb ? (
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
                       <Package className="h-4 w-4 mr-2" />
                     )}
-                    {samedayShipment?.awbNumber ? "AWB Created" : "Create AWB"}
+                    {activeShipment?.awbNumber
+                      ? "AWB Created"
+                      : "Create AWB"}
                   </Button>
                 </div>
               </CardContent>

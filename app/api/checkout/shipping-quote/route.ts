@@ -7,21 +7,11 @@ import {
   calculateShippingQuote,
   resolveShippingService,
 } from "@/lib/shipping/shipping-pricing";
-
-const SHIPPING_METHODS = [
-  {
-    id: "easybox",
-    name: "Livrare Easy Box",
-    description: "Livrare la Easy Box",
-    estimatedDelivery: "24-48h",
-  },
-  {
-    id: "home",
-    name: "Livrare domiciliu",
-    description: "Livrare la adresa ta",
-    estimatedDelivery: "24h",
-  },
-];
+import {
+  buildShippingMethodId,
+  DEFAULT_COURIERS,
+} from "@/lib/shipping/couriers";
+import { getShippingSettings } from "@/lib/utils/store-settings";
 
 export async function GET(request: NextRequest) {
   try {
@@ -69,19 +59,46 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const methods = SHIPPING_METHODS.map(method => {
-      const service = resolveShippingService(method.id);
-      const quote = service
-        ? calculateShippingQuote(service, shippingItems)
-        : null;
-      return {
-        ...method,
-        price: quote?.totalPrice ?? 0,
-        pricingVersion: quote?.pricingVersion ?? null,
-        basePrice: quote?.basePrice ?? null,
-        weights: quote?.weights ?? null,
-      };
-    });
+    const settings = await getShippingSettings();
+    const configuredCouriers =
+      (settings as any)?.couriers && Array.isArray((settings as any).couriers)
+        ? (settings as any).couriers
+        : DEFAULT_COURIERS;
+
+    const methods = configuredCouriers
+      .filter((courier: any) => courier.enabled !== false)
+      .flatMap((courier: any) =>
+        (courier.services || [])
+          .filter((service: any) => service.enabled !== false)
+          .map((service: any) => {
+            const methodId = buildShippingMethodId(courier.id, service.id);
+            const pricingKey =
+              service.methodType === "easybox" ? "easybox" : "home";
+            const resolvedService = resolveShippingService(pricingKey);
+            const quote = resolvedService
+              ? calculateShippingQuote(resolvedService, shippingItems)
+              : null;
+
+            const priceOverride = service.priceOverride
+              ? Number(service.priceOverride)
+              : null;
+
+            return {
+              id: methodId,
+              name: service.name,
+              description: service.description,
+              estimatedDelivery: service.estimatedDelivery,
+              price:
+                Number.isFinite(priceOverride) && priceOverride !== null
+                  ? priceOverride
+                  : quote?.totalPrice ?? 0,
+              pricingVersion: quote?.pricingVersion ?? null,
+              basePrice: quote?.basePrice ?? null,
+              weights: quote?.weights ?? null,
+              courierId: courier.id,
+            };
+          })
+      );
 
     return NextResponse.json({
       isDigitalOnly: false,

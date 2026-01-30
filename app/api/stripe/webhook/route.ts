@@ -221,10 +221,10 @@ async function handleSuccessfulPayment(
     const hasPhysicalItems = order.items.some(item => item.isDigital !== true);
     if (hasPhysicalItems) {
       try {
-        const { createAwbForOrder } = await import(
-          "@/lib/shipping/sameday-awb"
+        const { createCourierAwbForOrder } = await import(
+          "@/lib/shipping/awb-dispatcher"
         );
-        const awbResult = await createAwbForOrder(order.id);
+        const awbResult = await createCourierAwbForOrder(order.id);
         if (awbResult.success) {
           console.log(
             `✅ [STRIPE][WEBHOOK] AWB created for order ${order.id}: ${awbResult.awbNumber}`

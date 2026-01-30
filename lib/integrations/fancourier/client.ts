@@ -2,9 +2,7 @@
  * FAN Courier API Client
  *
  * Implements FAN Courier SelfAWB API integration.
- * Reference: https://www.fancourier.ro/en/e-commerce/selfawb-integration/
- *
- * Authentication: Bearer token with 24-hour lifespan
+ * Authentication: Bearer token obtained via /login.
  */
 
 type AuthToken = {
@@ -24,7 +22,7 @@ export class FanCourierClientError extends Error {
     }
 }
 
-const DEFAULT_TOKEN_TTL_SECONDS = 86400; // 24 hours per FAN API docs
+const DEFAULT_TOKEN_TTL_SECONDS = 86400; // Fallback if API doesn't provide expiry
 
 const getBaseUrl = (): string => {
     const baseUrl = process.env.FANCOURIER_BASE_URL;
@@ -34,22 +32,32 @@ const getBaseUrl = (): string => {
     return baseUrl.replace(/\/+$/, "");
 };
 
-const getCredentials = (): {
-    clientId: string;
+const getClientId = (): number => {
+    const clientId = process.env.FANCOURIER_CLIENT_ID;
+    if (!clientId) {
+        throw new FanCourierClientError("FANCOURIER_CLIENT_ID missing");
+    }
+    const parsed = Number(clientId);
+    if (!Number.isFinite(parsed)) {
+        throw new FanCourierClientError("FANCOURIER_CLIENT_ID must be a number");
+    }
+    return parsed;
+};
+
+const getAuthCredentials = (): {
     username: string;
     password: string;
 } => {
-    const clientId = process.env.FANCOURIER_CLIENT_ID;
     const username = process.env.FANCOURIER_USERNAME;
     const password = process.env.FANCOURIER_PASSWORD;
 
-    if (!clientId || !username || !password) {
+    if (!username || !password) {
         throw new FanCourierClientError(
-            "FANCOURIER_CLIENT_ID, FANCOURIER_USERNAME, or FANCOURIER_PASSWORD missing"
+            "FANCOURIER_USERNAME or FANCOURIER_PASSWORD missing"
         );
     }
 
-    return { clientId, username, password };
+    return { username, password };
 };
 
 let cachedToken: AuthToken | null = null;
@@ -71,6 +79,29 @@ const fetchJson = async (
     return (await response.json()) as Record<string, unknown>;
 };
 
+const fanCourierFetch = async (
+    path: string,
+    init: RequestInit = {}
+): Promise<Response> => {
+    const baseUrl = getBaseUrl();
+    const token = await getFanCourierToken();
+    const url = `${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
+
+    const headers: Record<string, string> = {
+        Authorization: `Bearer ${token}`,
+        ...(init.headers || {}),
+    };
+
+    if (!headers["Content-Type"] && init.body) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    return fetch(url, {
+        ...init,
+        headers,
+    });
+};
+
 /**
  * Get authentication token from FAN Courier
  */
@@ -81,28 +112,30 @@ export const getFanCourierToken = async (): Promise<string> => {
     }
 
     const baseUrl = getBaseUrl();
-    const { clientId, username, password } = getCredentials();
+    const { username, password } = getAuthCredentials();
 
-    const data = await fetchJson(`${baseUrl}/auth/token`, {
+    const url = new URL(`${baseUrl}/login`);
+    url.searchParams.set("username", username);
+    url.searchParams.set("password", password);
+
+    const data = await fetchJson(url.toString(), {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            client_id: clientId,
-            username,
-            password,
-        }),
     });
 
-    const token = data.token as string;
+    const token =
+        (data.token as string) ||
+        ((data.data as Record<string, unknown> | undefined)?.token as string);
     if (!token) {
         throw new FanCourierClientError(
             "Authentication token missing in FAN response"
         );
     }
 
-    const expiresIn = (data.expires_in as number) || DEFAULT_TOKEN_TTL_SECONDS;
+    const expiresIn =
+        ((data.expires_in as number) ||
+            ((data.data as Record<string, unknown> | undefined)
+                ?.expires_in as number) ||
+            DEFAULT_TOKEN_TTL_SECONDS);
 
     cachedToken = {
         token,
@@ -119,18 +152,33 @@ export const fanCourierRequest = async (
     path: string,
     init: RequestInit = {}
 ): Promise<Record<string, unknown>> => {
-    const baseUrl = getBaseUrl();
-    const token = await getFanCourierToken();
-    const url = `${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
+    const response = await fanCourierFetch(path, init);
+    if (!response.ok) {
+        const text = await response.text().catch(() => "");
+        throw new FanCourierClientError(
+            `FAN Courier request failed (${response.status}): ${text || response.statusText}`,
+            response.status
+        );
+    }
+    return (await response.json()) as Record<string, unknown>;
+};
 
-    return fetchJson(url, {
-        ...init,
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            ...(init.headers || {}),
-        },
-    });
+const fanCourierRequestBinary = async (
+    path: string,
+    init: RequestInit = {}
+): Promise<{ buffer: ArrayBuffer; contentType: string | null }> => {
+    const response = await fanCourierFetch(path, init);
+    if (!response.ok) {
+        const text = await response.text().catch(() => "");
+        throw new FanCourierClientError(
+            `FAN Courier request failed (${response.status}): ${text || response.statusText}`,
+            response.status
+        );
+    }
+    return {
+        buffer: await response.arrayBuffer(),
+        contentType: response.headers.get("content-type"),
+    };
 };
 
 /**
@@ -139,9 +187,41 @@ export const fanCourierRequest = async (
 export const createFanCourierAwb = async (
     payload: Record<string, unknown>
 ): Promise<Record<string, unknown>> => {
-    return fanCourierRequest("/awb/internal", {
+    return fanCourierRequest("/intern-awb", {
         method: "POST",
         body: JSON.stringify(payload),
+    });
+};
+
+/**
+ * Create a pickup order via FAN Courier API
+ */
+export const createFanCourierPickupOrder = async (
+    payload: Record<string, unknown>
+): Promise<Record<string, unknown>> => {
+    return fanCourierRequest("/order", {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+};
+
+/**
+ * Download AWB label as PDF (base64 handled by caller)
+ */
+export const getFanCourierAwbLabel = async (input: {
+    awbNumber: string;
+    dpi?: number;
+}): Promise<{ buffer: ArrayBuffer; contentType: string | null }> => {
+    const clientId = getClientId();
+    const dpi = input.dpi ?? 300;
+    const query = new URLSearchParams();
+    query.set("clientId", String(clientId));
+    query.append("awbs[]", input.awbNumber);
+    query.set("pdf", "1");
+    query.set("dpi", String(dpi));
+
+    return fanCourierRequestBinary(`/awb/label?${query.toString()}`, {
+        method: "GET",
     });
 };
 
@@ -152,15 +232,41 @@ export const createFanCourierAwb = async (
 export const hasExtraKmOrRemoteLocality = (
     response: Record<string, unknown>
 ): { hasExtraKm: boolean; reason: string | null } => {
+    const data = response.data as Record<string, unknown> | undefined;
+    const shipments = response.shipments as Array<Record<string, unknown>> | undefined;
+    const shipment = shipments?.[0];
+
     // Check various response patterns from FAN API
-    const extraKm = response.extra_km || response.extraKm || response.extraKM;
+    const extraKm =
+        response.extra_km ||
+        response.extraKm ||
+        response.extraKM ||
+        data?.extra_km ||
+        data?.extraKm ||
+        shipment?.extra_km ||
+        shipment?.extraKm;
     const remoteLocality =
         response.remote_locality ||
         response.remoteLocality ||
-        response.remoteLocation;
+        response.remoteLocation ||
+        data?.remote_locality ||
+        data?.remoteLocality ||
+        shipment?.remote_locality ||
+        shipment?.remoteLocality;
     const outOfNetwork =
-        response.out_of_network || response.outOfNetwork || response.outsideNetwork;
-    const message = (response.message || response.info || "") as string;
+        response.out_of_network ||
+        response.outOfNetwork ||
+        response.outsideNetwork ||
+        data?.out_of_network ||
+        data?.outOfNetwork ||
+        shipment?.out_of_network ||
+        shipment?.outOfNetwork;
+    const message = (response.message ||
+        response.info ||
+        data?.message ||
+        data?.info ||
+        shipment?.message ||
+        "") as string;
 
     const hasExtraKm =
         !!extraKm ||
@@ -189,6 +295,13 @@ export const isFanCourierConfigured = (): boolean => {
         process.env.FANCOURIER_USERNAME &&
         process.env.FANCOURIER_PASSWORD
     );
+};
+
+/**
+ * Get FAN Courier client ID from environment.
+ */
+export const getFanCourierClientId = (): number => {
+    return getClientId();
 };
 
 /**

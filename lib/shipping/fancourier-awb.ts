@@ -9,14 +9,19 @@ import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import {
     createFanCourierAwb,
+    createFanCourierPickupOrder,
     hasExtraKmOrRemoteLocality,
-    FanCourierClientError,
+    getFanCourierAwbLabel,
+    getFanCourierClientId,
     isFanCourierConfigured,
 } from "@/lib/integrations/fancourier/client";
-import {
+import type {
     FanCourierAwbPayload,
-    getFanCourierSenderConfig,
+    FanCourierServiceType,
 } from "@/lib/integrations/fancourier/types";
+import { extractDimensionsCm } from "@/lib/shipping/shipping-pricing";
+import { getShippingSettings } from "@/lib/utils/store-settings";
+import { sendSupplierAwbLabelEmail } from "@/lib/email/supplier-awb";
 
 const COURIER_NAME = "FANCOURIER";
 
@@ -24,16 +29,22 @@ const COURIER_NAME = "FANCOURIER";
  * Extract AWB number from various FAN Courier response formats
  */
 const extractAwbNumber = (response: Record<string, unknown>): string | null => {
+    const data = response.data as Record<string, unknown> | undefined;
+    const shipments = response.shipments as Array<Record<string, unknown>> | undefined;
     return (
         (response.awbNumber as string) ||
         (response.awb_number as string) ||
         (response.awb as string) ||
-        ((response.data as Record<string, unknown> | undefined)?.awbNumber as
+        (data?.awbNumber as
             | string
             | undefined) ||
-        ((response.data as Record<string, unknown> | undefined)?.awb_number as
+        (data?.awb_number as
             | string
             | undefined) ||
+        (data?.awb as string | undefined) ||
+        (Array.isArray(data?.awbs) ? (data?.awbs[0] as string | undefined) : undefined) ||
+        (shipments?.[0]?.awb as string | undefined) ||
+        (shipments?.[0]?.awbNumber as string | undefined) ||
         null
     );
 };
@@ -54,6 +65,140 @@ const redactPayload = (
 /**
  * Build AWB payload for FAN Courier API
  */
+const resolveFanCourierService = (
+    methodId?: string | null,
+    pickupLocation?: string | null
+): FanCourierServiceType => {
+    const normalized = methodId?.includes(":")
+        ? methodId.split(":")[1]?.toLowerCase().trim()
+        : methodId?.toLowerCase().trim();
+    const wantsFanbox =
+        normalized === "easybox" ||
+        normalized === "fanbox" ||
+        normalized === "fan_box";
+
+    if (wantsFanbox && pickupLocation) {
+        return "FANbox";
+    }
+
+    return "Standard";
+};
+
+const extractPickupLocation = (snapshot: unknown, lockerId?: string | null) => {
+    if (lockerId) return lockerId;
+    if (!snapshot || typeof snapshot !== "object") return null;
+    const record = snapshot as Record<string, unknown>;
+    const possible =
+        (record.pickupLocation as string | undefined) ||
+        (record.name as string | undefined) ||
+        (record.title as string | undefined) ||
+        (record.id as string | undefined);
+    return possible || null;
+};
+
+const parseStreetData = (line1: string, line2?: string | null) => {
+    const trimmed = line1.trim();
+    const match = trimmed.match(/\b\d+[a-zA-Z]?\b/);
+
+    if (!match) {
+        return {
+            street: trimmed,
+            streetNo: line2?.trim() || undefined,
+        };
+    }
+
+    const streetNo = line2?.trim() || match[0];
+    const street = trimmed.replace(match[0], "").replace(/\s{2,}/g, " ").trim();
+
+    return {
+        street: street || trimmed,
+        streetNo,
+    };
+};
+
+type SupplierPickupContact = {
+    id: string;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    businessAddress: string | null;
+    businessCity: string | null;
+    businessState: string | null;
+    businessPostalCode: string | null;
+    businessCountry: string | null;
+};
+
+const collectSupplierContacts = (
+    products: Array<{
+        supplier?: SupplierPickupContact | null;
+    }>
+): { suppliers: SupplierPickupContact[]; missingSupplierCount: number } => {
+    const supplierMap = new Map<string, SupplierPickupContact>();
+    let missingSupplierCount = 0;
+
+    for (const product of products) {
+        if (!product.supplier?.id) {
+            missingSupplierCount += 1;
+            continue;
+        }
+        if (!supplierMap.has(product.supplier.id)) {
+            supplierMap.set(product.supplier.id, product.supplier);
+        }
+    }
+
+    return {
+        suppliers: Array.from(supplierMap.values()),
+        missingSupplierCount,
+    };
+};
+
+const resolveSupplierEmail = (supplier: SupplierPickupContact | null) => {
+    if (!supplier) return process.env.SUPPLIER_EMAIL || null;
+    return supplier.email || process.env.SUPPLIER_EMAIL || null;
+};
+
+const formatPickupDate = (offsetDays: number) => {
+    const date = new Date();
+    date.setDate(date.getDate() + Math.max(0, offsetDays));
+    return date.toISOString().slice(0, 10);
+};
+
+const buildPickupOrderPayload = (input: {
+    awbNumber?: string | null;
+    weight: number;
+    dimensions?: { width: number; height: number; depth: number } | null;
+    pickupWindowStart: string;
+    pickupWindowEnd: string;
+    pickupDate: string;
+    observations?: string | null;
+}) => {
+    return {
+        clientId: getFanCourierClientId(),
+        info: {
+            awbnumber: input.awbNumber ?? null,
+            packages: {
+                parcel: 1,
+                envelope: 0,
+            },
+            weight: input.weight,
+            dimensions: input.dimensions
+                ? {
+                      width: input.dimensions.width,
+                      length: input.dimensions.depth,
+                      height: input.dimensions.height,
+                  }
+                : undefined,
+            orderType: "Standard",
+            pickupDate: input.pickupDate,
+            pickupHours: {
+                first: input.pickupWindowStart,
+                second: input.pickupWindowEnd,
+            },
+            observations: input.observations || "",
+        },
+    };
+};
+
 const buildAwbPayload = (input: {
     order: {
         id: string;
@@ -75,52 +220,78 @@ const buildAwbPayload = (input: {
             cui?: string | null;
         };
         user?: { email?: string | null } | null;
+        shippingMethod?: string | null;
+        lockerId?: string | null;
+        lockerAddressSnapshot?: unknown | null;
     };
     chargeableWeightKg: number;
+    dimensions?: { width: number; height: number; depth: number } | null;
 }): FanCourierAwbPayload => {
     const isCodPayment =
         input.order.paymentMethod === "cash_on_delivery" ||
         input.order.paymentMethod === "cod";
 
-    const senderConfig = getFanCourierSenderConfig();
+    const pickupLocation = extractPickupLocation(
+        input.order.lockerAddressSnapshot,
+        input.order.lockerId
+    );
+    const service = resolveFanCourierService(
+        input.order.shippingMethod,
+        pickupLocation
+    );
+    const { street, streetNo } = parseStreetData(
+        input.order.shippingAddress.addressLine1,
+        input.order.shippingAddress.addressLine2
+    );
 
     return {
-        sender: {
-            name: senderConfig.name,
-            phone: senderConfig.phone,
-            email: senderConfig.email,
-            county: senderConfig.county,
-            locality: senderConfig.locality,
-            street: senderConfig.street,
-            number: senderConfig.number,
-            postalCode: senderConfig.postalCode,
-        },
-        recipient: {
-            name: input.order.shippingAddress.fullName,
-            phone: input.order.shippingAddress.phone,
-            email: input.order.user?.email || undefined,
-            county: input.order.shippingAddress.state,
-            locality: input.order.shippingAddress.city,
-            street: input.order.shippingAddress.addressLine1,
-            number: undefined, // Included in street for Romanian addresses
-            postalCode: input.order.shippingAddress.postalCode,
-            companyName: input.order.shippingAddress.companyName || undefined,
-            cui: input.order.shippingAddress.cui || undefined,
-        },
-        packages: [{ weight: input.chargeableWeightKg }],
-        service: "Standard",
-        content: "Jucării STEM",
-        envelopes: 0,
-        parcels: 1,
-        weight: input.chargeableWeightKg,
-        payment: "sender",
-        reimbursement: isCodPayment
-            ? (input.order.codAmount ?? input.order.total)
-            : undefined,
-        reimbursementType: isCodPayment ? "cash" : undefined,
-        declaredValue: input.order.declaredValue ?? undefined,
-        clientReference: input.order.orderNumber,
-        observation: `Order ${input.order.orderNumber}`,
+        clientId: getFanCourierClientId(),
+        shipments: [
+            {
+                info: {
+                    service,
+                    bank: "",
+                    bankAccount: "",
+                    packages: {
+                        parcel: 1,
+                        envelope: 0,
+                    },
+                    weight: input.chargeableWeightKg,
+                    cod: isCodPayment
+                        ? (input.order.codAmount ?? input.order.total)
+                        : 0,
+                    declaredValue: input.order.declaredValue ?? 0,
+                    payment: "sender",
+                    refund: null,
+                    returnPayment: null,
+                    observation: `Order ${input.order.orderNumber}`,
+                    content: `Comanda #${input.order.orderNumber}`,
+                    dimensions: input.dimensions
+                        ? {
+                              length: input.dimensions.depth,
+                              height: input.dimensions.height,
+                              width: input.dimensions.width,
+                          }
+                        : undefined,
+                    costCenter: null,
+                    options: [],
+                },
+                recipient: {
+                    name: input.order.shippingAddress.fullName,
+                    phone: input.order.shippingAddress.phone,
+                    email: input.order.user?.email || undefined,
+                    address: {
+                        county: input.order.shippingAddress.state,
+                        locality: input.order.shippingAddress.city,
+                        street,
+                        streetNo,
+                        zipCode: input.order.shippingAddress.postalCode,
+                        pickupLocation:
+                            service === "FANbox" ? pickupLocation ?? undefined : undefined,
+                    },
+                },
+            },
+        ],
     };
 };
 
@@ -208,11 +379,46 @@ export const createFanAwbForOrder = async (
 
     const products = await db.product.findMany({
         where: { id: { in: productIds } },
-        select: { id: true, weight: true },
+        select: {
+            id: true,
+            weight: true,
+            dimensions: true,
+            supplier: {
+                select: {
+                    id: true,
+                    companyName: true,
+                    contactPersonName: true,
+                    contactPersonEmail: true,
+                    email: true,
+                    phone: true,
+                    businessAddress: true,
+                    businessCity: true,
+                    businessState: true,
+                    businessPostalCode: true,
+                    businessCountry: true,
+                },
+            },
+        },
     });
 
     const totalWeight = products.reduce((sum, p) => sum + (p.weight || 0), 0);
     const chargeableWeightKg = Math.max(totalWeight, 1); // Minimum 1kg
+
+    let maxDimensions: { width: number; height: number; depth: number } | null =
+        null;
+    for (const product of products) {
+        const dims = extractDimensionsCm(product.dimensions as Record<string, unknown>);
+        if (!dims) continue;
+        if (!maxDimensions) {
+            maxDimensions = { ...dims };
+            continue;
+        }
+        maxDimensions = {
+            width: Math.max(maxDimensions.width, dims.width),
+            height: Math.max(maxDimensions.height, dims.height),
+            depth: Math.max(maxDimensions.depth, dims.depth),
+        };
+    }
 
     const payload = buildAwbPayload({
         order: {
@@ -224,9 +430,43 @@ export const createFanAwbForOrder = async (
             declaredValue: order.declaredValue,
             shippingAddress: order.shippingAddress,
             user: order.user,
+            shippingMethod: order.shippingMethod,
+            lockerId: order.lockerId,
+            lockerAddressSnapshot: order.lockerAddressSnapshot,
         },
         chargeableWeightKg,
+        dimensions: maxDimensions,
     });
+
+    const supplierContext = collectSupplierContacts(
+        products.map(product => ({
+            supplier: product.supplier
+                ? {
+                      id: product.supplier.id,
+                      name:
+                          product.supplier.companyName ||
+                          product.supplier.contactPersonName ||
+                          "Supplier",
+                      email:
+                          product.supplier.contactPersonEmail ||
+                          product.supplier.email ||
+                          null,
+                      phone: product.supplier.phone || null,
+                      businessAddress: product.supplier.businessAddress || null,
+                      businessCity: product.supplier.businessCity || null,
+                      businessState: product.supplier.businessState || null,
+                      businessPostalCode:
+                          product.supplier.businessPostalCode || null,
+                      businessCountry: product.supplier.businessCountry || null,
+                  }
+                : null,
+        }))
+    );
+
+    const primarySupplier =
+        supplierContext.suppliers.length === 1
+            ? supplierContext.suppliers[0]
+            : null;
 
     // Create shipment record
     const shipment = await db.shipment.create({
@@ -245,6 +485,16 @@ export const createFanAwbForOrder = async (
     let courierErrorMessage: string | null = null;
     let manualShippingReviewRequired = false;
     let shippingReviewReason: string | null = null;
+
+    if (supplierContext.suppliers.length > 1) {
+        manualShippingReviewRequired = true;
+        shippingReviewReason =
+            "Order contains items from multiple suppliers; manual shipment split required.";
+    } else if (supplierContext.missingSupplierCount > 0) {
+        manualShippingReviewRequired = true;
+        shippingReviewReason =
+            "One or more products have no supplier assigned; manual shipment review required.";
+    }
 
     try {
         response = await createFanCourierAwb(
@@ -323,6 +573,59 @@ export const createFanAwbForOrder = async (
             manualReviewRequired: manualShippingReviewRequired,
             reviewReason: shippingReviewReason,
         };
+    }
+
+    if (!manualShippingReviewRequired && primarySupplier) {
+        const supplierEmail = resolveSupplierEmail(primarySupplier);
+
+        if (supplierEmail) {
+            try {
+                const labelResponse = await getFanCourierAwbLabel({
+                    awbNumber,
+                });
+                const pdfBase64 = Buffer.from(labelResponse.buffer).toString(
+                    "base64"
+                );
+
+                await sendSupplierAwbLabelEmail({
+                    to: supplierEmail,
+                    supplierName: primarySupplier.name,
+                    orderNumber: order.orderNumber,
+                    awbNumber,
+                    pdfBase64,
+                });
+            } catch (labelError) {
+                console.error(
+                    `[FAN Courier] Failed to email AWB label for order ${order.orderNumber}:`,
+                    labelError
+                );
+            }
+        }
+
+        try {
+            const shippingSettings = await getShippingSettings();
+            const pickupConfig = (shippingSettings as any)?.fanCourierPickup;
+            if (pickupConfig?.enabled) {
+                const pickupPayload = buildPickupOrderPayload({
+                    awbNumber,
+                    weight: chargeableWeightKg,
+                    dimensions: maxDimensions,
+                    pickupWindowStart: pickupConfig.windowStart || "09:00",
+                    pickupWindowEnd: pickupConfig.windowEnd || "16:00",
+                    pickupDate: formatPickupDate(
+                        Number(pickupConfig.offsetDays || 0)
+                    ),
+                    observations: pickupConfig.observations || "",
+                });
+
+                await createFanCourierPickupOrder(pickupPayload);
+            }
+        } catch (pickupError) {
+            console.error(
+                `[FAN Courier] Pickup order failed for order ${order.orderNumber}:`,
+                pickupError
+            );
+        }
     }
 
     return {
