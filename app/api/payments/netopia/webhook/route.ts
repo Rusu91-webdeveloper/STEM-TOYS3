@@ -4,9 +4,11 @@ import { NetopiaProvider } from "@/lib/payments/NetopiaProvider";
 
 /**
  * Netopia IPN (Instant Payment Notification) webhook.
- * NETOPIA requires notifyURL to return HTTP 200 in all cases; otherwise they report
- * IDS_Model_Purchase_Sms_Online_INVALID_RESPONSE_STATUS and block Live credentials.
- * This route must never return 4xx/5xx — always return 200 with { received: true }.
+ * NETOPIA requires notifyURL to return:
+ * - HTTP 200
+ * - Content-Type: application/json
+ * - Body: {"errorCode": 0}
+ * This route must never return 4xx/5xx — always return 200 with { errorCode: 0 }.
  */
 export async function POST(request: Request) {
   console.log("");
@@ -19,8 +21,8 @@ export async function POST(request: Request) {
   );
   console.log("═══════════════════════════════════════════════════════════");
 
-  const ok = (extra?: Record<string, unknown>) =>
-    NextResponse.json({ received: true, ...extra }, { status: 200 });
+  // NETOPIA requires exact response format: {"errorCode": 0} — no extra fields
+  const ok = () => NextResponse.json({ errorCode: 0 }, { status: 200 });
 
   try {
     const body = await request.text();
@@ -43,7 +45,7 @@ export async function POST(request: Request) {
     } catch (parseError) {
       console.error("❌ [WEBHOOK] Failed to parse payload:", parseError);
       // Netopia requires HTTP 200 on notifyURL even on errors.
-      return ok({ error: "Invalid JSON payload" });
+      return ok();
     }
 
     // Initialize Netopia provider
@@ -61,10 +63,7 @@ export async function POST(request: Request) {
         verificationError
       );
       // Do not process further, but still acknowledge with HTTP 200.
-      const exposeErrors = process.env.NODE_ENV === "development";
-      return ok(
-        exposeErrors ? { error: "Signature verification failed" } : undefined
-      );
+      return ok();
     }
 
     // Netopia IPN structure nests payment/order info
@@ -358,7 +357,7 @@ export async function POST(request: Request) {
           dbError
         );
         // Netopia requires HTTP 200 on notifyURL even on errors.
-        return ok({ error: "Database update failed" });
+        return ok();
       }
     } else {
       console.warn(
@@ -387,10 +386,6 @@ export async function POST(request: Request) {
       error instanceof Error ? error.message : "Unknown webhook error";
 
     // Netopia requires HTTP 200 on notifyURL even on errors.
-    return ok({
-      error: "Webhook processing failed",
-      details:
-        process.env.NODE_ENV === "development" ? errorMessage : undefined,
-    });
+    return ok();
   }
 }
