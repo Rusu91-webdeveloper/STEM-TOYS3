@@ -138,6 +138,11 @@ self.addEventListener('fetch', (event) => {
     console.log('[SW] Skipping auth request:', url.pathname);
     return;
   }
+
+  // Skip payment endpoints to avoid caching or delaying payment status checks
+  if (isPaymentRequest(url.pathname)) {
+    return;
+  }
   
   // CRITICAL: Never intercept Next.js JavaScript chunks to prevent syntax errors
   if (isNextJSAsset(url.pathname)) {
@@ -484,6 +489,10 @@ function isAuthRequest(pathname) {
          pathname.includes('/signout') ||
          pathname.includes('/session') ||
          pathname.startsWith('/api/admin/');       // Skip admin API routes
+}
+
+function isPaymentRequest(pathname) {
+  return pathname.startsWith('/api/payments');
 }
 
 function isNextJSAsset(pathname) {

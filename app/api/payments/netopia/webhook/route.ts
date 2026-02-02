@@ -27,11 +27,18 @@ export async function POST(request: Request) {
   try {
     const body = await request.text();
     const headersList = await headers();
+    const signatureHeaderCandidates = [
+      "x-netopia-signature",
+      "x-verification-token",
+      "verification-token",
+      "verification_token",
+      "x-signature",
+      "signature",
+    ];
     const signature =
-      headersList.get("x-netopia-signature") ||
-      headersList.get("verification-token") ||
-      headersList.get("Verification-token") ||
-      "";
+      signatureHeaderCandidates
+        .map(name => headersList.get(name))
+        .find(value => value && value.length > 0) || "";
 
     console.log("📩 [WEBHOOK] Request details:");
     console.log(`   Content-Length: ${body.length} bytes`);
@@ -67,21 +74,36 @@ export async function POST(request: Request) {
     }
 
     // Netopia IPN structure nests payment/order info
-    const paymentStatusCode =
+    const rawStatus =
       payload?.payment?.status ?? payload?.status ?? payload?.state;
+    const paymentStatusCode =
+      typeof rawStatus === "string" ? parseInt(rawStatus, 10) : rawStatus;
+    const normalizedStatusCode = Number.isFinite(paymentStatusCode)
+      ? paymentStatusCode
+      : undefined;
     const ntpID =
       payload?.payment?.ntpID ||
       payload?.payment?.ntpId ||
       payload?.ntpID ||
       payload?.ntpId;
-    const orderID = payload?.order?.orderID || payload?.orderID;
+    const orderID =
+      payload?.order?.orderID ||
+      payload?.order?.orderId ||
+      payload?.order?.id ||
+      payload?.orderID ||
+      payload?.orderId ||
+      payload?.order_id;
     const amount = payload?.payment?.amount ?? payload?.amount;
     const currency = payload?.payment?.currency ?? payload?.currency;
 
     console.log("📋 [WEBHOOK] Payment notification details:");
     console.log(`   Order ID: ${orderID || "Not provided"}`);
     console.log(`   Transaction ID: ${ntpID || "Not provided"}`);
-    console.log(`   Status Code: ${paymentStatusCode}`);
+    console.log(
+      `   Status Code: ${
+        normalizedStatusCode ?? rawStatus ?? "Not provided"
+      }`
+    );
     console.log(`   Amount: ${amount} ${currency || ""}`);
 
     if (orderID) {
@@ -107,9 +129,16 @@ export async function POST(request: Request) {
           orderBeforeUpdate.items.length > 0 &&
           orderBeforeUpdate.items.every(item => item.isDigital === true);
 
+        const isPaymentSuccess =
+          normalizedStatusCode === 3 || normalizedStatusCode === 5;
+
         // Map Netopia status codes to our status
-        console.log(`🔄 [WEBHOOK] Mapping status code ${paymentStatusCode}...`);
-        switch (paymentStatusCode) {
+        console.log(
+          `🔄 [WEBHOOK] Mapping status code ${
+            normalizedStatusCode ?? "Unknown"
+          }...`
+        );
+        switch (normalizedStatusCode) {
           case 3: // Paid
           case 5: // Confirmed
             paymentStatus = "PAID";
@@ -155,10 +184,9 @@ export async function POST(request: Request) {
             status: orderStatus as any,
             netopiaTransactionId: ntpID,
             // Set deliveredAt for digital orders, completedAt for others
-            ...(allItemsAreDigital &&
-            (paymentStatusCode === 3 || paymentStatusCode === 5)
+            ...(allItemsAreDigital && isPaymentSuccess
               ? { deliveredAt: new Date() }
-              : paymentStatusCode === 3 || paymentStatusCode === 5
+              : isPaymentSuccess
                 ? { completedAt: new Date() }
                 : {}),
           },
@@ -181,7 +209,7 @@ export async function POST(request: Request) {
         // Also verify the order was actually marked as PAID in the database
         if (
           updatedOrder &&
-          (paymentStatusCode === 3 || paymentStatusCode === 5) &&
+          isPaymentSuccess &&
           updatedOrder.paymentStatus === "PAID"
         ) {
           console.log(

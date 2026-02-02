@@ -102,13 +102,11 @@ export default function NetopiaCallback() {
                 "Plata a fost înregistrată de Netopia, dar confirmarea webhook-ului nu a sosit încă. Aceasta este o comportare normală în modul sandbox. Poți folosi butonul de mai jos pentru a marca plata ca efectuată."
               );
             } else {
-              // On the live site, if we still don't have a final status after
-              // all polling attempts, treat this as a *visible* failure for UX.
-              // The order remains PENDING in the backend and will be corrected
-              // by the webhook if it eventually arrives.
-              setStatus("error");
+              // On the live site, keep the user in a safe "processing" state
+              // to avoid false negatives if the webhook arrives late.
+              setStatus("processing");
               setMessage(
-                "Nu am reușit să confirmăm plata în timpul alocat. Dacă pe pagina Netopia ai văzut un mesaj de eroare de la bancă, tranzacția NU a fost efectuată. Te rugăm să revii la checkout și să încerci din nou cu același sau cu un alt card."
+                "Plata este în curs de confirmare. Dacă ai fost debitat, nu este nevoie să reîncerci - vei primi un email imediat ce confirmăm plata. Poți verifica și în contul tău."
               );
             }
             return;
