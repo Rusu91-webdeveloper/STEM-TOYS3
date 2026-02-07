@@ -213,9 +213,17 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(supplierData);
   } catch (error) {
-    logger.error("Error retrieving admin supplier details:", error);
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error("Error retrieving admin supplier details:", {
+      error: err.message,
+      stack: err.stack,
+      supplierId: request.nextUrl.pathname.split("/").pop(),
+    });
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error: "Internal server error",
+        message: process.env.NODE_ENV === "development" ? err.message : undefined,
+      },
       { status: 500 }
     );
   }

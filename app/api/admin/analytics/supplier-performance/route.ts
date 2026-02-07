@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
 
         // Quality score from reviews
         const allReviews = supplierOrders.flatMap(
-          order => order.orderItem.reviews || []
+          order => order.orderItem?.reviews ?? []
         );
 
         const qualityScore =
@@ -153,7 +153,8 @@ export async function GET(request: NextRequest) {
           (sum, order) => sum + order.totalCost,
           0
         );
-        const commissionEarned = totalRevenue * (supplier.commissionRate / 100);
+        const commissionRate = supplier.commissionRate ?? 15;
+        const commissionEarned = totalRevenue * (commissionRate / 100);
 
         // Response time (placeholder - would need message tracking)
         const responseTimeHours = null; // Placeholder
@@ -270,9 +271,16 @@ export async function GET(request: NextRequest) {
       suppliers: sortedPerformanceData,
     });
   } catch (error) {
-    logger.error("Error retrieving supplier performance analytics:", error);
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error("Error retrieving supplier performance analytics:", {
+      error: err.message,
+      stack: err.stack,
+    });
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error: "Internal server error",
+        message: process.env.NODE_ENV === "development" ? err.message : undefined,
+      },
       { status: 500 }
     );
   }
