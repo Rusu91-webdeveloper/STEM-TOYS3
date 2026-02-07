@@ -139,9 +139,16 @@ export function AdminSupplierList() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/admin/suppliers");
+      const response = await fetch("/api/admin/suppliers", {
+        credentials: "include",
+      });
       if (!response.ok) {
-        throw new Error("Failed to fetch suppliers");
+        const body = await response.json().catch(() => ({}));
+        const message =
+          body?.error ||
+          body?.message ||
+          `Failed to fetch suppliers (${response.status})`;
+        throw new Error(message);
       }
 
       const data = await response.json();

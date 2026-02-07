@@ -91,9 +91,16 @@ export const corsConfig = {
     maxAge: 3600, // 1 hour
   },
 
-  // Admin API endpoints - very restrictive
+  // Admin API endpoints - allow same-origin (null origin) + common production URLs
   adminApi: {
-    origins: [], // Will be set to same-origin only
+    origins: [
+      "https://www.techtots.ro",
+      "https://techtots.ro",
+      "https://stem-toys-3.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://127.0.0.1:3000",
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     headers: [
