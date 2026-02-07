@@ -35,6 +35,8 @@ interface PaymentMethodSelectorProps {
   userLocale?: string;
   billingCountry?: string;
   shippingCountry?: string;
+  /** When false, only COD is shown (card payments disabled for testing). Admins always see all options. */
+  isAdmin?: boolean;
 }
 
 type Provider = "netopia" | "stripe" | "cod";
@@ -62,11 +64,16 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   userLocale,
   billingCountry,
   shippingCountry,
+  isAdmin = false,
 }: PaymentMethodSelectorProps) {
   const { t } = useTranslation();
   const { items: cartItems } = useCart();
-  const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED !== "false";
-  const netopiaEnabled = process.env.NEXT_PUBLIC_NETOPIA_ENABLED === "true";
+  // All payments (Stripe, Netopia, COD) only for admins - non-admins blocked during production testing
+  const stripeEnabled =
+    isAdmin && process.env.NEXT_PUBLIC_STRIPE_ENABLED !== "false";
+  const netopiaEnabled =
+    isAdmin && process.env.NEXT_PUBLIC_NETOPIA_ENABLED === "true";
+  const codEnabled = isAdmin; // COD also admin-only during testing
 
   // Check if cart contains only digital books (no physical items)
   const isDigitalOnlyCart = cartItems.length > 0 && cartItems.every(item => item.isBook);
@@ -180,7 +187,8 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
 
     // Add COD option for Romanian users, but only if cart contains physical items
     // Digital books only should not allow COD (cash on delivery)
-    if (isRomanianUser && !isDigitalOnlyCart) {
+    // During production testing: COD only for admins
+    if (codEnabled && isRomanianUser && !isDigitalOnlyCart) {
       methods.push({
         id: "cash_on_delivery",
         type: "cash_on_delivery",
@@ -198,7 +206,17 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     }
 
     return methods;
-  }, [isRomanianUser, isDigitalOnlyCart, netopiaEnabled, savedCards, stripeEnabled, t, cartItems]);
+  }, [
+    isRomanianUser,
+    isDigitalOnlyCart,
+    netopiaEnabled,
+    codEnabled,
+    savedCards,
+    stripeEnabled,
+    t,
+    cartItems,
+    isAdmin,
+  ]);
 
 
   useEffect(() => {
@@ -231,6 +249,23 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
           <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
           <p className="text-sm text-slate-500">Se încarcă metodele de plată...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Non-admins: no payment methods available during production testing
+  if (!isAdmin && paymentMethods.length === 0) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center">
+        <p className="font-medium text-amber-800">
+          {t("checkoutTemporarilyDisabled", "Checkout is temporarily unavailable")}
+        </p>
+        <p className="mt-2 text-sm text-amber-700">
+          {t(
+            "checkoutTemporarilyDisabledDescription",
+            "Only administrators can place orders during this testing period. Please try again later."
+          )}
+        </p>
       </div>
     );
   }

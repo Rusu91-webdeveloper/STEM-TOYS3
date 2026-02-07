@@ -225,6 +225,20 @@ export async function POST(request: Request) {
       typeof orderData.paymentMethod === "string" &&
       orderData.paymentMethod.startsWith("netopia_");
 
+    // All payments blocked for non-admins - production testing safety (admin-only checkout)
+    const isAdmin = user?.role === "ADMIN";
+    if (!isAdmin) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Checkout is temporarily disabled for testing. Please try again later.",
+          error: "CHECKOUT_DISABLED_FOR_NON_ADMIN",
+        },
+        { status: 403 }
+      );
+    }
+
     // Only validate Stripe configuration if this is a Stripe payment
     if (isStripePayment) {
       const stripeSecretKey = process.env.STRIPE_SECRET_KEY;

@@ -795,6 +795,7 @@ export function CheckoutFlow() {
                 shippingMethod={checkoutData.shippingMethod}
                 appliedCoupon={appliedCoupon}
                 discountAmount={discountAmount}
+                isAdmin={session?.user?.role === "ADMIN"}
                 onSubmit={data => {
                   updateCheckoutData(data);
                   setCurrentStep("review");

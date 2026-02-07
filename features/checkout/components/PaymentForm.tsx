@@ -48,6 +48,8 @@ interface PaymentFormProps {
   shippingMethod?: ShippingMethod;
   appliedCoupon?: any;
   discountAmount?: number;
+  /** When false, only COD is shown (card payments disabled for production testing). */
+  isAdmin?: boolean;
   onSubmit: (data: {
     paymentMethod: PaymentMethod;
     paymentDetails?: PaymentDetails;
@@ -67,6 +69,7 @@ export function PaymentForm({
   shippingMethod,
   appliedCoupon,
   discountAmount = 0,
+  isAdmin = false,
   onSubmit,
   onBack,
 }: PaymentFormProps) {
@@ -605,6 +608,7 @@ export function PaymentForm({
               : currentBillingAddress?.country) || billingAddress?.country
           }
           shippingCountry={shippingAddress?.country}
+          isAdmin={isAdmin}
         />
 
         <PaymentSummary
@@ -715,7 +719,11 @@ export function PaymentForm({
           <Button
             onClick={handleContinue}
             className="text-sm sm:text-base"
-            disabled={!selectedPaymentMethod || isCodLimitExceeded}
+            disabled={
+              !selectedPaymentMethod ||
+              isCodLimitExceeded ||
+              !isAdmin /* Checkout admin-only during production testing */
+            }
           >
             {t("continueToReview", "Continuă la verificare")}
           </Button>
