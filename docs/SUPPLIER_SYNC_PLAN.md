@@ -90,6 +90,25 @@ if (error) {
 
 **Status:** Can be added later (not critical for launch)
 
+## Required fields (validation)
+
+Feed `mapping.requiredFields` is a list of field names. Each name is normalized (lowercase, non-alphanumeric removed) before matching. Supported names and their effect:
+
+| Normalized key(s) | Meaning | Validation |
+|-------------------|--------|------------|
+| `suppliersku`, `sku` | Supplier SKU | Item must have `supplierSku` set |
+| `retailprice`, `priceb2c`, `b2cprice` | Retail price | Item must have finite `retailPrice` > 0 |
+| `images`, `image` | Images | Item must have `images` array with at least one entry |
+| `name` | Product name | Item must have non-empty `name` |
+
+Products that fail any required-field check are stored with `SupplierProduct.status = ERROR`, linked `Product` is set to `isActive: false` and `status: IN_PENDING`. When adding a new required field in mapping, extend `validateRequiredFields()` in `lib/suppliers/sync.ts` so the new key is handled.
+
+## Allowlist semantics
+
+- **Storefront visibility:** Only products whose supplier SKU is in the feed’s `allowedSkus` (and not in `blockedSkus`) are considered for upsert when an allowlist is configured. When `enforceAllowedSkus` is true, after upsert any product linked to a supplier SKU not in `allowedSkus` is disabled (`SupplierProduct.status = DISABLED`, `Product.isActive = false`).
+- **When `enforceAllowedSkus` is true but `allowedSkus` is empty or missing:** The sync **fails** to avoid accidentally importing or leaving the full catalog enabled. Configure `allowedSkus` in the feed mapping (e.g. from an allowlist CSV in setup scripts) or set `enforceAllowedSkus` to false.
+- **Source of allowlist:** Kidstory and Boribon setup scripts write `allowedSkus` into each feed’s `mapping` from CSV files (e.g. `KIDSTORY_ALLOWED_SKUS_FILE`, `BORIBON_ALLOWED_SKUS_FILE`). If no allowlist file is provided, `allowedSkus` is omitted and allowlist filtering is not applied unless `enforceAllowedSkus` is true (in which case sync will fail until `allowedSkus` is set).
+
 ## Cron Job Configuration
 
 ### Option 1: Vercel Cron (Recommended)

@@ -62,6 +62,7 @@
     "seed:books": "npx ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed-books-romanian.ts",
     "seed:admin": "npx ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed-admin.ts",
     "seed:launch-pack": "npx tsx scripts/seed-launch-pack.ts",
+    "import:boribon-local": "npx tsx scripts/import-boribon-dropshipping-local.ts",
     "supplier:feeds:boribon": "npx tsx scripts/setup-boribon-feeds.ts",
     "supplier:sync": "npx tsx scripts/run-supplier-sync.ts",
     "seo-analytics:daily": "npx tsx scripts/save-daily-seo-analytics.ts",

@@ -43,6 +43,26 @@ export function normalizeCategory(name: string): string {
     return "educational-books";
   }
 
+  // Handle science variations
+  if (
+    lower === "science" ||
+    lower === "stiinta" ||
+    lower === "știință" ||
+    lower.includes("stiint") ||
+    lower.includes("știin")
+  ) {
+    return "science";
+  }
+
+  // Handle technology variations
+  if (
+    lower === "technology" ||
+    lower === "tehnologie" ||
+    lower.includes("tehnolog")
+  ) {
+    return "technology";
+  }
+
   // Handle engineering variations
   if (lower === "inginerie" || lower.includes("engineer")) {
     return "engineering";

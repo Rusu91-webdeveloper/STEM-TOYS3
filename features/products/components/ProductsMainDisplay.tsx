@@ -33,6 +33,8 @@ interface ProductsMainDisplayProps {
   filteredProducts: any[];
   displayedProducts: any[];
   viewMode: "grid" | "list";
+  sortOption?: string;
+  onSortChange?: (value: string) => void;
   getLearningTitle: () => string;
   getLearningDescription: () => string;
   getProductCardContent: (product: any) => {
@@ -48,6 +50,8 @@ export function ProductsMainDisplay({
   filteredProducts,
   displayedProducts,
   viewMode,
+  sortOption,
+  onSortChange,
   getLearningTitle,
   getLearningDescription,
   getProductCardContent,
@@ -236,6 +240,9 @@ export function ProductsMainDisplay({
 
                 return modifiedProduct as unknown as Product;
               })}
+              sortOption={sortOption}
+              onSortChange={onSortChange}
+              disableInternalSort
               columns={{ base: 2, sm: 2, md: 3, lg: 3, xl: 4 }}
             />
           </div>

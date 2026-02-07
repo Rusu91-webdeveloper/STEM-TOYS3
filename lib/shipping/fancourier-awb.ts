@@ -575,6 +575,24 @@ export const createFanAwbForOrder = async (
         };
     }
 
+    // Propagate AWB to order so customer tracking and other flows use Order.trackingNumber/carrier
+    await db.order.update({
+        where: { id: order.id },
+        data: {
+            trackingNumber: awbNumber,
+            carrier: COURIER_NAME,
+        },
+    });
+
+    // Propagate same tracking to SupplierOrders for this order so admin/supplier views stay in sync
+    await db.supplierOrder.updateMany({
+        where: { orderId: order.id },
+        data: {
+            trackingNumber: awbNumber,
+            carrier: COURIER_NAME,
+        },
+    });
+
     if (!manualShippingReviewRequired && primarySupplier) {
         const supplierEmail = resolveSupplierEmail(primarySupplier);
 

@@ -217,11 +217,12 @@ export function EnhancedProductFilters({
         </div>
       )}
 
-      {/* Categories filter */}
+      {/* Categories filter - always visible in modal, on sidebar show from md up */}
       {categories?.options && categories.options.length > 0 && (
         <div
           className={cn(
-            "space-y-3 sm:space-y-4 hidden md:block",
+            "space-y-3 sm:space-y-4",
+            !isInsideModal && "hidden md:block",
             isInsideModal && "space-y-2 sm:space-y-3"
           )}
         >

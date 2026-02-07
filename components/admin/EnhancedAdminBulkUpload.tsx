@@ -187,15 +187,20 @@ export function EnhancedAdminBulkUpload() {
 
         // Convert to ProductRow format
         const parsedProducts: ProductRow[] = jsonData.map(
-          (row: any, index: number) => ({
-            name: row.name || "",
-            description: row.description || "",
-            price: parseFloat(row.price) || 0,
-            compareAtPrice: row.compareAtPrice
-              ? parseFloat(row.compareAtPrice)
-              : undefined,
-            sku: row.sku || "",
-            stockQuantity: parseInt(row.stockQuantity) || 0,
+          (row: any, index: number) => {
+            const sku = String(row.sku ?? "").trim();
+            const priceRaw = row.price_b2c ?? row.price ?? "";
+            const priceParsed = parseFloat(String(priceRaw).trim());
+
+            return {
+              name: row.name || "",
+              description: row.description || "",
+              price: Number.isFinite(priceParsed) ? priceParsed : 0,
+              compareAtPrice: row.compareAtPrice
+                ? parseFloat(row.compareAtPrice)
+                : undefined,
+              sku,
+              stockQuantity: parseInt(row.stockQuantity) || 0,
             reorderPoint: row.reorderPoint
               ? parseInt(row.reorderPoint)
               : undefined,
@@ -224,7 +229,8 @@ export function EnhancedAdminBulkUpload() {
                 : false,
             romanianEducationalCertification:
               row.romanianEducationalCertification || "",
-          })
+            };
+          }
         );
 
         setProducts(parsedProducts);
@@ -248,46 +254,67 @@ export function EnhancedAdminBulkUpload() {
 
     products.forEach((product, index) => {
       const row = index + 1;
+      const rowSku = String(product.sku ?? "").trim();
+      const rowErrors: ValidationError[] = [];
 
       // Required fields
       if (!product.name || product.name.trim().length === 0) {
-        errors.push({
+        const error = {
           row,
           field: "name",
           message: "Product name is required",
-        });
+        };
+        errors.push(error);
+        rowErrors.push(error);
       }
 
       if (!product.description || product.description.trim().length < 10) {
-        errors.push({
+        const error = {
           row,
           field: "description",
           message: "Description must be at least 10 characters",
-        });
+        };
+        errors.push(error);
+        rowErrors.push(error);
       }
 
       if (!product.price || product.price <= 0) {
-        errors.push({
+        const error = {
           row,
           field: "price",
           message: "Price must be greater than 0",
-        });
+        };
+        errors.push(error);
+        rowErrors.push(error);
       }
 
       if (!product.category || product.category.trim().length === 0) {
-        errors.push({
+        const error = {
           row,
           field: "category",
           message: "Category is required",
-        });
+        };
+        errors.push(error);
+        rowErrors.push(error);
       }
 
       if (product.stockQuantity < 0) {
-        errors.push({
+        const error = {
           row,
           field: "stockQuantity",
           message: "Stock quantity cannot be negative",
-        });
+        };
+        errors.push(error);
+        rowErrors.push(error);
+      }
+
+      if (rowErrors.length > 0) {
+        const reasons = rowErrors
+          .map(error => `${error.field}: ${error.message}`)
+          .join("; ");
+        console.warn(
+          `Skipping row ${row} (SKU: ${rowSku || "N/A"}): ${reasons}`
+        );
       }
     });
 

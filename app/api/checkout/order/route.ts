@@ -669,6 +669,54 @@ export async function POST(request: Request) {
       }
     }
 
+    // Validate stock for physical products before creating order
+    const physicalProductIds = items
+      .filter(item => item.isBook !== true && item.productId)
+      .map(item => item.productId) as string[];
+    if (physicalProductIds.length > 0) {
+      const productsWithStock = await db.product.findMany({
+        where: { id: { in: physicalProductIds } },
+        select: { id: true, name: true, stockQuantity: true },
+      });
+      const productStockMap = new Map(
+        productsWithStock.map(p => [p.id, { name: p.name, stockQuantity: p.stockQuantity }])
+      );
+      for (const item of items) {
+        if (item.isBook === true || !item.productId) continue;
+        const info = productStockMap.get(item.productId);
+        if (!info) continue;
+        const available = info.stockQuantity ?? 0;
+        if (available < item.quantity) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: "Insufficient stock",
+              error: "INSUFFICIENT_STOCK",
+              details: {
+                productName: info.name,
+                requested: item.quantity,
+                available,
+              },
+            },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
+    // Guest checkout: Order and Address require userId. Do not use user.id when user is null.
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Authentication required to complete checkout. Please sign in or register.",
+          error: "AUTH_REQUIRED",
+        },
+        { status: 401 }
+      );
+    }
+
     // Prepare order details for email (includes all calculated values)
 
     // DEBUG: Log user object and user.id before address creation

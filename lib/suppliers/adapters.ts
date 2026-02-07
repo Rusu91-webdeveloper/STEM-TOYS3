@@ -3,7 +3,10 @@ import {
   SupplierFeed,
   SupplierFeedType,
 } from "@prisma/client";
+import * as fs from "fs";
+import * as path from "path";
 import * as XLSX from "xlsx";
+import { fileURLToPath } from "url";
 
 import {
   FieldMapping,
@@ -29,6 +32,60 @@ function normalizeMapping(raw: unknown): FieldMapping {
     name: mapping.name || mapping.title || mapping.Name,
     description: mapping.description || mapping.Description,
     price: mapping.price || mapping.Price,
+    cost: mapping.cost || mapping.costPrice || mapping.cogs || mapping.supplierPrice,
+    vat: mapping.vat || mapping.VAT || mapping.TVA,
+    costVatMode: mapping.costVatMode || mapping.cost_vat_mode,
+    costLookupFile: mapping.costLookupFile || mapping.cost_lookup_file,
+    costLookupSku: mapping.costLookupSku || mapping.cost_lookup_sku,
+    costLookupCost: mapping.costLookupCost || mapping.cost_lookup_cost,
+    costLookupDiscount:
+      mapping.costLookupDiscount ||
+      mapping.cost_lookup_discount ||
+      mapping.discount_lookup_field,
+    lookupMergeMode: mapping.lookupMergeMode || mapping.lookup_merge_mode,
+    lookupMergeOverrideFields: Array.isArray(mapping.lookupMergeOverrideFields)
+      ? mapping.lookupMergeOverrideFields
+      : Array.isArray(mapping.lookup_merge_override_fields)
+        ? mapping.lookup_merge_override_fields
+        : undefined,
+    requiredFields: Array.isArray(mapping.requiredFields)
+      ? mapping.requiredFields
+      : Array.isArray(mapping.required_fields)
+        ? mapping.required_fields
+        : undefined,
+    enforceAllowedSkus:
+      typeof mapping.enforceAllowedSkus === "boolean"
+        ? mapping.enforceAllowedSkus
+        : typeof mapping.enforce_allowed_skus === "boolean"
+          ? mapping.enforce_allowed_skus
+          : undefined,
+    discountFloorPct:
+      typeof mapping.discountFloorPct === "number"
+        ? mapping.discountFloorPct
+        : typeof mapping.discountFloorPct === "string"
+          ? Number(mapping.discountFloorPct)
+          : undefined,
+    overrideMarginPct:
+      typeof mapping.overrideMarginPct === "number"
+        ? mapping.overrideMarginPct
+        : typeof mapping.overrideMarginPct === "string"
+          ? Number(mapping.overrideMarginPct)
+          : undefined,
+    retailPrice:
+      mapping.retailPrice ||
+      mapping.retail ||
+      mapping.priceRetail ||
+      mapping.retail_price,
+    discountPct:
+      mapping.discountPct || mapping.discount || mapping.discount_pct,
+    zeroDiscountMargin:
+      typeof mapping.zeroDiscountMargin === "number"
+        ? mapping.zeroDiscountMargin
+        : typeof mapping.zeroDiscountMargin === "string"
+          ? Number(mapping.zeroDiscountMargin)
+          : undefined,
+    zeroDiscountValue:
+      mapping.zeroDiscountValue || mapping.zeroDiscountEquals || undefined,
     stock: mapping.stock || mapping.Stock || mapping.quantity,
     images: mapping.images || mapping.Images,
     currency: mapping.currency || mapping.Currency,
@@ -38,6 +95,48 @@ function normalizeMapping(raw: unknown): FieldMapping {
   };
 }
 
+function buildCostLookup(
+  filePath: string,
+  skuField: string,
+  costField: string,
+  discountField?: string
+): Map<string, { cost?: number; discountPct?: number; row?: Record<string, any> }> {
+  const lookup = new Map<string, { cost?: number; discountPct?: number; row?: Record<string, any> }>();
+  if (!fs.existsSync(filePath)) return lookup;
+  const text = fs.readFileSync(filePath, "utf-8");
+  const firstLine = text.split(/\r?\n/, 1)[0] || "";
+  const usePipeDelimiter =
+    firstLine.includes("|") && !firstLine.includes(",");
+
+  const rows = usePipeDelimiter
+    ? parseDelimitedText(text, "|")
+    : (() => {
+        const workbook = XLSX.read(text, { type: "string" });
+        const firstSheet = workbook.SheetNames[0];
+        if (!firstSheet) return [];
+        return XLSX.utils.sheet_to_json<Record<string, any>>(
+          workbook.Sheets[firstSheet],
+          { defval: "" }
+        );
+      })();
+
+  for (const row of rows) {
+    const sku = String(row[skuField] ?? "").trim();
+    const cost = parseNumber(row[costField]);
+    const discountPct = discountField
+      ? parseDiscountPct(row[discountField])
+      : undefined;
+    if (!sku || (cost === undefined && discountPct === undefined)) continue;
+    lookup.set(sku, {
+      cost: cost !== undefined && cost > 0 ? cost : undefined,
+      discountPct,
+      row,
+    });
+  }
+
+  return lookup;
+}
+
 function parseImages(value: unknown): string[] {
   if (!value) return [];
   if (Array.isArray(value)) {
@@ -45,6 +144,129 @@ function parseImages(value: unknown): string[] {
   }
   const raw = String(value);
   return raw.split(/[|,;]/).map(v => v.trim()).filter(Boolean);
+}
+
+function parseNumber(value: unknown): number | undefined {
+  if (value === null || value === undefined) return undefined;
+  const parsed = Number(String(value).trim());
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function parseVat(value: unknown): number | undefined {
+  if (value === null || value === undefined) return undefined;
+  const raw = String(value).trim();
+  if (!raw) return undefined;
+  const match = raw.match(/(\d+(?:\.\d+)?)/);
+  if (!match) return undefined;
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function parseMargin(value: unknown): number | undefined {
+  const parsed = parseNumber(value);
+  if (parsed === undefined) return undefined;
+  if (parsed <= 1) return parsed;
+  return parsed / 100;
+}
+
+function parseDiscountPct(value: unknown): number | undefined {
+  if (value === null || value === undefined) return undefined;
+  const raw = String(value).trim();
+  if (!raw) return undefined;
+  const match = raw.match(/(\d+(?:\.\d+)?)/);
+  if (!match) return undefined;
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function hasValue(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  const text = String(value).trim();
+  if (text === "") return false;
+  if (text === "0" || text === "0.0" || text === "0.00") return false;
+  return true;
+}
+
+function mergeLookupAttributes(
+  feedRow: Record<string, any>,
+  lookupRow: Record<string, any>,
+  overrideFields: string[]
+): Record<string, any> {
+  const merged: Record<string, any> = { ...feedRow };
+  const overrideSet = new Set(overrideFields);
+
+  for (const [key, value] of Object.entries(lookupRow)) {
+    if (overrideSet.has(key)) continue;
+    if (hasValue(value)) {
+      merged[key] = value;
+    }
+  }
+
+  for (const field of overrideFields) {
+    if (hasValue(feedRow[field])) {
+      merged[field] = feedRow[field];
+    } else if (hasValue(lookupRow[field])) {
+      merged[field] = lookupRow[field];
+    }
+  }
+
+  return merged;
+}
+
+function parseDelimitedText(
+  text: string,
+  delimiter: string
+): Record<string, any>[] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let currentVal = "";
+  let insideQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const next = text[i + 1];
+
+    if (char === '"') {
+      if (insideQuotes && next === '"') {
+        currentVal += '"';
+        i++;
+      } else {
+        insideQuotes = !insideQuotes;
+      }
+    } else if (char === delimiter && !insideQuotes) {
+      row.push(currentVal);
+      currentVal = "";
+    } else if ((char === "\n" || char === "\r") && !insideQuotes) {
+      if (char === "\r" && next === "\n") i++;
+      row.push(currentVal);
+      rows.push(row);
+      row = [];
+      currentVal = "";
+    } else {
+      currentVal += char;
+    }
+  }
+
+  if (currentVal.length > 0 || row.length > 0) {
+    row.push(currentVal);
+    rows.push(row);
+  }
+
+  if (rows.length < 2) return [];
+
+  const headers = rows[0].map(h => h.trim());
+  const dataRows = rows.slice(1).filter(r =>
+    r.some(cell => String(cell).trim() !== "")
+  );
+
+  return dataRows.map(cols => {
+    const record: Record<string, any> = {};
+    headers.forEach((header, idx) => {
+      if (!header) return;
+      record[header] = (cols[idx] ?? "").trim();
+    });
+    return record;
+  });
 }
 
 function resolveMappedValues(
@@ -63,8 +285,9 @@ function mapRecordToItem(
   mapping: FieldMapping,
   fallbackCurrency?: string
 ): ProductFeedItem | null {
-  const supplierSku = mapping.sku
-    ? String(record[mapping.sku] ?? "").trim()
+  const skuValues = resolveMappedValues(record, mapping.sku);
+  const supplierSku = skuValues.length
+    ? String(skuValues[0] ?? "").trim()
     : "";
 
   if (!supplierSku) {
@@ -72,14 +295,32 @@ function mapRecordToItem(
   }
 
   const priceValue = mapping.price
-    ? Number(record[mapping.price] ?? 0)
+    ? parseNumber(record[mapping.price])
+    : undefined;
+  let costValue = mapping.cost
+    ? parseNumber(record[mapping.cost])
+    : undefined;
+  const retailValue = mapping.retailPrice
+    ? parseNumber(record[mapping.retailPrice])
     : undefined;
   const stockValue = mapping.stock
-    ? Number(record[mapping.stock] ?? 0)
+    ? parseNumber(record[mapping.stock])
     : undefined;
 
   const imageValues = resolveMappedValues(record, mapping.images);
   const categoryValues = resolveMappedValues(record, mapping.categoryPath);
+
+  const vatValue = mapping.vat ? parseVat(record[mapping.vat]) : undefined;
+  const costVatMode = mapping.costVatMode?.toString().toLowerCase();
+  if (
+    costValue !== undefined &&
+    vatValue !== undefined &&
+    costVatMode === "net"
+  ) {
+    costValue = Math.round(costValue * (1 + vatValue / 100) * 100) / 100;
+  }
+
+  const resolvedRetailPrice = retailValue;
 
   return {
     supplierSku,
@@ -87,12 +328,16 @@ function mapRecordToItem(
     description: mapping.description
       ? String(record[mapping.description] ?? "")
       : undefined,
-    price: Number.isFinite(priceValue) ? priceValue : undefined,
+    price: Number.isFinite(priceValue ?? NaN) ? priceValue : undefined,
+    cost: Number.isFinite(costValue ?? NaN) ? costValue : undefined,
+    retailPrice: Number.isFinite(resolvedRetailPrice ?? NaN)
+      ? resolvedRetailPrice
+      : undefined,
     currency:
       (mapping.currency
         ? String(record[mapping.currency] ?? fallbackCurrency ?? "")
         : fallbackCurrency) || undefined,
-    stock: Number.isFinite(stockValue) ? stockValue : undefined,
+    stock: Number.isFinite(stockValue ?? NaN) ? stockValue : undefined,
     images: imageValues.flatMap(value => parseImages(value)),
     categoryPath: categoryValues.flatMap(value => parseImages(value)),
     attributes: record,
@@ -112,27 +357,157 @@ export function createBaseLinkerCsvAdapter({
     async fetchProducts() {
       if (!feed.sourceUrl) return [];
 
-      const headers = applyAuthHeaders(getAuthConfig(feed));
-      const response = await fetch(feed.sourceUrl, { headers });
+      const sourceUrl = feed.sourceUrl;
+      let text = "";
 
-      if (!response.ok) {
-        throw new Error(
-          `CSV download failed (${response.status} ${response.statusText})`
+      if (sourceUrl.startsWith("file://")) {
+        const filePath = fileURLToPath(sourceUrl);
+        text = fs.readFileSync(filePath, "utf-8");
+      } else {
+        const resolvedPath = path.isAbsolute(sourceUrl)
+          ? sourceUrl
+          : path.resolve(process.cwd(), sourceUrl);
+
+        if (fs.existsSync(resolvedPath)) {
+          text = fs.readFileSync(resolvedPath, "utf-8");
+        } else {
+          const headers = applyAuthHeaders(getAuthConfig(feed));
+          const response = await fetch(sourceUrl, { headers });
+
+          if (!response.ok) {
+            throw new Error(
+              `CSV download failed (${response.status} ${response.statusText})`
+            );
+          }
+          text = await response.text();
+        }
+      }
+      const firstLine = text.split(/\r?\n/, 1)[0] || "";
+      const usePipeDelimiter =
+        firstLine.includes("|") && !firstLine.includes(",");
+
+      const rows = usePipeDelimiter
+        ? parseDelimitedText(text, "|")
+        : (() => {
+            const workbook = XLSX.read(text, { type: "string" });
+            const firstSheet = workbook.SheetNames[0];
+            if (!firstSheet) return [];
+            return XLSX.utils.sheet_to_json<Record<string, any>>(
+              workbook.Sheets[firstSheet],
+              { defval: "" }
+            );
+          })();
+
+      let costLookup: Map<
+        string,
+        { cost?: number; discountPct?: number; row?: Record<string, any> }
+      > | null = null;
+      if (resolvedMapping.costLookupFile) {
+        const lookupPath = path.isAbsolute(resolvedMapping.costLookupFile)
+          ? resolvedMapping.costLookupFile
+          : path.resolve(process.cwd(), resolvedMapping.costLookupFile);
+        costLookup = buildCostLookup(
+          lookupPath,
+          resolvedMapping.costLookupSku || "sku",
+          resolvedMapping.costLookupCost || "b2b_price_gross_RON",
+          resolvedMapping.costLookupDiscount || "discount_pct"
         );
       }
 
-      const text = await response.text();
-      const workbook = XLSX.read(text, { type: "string" });
-      const firstSheet = workbook.SheetNames[0];
-      if (!firstSheet) return [];
-
-      const rows = XLSX.utils.sheet_to_json<Record<string, any>>(
-        workbook.Sheets[firstSheet],
-        { defval: "" }
-      );
-
       return rows
         .map(row => mapRecordToItem(row, resolvedMapping, currency))
+        .map(item => {
+          if (!item) return item;
+          const lookup = costLookup?.get(item.supplierSku);
+
+          if (lookup?.cost !== undefined && (item.cost ?? 0) <= 0) {
+            item.cost = lookup.cost;
+          }
+
+          if (
+            lookup?.row &&
+            resolvedMapping.retailPrice &&
+            (!Number.isFinite(item.retailPrice ?? NaN) ||
+              (item.retailPrice ?? 0) <= 0)
+          ) {
+            const lookupRetail = parseNumber(
+              lookup.row[resolvedMapping.retailPrice]
+            );
+            if (lookupRetail !== undefined && lookupRetail > 0) {
+              item.retailPrice = lookupRetail;
+            }
+          }
+
+          if (
+            lookup?.row &&
+            resolvedMapping.images &&
+            (!item.images || item.images.length === 0)
+          ) {
+            const imageFields = Array.isArray(resolvedMapping.images)
+              ? resolvedMapping.images
+              : [resolvedMapping.images];
+            const imagesFromLookup = imageFields.flatMap(field =>
+              parseImages(lookup.row?.[field])
+            );
+            if (imagesFromLookup.length > 0) {
+              item.images = imagesFromLookup;
+            }
+          }
+
+          const discountFromFeed = resolvedMapping.discountPct
+            ? item.attributes?.[resolvedMapping.discountPct]
+            : undefined;
+          const discountPct =
+            parseDiscountPct(discountFromFeed) ?? lookup?.discountPct;
+
+          const floorPct = parseNumber(resolvedMapping.discountFloorPct);
+          const overrideMarginPct = parseMargin(
+            resolvedMapping.overrideMarginPct
+          );
+          const zeroDiscountValue = resolvedMapping.zeroDiscountValue ?? "0%";
+          const zeroDiscountMargin = parseMargin(
+            resolvedMapping.zeroDiscountMargin
+          );
+
+          const baseCost =
+            Number.isFinite(item.cost ?? NaN)
+              ? (item.cost as number)
+              : Number.isFinite(item.price ?? NaN)
+                ? (item.price as number)
+                : undefined;
+
+          if (baseCost && baseCost > 0) {
+            if (
+              floorPct !== undefined &&
+              discountPct !== undefined &&
+              discountPct < floorPct &&
+              overrideMarginPct !== undefined
+            ) {
+              item.retailPrice =
+                Math.round((baseCost / (1 - overrideMarginPct)) * 100) / 100;
+            } else if (
+              zeroDiscountMargin !== undefined &&
+              String(discountFromFeed ?? "").trim() === zeroDiscountValue
+            ) {
+              item.retailPrice =
+                Math.round((baseCost / (1 - zeroDiscountMargin)) * 100) / 100;
+            }
+          }
+
+          if (
+            lookup?.row &&
+            resolvedMapping.lookupMergeMode === "lookup-preferred"
+          ) {
+            const overrideFields =
+              resolvedMapping.lookupMergeOverrideFields ?? [];
+            item.attributes = mergeLookupAttributes(
+              item.attributes ?? {},
+              lookup.row,
+              overrideFields
+            );
+          }
+          return item;
+        })
         .filter((item): item is ProductFeedItem => !!item);
     },
   };

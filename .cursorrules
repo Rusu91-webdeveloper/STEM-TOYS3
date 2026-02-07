@@ -215,6 +215,10 @@ pnpm run validate:migrations
 - **Always read `PLANNING.md`** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
 - **Check `TASKS.md`** before starting a new task. If the task isn't listed, add it with a brief description, estimated time, and today's date.
 - **Review `PROJECT_CONTEXT.md`** to understand the broader context, data models, and API endpoints.
+- **For additional domain and implementation details**, prefer consulting the markdown documentation index before guessing:
+  - `README.md` → high‑level overview and links to core docs
+  - `docs/ALL_MARKDOWN_DOCS.md` → complete list of all `.md` documentation files
+  - `docs/INCIDENTS_AND_FIXES.md` → focused incident/fix write‑ups (returns, admin orders, COD status, DB safety)
 - **Examine existing code patterns** before implementing new features to maintain consistency.
 
 ## 🏗️ Architecture & File Structure

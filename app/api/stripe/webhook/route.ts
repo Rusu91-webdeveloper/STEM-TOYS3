@@ -221,6 +221,31 @@ async function handleSuccessfulPayment(
     const hasPhysicalItems = order.items.some(item => item.isDigital !== true);
     if (hasPhysicalItems) {
       try {
+        const { OrderProcessor } = await import("@/lib/order-processor");
+        const { db } = await import("@/lib/db");
+        const existingSupplierOrders = await db.supplierOrder.count({
+          where: { orderId: order.id },
+        });
+        if (existingSupplierOrders === 0) {
+          const processResult = await OrderProcessor.processNewOrder(order.id);
+          if (!processResult.success && processResult.errors.length > 0) {
+            console.warn(
+              `[STRIPE][WEBHOOK] Supplier orders had errors for order ${order.id}:`,
+              processResult.errors
+            );
+          } else if (processResult.supplierOrders.length > 0) {
+            console.log(
+              `✅ [STRIPE][WEBHOOK] Created ${processResult.supplierOrders.length} supplier order(s) for order ${order.id}`
+            );
+          }
+        }
+      } catch (processorError) {
+        console.error(
+          `❌ [STRIPE][WEBHOOK] OrderProcessor failed for order ${order.id}:`,
+          processorError
+        );
+      }
+      try {
         const { createCourierAwbForOrder } = await import(
           "@/lib/shipping/awb-dispatcher"
         );

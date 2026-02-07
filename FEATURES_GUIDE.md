@@ -28,6 +28,7 @@ including user-facing features and technical implementation details.
 
 **Technical Details:**
 
+- **Storefront visibility:** Only products with `isActive: true` and `status: "APPROVED"` are shown. This is enforced in `GET /api/products`, `app/page.tsx` (featured products), and `ProductRepository.findWithFilters()` (defaults to `status: "APPROVED"`). Admin or internal callers can pass a different `status` filter when using the repository.
 - **Components:** `features/products/components/ProductGrid.tsx`,
   `ProductCard.tsx`, `ProductFilters.tsx`
 - **API:** `GET /api/products` with query parameters

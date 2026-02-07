@@ -221,6 +221,32 @@ export async function POST(request: Request) {
           );
           if (hasPhysicalItems) {
             try {
+              const { OrderProcessor } = await import("@/lib/order-processor");
+              const { db } = await import("@/lib/db");
+              const existingSupplierOrders = await db.supplierOrder.count({
+                where: { orderId: orderID },
+              });
+              if (existingSupplierOrders === 0) {
+                const processResult =
+                  await OrderProcessor.processNewOrder(orderID);
+                if (!processResult.success && processResult.errors.length > 0) {
+                  console.warn(
+                    `[WEBHOOK] Supplier orders had errors for order ${orderID}:`,
+                    processResult.errors
+                  );
+                } else if (processResult.supplierOrders.length > 0) {
+                  console.log(
+                    `✅ [WEBHOOK] Created ${processResult.supplierOrders.length} supplier order(s) for order ${orderID}`
+                  );
+                }
+              }
+            } catch (processorError) {
+              console.error(
+                `❌ [WEBHOOK] OrderProcessor failed for order ${orderID}:`,
+                processorError
+              );
+            }
+            try {
               const { createCourierAwbForOrder } = await import(
                 "@/lib/shipping/awb-dispatcher"
               );

@@ -7,33 +7,51 @@ design.
 
 ## 📚 Documentation
 
-### Core Documentation
+### Core technical docs
 
-- **[PROJECT_ARCHITECTURE.md](./PROJECT_ARCHITECTURE.md)** - Codebase structure,
+- **[PROJECT_ARCHITECTURE.md](./PROJECT_ARCHITECTURE.md)** – Codebase structure,
   tech stack, and architecture patterns
-- **[API_REFERENCE.md](./API_REFERENCE.md)** - All API endpoints with
+- **[API_REFERENCE.md](./API_REFERENCE.md)** – All API endpoints with
   request/response examples
-- **[FEATURES_GUIDE.md](./FEATURES_GUIDE.md)** - Detailed features guide with
+- **[FEATURES_GUIDE.md](./FEATURES_GUIDE.md)** – Detailed features guide with
   technical implementation
-- **[ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md)** - Environment variables,
+- **[ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md)** – Environment variables,
   development setup, and deployment guide
+- **[DATABASE_TABLES_AUDIT.md](./DATABASE_TABLES_AUDIT.md)** – Status of all database tables (fully functional vs partial vs schema‑only)
+- **[DATABASE_TABLES_EXPLAINED.md](./DATABASE_TABLES_EXPLAINED.md)** – Plain‑language explanation of advanced/future‑proof tables
 
-### Database & Safety
+### Safety & migrations
 
-- **[DATABASE_SAFETY.md](./DATABASE_SAFETY.md)** - Complete database protection
+- **[DATABASE_SAFETY.md](./DATABASE_SAFETY.md)** – Complete database protection
   guide, backup/restore procedures
-- **[CURSOR_DATABASE_SAFETY_RULE.md](./CURSOR_DATABASE_SAFETY_RULE.md)** - AI safety rules for database operations
-- **[PRE_PUSH_SAFETY_GUIDE.md](./PRE_PUSH_SAFETY_GUIDE.md)** - Pre-push safety checks and migration validation
+- **[CURSOR_DATABASE_SAFETY_RULE.md](./CURSOR_DATABASE_SAFETY_RULE.md)** – AI safety rules for database operations
+- **[PRE_PUSH_SAFETY_GUIDE.md](./PRE_PUSH_SAFETY_GUIDE.md)** – Pre‑push safety checks and migration validation
 
-### Operations & Launch
+### Shipping & logistics
 
-- **[LAUNCH_CHECKLIST.md](./LAUNCH_CHECKLIST.md)** - Launch blueprint and checklist
-- **[docs/SOP_DAILY_OPERATIONS.md](./docs/SOP_DAILY_OPERATIONS.md)** - Standard operating procedures for daily operations
-- **[docs/PRODUCT_IMPORT_GUIDE.md](./docs/PRODUCT_IMPORT_GUIDE.md)** - Guide for importing products
-- **[docs/BUNDLE_CREATION_GUIDE.md](./docs/BUNDLE_CREATION_GUIDE.md)** - Guide for creating product bundles
-- **[docs/SUPPLIER_SYNC_PLAN.md](./docs/SUPPLIER_SYNC_PLAN.md)** - Supplier synchronization plan
-- **[docs/CUSTOMER_SUPPORT_MACROS.md](./docs/CUSTOMER_SUPPORT_MACROS.md)** - Customer support macros and templates
-- **[docs/GOOGLE_SEARCH_CONSOLE_SETUP.md](./docs/GOOGLE_SEARCH_CONSOLE_SETUP.md)** - Complete guide for setting up Google Search Console API for live SEO data
+- **[SHIPPING_ANALYSIS_REPORT.md](./SHIPPING_ANALYSIS_REPORT.md)** – Shipping prices, delivery logic, legal alignment, and TODOs
+- **[FANCOURIER_INTEGRATION.md](./FANCOURIER_INTEGRATION.md)** – Technical Fan Courier integration map
+- **[docs/FAN_COURIER_GUIDE.md](./docs/FAN_COURIER_GUIDE.md)** – Operational Fan Courier setup and usage guide
+
+### Operations & launch
+
+- **[LAUNCH_CHECKLIST.md](./LAUNCH_CHECKLIST.md)** – Launch blueprint and checklist
+- **[docs/SOP_DAILY_OPERATIONS.md](./docs/SOP_DAILY_OPERATIONS.md)** – Standard operating procedures for daily operations
+- **[docs/PRODUCT_IMPORT_GUIDE.md](./docs/PRODUCT_IMPORT_GUIDE.md)** – Guide for importing products
+- **[docs/BUNDLE_CREATION_GUIDE.md](./docs/BUNDLE_CREATION_GUIDE.md)** – Guide for creating product bundles
+- **[docs/SUPPLIER_SYNC_PLAN.md](./docs/SUPPLIER_SYNC_PLAN.md)** – Supplier synchronization plan
+- **[docs/CUSTOMER_SUPPORT_MACROS.md](./docs/CUSTOMER_SUPPORT_MACROS.md)** – Customer support macros and templates
+- **[docs/GOOGLE_SEARCH_CONSOLE_SETUP.md](./docs/GOOGLE_SEARCH_CONSOLE_SETUP.md)** – Complete guide for setting up Google Search Console API for live SEO data
+
+### Business, value & concepts
+
+- **[FEATURE_COMPLETION_PLAN.md](./FEATURE_COMPLETION_PLAN.md)** – Remaining partial features, priorities, and time/ROI estimates
+- **[PROJECT_ASSESSMENT_REPORT.md](./PROJECT_ASSESSMENT_REPORT.md)** – Overall project assessment and valuation
+- **[WHAT_IS_A_TENANT.md](./WHAT_IS_A_TENANT.md)** – Simple explanation of tenants vs single‑tenant and why the app runs single‑tenant today
+
+### Incidents & deep dives (when debugging)
+
+- **[docs/INCIDENTS_AND_FIXES.md](./docs/INCIDENTS_AND_FIXES.md)** – Index of focused incident/fix write‑ups (returns, admin order cache, COD payment status, DB safety)
 
 ## 🚀 Features
 

@@ -1,4 +1,4 @@
-import { Product, Prisma } from "@prisma/client";
+import { Product, Prisma, ProductStatus } from "@prisma/client";
 
 import {
   BaseRepository,
@@ -21,6 +21,8 @@ export interface ProductFilters {
   priceMin?: number;
   priceMax?: number;
   isActive?: boolean;
+  /** Defaults to APPROVED for storefront; set explicitly to include other statuses (e.g. admin). */
+  status?: ProductStatus;
   featured?: boolean;
   inStock?: boolean;
   search?: string;
@@ -72,15 +74,17 @@ export class ProductRepository extends BaseRepository<
       priceMin,
       priceMax,
       isActive = true,
+      status = "APPROVED",
       featured,
       inStock,
       search,
       tags,
     } = filters;
 
-    // Build where clause
+    // Build where clause. Storefront = isActive && status === APPROVED (see app/api/products/route.ts).
     const where: Prisma.ProductWhereInput = {
       isActive,
+      status,
     };
 
     // Category filtering

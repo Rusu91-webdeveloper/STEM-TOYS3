@@ -177,9 +177,13 @@ function parseBundleItems(value?: string) {
 }
 
 async function main() {
-  const csvPath = path.resolve(process.cwd(), "launch_pack_50.csv");
+  const csvPathEnv = process.env.SEED_PRODUCTS_CSV_PATH;
+  if (!csvPathEnv) {
+    throw new Error("Missing SEED_PRODUCTS_CSV_PATH env var.");
+  }
+  const csvPath = path.resolve(process.cwd(), csvPathEnv);
   if (!fs.existsSync(csvPath)) {
-    throw new Error(`launch_pack_50.csv not found at ${csvPath}`);
+    throw new Error(`Seed products CSV not found at ${csvPath}`);
   }
 
   const fileContent = fs.readFileSync(csvPath, "utf-8");
@@ -262,7 +266,7 @@ async function main() {
     const widthCm = row.width_cm ? Number(row.width_cm) : undefined;
 
     const metadata = {
-      source: "launch_pack_50.csv",
+      source: path.basename(csvPath),
       vendor: row.vendor || null,
       productType: row.product_type || null,
       ageRange: row.age_range || null,

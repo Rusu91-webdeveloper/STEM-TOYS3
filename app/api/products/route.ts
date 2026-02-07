@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const { page, limit } = getPaginationParams(searchParams, {
       defaultLimit: 12,
-      maxLimit: 100,
+      maxLimit: 1000, // allow larger batches for client-side filtering on /products
     });
     const filters = getFilterParams(searchParams, [
       "category",
@@ -377,21 +377,8 @@ async function fetchProductsFromDatabase(params: {
     (where as any).stemDiscipline = stemDiscipline;
   }
 
-  if (learningOutcomes && learningOutcomes.length > 0) {
-    (where as any).learningOutcomes = {
-      hasSome: learningOutcomes,
-    };
-  }
-
-  if (productType) {
-    (where as any).productType = productType;
-  }
-
-  if (specialCategories && specialCategories.length > 0) {
-    (where as any).specialCategories = {
-      hasSome: specialCategories,
-    };
-  }
+  // learningOutcomes, productType, specialCategories are in metadata (JSON), not columns.
+  // Filtering is done client-side after extraction from metadata in the response.
 
   // Debug logging for API request params
   if (process.env.NODE_ENV === "development") {
@@ -642,12 +629,18 @@ async function fetchProductsFromDatabase(params: {
           : null,
         attributes: product.attributes,
         tags: product.tags,
-        // Include new categorization fields
+        // Include new categorization fields (from metadata JSON)
         ageGroup: product.ageGroup,
         stemDiscipline: product.stemDiscipline,
-        learningOutcomes: product.learningOutcomes,
-        productType: product.productType,
-        specialCategories: product.specialCategories,
+        learningOutcomes:
+          (product.metadata as Record<string, unknown>)?.learningOutcomes ??
+          product.learningOutcomes,
+        productType:
+          (product.metadata as Record<string, unknown>)?.productType ??
+          product.productType,
+        specialCategories:
+          (product.metadata as Record<string, unknown>)?.specialCategories ??
+          product.specialCategories,
       };
 
       // **PERFORMANCE**: Faster attribute extraction

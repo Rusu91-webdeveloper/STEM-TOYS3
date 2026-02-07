@@ -3,6 +3,20 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
+/** Build courier tracking URL when we have AWB and known carrier. */
+function getTrackingUrl(trackingNumber: string | null, carrier: string | null): string | null {
+  if (!trackingNumber?.trim() || !carrier?.trim()) return null;
+  const awb = encodeURIComponent(trackingNumber.trim());
+  const c = carrier.toUpperCase();
+  if (c === "FANCOURIER") {
+    return `https://www.fancourier.ro/awb-tracking?awb=${awb}`;
+  }
+  if (c === "SAMEDAY") {
+    return `https://sameday.ro/awb-tracking?awb=${awb}`;
+  }
+  return null;
+}
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ orderId: string }> }
@@ -18,7 +32,7 @@ export async function GET(
       );
     }
 
-    // Fetch order with tracking information
+    // Fetch order with tracking and shipments (real AWB may be on Shipment if not yet on Order)
     const order = await db.order.findUnique({
       where: {
         id: orderId,
@@ -32,6 +46,15 @@ export async function GET(
         createdAt: true,
         updatedAt: true,
         shippingAddressId: true,
+        trackingNumber: true,
+        carrier: true,
+        estimatedDelivery: true,
+        shipments: {
+          where: { awbNumber: { not: null } },
+          select: { awbNumber: true, courier: true },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
       },
     });
 
@@ -55,6 +78,17 @@ export async function GET(
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
+    // Use real AWB: Order.trackingNumber (set when AWB created) or first Shipment.awbNumber
+    const trackingNumber =
+      order.trackingNumber ??
+      order.shipments?.[0]?.awbNumber ??
+      null;
+    const carrier =
+      order.carrier ??
+      order.shipments?.[0]?.courier ??
+      "Standard Shipping";
+    const trackingUrl = getTrackingUrl(trackingNumber, carrier);
+
     // Generate tracking events based on order status
     const trackingEvents = generateTrackingEvents(order, shippingAddress);
 
@@ -63,9 +97,12 @@ export async function GET(
         id: order.id,
         orderNumber: order.orderNumber,
         status: order.status,
-        trackingNumber: `TRK${order.orderNumber}${Math.random().toString(36).substr(2, 4).toUpperCase()}`, // Generate mock tracking number
-        carrier: "Standard Shipping",
-        estimatedDelivery: null,
+        trackingNumber:
+          trackingNumber ??
+          `TRK${order.orderNumber}${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+        carrier,
+        trackingUrl,
+        estimatedDelivery: order.estimatedDelivery ?? null,
         deliveredAt: order.deliveredAt,
         createdAt: order.createdAt,
         shippingAddress,

@@ -98,6 +98,9 @@ interface ProductGridProps {
   className?: string;
   defaultLayout?: "grid" | "list";
   defaultSort?: string;
+  sortOption?: string;
+  onSortChange?: (value: string) => void;
+  disableInternalSort?: boolean;
   showLayoutToggle?: boolean;
   showSortOptions?: boolean;
   columns?: GridColumnsConfig;
@@ -109,6 +112,9 @@ export function ProductGrid({
   className,
   defaultLayout = "grid",
   defaultSort = "featured",
+  sortOption: controlledSortOption,
+  onSortChange,
+  disableInternalSort = false,
   showLayoutToggle = true,
   showSortOptions = true,
   columns = {
@@ -120,8 +126,20 @@ export function ProductGrid({
   priorityItemsCount = 4, // Default to first 4 items being priority
 }: ProductGridProps) {
   const [layout, setLayout] = useState<"grid" | "list">(defaultLayout);
-  const [sortOption, setSortOption] = useState<string>(defaultSort);
+  const [internalSortOption, setInternalSortOption] =
+    useState<string>(defaultSort);
   const { t } = useTranslation();
+
+  const sortOption = controlledSortOption ?? internalSortOption;
+
+  const handleSortChange = (value: string) => {
+    if (onSortChange) {
+      onSortChange(value);
+    }
+    if (controlledSortOption === undefined) {
+      setInternalSortOption(value);
+    }
+  };
 
   // Use static calculation to prevent CLS - assume medium screen initially
   const [visibleColumns, setVisibleColumns] = useState(columns.md || 3);
@@ -189,7 +207,9 @@ export function ProductGrid({
     }
   };
 
-  const sortedProducts = sortProducts(products, sortOption);
+  const sortedProducts = disableInternalSort
+    ? products
+    : sortProducts(products, sortOption);
 
   // 1. Ensure grid is 2 columns on mobile (grid-cols-2) with deterministic Tailwind classes
   const gridColsClass = buildGridColsClass({ base: 2, ...columns });
@@ -205,7 +225,7 @@ export function ProductGrid({
         >
           {showSortOptions && (
             <div className="w-full sm:w-48">
-              <Select value={sortOption} onValueChange={setSortOption}>
+              <Select value={sortOption} onValueChange={handleSortChange}>
                 <SelectTrigger className="h-9 sm:h-10 text-sm bg-white/80 border-slate-200 text-slate-700 shadow-sm rounded-lg hover:border-slate-300">
                   <SelectValue placeholder={t("sortBy")} />
                 </SelectTrigger>

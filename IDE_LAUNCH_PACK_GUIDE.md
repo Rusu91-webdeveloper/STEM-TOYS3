@@ -3,8 +3,8 @@
 This pack is ready to import into your database and deploy.
 
 ## Files
-- `launch_pack_50.json` → normalized seed data used by your app (recommended)
-- `launch_pack_50.csv` → human-readable sheet for review
+- `seed_products.json` → normalized seed data used by your app (recommended)
+- `seed_products.csv` → human-readable sheet for review
 
 ## What’s inside each product
 Each product includes everything needed to launch:
@@ -93,4 +93,4 @@ model Product {
 ```
 
 ## 6) Seed script hint
-Read `launch_pack_50.json` and `upsert` by `sku`.
+Read `seed_products.json` and `upsert` by `sku`.

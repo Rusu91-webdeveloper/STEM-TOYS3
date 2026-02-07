@@ -60,7 +60,9 @@ export class OrderProcessor {
         }
 
         if (!item.product.supplier) {
-          errors.push(`No supplier assigned to product: ${item.product.name}`);
+          const msg = `No supplier assigned to product: ${item.product.name}`;
+          errors.push(msg);
+          console.warn(`[OrderProcessor] ${msg}; skipping SupplierOrder for order item ${item.id}`);
           continue;
         }
 

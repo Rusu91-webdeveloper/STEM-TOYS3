@@ -1,10 +1,27 @@
 import { SupplierAuthType, SupplierFeedType } from "@prisma/client";
 
 export type FieldMapping = {
-  sku?: string;
+  sku?: string | string[];
   name?: string;
   description?: string;
   price?: string;
+  cost?: string;
+  vat?: string;
+  costVatMode?: "net" | "gross" | string;
+  retailPrice?: string;
+  discountPct?: string;
+  zeroDiscountMargin?: number;
+  zeroDiscountValue?: string;
+  costLookupFile?: string;
+  costLookupSku?: string;
+  costLookupCost?: string;
+  costLookupDiscount?: string;
+  discountFloorPct?: number;
+  overrideMarginPct?: number;
+  lookupMergeMode?: "lookup-preferred" | "feed-preferred" | string;
+  lookupMergeOverrideFields?: string[];
+  requiredFields?: string[];
+  enforceAllowedSkus?: boolean;
   stock?: string;
   images?: string | string[];
   currency?: string;
@@ -27,6 +44,8 @@ export type ProductFeedItem = {
   name?: string;
   description?: string;
   price?: number;
+  cost?: number;
+  retailPrice?: number;
   currency?: string;
   stock?: number;
   images?: string[];

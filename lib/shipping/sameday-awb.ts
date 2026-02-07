@@ -255,6 +255,22 @@ export const createAwbForOrder = async (orderId: string) => {
     };
   }
 
+  await db.order.update({
+    where: { id: order.id },
+    data: {
+      trackingNumber: awbNumber,
+      carrier: COURIER_NAME,
+    },
+  });
+
+  await db.supplierOrder.updateMany({
+    where: { orderId: order.id },
+    data: {
+      trackingNumber: awbNumber,
+      carrier: COURIER_NAME,
+    },
+  });
+
   return {
     success: true,
     shipment: updatedShipment,

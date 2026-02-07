@@ -276,23 +276,6 @@ function ClientProductsPageContent({
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
-    // DEBUG: Log filtering process
-    if (process.env.NODE_ENV === "development") {
-      console.log(
-        "🐛 [CLIENT FILTERING] Starting with",
-        products.length,
-        "products"
-      );
-      console.log(
-        "🐛 [CLIENT FILTERING] Selected learning outcomes:",
-        state.selectedLearningOutcomes
-      );
-      console.log(
-        "🐛 [CLIENT FILTERING] First product learning outcomes:",
-        products[0]?.learningOutcomes
-      );
-    }
-
     // Filter by selected categories
     if (state.selectedCategories.length > 0) {
       filtered = filtered.filter(product => {
@@ -355,68 +338,20 @@ function ClientProductsPageContent({
     }
 
     // Filter by learning outcomes
-    if (
-      process.env.NODE_ENV === "development" &&
-      state.selectedLearningOutcomes.length > 0
-    ) {
-      console.log(
-        "🐛 [LEARNING OUTCOMES FILTER] Filtering by:",
-        state.selectedLearningOutcomes
-      );
-      console.log(
-        "🐛 [LEARNING OUTCOMES FILTER] Products before filter:",
-        filtered.length
-      );
-
+    if (state.selectedLearningOutcomes.length > 0) {
       filtered = filtered.filter(product => {
-        if (process.env.NODE_ENV === "development") {
-          console.log(
-            "🐛 [LEARNING OUTCOMES FILTER] Checking product:",
-            product.name
-          );
-          console.log(
-            "🐛 [LEARNING OUTCOMES FILTER] Product learning outcomes:",
-            product.learningOutcomes
-          );
-          console.log(
-            "🐛 [LEARNING OUTCOMES FILTER] Is array?",
-            Array.isArray(product.learningOutcomes)
-          );
-        }
-
         if (
           !product.learningOutcomes ||
           !Array.isArray(product.learningOutcomes)
         ) {
-          if (process.env.NODE_ENV === "development") {
-            console.log(
-              "🐛 [LEARNING OUTCOMES FILTER] Product filtered out - no learning outcomes"
-            );
-          }
           return false;
         }
-
-        const matches = state.selectedLearningOutcomes.some(outcome =>
-          product.learningOutcomes.some(
+        return state.selectedLearningOutcomes.some(outcome =>
+          product.learningOutcomes!.some(
             productOutcome => productOutcome === outcome
           )
         );
-
-        if (process.env.NODE_ENV === "development") {
-          console.log(
-            "🐛 [LEARNING OUTCOMES FILTER] Product matches?",
-            matches
-          );
-        }
-        return matches;
       });
-
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          "🐛 [LEARNING OUTCOMES FILTER] Products after filter:",
-          filtered.length
-        );
-      }
     }
 
     // Filter by product type (treat "all" as no filter)
@@ -460,13 +395,97 @@ function ClientProductsPageContent({
     state.searchQuery,
   ]);
 
-  const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
+  const sortOption = useMemo(
+    () => (state.sortBy === "relevance" ? "featured" : state.sortBy),
+    [state.sortBy]
+  );
+
+  const sortedProducts = useMemo(() => {
+    if (filteredProducts.length <= 1) return filteredProducts;
+
+    const getPrice = (value: ProductData["price"]) => {
+      const parsed =
+        typeof value === "string" ? parseFloat(value) : (value as number);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const getCreatedAt = (value: ProductData["createdAt"]) => {
+      if (!value) return 0;
+      const time = new Date(value as any).getTime();
+      return Number.isFinite(time) ? time : 0;
+    };
+
+    const getRating = (product: ProductData) => {
+      const rating =
+        (product as any).averageRating ??
+        (product as any).rating ??
+        (product as any).reviewAverage ??
+        0;
+      return Number.isFinite(rating) ? rating : 0;
+    };
+
+    const withIndex = filteredProducts.map((product, index) => ({
+      product,
+      index,
+    }));
+
+    withIndex.sort((a, b) => {
+      const productA = a.product;
+      const productB = b.product;
+
+      switch (sortOption) {
+        case "price-low": {
+          const priceA = getPrice(productA.price);
+          const priceB = getPrice(productB.price);
+          if (priceA === null && priceB === null) break;
+          if (priceA === null) return 1;
+          if (priceB === null) return -1;
+          if (priceA !== priceB) return priceA - priceB;
+          break;
+        }
+        case "price-high": {
+          const priceA = getPrice(productA.price);
+          const priceB = getPrice(productB.price);
+          if (priceA === null && priceB === null) break;
+          if (priceA === null) return 1;
+          if (priceB === null) return -1;
+          if (priceA !== priceB) return priceB - priceA;
+          break;
+        }
+        case "newest": {
+          const timeA = getCreatedAt(productA.createdAt);
+          const timeB = getCreatedAt(productB.createdAt);
+          if (timeA !== timeB) return timeB - timeA;
+          break;
+        }
+        case "rating": {
+          const ratingA = getRating(productA);
+          const ratingB = getRating(productB);
+          if (ratingA !== ratingB) return ratingB - ratingA;
+          break;
+        }
+        case "featured":
+        default: {
+          const featuredA = productA.featured ? 1 : 0;
+          const featuredB = productB.featured ? 1 : 0;
+          if (featuredA !== featuredB) return featuredB - featuredA;
+          break;
+        }
+      }
+
+      return a.index - b.index;
+    });
+
+    return withIndex.map(entry => entry.product);
+  }, [filteredProducts, sortOption]);
+
+  const totalPages = Math.ceil(sortedProducts.length / PAGE_SIZE);
 
   const displayedProducts = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
     const end = page * PAGE_SIZE;
-    return filteredProducts.slice(start, end);
-  }, [filteredProducts, page]);
+    return sortedProducts.slice(start, end);
+  }, [sortedProducts, page]);
 
   useEffect(() => {
     if (totalPages > 0 && page > totalPages) {
@@ -622,6 +641,10 @@ function ClientProductsPageContent({
     actions.setNoPriceFilter(enabled);
   };
 
+  const handleSortChange = (value: string) => {
+    actions.setSortBy(value === "featured" ? "relevance" : value);
+  };
+
   const handleClearFilters = () => {
     actions.clearFilters();
   };
@@ -725,8 +748,8 @@ function ClientProductsPageContent({
         </div>
 
         <div className="w-full max-w-full overflow-x-hidden bg-transparent">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 relative z-10">
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 lg:py-10 relative z-10">
+            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-stretch">
               <ProductFiltersErrorBoundary
                 onError={() => {
                   // Fallback: clear filters and reload
@@ -766,13 +789,15 @@ function ClientProductsPageContent({
                   window.location.reload();
                 }}
               >
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <ProductsMainDisplay
                     activeCategory={activeCategory}
                     categoryInfo={categoryInfo}
                     filteredProducts={filteredProducts}
                     displayedProducts={displayedProducts}
                     viewMode={state.viewMode}
+                    sortOption={sortOption}
+                    onSortChange={handleSortChange}
                     getLearningTitle={getLearningTitle}
                     getLearningDescription={getLearningDescription}
                     getProductCardContent={getProductCardContent}

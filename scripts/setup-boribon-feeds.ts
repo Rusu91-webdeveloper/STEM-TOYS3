@@ -13,7 +13,7 @@ if (fs.existsSync(envLocalPath)) {
   dotenv.config();
 }
 
-const FEEDS = [
+const DEFAULT_FEEDS = [
   {
     name: "Boribon General",
     sourceUrl: "https://www.boribon.ro/feed/products/6b4ddf7503cbf24a7fe711636e57d127",
@@ -43,6 +43,24 @@ const FEEDS = [
     sourceUrl: "https://www.boribon.ro/feed/products/2656fdf3dd7bc41d805f0f7a8bc24179",
   },
 ];
+
+const BORIBON_FEED_NAME_BY_URL = new Map(
+  DEFAULT_FEEDS.map(feed => [feed.sourceUrl, feed.name])
+);
+
+const envFeedUrls = (process.env.BORIBON_FEED_URLS || "")
+  .split(",")
+  .map(url => url.trim())
+  .filter(Boolean);
+
+const FEEDS =
+  envFeedUrls.length > 0
+    ? envFeedUrls.map((url, index) => ({
+        name:
+          BORIBON_FEED_NAME_BY_URL.get(url) ?? `Boribon Feed ${index + 1}`,
+        sourceUrl: url,
+      }))
+    : DEFAULT_FEEDS;
 
 type LaunchPackRow = Record<string, string>;
 
@@ -87,10 +105,15 @@ function parseCSV(text: string): LaunchPackRow[] {
 }
 
 const mapping = {
-  sku: "sku",
+  sku: ["model", "sku", "id"],
   name: "name",
   description: "description",
-  price: "price_b2c",
+  // Live feed doesn't include B2B, so we keep it from the local lookup file.
+  // If B2B ever appears in the live feed, it will be used; otherwise lookup fills it.
+  cost: "price_b2b",
+  vat: "TVA",
+  costVatMode: "net",
+  retailPrice: "price_b2c",
   stock: "quantity",
   images: [
     "avatar",
@@ -100,19 +123,57 @@ const mapping = {
     "image_additional4",
   ],
   categoryPath: "categories",
+  lookupMergeMode: "lookup-preferred",
+  lookupMergeOverrideFields: [
+    "price_b2c",
+    "quantity",
+    "avatar",
+    "image_additional1",
+    "image_additional2",
+    "image_additional3",
+    "image_additional4",
+    "url",
+    "ean",
+    "ean_filled",
+    "barcode",
+  ],
+  requiredFields: ["supplierSku", "retailPrice", "images"],
+  enforceAllowedSkus: true,
 };
 
 async function main() {
-  const csvPath = path.resolve(process.cwd(), "launch_pack_50.csv");
-  if (!fs.existsSync(csvPath)) {
-    throw new Error(`launch_pack_50.csv not found at ${csvPath}`);
+  const allowlistPath =
+    process.env.BORIBON_ALLOWED_SKUS_FILE &&
+    path.resolve(process.cwd(), process.env.BORIBON_ALLOWED_SKUS_FILE);
+  const costLookupPath = process.env.BORIBON_COST_LOOKUP_FILE
+    ? path.resolve(process.cwd(), process.env.BORIBON_COST_LOOKUP_FILE)
+    : path.resolve(process.cwd(), "feed_suppliers/boribon_dropshipping.csv");
+  let allowedSkus: string[] | undefined;
+  if (allowlistPath && fs.existsSync(allowlistPath)) {
+    const fileContent = fs.readFileSync(allowlistPath, "utf-8");
+    const rows = parseCSV(fileContent);
+    const skuFields = Array.isArray(mapping.sku)
+      ? mapping.sku
+      : mapping.sku
+        ? [mapping.sku]
+        : [];
+    allowedSkus = rows
+      .map(row => {
+        for (const field of skuFields) {
+          const value = row[field]?.trim();
+          if (value) return value;
+        }
+        return "";
+      })
+      .filter((sku): sku is string => Boolean(sku));
   }
 
-  const fileContent = fs.readFileSync(csvPath, "utf-8");
-  const rows = parseCSV(fileContent);
-  const allowedSkus = rows
-    .map(row => row.sku?.trim())
-    .filter((sku): sku is string => Boolean(sku));
+  const mappingWithLookup = {
+    ...mapping,
+    costLookupFile: costLookupPath,
+    costLookupSku: "model",
+    costLookupCost: "sup_dropshipping_with_VAT",
+  };
 
   const supplier = await prisma.supplier.upsert({
     where: { email: "contact@boribon.ro" },
@@ -151,7 +212,9 @@ async function main() {
         data: {
           name: feed.name,
           type: SupplierFeedType.CSV,
-          mapping: { ...mapping, allowedSkus },
+          mapping: allowedSkus
+            ? { ...mappingWithLookup, allowedSkus }
+            : mappingWithLookup,
           isActive: true,
         },
       });
@@ -163,7 +226,9 @@ async function main() {
           name: feed.name,
           type: SupplierFeedType.CSV,
           sourceUrl: feed.sourceUrl,
-          mapping: { ...mapping, allowedSkus },
+          mapping: allowedSkus
+            ? { ...mappingWithLookup, allowedSkus }
+            : mappingWithLookup,
           isActive: true,
         },
       });
