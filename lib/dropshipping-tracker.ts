@@ -215,37 +215,18 @@ export class DropshippingTracker {
   static async fetchFromSupplierAPI(
     supplierOrder: any
   ): Promise<TrackingUpdate | null> {
-    // This is where you'd integrate with actual supplier APIs
-    // For now, we'll simulate some updates
-
     const supplier = supplierOrder.supplier;
-
-    // Simulate different supplier behaviors
-    if (supplier.name.includes("FastShip")) {
-      // FastShip provides tracking immediately
-      if (supplierOrder.status === "READY_TO_SHIP") {
-        return {
-          orderId: supplierOrder.orderId,
-          trackingNumber: `FS${Date.now()}`,
-          carrier: "FastShip Express",
-          status: "SHIPPED",
-          estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
-          notes: "Automated update from FastShip API",
-        };
-      }
-    } else if (supplier.name.includes("Global")) {
-      // Global supplier is slower
-      if (supplierOrder.status === "CONFIRMED" && Math.random() > 0.7) {
-        return {
-          orderId: supplierOrder.orderId,
-          trackingNumber: `GL${Date.now()}`,
-          carrier: "Global Logistics",
-          status: "SHIPPED",
-          estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-          notes: "Automated update from Global API",
-        };
-      }
+    const integrationMethod = String(supplier?.integrationMethod || "")
+      .trim()
+      .toLowerCase();
+    if (!integrationMethod || integrationMethod === "manual") {
+      return null;
     }
+
+    // Keep this deterministic until a real supplier API adapter is implemented.
+    console.warn(
+      `Supplier tracking adapter not implemented for supplier ${supplier?.name} (integrationMethod=${integrationMethod}).`
+    );
 
     return null;
   }

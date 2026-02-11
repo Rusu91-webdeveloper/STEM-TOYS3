@@ -682,6 +682,46 @@ export async function DELETE(request: NextRequest) {
     const productSlug = existingProduct.slug;
     const categoryId = existingProduct.categoryId;
 
+    // Never hard-delete a product that is already referenced by orders.
+    // Keeping the row avoids breaking fulfillment links on historical/in-flight orders.
+    const orderItemCount = await db.orderItem.count({
+      where: { productId: id },
+    });
+    if (orderItemCount > 0) {
+      await db.product.update({
+        where: { id },
+        data: {
+          isActive: false,
+          featured: false,
+          status: "IN_PENDING",
+          name: existingProduct.name.endsWith(" (Deleted)")
+            ? existingProduct.name
+            : `${existingProduct.name} (Deleted)`,
+        },
+      });
+
+      // Revalidate caches to ensure product disappears from the UI
+      revalidateTag("products");
+      revalidatePath("/admin/products");
+      revalidateTag(`product-${productSlug}`);
+      if (categoryId) {
+        revalidateTag(`category-${categoryId}`);
+      }
+      await invalidateCachePattern("products:");
+      await invalidateCachePattern("product:");
+
+      return applyStandardHeaders(
+        NextResponse.json(
+          {
+            message:
+              "Product has order history and was marked inactive instead of being deleted.",
+          },
+          { status: 200 }
+        ),
+        { cache: "private" }
+      );
+    }
+
     // Delete product
     await db.product.delete({
       where: { id },

@@ -604,7 +604,7 @@ async function upsertProducts(
 
         console.warn(
           `[SUPPLIER SYNC] Significant price change for product ${supplierProduct.productId}: ` +
-            `Supplier price changed from ${oldSupplierPrice} to ${supplierPrice} ` +
+            `Supplier price changed from ${oldSupplierPrice} to ${supplierCost} ` +
             `(${formattedChange}%)`
         );
 

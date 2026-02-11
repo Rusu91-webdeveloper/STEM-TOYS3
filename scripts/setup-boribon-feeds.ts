@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as dotenv from "dotenv";
+import * as XLSX from "xlsx";
 
 import { PrismaClient, SupplierFeedType } from "@prisma/client";
 
@@ -65,43 +66,12 @@ const FEEDS =
 type LaunchPackRow = Record<string, string>;
 
 function parseCSV(text: string): LaunchPackRow[] {
-  const lines = text.split("\n").filter(l => l.trim() !== "");
-  const headers = lines[0].split(",").map(h => h.trim());
-  const rows: LaunchPackRow[] = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
-    const row: LaunchPackRow = {};
-    let currentVal = "";
-    let insideQuotes = false;
-    let colIndex = 0;
-
-    for (let charIndex = 0; charIndex < line.length; charIndex++) {
-      const char = line[charIndex];
-
-      if (char === '"') {
-        insideQuotes = !insideQuotes;
-      } else if (char === "," && !insideQuotes) {
-        row[headers[colIndex]] = currentVal
-          .trim()
-          .replace(/^"|"$/g, "")
-          .replace(/""/g, '"');
-        currentVal = "";
-        colIndex++;
-      } else {
-        currentVal += char;
-      }
-    }
-
-    row[headers[colIndex]] = currentVal
-      .trim()
-      .replace(/^"|"$/g, "")
-      .replace(/""/g, '"');
-
-    rows.push(row);
-  }
-
-  return rows;
+  const workbook = XLSX.read(text, { type: "string", raw: false });
+  const firstSheet = workbook.SheetNames[0];
+  if (!firstSheet) return [];
+  return XLSX.utils.sheet_to_json<LaunchPackRow>(workbook.Sheets[firstSheet], {
+    defval: "",
+  });
 }
 
 const mapping = {

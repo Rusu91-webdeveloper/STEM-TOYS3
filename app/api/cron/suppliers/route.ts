@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { runSupplierFeedSync } from "@/lib/suppliers/sync";
 
 function handleSync(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCronRequest(authHeader)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

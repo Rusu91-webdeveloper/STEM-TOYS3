@@ -19,6 +19,7 @@ import type {
     FanCourierAwbPayload,
     FanCourierServiceType,
 } from "@/lib/integrations/fancourier/types";
+import { getFanCourierSenderConfig } from "@/lib/integrations/fancourier/types";
 import { extractDimensionsCm } from "@/lib/shipping/shipping-pricing";
 import { getShippingSettings } from "@/lib/utils/store-settings";
 import { sendSupplierAwbLabelEmail } from "@/lib/email/supplier-awb";
@@ -154,7 +155,12 @@ const collectSupplierContacts = (
 
 const resolveSupplierEmail = (supplier: SupplierPickupContact | null) => {
     if (!supplier) return process.env.SUPPLIER_EMAIL || null;
-    return supplier.email || process.env.SUPPLIER_EMAIL || null;
+    const normalizedSupplierName = supplier.name
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, "_");
+    const supplierSpecificEmail = process.env[`${normalizedSupplierName}_SUPPLIER_EMAIL`];
+    return supplier.email || supplierSpecificEmail || process.env.SUPPLIER_EMAIL || null;
 };
 
 const formatPickupDate = (offsetDays: number) => {
@@ -243,6 +249,7 @@ const buildAwbPayload = (input: {
         input.order.shippingAddress.addressLine1,
         input.order.shippingAddress.addressLine2
     );
+    const senderConfig = getFanCourierSenderConfig();
 
     return {
         clientId: getFanCourierClientId(),
@@ -288,6 +295,19 @@ const buildAwbPayload = (input: {
                         zipCode: input.order.shippingAddress.postalCode,
                         pickupLocation:
                             service === "FANbox" ? pickupLocation ?? undefined : undefined,
+                        },
+                },
+                sender: {
+                    name: senderConfig.name,
+                    contactperson: senderConfig.contactPerson,
+                    email: senderConfig.email,
+                    phone: senderConfig.phone,
+                    address: {
+                        county: senderConfig.county,
+                        locality: senderConfig.locality,
+                        street: senderConfig.street,
+                        streetNo: senderConfig.number,
+                        zipCode: senderConfig.postalCode,
                     },
                 },
             },
@@ -348,6 +368,25 @@ export const createFanAwbForOrder = async (
     if (!hasPhysicalItems) {
         return { success: false, error: "Order has no shippable items" };
     }
+    const physicalItems = order.items.filter((item) => item.isDigital !== true);
+    const missingProductLinks = physicalItems.filter((item) => !item.productId);
+    if (missingProductLinks.length > 0) {
+        const reason =
+            "Order contains physical items without linked product records. Manual fulfillment review required.";
+        await db.order.update({
+            where: { id: order.id },
+            data: {
+                manualShippingReviewRequired: true,
+                shippingReviewReason: reason,
+            },
+        });
+        return {
+            success: false,
+            error: reason,
+            manualReviewRequired: true,
+            reviewReason: reason,
+        };
+    }
 
     const isCodPayment =
         order.paymentMethod === "cash_on_delivery" ||
@@ -372,10 +411,13 @@ export const createFanAwbForOrder = async (
     }
 
     // Calculate chargeable weight
-    const productIds = order.items
-        .filter((item) => item.isDigital !== true)
-        .map((item) => item.productId)
-        .filter(Boolean) as string[];
+    const productIds = Array.from(
+        new Set(
+            physicalItems
+                .map((item) => item.productId)
+                .filter(Boolean) as string[]
+        )
+    );
 
     const products = await db.product.findMany({
         where: { id: { in: productIds } },
@@ -400,6 +442,23 @@ export const createFanAwbForOrder = async (
             },
         },
     });
+    if (products.length !== productIds.length) {
+        const reason =
+            "One or more ordered products are missing from catalog. Manual fulfillment review required.";
+        await db.order.update({
+            where: { id: order.id },
+            data: {
+                manualShippingReviewRequired: true,
+                shippingReviewReason: reason,
+            },
+        });
+        return {
+            success: false,
+            error: reason,
+            manualReviewRequired: true,
+            reviewReason: reason,
+        };
+    }
 
     const totalWeight = products.reduce((sum, p) => sum + (p.weight || 0), 0);
     const chargeableWeightKg = Math.max(totalWeight, 1); // Minimum 1kg
@@ -467,6 +526,25 @@ export const createFanAwbForOrder = async (
         supplierContext.suppliers.length === 1
             ? supplierContext.suppliers[0]
             : null;
+    if (supplierContext.suppliers.length > 1 || supplierContext.missingSupplierCount > 0) {
+        const reason =
+            supplierContext.suppliers.length > 1
+                ? "Order contains items from multiple suppliers; split shipments manually per supplier."
+                : "One or more products have no assigned supplier; manual shipment review required.";
+        await db.order.update({
+            where: { id: order.id },
+            data: {
+                manualShippingReviewRequired: true,
+                shippingReviewReason: reason,
+            },
+        });
+        return {
+            success: false,
+            error: reason,
+            manualReviewRequired: true,
+            reviewReason: reason,
+        };
+    }
 
     // Create shipment record
     const shipment = await db.shipment.create({
@@ -485,16 +563,6 @@ export const createFanAwbForOrder = async (
     let courierErrorMessage: string | null = null;
     let manualShippingReviewRequired = false;
     let shippingReviewReason: string | null = null;
-
-    if (supplierContext.suppliers.length > 1) {
-        manualShippingReviewRequired = true;
-        shippingReviewReason =
-            "Order contains items from multiple suppliers; manual shipment split required.";
-    } else if (supplierContext.missingSupplierCount > 0) {
-        manualShippingReviewRequired = true;
-        shippingReviewReason =
-            "One or more products have no supplier assigned; manual shipment review required.";
-    }
 
     try {
         response = await createFanCourierAwb(

@@ -220,13 +220,12 @@ async function handleSuccessfulPayment(
 
     const hasPhysicalItems = order.items.some(item => item.isDigital !== true);
     if (hasPhysicalItems) {
+      let supplierOrderCount = await db.supplierOrder.count({
+        where: { orderId: order.id },
+      });
       try {
         const { OrderProcessor } = await import("@/lib/order-processor");
-        const { db } = await import("@/lib/db");
-        const existingSupplierOrders = await db.supplierOrder.count({
-          where: { orderId: order.id },
-        });
-        if (existingSupplierOrders === 0) {
+        if (supplierOrderCount === 0) {
           const processResult = await OrderProcessor.processNewOrder(order.id);
           if (!processResult.success && processResult.errors.length > 0) {
             console.warn(
@@ -238,6 +237,9 @@ async function handleSuccessfulPayment(
               `✅ [STRIPE][WEBHOOK] Created ${processResult.supplierOrders.length} supplier order(s) for order ${order.id}`
             );
           }
+          supplierOrderCount = await db.supplierOrder.count({
+            where: { orderId: order.id },
+          });
         }
       } catch (processorError) {
         console.error(
@@ -245,26 +247,41 @@ async function handleSuccessfulPayment(
           processorError
         );
       }
-      try {
-        const { createCourierAwbForOrder } = await import(
-          "@/lib/shipping/awb-dispatcher"
+      if (supplierOrderCount === 0) {
+        const reason =
+          "Supplier orders were not created after Stripe payment confirmation. Manual fulfillment review required.";
+        await db.order.update({
+          where: { id: order.id },
+          data: {
+            manualShippingReviewRequired: true,
+            shippingReviewReason: reason,
+          },
+        });
+        console.warn(
+          `⚠️ [STRIPE][WEBHOOK] Skipping AWB for order ${order.id}: ${reason}`
         );
-        const awbResult = await createCourierAwbForOrder(order.id);
-        if (awbResult.success) {
-          console.log(
-            `✅ [STRIPE][WEBHOOK] AWB created for order ${order.id}: ${awbResult.awbNumber}`
+      } else {
+        try {
+          const { createCourierAwbForOrder } = await import(
+            "@/lib/shipping/awb-dispatcher"
           );
-        } else {
-          console.warn(
-            `⚠️ [STRIPE][WEBHOOK] AWB creation failed for order ${order.id}:`,
-            awbResult.error
+          const awbResult = await createCourierAwbForOrder(order.id);
+          if (awbResult.success) {
+            console.log(
+              `✅ [STRIPE][WEBHOOK] AWB created for order ${order.id}: ${awbResult.awbNumber}`
+            );
+          } else {
+            console.warn(
+              `⚠️ [STRIPE][WEBHOOK] AWB creation failed for order ${order.id}:`,
+              awbResult.error
+            );
+          }
+        } catch (awbError) {
+          console.error(
+            `❌ [STRIPE][WEBHOOK] AWB creation error for order ${order.id}:`,
+            awbError
           );
         }
-      } catch (awbError) {
-        console.error(
-          `❌ [STRIPE][WEBHOOK] AWB creation error for order ${order.id}:`,
-          awbError
-        );
       }
     }
 

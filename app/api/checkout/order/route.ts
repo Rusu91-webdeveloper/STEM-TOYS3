@@ -225,9 +225,10 @@ export async function POST(request: Request) {
       typeof orderData.paymentMethod === "string" &&
       orderData.paymentMethod.startsWith("netopia_");
 
-    // All payments blocked for non-admins - production testing safety (admin-only checkout)
+    // Optional testing gate: keep checkout admin-only only when explicitly enabled.
     const isAdmin = user?.role === "ADMIN";
-    if (!isAdmin) {
+    const checkoutAdminOnly = process.env.CHECKOUT_ADMIN_ONLY === "true";
+    if (checkoutAdminOnly && !isAdmin) {
       return NextResponse.json(
         {
           success: false,
@@ -1319,19 +1320,52 @@ export async function POST(request: Request) {
 
       if (isCODPayment && hasPhysicalItems) {
         try {
-          const { createCourierAwbForOrder } = await import(
-            "@/lib/shipping/awb-dispatcher"
-          );
-          const awbResult = await createCourierAwbForOrder(dbOrder.id);
-          if (awbResult.success) {
-            console.log(
-              `✅ Order ${dbOrder.id}: AWB created for COD order: ${awbResult.awbNumber}`
+          const { OrderProcessor } = await import("@/lib/order-processor");
+          let supplierOrderCount = await db.supplierOrder.count({
+            where: { orderId: dbOrder.id },
+          });
+
+          if (supplierOrderCount === 0) {
+            const processResult = await OrderProcessor.processNewOrder(dbOrder.id);
+            if (!processResult.success && processResult.errors.length > 0) {
+              console.warn(
+                `[CHECKOUT][COD] Supplier orders had errors for order ${dbOrder.id}:`,
+                processResult.errors
+              );
+            }
+            supplierOrderCount = await db.supplierOrder.count({
+              where: { orderId: dbOrder.id },
+            });
+          }
+
+          if (supplierOrderCount === 0) {
+            const reason =
+              "Supplier orders were not created for this COD order. Manual fulfillment review required.";
+            await db.order.update({
+              where: { id: dbOrder.id },
+              data: {
+                manualShippingReviewRequired: true,
+                shippingReviewReason: reason,
+              },
+            });
+            console.warn(
+              `[CHECKOUT][COD] Skipping AWB for order ${dbOrder.id}: ${reason}`
             );
           } else {
-            console.warn(
-              `⚠️ Order ${dbOrder.id}: AWB creation failed for COD order:`,
-              awbResult.error
+            const { createCourierAwbForOrder } = await import(
+              "@/lib/shipping/awb-dispatcher"
             );
+            const awbResult = await createCourierAwbForOrder(dbOrder.id);
+            if (awbResult.success) {
+              console.log(
+                `✅ Order ${dbOrder.id}: AWB created for COD order: ${awbResult.awbNumber}`
+              );
+            } else {
+              console.warn(
+                `⚠️ Order ${dbOrder.id}: AWB creation failed for COD order:`,
+                awbResult.error
+              );
+            }
           }
         } catch (awbError) {
           console.error(

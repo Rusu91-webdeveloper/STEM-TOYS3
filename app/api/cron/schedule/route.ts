@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { getCronSecret, isAuthorizedCronRequest } from "@/lib/cron-auth";
+
 /**
  * Cron job scheduler endpoint
  * This endpoint can be called by external cron services like Vercel Cron, GitHub Actions, etc.
@@ -8,7 +10,7 @@ export async function GET(req: NextRequest) {
   try {
     // Verify this is a cron job request
     const authHeader = req.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!isAuthorizedCronRequest(authHeader)) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
@@ -67,11 +69,14 @@ export async function POST(req: NextRequest) {
     }
 
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-    const cronSecret = process.env.CRON_SECRET;
+    const cronSecret = getCronSecret();
 
     if (!cronSecret) {
       return NextResponse.json(
-        { success: false, error: "CRON_SECRET not configured" },
+        {
+          success: false,
+          error: "Cron secret not configured (CRON_SECRET/CRON_SECRET_TOKEN)",
+        },
         { status: 500 }
       );
     }

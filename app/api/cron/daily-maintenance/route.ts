@@ -1,6 +1,7 @@
 import { OrderStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
+import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import {
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
   try {
     // Verify this is a cron job request
     const authHeader = req.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!isAuthorizedCronRequest(authHeader)) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 

@@ -220,13 +220,12 @@ export async function POST(request: Request) {
             item => item.isDigital !== true
           );
           if (hasPhysicalItems) {
+            let supplierOrderCount = await db.supplierOrder.count({
+              where: { orderId: orderID },
+            });
             try {
               const { OrderProcessor } = await import("@/lib/order-processor");
-              const { db } = await import("@/lib/db");
-              const existingSupplierOrders = await db.supplierOrder.count({
-                where: { orderId: orderID },
-              });
-              if (existingSupplierOrders === 0) {
+              if (supplierOrderCount === 0) {
                 const processResult =
                   await OrderProcessor.processNewOrder(orderID);
                 if (!processResult.success && processResult.errors.length > 0) {
@@ -239,6 +238,9 @@ export async function POST(request: Request) {
                     `✅ [WEBHOOK] Created ${processResult.supplierOrders.length} supplier order(s) for order ${orderID}`
                   );
                 }
+                supplierOrderCount = await db.supplierOrder.count({
+                  where: { orderId: orderID },
+                });
               }
             } catch (processorError) {
               console.error(
@@ -246,26 +248,41 @@ export async function POST(request: Request) {
                 processorError
               );
             }
-            try {
-              const { createCourierAwbForOrder } = await import(
-                "@/lib/shipping/awb-dispatcher"
+            if (supplierOrderCount === 0) {
+              const reason =
+                "Supplier orders were not created after Netopia payment confirmation. Manual fulfillment review required.";
+              await db.order.update({
+                where: { id: orderID },
+                data: {
+                  manualShippingReviewRequired: true,
+                  shippingReviewReason: reason,
+                },
+              });
+              console.warn(
+                `⚠️ [WEBHOOK] Skipping AWB for order ${orderID}: ${reason}`
               );
-              const awbResult = await createCourierAwbForOrder(orderID);
-              if (awbResult.success) {
-                console.log(
-                  `✅ [WEBHOOK] AWB created for order ${orderID}: ${awbResult.awbNumber}`
+            } else {
+              try {
+                const { createCourierAwbForOrder } = await import(
+                  "@/lib/shipping/awb-dispatcher"
                 );
-              } else {
-                console.warn(
-                  `⚠️ [WEBHOOK] AWB creation failed for order ${orderID}:`,
-                  awbResult.error
+                const awbResult = await createCourierAwbForOrder(orderID);
+                if (awbResult.success) {
+                  console.log(
+                    `✅ [WEBHOOK] AWB created for order ${orderID}: ${awbResult.awbNumber}`
+                  );
+                } else {
+                  console.warn(
+                    `⚠️ [WEBHOOK] AWB creation failed for order ${orderID}:`,
+                    awbResult.error
+                  );
+                }
+              } catch (awbError) {
+                console.error(
+                  `❌ [WEBHOOK] AWB creation error for order ${orderID}:`,
+                  awbError
                 );
               }
-            } catch (awbError) {
-              console.error(
-                `❌ [WEBHOOK] AWB creation error for order ${orderID}:`,
-                awbError
-              );
             }
           }
 
