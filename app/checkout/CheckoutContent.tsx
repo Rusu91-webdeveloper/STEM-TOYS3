@@ -26,13 +26,13 @@ export function CheckoutContent() {
         <div className="container relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Hormozi-Style Checkout Header */}
           <div
-            className={`${glassPanelClass} mx-auto w-full max-w-5xl overflow-hidden px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12 text-slate-100`}
+            className={`${glassPanelClass} mx-auto w-full max-w-5xl overflow-hidden border-white/15 bg-slate-900/70 px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12 text-slate-100`}
           >
             <div className="mx-auto max-w-3xl text-center">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold sm:font-bold tracking-tight mb-4 bg-gradient-to-r from-emerald-400 via-sky-400 to-indigo-400 bg-clip-text text-transparent">
+              <h1 className="mb-4 text-2xl font-semibold tracking-tight text-slate-100 sm:text-3xl sm:font-bold md:text-4xl lg:text-5xl">
                 {t("checkoutPageH1", "Completează Transformarea Copilului Tău")}
               </h1>
-              <p className="text-base sm:text-lg md:text-xl text-slate-200/80 leading-relaxed mb-6">
+              <p className="mb-6 text-base leading-relaxed text-slate-200 sm:text-lg md:text-xl">
                 {t(
                   "checkoutPageSubtitle",
                   "Ești la 30 de secunde distanță să-ți schimbi copilul pentru totdeauna. Alătură-te miilor de părinți care au văzut deja transformarea."
@@ -95,7 +95,7 @@ export function CheckoutContent() {
           </div>
 
           <div
-            className={`${glassPanelClass} mt-8 sm:mt-10 lg:mt-12 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10 text-slate-100`}
+            className={`${glassPanelClass} mt-8 border-white/15 bg-slate-900/70 px-4 py-6 text-slate-100 sm:mt-10 sm:px-6 sm:py-8 lg:mt-12 lg:px-10 lg:py-10`}
           >
             <StripeBypassProvider>
               <CheckoutFlow />

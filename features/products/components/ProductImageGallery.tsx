@@ -97,7 +97,7 @@ export function ProductImageGallery({
           alt={getAlt(currentImageIndex)}
           fill
           priority={currentImageIndex === 0}
-          className="object-cover transition-opacity"
+          className="object-contain bg-white p-2 transition-opacity sm:p-3"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
 
@@ -131,9 +131,18 @@ export function ProductImageGallery({
           </>
         )}
 
-        <div className="absolute bottom-1 left-1 z-20 rounded-full border border-white/10 bg-slate-950/70 px-2 py-0.5 text-[10px] font-medium text-slate-100 backdrop-blur sm:hidden">
-          Tap to zoom
-        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={event => {
+            event.stopPropagation();
+            openFullscreen();
+          }}
+          className="absolute bottom-1 left-1 z-20 h-7 rounded-full border border-white/15 bg-slate-950/70 px-2.5 text-[10px] font-semibold text-slate-100 backdrop-blur hover:bg-slate-900/80 sm:hidden"
+        >
+          View full
+        </Button>
 
         {/* Image counter */}
         {images.length > 1 && (
@@ -175,7 +184,7 @@ export function ProductImageGallery({
           role="dialog"
           aria-modal="true"
           aria-label="Product image full screen viewer"
-          className="fixed inset-0 z-[90] bg-black/95 p-3 sm:p-6"
+          className="fixed inset-0 z-[90] bg-black/95 p-0 sm:p-6"
           onClick={closeFullscreen}
         >
           <div

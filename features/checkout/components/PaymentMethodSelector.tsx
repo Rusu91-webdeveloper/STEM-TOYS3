@@ -282,13 +282,13 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   const getBadgeStyles = (variant?: "recommended" | "popular" | "saved") => {
     switch (variant) {
       case "recommended":
-        return "bg-gradient-to-r from-violet-500 to-purple-500 text-white";
+        return "border border-violet-200 bg-violet-50 text-violet-700";
       case "popular":
-        return "bg-gradient-to-r from-amber-500 to-orange-500 text-white";
+        return "border border-amber-200 bg-amber-50 text-amber-700";
       case "saved":
-        return "bg-gradient-to-r from-emerald-500 to-teal-500 text-white";
+        return "border border-emerald-200 bg-emerald-50 text-emerald-700";
       default:
-        return "bg-slate-100 text-slate-600";
+        return "border border-slate-200 bg-slate-50 text-slate-700";
     }
   };
 
@@ -320,45 +320,45 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   };
 
   // Color config for each payment method type
-  const getColorConfig = (color: string, isSelected: boolean) => {
-    const configs: Record<string, { icon: string; ring: string; bg: string; border: string; selectedBg: string }> = {
+  const getColorConfig = (color: string) => {
+    const configs: Record<
+      string,
+      { icon: string; ring: string; bg: string; border: string }
+    > = {
       violet: {
         icon: "text-violet-600",
-        ring: "ring-violet-500",
+        ring: "ring-violet-300",
         bg: "bg-violet-50",
-        border: "border-violet-200",
-        selectedBg: "bg-violet-50",
+        border: "border-violet-300",
       },
       blue: {
         icon: "text-blue-600",
-        ring: "ring-blue-500",
+        ring: "ring-blue-300",
         bg: "bg-blue-50",
-        border: "border-blue-200",
-        selectedBg: "bg-blue-50",
+        border: "border-blue-300",
       },
       amber: {
         icon: "text-amber-600",
-        ring: "ring-amber-500",
+        ring: "ring-amber-300",
         bg: "bg-amber-50",
-        border: "border-amber-200",
-        selectedBg: "bg-amber-50",
+        border: "border-amber-300",
       },
     };
     return configs[color] || configs.violet;
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Section Header */}
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25">
+      <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 shadow-sm">
           <CreditCard className="h-5 w-5 text-white" />
         </div>
-        <div>
-          <Label className="block text-lg font-semibold text-slate-800">
+        <div className="min-w-0">
+          <Label className="block text-base font-semibold text-slate-900 sm:text-lg">
             {t("selectPaymentMethod", "Metodă de plată")}
           </Label>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-600">
             {t("paymentMethodSubtitle", "Alege cum dorești să plătești")}
           </p>
         </div>
@@ -368,11 +368,11 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       <RadioGroup
         value={selectedPaymentMethod}
         onValueChange={onPaymentMethodChange}
-        className="grid gap-3"
+        className="grid gap-3.5"
       >
         {paymentMethods.map(method => {
           const isSelected = selectedPaymentMethod === method.id;
-          const colorConfig = getColorConfig(method.color, isSelected);
+          const colorConfig = getColorConfig(method.color);
           const providerStyles = getProviderStyles(method.provider);
 
           return (
@@ -380,20 +380,20 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
               key={method.id}
               htmlFor={`payment-${method.id}`}
               className={cn(
-                "group relative flex cursor-pointer rounded-2xl border-2 bg-white p-4 transition-all duration-200",
+                "group relative flex cursor-pointer rounded-2xl border bg-white px-4 py-4 transition-all duration-200 sm:px-5",
                 isSelected
-                  ? `${colorConfig.border} ${colorConfig.ring} ring-2 shadow-lg`
-                  : "border-slate-200 hover:border-slate-300 hover:shadow-md",
+                  ? `${colorConfig.border} ${colorConfig.ring} ring-2 shadow-md`
+                  : "border-slate-200 hover:border-slate-300 hover:shadow-sm",
               )}
             >
               {/* Selection indicator */}
               <div className={cn(
-                "absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full transition-all duration-200",
+                "absolute right-4 top-4 flex h-5 w-5 items-center justify-center rounded-full transition-all duration-200",
                 isSelected
-                  ? "bg-gradient-to-br from-violet-500 to-purple-600 shadow-md"
-                  : "border-2 border-slate-300 bg-white"
+                  ? "bg-slate-900 shadow-sm"
+                  : "border border-slate-300 bg-white"
               )}>
-                {isSelected && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
+                {isSelected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
               </div>
 
               {/* Hidden radio input */}
@@ -404,10 +404,10 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
               />
 
               {/* Card content */}
-              <div className="flex flex-1 items-start gap-4">
+              <div className="flex flex-1 items-start gap-3.5 sm:gap-4">
                 {/* Icon container */}
                 <div className={cn(
-                  "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl transition-colors",
+                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors sm:h-12 sm:w-12",
                   isSelected ? colorConfig.bg : "bg-slate-100 group-hover:bg-slate-50"
                 )}>
                   <div className={cn(
@@ -420,54 +420,51 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
 
                 {/* Text content */}
                 <div className="min-w-0 flex-1 pr-8">
-                  {/* Method name + badge row */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-semibold text-slate-800">
+                  {/* Method name + fee row */}
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <h3 className="text-sm font-semibold text-slate-900 sm:text-base">
                       {method.name}
                     </h3>
+                    {method.fee && (
+                      <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                        {method.fee}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
                     {method.badge && (
                       <span className={cn(
-                        "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
+                        "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
                         getBadgeStyles(method.badgeVariant)
                       )}>
                         {method.badge}
                       </span>
                     )}
-                  </div>
 
-                  {/* Description */}
-                  {method.description && (
-                    <p className="mt-1 text-sm text-slate-500 line-clamp-2">
-                      {method.description}
-                    </p>
-                  )}
-
-                  {/* Saved card holder name */}
-                  {method.type === "saved_card" && (
-                    <p className="mt-1 text-xs text-slate-400">
-                      {savedCards.find(card => card.id === method.id)?.cardholderName}
-                    </p>
-                  )}
-
-                  {/* Footer: Provider + Fee */}
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    {/* Provider chip */}
                     <span className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
+                      "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
                       providerStyles.bg,
                       providerStyles.text
                     )}>
                       {providerStyles.icon}
                       {providerStyles.label}
                     </span>
-
-                    {/* Fee chip */}
-                    {method.fee && (
-                      <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                        {method.fee}
-                      </span>
-                    )}
                   </div>
+
+                  {/* Description */}
+                  {method.description && (
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600 line-clamp-2">
+                      {method.description}
+                    </p>
+                  )}
+
+                  {/* Saved card holder name */}
+                  {method.type === "saved_card" && (
+                    <p className="mt-1.5 text-xs font-medium text-slate-500">
+                      {savedCards.find(card => card.id === method.id)?.cardholderName}
+                    </p>
+                  )}
                 </div>
               </div>
             </label>
@@ -476,9 +473,9 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       </RadioGroup>
 
       {/* Security footer */}
-      <div className="flex items-center justify-center gap-2 rounded-xl bg-slate-50 px-4 py-3">
-        <ShieldCheck className="h-4 w-4 text-emerald-500" />
-        <p className="text-xs text-slate-500">
+      <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-2.5">
+        <ShieldCheck className="h-4 w-4 text-emerald-600" />
+        <p className="text-xs font-medium text-emerald-800">
           {t("securePayment", "Plățile tale sunt protejate și criptate end-to-end")}
         </p>
       </div>

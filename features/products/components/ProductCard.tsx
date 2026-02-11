@@ -139,14 +139,14 @@ export function ProductCard({
           className
         )}
       >
-        <div className="relative z-10 w-full xs:w-2/5 sm:w-1/3 aspect-[4/3] xs:aspect-auto xs:h-auto overflow-hidden bg-slate-50">
+        <div className="relative z-10 w-full xs:w-2/5 sm:w-1/3 aspect-[5/4] xs:aspect-auto min-h-[220px] xs:min-h-0 overflow-hidden bg-slate-50">
           <Link href={`/products/${product.slug}`} className="block h-full w-full">
             <OptimizedProductImage
               src={imageUrl}
               alt={product.name}
               fill
-              className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
-              sizes="(max-width: 640px) 100vw, 300px"
+              className="object-contain p-3 sm:p-4 transition-transform duration-500 group-hover:scale-110"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 44vw, 320px"
               priority={priority}
             />
           </Link>
@@ -184,7 +184,7 @@ export function ProductCard({
               {renderRating()}
             </div>
 
-            <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+            <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">
               {product.description}
             </p>
 

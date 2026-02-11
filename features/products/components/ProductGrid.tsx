@@ -327,7 +327,7 @@ export function ProductGrid({
           ))}
         </div>
       ) : (
-        <div className="flex flex-col space-y-2 sm:space-y-4 lg:space-y-6">
+        <div className="flex flex-col space-y-3 sm:space-y-4 lg:space-y-6">
           {sortedProducts.map((product, index) => (
             <ProductCard
               key={product.id}
