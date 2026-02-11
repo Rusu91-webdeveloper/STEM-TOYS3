@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { gscService } from "@/lib/services/google-search-console-service";
+import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 
 /**
  * Cron job endpoint to save daily SEO analytics data
@@ -7,11 +8,8 @@ import { gscService } from "@/lib/services/google-search-console-service";
  */
 export async function GET(request: NextRequest) {
   try {
-    // Basic authentication check (replace with proper auth in production)
     const authHeader = request.headers.get("authorization");
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-
-    if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
+    if (!isAuthorizedCronRequest(authHeader)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -64,11 +62,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Allow POST for manual triggering (still check auth)
     const authHeader = request.headers.get("authorization");
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-
-    if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
+    if (!isAuthorizedCronRequest(authHeader)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

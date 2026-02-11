@@ -48,7 +48,7 @@ interface PaymentFormProps {
   shippingMethod?: ShippingMethod;
   appliedCoupon?: any;
   discountAmount?: number;
-  /** When false, only COD is shown (card payments disabled for production testing). */
+  /** Whether current user has admin role. */
   isAdmin?: boolean;
   onSubmit: (data: {
     paymentMethod: PaymentMethod;
@@ -75,7 +75,10 @@ export function PaymentForm({
 }: PaymentFormProps) {
   const { getCartTotal, items: cartItems } = useCart();
   const { t } = useTranslation();
-  const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
+  const { settings } = useCheckoutSettings();
+  const isCheckoutRestricted = settings?.checkoutAdminOnly === true && !isAdmin;
+  const stripeEnabled =
+    !isCheckoutRestricted && process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
   const stripeAttemptIdRef = useRef<string | null>(null);
 
   const [useSameAddress, setUseSameAddress] = useState(
@@ -97,7 +100,6 @@ export function PaymentForm({
   const [calculatedShippingCost, setCalculatedShippingCost] = useState(0);
   const [userLocation, setUserLocation] = useState<string>("");
   const [userLocale, setUserLocale] = useState<string>("");
-  const { settings } = useCheckoutSettings();
   const [codConfig, setCodConfig] = useState<{
     percentage: number;
     fixedFee: number;
@@ -609,6 +611,7 @@ export function PaymentForm({
           }
           shippingCountry={shippingAddress?.country}
           isAdmin={isAdmin}
+          checkoutAdminOnly={settings?.checkoutAdminOnly === true}
         />
 
         <PaymentSummary
@@ -722,7 +725,7 @@ export function PaymentForm({
             disabled={
               !selectedPaymentMethod ||
               isCodLimitExceeded ||
-              !isAdmin /* Checkout admin-only during production testing */
+              isCheckoutRestricted
             }
           >
             {t("continueToReview", "Continuă la verificare")}

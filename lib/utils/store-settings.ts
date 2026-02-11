@@ -90,7 +90,7 @@ export async function getStoreSettings() {
         taxSettings: {
           rate: "21",
           active: true,
-          includeInPrice: true,
+          includeInPrice: false,
         },
       };
 
@@ -169,7 +169,7 @@ export async function getStoreSettings() {
       taxSettings: {
         rate: "21",
         active: true,
-        includeInPrice: true,
+        includeInPrice: false,
       },
     };
 
@@ -239,7 +239,7 @@ export async function getTaxSettings() {
     settings.taxSettings || {
       rate: "21",
       active: true,
-      includeInPrice: true,
+      includeInPrice: false,
     }
   );
 }

@@ -18,6 +18,8 @@ export interface CheckoutSettings {
     /** Ramburs (COD) shipping price (default: 24.99 RON) */
     rambursPrice?: string;
   };
+  /** When true, checkout is restricted to admins only. */
+  checkoutAdminOnly?: boolean;
 }
 
 interface UseCheckoutSettingsReturn {

@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { Truck, Clock, CreditCard, Package, Shield, MapPin, HelpCircle, ArrowRight } from "lucide-react";
 
+import { COD_MAX_B2B, COD_MAX_B2C } from "@/lib/shipping/cod-thresholds";
 import { getShippingSettings } from "@/lib/utils/store-settings";
 
 export const metadata: Metadata = {
@@ -31,8 +32,8 @@ export default async function ShippingPage() {
     const freeThreshold = shippingSettings.freeThreshold?.price || "199";
     const isFreeShippingActive = shippingSettings.freeThreshold?.active !== false;
 
-    // COD limit - max 2500 RON as per business requirement
-    const codMaxLimit = 2500;
+    const codLimitB2C = COD_MAX_B2C;
+    const codLimitB2B = COD_MAX_B2B;
 
     return (
         <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -165,7 +166,7 @@ export default async function ShippingPage() {
                     </p>
                 </section>
 
-                {/* COD Section with 2500 RON limit */}
+                {/* COD section with dynamic limits from configured thresholds */}
                 <section className="mb-10">
                     <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                         <Package className="w-6 h-6 text-blue-600" />
@@ -179,10 +180,13 @@ export default async function ShippingPage() {
                         <div className="bg-white rounded-lg p-4 border border-orange-200">
                             <p className="font-semibold text-orange-800 flex items-center gap-2">
                                 <Shield className="w-5 h-5" />
-                                Limita maximă pentru plata ramburs: <span className="text-2xl">{formatPrice(codMaxLimit)} RON</span>
+                                Limite ramburs:{" "}
+                                <span className="text-lg sm:text-2xl">
+                                  B2C {formatPrice(codLimitB2C)} RON / B2B {formatPrice(codLimitB2B)} RON
+                                </span>
                             </p>
                             <p className="text-sm text-slate-600 mt-2">
-                                Pentru comenzi mai mari de {formatPrice(codMaxLimit)} RON, vă rugăm să folosiți plata online cu cardul.
+                                Pentru comenzi peste aceste limite, vă rugăm să folosiți plata online cu cardul.
                             </p>
                         </div>
                     </div>

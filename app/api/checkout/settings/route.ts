@@ -10,11 +10,13 @@ export async function GET(_request: NextRequest) {
     // Public endpoint: checkout pricing (shipping, tax) is not sensitive
     const taxSettings = await getTaxSettings();
     const shippingSettings = await getShippingSettings();
+    const checkoutAdminOnly = process.env.CHECKOUT_ADMIN_ONLY === "true";
 
     // Set cache headers for static data (5 minutes)
     const response = NextResponse.json({
       taxSettings,
       shippingSettings,
+      checkoutAdminOnly,
     });
 
     // Add cache headers for better performance
