@@ -26,9 +26,9 @@ export default function ProductFAQ({ faq }: ProductFAQProps) {
         {items.map((q, idx) => (
           <details
             key={idx}
-            className="group rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 transition hover:border-white/20"
+            className="group rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition hover:border-slate-300"
           >
-            <summary className="cursor-pointer list-none text-sm font-semibold text-slate-100 outline-none ring-0 transition group-open:text-emerald-300">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-slate-900 outline-none ring-0 transition group-open:text-emerald-700">
               {q.question}
             </summary>
             <div

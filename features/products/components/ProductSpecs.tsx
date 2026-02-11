@@ -139,7 +139,7 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
       </div>
 
       {(brand || tags.length > 0) && (
-        <Separator className={`${productDividerClass} border-white/10`} />
+        <Separator className={productDividerClass} />
       )}
 
       {brand && (
@@ -149,7 +149,7 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
           </span>
           <a
             href={`/supplier/${product?.supplier?.companySlug ?? ""}`}
-            className="text-xs font-medium text-emerald-300 underline decoration-emerald-300/30 underline-offset-4 transition hover:text-emerald-200 sm:text-sm"
+            className="text-xs font-medium text-emerald-700 underline decoration-emerald-500/30 underline-offset-4 transition hover:text-emerald-800 sm:text-sm"
           >
             {brand}
           </a>
@@ -162,7 +162,7 @@ export default function ProductSpecs({ product }: ProductSpecsProps) {
             <Badge
               key={tag}
               variant="secondary"
-              className="border-white/15 bg-white/10 text-xs text-slate-100 shadow-sm shadow-slate-900/30"
+              className="border-slate-200 bg-slate-100 text-xs text-slate-700 shadow-sm"
             >
               {tag}
             </Badge>

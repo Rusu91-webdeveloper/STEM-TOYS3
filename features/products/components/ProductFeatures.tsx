@@ -40,7 +40,7 @@ export function ProductFeatures({
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="flex items-center gap-3 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20">
-              <ShoppingCart className="h-4 w-4 text-emerald-300" />
+              <ShoppingCart className="h-4 w-4 text-emerald-700" />
             </div>
             <div>
               <div className="text-sm font-semibold text-slate-900">
@@ -53,7 +53,7 @@ export function ProductFeatures({
           </div>
           <div className="flex items-center gap-3 rounded-2xl border border-sky-400/20 bg-sky-400/10 px-3 py-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500/20">
-              <Truck className="h-4 w-4 text-sky-300" />
+              <Truck className="h-4 w-4 text-sky-700" />
             </div>
             <div>
               <div className="text-sm font-semibold text-slate-900">
@@ -68,7 +68,7 @@ export function ProductFeatures({
           </div>
           <div className="flex items-center gap-3 rounded-2xl border border-orange-400/20 bg-orange-400/10 px-3 py-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/20">
-              <RotateCcw className="h-4 w-4 text-orange-300" />
+              <RotateCcw className="h-4 w-4 text-orange-700" />
             </div>
             <div>
               <div className="text-sm font-semibold text-slate-900">
@@ -145,7 +145,7 @@ export function ProductFeatures({
         </p>
         <div className="flex flex-wrap gap-3 text-sm">
           <a
-            className="font-medium text-emerald-300 underline decoration-emerald-300/40 underline-offset-4 transition hover:text-emerald-200"
+            className="font-medium text-emerald-700 underline decoration-emerald-500/40 underline-offset-4 transition hover:text-emerald-800"
             href="/ghid-jucarii-stem-2025"
             data-conversion="cta"
             data-conversion-type="click"
@@ -157,7 +157,7 @@ export function ProductFeatures({
           </a>
           <span className={productMutedTextClass}>·</span>
           <a
-            className="font-medium text-emerald-300 underline decoration-emerald-300/40 underline-offset-4 transition hover:text-emerald-200"
+            className="font-medium text-emerald-700 underline decoration-emerald-500/40 underline-offset-4 transition hover:text-emerald-800"
             href="/jucarii-stem-dupa-varsta"
             data-conversion="cta"
             data-conversion-type="click"
@@ -169,7 +169,7 @@ export function ProductFeatures({
           </a>
           <span className={productMutedTextClass}>·</span>
           <a
-            className="font-medium text-emerald-300 underline decoration-emerald-300/40 underline-offset-4 transition hover:text-emerald-200"
+            className="font-medium text-emerald-700 underline decoration-emerald-500/40 underline-offset-4 transition hover:text-emerald-800"
             href="/beneficiile-jucariilor-stem"
             data-conversion="cta"
             data-conversion-type="click"
@@ -181,7 +181,7 @@ export function ProductFeatures({
           </a>
           <span className={productMutedTextClass}>·</span>
           <a
-            className="font-medium text-emerald-300 underline decoration-emerald-300/40 underline-offset-4 transition hover:text-emerald-200"
+            className="font-medium text-emerald-700 underline decoration-emerald-500/40 underline-offset-4 transition hover:text-emerald-800"
             href="/faq"
             data-conversion="cta"
             data-conversion-type="click"

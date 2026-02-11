@@ -111,8 +111,8 @@ export function ProductHeader({
             <span
               className={
                 size === "sm"
-                  ? "text-sm sm:text-base text-slate-400 line-through font-medium"
-                  : "text-base xl:text-lg text-slate-400 line-through font-medium"
+                  ? "text-sm sm:text-base text-slate-500 line-through font-medium"
+                  : "text-base xl:text-lg text-slate-500 line-through font-medium"
               }
             >
               {formatPrice(compareAtPrice)}

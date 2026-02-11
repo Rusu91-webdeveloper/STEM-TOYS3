@@ -29,7 +29,7 @@ export function ProductBreadcrumb({
         <li>
           <a
             href="/"
-            className="whitespace-nowrap rounded-full bg-white/5 px-2 py-0.5 text-[0.7rem] font-medium text-slate-200 transition hover:bg-white/10 sm:px-3 sm:text-xs"
+            className="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[0.7rem] font-medium text-slate-700 transition hover:bg-slate-200 sm:px-3 sm:text-xs"
           >
             {t("home", "Acasă")}
           </a>
@@ -38,7 +38,7 @@ export function ProductBreadcrumb({
         <li>
           <a
             href="/products"
-            className="whitespace-nowrap rounded-full bg-white/5 px-2 py-0.5 text-[0.7rem] font-medium text-slate-200 transition hover:bg-white/10 sm:px-3 sm:text-xs"
+            className="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[0.7rem] font-medium text-slate-700 transition hover:bg-slate-200 sm:px-3 sm:text-xs"
           >
             {t("products", "Produse")}
           </a>
@@ -47,7 +47,7 @@ export function ProductBreadcrumb({
         <li>
           <a
             href={`/categories/${categorySlug}`}
-            className="whitespace-nowrap rounded-full bg-white/5 px-2 py-0.5 text-[0.7rem] font-medium text-slate-200 transition hover:bg-white/10 sm:px-3 sm:text-xs"
+            className="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[0.7rem] font-medium text-slate-700 transition hover:bg-slate-200 sm:px-3 sm:text-xs"
           >
             {categoryName}
           </a>

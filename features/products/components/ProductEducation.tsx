@@ -72,7 +72,7 @@ export default function ProductEducation({ product }: ProductEducationProps) {
         if (items.length === 0) return null;
         return (
           <div key={block.title} className="space-y-1">
-            <div className="text-sm font-medium text-slate-100">
+            <div className="text-sm font-medium text-slate-900">
               {block.title}
             </div>
             <ul className="space-y-1.5">

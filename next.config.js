@@ -127,6 +127,11 @@ const nextConfig = {
         hostname: "cdnmpro.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "gomagcdn.ro",
+        pathname: "/**",
+      },
     ],
   },
   // Configure uploadthing directories

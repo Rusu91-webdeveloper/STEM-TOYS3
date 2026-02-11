@@ -266,7 +266,7 @@ export function ProductsMainDisplay({
               return (
                 <div
                   key={product.id}
-                  className={`${productsGlassCardClass} flex flex-col sm:flex-row gap-4 overflow-hidden transition-all duration-200 hover:shadow-md relative group animate-fadeIn`}
+                  className={`${productsGlassCardClass} flex flex-col sm:flex-row gap-3 sm:gap-4 overflow-hidden transition-all duration-200 hover:shadow-md relative group animate-fadeIn`}
                   style={{ animationDelay: `${Math.min(index * 0.1, 0.5)}s` }}
                 >
                   {/* Sale ribbon */}
@@ -280,15 +280,15 @@ export function ProductsMainDisplay({
                     )}
 
                   {/* Product image */}
-                  <div className="relative z-10 w-full sm:w-48 h-48 sm:h-56 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/80">
+                  <div className="relative z-10 w-full h-72 sm:h-56 sm:w-52 lg:w-56 flex-shrink-0 overflow-hidden rounded-t-xl sm:rounded-xl border-b border-slate-200 bg-gradient-to-b from-slate-50 to-white sm:border">
                     {product.images && product.images.length > 0 ? (
                       <OptimizedProductImage
                         src={product.images[0]}
                         alt={displayName}
                         fill
-                        className="object-contain object-center group-hover:scale-105 transition-transform duration-300 relative z-10 p-4"
+                        className="object-cover sm:object-contain object-center group-hover:scale-105 transition-transform duration-300 relative z-10 p-0 sm:p-3"
                         priority={false}
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 208px, 224px"
                       />
                     ) : (
                       <div className="w-full h-full bg-slate-100 flex items-center justify-center relative z-10">

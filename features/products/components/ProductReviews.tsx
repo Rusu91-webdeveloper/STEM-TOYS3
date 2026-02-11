@@ -115,7 +115,7 @@ export function ProductReviews({
             interactive && "cursor-pointer",
             (interactive ? star <= (hoverRating || rating) : star <= rating)
               ? "text-yellow-300 fill-yellow-300"
-              : "text-slate-500/70"
+              : "text-slate-300"
           )}
           onClick={interactive ? () => setRating(star) : undefined}
           onMouseEnter={interactive ? () => setHoverRating(star) : undefined}
@@ -129,7 +129,7 @@ export function ProductReviews({
     <section
       className={cn(
         productSubSectionCardClass,
-        "space-y-6 rounded-3xl border-white/12 bg-slate-950/55 p-4 sm:p-6 lg:p-8 shadow-lg shadow-indigo-900/40",
+        "space-y-6 rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 lg:p-8 shadow-sm",
         className
       )}
     >
@@ -142,12 +142,12 @@ export function ProductReviews({
           Real feedback from parents building future-ready STEM skills in Romania.
         </p>
       </header>
-      <div className={`${productDividerClass} border-white/12`} aria-hidden />
+      <div className={`${productDividerClass} border-slate-200`} aria-hidden />
 
       {reviews.length > 0 ? (
-        <div className="grid gap-6 rounded-2xl border border-white/12 bg-white/5 p-4 sm:p-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] shadow-inner shadow-indigo-900/20">
-          <div className="flex flex-col items-center justify-center rounded-2xl bg-slate-950/60 px-4 py-6 text-center shadow-inner shadow-black/40">
-            <span className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
+        <div className="grid gap-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center">
+            <span className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
               {averageRating.toFixed(1)}
             </span>
             <div className="mt-2">{renderStars(averageRating)}</div>
@@ -162,9 +162,9 @@ export function ProductReviews({
                 <div className={`${productBodyTextClass} w-16 text-xs sm:text-sm`}>
                   {stars} {stars === 1 ? "star" : "stars"}
                 </div>
-                <div className="relative h-2 flex-1 overflow-hidden rounded-full border border-white/10 bg-white/5">
+                <div className="relative h-2 flex-1 overflow-hidden rounded-full border border-slate-200 bg-slate-200">
                   <div
-                    className="absolute inset-y-0 left-0 rounded-full bg-emerald-400/80 shadow-lg shadow-emerald-500/30"
+                    className="absolute inset-y-0 left-0 rounded-full bg-emerald-500"
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
@@ -176,7 +176,7 @@ export function ProductReviews({
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border-2 border-dashed border-white/12 bg-white/5 px-4 py-6 text-center shadow-inner shadow-indigo-900/20">
+        <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center">
           <p className={`${productBodyTextClass} text-sm`}>
             No reviews yet. Be the first to review this STEM experience and help
             other families choose with confidence.
@@ -206,7 +206,7 @@ export function ProductReviews({
       {showReviewForm && userLoggedIn && (
         <form
           onSubmit={handleSubmitReview}
-          className="space-y-4 rounded-2xl border border-white/12 bg-white/5 p-4 sm:p-6 shadow-inner shadow-indigo-900/20"
+          className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6"
         >
           <h3 className={`${productTitleClass} text-base sm:text-lg`}>
             Write Your Review
@@ -241,7 +241,7 @@ export function ProductReviews({
               type="text"
               value={reviewTitle}
               onChange={e => setReviewTitle(e.target.value)}
-              className="w-full rounded-xl border border-white/15 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
               placeholder="Summarize your experience"
               required
             />
@@ -260,7 +260,7 @@ export function ProductReviews({
               onChange={e => setReviewContent(e.target.value)}
               placeholder="Share your experience with this product"
               rows={4}
-              className="rounded-xl border border-white/15 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
               required
             />
           </div>
@@ -281,7 +281,7 @@ export function ProductReviews({
               variant="outline"
               onClick={resetForm}
               disabled={submitting}
-              className="rounded-2xl border-white/20 bg-transparent px-5 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white"
+              className="rounded-2xl border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
             >
               Cancel
             </Button>
@@ -290,29 +290,29 @@ export function ProductReviews({
       )}
 
       <div className="space-y-5 pt-4">
-        <Separator className="bg-white/10" />
+        <Separator className="bg-slate-200" />
         {reviews.length > 0 &&
           reviews.map(review => (
             <div
               key={review.id}
-              className="space-y-3 rounded-2xl border border-white/8 bg-white/5 p-4 shadow-inner shadow-indigo-900/15 transition hover:border-white/15 hover:bg-white/8"
+              className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:bg-slate-50"
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-11 w-11 bg-slate-900/60 ring-1 ring-white/15">
+                  <Avatar className="h-11 w-11 bg-slate-100 ring-1 ring-slate-200">
                     <AvatarImage src={review.userImage} />
-                    <AvatarFallback className="text-xs font-semibold uppercase text-slate-100">
+                    <AvatarFallback className="text-xs font-semibold uppercase text-slate-700">
                       {review.userName.substring(0, 2)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="text-sm font-semibold text-slate-100">
+                    <div className="text-sm font-semibold text-slate-900">
                       {review.userName}
                     </div>
                     <div className="mt-1 flex items-center gap-2">
                       {renderStars(review.rating)}
                       {review.verified && (
-                        <span className="rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-emerald-200">
+                        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-emerald-700">
                           Verified Purchase
                         </span>
                       )}
@@ -324,7 +324,7 @@ export function ProductReviews({
                 </div>
               </div>
               <div className="space-y-1">
-                <h4 className="text-sm font-semibold text-white sm:text-base">
+                <h4 className="text-sm font-semibold text-slate-900 sm:text-base">
                   {review.title}
                 </h4>
                 <p className={`${productBodyTextClass} text-sm`}>
