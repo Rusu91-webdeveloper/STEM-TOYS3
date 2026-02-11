@@ -7,6 +7,10 @@ let cachedStoreSettings: any = null;
 let settingsLastFetched = 0;
 const SETTINGS_CACHE_DURATION = 60 * 60 * 1000; // 1 hour cache for store settings
 
+function isBusinessVatRegistered(): boolean {
+  return process.env.BUSINESS_VAT_REGISTERED === "true";
+}
+
 /**
  * Invalidate all store-settings–related caches. Call this when admin updates
  * shipping, tax, or COD settings so checkout and emails use fresh values.
@@ -89,7 +93,7 @@ export async function getStoreSettings() {
         },
         taxSettings: {
           rate: "21",
-          active: true,
+          active: false,
           includeInPrice: false,
         },
       };
@@ -102,7 +106,8 @@ export async function getStoreSettings() {
 
     // Extract codSettings from paymentSettings JSON field if it exists
     // This maintains backward compatibility with code that expects codSettings as a top-level field
-    const paymentSettings = (settings.paymentSettings as Record<string, any>) || {};
+    const paymentSettings =
+      (settings.paymentSettings as Record<string, any>) || {};
     const codSettings = paymentSettings.codSettings;
 
     // Transform the database result to include codSettings as a top-level field
@@ -168,7 +173,7 @@ export async function getStoreSettings() {
       },
       taxSettings: {
         rate: "21",
-        active: true,
+        active: false,
         includeInPrice: false,
       },
     };
@@ -235,6 +240,15 @@ export async function getCODSettings() {
  */
 export async function getTaxSettings() {
   const settings = await getStoreSettings();
+  // Non-VAT business mode: keep prices final, without tax/VAT breakdown.
+  if (!isBusinessVatRegistered()) {
+    return {
+      rate: "0",
+      active: false,
+      includeInPrice: true,
+    };
+  }
+
   return (
     settings.taxSettings || {
       rate: "21",

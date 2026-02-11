@@ -135,9 +135,7 @@ export async function fetchShippingQuotes() {
   try {
     const response = await fetch("/api/checkout/shipping-quote");
     if (!response.ok) {
-      throw new Error(
-        `Error fetching shipping quotes: ${response.statusText}`
-      );
+      throw new Error(`Error fetching shipping quotes: ${response.statusText}`);
     }
     return await response.json();
   } catch (error) {
@@ -214,11 +212,11 @@ export async function fetchTaxSettings() {
     return await response.json().then(data => data.taxSettings);
   } catch (error) {
     console.error("Failed to fetch tax settings:", error);
-    // Return default settings if fetch fails
+    // Safe fallback for non-VAT mode: keep final prices without tax breakdown.
     return {
-      rate: "21",
-      active: true,
-      includeInPrice: false,
+      rate: "0",
+      active: false,
+      includeInPrice: true,
     };
   }
 }
@@ -230,9 +228,7 @@ export async function fetchCODSettings() {
   try {
     const response = await fetch("/api/checkout/cod-settings");
     if (!response.ok) {
-      throw new Error(
-        `Error fetching COD settings: ${response.statusText}`
-      );
+      throw new Error(`Error fetching COD settings: ${response.statusText}`);
     }
     return await response.json();
   } catch (error) {

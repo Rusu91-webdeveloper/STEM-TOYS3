@@ -297,17 +297,17 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                                 </Link>
                               </Button>
                             )}
-                            
+
                             {/* Return status badge */}
                             {item.returnStatus && item.returnStatus !== "NONE" && (
                               <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mt-2 mr-2">
                                 Return {item.returnStatus.toLowerCase()}
                               </div>
                             )}
-                            
+
                             {/* Return Item Button - Only show for non-digital items that haven't been returned and within 14-day window */}
-                            {isWithinReturnWindow() && 
-                             !item.isDigital && 
+                            {isWithinReturnWindow() &&
+                             !item.isDigital &&
                              (!item.returnStatus || item.returnStatus === "NONE") && (
                               <Button
                                 variant="outline"
@@ -323,7 +323,7 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                                 </Link>
                               </Button>
                             )}
-                            
+
                             {/* Show message if return window has expired */}
                             {!isWithinReturnWindow() && !item.isDigital && (!item.returnStatus || item.returnStatus === "NONE") && (
                               <div className="flex items-center text-sm text-muted-foreground mt-2">
@@ -376,10 +376,12 @@ export function OrderDetailsClient({ order }: OrderDetailsClientProps) {
                 <span>{t("shipping")}</span>
                 <span>{formatPrice(order.shippingCost)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>{t("tax")}</span>
-                <span>{formatPrice(order.tax)}</span>
-              </div>
+              {order.tax > 0 && (
+                <div className="flex justify-between">
+                  <span>{t("tax")}</span>
+                  <span>{formatPrice(order.tax)}</span>
+                </div>
+              )}
               <Separator />
               <div className="flex justify-between font-medium">
                 <span>{t("total")}</span>

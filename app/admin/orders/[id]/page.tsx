@@ -705,10 +705,12 @@ export default function OrderDetailsPage() {
                 <span>Shipping:</span>
                 <span>{formatPrice(order.shippingCost)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span>Tax:</span>
-                <span>{formatPrice(order.tax)}</span>
-              </div>
+              {order.tax > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>Tax:</span>
+                  <span>{formatPrice(order.tax)}</span>
+                </div>
+              )}
               {order.discountAmount > 0 && (
                 <div className="flex justify-between text-sm text-green-600">
                   <span>
