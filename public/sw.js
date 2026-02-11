@@ -174,6 +174,14 @@ async function safeFetchExternal(request) {
     const url = new URL(request.url);
     const isImage = /\.(png|jpg|jpeg|gif|svg|webp|avif)$/i.test(url.pathname) || url.pathname.startsWith('/_next/image');
     if (isImage) {
+      if (isMapTileDomain(url.hostname)) {
+        return new Response('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', {
+          status: 200,
+          headers: {
+            'Content-Type': 'image/gif',
+          },
+        });
+      }
       const cached = await caches.match('/images/placeholder.jpg');
       if (cached) return cached;
       // Try to generate a minimal placeholder Response
@@ -196,11 +204,14 @@ async function handleStaticAsset(request) {
     // Try network first
     const networkResponse = await fetch(request);
     
-    if (networkResponse.ok) {
-      // Cache the response
-      const cache = await caches.open(cacheName);
-      cache.put(request, networkResponse.clone());
-      
+    // Accept opaque responses too (common for cross-origin tile/image requests).
+    if (networkResponse.ok || networkResponse.type === 'opaque') {
+      try {
+        const cache = await caches.open(cacheName);
+        cache.put(request, networkResponse.clone());
+      } catch (_cacheError) {
+        // Ignore cache errors for opaque/cross-origin assets and still return network.
+      }
       return networkResponse;
     }
   } catch (error) {
@@ -473,11 +484,27 @@ function isExternalDomain(hostname) {
     'js.stripe.com',
     'm.stripe.com',
     'checkout.stripe.com',
+    'fancourier.ro',
+    'tile.openstreetmap.org',
+    'openstreetmap.org',
+    'cartocdn.com',
+    'basemaps.cartocdn.com',
     'upstash.io',
     'redis.upstash.io'
   ];
   
   return externalDomains.some(domain => hostname.includes(domain));
+}
+
+function isMapTileDomain(hostname) {
+  const mapDomains = [
+    'tile.openstreetmap.org',
+    'openstreetmap.org',
+    'cartocdn.com',
+    'basemaps.cartocdn.com',
+  ];
+
+  return mapDomains.some(domain => hostname.includes(domain));
 }
 
 function isAuthRequest(pathname) {

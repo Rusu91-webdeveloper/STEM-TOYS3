@@ -196,6 +196,21 @@ export async function POST(request: Request) {
     // Validate request body
     const orderData = orderSchema.parse(body);
 
+    const shippingMethodId = (orderData.shippingMethod?.id || "").toLowerCase();
+    const lockerRequired =
+      shippingMethodId.includes("fanbox") || shippingMethodId.includes("easybox");
+    if (lockerRequired && !normalizeOptionalString(orderData.lockerId)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Selected locker delivery method requires locker selection (lockerId missing).",
+          error: "LOCKER_REQUIRED",
+        },
+        { status: 400 }
+      );
+    }
+
     // Validate checkout type - either authenticated user or guest with email
     if (
       !user &&

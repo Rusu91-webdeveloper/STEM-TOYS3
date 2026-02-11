@@ -4,10 +4,26 @@ import { useEffect } from "react";
 
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
-    // Re-enabled: Service worker registration is now working with OAuth
-    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      registerServiceWorker();
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+      return;
     }
+
+    // Keep service worker out of localhost/dev to avoid cache side effects.
+    if (process.env.NODE_ENV !== "production") {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then(registrations => {
+          registrations.forEach(registration => {
+            void registration.unregister();
+          });
+        })
+        .catch(error => {
+          console.warn("[SW] Failed to unregister service worker in dev:", error);
+        });
+      return;
+    }
+
+    registerServiceWorker();
   }, []);
 
   const registerServiceWorker = async () => {

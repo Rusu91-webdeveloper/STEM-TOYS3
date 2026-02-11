@@ -342,6 +342,8 @@ export function CheckoutFlow() {
           ? checkoutData.shippingAddress!
           : checkoutData.billingAddress!,
         shippingMethod: checkoutData.shippingMethod!,
+        lockerId: checkoutData.lockerId,
+        lockerAddressSnapshot: checkoutData.lockerAddressSnapshot,
         paymentMethod: checkoutData.paymentMethod!,
         couponCode: appliedCoupon?.code || null,
         discountAmount,
@@ -514,6 +516,8 @@ export function CheckoutFlow() {
           ? checkoutData.shippingAddress!
           : checkoutData.billingAddress!,
         shippingMethod: checkoutData.shippingMethod!,
+        lockerId: checkoutData.lockerId,
+        lockerAddressSnapshot: checkoutData.lockerAddressSnapshot,
         paymentMethod: "cash_on_delivery",
         couponCode: appliedCoupon?.code || null,
         discountAmount,
@@ -631,6 +635,8 @@ export function CheckoutFlow() {
           ? checkoutData.shippingAddress!
           : checkoutData.billingAddress!,
         shippingMethod: checkoutData.shippingMethod!,
+        lockerId: checkoutData.lockerId,
+        lockerAddressSnapshot: checkoutData.lockerAddressSnapshot,
         paymentMethod: checkoutData.paymentMethod || "stripe_new",
         couponCode: appliedCoupon?.code || null,
         discountAmount,
@@ -773,8 +779,13 @@ export function CheckoutFlow() {
             <div className="space-y-6">
               <ShippingMethodSelector
                 initialMethod={checkoutData.shippingMethod}
-                onSubmit={method => {
-                  updateCheckoutData({ shippingMethod: method });
+                shippingAddress={checkoutData.shippingAddress}
+                onSubmit={({ method, lockerId, lockerAddressSnapshot }) => {
+                  updateCheckoutData({
+                    shippingMethod: method,
+                    lockerId,
+                    lockerAddressSnapshot,
+                  });
                   setCurrentStep("payment");
                 }}
                 onBack={() => setCurrentStep("shipping-address")}

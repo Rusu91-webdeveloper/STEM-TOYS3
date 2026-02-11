@@ -13,43 +13,69 @@ import { glassCardClass } from "@/features/home/components/homeTheme";
 import { cn } from "@/lib/utils";
 
 import { fetchShippingQuotes, fetchShippingSettings } from "../lib/checkoutApi";
-import { ShippingMethod } from "../types";
+import { fetchFanboxPickupPoints, FanboxPickupPoint } from "../lib/checkoutApi";
+import {
+  LockerAddressSnapshot,
+  ShippingAddress,
+  ShippingMethod,
+} from "../types";
 import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 import { DEFAULT_COURIERS } from "@/lib/shipping/couriers";
+import { FanboxMapPicker } from "./FanboxMapPicker";
 
 interface ShippingMethodSelectorProps {
   initialMethod?: ShippingMethod;
-  onSubmit: (method: ShippingMethod) => void;
+  shippingAddress?: ShippingAddress;
+  onSubmit: (input: {
+    method: ShippingMethod;
+    lockerId?: string;
+    lockerAddressSnapshot?: LockerAddressSnapshot | null;
+  }) => void;
   onBack: () => void;
 }
 
 export function ShippingMethodSelector({
   initialMethod,
+  shippingAddress,
   onSubmit,
   onBack,
 }: ShippingMethodSelectorProps) {
   const defaultMethodId =
     initialMethod?.id ||
     (() => {
-      const courier = DEFAULT_COURIERS.find(c => c.enabled) || DEFAULT_COURIERS[0];
-      const service = courier?.services?.find(s => s.enabled !== false) || courier?.services?.[0];
+      const courier =
+        DEFAULT_COURIERS.find(c => c.enabled) || DEFAULT_COURIERS[0];
+      const service =
+        courier?.services?.find(s => s.enabled !== false) ||
+        courier?.services?.[0];
       return courier && service ? `${courier.id}:${service.id}` : "home";
     })();
-  const [selectedMethodId, setSelectedMethodId] = useState<string>(
-    defaultMethodId
-  );
+  const [selectedMethodId, setSelectedMethodId] =
+    useState<string>(defaultMethodId);
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingFanbox, setIsLoadingFanbox] = useState(false);
   const [freeShippingApplied, setFreeShippingApplied] = useState(false);
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<
     number | null
   >(null);
+  const [fanboxPoints, setFanboxPoints] = useState<FanboxPickupPoint[]>([]);
+  const [fanboxError, setFanboxError] = useState<string | null>(null);
+  const [selectedFanboxId, setSelectedFanboxId] = useState<string>("");
+  const [selectionError, setSelectionError] = useState<string | null>(null);
   const { formatPrice } = useCurrency();
   const { t } = useTranslation();
   const { items: cartItems, getCartTotal } = useCart();
 
   const isDigitalOnlyCart =
     cartItems.length > 0 && cartItems.every(item => item.isBook);
+
+  const methodRequiresLocker = (method?: ShippingMethod | null) => {
+    if (!method) return false;
+    if (method.requiresLocker) return true;
+    const id = method.id.toLowerCase();
+    return id.includes("fanbox") || id.includes("easybox");
+  };
 
   // Fetch shipping settings from the database
   useEffect(() => {
@@ -77,11 +103,11 @@ export function ShippingMethodSelector({
       try {
         const quoteResponse = await fetchShippingQuotes();
         const settings = await fetchShippingSettings();
-        
+
         // Get cart total to check free shipping threshold
         const cartTotal = getCartTotal();
         const isFreeShipping = checkFreeShipping(cartTotal, settings);
-        
+
         // Extract threshold value for display
         const thresholdValue = settings?.freeThreshold?.active
           ? parseFloat(settings.freeThreshold.price || "0")
@@ -97,11 +123,19 @@ export function ShippingMethodSelector({
               description: string;
               estimatedDelivery: string;
               price: number;
+              courierId?: string;
+              serviceId?: string;
+              methodType?: "home" | "easybox";
+              requiresLocker?: boolean;
             }) => ({
               id: method.id,
               name: method.name,
               description: method.description,
               estimatedDelivery: method.estimatedDelivery,
+              courierId: method.courierId,
+              serviceId: method.serviceId,
+              methodType: method.methodType,
+              requiresLocker: Boolean(method.requiresLocker),
               // Apply free shipping if threshold is exceeded
               price: isFreeShipping ? 0 : method.price,
             })
@@ -127,6 +161,12 @@ export function ShippingMethodSelector({
                   id: `${courier.id}:${service.id}`,
                   name: service.name,
                   description: service.description,
+                  courierId: courier.id,
+                  serviceId: service.id,
+                  methodType: service.methodType,
+                  requiresLocker:
+                    courier.id === "fancourier" &&
+                    service.methodType === "easybox",
                   price:
                     service.priceOverride !== undefined &&
                     service.priceOverride !== null &&
@@ -144,7 +184,7 @@ export function ShippingMethodSelector({
         setFreeShippingApplied(isFreeShipping);
         setFreeShippingThreshold(thresholdValue);
         setShippingMethods(methods);
-        
+
         const currentMethodExists = methods.some(
           method => method.id === selectedMethodId
         );
@@ -153,13 +193,13 @@ export function ShippingMethodSelector({
         }
       } catch (error) {
         console.error("Error loading shipping settings:", error);
-        
+
         // Even in fallback, check free shipping based on cart total
         const cartTotal = getCartTotal();
         // Can't check threshold without settings, use default threshold of 199
         const defaultThreshold = 199;
         const isFreeShipping = cartTotal >= defaultThreshold;
-        
+
         const fallbackMethods: ShippingMethod[] = DEFAULT_COURIERS.filter(
           courier => courier.enabled !== false
         ).flatMap(courier =>
@@ -169,6 +209,11 @@ export function ShippingMethodSelector({
               id: `${courier.id}:${service.id}`,
               name: service.name,
               description: service.description,
+              courierId: courier.id,
+              serviceId: service.id,
+              methodType: service.methodType,
+              requiresLocker:
+                courier.id === "fancourier" && service.methodType === "easybox",
               price: isFreeShipping
                 ? 0
                 : service.methodType === "easybox"
@@ -192,13 +237,140 @@ export function ShippingMethodSelector({
     loadShippingSettings();
   }, [t, isDigitalOnlyCart, getCartTotal]);
 
+  useEffect(() => {
+    const selectedMethod = shippingMethods.find(
+      method => method.id === selectedMethodId
+    );
+
+    if (!methodRequiresLocker(selectedMethod)) {
+      setFanboxPoints([]);
+      setFanboxError(null);
+      setSelectedFanboxId("");
+      return;
+    }
+
+    if (!shippingAddress?.state || !shippingAddress?.city) {
+      setFanboxPoints([]);
+      setFanboxError(
+        t(
+          "fanboxAddressRequired",
+          "Completează județul și localitatea pentru a vedea FANbox-urile disponibile."
+        )
+      );
+      return;
+    }
+
+    let isActive = true;
+    setIsLoadingFanbox(true);
+    setFanboxError(null);
+
+    fetchFanboxPickupPoints({
+      state: shippingAddress.state,
+      city: shippingAddress.city,
+      // Intentionally omit postalCode to show FANbox options for the entire city
+      // (not only for the exact street/postal code).
+    })
+      .then(result => {
+        if (!isActive) return;
+
+        if (!result.configured) {
+          setFanboxPoints([]);
+          setFanboxError(
+            t(
+              "fanboxTemporarilyUnavailable",
+              "FANbox nu este disponibil momentan. Alege livrare la adresă."
+            )
+          );
+          return;
+        }
+
+        setFanboxPoints(result.points);
+        if (result.points.length === 0) {
+          setFanboxError(
+            t(
+              "fanboxNoPointsForAddress",
+              "Nu am găsit FANbox disponibil în orașul selectat. Alege livrare la adresă."
+            )
+          );
+        } else {
+          setFanboxError(
+            result.fallbackUsed
+              ? t(
+                  "fanboxAddressFallback",
+                  "Nu am găsit FANbox exact pe adresa ta. Alege unul din lista extinsă."
+                )
+              : null
+          );
+          setSelectedFanboxId(prev =>
+            prev && result.points.some(point => point.id === prev)
+              ? prev
+              : result.points[0].id
+          );
+        }
+      })
+      .catch(() => {
+        if (!isActive) return;
+        setFanboxPoints([]);
+        setFanboxError(
+          t(
+            "fanboxFetchError",
+            "Nu am putut încărca FANbox-urile pentru adresa ta. Te rugăm să încerci din nou."
+          )
+        );
+      })
+      .finally(() => {
+        if (isActive) setIsLoadingFanbox(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [selectedMethodId, shippingMethods, shippingAddress, t]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const selectedMethod = shippingMethods.find(
       method => method.id === selectedMethodId
     );
     if (selectedMethod) {
-      onSubmit(selectedMethod);
+      if (methodRequiresLocker(selectedMethod)) {
+        const selectedFanbox = fanboxPoints.find(
+          point => point.id === selectedFanboxId
+        );
+        if (!selectedFanbox) {
+          setSelectionError(
+            t(
+              "fanboxSelectionRequired",
+              "Selectează un FANbox înainte să continui."
+            )
+          );
+          return;
+        }
+
+        setSelectionError(null);
+        onSubmit({
+          method: selectedMethod,
+          lockerId: selectedFanbox.id,
+          lockerAddressSnapshot: {
+            id: selectedFanbox.id,
+            name: selectedFanbox.name,
+            county: selectedFanbox.county,
+            locality: selectedFanbox.locality,
+            address: selectedFanbox.address,
+            postalCode: selectedFanbox.postalCode,
+            latitude: selectedFanbox.latitude,
+            longitude: selectedFanbox.longitude,
+          },
+        });
+        return;
+      }
+
+      setSelectionError(null);
+      onSubmit({
+        method: selectedMethod,
+        lockerId: undefined,
+        lockerAddressSnapshot: null,
+      });
     }
   };
 
@@ -217,7 +389,7 @@ export function ShippingMethodSelector({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Free Shipping Banner */}
       {freeShippingApplied && (
-      <div className="mb-6 rounded-2xl border border-emerald-400/40 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-sky-500/10 p-4 text-emerald-100 shadow-inner shadow-emerald-500/20">
+        <div className="mb-6 rounded-2xl border border-emerald-400/40 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-sky-500/10 p-4 text-emerald-100 shadow-inner shadow-emerald-500/20">
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
               <Gift className="h-6 w-6 text-emerald-300" />
@@ -252,7 +424,10 @@ export function ShippingMethodSelector({
         {shippingMethods.length > 0 ? (
           <RadioGroup
             value={selectedMethodId}
-            onValueChange={setSelectedMethodId}
+            onValueChange={value => {
+              setSelectedMethodId(value);
+              setSelectionError(null);
+            }}
             className="space-y-4"
           >
             {shippingMethods.map(method => {
@@ -309,12 +484,12 @@ export function ShippingMethodSelector({
                       {t("estimatedDelivery", "Estimated delivery")}:{" "}
                       {method.estimatedDelivery}
                     </p>
-                    {method.price === 0 &&
-                      freeShippingApplied && (
-                        <p className="mt-1 text-xs text-emerald-300">
-                          Transport gratuit pentru comenzi peste {formatPrice(freeShippingThreshold || 199)}!
-                        </p>
-                      )}
+                    {method.price === 0 && freeShippingApplied && (
+                      <p className="mt-1 text-xs text-emerald-300">
+                        Transport gratuit pentru comenzi peste{" "}
+                        {formatPrice(freeShippingThreshold || 199)}!
+                      </p>
+                    )}
                   </div>
                 </div>
               );
@@ -326,6 +501,42 @@ export function ShippingMethodSelector({
               "noShippingMethodsAvailable",
               "No shipping methods are currently available."
             )}
+          </p>
+        )}
+
+        {methodRequiresLocker(
+          shippingMethods.find(method => method.id === selectedMethodId)
+        ) && (
+          <div className="mt-4 rounded-xl border border-sky-300/30 bg-sky-500/10 p-4">
+            <Label className="mb-2 block text-sm font-semibold text-sky-100">
+              Selectează FANbox pentru adresa ta
+            </Label>
+
+            {isLoadingFanbox ? (
+              <div className="flex items-center gap-2 text-sm text-sky-200">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Se încarcă FANbox-urile disponibile...
+              </div>
+            ) : fanboxError ? (
+              <p className="text-sm text-amber-200">{fanboxError}</p>
+            ) : (
+              <FanboxMapPicker
+                points={fanboxPoints}
+                selectedId={selectedFanboxId}
+                countyHint={shippingAddress?.state}
+                localityHint={shippingAddress?.city}
+                onSelect={point => {
+                  setSelectedFanboxId(point.id);
+                  setSelectionError(null);
+                }}
+              />
+            )}
+          </div>
+        )}
+
+        {selectionError && (
+          <p className="mt-3 text-sm font-medium text-rose-300">
+            {selectionError}
           </p>
         )}
       </div>

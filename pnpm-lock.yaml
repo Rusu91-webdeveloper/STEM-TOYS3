@@ -224,6 +224,9 @@ importers:
       pdfkit:
         specifier: ^0.17.1
         version: 0.17.1
+      pigeon-maps:
+        specifier: ^0.22.1
+        version: 0.22.1(react@19.1.0)
       pino:
         specifier: ^9.13.1
         version: 9.13.1
@@ -6406,6 +6409,11 @@ packages:
   pify@2.3.0:
     resolution: {integrity: sha512-udgsAY+fTnvv7kI7aaxbqwWNb0AHiB0qBO89PZKPkoTmGOgdbrHDKD+0B2X4uTfJ/FT1R09r9gTsjUjNJotuog==}
     engines: {node: '>=0.10.0'}
+
+  pigeon-maps@0.22.1:
+    resolution: {integrity: sha512-mVWxgpIyhAekITeJvDGlFAo/Ytm6Fg7prpDiAuQ0Z6cJ/LwpnS8F0sF+0TDqyJu7C/DDHupkstFTNoIRqhdP5A==}
+    peerDependencies:
+      react: '*'
 
   pino-abstract-transport@2.0.0:
     resolution: {integrity: sha512-F63x5tizV6WCh4R6RHyi2Ml+M70DNRXt/+HANowMflpgGFMAym/VKm6G7ZOQRjqN7XbGxK1Lg9t6ZrtzOaivMw==}
@@ -14920,6 +14928,10 @@ snapshots:
   pidtree@0.6.0: {}
 
   pify@2.3.0: {}
+
+  pigeon-maps@0.22.1(react@19.1.0):
+    dependencies:
+      react: 19.1.0
 
   pino-abstract-transport@2.0.0:
     dependencies:

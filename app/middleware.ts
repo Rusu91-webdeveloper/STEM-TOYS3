@@ -654,7 +654,14 @@ function getContentSecurityPolicy(nonce: string) {
     "default-src": ["'self'"],
 
     // Style sources
-    "style-src": ["'self'", "'unsafe-inline'", "fonts.googleapis.com"],
+    "style-src": [
+      "'self'",
+      "'unsafe-inline'",
+      "fonts.googleapis.com",
+      "https://unpkg.com",
+      "https://cdn.jsdelivr.net",
+      "https://www.fancourier.ro",
+    ],
 
     // Font sources
     "font-src": ["'self'", "fonts.gstatic.com", "data:"],
@@ -664,6 +671,7 @@ function getContentSecurityPolicy(nonce: string) {
       "'self'",
       "data:",
       "blob:",
+      "https:",
       "utfs.io",
       "stripe.com",
       "https://stripe.com",
@@ -695,6 +703,9 @@ function getContentSecurityPolicy(nonce: string) {
         "'unsafe-inline'", // Allow all inline scripts in development
         "js.stripe.com",
         "uploadthing.com",
+        "unpkg.com",
+        "cdn.jsdelivr.net",
+        "www.fancourier.ro",
       ],
 
       // Broad connection permissions for development
@@ -731,6 +742,9 @@ function getContentSecurityPolicy(nonce: string) {
       "uploadthing.com",
       "https://js.stripe.com",
       "https://m.stripe.com",
+      "https://www.fancourier.ro",
+      "https://unpkg.com",
+      "https://cdn.jsdelivr.net",
     ],
 
     // Specific connection permissions for production with Stripe
@@ -742,6 +756,8 @@ function getContentSecurityPolicy(nonce: string) {
       "https://api.stripe.com",
       "https://m.stripe.com",
       "https://checkout.stripe.com",
+      "https://api.fancourier.ro",
+      "https://www.fancourier.ro",
     ],
 
     // Frame sources with Stripe support
@@ -750,6 +766,7 @@ function getContentSecurityPolicy(nonce: string) {
       "https://js.stripe.com",
       "https://hooks.stripe.com",
       "https://checkout.stripe.com",
+      "https://www.fancourier.ro",
     ],
 
     // Force HTTPS

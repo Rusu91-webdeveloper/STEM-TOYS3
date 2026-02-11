@@ -24,6 +24,21 @@ export interface ShippingMethod {
   description: string;
   price: number;
   estimatedDelivery: string;
+  courierId?: string;
+  serviceId?: string;
+  methodType?: "home" | "easybox";
+  requiresLocker?: boolean;
+}
+
+export interface LockerAddressSnapshot {
+  id: string;
+  name: string;
+  county: string;
+  locality: string;
+  address: string;
+  postalCode: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export type PaymentMethod =
@@ -54,6 +69,8 @@ export interface CheckoutData {
   billingAddress?: ShippingAddress;
   billingAddressSameAsShipping?: boolean;
   shippingMethod?: ShippingMethod;
+  lockerId?: string;
+  lockerAddressSnapshot?: LockerAddressSnapshot | null;
   paymentMethod?: PaymentMethod;
   paymentDetails?: PaymentDetails;
   couponCode?: string;

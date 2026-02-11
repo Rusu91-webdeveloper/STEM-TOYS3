@@ -146,6 +146,65 @@ export async function fetchShippingQuotes() {
   }
 }
 
+export interface FanboxPickupPoint {
+  id: string;
+  name: string;
+  county: string;
+  locality: string;
+  address: string;
+  postalCode: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export async function fetchFanboxPickupPoints(input: {
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  search?: string;
+}): Promise<{
+  configured: boolean;
+  points: FanboxPickupPoint[];
+  total: number;
+  filteredTotal?: number;
+  fallbackUsed?: boolean;
+  reason?: string;
+}> {
+  try {
+    const params = new URLSearchParams();
+    if (input.state) params.set("state", input.state);
+    if (input.city) params.set("city", input.city);
+    if (input.postalCode) params.set("postalCode", input.postalCode);
+    if (input.search) params.set("search", input.search);
+
+    const response = await fetch(
+      `/api/checkout/fancourier/fanbox?${params.toString()}`
+    );
+    if (!response.ok) {
+      throw new Error(`Error fetching FANbox points: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return {
+      configured: data.configured !== false,
+      points: Array.isArray(data.points) ? data.points : [],
+      total: Number(data.total || 0),
+      filteredTotal:
+        typeof data.filteredTotal === "number" ? data.filteredTotal : undefined,
+      fallbackUsed: data.fallbackUsed === true,
+      reason: data.reason,
+    };
+  } catch (error) {
+    console.error("Failed to fetch FANbox pickup points:", error);
+    return {
+      configured: false,
+      points: [],
+      total: 0,
+      reason: "FETCH_FAILED",
+    };
+  }
+}
+
 export async function fetchTaxSettings() {
   try {
     const response = await fetch("/api/checkout/tax-settings");

@@ -169,6 +169,13 @@ export function OrderReview({
                 Estimated delivery:{" "}
                 {checkoutData.shippingMethod.estimatedDelivery}
               </p>
+              {checkoutData.lockerAddressSnapshot && (
+                <p className="break-words text-sky-700">
+                  FANbox: {checkoutData.lockerAddressSnapshot.name},{" "}
+                  {checkoutData.lockerAddressSnapshot.locality},{" "}
+                  {checkoutData.lockerAddressSnapshot.county}
+                </p>
+              )}
               <p className={`font-medium ${pricingData.shippingCost === 0 ? "text-emerald-600" : ""}`}>
                 {pricingData.shippingCost === 0 ? (
                   <>

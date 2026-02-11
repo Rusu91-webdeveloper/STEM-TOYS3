@@ -88,6 +88,7 @@ export async function GET(request: NextRequest) {
               name: service.name,
               description: service.description,
               estimatedDelivery: service.estimatedDelivery,
+              serviceId: service.id,
               price:
                 Number.isFinite(priceOverride) && priceOverride !== null
                   ? priceOverride
@@ -96,6 +97,9 @@ export async function GET(request: NextRequest) {
               basePrice: quote?.basePrice ?? null,
               weights: quote?.weights ?? null,
               courierId: courier.id,
+              methodType: service.methodType,
+              requiresLocker:
+                courier.id === "fancourier" && service.methodType === "easybox",
             };
           })
       );

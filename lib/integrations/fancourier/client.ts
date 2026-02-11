@@ -10,6 +10,18 @@ type AuthToken = {
     expiresAt: number;
 };
 
+type FanboxPickupPoint = {
+    id: string;
+    name: string;
+    county: string;
+    locality: string;
+    address: string;
+    postalCode: string;
+    latitude?: number;
+    longitude?: number;
+    raw?: Record<string, unknown>;
+};
+
 export class FanCourierClientError extends Error {
     status?: number;
     code?: string;
@@ -61,6 +73,8 @@ const getAuthCredentials = (): {
 };
 
 let cachedToken: AuthToken | null = null;
+let cachedFanboxPoints: { expiresAt: number; points: FanboxPickupPoint[] } | null =
+    null;
 
 const fetchJson = async (
     url: string,
@@ -309,4 +323,531 @@ export const getFanCourierClientId = (): number => {
  */
 export const clearTokenCache = (): void => {
     cachedToken = null;
+};
+
+const normalize = (value: unknown): string =>
+    String(value ?? "")
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9]+/g, " ")
+        .replace(/\s+/g, " ")
+        .toLowerCase();
+
+const COUNTY_CODE_MAP: Record<string, string> = {
+    AB: "alba",
+    AR: "arad",
+    AG: "arges",
+    BC: "bacau",
+    BH: "bihor",
+    BN: "bistrita nasaud",
+    BT: "botosani",
+    BV: "brasov",
+    BR: "braila",
+    B: "bucuresti",
+    BUCURESTI: "bucuresti",
+    IF: "ilfov",
+    BZ: "buzau",
+    CS: "caras severin",
+    CL: "calarasi",
+    CJ: "cluj",
+    CT: "constanta",
+    CV: "covasna",
+    DB: "dambovita",
+    DJ: "dolj",
+    GL: "galati",
+    GR: "giurgiu",
+    GJ: "gorj",
+    HR: "harghita",
+    HD: "hunedoara",
+    IL: "ialomita",
+    IS: "iasi",
+    MM: "maramures",
+    MH: "mehedinti",
+    MS: "mures",
+    NT: "neamt",
+    OT: "olt",
+    PH: "prahova",
+    SJ: "salaj",
+    SM: "satu mare",
+    SB: "sibiu",
+    SV: "suceava",
+    TR: "teleorman",
+    TM: "timis",
+    TL: "tulcea",
+    VL: "valcea",
+    VS: "vaslui",
+    VN: "vrancea",
+};
+
+const normalizeCountyInput = (value: unknown): string => {
+    const raw = String(value ?? "").trim();
+    if (!raw) return "";
+    const upper = raw.toUpperCase();
+    if (COUNTY_CODE_MAP[upper]) {
+        return COUNTY_CODE_MAP[upper];
+    }
+    return normalize(raw);
+};
+
+const toArray = (input: unknown): Record<string, unknown>[] => {
+    if (Array.isArray(input)) {
+        return input.filter(item => item && typeof item === "object") as Record<
+            string,
+            unknown
+        >[];
+    }
+    return [];
+};
+
+const extractFanboxRows = (payload: Record<string, unknown>): Record<string, unknown>[] => {
+    const directArray = toArray(payload);
+    if (directArray.length > 0) return directArray;
+
+    const data = payload.data as Record<string, unknown> | Record<string, unknown>[] | undefined;
+    const rowsFromDataArray = toArray(data);
+    if (rowsFromDataArray.length > 0) return rowsFromDataArray;
+
+    if (data && typeof data === "object") {
+        const dataRecord = data as Record<string, unknown>;
+        const nestedCandidates = [
+            dataRecord.items,
+            dataRecord.rows,
+            dataRecord.results,
+            dataRecord.pickupPoints,
+            dataRecord.pickup_points,
+        ];
+
+        for (const candidate of nestedCandidates) {
+            const nestedArray = toArray(candidate);
+            if (nestedArray.length > 0) return nestedArray;
+        }
+    }
+
+    const topLevelCandidates = [
+        payload.items,
+        payload.rows,
+        payload.results,
+        payload.pickupPoints,
+        payload.pickup_points,
+    ];
+    for (const candidate of topLevelCandidates) {
+        const nestedArray = toArray(candidate);
+        if (nestedArray.length > 0) return nestedArray;
+    }
+
+    return [];
+};
+
+const parseNumber = (value: unknown): number | undefined => {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") {
+        const normalized = value.replace(",", ".");
+        const parsed = Number.parseFloat(normalized);
+        if (Number.isFinite(parsed)) return parsed;
+    }
+    return undefined;
+};
+
+const parseCoordinates = (row: Record<string, unknown>): {
+    latitude?: number;
+    longitude?: number;
+} => {
+    const rowAddress =
+        row.address && typeof row.address === "object"
+            ? (row.address as Record<string, unknown>)
+            : null;
+
+    const latitude =
+        parseNumber(row.latitude) ??
+        parseNumber(row.lat) ??
+        parseNumber(rowAddress?.latitude) ??
+        parseNumber(rowAddress?.lat);
+    const longitude =
+        parseNumber(row.longitude) ??
+        parseNumber(row.lng) ??
+        parseNumber(row.lon) ??
+        parseNumber(rowAddress?.longitude) ??
+        parseNumber(rowAddress?.lng) ??
+        parseNumber(rowAddress?.lon);
+
+    // Some payloads expose coordinates as [lng, lat]
+    if (
+        (!latitude || !longitude) &&
+        Array.isArray(row.coordinates) &&
+        row.coordinates.length >= 2
+    ) {
+        const lng = parseNumber(row.coordinates[0]);
+        const lat = parseNumber(row.coordinates[1]);
+        if (lat && lng) {
+            return { latitude: lat, longitude: lng };
+        }
+    }
+
+    return { latitude, longitude };
+};
+
+const asText = (value: unknown): string => {
+    if (typeof value === "string") return value.trim();
+    if (typeof value === "number") return String(value);
+    return "";
+};
+
+const formatAddressObject = (value: Record<string, unknown>): string => {
+    const streetLine =
+        asText(value.street) ||
+        asText(value.streetName) ||
+        asText(value.fullAddress) ||
+        asText(value.full_address) ||
+        asText(value.addressLine1) ||
+        asText(value.line1);
+
+    const streetNumber =
+        asText(value.streetNo) ||
+        asText(value.street_no) ||
+        asText(value.number) ||
+        asText(value.no);
+
+    const building =
+        asText(value.building) ||
+        asText(value.block) ||
+        asText(value.scara) ||
+        asText(value.stair) ||
+        asText(value.floor) ||
+        asText(value.apartment) ||
+        asText(value.ap);
+
+    const details =
+        asText(value.details) ||
+        asText(value.description) ||
+        asText(value.note);
+
+    const firstLine = [streetLine, streetNumber ? `nr. ${streetNumber}` : "", building]
+        .filter(Boolean)
+        .join(" ");
+
+    return [firstLine, details].filter(Boolean).join(", ");
+};
+
+const extractAddressText = (
+    row: Record<string, unknown>,
+    rowAddress: Record<string, unknown> | null
+): string => {
+    const directAddress = row.address;
+    if (typeof directAddress === "string" || typeof directAddress === "number") {
+        const text = asText(directAddress);
+        if (text) return text;
+    }
+
+    if (directAddress && typeof directAddress === "object") {
+        const text = formatAddressObject(directAddress as Record<string, unknown>);
+        if (text) return text;
+    }
+
+    const candidates = [
+        row.street,
+        row.fullAddress,
+        row.full_address,
+        row.description,
+        rowAddress?.street,
+        rowAddress?.fullAddress,
+        rowAddress?.full_address,
+        rowAddress?.description,
+    ];
+
+    for (const candidate of candidates) {
+        const text =
+            candidate && typeof candidate === "object"
+                ? formatAddressObject(candidate as Record<string, unknown>)
+                : asText(candidate);
+        if (text) return text;
+    }
+
+    return "";
+};
+
+const normalizeFanboxPoint = (
+    row: Record<string, unknown>
+): FanboxPickupPoint | null => {
+    const rowAddress =
+        row.address && typeof row.address === "object"
+            ? (row.address as Record<string, unknown>)
+            : null;
+    const coords = parseCoordinates(row);
+
+    const id =
+        row.id ||
+        row.ID ||
+        row.pickupPointID ||
+        row.pickupPointId ||
+        row.pickup_point_id ||
+        row.pickupPointCode ||
+        row.pickup_point_code ||
+        row.lockerId ||
+        row.locker_id ||
+        row.code ||
+        row.uid;
+    const name =
+        row.name ||
+        row.pickupPointName ||
+        row.pickup_point_name ||
+        row.locationName ||
+        row.location_name ||
+        row.lockerName ||
+        row.locker_name ||
+        row.pickupPoint ||
+        row.pickup_point ||
+        row.title ||
+        row.label;
+    const county =
+        row.county ||
+        row.judet ||
+        row.region ||
+        row.countyName ||
+        row.county_name ||
+        rowAddress?.county ||
+        rowAddress?.judet ||
+        rowAddress?.region ||
+        rowAddress?.countyName;
+    const locality =
+        row.locality ||
+        row.city ||
+        row.oras ||
+        row.town ||
+        row.location ||
+        row.localityName ||
+        row.locality_name ||
+        row.cityName ||
+        row.city_name ||
+        rowAddress?.locality ||
+        rowAddress?.city ||
+        rowAddress?.oras ||
+        rowAddress?.town ||
+        rowAddress?.location;
+    const address = extractAddressText(row, rowAddress);
+    const postalCode =
+        row.zipCode ||
+        row.postalCode ||
+        row.zip_code ||
+        row.postal_code ||
+        rowAddress?.zipCode ||
+        rowAddress?.postalCode ||
+        rowAddress?.zip_code ||
+        rowAddress?.postal_code ||
+        "";
+
+    if (!id || !name) {
+        return null;
+    }
+
+    return {
+        id: String(id),
+        name: String(name),
+        county: String(county || ""),
+        locality: String(locality || ""),
+        address,
+        postalCode: String(postalCode || ""),
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        raw: row,
+    };
+};
+
+const getFanboxCacheTtlMs = (): number => {
+    const ttlMinutes = Number.parseInt(
+        process.env.FANCOURIER_FANBOX_CACHE_MINUTES || "30",
+        10
+    );
+    return Math.max(5, ttlMinutes) * 60 * 1000;
+};
+
+const fetchRawFanboxPoints = async (): Promise<Record<string, unknown>[]> => {
+    const requests = ["/reports/pickup-points?type=fanbox", "/pickup-points?type=fanbox"];
+    let lastError: unknown;
+
+    for (const path of requests) {
+        try {
+            const payload = await fanCourierRequest(path, { method: "GET" });
+            const rows = extractFanboxRows(payload);
+            if (rows.length > 0) {
+                return rows;
+            }
+        } catch (error) {
+            lastError = error;
+        }
+    }
+
+    if (lastError instanceof Error) {
+        throw lastError;
+    }
+    return [];
+};
+
+export const getFanCourierFanboxPickupPoints = async (input?: {
+    county?: string;
+    locality?: string;
+    postalCode?: string;
+    search?: string;
+}): Promise<FanboxPickupPoint[]> => {
+    if (
+        !cachedFanboxPoints ||
+        cachedFanboxPoints.expiresAt <= Date.now() ||
+        cachedFanboxPoints.points.length === 0
+    ) {
+        const rows = await fetchRawFanboxPoints();
+        const points = rows
+            .map(normalizeFanboxPoint)
+            .filter((point): point is FanboxPickupPoint => Boolean(point));
+
+        cachedFanboxPoints = {
+            points,
+            expiresAt: Date.now() + getFanboxCacheTtlMs(),
+        };
+    }
+
+    const points = cachedFanboxPoints.points;
+    const countyNeedle = normalizeCountyInput(input?.county);
+    const localityNeedle = normalize(input?.locality);
+    const postalNeedle = normalize(input?.postalCode);
+    const searchNeedle = normalize(input?.search);
+    const filtered = points.filter(point => {
+        const pointCounty = normalize(point.county);
+        const pointLocality = normalize(point.locality);
+        const pointPostal = normalize(point.postalCode);
+        const pointAddress = normalize(point.address);
+        const pointName = normalize(point.name);
+
+        const countyMatches =
+            !countyNeedle ||
+            pointCounty.includes(countyNeedle) ||
+            countyNeedle.includes(pointCounty);
+        const localityMatches =
+            !localityNeedle ||
+            pointLocality.includes(localityNeedle) ||
+            localityNeedle.includes(pointLocality);
+        const postalMatches =
+            !postalNeedle ||
+            !pointPostal ||
+            pointPostal.includes(postalNeedle) ||
+            postalNeedle.includes(pointPostal);
+        const searchMatches =
+            !searchNeedle ||
+            pointName.includes(searchNeedle) ||
+            pointAddress.includes(searchNeedle) ||
+            pointLocality.includes(searchNeedle) ||
+            pointCounty.includes(searchNeedle);
+
+        return countyMatches && localityMatches && postalMatches && searchMatches;
+    });
+
+    if (filtered.length > 0) {
+        return filtered;
+    }
+
+    // Fallback: keep address relevance but relax strict county/postal matching.
+    return points.filter(point => {
+        const pointCounty = normalize(point.county);
+        const pointLocality = normalize(point.locality);
+        const pointAddress = normalize(point.address);
+        const pointName = normalize(point.name);
+
+        const localityMatches =
+            !localityNeedle ||
+            pointLocality.includes(localityNeedle) ||
+            localityNeedle.includes(pointLocality);
+        const countyMatches =
+            !countyNeedle ||
+            pointCounty.includes(countyNeedle) ||
+            countyNeedle.includes(pointCounty);
+        const searchMatches =
+            !searchNeedle ||
+            pointName.includes(searchNeedle) ||
+            pointAddress.includes(searchNeedle) ||
+            pointLocality.includes(searchNeedle);
+
+        return localityMatches && countyMatches && searchMatches;
+    });
+};
+
+const findObjectArrays = (
+    value: unknown,
+    maxDepth = 4,
+    depth = 0
+): Array<{ path: string; length: number; sampleKeys: string[] }> => {
+    if (depth > maxDepth || value === null || value === undefined) return [];
+
+    if (Array.isArray(value)) {
+        const firstObject = value.find(
+            item => item && typeof item === "object" && !Array.isArray(item)
+        ) as Record<string, unknown> | undefined;
+        const sampleKeys = firstObject ? Object.keys(firstObject).slice(0, 12) : [];
+        return [
+            {
+                path: "array",
+                length: value.length,
+                sampleKeys,
+            },
+        ];
+    }
+
+    if (typeof value !== "object") return [];
+    const record = value as Record<string, unknown>;
+    const result: Array<{ path: string; length: number; sampleKeys: string[] }> = [];
+    for (const [key, nested] of Object.entries(record)) {
+        const nestedResult = findObjectArrays(nested, maxDepth, depth + 1);
+        for (const item of nestedResult) {
+            result.push({
+                path: `${key}.${item.path}`,
+                length: item.length,
+                sampleKeys: item.sampleKeys,
+            });
+        }
+    }
+    return result;
+};
+
+export const debugFanCourierFanboxPickupPoints = async (): Promise<{
+    attempts: Array<{
+        path: string;
+        ok: boolean;
+        extractedRows: number;
+        topLevelKeys: string[];
+        discoveredArrays: Array<{ path: string; length: number; sampleKeys: string[] }>;
+        error?: string;
+    }>;
+}> => {
+    const attempts: Array<{
+        path: string;
+        ok: boolean;
+        extractedRows: number;
+        topLevelKeys: string[];
+        discoveredArrays: Array<{ path: string; length: number; sampleKeys: string[] }>;
+        error?: string;
+    }> = [];
+
+    const paths = ["/reports/pickup-points?type=fanbox", "/pickup-points?type=fanbox"];
+    for (const path of paths) {
+        try {
+            const payload = await fanCourierRequest(path, { method: "GET" });
+            const extracted = extractFanboxRows(payload);
+            attempts.push({
+                path,
+                ok: true,
+                extractedRows: extracted.length,
+                topLevelKeys: Object.keys(payload).slice(0, 20),
+                discoveredArrays: findObjectArrays(payload).slice(0, 20),
+            });
+        } catch (error) {
+            attempts.push({
+                path,
+                ok: false,
+                extractedRows: 0,
+                topLevelKeys: [],
+                discoveredArrays: [],
+                error: error instanceof Error ? error.message : "Unknown error",
+            });
+        }
+    }
+
+    return { attempts };
 };
