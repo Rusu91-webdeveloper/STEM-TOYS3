@@ -1,6 +1,7 @@
 import { revalidateTag, revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 import { auth } from "@/lib/auth";
 import { isAdmin } from "@/lib/auth/admin";
@@ -291,10 +292,10 @@ export async function POST(request: NextRequest) {
     // Create product in database
     try {
       console.warn("Attempting to create product in database");
-      
+
       // Resolve category ID - handle both cuid IDs and slugs
       let resolvedCategoryId = data.categoryId;
-      
+
       // Check if it looks like a slug (no dashes at start, lowercase letters/numbers with dashes)
       // vs a cuid (starts with 'c' followed by alphanumeric)
       if (!data.categoryId.match(/^c[a-z0-9]{24,}$/i)) {
@@ -304,22 +305,22 @@ export async function POST(request: NextRequest) {
           where: { slug: data.categoryId },
           select: { id: true, name: true },
         });
-        
+
         if (!category) {
           console.error(`Category with slug "${data.categoryId}" not found`);
           return NextResponse.json(
-            { 
-              error: "Category not found", 
-              details: `No category exists with slug "${data.categoryId}". Available categories can be found at /api/admin/categories` 
+            {
+              error: "Category not found",
+              details: `No category exists with slug "${data.categoryId}". Available categories can be found at /api/admin/categories`
             },
             { status: 400 }
           );
         }
-        
+
         resolvedCategoryId = category.id;
         console.warn(`Resolved slug "${data.categoryId}" to ID "${resolvedCategoryId}" (${category.name})`);
       }
-      
+
       const { seo, legacy } = extractSeoFields(data);
       const cleanedAttributes = stripSeoFromAttributes(data.attributes);
       const metadata: Record<string, unknown> = {
@@ -357,7 +358,7 @@ export async function POST(request: NextRequest) {
             difficultyLevel: data.difficultyLevel,
             ...(cleanedAttributes ?? {}),
           },
-          metadata,
+          metadata: metadata as Prisma.InputJsonValue,
           isActive: data.isActive,
           featured: data.featured ?? false,
           // Admin-created products should be automatically approved
@@ -374,7 +375,7 @@ export async function POST(request: NextRequest) {
       console.warn("Invalidating all caches for new product creation");
       try {
         const { invalidateProductCaches } = await import("@/lib/cache-smart-invalidation");
-        
+
         await invalidateProductCaches({
           productId: product.id,
           categoryId: product.categoryId || undefined,
@@ -471,7 +472,7 @@ export async function PUT(request: NextRequest) {
     // Use Prisma relation syntax instead of direct categoryId
     if (data.categoryId !== undefined) {
       let resolvedCategoryId = data.categoryId;
-      
+
       // Check if it looks like a slug vs a cuid
       if (!data.categoryId.match(/^c[a-z0-9]{24,}$/i)) {
         // Treat as slug, look up the actual category ID
@@ -479,17 +480,17 @@ export async function PUT(request: NextRequest) {
           where: { slug: data.categoryId },
           select: { id: true },
         });
-        
+
         if (!category) {
           return NextResponse.json(
             { error: "Category not found", details: `No category exists with slug "${data.categoryId}"` },
             { status: 400 }
           );
         }
-        
+
         resolvedCategoryId = category.id;
       }
-      
+
       updateData.category = { connect: { id: resolvedCategoryId } };
     }
     if (data.tags !== undefined) updateData.tags = data.tags;
@@ -514,7 +515,7 @@ export async function PUT(request: NextRequest) {
         specialCategories: data.specialCategories,
       }),
     };
-    updateData.metadata = updatedMetadata;
+    updateData.metadata = updatedMetadata as Prisma.InputJsonValue;
 
     // Handle attributes update
     if (existingProduct.attributes) {
@@ -623,7 +624,7 @@ export async function PUT(request: NextRequest) {
     // ⚡ SMART INVALIDATION: Clear all caches after product update
     try {
       const { invalidateProductCaches } = await import("@/lib/cache-smart-invalidation");
-      
+
       await invalidateProductCaches({
         productId: updatedProduct.id,
         categoryId: categoryId || undefined,
