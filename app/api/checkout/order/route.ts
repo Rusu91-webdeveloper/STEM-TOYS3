@@ -114,6 +114,8 @@ const orderSchema = z.object({
   stripePaymentIntentId: z.string().optional(), // Accept payment intent ID
   codFee: z.number().optional(), // COD fee amount
   codAmount: z.number().optional(), // Total COD amount to collect
+  notes: z.string().nullable().optional(),
+  orderNotes: z.string().optional(),
 });
 
 // Helper function to format Zod errors
