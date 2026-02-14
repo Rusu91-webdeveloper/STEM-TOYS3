@@ -11,9 +11,10 @@ import { ABTestingService } from "@/lib/services/ab-testing-service";
 // GET - Get specific A/B test by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { testId: string } }
+  { params }: { params: Promise<{ testId: string }> }
 ) {
   try {
+    const { testId } = await params;
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -23,7 +24,6 @@ export async function GET(
       );
     }
 
-    const { testId } = params;
     const test = await ABTestingService.getTestById(testId);
 
     if (!test) {
@@ -53,9 +53,10 @@ export async function GET(
 // DELETE - Delete an A/B test
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { testId: string } }
+  { params }: { params: Promise<{ testId: string }> }
 ) {
   try {
+    const { testId } = await params;
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -64,8 +65,6 @@ export async function DELETE(
         { status: 403 }
       );
     }
-
-    const { testId } = params;
 
     // Check if test exists and is not running
     const test = await ABTestingService.getTestById(testId);

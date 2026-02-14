@@ -48,22 +48,22 @@ import { toast } from "@/components/ui/use-toast";
 
 interface SupplierProfile {
   id: string;
-  companyName: string;
+  companyName?: string | null;
   email: string;
-  phone?: string;
-  businessAddress?: string;
-  businessCity?: string;
-  businessCountry?: string;
-  businessWebsite?: string;
-  taxId?: string;
-  registrationNumber?: string;
-  contactPersonName?: string;
-  contactPersonEmail?: string;
-  contactPersonPhone?: string;
-  commissionRate: number;
+  phone?: string | null;
+  businessAddress?: string | null;
+  businessCity?: string | null;
+  businessCountry?: string | null;
+  businessWebsite?: string | null;
+  taxId?: string | null;
+  registrationNumber?: string | null;
+  contactPersonName?: string | null;
+  contactPersonEmail?: string | null;
+  contactPersonPhone?: string | null;
+  commissionRate?: number | null;
   status: string;
-  createdAt: string;
-  logoUrl?: string;
+  createdAt?: string | Date;
+  logoUrl?: string | null;
 }
 
 interface NotificationSettings {

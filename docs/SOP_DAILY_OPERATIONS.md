@@ -28,16 +28,12 @@ Standard Operating Procedures (SOP) for daily operations of TechTots dropshippin
 
 #### 2. Process Supplier Orders
 
-**For each PAID order:**
+**For each PAID order (and COD order):**
 
-- [ ] **Identify supplier** for each product
-  - Check product → supplier link
-  - Verify supplier SKU matches
-
-- [ ] **Create supplier order** (via admin UI or API)
-  - Go to order detail page: `/admin/orders/[id]`
-  - Click "Create Supplier Order" button
-  - Verify supplier order created successfully
+- [ ] **Validate automation output**
+  - Open `/admin/orders`
+  - Filter `Status = ⚠️ Needs Shipping Review`
+  - Confirm new orders have supplier orders and no unresolved review flags
 
 - [ ] **Verify stock availability**
   - Check supplier product stock
@@ -46,47 +42,40 @@ Standard Operating Procedures (SOP) for daily operations of TechTots dropshippin
     - Notify customer of delay
     - Offer alternative product or refund
 
-- [ ] **Document supplier order ID**
-  - Save supplier order ID in admin panel
-  - Link to main order for tracking
+- [ ] **Manual fallback only when needed**
+  - If supplier orders are missing, run admin process endpoint for that order
+  - Add internal note with reason and resolution timestamp
 
 **Tools:**
 - Admin panel: `/admin/orders/[id]`
-- Supplier order creation API
+- Manual fallback endpoint: `/api/admin/orders/process`
 
-**Time Estimate:** 5-10 minutes per order
+**Time Estimate:** 2-5 minutes per order (exceptions only)
 
 ---
 
 #### 3. Courier Pickup / AWB Generation
 
-**For each supplier order:**
+**For each physical order:**
 
-- [ ] **Check if supplier provides AWB**
-  - Some suppliers generate AWB automatically
-  - Others require manual AWB creation
+- [ ] **Verify automatic AWB status**
+  - AWB should be auto-created from checkout/webhook flow
+  - Confirm tracking number appears on order and supplier orders
 
-- [ ] **If manual AWB needed:**
-  - Log into courier system (Fan Courier, Sameday, GLS)
-  - Create AWB with customer details
-  - Save AWB number in admin panel
+- [ ] **Handle manual shipping review queue**
+  - Open orders flagged with `manualShippingReviewRequired`
+  - Reasons include mixed suppliers, missing supplier mapping, or courier API errors
+  - Resolve by split-shipment planning or manual AWB creation with operations notes
 
-- [ ] **Update tracking in admin panel**
-  - Go to supplier order detail
-  - Enter AWB number
-  - Enter carrier name
-  - Save
-
-- [ ] **Send tracking email to customer**
-  - Use "Order Shipped" macro
-  - Include AWB number and tracking link
+- [ ] **Confirm customer visibility**
+  - Tracking endpoint must show real AWB only
+  - If AWB is missing, customer sees tracking unavailable (expected until created)
 
 **Tools:**
-- Courier portals (Fan Courier, Sameday, GLS)
 - Admin panel: `/admin/orders/[id]`
-- Email template: "Order Shipped"
+- Fallback AWB endpoints: `/api/shipping/create-awb`, `/api/shipping/fancourier/create-awb`
 
-**Time Estimate:** 3-5 minutes per order
+**Time Estimate:** 1-3 minutes per order (exceptions only)
 
 ---
 
@@ -271,6 +260,36 @@ Standard Operating Procedures (SOP) for daily operations of TechTots dropshippin
 ---
 
 ## Emergency Procedures
+
+Detailed incident runbook: `docs/ONCALL_FULFILLMENT_PLAYBOOK.md`
+
+### Payment Webhook Failures (Stripe/Netopia)
+1. Confirm provider dashboard shows successful payment event and timestamp.
+2. Check webhook route logs for signature/auth or processing errors.
+3. Verify order state: `paymentStatus`, supplier orders, AWB fields.
+4. Re-run fulfillment manually:
+   - supplier order processing (`/api/admin/orders/process`)
+   - AWB creation fallback endpoint if needed
+5. Add incident note with provider event ID and order ID.
+
+### AWB Creation Failures
+1. Filter `/admin/orders` by `Needs Shipping Review`.
+2. Inspect `shippingReviewReason` and `courierErrorMessage`.
+3. If courier API outage: create AWB manually in FanCourier portal.
+4. Update order/supplier tracking fields and clear manual review flag.
+5. Notify customer only after real AWB exists.
+
+### Mixed Supplier Order (Boribon + Kidstory)
+1. Treat as manual-review order by design.
+2. Split fulfillment by supplier and coordinate separate shipment handling.
+3. Keep customer updates explicit if split delivery timeline changes.
+4. Ensure final tracking communication uses real AWB values only.
+
+### Stock Mismatch After Order Placement
+1. Validate catalog stock vs supplier feed latest sync.
+2. If supplier out of stock, contact supplier and get ETA.
+3. Offer customer alternatives/refund if ETA unacceptable.
+4. Record mismatch for feed mapping/reconciliation follow-up.
 
 ### Order Processing Delays
 1. Identify delay cause (supplier, courier, stock)

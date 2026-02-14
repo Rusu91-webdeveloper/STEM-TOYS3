@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { useCurrency } from "@/lib/currency";
 
 import { ProductActionsDropdown } from "./ProductActionsDropdown";
@@ -150,11 +151,10 @@ export function ProductTable({ products }: { products: Product[] }) {
                   </td>
                   <td className="px-4 py-4">
                     <span
-                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs ${
-                        product.isActive
+                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs ${product.isActive
                           ? "bg-green-100 text-green-700"
                           : "bg-gray-100 text-gray-700"
-                      }`}
+                        }`}
                     >
                       {product.isActive ? (
                         <CheckCircle2 className="mr-1 h-3 w-3" />

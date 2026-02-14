@@ -4,7 +4,10 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 /** Build courier tracking URL when we have AWB and known carrier. */
-function getTrackingUrl(trackingNumber: string | null, carrier: string | null): string | null {
+function getTrackingUrl(
+  trackingNumber: string | null,
+  carrier: string | null
+): string | null {
   if (!trackingNumber?.trim() || !carrier?.trim()) return null;
   const awb = encodeURIComponent(trackingNumber.trim());
   const c = carrier.toUpperCase();
@@ -79,15 +82,13 @@ export async function GET(
     }
 
     // Use real AWB: Order.trackingNumber (set when AWB created) or first Shipment.awbNumber
-    const trackingNumber =
-      order.trackingNumber ??
-      order.shipments?.[0]?.awbNumber ??
-      null;
-    const carrier =
-      order.carrier ??
-      order.shipments?.[0]?.courier ??
-      "Standard Shipping";
-    const trackingUrl = getTrackingUrl(trackingNumber, carrier);
+    const trackingNumber = order.trackingNumber ?? order.shipments?.[0]?.awbNumber ?? null;
+    const resolvedCarrier = order.carrier ?? order.shipments?.[0]?.courier ?? null;
+    const trackingAvailable = Boolean(trackingNumber);
+    const carrier = trackingAvailable ? resolvedCarrier : null;
+    const trackingUrl = trackingAvailable
+      ? getTrackingUrl(trackingNumber, carrier)
+      : null;
 
     // Generate tracking events based on order status
     const trackingEvents = generateTrackingEvents(order, shippingAddress);
@@ -97,15 +98,17 @@ export async function GET(
         id: order.id,
         orderNumber: order.orderNumber,
         status: order.status,
-        trackingNumber:
-          trackingNumber ??
-          `TRK${order.orderNumber}${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+        trackingAvailable,
+        trackingNumber: trackingAvailable ? trackingNumber : null,
         carrier,
         trackingUrl,
         estimatedDelivery: order.estimatedDelivery ?? null,
         deliveredAt: order.deliveredAt,
         createdAt: order.createdAt,
         shippingAddress,
+        trackingStatusMessage: trackingAvailable
+          ? "Tracking is available."
+          : "Tracking is not available yet. It will appear once AWB is created.",
       },
       trackingEvents,
       lastUpdated: new Date().toISOString(),

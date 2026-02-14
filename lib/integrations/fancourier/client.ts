@@ -101,13 +101,11 @@ const fanCourierFetch = async (
     const token = await getFanCourierToken();
     const url = `${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
 
-    const headers: Record<string, string> = {
-        Authorization: `Bearer ${token}`,
-        ...(init.headers || {}),
-    };
+    const headers = new Headers(init.headers);
+    headers.set("Authorization", `Bearer ${token}`);
 
-    if (!headers["Content-Type"] && init.body) {
-        headers["Content-Type"] = "application/json";
+    if (!headers.has("Content-Type") && init.body) {
+        headers.set("Content-Type", "application/json");
     }
 
     return fetch(url, {

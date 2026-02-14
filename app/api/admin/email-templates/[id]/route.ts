@@ -35,9 +35,10 @@ const EmailTemplateUpdateSchema = z.object({
 // GET /api/admin/email-templates/[id] - Get specific email template
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -45,7 +46,7 @@ export async function GET(
     }
 
     const template = await prisma.emailTemplate.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!template) {
@@ -68,9 +69,10 @@ export async function GET(
 // PUT /api/admin/email-templates/[id] - Update email template
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -82,7 +84,7 @@ export async function PUT(
 
     // Check if template exists
     const existingTemplate = await prisma.emailTemplate.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingTemplate) {
@@ -108,7 +110,7 @@ export async function PUT(
 
     // Update the template
     const updatedTemplate = await prisma.emailTemplate.update({
-      where: { id: params.id },
+      where: { id },
       data: validatedData,
     });
 
@@ -132,9 +134,10 @@ export async function PUT(
 // DELETE /api/admin/email-templates/[id] - Delete email template
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -143,7 +146,7 @@ export async function DELETE(
 
     // Check if template exists
     const existingTemplate = await prisma.emailTemplate.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         campaigns: true,
         sequenceSteps: true,
@@ -175,7 +178,7 @@ export async function DELETE(
 
     // Delete the template
     await prisma.emailTemplate.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({

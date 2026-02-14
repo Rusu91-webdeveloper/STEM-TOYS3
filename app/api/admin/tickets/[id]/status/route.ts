@@ -7,9 +7,10 @@ import { db } from "@/lib/db";
 // GET - Get ticket status history
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
@@ -18,7 +19,7 @@ export async function GET(
     // Get internal notes that indicate status changes
     const statusHistory = await db.supplierTicketResponse.findMany({
       where: {
-        ticketId: params.id,
+        ticketId: id,
         isInternal: true,
         content: {
           contains: "Status changed",
@@ -49,9 +50,10 @@ export async function GET(
 // PUT - Update ticket status
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
@@ -69,7 +71,7 @@ export async function PUT(
 
     // Verify the ticket exists and get current status
     const ticket = await db.supplierSupportTicket.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         supplier: {
           select: {
@@ -104,7 +106,7 @@ export async function PUT(
 
     // Update ticket status
     await db.supplierSupportTicket.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
     });
 
@@ -115,7 +117,7 @@ export async function PUT(
 
     await db.supplierTicketResponse.create({
       data: {
-        ticketId: params.id,
+        ticketId: id,
         responderId: session.user.id,
         responderType: "ADMIN",
         content: statusNote,

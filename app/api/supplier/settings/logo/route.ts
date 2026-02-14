@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
     // Update supplier with logo URL
     const updatedSupplier = await db.supplier.update({
       where: { userId: session.user.id },
-      data: { logoUrl: dataUrl },
-      select: { id: true, logoUrl: true },
+      data: { logo: dataUrl },
+      select: { id: true, logo: true },
     });
 
     logger.info("Supplier logo uploaded", {
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Logo uploaded successfully",
-      logoUrl: updatedSupplier.logoUrl,
+      logoUrl: updatedSupplier.logo,
     });
   } catch (error) {
     logger.error("Error uploading supplier logo:", error);

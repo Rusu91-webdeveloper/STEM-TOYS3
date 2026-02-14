@@ -5,15 +5,18 @@ import { prisma } from "@/lib/prisma";
 import { withRateLimit } from "@/lib/rate-limit";
 
 export const POST = withRateLimit(
-  async (request: NextRequest, { params }: { params: { id: string } }) => {
+  async (
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+  ) => {
     try {
+      const { id: backupId } = await params;
       // Check authentication
       const session = await auth();
       if (!session?.user || session.user.role !== "ADMIN") {
         return NextResponse.json({ error: "Not authorized" }, { status: 403 });
       }
 
-      const backupId = params.id;
       if (!backupId) {
         return NextResponse.json(
           { error: "Backup ID is required" },

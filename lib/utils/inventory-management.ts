@@ -64,18 +64,33 @@ export interface InventoryManagementSettings {
   };
 }
 
+function getMetadataObject(
+  metadata: unknown
+): Record<string, unknown> | null {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return null;
+  }
+  return metadata as Record<string, unknown>;
+}
+
 /**
  * Get inventory management settings from the database
  */
 export async function getInventoryManagementSettings(): Promise<InventoryManagementSettings | null> {
   try {
     const settings = await prisma.storeSettings.findFirst();
+    const metadata = getMetadataObject(settings?.metadata);
+    const inventoryManagement = metadata?.inventoryManagement;
 
-    if (!settings?.inventoryManagement) {
+    if (
+      !inventoryManagement ||
+      typeof inventoryManagement !== "object" ||
+      Array.isArray(inventoryManagement)
+    ) {
       return null;
     }
 
-    return settings.inventoryManagement as InventoryManagementSettings;
+    return inventoryManagement as InventoryManagementSettings;
   } catch (error) {
     console.error("Error fetching inventory management settings:", error);
     return null;

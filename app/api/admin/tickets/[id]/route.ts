@@ -6,15 +6,14 @@ import { db } from "@/lib/db";
 // GET - Get individual ticket details for admin
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: ticketId } = await params;
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
-
-    const ticketId = params.id;
 
     if (!ticketId) {
       return NextResponse.json(
@@ -94,15 +93,15 @@ export async function GET(
 // PUT - Update ticket details (status, priority, assignment)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: ticketId } = await params;
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
-    const ticketId = params.id;
     const body = await request.json();
     const { status, priority, assignedTo } = body;
 

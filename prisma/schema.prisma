@@ -98,10 +98,8 @@ model User {
   supplierMessages        SupplierMessage[]        @relation("MessageSender")
   supplierTickets         SupplierSupportTicket[]  @relation("TicketAssignedTo")
   supplierTicketResponses SupplierTicketResponse[] @relation("TicketResponder")
-  tickets                 Ticket[]
   twoFactor               TwoFactor?
   organization            Organization?            @relation(fields: [organizationId], references: [id])
-  shard                   UserShard?               @relation(fields: [shardId], references: [shardId])
   tenant                  Tenant?                  @relation(fields: [tenantId], references: [id])
   wishlistItems           Wishlist[]
 
@@ -264,36 +262,6 @@ model Organization {
   @@index([isActive])
 }
 
-model UserShard {
-  id               String    @id @default(cuid())
-  shardId          String    @unique
-  name             String
-  description      String?
-  databaseUrl      String
-  isActive         Boolean   @default(true)
-  capacity         Int       @default(1000000)
-  currentUsers     Int       @default(0)
-  region           String
-  readReplicas     Json?
-  writeEndpoint    String
-  readEndpoints    String[]  @default([])
-  healthStatus     String    @default("HEALTHY")
-  lastHealthCheck  DateTime?
-  failoverPriority Int       @default(0)
-  backupSchedule   Json?
-  migrationStatus  String    @default("NONE")
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  users            User[]
-
-  @@index([shardId])
-  @@index([isActive])
-  @@index([region])
-  @@index([healthStatus])
-  @@index([failoverPriority])
-  @@index([migrationStatus])
-}
-
 model ConsentLog {
   id             String        @id @default(cuid())
   userId         String
@@ -427,14 +395,13 @@ model Product {
   status               ProductStatus     @default(IN_PENDING)
   stemDiscipline       String?
   supplierId           String?
-  isBundle             Boolean            @default(false)
-  bundleItems          Json?              // Array of product IDs for bundles: ["product-id-1", "product-id-2"]
-  bundleDiscount       Float?             // Discount percentage for bundle (e.g., 15 for 15% off)
+  isBundle             Boolean           @default(false)
+  bundleItems          Json? // Array of product IDs for bundles: ["product-id-1", "product-id-2"]
+  bundleDiscount       Float? // Discount percentage for bundle (e.g., 15 for 15% off)
   marketingCosts       MarketingCost[]
   orderItems           OrderItem[]
   category             Category?         @relation(fields: [categoryId], references: [id])
   supplier             Supplier?         @relation(fields: [supplierId], references: [id])
-  productCosts         ProductCost[]
   reviews              Review[]
   supplierOrders       SupplierOrder[]
   supplierProducts     SupplierProduct[]
@@ -582,61 +549,61 @@ model Language {
 }
 
 model Order {
-  id                    String                @id @default(cuid())
-  orderNumber           String                @unique
-  userId                String
-  total                 Float
-  subtotal              Float
-  tax                   Float
-  shippingCost          Float
-  shippingBasePrice     Float               @default(0)
-  shippingTotalEstimate Float               @default(0)
-  declaredValue         Float?              // Insurance declared value for shipment
-  manualShippingReviewRequired Boolean      @default(false) // Flag orders needing manual shipping review
-  shippingReviewReason  String?             // Reason for manual review (extra km, remote locality)
-  courierErrorMessage   String?             // Last courier API error message
-  codFeeEstimate        Float?
-  pricingVersion        String?
-  discountAmount        Float                 @default(0)
-  couponCode            String?
-  couponId              String?
-  status                OrderStatus           @default(PROCESSING)
-  paymentStatus         PaymentStatus         @default(PENDING)
-  paymentMethod         String
-  shippingMethod        String?
-  lockerId              String?
-  lockerAddressSnapshot Json?
-  recipientType         String?
-  codAmount             Float?
-  currency              String                @default("RON")
-  notes                 String?
-  shippingAddressId     String
-  billingAddressId      String?
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  deliveredAt           DateTime?
-  stripePaymentIntentId String?
-  completedAt           DateTime?
-  fulfilledAt           DateTime?
-  shippedAt             DateTime?
-  trackingNumber        String?
-  carrier               String?
-  estimatedDelivery     DateTime?
-  netopiaInvoiceId      String?
-  netopiaPaymentUrl     String?
-  netopiaTransactionId  String?
-  priority              String                @default("MEDIUM")
-  tags                  String[]              @default([])
-  updatedBy             String?
-  campaignApplications  CampaignApplication[]
-  coupon                Coupon?               @relation(fields: [couponId], references: [id])
-  shippingAddress       Address               @relation(fields: [shippingAddressId], references: [id])
-  user                  User                  @relation(fields: [userId], references: [id])
-  items                 OrderItem[]
-  shipments             Shipment[]
-  statusHistory         OrderStatusHistory[]
-  returns               Return[]
-  supplierOrders        SupplierOrder[]
+  id                           String                @id @default(cuid())
+  orderNumber                  String                @unique
+  userId                       String
+  total                        Float
+  subtotal                     Float
+  tax                          Float
+  shippingCost                 Float
+  shippingBasePrice            Float                 @default(0)
+  shippingTotalEstimate        Float                 @default(0)
+  declaredValue                Float? // Insurance declared value for shipment
+  manualShippingReviewRequired Boolean               @default(false) // Flag orders needing manual shipping review
+  shippingReviewReason         String? // Reason for manual review (extra km, remote locality)
+  courierErrorMessage          String? // Last courier API error message
+  codFeeEstimate               Float?
+  pricingVersion               String?
+  discountAmount               Float                 @default(0)
+  couponCode                   String?
+  couponId                     String?
+  status                       OrderStatus           @default(PROCESSING)
+  paymentStatus                PaymentStatus         @default(PENDING)
+  paymentMethod                String
+  shippingMethod               String?
+  lockerId                     String?
+  lockerAddressSnapshot        Json?
+  recipientType                String?
+  codAmount                    Float?
+  currency                     String                @default("RON")
+  notes                        String?
+  shippingAddressId            String
+  billingAddressId             String?
+  createdAt                    DateTime              @default(now())
+  updatedAt                    DateTime              @updatedAt
+  deliveredAt                  DateTime?
+  stripePaymentIntentId        String?
+  completedAt                  DateTime?
+  fulfilledAt                  DateTime?
+  shippedAt                    DateTime?
+  trackingNumber               String?
+  carrier                      String?
+  estimatedDelivery            DateTime?
+  netopiaInvoiceId             String?
+  netopiaPaymentUrl            String?
+  netopiaTransactionId         String?
+  priority                     String                @default("MEDIUM")
+  tags                         String[]              @default([])
+  updatedBy                    String?
+  campaignApplications         CampaignApplication[]
+  coupon                       Coupon?               @relation(fields: [couponId], references: [id])
+  shippingAddress              Address               @relation(fields: [shippingAddressId], references: [id])
+  user                         User                  @relation(fields: [userId], references: [id])
+  items                        OrderItem[]
+  shipments                    Shipment[]
+  statusHistory                OrderStatusHistory[]
+  returns                      Return[]
+  supplierOrders               SupplierOrder[]
 
   @@index([userId])
   @@index([status])
@@ -646,17 +613,17 @@ model Order {
 }
 
 model Shipment {
-  id          String   @id @default(cuid())
-  orderId     String
-  courier     String
-  awbNumber   String?
-  status      String?
-  declaredValue Float?             // Declared value passed to courier for insurance
-  payload     Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  awbEvents   AwbEvent[]
+  id            String     @id @default(cuid())
+  orderId       String
+  courier       String
+  awbNumber     String?
+  status        String?
+  declaredValue Float? // Declared value passed to courier for insurance
+  payload       Json?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  order         Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  awbEvents     AwbEvent[]
 
   @@index([orderId])
   @@index([courier])
@@ -725,42 +692,29 @@ model StoreSettings {
   taxSettings      Json?
 }
 
-model StoreSettingsBackup {
-  id           String   @id @default(cuid())
-  name         String
-  description  String?
-  settingsData Json
-  version      String   @default("1.0")
-  createdBy    String
-  createdAt    DateTime @default(now())
-
-  @@index([createdAt])
-  @@index([createdBy])
-}
-
 model Return {
-  id                          String                    @id @default(cuid())
-  userId                      String
-  orderId                     String
-  orderItemId                 String
-  reason                      ReturnReason
-  details                     String?
-  status                      ReturnStatus              @default(PENDING)
-  createdAt                   DateTime                  @default(now())
-  updatedAt                   DateTime                  @updatedAt
-  refundError                 String?
-  refundStatus                String?
+  id                               String              @id @default(cuid())
+  userId                           String
+  orderId                          String
+  orderItemId                      String
+  reason                           ReturnReason
+  details                          String?
+  status                           ReturnStatus        @default(PENDING)
+  createdAt                        DateTime            @default(now())
+  updatedAt                        DateTime            @updatedAt
+  refundError                      String?
+  refundStatus                     String?
   // Photo upload for damaged items (required by KidStory)
-  photos                      String[]                  @default([])
+  photos                           String[]            @default([])
   // Supplier authorization tracking (for KidStory ARP/RMA process)
-  supplierAuthorizationStatus SupplierAuthStatus?      @default(PENDING)
-  supplierAuthorizationDeadline DateTime?
+  supplierAuthorizationStatus      SupplierAuthStatus? @default(PENDING)
+  supplierAuthorizationDeadline    DateTime?
   supplierAuthorizationRequestedAt DateTime?
-  supplierAuthorizationNumber String?                   // ARP/RMA number from supplier
-  supplierAuthorizationNotes  String?
-  order                       Order                     @relation(fields: [orderId], references: [id])
-  orderItem                   OrderItem                 @relation(fields: [orderItemId], references: [id])
-  user                        User                      @relation(fields: [userId], references: [id])
+  supplierAuthorizationNumber      String? // ARP/RMA number from supplier
+  supplierAuthorizationNotes       String?
+  order                            Order               @relation(fields: [orderId], references: [id])
+  orderItem                        OrderItem           @relation(fields: [orderItemId], references: [id])
+  user                             User                @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([orderId])
@@ -955,49 +909,32 @@ model EmailLog {
   @@index([sentAt])
 }
 
-model ProductCost {
-  id        String   @id @default(cuid())
-  productId String
-  costType  String
-  amount    Float
-  date      DateTime
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@index([productId])
-  @@index([costType])
-  @@index([date])
-}
-
 model SupplierOrder {
-  id                String                 @id @default(cuid())
-  orderId           String
-  supplierId        String
-  productId         String
-  quantity          Int
-  unitCost          Float
-  totalCost         Float
-  supplierRevenue   Float                  @default(0)
-  commission        Float                  @default(0)
-  status            String                 @default("PENDING")
-  notes             String?
-  createdAt         DateTime               @default(now())
-  updatedAt         DateTime               @updatedAt
-  carrier           String?
-  estimatedDelivery DateTime?
-  orderItemId       String
-  shippedAt         DateTime?
-  trackingNumber    String?
-  supplierOrderId   String?                // Supplier's order ID/reference (e.g., Boribon order ID)
-  supplierInvoiceId String?
-  order             Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderItem         OrderItem              @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  product           Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
-  supplier          Supplier               @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  supplierInvoice   SupplierInvoice?       @relation(fields: [supplierInvoiceId], references: [id], onDelete: SetNull)
-  tracking          SupplierOrderTracking?
+  id                   String                 @id @default(cuid())
+  orderId              String
+  supplierId           String
+  productId            String
+  quantity             Int
+  unitCost             Float
+  totalCost            Float
+  supplierRevenue      Float                  @default(0)
+  commission           Float                  @default(0)
+  status               String                 @default("PENDING")
+  notes                String?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  carrier              String?
+  estimatedDelivery    DateTime?
+  orderItemId          String
+  shippedAt            DateTime?
+  trackingNumber       String?
+  supplierOrderId      String? // Supplier's order ID/reference (e.g., Boribon order ID)
+  supplierInvoiceId    String?
+  order                Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem            OrderItem              @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  product              Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplier             Supplier               @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  supplierInvoice      SupplierInvoice?       @relation(fields: [supplierInvoiceId], references: [id], onDelete: SetNull)
   receivedInvoiceLinks ReceivedInvoiceOrder[]
 
   @@index([orderId])
@@ -1012,34 +949,34 @@ model SupplierOrder {
 }
 
 model Supplier {
-  id                       String                       @id @default(cuid())
+  id                       String                    @id @default(cuid())
   name                     String
-  email                    String                       @unique
+  email                    String                    @unique
   phone                    String
   address                  Json?
   contactPerson            String?
-  isActive                 Boolean                      @default(true)
-  createdAt                DateTime                     @default(now())
-  updatedAt                DateTime                     @updatedAt
+  isActive                 Boolean                   @default(true)
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
   adresaSediu              String?
   annualRevenue            String?
-  anpcApproval             Boolean                      @default(false)
+  anpcApproval             Boolean                   @default(false)
   apiEndpoint              String?
   apiKey                   String?
   approvedAt               DateTime?
   approvedBy               String?
-  averageDeliveryDays      Int                          @default(7)
+  averageDeliveryDays      Int                       @default(7)
   businessAddress          String?
   businessCity             String?
-  businessCountry          String?                      @default("Romania")
+  businessCountry          String?                   @default("Romania")
   businessPostalCode       String?
   businessState            String?
   catalogUrl               String?
-  certifications           String[]                     @default([])
+  certifications           String[]                  @default([])
   codFiscal                String?
-  commissionRate           Float                        @default(15.0)
+  commissionRate           Float                     @default(15.0)
   companyName              String?
-  companySlug              String?                      @unique
+  companySlug              String?                   @unique
   contactPersonEmail       String?
   contactPersonName        String?
   contactPersonPhone       String?
@@ -1047,13 +984,13 @@ model Supplier {
   description              String?
   educationalCertification String?
   employeeCount            Int?
-  iscApproval              Boolean                      @default(false)
+  iscApproval              Boolean                   @default(false)
   logo                     String?
-  minimumOrderValue        Float                        @default(0)
+  minimumOrderValue        Float                     @default(0)
   nrRegCom                 String?
-  paymentTerms             Int                          @default(30)
-  privacyAccepted          Boolean                      @default(false)
-  productCategories        String[]                     @default([])
+  paymentTerms             Int                       @default(30)
+  privacyAccepted          Boolean                   @default(false)
+  productCategories        String[]                  @default([])
   integrationMethod        String?
   feedUrl                  String?
   authType                 String?
@@ -1064,30 +1001,29 @@ model Supplier {
   rejectionReason          String?
   reprezentantLegal        String?
   romanianBankAccount      String?
-  romanianComplianceStatus String                       @default("PENDING")
-  romanianCurrency         String                       @default("RON")
-  romanianPaymentTerms     Int                          @default(30)
+  romanianComplianceStatus String                    @default("PENDING")
+  romanianCurrency         String                    @default("RON")
+  romanianPaymentTerms     Int                       @default(30)
   romanianVatNumber        String?
-  status                   String                       @default("PENDING")
+  status                   String                    @default("PENDING")
   taxId                    String?
-  termsAccepted            Boolean                      @default(false)
+  termsAccepted            Boolean                   @default(false)
   trackingUrl              String?
-  userId                   String?                      @unique
+  userId                   String?                   @unique
   vatNumber                String?
   website                  String?
   yearEstablished          Int?
   // Dropshipping margin configuration
-  defaultMargin            Float?                       @default(0.30) // Default margin (30% for KidStory)
-  minimumMarginPercentage  Float?                       @default(0.15) // Minimum margin before disabling product (15%)
-  priceChangeThreshold     Float?                       @default(0.10) // Alert if price changes by more than 10%
+  defaultMargin            Float?                    @default(0.30) // Default margin (30% for KidStory)
+  minimumMarginPercentage  Float?                    @default(0.15) // Minimum margin before disabling product (15%)
+  priceChangeThreshold     Float?                    @default(0.10) // Alert if price changes by more than 10%
   products                 Product[]
-  user                     User?                        @relation(fields: [userId], references: [id])
+  user                     User?                     @relation(fields: [userId], references: [id])
   invoices                 SupplierInvoice[]
   messages                 SupplierMessage[]
   notifications            SupplierNotification[]
   orders                   SupplierOrder[]
   payments                 SupplierPayment[]
-  performanceMetrics       SupplierPerformanceMetrics[]
   supportTickets           SupplierSupportTicket[]
   feeds                    SupplierFeed[]
   supplierProducts         SupplierProduct[]
@@ -1102,26 +1038,6 @@ model Supplier {
   @@index([businessCountry])
   @@index([commissionRate])
   @@index([minimumOrderValue])
-}
-
-model Ticket {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  status      String   @default("open")
-  priority    String   @default("medium")
-  category    String?
-  userId      String?
-  assignedTo  String?
-  metadata    Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User?    @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([status])
-  @@index([priority])
-  @@index([assignedTo])
 }
 
 model FacebookPixelEvent {
@@ -1455,29 +1371,29 @@ model SupplierInvoice {
 
 // Invoices received FROM suppliers (e.g., KidStory) - for reconciliation
 model ReceivedSupplierInvoice {
-  id                String            @id @default(cuid())
-  supplierId        String
-  invoiceNumber     String            @unique
-  invoiceDate       DateTime
-  dueDate           DateTime
-  disputeDeadline   DateTime           // Critical for KidStory - short dispute windows
-  totalAmount       Float
-  currency          String             @default("RON")
-  status            ReceivedInvoiceStatus @default(PENDING)
-  pdfUrl            String?            // Uploaded PDF invoice
-  xmlData           Json?              // Parsed XML data if available
-  discrepancies     Json?              // Track mismatches: { type: "AMOUNT_MISMATCH", expected: 1000, actual: 1200 }
-  reconciliationStatus ReconciliationStatus @default(PENDING)
-  reconciledAt      DateTime?
-  reconciledBy      String?
-  paidAt            DateTime?
-  paymentMethod     String?
-  paymentReference  String?
-  notes             String?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  supplier          Supplier          @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  linkedOrders       ReceivedInvoiceOrder[]
+  id                   String                 @id @default(cuid())
+  supplierId           String
+  invoiceNumber        String                 @unique
+  invoiceDate          DateTime
+  dueDate              DateTime
+  disputeDeadline      DateTime // Critical for KidStory - short dispute windows
+  totalAmount          Float
+  currency             String                 @default("RON")
+  status               ReceivedInvoiceStatus  @default(PENDING)
+  pdfUrl               String? // Uploaded PDF invoice
+  xmlData              Json? // Parsed XML data if available
+  discrepancies        Json? // Track mismatches: { type: "AMOUNT_MISMATCH", expected: 1000, actual: 1200 }
+  reconciliationStatus ReconciliationStatus   @default(PENDING)
+  reconciledAt         DateTime?
+  reconciledBy         String?
+  paidAt               DateTime?
+  paymentMethod        String?
+  paymentReference     String?
+  notes                String?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  supplier             Supplier               @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  linkedOrders         ReceivedInvoiceOrder[]
 
   @@index([supplierId])
   @@index([invoiceNumber])
@@ -1490,16 +1406,16 @@ model ReceivedSupplierInvoice {
 
 // Link received invoices to supplier orders for reconciliation
 model ReceivedInvoiceOrder {
-  id                      String                  @id @default(cuid())
-  receivedInvoiceId       String
-  supplierOrderId        String
-  expectedAmount          Float
-  actualAmount            Float
-  discrepancy             Float?                   // actualAmount - expectedAmount
-  notes                   String?
-  createdAt               DateTime                @default(now())
-  receivedInvoice         ReceivedSupplierInvoice @relation(fields: [receivedInvoiceId], references: [id], onDelete: Cascade)
-  supplierOrder           SupplierOrder           @relation(fields: [supplierOrderId], references: [id], onDelete: Cascade)
+  id                String                  @id @default(cuid())
+  receivedInvoiceId String
+  supplierOrderId   String
+  expectedAmount    Float
+  actualAmount      Float
+  discrepancy       Float? // actualAmount - expectedAmount
+  notes             String?
+  createdAt         DateTime                @default(now())
+  receivedInvoice   ReceivedSupplierInvoice @relation(fields: [receivedInvoiceId], references: [id], onDelete: Cascade)
+  supplierOrder     SupplierOrder           @relation(fields: [supplierOrderId], references: [id], onDelete: Cascade)
 
   @@unique([receivedInvoiceId, supplierOrderId])
   @@index([receivedInvoiceId])
@@ -1624,63 +1540,6 @@ model SupplierTicketResponse {
   @@index([responderId])
   @@index([responderType])
   @@index([createdAt])
-}
-
-model SupplierPerformanceMetrics {
-  id                   String   @id @default(cuid())
-  supplierId           String
-  periodStart          DateTime
-  periodEnd            DateTime
-  totalOrders          Int      @default(0)
-  fulfilledOrders      Int      @default(0)
-  onTimeDeliveryRate   Float    @default(0)
-  averageDeliveryDays  Float?
-  qualityScore         Float    @default(0)
-  returnRate           Float    @default(0)
-  customerSatisfaction Float    @default(0)
-  totalRevenue         Float    @default(0)
-  commissionEarned     Float    @default(0)
-  fulfillmentRate      Float    @default(0)
-  responseTimeHours    Float?
-  issueResolutionRate  Float    @default(0)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  supplier             Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-
-  @@unique([supplierId, periodStart, periodEnd])
-  @@index([supplierId])
-  @@index([periodStart])
-  @@index([periodEnd])
-  @@index([onTimeDeliveryRate])
-  @@index([qualityScore])
-  @@index([fulfillmentRate])
-}
-
-model SupplierOrderTracking {
-  id                    String        @id @default(cuid())
-  supplierOrderId       String        @unique
-  orderId               String
-  orderItemId           String
-  status                String        @default("PENDING")
-  estimatedDeliveryDate DateTime?
-  actualDeliveryDate    DateTime?
-  shippedDate           DateTime?
-  trackingNumber        String?
-  carrier               String?
-  qualityRating         Int?
-  deliveryRating        Int?
-  customerFeedback      String?
-  issuesReported        String[]      @default([])
-  resolutionStatus      String?
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
-  supplierOrder         SupplierOrder @relation(fields: [supplierOrderId], references: [id], onDelete: Cascade)
-
-  @@index([orderId])
-  @@index([status])
-  @@index([estimatedDeliveryDate])
-  @@index([actualDeliveryDate])
-  @@index([qualityRating])
 }
 
 model SupplierFeed {

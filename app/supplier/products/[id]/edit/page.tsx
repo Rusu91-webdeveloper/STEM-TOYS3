@@ -8,12 +8,14 @@ export const metadata: Metadata = {
 };
 
 interface EditProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function EditProductPage({ params }: EditProductPageProps) {
+export default async function EditProductPage({ params }: EditProductPageProps) {
+  const { id } = await params;
+
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
@@ -22,8 +24,8 @@ export default function EditProductPage({ params }: EditProductPageProps) {
           Update your product information
         </p>
       </div>
-      
-      <SupplierProductForm productId={params.id} />
+
+      <SupplierProductForm productId={id} />
     </div>
   );
 }

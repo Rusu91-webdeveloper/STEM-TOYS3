@@ -44,7 +44,16 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Test not found" }, { status: 404 });
         }
 
-        const variant = await ABTestingService.getVariantForUser(targetTestId, userId);
+        const test = await db.aBTest.findUnique({
+            where: { id: targetTestId },
+            include: { variants: true, metrics: true },
+        });
+
+        if (!test) {
+            return NextResponse.json({ error: "Test not found" }, { status: 404 });
+        }
+
+        const variant = ABTestingService.getVariantForUser(test, userId);
 
         if (!variant) {
             return NextResponse.json({ error: "No variant assigned" }, { status: 404 });

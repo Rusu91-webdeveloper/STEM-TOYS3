@@ -31,20 +31,7 @@ export const GET = withRateLimit(
       ]);
 
       // Build where clause for filtering
-      const where: {
-        status?: string;
-        manualShippingReviewRequired?: boolean;
-        createdAt?: { gte: Date };
-        OR?: Array<{
-          orderNumber?: { contains: string; mode: "insensitive" };
-          user?: {
-            OR: Array<{
-              name?: { contains: string; mode: "insensitive" };
-              email?: { contains: string; mode: "insensitive" };
-            }>;
-          };
-        }>;
-      } = {};
+      const where: any = {};
 
       if (filters.status && filters.status !== "all") {
         // Handle special shipping_review filter

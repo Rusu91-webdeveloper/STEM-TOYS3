@@ -15,7 +15,7 @@ import {
 
 interface SupplierOption {
   id: string;
-  companyName: string;
+  companyName?: string | null;
 }
 
 interface CategoryOption {

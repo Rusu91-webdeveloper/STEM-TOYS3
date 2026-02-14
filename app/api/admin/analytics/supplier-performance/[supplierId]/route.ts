@@ -251,33 +251,32 @@ async function calculateDeliveryMetrics(
   startDate: Date,
   endDate: Date
 ) {
-  const ordersWithTracking = await db.supplierOrder.findMany({
+  const supplierOrders = await db.supplierOrder.findMany({
     where: {
       supplierId,
       createdAt: { gte: startDate, lte: endDate },
     },
     include: {
-      tracking: true,
       order: {
         select: {
           createdAt: true,
+          deliveredAt: true,
         },
       },
     },
   });
 
-  const deliveredOrders = ordersWithTracking.filter(
-    order => order.tracking?.actualDeliveryDate
+  const deliveredOrders = supplierOrders.filter(
+    order => order.status === "DELIVERED" && order.order?.deliveredAt
   );
   const onTimeDeliveries = deliveredOrders.filter(order => {
     if (
-      !order.tracking?.estimatedDeliveryDate ||
-      !order.tracking?.actualDeliveryDate
+      !order.estimatedDelivery ||
+      !order.order?.deliveredAt
     )
       return false;
     return (
-      new Date(order.tracking.actualDeliveryDate) <=
-      new Date(order.tracking.estimatedDeliveryDate)
+      new Date(order.order.deliveredAt) <= new Date(order.estimatedDelivery)
     );
   });
 
@@ -289,11 +288,11 @@ async function calculateDeliveryMetrics(
   // Average delivery times
   const deliveryTimes = deliveredOrders
     .filter(
-      order => order.tracking?.shippedDate && order.tracking.actualDeliveryDate
+      order => order.shippedAt && order.order?.deliveredAt
     )
     .map(order => {
-      const shippedDate = new Date(order.tracking!.shippedDate!);
-      const deliveryDate = new Date(order.tracking!.actualDeliveryDate!);
+      const shippedDate = new Date(order.shippedAt!);
+      const deliveryDate = new Date(order.order!.deliveredAt!);
       return Math.ceil(
         (deliveryDate.getTime() - shippedDate.getTime()) / (1000 * 60 * 60 * 24)
       );
@@ -313,7 +312,7 @@ async function calculateDeliveryMetrics(
       : 0;
 
   return {
-    totalTrackedOrders: ordersWithTracking.length,
+    totalTrackedOrders: supplierOrders.length,
     deliveredOrders: deliveredOrders.length,
     onTimeDeliveries: onTimeDeliveries.length,
     lateDeliveries,

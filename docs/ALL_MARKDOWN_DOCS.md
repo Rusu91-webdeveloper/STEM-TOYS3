@@ -39,6 +39,7 @@ This file lists all markdown docs in the project so tools/AI can quickly see wha
 - `docs/SUPPLIER_SYNC_PLAN.md` – Supplier feed sync design, current status, and cron/alert plans.
 - `docs/SUPPLIER_ORDER_FLOW.md` – SupplierOrder model (one per order item), creation from webhooks and admin, and relation to AWB/tracking.
 - `docs/SOP_DAILY_OPERATIONS.md` – Day‑to‑day SOP for running the business (orders, suppliers, returns, KPIs).
+- `docs/ONCALL_FULFILLMENT_PLAYBOOK.md` – Launch on-call response procedures for webhook failures, AWB failures, mixed-supplier orders, and stock mismatches.
 - `docs/PRODUCT_IMPORT_GUIDE.md` – Product import script, CSV/JSON schema, and linkage to suppliers/categories.
 - `docs/CUSTOMER_SUPPORT_MACROS.md` – Email macros/templates for common support scenarios (orders, delays, returns, defects).
 - `docs/BUNDLE_CREATION_GUIDE.md` – Bundle product strategy and the bundle creation script behavior.
@@ -46,4 +47,3 @@ This file lists all markdown docs in the project so tools/AI can quickly see wha
 ### Launch & planning
 
 - `LAUNCH_CHECKLIST.md` – Launch blueprint and timeline for bringing the store live.
-

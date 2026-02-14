@@ -97,14 +97,17 @@ export async function GET(request: NextRequest) {
     };
 
     // Recent events with platform information
-    const recentEvents = events.map(event => ({
-      event: event.eventName.replace(/^(facebook|instagram|tiktok)_/, ""),
-      platform: event.customData?.platform || "unknown",
-      blogId: event.contentIds?.[0] || event.customData?.blog_id || null,
-      timestamp: event.timestamp.toISOString(),
-      value: event.value || null,
-      customData: event.customData,
-    }));
+    const recentEvents = events.map(event => {
+      const data = (event.customData ?? {}) as Record<string, any>;
+      return {
+        event: event.eventName.replace(/^(facebook|instagram|tiktok)_/, ""),
+        platform: data.platform || "unknown",
+        blogId: event.contentIds?.[0] || data.blog_id || null,
+        timestamp: event.timestamp.toISOString(),
+        value: event.value || null,
+        customData: event.customData,
+      };
+    });
 
     // Format viral data with platform breakdown
     const formattedViralData = viralContent.map(content => ({
@@ -247,21 +250,30 @@ export async function POST(request: NextRequest) {
           break;
       }
 
-      await prisma.romanianViralContent.upsert({
+      const existing = await prisma.romanianViralContent.findFirst({
         where: { blogId },
-        update: updateData,
-        create: {
-          blogId,
-          shares: 1,
-          facebookShares: platform === "facebook" ? 1 : 0,
-          instagramShares: platform === "instagram" ? 1 : 0,
-          tiktokShares: platform === "tiktok" ? 1 : 0,
-          viralCoefficient: 1.0,
-          reach: 1,
-          engagement: 1,
-          romanianEngagement: 1,
-        },
       });
+
+      if (existing) {
+        await prisma.romanianViralContent.update({
+          where: { id: existing.id },
+          data: updateData,
+        });
+      } else {
+        await prisma.romanianViralContent.create({
+          data: {
+            blogId,
+            shares: 1,
+            facebookShares: platform === "facebook" ? 1 : 0,
+            instagramShares: platform === "instagram" ? 1 : 0,
+            tiktokShares: platform === "tiktok" ? 1 : 0,
+            viralCoefficient: 1.0,
+            reach: 1,
+            engagement: 1,
+            romanianEngagement: 1,
+          },
+        });
+      }
     }
 
     return NextResponse.json({

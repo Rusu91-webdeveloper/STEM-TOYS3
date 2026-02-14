@@ -7,20 +7,21 @@ import { runSupplierFeedSync } from "@/lib/suppliers/sync";
 
 export async function POST(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.id || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 
-    const feed = await db.supplierFeed.findUnique({ where: { id: params.id } });
+    const feed = await db.supplierFeed.findUnique({ where: { id } });
     if (!feed) {
       return NextResponse.json({ error: "Feed not found" }, { status: 404 });
     }
 
-    const result = await runSupplierFeedSync({ feedId: params.id });
+    const result = await runSupplierFeedSync({ feedId: id });
     return NextResponse.json({ success: true, result });
   } catch (error) {
     logger.error("Admin supplier feed sync error", { error });

@@ -108,13 +108,17 @@ export class EnhancedValidator {
     return issues.map(issue => {
       const field = issue.path.join(".");
       const error = this.createEnhancedError(issue, context);
+      const rootReceivedValue =
+        issue.path.length === 0 && "received" in issue
+          ? (issue as { received?: unknown }).received
+          : undefined;
 
       return {
         field,
         code: issue.code,
         message: error.message,
         suggestion: error.suggestion,
-        value: issue.path.length > 0 ? undefined : issue.received, // Only show received value for root level
+        value: rootReceivedValue, // Only show received value for root level when available
       };
     });
   }
@@ -193,12 +197,6 @@ export class EnhancedValidator {
         return {
           message: `${field} contains unrecognized properties: ${issue.keys.join(", ")}`,
           suggestion: `Please remove the extra properties: ${issue.keys.join(", ")}`,
-        };
-
-      case "missing_keys":
-        return {
-          message: `${field} is missing required properties: ${issue.keys.join(", ")}`,
-          suggestion: `Please provide values for: ${issue.keys.join(", ")}`,
         };
 
       default:
@@ -293,7 +291,7 @@ export class EnhancedValidator {
     }
 
     // Check for potentially malicious filenames
-    const dangerousPatterns = /(\.\.|\/|\\|;|>|</);
+    const dangerousPatterns = /(\.\.|\/|\\|;|>|<)/;
     if (dangerousPatterns.test(file.name)) {
       errors.push({
         field: "file",

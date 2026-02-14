@@ -15,14 +15,14 @@ export async function GET(request: NextRequest) {
 
     switch (metric) {
       case "database":
-        return await getDatabaseMetrics();
+        return NextResponse.json(await getDatabaseMetrics());
       case "cache":
-        return await getCacheMetrics();
+        return NextResponse.json(await getCacheMetrics());
       case "application":
-        return await getApplicationMetrics();
+        return NextResponse.json(await getApplicationMetrics());
       case "overview":
       default:
-        return await getOverviewMetrics();
+        return NextResponse.json(await getOverviewMetrics());
     }
   } catch (error) {
     console.error("Performance API error:", error);
@@ -74,13 +74,13 @@ async function getOverviewMetrics() {
     ],
   };
 
-  return NextResponse.json(overview);
+  return overview;
 }
 
 async function getDatabaseMetrics() {
   try {
     // Get database connection stats
-    const connectionStats = await db.$queryRaw`
+    const connectionStats = (await db.$queryRaw`
       SELECT
         count(*) as total_connections,
         count(*) filter (where state = 'active') as active_connections,
@@ -88,7 +88,7 @@ async function getDatabaseMetrics() {
         avg(extract(epoch from (now() - query_start))) as avg_query_time
       FROM pg_stat_activity
       WHERE datname = current_database();
-    `;
+    `) as Array<Record<string, unknown>>;
 
     // Get slow query count (simulated for demo)
     const slowQueries = await db.product.count({

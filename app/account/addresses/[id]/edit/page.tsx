@@ -11,12 +11,14 @@ export const metadata: Metadata = {
 };
 
 interface EditAddressPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function EditAddressPage({ params }: EditAddressPageProps) {
+export default async function EditAddressPage({ params }: EditAddressPageProps) {
+  const { id } = await params;
+
   return (
     <div className="space-y-6 text-slate-100">
       <div
@@ -31,7 +33,7 @@ export default function EditAddressPage({ params }: EditAddressPageProps) {
         </p>
       </div>
 
-      <AddressForm isEditing addressId={params.id} />
+      <AddressForm isEditing addressId={id} />
     </div>
   );
 }

@@ -16,9 +16,10 @@ const SendCampaignSchema = z.object({
 // POST /api/admin/email-campaigns/[id]/send - Send campaign emails
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -30,7 +31,7 @@ export async function POST(
 
     // Get the campaign
     const campaign = await prisma.emailCampaign.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         template: true,
       },
@@ -65,8 +66,7 @@ export async function POST(
           campaign.subject,
           campaign.content,
           {
-            from: process.env.EMAIL_FROM || "noreply@techtots.com",
-            fromName: process.env.EMAIL_FROM_NAME || "TechTots STEM Store",
+            campaignId: campaign.id,
           }
         );
 
@@ -82,7 +82,7 @@ export async function POST(
               campaignName: campaign.name,
               templateName: campaign.template?.name,
               sentAt: new Date().toISOString(),
-              messageId: emailResult.messageId,
+              messageId: emailResult.jobId,
               testMode: validatedData.testMode,
             },
           },
@@ -92,7 +92,7 @@ export async function POST(
         results.push({
           email,
           success: true,
-          messageId: emailResult.messageId,
+          messageId: emailResult.jobId,
           emailId,
         });
       } catch (error) {
@@ -127,7 +127,7 @@ export async function POST(
     // Update campaign status if not in test mode
     if (!validatedData.testMode && results.some(r => r.success)) {
       await prisma.emailCampaign.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           status: "SENT",
           sentAt: new Date(),

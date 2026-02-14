@@ -79,6 +79,7 @@ type OrderDetails = {
   status: string;
   paymentStatus: string;
   paymentMethod: string;
+  shippingMethod?: string;
   subtotal: number;
   tax: number;
   shippingCost: number;
@@ -215,7 +216,7 @@ export default function OrderDetailsPage() {
       }
 
       const data = await response.json();
-      
+
       toast({
         title: "Success",
         description: `Created ${data.data.supplierOrdersCreated} supplier order(s)`,
@@ -437,10 +438,10 @@ export default function OrderDetailsPage() {
               Placed on{" "}
               {order.date
                 ? new Date(order.date).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })
                 : "N/A"}
             </p>
           </div>
@@ -768,13 +769,12 @@ export default function OrderDetailsPage() {
                             </p>
                           </div>
                           <span
-                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                              so.status === "SHIPPED"
+                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${so.status === "SHIPPED"
                                 ? "bg-purple-100 text-purple-800"
                                 : so.status === "DELIVERED"
                                   ? "bg-green-100 text-green-800"
                                   : "bg-blue-100 text-blue-800"
-                            }`}
+                              }`}
                           >
                             {so.status}
                           </span>

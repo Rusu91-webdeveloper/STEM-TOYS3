@@ -291,6 +291,12 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
+    // Verify this is an authorized request
+    const authHeader = req.headers.get("authorization");
+    if (!isAuthorizedCronRequest(authHeader)) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
     const body = await req.json();
     const { phase } = body;
 

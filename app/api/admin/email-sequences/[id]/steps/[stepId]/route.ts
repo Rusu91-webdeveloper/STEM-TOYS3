@@ -25,9 +25,10 @@ const EmailSequenceStepUpdateSchema = z.object({
 // PUT /api/admin/email-sequences/[id]/steps/[stepId] - Update sequence step
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; stepId: string } }
+  { params }: { params: Promise<{ id: string; stepId: string }> }
 ) {
   try {
+    const { id, stepId } = await params;
     const session = await getServerSession();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -39,7 +40,7 @@ export async function PUT(
 
     // Check if step exists
     const existingStep = await prisma.emailSequenceStep.findUnique({
-      where: { id: params.stepId },
+      where: { id: stepId },
     });
 
     if (!existingStep) {
@@ -50,7 +51,7 @@ export async function PUT(
     }
 
     // Check if step belongs to the sequence
-    if (existingStep.sequenceId !== params.id) {
+    if (existingStep.sequenceId !== id) {
       return NextResponse.json(
         { error: "Step does not belong to this sequence" },
         { status: 400 }
@@ -75,9 +76,9 @@ export async function PUT(
     if (validatedData.order && validatedData.order !== existingStep.order) {
       const conflictingStep = await prisma.emailSequenceStep.findFirst({
         where: {
-          sequenceId: params.id,
+          sequenceId: id,
           order: validatedData.order,
-          id: { not: params.stepId },
+          id: { not: stepId },
         },
       });
 
@@ -91,7 +92,7 @@ export async function PUT(
 
     // Update the step
     const updatedStep = await prisma.emailSequenceStep.update({
-      where: { id: params.stepId },
+      where: { id: stepId },
       data: validatedData,
       include: {
         template: {
@@ -125,9 +126,10 @@ export async function PUT(
 // DELETE /api/admin/email-sequences/[id]/steps/[stepId] - Delete sequence step
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; stepId: string } }
+  { params }: { params: Promise<{ id: string; stepId: string }> }
 ) {
   try {
+    const { id, stepId } = await params;
     const session = await getServerSession();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -136,7 +138,7 @@ export async function DELETE(
 
     // Check if step exists
     const existingStep = await prisma.emailSequenceStep.findUnique({
-      where: { id: params.stepId },
+      where: { id: stepId },
     });
 
     if (!existingStep) {
@@ -147,7 +149,7 @@ export async function DELETE(
     }
 
     // Check if step belongs to the sequence
-    if (existingStep.sequenceId !== params.id) {
+    if (existingStep.sequenceId !== id) {
       return NextResponse.json(
         { error: "Step does not belong to this sequence" },
         { status: 400 }
@@ -156,7 +158,7 @@ export async function DELETE(
 
     // Delete the step
     await prisma.emailSequenceStep.delete({
-      where: { id: params.stepId },
+      where: { id: stepId },
     });
 
     return NextResponse.json({ message: "Sequence step deleted successfully" });

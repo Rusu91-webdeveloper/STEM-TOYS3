@@ -64,8 +64,9 @@ export const PUT = async (
         await db.supplier.create({
           data: {
             userId: userId,
-            businessName: currentUser.name || "Supplier Business",
-            contactEmail: currentUser.email,
+            name: currentUser.name || "Supplier Business",
+            email: currentUser.email,
+            phone: "",
             status: "PENDING", // New suppliers start as pending
             commissionRate: 15.0, // Default commission rate
           },

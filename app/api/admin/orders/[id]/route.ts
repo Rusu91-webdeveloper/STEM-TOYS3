@@ -1,4 +1,4 @@
-import { OrderStatus } from "@prisma/client";
+import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -232,7 +232,7 @@ export async function PATCH(
       status: OrderStatus;
       deliveredAt?: Date;
       notes?: string;
-      paymentStatus?: string;
+      paymentStatus?: PaymentStatus;
     } = {
       status: status as OrderStatus,
     };
@@ -317,7 +317,7 @@ export async function PATCH(
             orderId: updatedOrder.orderNumber,
             orderItems: updatedOrder.items.map(item => ({
               id: item.id,
-              productId: item.productId,
+              productId: item.productId ?? "",
               name: item.name,
               quantity: item.quantity,
               price: item.price,
@@ -340,6 +340,8 @@ export async function PATCH(
             customerName,
             orderId: updatedOrder.orderNumber,
             orderItems: updatedOrder.items.map(item => ({
+              id: item.id,
+              productId: item.productId ?? "",
               name: item.name,
               quantity: item.quantity,
               price: item.price,
@@ -358,6 +360,8 @@ export async function PATCH(
             customerName,
             orderId: updatedOrder.orderNumber,
             orderItems: updatedOrder.items.map(item => ({
+              id: item.id,
+              productId: item.productId ?? "",
               name: item.name,
               quantity: item.quantity,
               price: item.price,

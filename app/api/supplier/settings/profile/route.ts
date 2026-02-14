@@ -38,9 +38,9 @@ export async function PUT(request: NextRequest) {
         businessAddress,
         businessCity,
         businessCountry,
-        businessWebsite,
+        website: businessWebsite,
         taxId,
-        registrationNumber,
+        nrRegCom: registrationNumber,
         contactPersonName,
         contactPersonEmail,
         contactPersonPhone,
@@ -53,28 +53,35 @@ export async function PUT(request: NextRequest) {
         businessAddress: true,
         businessCity: true,
         businessCountry: true,
-        businessWebsite: true,
+        website: true,
         taxId: true,
-        registrationNumber: true,
+        nrRegCom: true,
         contactPersonName: true,
         contactPersonEmail: true,
         contactPersonPhone: true,
         commissionRate: true,
         status: true,
         createdAt: true,
-        logoUrl: true,
+        logo: true,
       },
     });
 
+    const profile = {
+      ...updatedSupplier,
+      businessWebsite: updatedSupplier.website,
+      registrationNumber: updatedSupplier.nrRegCom,
+      logoUrl: updatedSupplier.logo,
+    };
+
     logger.info("Supplier profile updated", {
-      supplierId: updatedSupplier.id,
+      supplierId: profile.id,
       userId: session.user.id,
     });
 
     return NextResponse.json({
       success: true,
       message: "Profile updated successfully",
-      profile: updatedSupplier,
+      profile,
     });
   } catch (error) {
     logger.error("Error updating supplier profile:", error);

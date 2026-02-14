@@ -79,14 +79,6 @@ const orderItemSchema = z.object({
   selectedLanguage: z.string().optional(),
 });
 
-// Guest information schema
-const guestInformationSchema = z.object({
-  email: z.string().email(),
-  createAccount: z.boolean().optional(),
-  password: z.string().optional(),
-  marketingOptIn: z.boolean().optional(),
-});
-
 // Updated order schema
 const orderSchema = z.object({
   shippingAddress: shippingAddressSchema,
@@ -105,8 +97,6 @@ const orderSchema = z.object({
   items: z.array(orderItemSchema).optional(),
   couponCode: z.string().nullable().optional(),
   discountAmount: z.number().optional(),
-  guestInformation: guestInformationSchema.optional(),
-  isGuestCheckout: z.boolean().optional(),
   paymentMethod: z.string().optional(),
   paymentStatus: z
     .enum([
@@ -189,7 +179,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get the user session (optional for guest checkout)
+    // Checkout is authenticated-only at launch.
     const session = await auth();
     const user = session?.user;
 
@@ -211,22 +201,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate checkout type - either authenticated user or guest with email
-    if (
-      !user &&
-      (!orderData.guestInformation?.email || !orderData.isGuestCheckout)
-    ) {
+    if (!user) {
       return NextResponse.json(
         {
           success: false,
-          message: "Authentication required or guest information missing",
+          message: "Authentication required",
+          error: "AUTH_REQUIRED",
         },
         { status: 401 }
       );
     }
-
-    // Determine if this is a guest checkout
-    const _isGuestCheckout = !user && orderData.isGuestCheckout;
 
     // Determine payment provider from order data
     const paymentProvider = orderData.paymentProvider || "netopia";
@@ -1090,11 +1074,10 @@ export async function POST(request: Request) {
         const metadata: Record<string, string> = {
           orderId: dbOrder.id,
           orderNumber: dbOrder.orderNumber || orderNumber,
-          userId: user?.id ?? "guest",
+          userId: user.id,
         };
 
-        const customerEmail =
-          user?.email || orderData.guestInformation?.email || "";
+        const customerEmail = user.email || "";
         if (customerEmail) {
           metadata.userEmail = customerEmail;
         }
@@ -1367,19 +1350,32 @@ export async function POST(request: Request) {
               `[CHECKOUT][COD] Skipping AWB for order ${dbOrder.id}: ${reason}`
             );
           } else {
-            const { createCourierAwbForOrder } = await import(
-              "@/lib/shipping/awb-dispatcher"
-            );
-            const awbResult = await createCourierAwbForOrder(dbOrder.id);
-            if (awbResult.success) {
+            const existingAwbShipment = await db.shipment.findFirst({
+              where: {
+                orderId: dbOrder.id,
+                awbNumber: { not: null },
+              },
+              select: { awbNumber: true, courier: true },
+            });
+            if (existingAwbShipment?.awbNumber) {
               console.log(
-                `✅ Order ${dbOrder.id}: AWB created for COD order: ${awbResult.awbNumber}`
+                `ℹ️ Order ${dbOrder.id}: AWB already exists for COD order: ${existingAwbShipment.awbNumber} (${existingAwbShipment.courier})`
               );
             } else {
-              console.warn(
-                `⚠️ Order ${dbOrder.id}: AWB creation failed for COD order:`,
-                awbResult.error
+              const { createCourierAwbForOrder } = await import(
+                "@/lib/shipping/awb-dispatcher"
               );
+              const awbResult = await createCourierAwbForOrder(dbOrder.id);
+              if (awbResult.success) {
+                console.log(
+                  `✅ Order ${dbOrder.id}: AWB created for COD order: ${awbResult.awbNumber}`
+                );
+              } else {
+                console.warn(
+                  `⚠️ Order ${dbOrder.id}: AWB creation failed for COD order:`,
+                  awbResult.error
+                );
+              }
             }
           }
         } catch (awbError) {
@@ -1440,8 +1436,7 @@ export async function POST(request: Request) {
             `📧 Order ${dbOrder?.id || orderId}: COD order - sending confirmation email immediately`
           );
         }
-        const recipientEmail =
-          (user?.email as string) || orderData?.guestInformation?.email;
+        const recipientEmail = user.email;
 
         if (!recipientEmail) {
           console.warn(

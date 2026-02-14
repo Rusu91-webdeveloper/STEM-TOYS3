@@ -70,6 +70,11 @@ export async function GET(request: NextRequest) {
               responses: true,
             },
           },
+          responses: {
+            select: { createdAt: true },
+            orderBy: { createdAt: "desc" as const },
+            take: 1,
+          },
         },
         orderBy: { updatedAt: "desc" },
         skip: (page - 1) * limit,
@@ -96,8 +101,7 @@ export async function GET(request: NextRequest) {
       updatedAt: ticket.updatedAt,
       closedAt: ticket.closedAt,
       responseCount: ticket._count.responses,
-      lastResponseAt:
-        ticket.responses?.[ticket.responses.length - 1]?.createdAt,
+      lastResponseAt: ticket.responses[0]?.createdAt ?? null,
     }));
 
     logger.info("Admin tickets retrieved", {

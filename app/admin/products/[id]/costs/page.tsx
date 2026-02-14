@@ -6,14 +6,16 @@ import { db } from "@/lib/db";
 import ProductCostEditor from "@/components/admin/ProductCostEditor";
 
 interface ProductCostsPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function ProductCostsPage({
   params,
 }: ProductCostsPageProps) {
+  const { id } = await params;
+
   // Check if user is authenticated
   const session = await auth();
   if (!session?.user) {
@@ -28,7 +30,7 @@ export default async function ProductCostsPage({
   try {
     // Fetch product data
     const product = await db.product.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         name: true,

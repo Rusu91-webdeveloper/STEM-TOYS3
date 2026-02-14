@@ -113,11 +113,10 @@ export default function ManageFeaturedProductsPage() {
 
       {statusMessage && (
         <div
-          className={`p-4 mb-6 rounded-lg ${
-            statusMessage.type === "success"
+          className={`p-4 mb-6 rounded-lg ${statusMessage.type === "success"
               ? "bg-green-100 text-green-800"
               : "bg-red-100 text-red-800"
-          }`}
+            }`}
         >
           {statusMessage.text}
         </div>
@@ -210,7 +209,9 @@ export default function ManageFeaturedProductsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {product.category || "-"}
+                      {typeof product.category === "string"
+                        ? product.category
+                        : product.category?.name || "-"}
                     </div>
                     <div className="text-xs text-gray-500">
                       {(product.attributes?.stemCategory as string) ||
@@ -224,11 +225,10 @@ export default function ManageFeaturedProductsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        product.isActive
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.isActive
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
-                      }`}
+                        }`}
                     >
                       {product.isActive ? "Active" : "Inactive"}
                     </span>

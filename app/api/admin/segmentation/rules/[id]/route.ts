@@ -16,21 +16,22 @@ const segmentationService = new SegmentationService(
 );
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // GET /api/admin/segmentation/rules/[id] - Get a specific segmentation rule
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const rule = await prisma.segmentationRule.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!rule) {
@@ -50,6 +51,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT /api/admin/segmentation/rules/[id] - Update a segmentation rule
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -57,7 +59,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const body = await request.json();
     const rule = await segmentationService.updateSegmentationRule(
-      params.id,
+      id,
       body
     );
 
@@ -74,12 +76,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/admin/segmentation/rules/[id] - Delete a segmentation rule
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await segmentationService.deleteSegmentationRule(params.id);
+    await segmentationService.deleteSegmentationRule(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

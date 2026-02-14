@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { isAdmin } from "@/lib/auth/admin";
 import { db } from "@/lib/db";
 import { applyStandardHeaders } from "@/lib/response-headers";
+import { handleApiError } from "@/lib/api-error-handler";
 import { invalidateCachePattern } from "@/lib/cache";
 import { AIConfig } from "@/lib/ai";
 import { EnhancedProductProcessor } from "@/lib/ai/enhanced-product-processor";

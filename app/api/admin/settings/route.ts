@@ -30,7 +30,9 @@ export async function GET(req: NextRequest) {
     const paymentSettings = (settings.paymentSettings as Record<string, any>) || {};
     const codSettings = paymentSettings.codSettings;
 
-    // Transform the database result to include codSettings as a top-level field
+    const metadata = (settings.metadata as Record<string, unknown>) || {};
+
+    // Transform the database result to include legacy top-level fields
     const transformedSettings = {
       ...settings,
       codSettings: codSettings || {
@@ -38,6 +40,10 @@ export async function GET(req: NextRequest) {
         fixedFee: "5.00",
         active: true,
       },
+      businessHours: metadata.businessHours || null,
+      orderProcessing: metadata.orderProcessing || null,
+      inventoryManagement: metadata.inventoryManagement || null,
+      marketingSettings: metadata.marketingSettings || null,
     };
 
     return NextResponse.json(transformedSettings);
@@ -88,9 +94,36 @@ export async function PUT(req: NextRequest) {
       delete sectionData.codSettings;
     }
 
-    // Handle JSON fields that need merging (shippingSettings, taxSettings, etc.)
-    // For other JSON fields, merge with existing data
-    const jsonFields = ['shippingSettings', 'taxSettings', 'metadata'];
+    const currentMetadata = (settings.metadata as Record<string, unknown>) || {};
+    const metadataInput = (sectionData.metadata as Record<string, unknown>) || {};
+    delete sectionData.metadata;
+
+    const metadataSections = [
+      "businessHours",
+      "orderProcessing",
+      "inventoryManagement",
+      "marketingSettings",
+    ] as const;
+    let metadataChanged = Object.keys(metadataInput).length > 0;
+    const mergedMetadata: Record<string, unknown> = {
+      ...currentMetadata,
+      ...metadataInput,
+    };
+
+    for (const field of metadataSections) {
+      if (sectionData[field] !== undefined) {
+        mergedMetadata[field] = sectionData[field];
+        delete sectionData[field];
+        metadataChanged = true;
+      }
+    }
+
+    if (metadataChanged) {
+      updateData.metadata = mergedMetadata;
+    }
+
+    // Handle JSON fields that are persisted directly on StoreSettings
+    const jsonFields = ['shippingSettings', 'taxSettings'];
     for (const field of jsonFields) {
       if (sectionData[field] !== undefined) {
         updateData[field] = sectionData[field];
@@ -114,7 +147,9 @@ export async function PUT(req: NextRequest) {
     const paymentSettings = (updatedSettings.paymentSettings as Record<string, any>) || {};
     const codSettings = paymentSettings.codSettings;
 
-    // Transform the database result to include codSettings as a top-level field
+    const updatedMetadata = (updatedSettings.metadata as Record<string, unknown>) || {};
+
+    // Transform the database result to include legacy top-level fields
     const transformedSettings = {
       ...updatedSettings,
       codSettings: codSettings || {
@@ -122,6 +157,10 @@ export async function PUT(req: NextRequest) {
         fixedFee: "5.00",
         active: true,
       },
+      businessHours: updatedMetadata.businessHours || null,
+      orderProcessing: updatedMetadata.orderProcessing || null,
+      inventoryManagement: updatedMetadata.inventoryManagement || null,
+      marketingSettings: updatedMetadata.marketingSettings || null,
     };
 
     return NextResponse.json(transformedSettings);

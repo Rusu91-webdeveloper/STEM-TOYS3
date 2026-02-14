@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/server/auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logSecurityEvent } from "@/lib/security/security-events";
 import speakeasy from "speakeasy";
@@ -124,7 +123,7 @@ function hashBackupCode(code: string): string {
   return crypto.createHash("sha256").update(code).digest("hex");
 }
 
-export async function verifyBackupCode(
+async function verifyBackupCode(
   userId: string,
   code: string
 ): Promise<boolean> {

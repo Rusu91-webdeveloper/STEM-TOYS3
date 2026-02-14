@@ -8,9 +8,9 @@ export const metadata: Metadata = {
 };
 
 interface AdminSupplierDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function AdminSupplierDetailPage({

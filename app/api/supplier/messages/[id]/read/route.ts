@@ -5,9 +5,10 @@ import { db } from "@/lib/db";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: messageId } = await params;
     const session = await auth();
     if (!session?.user || session.user.role !== "SUPPLIER") {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
@@ -24,8 +25,6 @@ export async function PUT(
         { status: 404 }
       );
     }
-
-    const messageId = params.id;
 
     // Verify the message belongs to this supplier
     const message = await db.supplierMessage.findFirst({

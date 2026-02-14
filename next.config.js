@@ -6,7 +6,7 @@ const nextConfig = {
     // typedRoutes: true,
     // Enable server actions
     serverActions: {
-      allowedOrigins: ["localhost:3000", "your-domain.com"],
+      allowedOrigins: ["localhost:3000", "techtots.ro", "www.techtots.ro"],
     },
     // Enable optimized package imports
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
@@ -31,8 +31,8 @@ const nextConfig = {
     removeConsole:
       process.env.NODE_ENV === "production"
         ? {
-            exclude: ["error", "warn"],
-          }
+          exclude: ["error", "warn"],
+        }
         : false,
   },
 
@@ -48,8 +48,8 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // Temporarily ignore build errors to allow deployment while fixing module resolution
-    ignoreBuildErrors: true,
+    // Type errors must be caught at build time for production safety
+    ignoreBuildErrors: false,
   },
   // Update domain configuration with new fallback approach
   images: {

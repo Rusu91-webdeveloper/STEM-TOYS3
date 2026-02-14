@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       ? new Date(startDate)
       : new Date(endDateObj.getTime() - parseInt(period) * 24 * 60 * 60 * 1000);
 
-    const whereClause = supplierId ? { supplierId } : {};
+    const whereClause = supplierId ? { id: supplierId } : {};
 
     // Get all suppliers with their performance data
     const suppliers = await db.supplier.findMany({
@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
               select: {
                 createdAt: true,
                 status: true,
+                deliveredAt: true,
               },
             },
             orderItem: {
@@ -76,7 +77,6 @@ export async function GET(request: NextRequest) {
                 },
               },
             },
-            tracking: true,
           },
         });
 
@@ -91,17 +91,16 @@ export async function GET(request: NextRequest) {
 
         // On-time delivery calculation
         const deliveredOrders = supplierOrders.filter(
-          order => order.tracking?.actualDeliveryDate
+          order => order.status === "DELIVERED" && order.order?.deliveredAt
         );
         const onTimeDeliveries = deliveredOrders.filter(order => {
           if (
-            !order.tracking?.estimatedDeliveryDate ||
-            !order.tracking.actualDeliveryDate
+            !order.estimatedDelivery ||
+            !order.order?.deliveredAt
           )
             return false;
           return (
-            order.tracking.actualDeliveryDate <=
-            order.tracking.estimatedDeliveryDate
+            order.order.deliveredAt <= order.estimatedDelivery
           );
         }).length;
 
@@ -113,22 +112,21 @@ export async function GET(request: NextRequest) {
         // Average delivery days
         const deliveryTimes = deliveredOrders
           .filter(
-            order =>
-              order.tracking?.shippedDate && order.tracking.actualDeliveryDate
+            order => order.shippedAt && order.order?.deliveredAt
           )
           .map(order => {
-            const shippedDate = new Date(order.tracking!.shippedDate!);
-            const deliveryDate = new Date(order.tracking!.actualDeliveryDate!);
+            const shippedDate = new Date(order.shippedAt!);
+            const deliveryDate = new Date(order.order!.deliveredAt!);
             return Math.ceil(
               (deliveryDate.getTime() - shippedDate.getTime()) /
-                (1000 * 60 * 60 * 24)
+              (1000 * 60 * 60 * 24)
             );
           });
 
         const averageDeliveryDays =
           deliveryTimes.length > 0
             ? deliveryTimes.reduce((sum, days) => sum + days, 0) /
-              deliveryTimes.length
+            deliveryTimes.length
             : null;
 
         // Quality score from reviews
@@ -139,7 +137,7 @@ export async function GET(request: NextRequest) {
         const qualityScore =
           allReviews.length > 0
             ? allReviews.reduce((sum, review) => sum + review.rating, 0) /
-              allReviews.length
+            allReviews.length
             : 0;
 
         // Return rate calculation (simplified - would need return data)
@@ -203,7 +201,7 @@ export async function GET(request: NextRequest) {
 
     // Sort by performance grade and fulfillment rate
     const sortedPerformanceData = performanceData.sort((a, b) => {
-      const gradeOrder = {
+      const gradeOrder: Record<string, number> = {
         "A+": 7,
         A: 6,
         "B+": 5,
@@ -235,7 +233,7 @@ export async function GET(request: NextRequest) {
         endDate: endDateObj.toISOString().split("T")[0],
         days: Math.ceil(
           (endDateObj.getTime() - startDateObj.getTime()) /
-            (1000 * 60 * 60 * 24)
+          (1000 * 60 * 60 * 24)
         ),
       },
       summary: {
@@ -248,24 +246,24 @@ export async function GET(request: NextRequest) {
         averageFulfillmentRate:
           sortedPerformanceData.length > 0
             ? Math.round(
-                (sortedPerformanceData.reduce(
-                  (sum, s) => sum + s.fulfillmentRate,
-                  0
-                ) /
-                  sortedPerformanceData.length) *
-                  100
-              ) / 100
+              (sortedPerformanceData.reduce(
+                (sum, s) => sum + s.fulfillmentRate,
+                0
+              ) /
+                sortedPerformanceData.length) *
+              100
+            ) / 100
             : 0,
         averageQualityScore:
           sortedPerformanceData.length > 0
             ? Math.round(
-                (sortedPerformanceData.reduce(
-                  (sum, s) => sum + s.qualityScore,
-                  0
-                ) /
-                  sortedPerformanceData.length) *
-                  100
-              ) / 100
+              (sortedPerformanceData.reduce(
+                (sum, s) => sum + s.qualityScore,
+                0
+              ) /
+                sortedPerformanceData.length) *
+              100
+            ) / 100
             : 0,
       },
       suppliers: sortedPerformanceData,

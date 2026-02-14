@@ -17,7 +17,7 @@ interface Activity {
 
 // Define a type for wishlist items with the nested product
 type WishlistItemWithProduct = Wishlist & {
-  product: Pick<Product, "name">;
+  product: Pick<Product, "name"> | null;
 };
 
 export const GET = withErrorHandler(async (_request: NextRequest) => {
@@ -112,17 +112,18 @@ export const GET = withErrorHandler(async (_request: NextRequest) => {
       take: 5,
     });
 
-    recentWishlistItems.forEach((item: WishlistItemWithProduct) => {
+    recentWishlistItems.forEach((item) => {
+      const productName = item.product?.name ?? "Unknown product";
       activities.push({
         id: `wishlist-${item.id}`,
         type: "wishlist",
         title: "Item Added to Wishlist",
-        description: `${item.product.name} was added to your wishlist`,
+        description: `${productName} was added to your wishlist`,
         date: new Date(item.createdAt).toISOString(),
         status: "info",
         metadata: {
           productId: item.productId,
-          productName: item.product.name,
+          productName,
         },
       });
     });
@@ -170,7 +171,7 @@ export const GET = withErrorHandler(async (_request: NextRequest) => {
       // Check if account was recently updated
       const daysSinceUpdate = Math.floor(
         (Date.now() - new Date(user.updatedAt).getTime()) /
-          (1000 * 60 * 60 * 24)
+        (1000 * 60 * 60 * 24)
       );
 
       if (daysSinceUpdate <= 30) {
@@ -187,7 +188,7 @@ export const GET = withErrorHandler(async (_request: NextRequest) => {
       // Add account creation activity if recent
       const daysSinceCreation = Math.floor(
         (Date.now() - new Date(user.createdAt).getTime()) /
-          (1000 * 60 * 60 * 24)
+        (1000 * 60 * 60 * 24)
       );
 
       if (daysSinceCreation <= 90) {

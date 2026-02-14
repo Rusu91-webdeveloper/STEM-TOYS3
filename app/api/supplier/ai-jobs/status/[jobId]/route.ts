@@ -4,9 +4,10 @@ import { db } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { jobId: string } }
+  { params }: { params: Promise<{ jobId: string }> }
 ) {
   try {
+    const { jobId } = await params;
     // Check authentication
     const session = await auth();
     if (!session?.user || session.user.role !== "SUPPLIER") {
@@ -33,8 +34,6 @@ export async function GET(
         { status: 404 }
       );
     }
-
-    const { jobId } = params;
 
     // Fetch job from database
     const job = await db.aiJob.findUnique({

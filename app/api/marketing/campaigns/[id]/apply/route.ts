@@ -10,9 +10,10 @@ import { CampaignService } from "@/lib/campaigns/campaign-service";
 // POST - Apply campaign discount
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: campaignId } = await params;
     const session = await auth();
 
     // Check authentication
@@ -20,7 +21,6 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const campaignId = params.id;
     const body = await req.json();
     const { orderId, customerId, orderTotal, categoryIds = [] } = body;
 

@@ -6,13 +6,16 @@
 - **Creation:** Supplier orders are created by `OrderProcessor.processNewOrder(orderId)` in:
   - **Stripe webhook** (after payment success, for physical items), if the order has no supplier orders yet.
   - **Netopia webhook** (after payment success, for physical items), if the order has no supplier orders yet.
+  - **COD checkout** (for physical items), if the order has no supplier orders yet.
   - **Admin:** POST `/api/admin/orders/process` with `{ orderId }` (manual trigger).
 - **Items without a supplier:** Order items whose product has no `supplierId` are skipped; an error is logged and added to the processor result. No `SupplierOrder` row is created for those lines.
 - **Tracking propagation:** When an AWB is created (FanCourier or Sameday), `Order.trackingNumber` and `Order.carrier` are set, and all `SupplierOrder` rows for that order are updated with the same `trackingNumber` and `carrier` so admin and supplier views stay in sync.
 
 ## Related flows
 
-- AWB creation (FanCourier/Sameday) uses `Order` + `Product` (and optional supplier for pickup/label); it does not require `SupplierOrder`. After AWB creation, Order and SupplierOrders are updated with the AWB number and carrier. See `lib/shipping/fancourier-awb.ts`, `lib/shipping/sameday-awb.ts`, and `SUPPLIER_ORDER_FLOW_TODO.md`.
+- AWB creation (FanCourier/Sameday) uses `Order` + `Product` (and optional supplier for pickup/label); it does not require `SupplierOrder`. After AWB creation, Order and SupplierOrders are updated with the AWB number and carrier.
+- AWB creation is retry-safe: if a shipment with AWB already exists for the order, webhook/checkout handlers skip creating a second AWB.
+- Mixed-supplier orders (or orders missing supplier mapping) are routed to manual review by setting `manualShippingReviewRequired=true` and `shippingReviewReason`.
 
 ## Inventory: reserved quantity
 
@@ -23,3 +26,12 @@
 
 - Returns are handled in `app/api/returns/*` (create, status, admin, send-report). The `Return` model has `supplierAuthorizationStatus` and related fields for supplier ARP/RMA flow.
 - Approving a return or marking it received does not currently update `SupplierOrder` status or notes. If you need to reflect return state on supplier orders (e.g. for reporting or supplier notifications), that would be a separate enhancement in the returns flow.
+
+## Customer tracking contract
+
+- `GET /api/orders/[orderId]/tracking` returns real tracking only.
+- If AWB is not available yet, response contains:
+  - `trackingAvailable: false`
+  - `trackingNumber: null`
+  - `carrier: null`
+- No generated/synthetic tracking values should be shown to customers.

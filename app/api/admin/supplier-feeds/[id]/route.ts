@@ -6,16 +6,17 @@ import { logger } from "@/lib/logger";
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.id || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 
     const feed = await db.supplierFeed.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { supplier: true },
     });
 
@@ -32,9 +33,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.id || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
@@ -56,13 +58,13 @@ export async function PUT(
       isActive,
     } = body || {};
 
-    const existing = await db.supplierFeed.findUnique({ where: { id: params.id } });
+    const existing = await db.supplierFeed.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Feed not found" }, { status: 404 });
     }
 
     const feed = await db.supplierFeed.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         type,
@@ -94,15 +96,16 @@ export async function PUT(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.id || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 
-    await db.supplierFeed.delete({ where: { id: params.id } });
+    await db.supplierFeed.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     logger.error("Admin supplier feed delete error", { error });

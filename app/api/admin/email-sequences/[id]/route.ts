@@ -42,9 +42,10 @@ const EmailSequenceUpdateSchema = z.object({
 // GET /api/admin/email-sequences/[id] - Get specific email sequence
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -52,7 +53,7 @@ export async function GET(
     }
 
     const sequence = await prisma.emailSequence.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         steps: {
           include: {
@@ -96,9 +97,10 @@ export async function GET(
 // PUT /api/admin/email-sequences/[id] - Update email sequence
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -110,7 +112,7 @@ export async function PUT(
 
     // Check if sequence exists
     const existingSequence = await prisma.emailSequence.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingSequence) {
@@ -122,7 +124,7 @@ export async function PUT(
 
     // Update the sequence
     const updatedSequence = await prisma.emailSequence.update({
-      where: { id: params.id },
+      where: { id },
       data: validatedData,
       include: {
         steps: {
@@ -167,9 +169,10 @@ export async function PUT(
 // DELETE /api/admin/email-sequences/[id] - Delete email sequence
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -178,7 +181,7 @@ export async function DELETE(
 
     // Check if sequence exists and get usage info
     const existingSequence = await prisma.emailSequence.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         steps: true,
         users: true,
@@ -205,7 +208,7 @@ export async function DELETE(
 
     // Delete the sequence and its steps (cascade)
     await prisma.emailSequence.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({

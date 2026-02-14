@@ -5,9 +5,13 @@ import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
 export const PUT = withAdminAuth(
-  async (request: NextRequest, { params }: { params: { id: string } }) => {
+  async (
+    request: NextRequest,
+    _session,
+    { params }: { params: Promise<{ id: string }> }
+  ) => {
     try {
-      const imageId = params.id;
+      const { id: imageId } = await params;
       const { alt, description, tags } = await request.json();
 
       // Validate input

@@ -24,9 +24,10 @@ const EmailSequenceStepSchema = z.object({
 // GET /api/admin/email-sequences/[id]/steps - List all steps for a sequence
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -35,7 +36,7 @@ export async function GET(
 
     // Check if sequence exists
     const sequence = await prisma.emailSequence.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!sequence) {
@@ -47,7 +48,7 @@ export async function GET(
 
     // Get all steps for the sequence
     const steps = await prisma.emailSequenceStep.findMany({
-      where: { sequenceId: params.id },
+      where: { sequenceId: id },
       include: {
         template: {
           select: {
@@ -74,9 +75,10 @@ export async function GET(
 // POST /api/admin/email-sequences/[id]/steps - Add step to sequence
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession();
 
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -88,7 +90,7 @@ export async function POST(
 
     // Check if sequence exists
     const sequence = await prisma.emailSequence.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!sequence) {
@@ -113,7 +115,7 @@ export async function POST(
     // Check if order already exists
     const existingStep = await prisma.emailSequenceStep.findFirst({
       where: {
-        sequenceId: params.id,
+        sequenceId: id,
         order: validatedData.order,
       },
     });
@@ -128,8 +130,13 @@ export async function POST(
     // Create the step
     const step = await prisma.emailSequenceStep.create({
       data: {
-        ...validatedData,
-        sequenceId: params.id,
+        sequenceId: id,
+        templateId: validatedData.templateId,
+        order: validatedData.order,
+        delayHours: validatedData.delayHours,
+        subject: validatedData.subject || template.subject,
+        content: validatedData.content ?? "",
+        conditions: validatedData.conditions ?? undefined,
       },
       include: {
         template: {

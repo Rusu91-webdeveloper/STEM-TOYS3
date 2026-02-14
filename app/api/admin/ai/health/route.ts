@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get alerts if requested
-    let alerts = [];
+    let alerts: any[] = [];
     if (validatedQuery.includeAlerts) {
       try {
         alerts = await aiMonitoring.getAlerts(

@@ -5,9 +5,10 @@ import { db } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user || session.user.role !== "SUPPLIER") {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
@@ -26,7 +27,7 @@ export async function GET(
     }
 
     const ticket = await db.supplierSupportTicket.findFirst({
-      where: { id: params.id, supplierId: supplier.id },
+      where: { id, supplierId: supplier.id },
       include: {
         responses: {
           orderBy: { createdAt: "asc" },
@@ -53,9 +54,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user || session.user.role !== "SUPPLIER") {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
@@ -77,7 +79,7 @@ export async function PUT(
     const { status } = body;
 
     const ticket = await db.supplierSupportTicket.findFirst({
-      where: { id: params.id, supplierId: supplier.id },
+      where: { id, supplierId: supplier.id },
       select: { id: true },
     });
 
@@ -86,7 +88,7 @@ export async function PUT(
     }
 
     const updated = await db.supplierSupportTicket.update({
-      where: { id: params.id },
+      where: { id },
       data: { status },
       select: { id: true, status: true, updatedAt: true },
     });

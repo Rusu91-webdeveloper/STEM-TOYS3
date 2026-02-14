@@ -35,8 +35,9 @@ function main() {
     console.error("❌ Failed to create snapshot");
   }
 
-  console.log("🔍 Creating diff between database and schema (for drift detection)...
-If output is empty, DB matches schema.");
+  console.log(
+    "🔍 Creating diff between database and schema (for drift detection)...\nIf output is empty, DB matches schema."
+  );
   try {
     run(`npx prisma migrate diff --from-url $DATABASE_URL --to-schema-datamodel prisma/schema.prisma --script > prisma/migrations/${snapshotName}-db-diff.sql`);
     console.log(`✅ DB diff created: prisma/migrations/${snapshotName}-db-diff.sql`);
@@ -57,5 +58,4 @@ If output is empty, DB matches schema.");
 }
 
 main();
-
 

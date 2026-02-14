@@ -192,7 +192,7 @@ export const GET = withRateLimit(
               orderNumber: order.orderNumber || `ORD-${order.id.slice(-8)}`,
               customerName: order.user?.name || "Guest",
               customerEmail: order.user?.email || "",
-              customerPhone: order.user?.phone,
+              customerPhone: null,
               date: createdAt,
               total: order.total,
               status: order.status,
@@ -201,11 +201,11 @@ export const GET = withRateLimit(
               items: order.items.length,
               shippingAddress: order.shippingAddress
                 ? {
-                    addressLine1: order.shippingAddress.addressLine1,
-                    city: order.shippingAddress.city,
-                    country: order.shippingAddress.country,
-                    postalCode: order.shippingAddress.postalCode,
-                  }
+                  addressLine1: order.shippingAddress.addressLine1,
+                  city: order.shippingAddress.city,
+                  country: order.shippingAddress.country,
+                  postalCode: order.shippingAddress.postalCode,
+                }
                 : null,
               trackingNumber: order.trackingNumber,
               carrier: order.carrier,
@@ -329,14 +329,14 @@ async function calculateOrderStatistics() {
   const averageProcessingTime =
     processingTimeOrders.length > 0
       ? processingTimeOrders.reduce((sum, order) => {
-          if (order.shippedAt) {
-            const diffHours =
-              (order.shippedAt.getTime() - order.createdAt.getTime()) /
-              (1000 * 60 * 60);
-            return sum + diffHours;
-          }
-          return sum;
-        }, 0) / processingTimeOrders.length
+        if (order.shippedAt) {
+          const diffHours =
+            (order.shippedAt.getTime() - order.createdAt.getTime()) /
+            (1000 * 60 * 60);
+          return sum + diffHours;
+        }
+        return sum;
+      }, 0) / processingTimeOrders.length
       : 0;
 
   return {

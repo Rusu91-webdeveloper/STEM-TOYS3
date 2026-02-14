@@ -138,8 +138,8 @@ export async function POST(request: NextRequest) {
       processed: 0,
       successful: 0,
       failed: 0,
-      errors: [],
-      fallbackUsed: 0,
+      errors: [] as Array<{ product: string; error: string }>,
+      fallbackUsed: 0 as number | undefined,
     };
 
     // Process products

@@ -164,40 +164,47 @@ const createAuthOptions = (): NextAuthConfig => {
     authConfigLogged = true;
   }
 
+  const isProduction = env.NODE_ENV === "production";
+
   return {
     session: {
       strategy: "jwt",
       maxAge: 30 * 24 * 60 * 60, // 30 days
     },
-    // FIXED: Disable secure cookies in development to prevent PKCE issues
-    useSecureCookies: false,
-    // FIXED: Remove custom cookie configuration to let NextAuth handle PKCE automatically
+    // Environment-aware: secure cookies in production, plain in development
+    useSecureCookies: isProduction,
     cookies: {
       sessionToken: {
-        name: "next-auth.session-token",
+        name: isProduction
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token",
         options: {
           httpOnly: true,
           sameSite: "lax",
           path: "/",
-          secure: false, // Always false for development
+          secure: isProduction,
         },
       },
       callbackUrl: {
-        name: "next-auth.callback-url",
+        name: isProduction
+          ? "__Secure-next-auth.callback-url"
+          : "next-auth.callback-url",
         options: {
           httpOnly: true,
           sameSite: "lax",
           path: "/",
-          secure: false,
+          secure: isProduction,
         },
       },
       csrfToken: {
-        name: "next-auth.csrf-token",
+        name: isProduction
+          ? "__Host-next-auth.csrf-token"
+          : "next-auth.csrf-token",
         options: {
           httpOnly: true,
           sameSite: "lax",
           path: "/",
-          secure: false,
+          secure: isProduction,
         },
       },
     },
@@ -205,19 +212,19 @@ const createAuthOptions = (): NextAuthConfig => {
       // Google OAuth provider - only add if credentials are available
       ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
         ? [
-            GoogleProvider({
-              clientId: env.GOOGLE_CLIENT_ID,
-              clientSecret: env.GOOGLE_CLIENT_SECRET,
-              // Ensure proper authorization parameters for reliable token handling
-              authorization: {
-                params: {
-                  prompt: "consent",
-                  access_type: "offline",
-                  response_type: "code",
-                },
+          GoogleProvider({
+            clientId: env.GOOGLE_CLIENT_ID,
+            clientSecret: env.GOOGLE_CLIENT_SECRET,
+            // Ensure proper authorization parameters for reliable token handling
+            authorization: {
+              params: {
+                prompt: "consent",
+                access_type: "offline",
+                response_type: "code",
               },
-            }),
-          ]
+            },
+          }),
+        ]
         : []),
       CredentialsProvider({
         name: "Credentials",
@@ -636,22 +643,4 @@ try {
 
 export const { handlers, auth, signIn, signOut } = authInstance;
 
-// Mock users for development purposes
-export const mockUsers = [
-  {
-    id: "mock_user_1",
-    name: "Test User",
-    email: "test@example.com",
-    password: "$2a$12$QduVQePXgFInw8z.j1bBXuwxQPKVzxS4j9FWXD1Afxy3NQbIBMSqy", // hashed 'Password123'
-    isActive: true,
-    role: "CUSTOMER",
-  },
-  {
-    id: "mock_admin",
-    name: "Admin User",
-    email: "admin@example.com",
-    password: "$2a$12$QduVQePXgFInw8z.j1bBXuwxQPKVzxS4j9FWXD1Afxy3NQbIBMSqy", // hashed 'Password123'
-    isActive: true,
-    role: "ADMIN",
-  },
-];
+// Mock users removed — do not ship test credentials in production code.

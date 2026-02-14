@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Session } from "next-auth/next";
+import { Session } from "next-auth";
 import { z } from "zod";
 
 import { resolveAdminUserId } from "@/lib/admin-utils";

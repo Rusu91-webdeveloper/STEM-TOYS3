@@ -13,8 +13,13 @@ jest.mock("@/lib/auth", () => ({
 jest.mock("@/lib/db", () => ({
   db: {
     supplier: { findUnique: jest.fn() },
-    product: { count: jest.fn() },
-    supplierOrder: { count: jest.fn(), aggregate: jest.fn() },
+    product: { count: jest.fn(), findMany: jest.fn() },
+    supplierOrder: {
+      count: jest.fn(),
+      aggregate: jest.fn(),
+      findMany: jest.fn(),
+      groupBy: jest.fn(),
+    },
     supplierInvoice: { count: jest.fn() },
   },
 }));
@@ -25,24 +30,31 @@ const { db } = require("@/lib/db");
 describe("/api/supplier/stats", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    db.supplierOrder.findMany.mockResolvedValue([]);
+    db.supplierOrder.groupBy.mockResolvedValue([]);
+    db.product.findMany.mockResolvedValue([]);
   });
 
-  it("returns 403 for non-supplier", async () => {
+  it("returns 403 for non-supplier users", async () => {
     auth.mockResolvedValue({ user: { role: "CUSTOMER" } });
 
-    const res = await GET();
+    const req = new NextRequest("http://localhost/api/supplier/stats");
+    const res = await GET(req);
+
     expect(res.status).toBe(403);
   });
 
-  it("returns 404 when supplier not found", async () => {
+  it("returns 404 when supplier profile is missing", async () => {
     auth.mockResolvedValue({ user: { id: "u1", role: "SUPPLIER" } });
     db.supplier.findUnique.mockResolvedValue(null);
 
-    const res = await GET();
+    const req = new NextRequest("http://localhost/api/supplier/stats");
+    const res = await GET(req);
+
     expect(res.status).toBe(404);
   });
 
-  it("returns aggregated stats for supplier", async () => {
+  it("returns aggregated supplier metrics", async () => {
     auth.mockResolvedValue({ user: { id: "u1", role: "SUPPLIER" } });
     db.supplier.findUnique.mockResolvedValue({ id: "s1", commissionRate: 15 });
 
@@ -52,15 +64,19 @@ describe("/api/supplier/stats", () => {
     db.supplierOrder.count.mockResolvedValueOnce(3); // pendingOrders
     db.supplierOrder.aggregate.mockResolvedValueOnce({
       _sum: { supplierRevenue: 1200, commission: 180 },
-    }); // all time
+    });
     db.supplierOrder.aggregate.mockResolvedValueOnce({
       _sum: { supplierRevenue: 300 },
-    }); // this month
-    db.supplierInvoice.count.mockResolvedValueOnce(2); // pending invoices
+    });
+    db.supplierInvoice.count.mockResolvedValueOnce(2);
 
-    const res = await GET();
-    expect(res.status).toBe(200);
+    const req = new NextRequest(
+      "http://localhost/api/supplier/stats?period=30d"
+    );
+    const res = await GET(req);
     const data = await res.json();
+
+    expect(res.status).toBe(200);
     expect(data).toMatchObject({
       totalProducts: 10,
       activeProducts: 8,
@@ -71,5 +87,7 @@ describe("/api/supplier/stats", () => {
       commissionEarned: 180,
       pendingInvoices: 2,
     });
+    expect(Array.isArray(data.revenueSeries)).toBe(true);
+    expect(data.performanceMetrics).toBeDefined();
   });
 });

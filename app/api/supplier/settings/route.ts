@@ -25,16 +25,16 @@ export async function GET(request: NextRequest) {
         businessAddress: true,
         businessCity: true,
         businessCountry: true,
-        businessWebsite: true,
+        website: true,
         taxId: true,
-        registrationNumber: true,
+        nrRegCom: true,
         contactPersonName: true,
         contactPersonEmail: true,
         contactPersonPhone: true,
         commissionRate: true,
         status: true,
         createdAt: true,
-        logoUrl: true,
+        logo: true,
       },
     });
 
@@ -44,6 +44,13 @@ export async function GET(request: NextRequest) {
         { status: 404 }
       );
     }
+
+    const profile = {
+      ...supplier,
+      businessWebsite: supplier.website,
+      registrationNumber: supplier.nrRegCom,
+      logoUrl: supplier.logo,
+    };
 
     // Get notification settings (assuming they exist in user preferences or supplier settings)
     // For now, return default settings
@@ -61,7 +68,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({
-      profile: supplier,
+      profile,
       notifications,
     });
   } catch (error) {

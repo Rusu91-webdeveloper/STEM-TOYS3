@@ -59,37 +59,40 @@ export const PUT = withRateLimit(
       // Update marketing costs if provided
       if (validatedRequest.marketingCosts) {
         const today = new Date();
-        await db.marketingCost.upsert({
+        const existing = await db.marketingCost.findFirst({
           where: {
-            productId_date: {
-              productId: validatedRequest.productId,
-              date: today,
-            },
-          },
-          update: {
-            ...validatedRequest.marketingCosts,
-            totalMarketingCost:
-              (validatedRequest.marketingCosts.googleAdsCost || 0) +
-              (validatedRequest.marketingCosts.facebookAdsCost || 0) +
-              (validatedRequest.marketingCosts.seoCost || 0) +
-              (validatedRequest.marketingCosts.influencerCost || 0),
-          },
-          create: {
             productId: validatedRequest.productId,
             date: today,
-            googleAdsCost: validatedRequest.marketingCosts.googleAdsCost || 0,
-            facebookAdsCost:
-              validatedRequest.marketingCosts.facebookAdsCost || 0,
-            seoCost: validatedRequest.marketingCosts.seoCost || 0,
-            influencerCost: validatedRequest.marketingCosts.influencerCost || 0,
-            totalMarketingCost:
-              (validatedRequest.marketingCosts.googleAdsCost || 0) +
-              (validatedRequest.marketingCosts.facebookAdsCost || 0) +
-              (validatedRequest.marketingCosts.seoCost || 0) +
-              (validatedRequest.marketingCosts.influencerCost || 0),
-            notes: validatedRequest.marketingCosts.notes,
           },
         });
+        const totalCost =
+          (validatedRequest.marketingCosts.googleAdsCost || 0) +
+          (validatedRequest.marketingCosts.facebookAdsCost || 0) +
+          (validatedRequest.marketingCosts.seoCost || 0) +
+          (validatedRequest.marketingCosts.influencerCost || 0);
+
+        if (existing) {
+          await db.marketingCost.update({
+            where: { id: existing.id },
+            data: {
+              ...validatedRequest.marketingCosts,
+              totalMarketingCost: totalCost,
+            },
+          });
+        } else {
+          await db.marketingCost.create({
+            data: {
+              productId: validatedRequest.productId,
+              date: today,
+              googleAdsCost: validatedRequest.marketingCosts.googleAdsCost || 0,
+              facebookAdsCost: validatedRequest.marketingCosts.facebookAdsCost || 0,
+              seoCost: validatedRequest.marketingCosts.seoCost || 0,
+              influencerCost: validatedRequest.marketingCosts.influencerCost || 0,
+              totalMarketingCost: totalCost,
+              notes: validatedRequest.marketingCosts.notes,
+            },
+          });
+        }
       }
 
       // Invalidate relevant caches

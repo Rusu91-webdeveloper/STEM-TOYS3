@@ -66,22 +66,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   private reportError(error: Error, errorInfo: ErrorInfo, errorId?: string) {
     try {
-      // Record error in performance monitor
-      // performanceMonitor.recordApiRequest(
-        "ERROR",
-        "error-boundary",
-        Date.now(),
-        500,
-        false,
-        undefined,
-        error.message,
-        {
-          errorId,
-          errorStack: error.stack,
-          componentStack: errorInfo.componentStack,
-          errorName: error.name,
-        }
-      );
+      // Record error in performance monitor when monitor integration is re-enabled.
+      // performanceMonitor.recordApiRequest(...)
 
       // Log to console in development
       if (process.env.NODE_ENV === "development") {
@@ -290,20 +276,8 @@ export function useErrorHandler() {
   const handleError = React.useCallback((error: Error) => {
     setError(error);
 
-    // Report error
-    // performanceMonitor.recordApiRequest(
-      "ERROR",
-      "use-error-handler",
-      Date.now(),
-      500,
-      false,
-      undefined,
-      error.message,
-      {
-        errorStack: error.stack,
-        errorName: error.name,
-      }
-    );
+    // Report error when monitor integration is re-enabled.
+    // performanceMonitor.recordApiRequest(...)
   }, []);
 
   const clearError = React.useCallback(() => {

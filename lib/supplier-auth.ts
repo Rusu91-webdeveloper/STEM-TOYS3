@@ -179,16 +179,16 @@ export async function getSupplierSettingsData(session?: Session | null) {
       businessAddress: supplier.businessAddress,
       businessCity: supplier.businessCity,
       businessCountry: supplier.businessCountry,
-      businessWebsite: supplier.businessWebsite,
+      businessWebsite: supplier.website,
       taxId: supplier.taxId,
-      registrationNumber: supplier.registrationNumber,
+      registrationNumber: supplier.nrRegCom,
       contactPersonName: supplier.contactPersonName,
       contactPersonEmail: supplier.contactPersonEmail,
       contactPersonPhone: supplier.contactPersonPhone,
       commissionRate: supplier.commissionRate,
       status: supplier.status,
       createdAt: supplier.createdAt,
-      logoUrl: supplier.logoUrl,
+      logoUrl: supplier.logo,
     };
 
     // Default notification settings

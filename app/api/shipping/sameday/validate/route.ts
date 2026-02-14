@@ -23,7 +23,6 @@ export async function POST(request: Request) {
         items: true,
         user: true,
         shippingAddress: true,
-        billingAddress: true,
       },
     });
 
@@ -69,7 +68,7 @@ export async function POST(request: Request) {
         lockerId: order.lockerId,
         user: order.user,
         shippingAddress: order.shippingAddress,
-        billingAddress: order.billingAddress,
+        billingAddress: null,
       },
       shippingItems,
     });

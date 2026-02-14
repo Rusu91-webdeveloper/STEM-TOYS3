@@ -10,8 +10,24 @@ export const metadataLanguages = [
   { code: "ro", name: "Română", flag: "🇷🇴", region: "RO" },
 ];
 
+function isTranslationKey(key: string): key is keyof typeof en {
+  return key in en;
+}
+
 // Helper to get translations based on language code
-function getTranslation(key: keyof typeof en, language: string = "ro"): string {
+function getTranslation(
+  key: keyof typeof en | string,
+  language: string = "ro"
+): string {
+  if (!key || typeof key !== "string") {
+    return "";
+  }
+
+  // Allow direct literal strings for page-specific metadata
+  if (!isTranslationKey(key)) {
+    return key;
+  }
+
   if (language === "ro" && key in ro) {
     const translation = ro[key as keyof typeof ro];
     // Ensure we only return string values, not nested objects
@@ -21,10 +37,10 @@ function getTranslation(key: keyof typeof en, language: string = "ro"): string {
 }
 
 type MetadataOptions = {
-  title?: keyof typeof en;
-  description?: keyof typeof en;
-  ogTitle?: keyof typeof en;
-  ogDescription?: keyof typeof en;
+  title?: keyof typeof en | string;
+  description?: keyof typeof en | string;
+  ogTitle?: keyof typeof en | string;
+  ogDescription?: keyof typeof en | string;
   keywords?: string[];
   additionalKeywords?: string[];
   canonicalUrl?: string;

@@ -7,16 +7,17 @@ import { db } from "@/lib/db";
 // GET - Get all responses for a ticket
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
     const responses = await db.supplierTicketResponse.findMany({
-      where: { ticketId: params.id },
+      where: { ticketId: id },
       orderBy: { createdAt: "asc" },
       include: {
         responder: {
@@ -42,9 +43,10 @@ export async function GET(
 // POST - Add a new response to a ticket
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
@@ -52,7 +54,7 @@ export async function POST(
 
     // Verify the ticket exists
     const ticket = await db.supplierSupportTicket.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         supplier: {
           select: {
@@ -103,7 +105,7 @@ export async function POST(
     // Create the response
     const response = await db.supplierTicketResponse.create({
       data: {
-        ticketId: params.id,
+        ticketId: id,
         responderId: session.user.id,
         responderType: "ADMIN",
         content,
@@ -124,14 +126,14 @@ export async function POST(
 
     // Update ticket's updatedAt timestamp
     await db.supplierSupportTicket.update({
-      where: { id: params.id },
+      where: { id },
       data: { updatedAt: new Date() },
     });
 
     // Update ticket status if not an internal note
     if (!isInternal) {
       await db.supplierSupportTicket.update({
-        where: { id: params.id },
+        where: { id },
         data: { status: "IN_PROGRESS" },
       });
     }

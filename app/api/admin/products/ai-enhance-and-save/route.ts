@@ -292,7 +292,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Product enhancement API error:", error);
-    return handleApiError(error, "Failed to start product enhancement");
+    return handleApiError(error, { message: "Failed to start product enhancement" });
   }
 }
 

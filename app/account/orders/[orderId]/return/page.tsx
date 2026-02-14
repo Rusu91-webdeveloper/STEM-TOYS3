@@ -9,7 +9,7 @@ import { useState, useEffect, use } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { UploadButton } from "@uploadthing/react";
-import type { OurFileRouter } from "@/app/api/uploadthing/core";
+import type { OurFileRouter } from "@/lib/uploadthing";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -528,7 +528,7 @@ export default function InitiateReturn({ params }: ReturnPageProps) {
                           {/* Upload Button */}
                           {photos.length < 5 && (
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                              <UploadButton<OurFileRouter>
+                              <UploadButton<OurFileRouter, "returnPhoto">
                                 endpoint="returnPhoto"
                                 onClientUploadComplete={(res) => {
                                   if (res) {

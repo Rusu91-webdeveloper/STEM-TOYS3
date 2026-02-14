@@ -602,7 +602,9 @@ export const createFanAwbForOrder = async (
             shipmentId: shipment.id,
             eventType: "CREATE_AWB",
             requestJson: JSON.parse(JSON.stringify(redactPayload(payload as unknown as Record<string, unknown>))) as Prisma.InputJsonValue,
-            responseJson: response ? JSON.parse(JSON.stringify(response)) as Prisma.InputJsonValue : null,
+            responseJson: response
+                ? (JSON.parse(JSON.stringify(response)) as Prisma.InputJsonValue)
+                : Prisma.JsonNull,
         },
     });
 

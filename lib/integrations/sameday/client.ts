@@ -39,24 +39,25 @@ const getTokenHeaderName = () =>
 
 let cachedToken: AuthToken | null = null;
 
-const resolveToken = (data: Record<string, unknown>) => {
-  const token =
-    (data.token as string | undefined) ||
-    (data.access_token as string | undefined) ||
-    (data.data as Record<string, unknown> | undefined)?.token;
+const resolveToken = (data: Record<string, unknown>): AuthToken => {
+  const nested = data.data as Record<string, unknown> | undefined;
+  const tokenCandidate = data.token ?? data.access_token ?? nested?.token;
+  const token = typeof tokenCandidate === "string" ? tokenCandidate : undefined;
   if (!token) {
     throw new SamedayClientError("Authentication token missing in response");
   }
 
   const expiresInRaw =
-    (data.expires_in as number | string | undefined) ||
-    (data.data as Record<string, unknown> | undefined)?.expires_in;
-  const expiresIn =
+    (data.expires_in as number | string | undefined) || nested?.expires_in;
+  const parsedExpiresIn =
     typeof expiresInRaw === "string"
       ? Number.parseInt(expiresInRaw, 10)
       : typeof expiresInRaw === "number"
         ? expiresInRaw
         : DEFAULT_TOKEN_TTL_SECONDS;
+  const expiresIn = Number.isFinite(parsedExpiresIn)
+    ? parsedExpiresIn
+    : DEFAULT_TOKEN_TTL_SECONDS;
 
   return {
     token,

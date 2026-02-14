@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { createSamedayAwb } from "@/lib/integrations/sameday/client";
 import { validateSamedayOrder } from "@/lib/shipping/sameday-validation";
+import { Prisma } from "@prisma/client";
 
 const COURIER_NAME = "SAMEDAY";
 
@@ -25,6 +26,10 @@ const redactPayload = (payload: Record<string, unknown>) => {
   if ("token" in redacted) redacted.token = "***";
   if ("access_token" in redacted) redacted.access_token = "***";
   return redacted;
+};
+
+const toInputJsonValue = (value: unknown): Prisma.InputJsonValue => {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 };
 
 const buildAwbPayload = (input: {
@@ -99,7 +104,6 @@ export const createAwbForOrder = async (orderId: string) => {
       items: true,
       user: true,
       shippingAddress: true,
-      billingAddress: true,
     },
   });
 
@@ -177,7 +181,7 @@ export const createAwbForOrder = async (orderId: string) => {
       lockerId: order.lockerId,
       user: order.user,
       shippingAddress: order.shippingAddress,
-      billingAddress: order.billingAddress,
+      billingAddress: null,
     },
     shippingItems,
   });
@@ -211,7 +215,7 @@ export const createAwbForOrder = async (orderId: string) => {
       orderId: order.id,
       courier: COURIER_NAME,
       status: "PENDING",
-      payload: payload,
+      payload: toInputJsonValue(payload),
     },
   });
 
@@ -232,8 +236,8 @@ export const createAwbForOrder = async (orderId: string) => {
     data: {
       shipmentId: shipment.id,
       eventType: "CREATE_AWB",
-      requestJson: redactPayload(payload),
-      responseJson: response,
+      requestJson: toInputJsonValue(redactPayload(payload)),
+      responseJson: response ? toInputJsonValue(response) : Prisma.JsonNull,
     },
   });
 
@@ -242,7 +246,7 @@ export const createAwbForOrder = async (orderId: string) => {
     data: {
       awbNumber,
       status,
-      payload: response ? { request: payload, response } : payload,
+      payload: toInputJsonValue(response ? { request: payload, response } : payload),
     },
   });
 

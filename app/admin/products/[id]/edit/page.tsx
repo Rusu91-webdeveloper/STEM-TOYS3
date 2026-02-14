@@ -92,12 +92,12 @@ async function getProduct(id: string) {
       // STEM fields - map from database fields to form fields
       ageGroup: product.ageGroup || undefined,
       stemDiscipline: product.stemDiscipline || "GENERAL",
-      learningOutcomes: Array.isArray(product.learningOutcomes)
-        ? product.learningOutcomes
+      learningOutcomes: Array.isArray(attributes.learningOutcomes)
+        ? attributes.learningOutcomes
         : [],
-      productType: product.productType || undefined,
-      specialCategories: Array.isArray(product.specialCategories)
-        ? product.specialCategories
+      productType: (attributes.productType as string) || undefined,
+      specialCategories: Array.isArray(attributes.specialCategories)
+        ? attributes.specialCategories
         : [],
       difficultyLevel: attributes.difficultyLevel || "",
     };

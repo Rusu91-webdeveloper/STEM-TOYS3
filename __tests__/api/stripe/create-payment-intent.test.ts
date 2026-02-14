@@ -104,10 +104,14 @@ describe("POST /api/stripe/create-payment-intent", () => {
     const payload = await response.json();
 
     expect(mockRetrieve).toHaveBeenCalledWith("pi_existing");
-    expect(mockUpdate).toHaveBeenCalledWith("pi_existing", {
+    expect(mockUpdate).toHaveBeenCalledTimes(1);
+    expect(mockUpdate.mock.calls[0][0]).toBe("pi_existing");
+    expect(mockUpdate.mock.calls[0][1]).toMatchObject({
       amount: 5000,
+      receipt_email: "user@example.com",
       metadata: expect.objectContaining({
         userId: "user_123",
+        userEmail: "user@example.com",
       }),
     });
     expect(mockCreate).not.toHaveBeenCalled();

@@ -5,10 +5,10 @@ const utapi = new UTApi();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { imageId: string } }
+  { params }: { params: Promise<{ imageId: string }> }
 ) {
   try {
-    const { imageId } = params;
+    const { imageId } = await params;
 
     if (!imageId) {
       return NextResponse.json(

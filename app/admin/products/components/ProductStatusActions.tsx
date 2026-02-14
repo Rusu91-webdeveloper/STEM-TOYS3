@@ -50,7 +50,8 @@ export function ProductStatusActions({
   return (
     <div className="flex gap-2">
       <Button
-        variant="success"
+        variant="default"
+        className="bg-green-600 hover:bg-green-700 text-white"
         size="sm"
         disabled={disabled}
         onClick={() => setOpen("approve")}

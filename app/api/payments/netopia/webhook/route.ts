@@ -263,19 +263,32 @@ export async function POST(request: Request) {
               );
             } else {
               try {
-                const { createCourierAwbForOrder } = await import(
-                  "@/lib/shipping/awb-dispatcher"
-                );
-                const awbResult = await createCourierAwbForOrder(orderID);
-                if (awbResult.success) {
+                const existingAwbShipment = await db.shipment.findFirst({
+                  where: {
+                    orderId: orderID,
+                    awbNumber: { not: null },
+                  },
+                  select: { awbNumber: true, courier: true },
+                });
+                if (existingAwbShipment?.awbNumber) {
                   console.log(
-                    `✅ [WEBHOOK] AWB created for order ${orderID}: ${awbResult.awbNumber}`
+                    `ℹ️ [WEBHOOK] AWB already exists for order ${orderID}: ${existingAwbShipment.awbNumber} (${existingAwbShipment.courier})`
                   );
                 } else {
-                  console.warn(
-                    `⚠️ [WEBHOOK] AWB creation failed for order ${orderID}:`,
-                    awbResult.error
+                  const { createCourierAwbForOrder } = await import(
+                    "@/lib/shipping/awb-dispatcher"
                   );
+                  const awbResult = await createCourierAwbForOrder(orderID);
+                  if (awbResult.success) {
+                    console.log(
+                      `✅ [WEBHOOK] AWB created for order ${orderID}: ${awbResult.awbNumber}`
+                    );
+                  } else {
+                    console.warn(
+                      `⚠️ [WEBHOOK] AWB creation failed for order ${orderID}:`,
+                      awbResult.error
+                    );
+                  }
                 }
               } catch (awbError) {
                 console.error(

@@ -55,7 +55,8 @@ interface Product {
   status?: string;
   supplier?: {
     id: string;
-    companyName: string;
+    name?: string;
+    companyName?: string | null;
   } | null;
   _count: {
     orderItems: number;

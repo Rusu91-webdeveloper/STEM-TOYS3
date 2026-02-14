@@ -87,7 +87,7 @@ export async function PATCH(
       paymentStatus?: string;
     } = {
       status,
-      trackingNumber: trackingNumber || order.paymentMethod,
+      trackingNumber: trackingNumber ?? order.trackingNumber ?? undefined,
       carrier: carrier || order.carrier,
       deliveredAt: status === "DELIVERED" ? new Date() : order.deliveredAt,
       updatedAt: new Date(),

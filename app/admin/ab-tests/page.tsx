@@ -165,7 +165,7 @@ function StatusBadge({ status }: { status: ABTestStatus }) {
             return <Badge variant="secondary" className="text-yellow-600 bg-yellow-100">Pauză</Badge>;
         case "COMPLETED":
             return <Badge variant="secondary" className="bg-blue-100 text-blue-700">Finalizat</Badge>;
-        case "STOPPED":
+        case "CANCELLED":
             return <Badge variant="destructive">Oprit</Badge>;
         default:
             return <Badge variant="outline">Draft</Badge>;

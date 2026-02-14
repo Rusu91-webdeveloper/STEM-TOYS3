@@ -189,6 +189,18 @@ export const POST = withRateLimit(
         ephemeral: true,
       });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Invalid cart payload",
+            error: "VALIDATION_ERROR",
+            details: error.flatten(),
+          },
+          { status: 400 }
+        );
+      }
+
       console.error("Failed to update cart:", error);
       return NextResponse.json(
         {

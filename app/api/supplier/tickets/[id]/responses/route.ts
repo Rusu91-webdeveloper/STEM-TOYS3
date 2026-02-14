@@ -5,9 +5,10 @@ import { db } from "@/lib/db";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user || session.user.role !== "SUPPLIER") {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
@@ -26,7 +27,7 @@ export async function POST(
     }
 
     const ticket = await db.supplierSupportTicket.findFirst({
-      where: { id: params.id, supplierId: supplier.id },
+      where: { id, supplierId: supplier.id },
       select: { id: true },
     });
 
@@ -45,7 +46,7 @@ export async function POST(
 
     const response = await db.supplierTicketResponse.create({
       data: {
-        ticketId: params.id,
+        ticketId: id,
         responderId: session.user.id,
         responderType: "SUPPLIER",
         content,

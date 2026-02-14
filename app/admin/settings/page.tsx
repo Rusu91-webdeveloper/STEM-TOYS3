@@ -179,62 +179,51 @@ interface StoreSettings {
       enabled: boolean;
       lowStockThreshold: number;
       outOfStockAlert: boolean;
-      reorderPointAlert: boolean;
       emailNotifications: boolean;
       adminNotifications: boolean;
       supplierNotifications: boolean;
+      priceChangeAlerts: boolean;
     };
-    reorderManagement: {
+    supplierStockSync: {
       enabled: boolean;
-      reorderPoint: number;
-      reorderQuantity: number;
-      autoReorder: boolean;
-      requireApproval: boolean;
-      supplierEmail: string;
-      reorderFrequency: "daily" | "weekly" | "monthly";
+      syncFrequency: "realtime" | "hourly" | "daily";
+      autoUpdateProductAvailability: boolean;
+      syncPriceChanges: boolean;
+      fallbackSuppliers: boolean;
+      stockBuffer: number;
     };
-    inventoryTracking: {
+    leadTimeManagement: {
       enabled: boolean;
-      trackExpiryDates: boolean;
-      trackBatchNumbers: boolean;
-      trackSerialNumbers: boolean;
-      barcodeScanning: boolean;
-      qrCodeSupport: boolean;
-      locationTracking: boolean;
-      warehouseZones: string[];
+      defaultLeadTime: number;
+      dynamicLeadTimes: boolean;
+      weekendProcessing: boolean;
+      holidayProcessing: boolean;
+      expressShippingAvailable: boolean;
+      leadTimeBuffer: number;
     };
-    stockAdjustments: {
-      allowNegativeStock: boolean;
-      backorderEnabled: boolean;
-      reserveStockForOrders: boolean;
-      reserveThreshold: number;
-      autoAdjustStock: boolean;
-      adjustmentReasonRequired: boolean;
+    supplierPerformance: {
+      enabled: boolean;
+      trackDeliveryTimes: boolean;
+      trackStockAccuracy: boolean;
+      trackPriceStability: boolean;
+      performanceThreshold: number;
+      autoDisablePoorPerformers: boolean;
+      performanceReportFrequency: "weekly" | "monthly";
     };
     inventoryReports: {
-      dailyStockReport: boolean;
-      weeklyInventoryReport: boolean;
-      monthlyValueReport: boolean;
       lowStockReport: boolean;
-      slowMovingItemsReport: boolean;
-      expiryDateReport: boolean;
+      supplierPerformanceReport: boolean;
+      priceChangeReport: boolean;
+      leadTimeReport: boolean;
       reportRecipients: string[];
-    };
-    supplierManagement: {
-      enabled: boolean;
-      supplierDirectory: boolean;
-      supplierPerformance: boolean;
-      leadTimeTracking: boolean;
-      costTracking: boolean;
-      supplierNotifications: boolean;
     };
     automatedInventory: {
       enabled: boolean;
-      autoUpdateStock: boolean;
-      syncWithPOS: boolean;
-      syncWithEcommerce: boolean;
       realTimeUpdates: boolean;
       inventoryAPI: boolean;
+      webhookSupport: boolean;
+      autoHideOutOfStock: boolean;
+      stockSyncRetryAttempts: number;
     };
   } | null;
   marketingSettings: {
@@ -774,6 +763,21 @@ export default function SettingsPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [originalSettings, setOriginalSettings] =
     useState<StoreSettings>(defaultSettings);
+  const defaultShippingSettings = defaultSettings.shippingSettings ?? {
+    deliveryPrice: { price: "15.00", active: true },
+    freeThreshold: { price: "199.00", active: true },
+    onlinePaymentPrice: "19.99",
+    rambursPrice: "24.99",
+    insuranceThreshold: "500",
+    fanCourierPickup: {
+      enabled: false,
+      windowStart: "09:00",
+      windowEnd: "16:00",
+      offsetDays: 0,
+      observations: "",
+    },
+    couriers: DEFAULT_COURIERS,
+  };
 
   // Backup states
   const [backups, setBackups] = useState<SettingsBackup[]>([]);
@@ -781,117 +785,117 @@ export default function SettingsPage() {
   const [restoreDialog, setRestoreDialog] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<string>("");
 
-  // Fetch current settings on component mount
-  useEffect(() => {
-    async function fetchSettings() {
-      try {
-        const response = await fetch("/api/admin/settings");
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch("/api/admin/settings");
 
-        if (!response.ok) {
-          throw new Error(`Error fetching settings: ${response.statusText}`);
-        }
+      if (!response.ok) {
+        throw new Error(`Error fetching settings: ${response.statusText}`);
+      }
 
-        const data = await response.json();
+      const data = await response.json();
 
-        // Only set defaults for missing fields, don't override existing data
-        const mergedData = {
-          ...defaultSettings,
-          ...data,
-          // Only set shippingSettings defaults if it's completely missing
-          shippingSettings: (() => {
-            const existing = data.shippingSettings;
-            if (!existing) {
-              return defaultSettings.shippingSettings;
-            }
-            // Migrate from old structure (standard/express) to new structure (deliveryPrice)
-            if (existing.standard || existing.express) {
-              // Use standard price if available, otherwise express, otherwise default
-              const migratedPrice = existing.standard?.price || existing.express?.price || "15.00";
-              return {
-                deliveryPrice: {
-                  price: migratedPrice,
-                  active: existing.standard?.active || existing.express?.active || true,
-                },
-                freeThreshold:
-                  existing.freeThreshold ||
-                  defaultSettings.shippingSettings.freeThreshold,
-                onlinePaymentPrice:
-                  existing.onlinePaymentPrice ||
-                  defaultSettings.shippingSettings.onlinePaymentPrice,
-                rambursPrice:
-                  existing.rambursPrice ||
-                  defaultSettings.shippingSettings.rambursPrice,
-                insuranceThreshold:
-                  existing.insuranceThreshold ||
-                  defaultSettings.shippingSettings.insuranceThreshold,
-                fanCourierPickup: {
-                  ...defaultSettings.shippingSettings.fanCourierPickup,
-                  ...(existing.fanCourierPickup || {}),
-                },
-                couriers:
-                  existing.couriers ||
-                  defaultSettings.shippingSettings.couriers,
-              };
-            }
+      // Only set defaults for missing fields, don't override existing data
+      const mergedData = {
+        ...defaultSettings,
+        ...data,
+        // Only set shippingSettings defaults if it's completely missing
+        shippingSettings: (() => {
+          const existing = data.shippingSettings;
+          if (!existing) {
+            return defaultShippingSettings;
+          }
+          // Migrate from old structure (standard/express) to new structure (deliveryPrice)
+          if (existing.standard || existing.express) {
+            // Use standard price if available, otherwise express, otherwise default
+            const migratedPrice = existing.standard?.price || existing.express?.price || "15.00";
             return {
-              ...existing,
-              deliveryPrice:
-                existing.deliveryPrice ||
-                defaultSettings.shippingSettings.deliveryPrice,
+              deliveryPrice: {
+                price: migratedPrice,
+                active: existing.standard?.active || existing.express?.active || true,
+              },
               freeThreshold:
                 existing.freeThreshold ||
-                defaultSettings.shippingSettings.freeThreshold,
+                defaultShippingSettings.freeThreshold,
               onlinePaymentPrice:
                 existing.onlinePaymentPrice ||
-                defaultSettings.shippingSettings.onlinePaymentPrice,
+                defaultShippingSettings.onlinePaymentPrice,
               rambursPrice:
                 existing.rambursPrice ||
-                defaultSettings.shippingSettings.rambursPrice,
+                defaultShippingSettings.rambursPrice,
               insuranceThreshold:
                 existing.insuranceThreshold ||
-                defaultSettings.shippingSettings.insuranceThreshold,
+                defaultShippingSettings.insuranceThreshold,
               fanCourierPickup: {
-                ...defaultSettings.shippingSettings.fanCourierPickup,
+                ...defaultShippingSettings.fanCourierPickup,
                 ...(existing.fanCourierPickup || {}),
               },
               couriers:
                 existing.couriers ||
-                defaultSettings.shippingSettings.couriers,
+                defaultShippingSettings.couriers,
             };
-          })(),
-          // Only set codSettings defaults if it's completely missing
-          codSettings: data.codSettings || defaultSettings.codSettings,
-          // Only set taxSettings defaults if it's completely missing
-          taxSettings: data.taxSettings || defaultSettings.taxSettings,
-          // Only set businessHours defaults if it's completely missing
-          businessHours: data.businessHours || defaultSettings.businessHours,
-          // Only set orderProcessing defaults if it's completely missing
-          orderProcessing:
-            data.orderProcessing || defaultSettings.orderProcessing,
-          // Only set inventoryManagement defaults if it's completely missing
-          inventoryManagement:
-            data.inventoryManagement || defaultSettings.inventoryManagement,
-          // Only set marketingSettings defaults if it's completely missing
-          marketingSettings:
-            data.marketingSettings || defaultSettings.marketingSettings,
-        };
+          }
+          return {
+            ...existing,
+            deliveryPrice:
+              existing.deliveryPrice ||
+              defaultShippingSettings.deliveryPrice,
+            freeThreshold:
+              existing.freeThreshold ||
+              defaultShippingSettings.freeThreshold,
+            onlinePaymentPrice:
+              existing.onlinePaymentPrice ||
+              defaultShippingSettings.onlinePaymentPrice,
+            rambursPrice:
+              existing.rambursPrice ||
+              defaultShippingSettings.rambursPrice,
+            insuranceThreshold:
+              existing.insuranceThreshold ||
+              defaultShippingSettings.insuranceThreshold,
+            fanCourierPickup: {
+              ...defaultShippingSettings.fanCourierPickup,
+              ...(existing.fanCourierPickup || {}),
+            },
+            couriers:
+              existing.couriers ||
+              defaultShippingSettings.couriers,
+          };
+        })(),
+        // Only set codSettings defaults if it's completely missing
+        codSettings: data.codSettings || defaultSettings.codSettings,
+        // Only set taxSettings defaults if it's completely missing
+        taxSettings: data.taxSettings || defaultSettings.taxSettings,
+        // Only set businessHours defaults if it's completely missing
+        businessHours: data.businessHours || defaultSettings.businessHours,
+        // Only set orderProcessing defaults if it's completely missing
+        orderProcessing:
+          data.orderProcessing || defaultSettings.orderProcessing,
+        // Only set inventoryManagement defaults if it's completely missing
+        inventoryManagement:
+          data.inventoryManagement || defaultSettings.inventoryManagement,
+        // Only set marketingSettings defaults if it's completely missing
+        marketingSettings:
+          data.marketingSettings || defaultSettings.marketingSettings,
+      };
 
-        setSettings(mergedData);
-        setOriginalSettings(mergedData);
-        setHasUnsavedChanges(false);
-      } catch (err) {
-        console.error("Failed to fetch settings:", err);
-        setError("Failed to load settings. Please refresh the page.");
-        toast({
-          title: "Error",
-          description: "Failed to load settings. Please refresh the page.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
+      setSettings(mergedData);
+      setOriginalSettings(mergedData);
+      setHasUnsavedChanges(false);
+    } catch (err) {
+      console.error("Failed to fetch settings:", err);
+      setError("Failed to load settings. Please refresh the page.");
+      toast({
+        title: "Error",
+        description: "Failed to load settings. Please refresh the page.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  // Fetch current settings on component mount
+  useEffect(() => {
     fetchSettings();
     fetchBackups();
   }, []);
@@ -1127,17 +1131,7 @@ export default function SettingsPage() {
   ) => {
     setSettings(prev => {
       // Initialize shippingSettings if it doesn't exist
-      const currentSettings = prev.shippingSettings || {
-        deliveryPrice: { price: "15.00", active: true },
-        freeThreshold: { price: "199.00", active: true },
-        fanCourierPickup: {
-          enabled: false,
-          windowStart: "09:00",
-          windowEnd: "16:00",
-          offsetDays: 0,
-          observations: "",
-        },
-      };
+      const currentSettings = prev.shippingSettings || defaultShippingSettings;
 
       return {
         ...prev,
@@ -1159,17 +1153,7 @@ export default function SettingsPage() {
   ) => {
     setSettings(prev => {
       // Initialize shippingSettings if it doesn't exist
-      const currentSettings = prev.shippingSettings || {
-        deliveryPrice: { price: "15.00", active: true },
-        freeThreshold: { price: "199.00", active: true },
-        fanCourierPickup: {
-          enabled: false,
-          windowStart: "09:00",
-          windowEnd: "16:00",
-          offsetDays: 0,
-          observations: "",
-        },
-      };
+      const currentSettings = prev.shippingSettings || defaultShippingSettings;
 
       return {
         ...prev,
@@ -1199,16 +1183,13 @@ export default function SettingsPage() {
     }>
   ) => {
     setSettings(prev => {
-      const currentSettings = prev.shippingSettings || {
-        deliveryPrice: { price: "15.00", active: true },
-        freeThreshold: { price: "199.00", active: true },
-        fanCourierPickup: {
-          enabled: false,
-          windowStart: "09:00",
-          windowEnd: "16:00",
-          offsetDays: 0,
-          observations: "",
-        },
+      const currentSettings = prev.shippingSettings || defaultShippingSettings;
+      const currentPickup = currentSettings.fanCourierPickup || {
+        enabled: false,
+        windowStart: "09:00",
+        windowEnd: "16:00",
+        offsetDays: 0,
+        observations: "",
       };
 
       return {
@@ -1216,7 +1197,7 @@ export default function SettingsPage() {
         shippingSettings: {
           ...currentSettings,
           fanCourierPickup: {
-            ...currentSettings.fanCourierPickup,
+            ...currentPickup,
             ...value,
           },
         },
@@ -1229,18 +1210,7 @@ export default function SettingsPage() {
     updater: (couriers: NonNullable<StoreSettings["shippingSettings"]>["couriers"]) => NonNullable<StoreSettings["shippingSettings"]>["couriers"]
   ) => {
     setSettings(prev => {
-      const currentSettings = prev.shippingSettings || {
-        deliveryPrice: { price: "15.00", active: true },
-        freeThreshold: { price: "199.00", active: true },
-        fanCourierPickup: {
-          enabled: false,
-          windowStart: "09:00",
-          windowEnd: "16:00",
-          offsetDays: 0,
-          observations: "",
-        },
-        couriers: DEFAULT_COURIERS,
-      };
+      const currentSettings = prev.shippingSettings || defaultShippingSettings;
 
       return {
         ...prev,

@@ -26,11 +26,6 @@ export function generateStaticParams() {
   return [{ locale: "ro" }, { locale: "en" }];
 }
 
-interface CategoriesPageProps {
-  params?: { locale?: string };
-  _searchParams?: { [key: string]: string | string[] | undefined };
-}
-
 async function CategoriesContent({ locale }: { locale: string }) {
   const categories = await getCategories(locale);
   const t = getTranslation(locale);
@@ -67,13 +62,10 @@ async function CategoriesContent({ locale }: { locale: string }) {
   );
 }
 
-export default async function CategoriesPage({
-  params,
-  _searchParams,
-}: CategoriesPageProps) {
+export default async function CategoriesPage() {
   // Get locale from cookies or default to 'ro' (Romanian)
   const cookieStore = await cookies();
-  const locale = cookieStore.get("locale")?.value ?? params?.locale ?? "ro";
+  const locale = cookieStore.get("locale")?.value ?? "ro";
 
   return (
     <Suspense fallback={<CategoriesSkeleton />}>

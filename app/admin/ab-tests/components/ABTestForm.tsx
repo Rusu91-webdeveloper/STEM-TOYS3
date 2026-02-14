@@ -97,9 +97,9 @@ export function ABTestForm({ initialData, isEditing = false }: ABTestFormProps) 
         ],
     };
 
-    const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
-        defaultValues,
+    const form = useForm<any>({
+        resolver: zodResolver(formSchema) as any,
+        defaultValues: defaultValues as any,
         mode: "onChange",
     });
 
@@ -108,9 +108,10 @@ export function ABTestForm({ initialData, isEditing = false }: ABTestFormProps) 
         name: "variants",
     });
 
-    async function onSubmit(data: FormValues) {
+    async function onSubmit(data: any) {
         try {
             setIsSubmitting(true);
+            const parsedData = formSchema.parse(data);
             const url = isEditing
                 ? `/api/admin/ab-tests/${initialData.id}`
                 : "/api/admin/ab-tests";
@@ -120,7 +121,7 @@ export function ABTestForm({ initialData, isEditing = false }: ABTestFormProps) 
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(parsedData),
       });
 
       if (!response.ok) {
@@ -149,18 +150,37 @@ export function ABTestForm({ initialData, isEditing = false }: ABTestFormProps) 
 
   // Calculate remaining weight helper
   const distributeWeights = () => {
-    const currentVariants = form.getValues("variants");
+    const currentVariants = (form.getValues("variants") ||
+      []) as Array<Record<string, any>>;
     if (currentVariants.length === 0) return;
     const split = 100 / currentVariants.length;
     
     // Update all weights
-    const newVariants = currentVariants.map(v => ({ ...v, weight: Number(split.toFixed(2)) }));
+    const newVariants = currentVariants.map((v: Record<string, any>) => ({
+      ...v,
+      weight: Number(split.toFixed(2)),
+    }));
     // Fix rounding on last item
-    const sum = newVariants.slice(0, -1).reduce((acc, v) => acc + v.weight, 0);
+    const sum = newVariants
+      .slice(0, -1)
+      .reduce((acc: number, v: Record<string, any>) => acc + (Number(v.weight) || 0), 0);
     newVariants[newVariants.length - 1].weight = Number((100 - sum).toFixed(2));
     
     form.setValue("variants", newVariants);
   };
+
+  const watchedVariants = (form.watch("variants") || []) as Array<{
+    weight?: number;
+  }>;
+  const totalWeight = watchedVariants.reduce(
+    (sum: number, v: { weight?: number }) => sum + (Number(v.weight) || 0),
+    0
+  );
+  const variantsRootError = form.formState.errors.variants?.root;
+  const variantsRootMessage =
+    typeof variantsRootError?.message === "string"
+      ? variantsRootError.message
+      : undefined;
 
   return (
     <Form {...form}>
@@ -419,8 +439,13 @@ export function ABTestForm({ initialData, isEditing = false }: ABTestFormProps) 
                                     // If checking this, uncheck others manually or let validation handle it
                                     // Better UX: uncheck others
                                     if (e.target.checked) {
-                                        const currentVariants = form.getValues("variants");
-                                        const updated = currentVariants.map((v, idx) => ({ ...v, isControl: idx === index }));
+                                        const currentVariants = (form.getValues("variants") || []) as Array<Record<string, any>>;
+                                        const updated = currentVariants.map(
+                                          (v: Record<string, any>, idx: number) => ({
+                                            ...v,
+                                            isControl: idx === index,
+                                          })
+                                        );
                                         form.setValue("variants", updated);
                                     } else {
                                         field.onChange(false);
@@ -447,16 +472,16 @@ export function ABTestForm({ initialData, isEditing = false }: ABTestFormProps) 
               >
                 <Plus className="mr-2 h-4 w-4" /> Adaugă Variantă
               </Button>
-              
+	              
                <div className="text-sm font-medium text-right">
                   Total Weight: <span className={cn(
-                      Math.abs(form.watch("variants").reduce((sum, v) => sum + (v.weight || 0), 0) - 100) < 0.1 ? "text-green-600" : "text-red-500"
+                      Math.abs(totalWeight - 100) < 0.1 ? "text-green-600" : "text-red-500"
                   )}>
-                      {form.watch("variants").reduce((sum, v) => sum + (v.weight || 0), 0).toFixed(2)}%
+                      {totalWeight.toFixed(2)}%
                   </span>
                </div>
-               {form.formState.errors.variants?.root && (
-                  <p className="text-sm text-red-500 text-right">{form.formState.errors.variants.root.message}</p>
+               {variantsRootMessage && (
+                  <p className="text-sm text-red-500 text-right">{variantsRootMessage}</p>
                )}
 
             </CardContent>

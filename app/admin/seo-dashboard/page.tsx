@@ -122,10 +122,10 @@ export default function SEODashboardPage() {
       if (response.ok) {
         const payload = await response.json();
         const data = payload.data;
-        
+
         // Track data source
         setKeywordHistorySource(payload.dataSource || "mock");
-        
+
         // If we have real data from database, use it
         if (data && data.dates && data.dates.length > 0) {
           setKeywordHistory({
@@ -138,7 +138,7 @@ export default function SEODashboardPage() {
           return;
         }
       }
-      
+
       // Fallback: Try to get current keyword data and generate trend
       // This is used when no historical data exists yet
       const currentResponse = await fetch(
@@ -148,7 +148,7 @@ export default function SEODashboardPage() {
         const currentPayload = await currentResponse.json();
         const currentData = currentPayload.data;
         const currentPosition = currentData?.[0]?.position || 5;
-        
+
         // Generate placeholder data based on current position
         // This will be replaced once daily analytics start collecting data
         setKeywordHistory({
@@ -195,12 +195,11 @@ export default function SEODashboardPage() {
     setAnalyticsMessage(null);
 
     try {
-      const response = await fetch("/api/cron/daily-seo-analytics", {
+      // Call a server-side admin route that proxies the cron job
+      // The cron secret is never exposed to the browser
+      const response = await fetch("/api/admin/seo/save-analytics", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET_TOKEN}`,
-        },
+        headers: { "Content-Type": "application/json" },
       });
 
       const data = await response.json();
@@ -235,7 +234,7 @@ export default function SEODashboardPage() {
         const payload = await response.json();
         setDataSource(payload.dataSource ?? null);
         setSeoData(payload.data);
-        
+
         // Fetch last database update timestamp
         try {
           const dbResponse = await fetch(
@@ -330,13 +329,12 @@ export default function SEODashboardPage() {
           </h1>
           <div className="flex items-center space-x-4 flex-wrap gap-2">
             <span
-              className={`px-2 py-1 rounded text-xs font-medium border ${
-                dataSource === "live"
+              className={`px-2 py-1 rounded text-xs font-medium border ${dataSource === "live"
                   ? "bg-green-100 text-green-800 border-green-300"
                   : dataSource === "database"
                     ? "bg-blue-100 text-blue-800 border-blue-300"
                     : "bg-yellow-100 text-yellow-800 border-yellow-300"
-              }`}
+                }`}
             >
               {dataSource === "live"
                 ? "🟢 Live Data (GSC)"
@@ -355,11 +353,10 @@ export default function SEODashboardPage() {
             <button
               onClick={saveAnalyticsData}
               disabled={savingAnalytics}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                savingAnalytics
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${savingAnalytics
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                   : "bg-blue-600 text-white hover:bg-blue-700"
-              }`}
+                }`}
             >
               {savingAnalytics ? "💾 Saving..." : "💾 Save Analytics"}
             </button>
@@ -369,11 +366,10 @@ export default function SEODashboardPage() {
         {/* Analytics Message */}
         {analyticsMessage && (
           <div
-            className={`mb-6 p-4 rounded-lg ${
-              analyticsMessage.includes("✅")
+            className={`mb-6 p-4 rounded-lg ${analyticsMessage.includes("✅")
                 ? "bg-green-50 border border-green-200 text-green-800"
                 : "bg-red-50 border border-red-200 text-red-800"
-            }`}
+              }`}
           >
             {analyticsMessage}
           </div>
@@ -478,30 +474,28 @@ export default function SEODashboardPage() {
             {/* Overall Score */}
             <div className="text-center mb-8">
               <div
-                className={`text-6xl font-bold mb-2 ${
-                  healthScore.overallScore >= 90
+                className={`text-6xl font-bold mb-2 ${healthScore.overallScore >= 90
                     ? "text-green-600"
                     : healthScore.overallScore >= 80
                       ? "text-blue-600"
                       : healthScore.overallScore >= 70
                         ? "text-yellow-600"
                         : "text-red-600"
-                }`}
+                  }`}
               >
                 {healthScore.overallScore}/100
               </div>
               <p className="text-lg text-gray-600">Overall SEO Health</p>
               <div className="mt-4 bg-gray-200 rounded-full h-4">
                 <div
-                  className={`h-4 rounded-full ${
-                    healthScore.overallScore >= 90
+                  className={`h-4 rounded-full ${healthScore.overallScore >= 90
                       ? "bg-green-600"
                       : healthScore.overallScore >= 80
                         ? "bg-blue-600"
                         : healthScore.overallScore >= 70
                           ? "bg-yellow-600"
                           : "bg-red-600"
-                  }`}
+                    }`}
                   style={{ width: `${healthScore.overallScore}%` }}
                 ></div>
               </div>
@@ -523,15 +517,14 @@ export default function SEODashboardPage() {
                     </div>
                     <div className="bg-gray-200 rounded-full h-2">
                       <div
-                        className={`h-2 rounded-full ${
-                          score >= 90
+                        className={`h-2 rounded-full ${score >= 90
                             ? "bg-green-600"
                             : score >= 80
                               ? "bg-blue-600"
                               : score >= 70
                                 ? "bg-yellow-600"
                                 : "bg-red-600"
-                        }`}
+                          }`}
                         style={{ width: `${score}%` }}
                       ></div>
                     </div>
@@ -617,24 +610,22 @@ export default function SEODashboardPage() {
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`px-2 py-1 rounded text-xs ${
-                            keyword.difficulty < 40
+                          className={`px-2 py-1 rounded text-xs ${keyword.difficulty < 40
                               ? "bg-green-100 text-green-800"
                               : keyword.difficulty < 60
                                 ? "bg-yellow-100 text-yellow-800"
                                 : "bg-red-100 text-red-800"
-                          }`}
+                            }`}
                         >
                           {keyword.difficulty}/100
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`px-2 py-1 rounded text-xs ${
-                            keyword.competitorGap
+                          className={`px-2 py-1 rounded text-xs ${keyword.competitorGap
                               ? "bg-green-100 text-green-800"
                               : "bg-gray-100 text-gray-800"
-                          }`}
+                            }`}
                         >
                           {keyword.competitorGap
                             ? "Opportunity"
@@ -671,13 +662,12 @@ export default function SEODashboardPage() {
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`px-2 py-1 rounded text-xs ${
-                            keyword.position <= 3
+                          className={`px-2 py-1 rounded text-xs ${keyword.position <= 3
                               ? "bg-green-100 text-green-800"
                               : keyword.position <= 10
                                 ? "bg-yellow-100 text-yellow-800"
                                 : "bg-red-100 text-red-800"
-                          }`}
+                            }`}
                         >
                           #{keyword.position}
                         </span>
@@ -728,13 +718,12 @@ export default function SEODashboardPage() {
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Priority:</span>
                       <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          city.priority === "high"
+                        className={`px-2 py-1 rounded text-xs ${city.priority === "high"
                             ? "bg-red-100 text-red-800"
                             : city.priority === "medium"
                               ? "bg-yellow-100 text-yellow-800"
                               : "bg-green-100 text-green-800"
-                        }`}
+                          }`}
                       >
                         {city.priority}
                       </span>
@@ -797,13 +786,12 @@ export default function SEODashboardPage() {
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`px-2 py-1 rounded text-xs ${
-                            competitor.averagePosition < 5
+                          className={`px-2 py-1 rounded text-xs ${competitor.averagePosition < 5
                               ? "bg-red-100 text-red-800"
                               : competitor.averagePosition < 8
                                 ? "bg-yellow-100 text-yellow-800"
                                 : "bg-green-100 text-green-800"
-                          }`}
+                            }`}
                         >
                           {competitor.averagePosition < 5
                             ? "High"
@@ -815,16 +803,16 @@ export default function SEODashboardPage() {
                     </tr>
                   )
                 ) || (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-4 py-8 text-center text-gray-500"
-                    >
-                      No competitor data available. Connect Google Search
-                      Console for live analysis.
-                    </td>
-                  </tr>
-                )}
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="px-4 py-8 text-center text-gray-500"
+                      >
+                        No competitor data available. Connect Google Search
+                        Console for live analysis.
+                      </td>
+                    </tr>
+                  )}
               </tbody>
             </table>
           </div>
@@ -863,11 +851,10 @@ export default function SEODashboardPage() {
                 </h3>
                 {keywordHistorySource && (
                   <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                      keywordHistorySource === "database"
+                    className={`px-2 py-1 rounded text-xs font-medium ${keywordHistorySource === "database"
                         ? "bg-blue-100 text-blue-800"
                         : "bg-yellow-100 text-yellow-800"
-                    }`}
+                      }`}
                   >
                     {keywordHistorySource === "database"
                       ? "🔵 Real Data"
@@ -927,7 +914,7 @@ export default function SEODashboardPage() {
                       const isImprovement =
                         index > 0 &&
                         position <
-                          keywordHistory.positions.slice(-14)[index - 1];
+                        keywordHistory.positions.slice(-14)[index - 1];
                       return (
                         <div
                           key={index}
@@ -941,7 +928,7 @@ export default function SEODashboardPage() {
                           <div className="text-xs text-gray-500 mt-1">
                             {new Date(
                               keywordHistory.dates[
-                                keywordHistory.dates.length - 14 + index
+                              keywordHistory.dates.length - 14 + index
                               ]
                             ).getDate()}
                           </div>

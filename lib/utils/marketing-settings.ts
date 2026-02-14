@@ -159,18 +159,33 @@ export interface MarketingSettings {
   };
 }
 
+function getMetadataObject(
+  metadata: unknown
+): Record<string, unknown> | null {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return null;
+  }
+  return metadata as Record<string, unknown>;
+}
+
 /**
  * Get marketing settings from the database
  */
 export async function getMarketingSettings(): Promise<MarketingSettings | null> {
   try {
     const settings = await prisma.storeSettings.findFirst();
+    const metadata = getMetadataObject(settings?.metadata);
+    const marketingSettings = metadata?.marketingSettings;
 
-    if (!settings?.marketingSettings) {
+    if (
+      !marketingSettings ||
+      typeof marketingSettings !== "object" ||
+      Array.isArray(marketingSettings)
+    ) {
       return null;
     }
 
-    return settings.marketingSettings as any as MarketingSettings;
+    return marketingSettings as MarketingSettings;
   } catch (error) {
     console.error("Error fetching marketing settings:", error);
     return null;

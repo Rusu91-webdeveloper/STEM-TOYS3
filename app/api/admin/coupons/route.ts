@@ -98,13 +98,9 @@ export async function GET(request: NextRequest) {
     const isInfluencer = searchParams.get("isInfluencer");
 
     // Generate cache key based on query parameters
-    const cacheKey = CacheKeys.coupons({
-      page,
-      limit,
-      search: search || "",
-      isActive: isActive || "",
-      isInfluencer: isInfluencer || "",
-    });
+    const cacheKey = CacheKeys.coupons(
+      `${page}:${limit}:${search || ""}:${isActive || ""}:${isInfluencer || ""}`
+    );
 
     const result = await getCached(
       cacheKey,

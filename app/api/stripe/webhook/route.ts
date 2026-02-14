@@ -262,19 +262,32 @@ async function handleSuccessfulPayment(
         );
       } else {
         try {
-          const { createCourierAwbForOrder } = await import(
-            "@/lib/shipping/awb-dispatcher"
-          );
-          const awbResult = await createCourierAwbForOrder(order.id);
-          if (awbResult.success) {
+          const existingAwbShipment = await db.shipment.findFirst({
+            where: {
+              orderId: order.id,
+              awbNumber: { not: null },
+            },
+            select: { awbNumber: true, courier: true },
+          });
+          if (existingAwbShipment?.awbNumber) {
             console.log(
-              `✅ [STRIPE][WEBHOOK] AWB created for order ${order.id}: ${awbResult.awbNumber}`
+              `ℹ️ [STRIPE][WEBHOOK] AWB already exists for order ${order.id}: ${existingAwbShipment.awbNumber} (${existingAwbShipment.courier})`
             );
           } else {
-            console.warn(
-              `⚠️ [STRIPE][WEBHOOK] AWB creation failed for order ${order.id}:`,
-              awbResult.error
+            const { createCourierAwbForOrder } = await import(
+              "@/lib/shipping/awb-dispatcher"
             );
+            const awbResult = await createCourierAwbForOrder(order.id);
+            if (awbResult.success) {
+              console.log(
+                `✅ [STRIPE][WEBHOOK] AWB created for order ${order.id}: ${awbResult.awbNumber}`
+              );
+            } else {
+              console.warn(
+                `⚠️ [STRIPE][WEBHOOK] AWB creation failed for order ${order.id}:`,
+                awbResult.error
+              );
+            }
           }
         } catch (awbError) {
           console.error(

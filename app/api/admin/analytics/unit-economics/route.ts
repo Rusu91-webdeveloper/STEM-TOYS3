@@ -125,11 +125,12 @@ export const GET = withRateLimit(
           generatedAt: new Date().toISOString(),
         });
       } else {
+        const summaryData = unitEconomicsData.data as { summary: any; products: any[] };
         // Sanitize cached data: convert null/NaN/Infinity to 0 for numeric fields
         // This handles cached data from previous code versions that may have null values
-        const sanitizedSummary = sanitizeSummaryData(unitEconomicsData.data.summary);
+        const sanitizedSummary = sanitizeSummaryData(summaryData.summary);
         const validatedSummary = validateUnitEconomicsSummary(sanitizedSummary);
-        const validatedProducts = unitEconomicsData.data.products.map(p =>
+        const validatedProducts = summaryData.products.map(p =>
           validateProductProfitability(p)
         );
 
@@ -150,7 +151,7 @@ export const GET = withRateLimit(
       // Handle validation errors - invalidate cache if validation fails (likely stale data)
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      
+
       // If it's a validation error, invalidate the cache to force regeneration
       if (errorMessage.includes("ZodError") || errorMessage.includes("Expected number")) {
         try {

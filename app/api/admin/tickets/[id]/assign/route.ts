@@ -35,9 +35,10 @@ export async function GET() {
 // POST - Assign ticket to an admin
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
@@ -48,7 +49,7 @@ export async function POST(
 
     // Verify the ticket exists
     const ticket = await db.supplierSupportTicket.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         supplier: {
           select: {
@@ -89,14 +90,14 @@ export async function POST(
 
       // Update ticket assignment
       await db.supplierSupportTicket.update({
-        where: { id: params.id },
+        where: { id },
         data: { assignedTo },
       });
 
       // Create an internal note about the assignment
       await db.supplierTicketResponse.create({
         data: {
-          ticketId: params.id,
+          ticketId: id,
           responderId: session.user.id,
           responderType: "ADMIN",
           content: `Ticket assigned to ${assignedAdmin.name} (${assignedAdmin.email})`,
@@ -122,14 +123,14 @@ export async function POST(
     } else {
       // Unassign ticket
       await db.supplierSupportTicket.update({
-        where: { id: params.id },
+        where: { id },
         data: { assignedTo: null },
       });
 
       // Create an internal note about the unassignment
       await db.supplierTicketResponse.create({
         data: {
-          ticketId: params.id,
+          ticketId: id,
           responderId: session.user.id,
           responderType: "ADMIN",
           content: "Ticket unassigned",

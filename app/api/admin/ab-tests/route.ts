@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
             createdBy: session.user.id,
             // Ensure types match what service expects
             type: data.type,
-            targetAudience: data.targetAudience,
+            targetAudience: data.targetAudience ?? ABTestAudience.ALL,
         });
 
         return NextResponse.json(newTest, { status: 201 });

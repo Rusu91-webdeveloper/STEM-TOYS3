@@ -2,7 +2,7 @@ import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { auth, mockUsers } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 // Profile update schema
@@ -61,79 +61,31 @@ export async function PUT(req: Request) {
       }
     }
 
-    // Force mock data mode if not explicitly set
-    const useMockData =
-      process.env.USE_MOCK_DATA === "true" ||
-      process.env.NODE_ENV === "development";
+    // Prepare update data
+    const updateData: Record<string, string> = { name, email };
 
-    let updatedUser;
-
-    // If we're in development mode, check if this is a mock user and update it
-    if (useMockData) {
-      const mockUserIndex = mockUsers.findIndex(
-        user => user.id === session.user.id || user.email === session.user.email
-      );
-
-      if (mockUserIndex >= 0) {
-        // Update the mock user
-        const mockUser = mockUsers[mockUserIndex];
-        mockUsers[mockUserIndex] = {
-          ...mockUser,
-          name,
-          email,
-          password: newPassword
-            ? await hash(newPassword, 12)
-            : mockUser.password,
-        };
-
-        // Return the updated mock user
-        const { password, ...userWithoutPassword } = mockUsers[mockUserIndex];
-        updatedUser = userWithoutPassword;
-
-        // User profile updated
-      }
+    // If new password is provided, hash it
+    if (newPassword) {
+      updateData.password = await hash(newPassword, 12);
     }
 
-    // If not a mock user or not in development mode, update the database
-    if (!updatedUser) {
-      // Prepare update data
-      const updateData: any = {
-        name,
-        email,
-      };
-
-      // If new password is provided, hash it
-      const hashedPassword = newPassword
-        ? await hash(newPassword, 12)
-        : undefined;
-
-      // If password is being updated, hash it
-      if (hashedPassword) {
-        updateData.password = hashedPassword;
-      }
-
-      // Use transaction to ensure atomicity
-      updatedUser = await db.$transaction(async tx =>
-        // Update the user in the database
-        tx.user.update({
-          where: {
-            id: session.user.id,
-          },
-          data: updateData,
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            isActive: true,
-            role: true,
-            emailVerified: true,
-            createdAt: true,
-            updatedAt: true,
-            // Do not include password in response
-          },
-        })
-      );
-    }
+    // Use transaction to ensure atomicity
+    const updatedUser = await db.$transaction(async (tx) =>
+      tx.user.update({
+        where: { id: session.user.id },
+        data: updateData,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          isActive: true,
+          role: true,
+          emailVerified: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })
+    );
 
     return NextResponse.json({
       user: updatedUser,
@@ -147,3 +99,4 @@ export async function PUT(req: Request) {
     );
   }
 }
+

@@ -8,22 +8,26 @@ export const metadata: Metadata = {
 };
 
 interface OrderDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function SupplierOrderDetailPage({ params }: OrderDetailPageProps) {
+export default async function SupplierOrderDetailPage({
+  params,
+}: OrderDetailPageProps) {
+  const { id } = await params;
+
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Order Details</h1>
         <p className="text-muted-foreground">
-          View and manage order #{params.id}
+          View and manage order #{id}
         </p>
       </div>
-      
-      <SupplierOrderDetail orderId={params.id} />
+
+      <SupplierOrderDetail orderId={id} />
     </div>
   );
 }

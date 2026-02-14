@@ -330,13 +330,13 @@ cleanupRateLimitStore();
  * @param config Rate limiting configuration
  * @returns The rate-limited API route handler
  */
-export function withRateLimit(
-  handler: (req: NextRequest) => Promise<NextResponse> | NextResponse,
+export function withRateLimit<TArgs extends any[]>(
+  handler: (req: NextRequest, ...args: TArgs) => Promise<NextResponse> | NextResponse,
   config: RateLimitConfig
 ) {
   const rateLimiter = rateLimit(config);
 
-  return async function rateLimitedHandler(req: NextRequest) {
+  return async function rateLimitedHandler(req: NextRequest, ...args: TArgs) {
     // Apply rate limiting
     const rateLimitResponse = await rateLimiter(req);
 
@@ -346,7 +346,7 @@ export function withRateLimit(
     }
 
     // Otherwise, call original handler
-    return handler(req);
+    return handler(req, ...args);
   };
 }
 

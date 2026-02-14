@@ -45,18 +45,33 @@ export interface OrderProcessingSettings {
   };
 }
 
+function getMetadataObject(
+  metadata: unknown
+): Record<string, unknown> | null {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return null;
+  }
+  return metadata as Record<string, unknown>;
+}
+
 /**
  * Get order processing settings from the database
  */
 export async function getOrderProcessingSettings(): Promise<OrderProcessingSettings | null> {
   try {
     const settings = await prisma.storeSettings.findFirst();
+    const metadata = getMetadataObject(settings?.metadata);
+    const orderProcessing = metadata?.orderProcessing;
 
-    if (!settings?.orderProcessing) {
+    if (
+      !orderProcessing ||
+      typeof orderProcessing !== "object" ||
+      Array.isArray(orderProcessing)
+    ) {
       return null;
     }
 
-    return settings.orderProcessing as OrderProcessingSettings;
+    return orderProcessing as OrderProcessingSettings;
   } catch (error) {
     console.error("Error fetching order processing settings:", error);
     return null;

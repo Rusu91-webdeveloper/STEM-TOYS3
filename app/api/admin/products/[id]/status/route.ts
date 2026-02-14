@@ -55,7 +55,7 @@ export async function PATCH(
     if (status === "APPROVED" || status === "REJECTED") {
       try {
         const { invalidateProductCaches } = await import("@/lib/cache-smart-invalidation");
-        
+
         await invalidateProductCaches({
           productId: existing.id,
           categoryId: existing.categoryId || undefined,
@@ -88,7 +88,6 @@ export async function PATCH(
               <p>Your product <strong>${existing.name}</strong> has been <strong>approved</strong> and is now visible in the store.</p>
               <p><a href="${siteUrl}/products/${existing.slug}">View Product</a> · <a href="${siteUrl}/supplier/products">Manage Products</a></p>
             `,
-            text: `Your product ${existing.name} was approved and is now live. ${siteUrl}/products/${existing.slug}`,
           });
         } else if (status === "REJECTED") {
           await sendEmailViaUnifiedSystem({
@@ -99,7 +98,6 @@ export async function PATCH(
               ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}
               <p>You can update and resubmit from your dashboard: <a href="${siteUrl}/supplier/products">Supplier Products</a></p>
             `,
-            text: `Your product ${existing.name} was rejected.${reason ? ` Reason: ${reason}` : ""} Update it at ${siteUrl}/supplier/products`,
           });
         }
       }
