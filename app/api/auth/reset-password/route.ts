@@ -103,10 +103,10 @@ async function handleResetPassword(request: NextRequest) {
       try {
         await triggerPasswordChangeEmail(updatedUser.id, {
           changeTime: new Date().toLocaleString("ro-RO"),
-          deviceInfo: req.headers.get("user-agent") || "Dispozitiv necunoscut",
+          deviceInfo: request.headers.get("user-agent") || "Dispozitiv necunoscut",
           ipAddress:
-            req.headers.get("x-forwarded-for") ||
-            req.headers.get("x-real-ip") ||
+            request.headers.get("x-forwarded-for") ||
+            request.headers.get("x-real-ip") ||
             "IP necunoscut",
         });
         console.log(

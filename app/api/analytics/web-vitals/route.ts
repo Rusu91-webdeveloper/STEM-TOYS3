@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       // Drain body quickly to avoid hanging connections
       try {
         await request.arrayBuffer();
-      } catch (_) {}
+      } catch (_) { }
       return NextResponse.json({ success: true, dev: true });
     }
     // **FIX**: Handle empty request body gracefully
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         );
       }
       body = JSON.parse(text);
-    } catch (jsonError) {
+    } catch (jsonError: any) {
       console.warn("Web Vitals JSON parsing error:", jsonError.message);
       return NextResponse.json(
         { success: false, error: "Invalid JSON format" },
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         connectionType: validatedData.connectionType,
         referrer: request.headers.get("referer"),
-        country: request.geo?.country || "RO",
+        country: (request as any).geo?.country || "RO",
         metricId: validatedData.id,
         metricName: validatedData.name,
       },

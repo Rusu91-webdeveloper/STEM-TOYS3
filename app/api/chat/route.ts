@@ -138,7 +138,7 @@ export const GET = withRateLimit(async (request: NextRequest) => {
     return applyStandardHeaders(response);
   } catch (error) {
     console.error("Error fetching chat messages:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid query parameters", details: error.errors },
@@ -175,8 +175,8 @@ export const POST = withRateLimit(async (request: NextRequest) => {
     // 3. Validate recipient exists and user has permission to message them
     const recipient = await db.supplier.findUnique({
       where: { id: validatedData.recipientId },
-      select: { 
-        id: true, 
+      select: {
+        id: true,
         companyName: true,
         contactPersonName: true,
         contactPersonEmail: true,
@@ -209,7 +209,7 @@ export const POST = withRateLimit(async (request: NextRequest) => {
         priority: validatedData.priority,
         category: validatedData.category,
         attachments: [], // No attachments in basic chat
-        attachmentDetails: null,
+        attachmentDetails: [],
       },
       include: {
         sender: {
@@ -238,7 +238,7 @@ export const POST = withRateLimit(async (request: NextRequest) => {
     return applyStandardHeaders(response);
   } catch (error) {
     console.error("Error sending chat message:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid request data", details: error.errors },

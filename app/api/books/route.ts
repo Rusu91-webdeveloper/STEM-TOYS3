@@ -69,7 +69,7 @@ export const GET = withRateLimit(
 
       // Create response with books
       const response = applyStandardHeaders(NextResponse.json(books), {
-        cache: "no-store",
+        cache: "private",
       });
       response.headers.set("Cache-Control", "no-store");
       return response;
