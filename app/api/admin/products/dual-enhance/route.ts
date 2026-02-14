@@ -133,13 +133,20 @@ export async function POST(request: NextRequest) {
     );
 
     // Track progress
-    let progress = {
+    let progress: {
+      total: number;
+      processed: number;
+      successful: number;
+      failed: number;
+      errors: Array<{ product: string; error: string }>;
+      fallbackUsed?: number;
+    } = {
       total: validatedData.products.length,
       processed: 0,
       successful: 0,
       failed: 0,
-      errors: [] as Array<{ product: string; error: string }>,
-      fallbackUsed: 0 as number | undefined,
+      errors: [],
+      fallbackUsed: 0,
     };
 
     // Process products
