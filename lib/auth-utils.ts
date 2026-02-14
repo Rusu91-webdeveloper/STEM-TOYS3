@@ -1,6 +1,6 @@
 "use server";
 
-import { compare } from "bcrypt";
+import { compare } from "bcryptjs";
 
 /**
  * Server-side utility to verify a password against a hash

@@ -1,7 +1,7 @@
 import "server-only";
 import crypto from "crypto";
 
-import { hash } from "bcrypt";
+import { hash } from "bcryptjs";
 
 /**
  * Generates a hash that combines the admin password with a secret key
