@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 import type { CartItem } from "@/features/cart/context/CartContext";
 import { auth } from "@/lib/auth";
@@ -824,7 +825,8 @@ export async function POST(request: Request) {
             paymentMethod: orderData.paymentMethod || "card",
             shippingMethod: orderData.shippingMethod?.id || null,
             lockerId: orderData.lockerId || null,
-            lockerAddressSnapshot: orderData.lockerAddressSnapshot || null,
+            lockerAddressSnapshot:
+              orderData.lockerAddressSnapshot ?? Prisma.JsonNull,
             recipientType,
             declaredValue,
             codAmount: isCODPayment ? codAmount : null,
