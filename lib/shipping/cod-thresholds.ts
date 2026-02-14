@@ -26,7 +26,7 @@ const normalizeString = (value: unknown) => {
 };
 
 export function getRecipientType(
-  addresses: Array<{ companyName?: unknown; cui?: unknown } | null | undefined>
+  addresses: Array<Record<string, unknown> | null | undefined>
 ): RecipientType {
   const hasCompany = addresses.some(address => {
     if (!address) return false;
