@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       if (!conversion.timestamp) {
         throw new Error(`Conversion at index ${index} is missing required field: timestamp`);
       }
-      
+
       return {
         conversionId: conversion.id,
         type: conversion.type,
@@ -121,15 +121,15 @@ export async function POST(request: NextRequest) {
       name: error.name,
       code: error.code,
     });
-    
+
     // Return more detailed error information in development
-    const errorMessage = process.env.NODE_ENV === "development" 
+    const errorMessage = process.env.NODE_ENV === "development"
       ? error.message || "Failed to store conversion data"
       : "Failed to store conversion data";
-    
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: errorMessage,
         ...(process.env.NODE_ENV === "development" && {
           details: {
@@ -264,14 +264,16 @@ export async function GET(request: NextRequest) {
           ),
           conversionsByCategory: conversionsByCategory.reduce(
             (acc, item) => {
-              acc[item.category] = item._count.category;
+              const key = item.category || "Uncategorized";
+              acc[key] = (acc[key] || 0) + item._count.category;
               return acc;
             },
             {} as Record<string, number>
           ),
           conversionsByAction: conversionsByAction.reduce(
             (acc, item) => {
-              acc[item.action] = item._count.action;
+              const key = item.action || "Unknown";
+              acc[key] = (acc[key] || 0) + item._count.action;
               return acc;
             },
             {} as Record<string, number>
@@ -335,11 +337,11 @@ async function calculateUserJourney(where: any) {
     const previousStep = i > 0 ? journeySteps[i - 1] : null;
     const previousConversions = previousStep
       ? await prisma.conversionLog.count({
-          where: {
-            ...where,
-            action: previousStep,
-          },
-        })
+        where: {
+          ...where,
+          action: previousStep,
+        },
+      })
       : await prisma.conversionLog.count({ where });
 
     const dropoffRate =

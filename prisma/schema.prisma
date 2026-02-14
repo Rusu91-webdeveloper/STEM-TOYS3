@@ -866,6 +866,27 @@ model ConversionLog {
   @@index([conversionId])
 }
 
+model ErrorLog {
+  id        String   @id @default(cuid())
+  errorId   String
+  type      String
+  severity  String
+  message   String
+  stack     String?
+  url       String?
+  userAgent String?
+  userId    String?
+  sessionId String?
+  metadata  Json?
+  timestamp DateTime
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([severity])
+  @@index([timestamp])
+  @@index([userId])
+}
+
 model EmailTemplate {
   id            String              @id @default(cuid())
   name          String

@@ -134,7 +134,7 @@ export async function POST(
     if (!isInternal) {
       await db.supplierSupportTicket.update({
         where: { id },
-        data: { status: "IN_PROGRESS" },
+        data: { status: "PENDING_SUPPLIER" },
       });
     }
 

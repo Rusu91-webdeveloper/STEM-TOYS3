@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
         });
 
         // For approval, create user account and send email
-        if (action === "approve") {
+        if (action === "approve" && supplier.contactPersonEmail) {
           try {
             // Check if user account already exists
             const existingUser = await db.user.findUnique({
@@ -314,9 +314,8 @@ async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
               </ol>
             </div>
 
-            ${
-              tempPassword
-                ? `
+            ${tempPassword
+        ? `
             <div class="login-credentials" style="background-color: #f0f9ff; border: 1px solid #0ea5e9; padding: 25px; margin: 30px 0; border-radius: 8px;">
               <h3 style="margin: 0 0 20px 0; color: #0c4a6e; font-size: 18px;">🔐 Your Login Credentials</h3>
               <div style="background-color: white; padding: 20px; border-radius: 6px; border: 1px solid #e0f2fe;">
@@ -326,8 +325,8 @@ async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
               </div>
             </div>
             `
-                : ""
-            }
+        : ""
+      }
 
             <div class="action-buttons">
               <a href="${dashboardUrl}" class="btn btn-primary">📊 Access Dashboard</a>
@@ -464,9 +463,8 @@ async function sendSupplierRejectionEmail(
               <p>After careful review of your application, we regret to inform you that we are unable to approve your supplier application at this time.</p>
             </div>
 
-            ${
-              rejectionReason
-                ? `
+            ${rejectionReason
+        ? `
             <div class="reason-box">
               <h3>📝 Review Details</h3>
               <p><strong>Reason for Decision:</strong></p>
@@ -475,8 +473,8 @@ async function sendSupplierRejectionEmail(
               </p>
             </div>
             `
-                : ""
-            }
+        : ""
+      }
 
             <div class="next-steps">
               <h3>🔄 Next Steps & Future Opportunities</h3>

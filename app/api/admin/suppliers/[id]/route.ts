@@ -9,6 +9,12 @@ import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
+const normalizeStatus = (value?: string | null) => {
+  if (!value) return "PENDING";
+  if (value === "ACTIVE") return "APPROVED";
+  return value;
+};
+
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
@@ -123,12 +129,6 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
       take: 5,
     });
-
-    const normalizeStatus = (value?: string | null) => {
-      if (!value) return "PENDING";
-      if (value === "ACTIVE") return "APPROVED";
-      return value;
-    };
 
     // Transform supplier to match frontend expectations
     const transformedSupplier = {
@@ -410,7 +410,7 @@ export async function PUT(request: NextRequest) {
       });
 
       // Create user account and send approval email if status was changed to APPROVED
-      if (status === "APPROVED") {
+      if (status === "APPROVED" && supplier.contactPersonEmail) {
         try {
           // Check if user account already exists
           const existingUser = await db.user.findUnique({
@@ -517,7 +517,7 @@ export async function PUT(request: NextRequest) {
         certifications: supplier.certifications,
         productCategories: supplier.productCategories,
         isActive: supplier.isActive,
-      status: normalizeStatus(supplier.status),
+        status: normalizeStatus(supplier.status),
         approvedAt: supplier.approvedAt,
         approvedBy: supplier.approvedBy,
         rejectionReason: supplier.rejectionReason,
@@ -753,9 +753,8 @@ async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
               </ol>
             </div>
             
-            ${
-              tempPassword
-                ? `
+            ${tempPassword
+      ? `
             <div class="login-credentials" style="background-color: #f0f9ff; border: 1px solid #0ea5e9; padding: 25px; margin: 30px 0; border-radius: 8px;">
               <h3 style="margin: 0 0 20px 0; color: #0c4a6e; font-size: 18px;">🔐 Your Login Credentials</h3>
               <div style="background-color: white; padding: 20px; border-radius: 6px; border: 1px solid #e0f2fe;">
@@ -765,8 +764,8 @@ async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
               </div>
             </div>
             `
-                : ""
-            }
+      : ""
+    }
             
             <div class="action-buttons">
               <a href="${dashboardUrl}" class="btn btn-primary">📊 Access Dashboard</a>
@@ -903,9 +902,8 @@ async function sendSupplierRejectionEmail(
               <p>After careful review of your application, we regret to inform you that we are unable to approve your supplier application at this time.</p>
             </div>
             
-            ${
-              rejectionReason
-                ? `
+            ${rejectionReason
+      ? `
             <div class="reason-box">
               <h3>📝 Review Details</h3>
               <p><strong>Reason for Decision:</strong></p>
@@ -914,8 +912,8 @@ async function sendSupplierRejectionEmail(
               </p>
             </div>
             `
-                : ""
-            }
+      : ""
+    }
             
             <div class="next-steps">
               <h3>🔄 Next Steps & Future Opportunities</h3>

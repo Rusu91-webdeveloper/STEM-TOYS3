@@ -537,18 +537,8 @@ export async function PUT(request: NextRequest) {
         ...(data.metaKeywords !== undefined && {
           metaKeywords: data.metaKeywords,
         }),
-        // Legacy fields for backward compatibility
-        ...(data.ageRange !== undefined && { ageRange: data.ageRange }),
-        ...(data.stemCategory !== undefined && {
-          stemCategory: data.stemCategory
-            ? data.stemCategory.toUpperCase()
-            : undefined,
-        }),
         ...(data.difficultyLevel !== undefined && {
           difficultyLevel: data.difficultyLevel,
-        }),
-        ...(data.learningObjectives !== undefined && {
-          learningObjectives: data.learningObjectives,
         }),
         ...(data.attributes ?? {}),
       };
@@ -558,10 +548,7 @@ export async function PUT(request: NextRequest) {
       data.metaTitle ||
       data.metaDescription ||
       data.metaKeywords ||
-      data.ageRange ||
-      data.stemCategory ||
       data.difficultyLevel ||
-      data.learningObjectives ||
       data.attributes
     ) {
       // If there were no previous attributes but now we have some
@@ -573,17 +560,7 @@ export async function PUT(request: NextRequest) {
             (data.description ? data.description.substring(0, 160) : undefined),
         }),
         ...(data.metaKeywords && { metaKeywords: data.metaKeywords }),
-        // Legacy fields for backward compatibility
-        ...(data.ageRange && { ageRange: data.ageRange }),
-        ...(data.stemCategory && {
-          stemCategory: data.stemCategory
-            ? data.stemCategory.toUpperCase()
-            : undefined,
-        }),
         ...(data.difficultyLevel && { difficultyLevel: data.difficultyLevel }),
-        ...(data.learningObjectives && {
-          learningObjectives: data.learningObjectives,
-        }),
         ...(data.attributes ?? {}),
       };
     }

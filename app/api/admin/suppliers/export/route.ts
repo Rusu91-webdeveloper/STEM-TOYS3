@@ -45,6 +45,11 @@ export async function POST(request: NextRequest) {
             orders: true,
           },
         },
+        user: {
+          select: {
+            email: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -119,7 +124,7 @@ export async function POST(request: NextRequest) {
           updatedAt: supplier.updatedAt,
           _count: supplier._count,
           totalRevenue: revenue._sum.supplierRevenue || 0,
-          user: null, // No user relation in export
+          user: supplier.user,
         };
       })
     );
@@ -175,29 +180,29 @@ export async function POST(request: NextRequest) {
     ];
 
     const csvRows = suppliersWithRevenue.map(supplier => [
-      supplier.companyName,
-      supplier.companySlug,
-      supplier.contactPersonName,
-      supplier.contactPersonEmail,
-      supplier.contactPersonPhone,
-      supplier.businessAddress,
-      supplier.businessCity,
-      supplier.businessState,
-      supplier.businessCountry,
-      supplier.businessPostalCode,
-      supplier.phone,
+      supplier.companyName || "",
+      supplier.companySlug || "",
+      supplier.contactPersonName || "",
+      supplier.contactPersonEmail || "",
+      supplier.contactPersonPhone || "",
+      supplier.businessAddress || "",
+      supplier.businessCity || "",
+      supplier.businessState || "",
+      supplier.businessCountry || "",
+      supplier.businessPostalCode || "",
+      supplier.phone || "",
       supplier.vatNumber || "",
       supplier.taxId || "",
       supplier.website || "",
       supplier.yearEstablished?.toString() || "",
       supplier.employeeCount?.toString() || "",
       supplier.annualRevenue || "",
-      supplier.certifications.join("; "),
-      supplier.productCategories.join("; "),
-      supplier.status,
-      supplier.commissionRate.toString(),
-      supplier.paymentTerms.toString(),
-      supplier.minimumOrderValue.toString(),
+      (supplier.certifications || []).join("; "),
+      (supplier.productCategories || []).join("; "),
+      supplier.status || "",
+      supplier.commissionRate?.toString() || "",
+      supplier.paymentTerms?.toString() || "",
+      supplier.minimumOrderValue?.toString() || "",
       supplier.approvedAt ? supplier.approvedAt.toISOString() : "",
       supplier.rejectionReason || "",
       supplier._count.products.toString(),
@@ -217,9 +222,9 @@ export async function POST(request: NextRequest) {
       supplier.nrRegCom || "",
       supplier.reprezentantLegal || "",
       supplier.romanianBankAccount || "",
-      supplier.romanianComplianceStatus,
-      supplier.romanianCurrency,
-      supplier.romanianPaymentTerms.toString(),
+      supplier.romanianComplianceStatus || "",
+      supplier.romanianCurrency || "",
+      supplier.romanianPaymentTerms?.toString() || "",
       supplier.romanianVatNumber || "",
     ]);
 
