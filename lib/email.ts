@@ -3,6 +3,8 @@
  * Uses Nodemailer for sending emails
  */
 
+export { getEmailService } from "./email";
+
 import {
   sendEmailViaUnifiedSystem,
   emailTemplates as nodemailerTemplates,
