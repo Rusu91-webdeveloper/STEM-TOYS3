@@ -1,3 +1,5 @@
+import type Stripe from "stripe";
+
 /**
  * Centralized Stripe configuration utility
  * Ensures consistent currency, API version, and environment handling across all Stripe integrations
@@ -15,17 +17,16 @@ export function getStripeCurrency(): string {
 }
 
 /**
- * Get the Stripe API version to use (latest stable as of 2024)
- * All Stripe SDK instances should use this version for consistency
- * 
+ * Get the Stripe API version to use.
+ * Returns the LatestApiVersion from the installed Stripe SDK for type compatibility.
+ * All Stripe SDK instances should use this version for consistency.
+ *
  * Note: Stripe API versions follow the format YYYY-MM-DD.codename
  * Valid versions can be found at: https://stripe.com/docs/upgrades#api-changelog
  */
-export function getStripeApiVersion(): string {
-  // Use a valid Stripe API version
-  // 2024-09-30.acacia is a confirmed valid version
-  // If you need a newer version, check Stripe's API changelog
-  return "2024-09-30.acacia";
+export function getStripeApiVersion(): Stripe.LatestApiVersion {
+  // Must match Stripe SDK's LatestApiVersion type (e.g. 2025-06-30.basil)
+  return "2025-06-30.basil";
 }
 
 /**
