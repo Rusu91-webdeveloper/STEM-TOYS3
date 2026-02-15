@@ -19,6 +19,7 @@ import type {
     FanCourierAwbPayload,
     FanCourierServiceType,
 } from "@/lib/integrations/fancourier/types";
+import type { FanCourierSenderConfig } from "@/lib/integrations/fancourier/types";
 import { getFanCourierSenderConfig } from "@/lib/integrations/fancourier/types";
 import { extractDimensionsCm } from "@/lib/shipping/shipping-pricing";
 import { getShippingSettings } from "@/lib/utils/store-settings";
@@ -153,6 +154,44 @@ const collectSupplierContacts = (
     };
 };
 
+/**
+ * Build sender config from supplier address for FanCourier pickup.
+ * Used only when FANCOURIER_USE_SUPPLIER_ADDRESS=true and supplier has complete address.
+ * Returns null to fallback to env-based sender on any validation failure.
+ */
+const resolveSenderFromSupplier = (
+    supplier: SupplierPickupContact | null
+): FanCourierSenderConfig | null => {
+    const useSupplier =
+        process.env.FANCOURIER_USE_SUPPLIER_ADDRESS === "true";
+    if (!useSupplier || !supplier) return null;
+
+    const addr = (supplier.businessAddress ?? "").trim();
+    const city = (supplier.businessCity ?? "").trim();
+    const county = (supplier.businessState ?? "").trim();
+    const phone = (supplier.phone ?? "").trim();
+
+    if (!addr || !city || !county || !phone) return null;
+
+    const { street, streetNo } = parseStreetData(addr, "");
+    const finalStreet = street?.trim() || addr;
+    if (!finalStreet) return null;
+
+    const envFallback = getFanCourierSenderConfig();
+    return {
+        name:
+            (supplier.name && supplier.name.trim()) || envFallback.name,
+        phone,
+        email: supplier.email ?? undefined,
+        county,
+        locality: city,
+        street: finalStreet,
+        number: streetNo ?? "",
+        postalCode: (supplier.businessPostalCode ?? "").trim() || undefined,
+        contactPerson: undefined,
+    };
+};
+
 const resolveSupplierEmail = (supplier: SupplierPickupContact | null) => {
     if (!supplier) return process.env.SUPPLIER_EMAIL || null;
     const normalizedSupplierName = supplier.name
@@ -205,34 +244,37 @@ const buildPickupOrderPayload = (input: {
     };
 };
 
-const buildAwbPayload = (input: {
-    order: {
-        id: string;
-        orderNumber: string;
-        total: number;
-        paymentMethod: string;
-        codAmount?: number | null;
-        declaredValue?: number | null;
-        shippingAddress: {
-            fullName: string;
-            addressLine1: string;
-            addressLine2?: string | null;
-            city: string;
-            state: string;
-            postalCode: string;
-            country: string;
-            phone: string;
-            companyName?: string | null;
-            cui?: string | null;
+const buildAwbPayload = (
+    input: {
+        order: {
+            id: string;
+            orderNumber: string;
+            total: number;
+            paymentMethod: string;
+            codAmount?: number | null;
+            declaredValue?: number | null;
+            shippingAddress: {
+                fullName: string;
+                addressLine1: string;
+                addressLine2?: string | null;
+                city: string;
+                state: string;
+                postalCode: string;
+                country: string;
+                phone: string;
+                companyName?: string | null;
+                cui?: string | null;
+            };
+            user?: { email?: string | null } | null;
+            shippingMethod?: string | null;
+            lockerId?: string | null;
+            lockerAddressSnapshot?: unknown | null;
         };
-        user?: { email?: string | null } | null;
-        shippingMethod?: string | null;
-        lockerId?: string | null;
-        lockerAddressSnapshot?: unknown | null;
-    };
-    chargeableWeightKg: number;
-    dimensions?: { width: number; height: number; depth: number } | null;
-}): FanCourierAwbPayload => {
+        chargeableWeightKg: number;
+        dimensions?: { width: number; height: number; depth: number } | null;
+    },
+    senderConfig?: FanCourierSenderConfig
+): FanCourierAwbPayload => {
     const isCodPayment =
         input.order.paymentMethod === "cash_on_delivery" ||
         input.order.paymentMethod === "cod";
@@ -249,7 +291,7 @@ const buildAwbPayload = (input: {
         input.order.shippingAddress.addressLine1,
         input.order.shippingAddress.addressLine2
     );
-    const senderConfig = getFanCourierSenderConfig();
+    const sender = senderConfig ?? getFanCourierSenderConfig();
 
     return {
         clientId: getFanCourierClientId(),
@@ -298,16 +340,16 @@ const buildAwbPayload = (input: {
                         },
                 },
                 sender: {
-                    name: senderConfig.name,
-                    contactperson: senderConfig.contactPerson,
-                    email: senderConfig.email,
-                    phone: senderConfig.phone,
+                    name: sender.name,
+                    contactperson: sender.contactPerson,
+                    email: sender.email,
+                    phone: sender.phone,
                     address: {
-                        county: senderConfig.county,
-                        locality: senderConfig.locality,
-                        street: senderConfig.street,
-                        streetNo: senderConfig.number,
-                        zipCode: senderConfig.postalCode,
+                        county: sender.county,
+                        locality: sender.locality,
+                        street: sender.street,
+                        streetNo: sender.number,
+                        zipCode: sender.postalCode,
                     },
                 },
             },
@@ -479,24 +521,6 @@ export const createFanAwbForOrder = async (
         };
     }
 
-    const payload = buildAwbPayload({
-        order: {
-            id: order.id,
-            orderNumber: order.orderNumber,
-            total: order.total,
-            paymentMethod: order.paymentMethod,
-            codAmount: order.codAmount,
-            declaredValue: order.declaredValue,
-            shippingAddress: order.shippingAddress,
-            user: order.user,
-            shippingMethod: order.shippingMethod,
-            lockerId: order.lockerId,
-            lockerAddressSnapshot: order.lockerAddressSnapshot,
-        },
-        chargeableWeightKg,
-        dimensions: maxDimensions,
-    });
-
     const supplierContext = collectSupplierContacts(
         products.map(product => ({
             supplier: product.supplier
@@ -545,6 +569,30 @@ export const createFanAwbForOrder = async (
             reviewReason: reason,
         };
     }
+
+    const senderConfig =
+        resolveSenderFromSupplier(primarySupplier) ?? getFanCourierSenderConfig();
+
+    const payload = buildAwbPayload(
+        {
+            order: {
+                id: order.id,
+                orderNumber: order.orderNumber,
+                total: order.total,
+                paymentMethod: order.paymentMethod,
+                codAmount: order.codAmount,
+                declaredValue: order.declaredValue,
+                shippingAddress: order.shippingAddress,
+                user: order.user,
+                shippingMethod: order.shippingMethod,
+                lockerId: order.lockerId,
+                lockerAddressSnapshot: order.lockerAddressSnapshot,
+            },
+            chargeableWeightKg,
+            dimensions: maxDimensions,
+        },
+        senderConfig
+    );
 
     // Create shipment record
     const shipment = await db.shipment.create({

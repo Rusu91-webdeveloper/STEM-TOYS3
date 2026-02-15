@@ -34,6 +34,14 @@ FANCOURIER_SENDER_POSTAL_CODE=...
 FANCOURIER_SENDER_CONTACT_PERSON=...   # optional
 ```
 
+Optional (dropshipping): use supplier address as pickup for AWB:
+
+```
+FANCOURIER_USE_SUPPLIER_ADDRESS=true   # default: false
+```
+
+When `true`, the system uses the supplier's business address (Admin → Suppliers → Pickup Address) as the AWB sender, but **only** when the supplier has all of: `businessAddress`, `businessCity`, `businessState`, `phone`. If any field is missing or the env var is not set, it falls back to the `FANCOURIER_SENDER_*` env vars. **Verify with FanCourier that the sender in the AWB payload is used for pickup before enabling.**
+
 Supplier fallback email (used if the supplier profile lacks an email):
 
 ```
