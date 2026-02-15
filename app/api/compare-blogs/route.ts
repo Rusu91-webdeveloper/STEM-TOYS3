@@ -97,15 +97,11 @@ export async function GET(request: NextRequest) {
     const seo4o = analyzeSEO(blog4o.metadata);
     const seo4 = analyzeSEO(blog4.metadata);
 
-    // Processing Time
-    const time4o =
-      blog4o.metadata && blog4o.metadata.ai
-        ? blog4o.metadata.ai.processingTime || 0
-        : 0;
-    const time4 =
-      blog4.metadata && blog4.metadata.ai
-        ? blog4.metadata.ai.processingTime || 0
-        : 0;
+    // Processing Time (metadata is Prisma Json - use type assertion for nested shape)
+    const meta4o = blog4o.metadata as { ai?: { processingTime?: number } } | null;
+    const meta4 = blog4.metadata as { ai?: { processingTime?: number } } | null;
+    const time4o = meta4o?.ai?.processingTime ?? 0;
+    const time4 = meta4?.ai?.processingTime ?? 0;
 
     // Scoring
     const scores4o = {
