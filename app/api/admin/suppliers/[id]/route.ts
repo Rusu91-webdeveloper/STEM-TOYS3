@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
     }
 
     const supplierId = request.nextUrl.pathname.split("/").pop();
-    console.log("GET: Looking for supplier with ID:", supplierId);
 
     if (!supplierId) {
       return NextResponse.json(
@@ -50,8 +49,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log("Supplier query result:", supplier);
-
     if (!supplier) {
       return NextResponse.json(
         { error: "Supplier not found" },
@@ -59,10 +56,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get supplier statistics
-    const [totalRevenue, totalOrders, recentOrders, productStats] =
-      await Promise.all([
-        // Total revenue
+    // Get supplier statistics (resilient: use defaults on failure to avoid 500)
+    let totalRevenue: { _sum: { supplierRevenue: number | null } } = {
+      _sum: { supplierRevenue: 0 },
+    };
+    let totalOrders = 0;
+    let recentOrders: Awaited<
+      ReturnType<typeof db.supplierOrder.findMany<{ include: object }>>
+    > = [];
+    let productStats: Array<{ isActive: boolean; _count: { isActive: number } }> =
+      [];
+
+    try {
+      const [rev, ordCount, orders, stats] = await Promise.all([
         db.supplierOrder.aggregate({
           where: {
             supplierId,
@@ -70,13 +76,7 @@ export async function GET(request: NextRequest) {
           },
           _sum: { supplierRevenue: true },
         }),
-
-        // Total orders
-        db.supplierOrder.count({
-          where: { supplierId },
-        }),
-
-        // Recent orders
+        db.supplierOrder.count({ where: { supplierId } }),
         db.supplierOrder.findMany({
           where: { supplierId },
           include: {
@@ -98,37 +98,59 @@ export async function GET(request: NextRequest) {
           orderBy: { createdAt: "desc" },
           take: 10,
         }),
-
-        // Product statistics
         db.product.groupBy({
           by: ["isActive"],
           where: { supplierId },
-          _count: {
-            isActive: true,
-          },
+          _count: { isActive: true },
         }),
       ]);
+      totalRevenue = rev;
+      totalOrders = ordCount;
+      recentOrders = orders;
+      productStats = stats;
+    } catch (statsError) {
+      logger.warn("Supplier stats query failed, using defaults", {
+        supplierId,
+        error: statsError instanceof Error ? statsError.message : String(statsError),
+      });
+    }
 
-    // Get recent products
-    const recentProducts = await db.product.findMany({
-      where: { supplierId },
-      select: {
-        id: true,
-        name: true,
-        price: true,
-        stockQuantity: true,
-        isActive: true,
-        createdAt: true,
-        images: true,
-        _count: {
-          select: {
-            reviews: true,
-          },
+    // Get recent products (resilient)
+    let recentProducts: Array<{
+      id: string;
+      name: string;
+      price: number;
+      stockQuantity: number;
+      isActive: boolean;
+      createdAt: Date;
+      images: string[];
+      _count: { reviews: number };
+    }> = [];
+    try {
+      recentProducts = await db.product.findMany({
+        where: { supplierId },
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          stockQuantity: true,
+          isActive: true,
+          createdAt: true,
+          images: true,
+          _count: { select: { reviews: true } },
         },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    });
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      });
+    } catch (productsError) {
+      logger.warn("Supplier recent products query failed", {
+        supplierId,
+        error:
+          productsError instanceof Error
+            ? productsError.message
+            : String(productsError),
+      });
+    }
 
     // Transform supplier to match frontend expectations
     const transformedSupplier = {
@@ -195,12 +217,12 @@ export async function GET(request: NextRequest) {
     const supplierData = {
       ...transformedSupplier,
       statistics: {
-        totalRevenue: totalRevenue._sum.supplierRevenue || 0,
+        totalRevenue: totalRevenue._sum?.supplierRevenue ?? 0,
         totalOrders,
         activeProducts:
-          productStats.find(p => p.isActive)?._count.isActive || 0,
+          productStats.find(p => p.isActive)?._count?.isActive ?? 0,
         inactiveProducts:
-          productStats.find(p => !p.isActive)?._count.isActive || 0,
+          productStats.find(p => !p.isActive)?._count?.isActive ?? 0,
       },
       recentOrders,
       recentProducts,
@@ -214,15 +236,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(supplierData);
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
+    const supplierId = request.nextUrl.pathname.split("/").pop();
     logger.error("Error retrieving admin supplier details:", {
       error: err.message,
       stack: err.stack,
-      supplierId: request.nextUrl.pathname.split("/").pop(),
+      supplierId,
     });
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: process.env.NODE_ENV === "development" ? err.message : undefined,
+        message:
+          process.env.NODE_ENV === "development" ? err.message : undefined,
       },
       { status: 500 }
     );
