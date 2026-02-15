@@ -41,7 +41,7 @@
     "validate:migrations": "node scripts/validate-migrations.js",
     "pre-push:safety": "pnpm run db:check-safety && pnpm run validate:migrations && pnpm run build",
     "typecheck": "NODE_OPTIONS='--max-old-space-size=4096' tsc --noEmit",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "db:studio": "./scripts/db-studio.sh",
     "test": "jest",
     "test:watch": "jest --watch",
