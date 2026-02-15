@@ -50,7 +50,10 @@ export async function GET(request: NextRequest) {
           dimensions: product.dimensions as Record<string, unknown>,
         };
       })
-      .filter(Boolean);
+      .filter(
+        (item): item is { quantity: number; weightKg: number | null; dimensions: Record<string, unknown> } =>
+          item != null
+      );
 
     if (shippingItems.length === 0) {
       return NextResponse.json({
