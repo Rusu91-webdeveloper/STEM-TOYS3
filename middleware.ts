@@ -9,11 +9,16 @@ import { getToken } from "next-auth/jwt";
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
+    // In production (HTTPS), NextAuth uses __Secure-next-auth.session-token
+    const isSecure =
+        process.env.NODE_ENV === "production" || request.url.startsWith("https:");
+
     // ── Admin UI pages (/admin/*) ──────────────────────────────────────
     if (pathname.startsWith("/admin")) {
         const token = await getToken({
             req: request,
             secret: process.env.NEXTAUTH_SECRET,
+            secureCookie: isSecure,
         });
 
         // Not authenticated → redirect to login
@@ -34,6 +39,7 @@ export async function middleware(request: NextRequest) {
         const token = await getToken({
             req: request,
             secret: process.env.NEXTAUTH_SECRET,
+            secureCookie: isSecure,
         });
 
         if (!token || token.role !== "ADMIN") {
