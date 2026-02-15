@@ -98,24 +98,85 @@ const extractPickupLocation = (snapshot: unknown, lockerId?: string | null) => {
     return possible || null;
 };
 
+/**
+ * Parse street address into street name and number.
+ * Handles Romanian formats: "Str. X Nr. 54-56", "Strada X 54", "B-dul Unirii nr. 10", etc.
+ * When parsing is ambiguous, keeps full address as street (FanCourier accepts optional streetNo).
+ */
 const parseStreetData = (line1: string, line2?: string | null) => {
     const trimmed = line1.trim();
-    const match = trimmed.match(/\b\d+[a-zA-Z]?\b/);
+    if (!trimmed) {
+        return { street: line2?.trim() || "", streetNo: undefined };
+    }
 
-    if (!match) {
+    if (line2?.trim()) {
         return {
             street: trimmed,
-            streetNo: line2?.trim() || undefined,
+            streetNo: line2.trim(),
         };
     }
 
-    const streetNo = line2?.trim() || match[0];
-    const street = trimmed.replace(match[0], "").replace(/\s{2,}/g, " ").trim();
+    // Pattern 1: "Nr. 54-56" or "nr. 54" or "Nr 54A" – number after Nr/nr (Romanian)
+    const nrMatch = trimmed.match(
+        /\s+(?:Nr\.?|nr\.?|numar\.?|număr\.?)\s*[:\s]*(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?)\s*(?:,|$|\.|bl\.|sc\.|et\.|ap\.)/i
+    );
+    if (nrMatch) {
+        const streetNo = nrMatch[1].replace(/\s+/g, "");
+        const street = trimmed
+            .replace(nrMatch[0], " ")
+            .replace(/\s{2,}/g, " ")
+            .replace(/[,\s]+$/, "")
+            .trim();
+        if (street && streetNo) {
+            return { street, streetNo };
+        }
+    }
 
-    return {
-        street: street || trimmed,
-        streetNo,
-    };
+    // Pattern 2: "Nr. 54-56" or "nr 54" at end (no trailing comma/etc)
+    const nrEndMatch = trimmed.match(
+        /\s+(?:Nr\.?|nr\.?)\s*(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?)\s*$/i
+    );
+    if (nrEndMatch) {
+        const streetNo = nrEndMatch[1].replace(/\s+/g, "");
+        const street = trimmed
+            .slice(0, nrEndMatch.index)
+            .replace(/\s+(?:Nr\.?|nr\.?)\s*$/i, "")
+            .replace(/\s{2,}/g, " ")
+            .trim();
+        if (street && streetNo) {
+            return { street, streetNo };
+        }
+    }
+
+    // Pattern 3: Number or number-range at end: "Strada X 54-56" or "Bulevardul Unirii 10"
+    const endNumMatch = trimmed.match(
+        /\s+(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?)\s*$/
+    );
+    if (endNumMatch) {
+        const streetNo = endNumMatch[1].replace(/\s+/g, "");
+        const street = trimmed
+            .slice(0, endNumMatch.index)
+            .replace(/\s{2,}/g, " ")
+            .trim();
+        if (street && street.length >= 2) {
+            return { street, streetNo };
+        }
+    }
+
+    // Pattern 4: Single number somewhere (last resort) – only if clearly separated
+    const anyNumMatch = trimmed.match(
+        /^(.+?)\s+(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?)\s*$/
+    );
+    if (anyNumMatch) {
+        const street = anyNumMatch[1].replace(/\s{2,}/g, " ").trim();
+        const streetNo = anyNumMatch[2].replace(/\s+/g, "");
+        if (street.length >= 2 && !/^\d+$/.test(street)) {
+            return { street, streetNo };
+        }
+    }
+
+    // Fallback: full address as street, no number (safe; FanCourier streetNo is optional)
+    return { street: trimmed, streetNo: undefined };
 };
 
 type SupplierPickupContact = {
