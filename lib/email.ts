@@ -17,7 +17,8 @@ export type EmailTemplate =
   | "welcome"
   | "verification"
   | "password-reset"
-  | "order-confirmation";
+  | "order-confirmation"
+  | "order-fulfilled";
 
 interface EmailOptions {
   to: string;
@@ -49,6 +50,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       verification: "email-verification",
       "password-reset": "password-reset",
       "order-confirmation": "order-confirmation",
+      "order-fulfilled": "order-fulfilled",
     };
 
     const templateSlug = templateMapping[options.template];
