@@ -219,9 +219,10 @@ export async function GET(req: NextRequest) {
     console.log("Phase 4: Cleanup and analytics...");
     try {
       // Clean up old failed payment attempts (older than 7 days)
+      // Failed payments have status CANCELLED and paymentStatus FAILED
       const oldFailedPayments = await db.order.deleteMany({
         where: {
-          status: "FAILED",
+          status: "CANCELLED",
           paymentStatus: "FAILED",
           createdAt: {
             lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
