@@ -88,6 +88,11 @@ The payload includes:
 - Declared value (insurance) when applicable
 - Recipient address from checkout
 - Service: `Standard` or `FANbox`
+- AWB options codes (`info.options`) resolved from env:
+  - `FANCOURIER_AWB_OPTIONS` (global)
+  - `FANCOURIER_AWB_OPTIONS_STANDARD` (Standard only)
+  - `FANCOURIER_AWB_OPTIONS_FANBOX` (FANbox only)
+  - For FANbox shipments, option `V` is auto-added.
 
 ### 4.5 FanCourier pickup address
 **FanCourier picks up from the address configured in your SelfAWB account.**

@@ -323,6 +323,43 @@ const buildPickupOrderPayload = (input: {
     };
 };
 
+const parseAwbOptionCodes = (raw?: string | null): string[] => {
+    if (!raw) return [];
+    return Array.from(
+        new Set(
+            raw
+                .split(/[,\s;|]+/)
+                .map(code => code.trim().toUpperCase())
+                .filter(Boolean)
+        )
+    );
+};
+
+const resolveAwbOptionCodes = (service: FanCourierServiceType): string[] => {
+    const globalOptions = parseAwbOptionCodes(process.env.FANCOURIER_AWB_OPTIONS);
+    const standardOptions = parseAwbOptionCodes(
+        process.env.FANCOURIER_AWB_OPTIONS_STANDARD
+    );
+    const fanboxOptions = parseAwbOptionCodes(
+        process.env.FANCOURIER_AWB_OPTIONS_FANBOX
+    );
+
+    const resolved = new Set<string>(globalOptions);
+    const serviceSpecific = service === "FANbox" ? fanboxOptions : standardOptions;
+    for (const code of serviceSpecific) {
+        resolved.add(code);
+    }
+
+    // FanCourier docs indicate FANbox locker pickup should use option "V".
+    if (service === "FANbox") {
+        resolved.add("V");
+    } else {
+        resolved.delete("V");
+    }
+
+    return Array.from(resolved);
+};
+
 const buildAwbPayload = (
     input: {
         order: {
@@ -371,6 +408,7 @@ const buildAwbPayload = (
         input.order.shippingAddress.addressLine2
     );
     const sender = senderConfig ?? getFanCourierSenderConfig();
+    const awbOptions = resolveAwbOptionCodes(service);
 
     return {
         clientId: getFanCourierClientId(),
@@ -402,7 +440,7 @@ const buildAwbPayload = (
                           }
                         : undefined,
                     costCenter: null,
-                    options: [],
+                    options: awbOptions,
                 },
                 recipient: {
                     name: input.order.shippingAddress.fullName,
