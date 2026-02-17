@@ -30,23 +30,41 @@ const COURIER_NAME = "FANCOURIER";
 /**
  * Extract AWB number from various FAN Courier response formats
  */
+const toAwbString = (value: unknown): string | null => {
+    if (typeof value === "string") {
+        const trimmed = value.trim();
+        return trimmed || null;
+    }
+    if (typeof value === "number" && Number.isFinite(value)) {
+        return String(Math.trunc(value));
+    }
+    return null;
+};
+
 const extractAwbNumber = (response: Record<string, unknown>): string | null => {
     const data = response.data as Record<string, unknown> | undefined;
     const shipments = response.shipments as Array<Record<string, unknown>> | undefined;
+    const responseEntries = Array.isArray(response.response)
+        ? (response.response as Array<Record<string, unknown>>)
+        : undefined;
+    const dataResponseEntries = Array.isArray(data?.response)
+        ? (data?.response as Array<Record<string, unknown>>)
+        : undefined;
+
     return (
-        (response.awbNumber as string) ||
-        (response.awb_number as string) ||
-        (response.awb as string) ||
-        (data?.awbNumber as
-            | string
-            | undefined) ||
-        (data?.awb_number as
-            | string
-            | undefined) ||
-        (data?.awb as string | undefined) ||
-        (Array.isArray(data?.awbs) ? (data?.awbs[0] as string | undefined) : undefined) ||
-        (shipments?.[0]?.awb as string | undefined) ||
-        (shipments?.[0]?.awbNumber as string | undefined) ||
+        toAwbString(response.awbNumber) ||
+        toAwbString(response.awb_number) ||
+        toAwbString(response.awb) ||
+        toAwbString(data?.awbNumber) ||
+        toAwbString(data?.awb_number) ||
+        toAwbString(data?.awb) ||
+        toAwbString(Array.isArray(data?.awbs) ? data?.awbs[0] : undefined) ||
+        toAwbString(shipments?.[0]?.awb) ||
+        toAwbString(shipments?.[0]?.awbNumber) ||
+        toAwbString(responseEntries?.[0]?.awbNumber) ||
+        toAwbString(responseEntries?.[0]?.awb) ||
+        toAwbString(dataResponseEntries?.[0]?.awbNumber) ||
+        toAwbString(dataResponseEntries?.[0]?.awb) ||
         null
     );
 };
