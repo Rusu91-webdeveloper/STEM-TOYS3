@@ -10,7 +10,7 @@ import { db } from "@/lib/db";
 import { DatabaseTemplateService } from "@/lib/email/database-template-service";
 import { AdminNotificationService } from "@/lib/email/admin-notification-service";
 import { getStripeApiVersion, getStripeCurrency } from "@/lib/stripe-config";
-import { getTaxSettings } from "@/lib/utils/store-settings";
+import { getShippingSettings, getTaxSettings } from "@/lib/utils/store-settings";
 import {
   getCodThreshold,
   getRecipientType,
@@ -19,6 +19,10 @@ import {
   calculateShippingQuote,
   resolveShippingService,
 } from "@/lib/shipping/shipping-pricing";
+import {
+  DEFAULT_COURIERS,
+  parseShippingMethodId,
+} from "@/lib/shipping/couriers";
 import {
   shouldAutoFulfillOrder,
   calculateProcessingTime,
@@ -357,6 +361,43 @@ export async function POST(request: Request) {
     shippingTotalEstimate = baseShippingCost;
     finalShippingCost = baseShippingCost;
 
+    // Keep checkout/order API in sync with /api/checkout/shipping-quote:
+    // if a courier service has priceOverride configured, it must win.
+    let selectedServicePriceOverride: number | null = null;
+    if (!isDigitalOnlyOrder && orderData.shippingMethod?.id) {
+      try {
+        const shippingSettings = await getShippingSettings();
+        const configuredCouriers =
+          (shippingSettings as any)?.couriers &&
+          Array.isArray((shippingSettings as any).couriers)
+            ? (shippingSettings as any).couriers
+            : DEFAULT_COURIERS;
+
+        const { courierId, serviceId } = parseShippingMethodId(
+          orderData.shippingMethod.id
+        );
+        const selectedCourier = configuredCouriers.find(
+          (courier: any) => courier.id === courierId && courier.enabled !== false
+        );
+        const selectedService = selectedCourier?.services?.find(
+          (service: any) => service.id === serviceId && service.enabled !== false
+        );
+
+        const overrideRaw = selectedService?.priceOverride;
+        if (overrideRaw !== undefined && overrideRaw !== null && overrideRaw !== "") {
+          const parsedOverride = Number(overrideRaw);
+          if (Number.isFinite(parsedOverride)) {
+            selectedServicePriceOverride = parsedOverride;
+          }
+        }
+      } catch (shippingSettingsError) {
+        console.error(
+          "Failed to resolve shipping service price override:",
+          shippingSettingsError
+        );
+      }
+    }
+
     if (!isDigitalOnlyOrder) {
       const productIds = items
         .filter(item => item.isBook !== true)
@@ -394,7 +435,8 @@ export async function POST(request: Request) {
           shippingBasePrice = quote.basePrice;
           shippingTotalEstimate = quote.totalPrice;
           pricingVersion = quote.pricingVersion;
-          finalShippingCost = quote.totalPrice;
+          finalShippingCost =
+            selectedServicePriceOverride ?? quote.totalPrice;
         }
       }
     }
