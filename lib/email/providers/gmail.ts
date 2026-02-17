@@ -27,12 +27,18 @@ export class GmailProvider implements EmailProvider {
     });
 
     const to = Array.isArray(request.to) ? request.to.join(", ") : request.to;
-    const info = await transporter.sendEmailViaUnifiedSystem({
+    const info = await transporter.sendMail({
       from: `${process.env.EMAIL_FROM_NAME || "TechTots STEM Store"} <${process.env.EMAIL_FROM || user}>`,
       to,
       subject: request.subject ?? "Message from TechTots",
       html: request.html ?? "",
       text: request.text,
+      attachments: request.attachments?.map(attachment => ({
+        filename: attachment.filename,
+        content: attachment.content,
+        contentType: attachment.contentType,
+        encoding: attachment.encoding || "base64",
+      })),
     });
 
     return { success: true, messageId: info.messageId ?? null, raw: info };

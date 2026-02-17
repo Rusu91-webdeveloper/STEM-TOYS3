@@ -775,15 +775,27 @@ export const createFanAwbForOrder = async (
     if (!manualShippingReviewRequired && primarySupplier) {
         const supplierEmail = resolveSupplierEmail(primarySupplier);
 
-        if (supplierEmail) {
+        if (!supplierEmail) {
+            console.warn(
+                `[FAN Courier] Missing supplier email for order ${order.orderNumber}; skipping AWB email notification.`
+            );
+        } else {
+            let pdfBase64: string | undefined;
             try {
                 const labelResponse = await getFanCourierAwbLabel({
                     awbNumber,
                 });
-                const pdfBase64 = Buffer.from(labelResponse.buffer).toString(
+                pdfBase64 = Buffer.from(labelResponse.buffer).toString(
                     "base64"
                 );
+            } catch (labelError) {
+                console.error(
+                    `[FAN Courier] Failed to download AWB label PDF for order ${order.orderNumber}; sending email without attachment.`,
+                    labelError
+                );
+            }
 
+            try {
                 await sendSupplierAwbLabelEmail({
                     to: supplierEmail,
                     supplierName: primarySupplier.name,
@@ -791,10 +803,10 @@ export const createFanAwbForOrder = async (
                     awbNumber,
                     pdfBase64,
                 });
-            } catch (labelError) {
+            } catch (emailError) {
                 console.error(
-                    `[FAN Courier] Failed to email AWB label for order ${order.orderNumber}:`,
-                    labelError
+                    `[FAN Courier] Failed to email AWB details for order ${order.orderNumber}:`,
+                    emailError
                 );
             }
         }
