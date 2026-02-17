@@ -434,6 +434,21 @@ export interface FanAwbResult {
     response?: Record<string, unknown> | null;
     manualReviewRequired?: boolean;
     reviewReason?: string | null;
+    senderDebug?: {
+        useSupplierAddressFlag: boolean;
+        senderSource: "supplier" | "env_fallback";
+        supplierId?: string | null;
+        supplierName?: string | null;
+        missingSupplierFields?: string[];
+        sender: {
+            name: string;
+            phone: string;
+            county: string;
+            locality: string;
+            street: string;
+            number: string;
+        };
+    };
 }
 
 /**
@@ -631,8 +646,48 @@ export const createFanAwbForOrder = async (
         };
     }
 
-    const senderConfig =
-        resolveSenderFromSupplier(primarySupplier) ?? getFanCourierSenderConfig();
+    const useSupplierAddressFlag =
+        process.env.FANCOURIER_USE_SUPPLIER_ADDRESS === "true";
+    const missingSupplierFields: string[] = [];
+    if (primarySupplier) {
+        if (!(primarySupplier.businessAddress || "").trim()) {
+            missingSupplierFields.push("businessAddress");
+        }
+        if (!(primarySupplier.businessCity || "").trim()) {
+            missingSupplierFields.push("businessCity");
+        }
+        if (!(primarySupplier.businessState || "").trim()) {
+            missingSupplierFields.push("businessState");
+        }
+        if (!(primarySupplier.phone || "").trim()) {
+            missingSupplierFields.push("phone");
+        }
+    }
+
+    const supplierSenderConfig = resolveSenderFromSupplier(primarySupplier);
+    const senderConfig = supplierSenderConfig ?? getFanCourierSenderConfig();
+    const senderDebug = {
+        useSupplierAddressFlag,
+        senderSource: supplierSenderConfig ? "supplier" : "env_fallback",
+        supplierId: primarySupplier?.id ?? null,
+        supplierName: primarySupplier?.name ?? null,
+        missingSupplierFields,
+        sender: {
+            name: senderConfig.name,
+            phone: senderConfig.phone,
+            county: senderConfig.county,
+            locality: senderConfig.locality,
+            street: senderConfig.street,
+            number: senderConfig.number,
+        },
+    };
+
+    if (useSupplierAddressFlag && !supplierSenderConfig) {
+        console.warn(
+            `[FAN Courier] Order ${order.orderNumber} falling back to env sender config.`,
+            senderDebug
+        );
+    }
 
     const payload = buildAwbPayload(
         {
@@ -751,6 +806,7 @@ export const createFanAwbForOrder = async (
             response,
             manualReviewRequired: manualShippingReviewRequired,
             reviewReason: shippingReviewReason,
+            senderDebug,
         };
     }
 
@@ -843,6 +899,7 @@ export const createFanAwbForOrder = async (
         awbNumber,
         manualReviewRequired: manualShippingReviewRequired,
         reviewReason: shippingReviewReason,
+        senderDebug,
     };
 };
 
