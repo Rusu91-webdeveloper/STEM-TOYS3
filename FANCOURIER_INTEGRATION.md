@@ -60,6 +60,12 @@ active:
 DISABLE_SUPPLIER_AWB_EMAIL=true   # default: false
 ```
 
+Optional (COD): for some FAN accounts, COD AWBs require `info.returnPayment`.
+
+```
+FANCOURIER_RETURN_PAYMENT=sender   # default: sender
+```
+
 Supplier fallback email (used if the supplier profile lacks an email):
 
 ```
@@ -114,6 +120,8 @@ The payload includes:
 - `clientId` from env
 - Packages, weight, dimensions
 - COD amount (if COD)
+- Return payment party for COD (`info.returnPayment`) when required by account
+  rules
 - Declared value (insurance) when applicable
 - Recipient address from checkout
 - Service: `Standard` or `FANbox`

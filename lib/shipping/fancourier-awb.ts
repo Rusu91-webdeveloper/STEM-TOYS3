@@ -369,6 +369,12 @@ const resolveAwbOptionCodes = (service: FanCourierServiceType): string[] => {
   return Array.from(resolved);
 };
 
+const resolveCodReturnPayment = (): string => {
+  const raw = (process.env.FANCOURIER_RETURN_PAYMENT || "").trim();
+  if (!raw) return "sender";
+  return raw;
+};
+
 const buildAwbPayload = (
   input: {
     order: {
@@ -418,6 +424,10 @@ const buildAwbPayload = (
   );
   const sender = senderConfig ?? getFanCourierSenderConfig();
   const awbOptions = resolveAwbOptionCodes(service);
+  const codValue = isCodPayment
+    ? (input.order.codAmount ?? input.order.total)
+    : 0;
+  const returnPayment = codValue > 0 ? resolveCodReturnPayment() : null;
 
   return {
     clientId: getFanCourierClientId(),
@@ -432,11 +442,11 @@ const buildAwbPayload = (
             envelope: 0,
           },
           weight: input.chargeableWeightKg,
-          cod: isCodPayment ? (input.order.codAmount ?? input.order.total) : 0,
+          cod: codValue,
           declaredValue: input.order.declaredValue ?? 0,
           payment: "sender",
           refund: null,
-          returnPayment: null,
+          returnPayment,
           observation: `Order ${input.order.orderNumber}`,
           content: `Comanda #${input.order.orderNumber}`,
           dimensions: input.dimensions
