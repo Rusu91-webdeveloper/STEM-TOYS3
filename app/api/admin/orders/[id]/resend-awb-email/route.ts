@@ -21,22 +21,55 @@ const extractSenderFromPayload = (payload: unknown) => {
     root.request && typeof root.request === "object"
       ? (root.request as Record<string, unknown>)
       : root;
-  const sender =
-    request.sender && typeof request.sender === "object"
-      ? (request.sender as Record<string, unknown>)
+  const shipments =
+    request.shipments && Array.isArray(request.shipments)
+      ? (request.shipments as Array<Record<string, unknown>>)
+      : root.shipments && Array.isArray(root.shipments)
+        ? (root.shipments as Array<Record<string, unknown>>)
+        : [];
+  const shipmentSender =
+    shipments[0]?.sender && typeof shipments[0].sender === "object"
+      ? (shipments[0].sender as Record<string, unknown>)
       : null;
+  const sender =
+    shipmentSender ||
+    (request.sender && typeof request.sender === "object"
+      ? (request.sender as Record<string, unknown>)
+      : null);
 
   if (!sender) return null;
+
+  const senderAddress =
+    sender.address && typeof sender.address === "object"
+      ? (sender.address as Record<string, unknown>)
+      : null;
 
   return {
     name: (sender.name as string | undefined) ?? null,
     phone: (sender.phone as string | undefined) ?? null,
+    contactPerson: (sender.contactperson as string | undefined) ?? null,
     email: (sender.email as string | undefined) ?? null,
-    county: (sender.county as string | undefined) ?? null,
-    locality: (sender.locality as string | undefined) ?? null,
-    street: (sender.street as string | undefined) ?? null,
-    number: (sender.number as string | undefined) ?? null,
-    postalCode: (sender.postalCode as string | undefined) ?? null,
+    county:
+      (sender.county as string | undefined) ||
+      (senderAddress?.county as string | undefined) ||
+      null,
+    locality:
+      (sender.locality as string | undefined) ||
+      (senderAddress?.locality as string | undefined) ||
+      null,
+    street:
+      (sender.street as string | undefined) ||
+      (senderAddress?.street as string | undefined) ||
+      null,
+    number:
+      (sender.number as string | undefined) ||
+      (sender.streetNo as string | undefined) ||
+      (senderAddress?.streetNo as string | undefined) ||
+      null,
+    postalCode:
+      (sender.postalCode as string | undefined) ||
+      (senderAddress?.zipCode as string | undefined) ||
+      null,
   };
 };
 
