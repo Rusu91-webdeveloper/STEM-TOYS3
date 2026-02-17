@@ -1,4 +1,4 @@
-import { getEmailService } from "@/lib/email";
+import { sendEmailViaUnifiedSystem } from "@/lib/nodemailer";
 import { getStoreSettings } from "@/lib/utils/store-settings";
 
 export async function sendSupplierAwbLabelEmail(input: {
@@ -62,16 +62,8 @@ export async function sendSupplierAwbLabelEmail(input: {
           ]
         : undefined;
 
-    const emailService = getEmailService();
-    const result = await emailService.sendEmail({
+    const result = await sendEmailViaUnifiedSystem({
         to: input.to,
-        template: "supplier-awb-label",
-        variables: {
-            supplierName: input.supplierName,
-            orderNumber: input.orderNumber,
-            awbNumber: input.awbNumber,
-            hasAttachment,
-        },
         subject,
         html,
         attachments,

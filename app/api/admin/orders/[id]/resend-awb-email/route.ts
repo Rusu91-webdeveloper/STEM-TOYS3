@@ -30,13 +30,16 @@ export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let step = "auth";
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
+    step = "load-params";
     const { id: orderIdParam } = await params;
+    step = "load-order";
     const order = await db.order.findFirst({
       where: {
         OR: [{ id: orderIdParam }, { orderNumber: orderIdParam }],
@@ -79,6 +82,7 @@ export async function POST(
       );
     }
 
+    step = "resolve-products";
     const productIds = Array.from(
       new Set(order.items.map(item => item.productId).filter(Boolean) as string[])
     );
@@ -90,6 +94,7 @@ export async function POST(
       );
     }
 
+    step = "load-products";
     const products = await db.product.findMany({
       where: { id: { in: productIds } },
       select: {
@@ -141,6 +146,7 @@ export async function POST(
       );
     }
 
+    step = "download-awb-label";
     let pdfBase64: string | undefined;
     try {
       const labelResponse = await getFanCourierAwbLabel({ awbNumber });
@@ -152,6 +158,7 @@ export async function POST(
       );
     }
 
+    step = "send-email";
     await sendSupplierAwbLabelEmail({
       to: supplierEmail,
       supplierName: supplier.name,
@@ -160,6 +167,7 @@ export async function POST(
       pdfBase64,
     });
 
+    step = "response";
     return NextResponse.json({
       success: true,
       orderId: order.id,
@@ -173,6 +181,7 @@ export async function POST(
     return NextResponse.json(
       {
         error: "Failed to resend AWB email",
+        step,
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
