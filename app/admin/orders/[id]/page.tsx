@@ -16,6 +16,7 @@ import {
   ShoppingCart,
   Plus,
   Edit,
+  Mail,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -169,6 +170,7 @@ export default function OrderDetailsPage() {
   const [editingTracking, setEditingTracking] = useState<string | null>(null);
   const [trackingInput, setTrackingInput] = useState("");
   const [creatingAwb, setCreatingAwb] = useState(false);
+  const [resendingAwbEmail, setResendingAwbEmail] = useState(false);
 
   const orderId = params.id as string;
 
@@ -308,6 +310,42 @@ export default function OrderDetailsPage() {
       });
     } finally {
       setCreatingAwb(false);
+    }
+  };
+
+  const resendAwbEmail = async () => {
+    if (!order) return;
+
+    setResendingAwbEmail(true);
+    try {
+      const response = await fetch(`/api/admin/orders/${order.id}/resend-awb-email`, {
+        method: "POST",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || data?.details || "Failed to resend AWB email");
+      }
+
+      const withAttachment = Boolean(data?.attachmentIncluded);
+      toast({
+        title: "AWB email sent",
+        description: withAttachment
+          ? `AWB ${data?.awbNumber || ""} was resent to supplier successfully.`
+          : `AWB ${data?.awbNumber || ""} was resent without PDF attachment.`,
+      });
+    } catch (error) {
+      console.error("Error resending AWB email:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to resend AWB email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setResendingAwbEmail(false);
     }
   };
 
@@ -672,7 +710,22 @@ export default function OrderDetailsPage() {
                     {activeShipment?.status || "Pending"}
                   </span>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2">
+                  {activeShipment?.awbNumber && courierName === "FANCOURIER" && (
+                    <Button
+                      onClick={resendAwbEmail}
+                      size="sm"
+                      variant="outline"
+                      disabled={resendingAwbEmail}
+                    >
+                      {resendingAwbEmail ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Mail className="h-4 w-4 mr-2" />
+                      )}
+                      Resend AWB Email
+                    </Button>
+                  )}
                   <Button
                     onClick={createAwb}
                     size="sm"
