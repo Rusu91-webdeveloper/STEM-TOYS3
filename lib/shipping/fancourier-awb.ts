@@ -8,16 +8,16 @@
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import {
-    createFanCourierAwb,
-    createFanCourierPickupOrder,
-    hasExtraKmOrRemoteLocality,
-    getFanCourierAwbLabel,
-    getFanCourierClientId,
-    isFanCourierConfigured,
+  createFanCourierAwb,
+  createFanCourierPickupOrder,
+  hasExtraKmOrRemoteLocality,
+  getFanCourierAwbLabel,
+  getFanCourierClientId,
+  isFanCourierConfigured,
 } from "@/lib/integrations/fancourier/client";
 import type {
-    FanCourierAwbPayload,
-    FanCourierServiceType,
+  FanCourierAwbPayload,
+  FanCourierServiceType,
 } from "@/lib/integrations/fancourier/types";
 import type { FanCourierSenderConfig } from "@/lib/integrations/fancourier/types";
 import { getFanCourierSenderConfig } from "@/lib/integrations/fancourier/types";
@@ -26,94 +26,98 @@ import { getShippingSettings } from "@/lib/utils/store-settings";
 import { sendSupplierAwbLabelEmail } from "@/lib/email/supplier-awb";
 
 const COURIER_NAME = "FANCOURIER";
+const isSupplierAwbEmailDisabled = () =>
+  process.env.DISABLE_SUPPLIER_AWB_EMAIL === "true";
 
 /**
  * Extract AWB number from various FAN Courier response formats
  */
 const toAwbString = (value: unknown): string | null => {
-    if (typeof value === "string") {
-        const trimmed = value.trim();
-        return trimmed || null;
-    }
-    if (typeof value === "number" && Number.isFinite(value)) {
-        return String(Math.trunc(value));
-    }
-    return null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed || null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(Math.trunc(value));
+  }
+  return null;
 };
 
 const extractAwbNumber = (response: Record<string, unknown>): string | null => {
-    const data = response.data as Record<string, unknown> | undefined;
-    const shipments = response.shipments as Array<Record<string, unknown>> | undefined;
-    const responseEntries = Array.isArray(response.response)
-        ? (response.response as Array<Record<string, unknown>>)
-        : undefined;
-    const dataResponseEntries = Array.isArray(data?.response)
-        ? (data?.response as Array<Record<string, unknown>>)
-        : undefined;
+  const data = response.data as Record<string, unknown> | undefined;
+  const shipments = response.shipments as
+    | Array<Record<string, unknown>>
+    | undefined;
+  const responseEntries = Array.isArray(response.response)
+    ? (response.response as Array<Record<string, unknown>>)
+    : undefined;
+  const dataResponseEntries = Array.isArray(data?.response)
+    ? (data?.response as Array<Record<string, unknown>>)
+    : undefined;
 
-    return (
-        toAwbString(response.awbNumber) ||
-        toAwbString(response.awb_number) ||
-        toAwbString(response.awb) ||
-        toAwbString(data?.awbNumber) ||
-        toAwbString(data?.awb_number) ||
-        toAwbString(data?.awb) ||
-        toAwbString(Array.isArray(data?.awbs) ? data?.awbs[0] : undefined) ||
-        toAwbString(shipments?.[0]?.awb) ||
-        toAwbString(shipments?.[0]?.awbNumber) ||
-        toAwbString(responseEntries?.[0]?.awbNumber) ||
-        toAwbString(responseEntries?.[0]?.awb) ||
-        toAwbString(dataResponseEntries?.[0]?.awbNumber) ||
-        toAwbString(dataResponseEntries?.[0]?.awb) ||
-        null
-    );
+  return (
+    toAwbString(response.awbNumber) ||
+    toAwbString(response.awb_number) ||
+    toAwbString(response.awb) ||
+    toAwbString(data?.awbNumber) ||
+    toAwbString(data?.awb_number) ||
+    toAwbString(data?.awb) ||
+    toAwbString(Array.isArray(data?.awbs) ? data?.awbs[0] : undefined) ||
+    toAwbString(shipments?.[0]?.awb) ||
+    toAwbString(shipments?.[0]?.awbNumber) ||
+    toAwbString(responseEntries?.[0]?.awbNumber) ||
+    toAwbString(responseEntries?.[0]?.awb) ||
+    toAwbString(dataResponseEntries?.[0]?.awbNumber) ||
+    toAwbString(dataResponseEntries?.[0]?.awb) ||
+    null
+  );
 };
 
 /**
  * Redact sensitive data from payload for logging
  */
 const redactPayload = (
-    payload: Record<string, unknown>
+  payload: Record<string, unknown>
 ): Record<string, unknown> => {
-    const redacted = { ...payload };
-    if ("password" in redacted) redacted.password = "***";
-    if ("token" in redacted) redacted.token = "***";
-    if ("access_token" in redacted) redacted.access_token = "***";
-    return redacted;
+  const redacted = { ...payload };
+  if ("password" in redacted) redacted.password = "***";
+  if ("token" in redacted) redacted.token = "***";
+  if ("access_token" in redacted) redacted.access_token = "***";
+  return redacted;
 };
 
 /**
  * Build AWB payload for FAN Courier API
  */
 const resolveFanCourierService = (
-    methodId?: string | null,
-    pickupLocation?: string | null
+  methodId?: string | null,
+  pickupLocation?: string | null
 ): FanCourierServiceType => {
-    const normalized = methodId?.includes(":")
-        ? methodId.split(":")[1]?.toLowerCase().trim()
-        : methodId?.toLowerCase().trim();
-    const wantsFanbox =
-        normalized === "easybox" ||
-        normalized === "fanbox" ||
-        normalized === "fan_box";
+  const normalized = methodId?.includes(":")
+    ? methodId.split(":")[1]?.toLowerCase().trim()
+    : methodId?.toLowerCase().trim();
+  const wantsFanbox =
+    normalized === "easybox" ||
+    normalized === "fanbox" ||
+    normalized === "fan_box";
 
-    if (wantsFanbox && pickupLocation) {
-        return "FANbox";
-    }
+  if (wantsFanbox && pickupLocation) {
+    return "FANbox";
+  }
 
-    return "Standard";
+  return "Standard";
 };
 
 const extractPickupLocation = (snapshot: unknown, lockerId?: string | null) => {
-    if (lockerId) return lockerId;
-    if (!snapshot || typeof snapshot !== "object") return null;
-    const record = snapshot as Record<string, unknown>;
-    const possible =
-        (record.pickupLocation as string | undefined) ||
-        (record.name as string | undefined) ||
-        (record.title as string | undefined) ||
-        (record.id as string | undefined);
-    return possible || null;
+  if (lockerId) return lockerId;
+  if (!snapshot || typeof snapshot !== "object") return null;
+  const record = snapshot as Record<string, unknown>;
+  const possible =
+    (record.pickupLocation as string | undefined) ||
+    (record.name as string | undefined) ||
+    (record.title as string | undefined) ||
+    (record.id as string | undefined);
+  return possible || null;
 };
 
 /**
@@ -122,115 +126,115 @@ const extractPickupLocation = (snapshot: unknown, lockerId?: string | null) => {
  * When parsing is ambiguous, keeps full address as street (FanCourier accepts optional streetNo).
  */
 const parseStreetData = (line1: string, line2?: string | null) => {
-    const trimmed = line1.trim();
-    if (!trimmed) {
-        return { street: line2?.trim() || "", streetNo: undefined };
-    }
+  const trimmed = line1.trim();
+  if (!trimmed) {
+    return { street: line2?.trim() || "", streetNo: undefined };
+  }
 
-    if (line2?.trim()) {
-        return {
-            street: trimmed,
-            streetNo: line2.trim(),
-        };
-    }
+  if (line2?.trim()) {
+    return {
+      street: trimmed,
+      streetNo: line2.trim(),
+    };
+  }
 
-    // Pattern 1: "Nr. 54-56" or "nr. 54" or "Nr 54A" – number after Nr/nr (Romanian)
-    const nrMatch = trimmed.match(
-        /\s+(?:Nr\.?|nr\.?|numar\.?|număr\.?)\s*[:\s]*(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?)\s*(?:,|$|\.|bl\.|sc\.|et\.|ap\.)/i
-    );
-    if (nrMatch) {
-        const streetNo = nrMatch[1].replace(/\s+/g, "");
-        const street = trimmed
-            .replace(nrMatch[0], " ")
-            .replace(/\s{2,}/g, " ")
-            .replace(/[,\s]+$/, "")
-            .trim();
-        if (street && streetNo) {
-            return { street, streetNo };
-        }
+  // Pattern 1: "Nr. 54-56" or "nr. 54" or "Nr 54A" – number after Nr/nr (Romanian)
+  const nrMatch = trimmed.match(
+    /\s+(?:Nr\.?|nr\.?|numar\.?|număr\.?)\s*[:\s]*(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?)\s*(?:,|$|\.|bl\.|sc\.|et\.|ap\.)/i
+  );
+  if (nrMatch) {
+    const streetNo = nrMatch[1].replace(/\s+/g, "");
+    const street = trimmed
+      .replace(nrMatch[0], " ")
+      .replace(/\s{2,}/g, " ")
+      .replace(/[,\s]+$/, "")
+      .trim();
+    if (street && streetNo) {
+      return { street, streetNo };
     }
+  }
 
-    // Pattern 2: "Nr. 54-56" or "nr 54" at end (no trailing comma/etc)
-    const nrEndMatch = trimmed.match(
-        /\s+(?:Nr\.?|nr\.?)\s*(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?)\s*$/i
-    );
-    if (nrEndMatch) {
-        const streetNo = nrEndMatch[1].replace(/\s+/g, "");
-        const street = trimmed
-            .slice(0, nrEndMatch.index)
-            .replace(/\s+(?:Nr\.?|nr\.?)\s*$/i, "")
-            .replace(/\s{2,}/g, " ")
-            .trim();
-        if (street && streetNo) {
-            return { street, streetNo };
-        }
+  // Pattern 2: "Nr. 54-56" or "nr 54" at end (no trailing comma/etc)
+  const nrEndMatch = trimmed.match(
+    /\s+(?:Nr\.?|nr\.?)\s*(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?)\s*$/i
+  );
+  if (nrEndMatch) {
+    const streetNo = nrEndMatch[1].replace(/\s+/g, "");
+    const street = trimmed
+      .slice(0, nrEndMatch.index)
+      .replace(/\s+(?:Nr\.?|nr\.?)\s*$/i, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+    if (street && streetNo) {
+      return { street, streetNo };
     }
+  }
 
-    // Pattern 3: Number or number-range at end: "Strada X 54-56" or "Bulevardul Unirii 10"
-    const endNumMatch = trimmed.match(
-        /\s+(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?)\s*$/
-    );
-    if (endNumMatch) {
-        const streetNo = endNumMatch[1].replace(/\s+/g, "");
-        const street = trimmed
-            .slice(0, endNumMatch.index)
-            .replace(/\s{2,}/g, " ")
-            .trim();
-        if (street && street.length >= 2) {
-            return { street, streetNo };
-        }
+  // Pattern 3: Number or number-range at end: "Strada X 54-56" or "Bulevardul Unirii 10"
+  const endNumMatch = trimmed.match(
+    /\s+(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?)\s*$/
+  );
+  if (endNumMatch) {
+    const streetNo = endNumMatch[1].replace(/\s+/g, "");
+    const street = trimmed
+      .slice(0, endNumMatch.index)
+      .replace(/\s{2,}/g, " ")
+      .trim();
+    if (street && street.length >= 2) {
+      return { street, streetNo };
     }
+  }
 
-    // Pattern 4: Single number somewhere (last resort) – only if clearly separated
-    const anyNumMatch = trimmed.match(
-        /^(.+?)\s+(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?)\s*$/
-    );
-    if (anyNumMatch) {
-        const street = anyNumMatch[1].replace(/\s{2,}/g, " ").trim();
-        const streetNo = anyNumMatch[2].replace(/\s+/g, "");
-        if (street.length >= 2 && !/^\d+$/.test(street)) {
-            return { street, streetNo };
-        }
+  // Pattern 4: Single number somewhere (last resort) – only if clearly separated
+  const anyNumMatch = trimmed.match(
+    /^(.+?)\s+(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?)\s*$/
+  );
+  if (anyNumMatch) {
+    const street = anyNumMatch[1].replace(/\s{2,}/g, " ").trim();
+    const streetNo = anyNumMatch[2].replace(/\s+/g, "");
+    if (street.length >= 2 && !/^\d+$/.test(street)) {
+      return { street, streetNo };
     }
+  }
 
-    // Fallback: full address as street, no number (safe; FanCourier streetNo is optional)
-    return { street: trimmed, streetNo: undefined };
+  // Fallback: full address as street, no number (safe; FanCourier streetNo is optional)
+  return { street: trimmed, streetNo: undefined };
 };
 
 type SupplierPickupContact = {
-    id: string;
-    name: string;
-    email: string | null;
-    phone: string | null;
-    businessAddress: string | null;
-    businessCity: string | null;
-    businessState: string | null;
-    businessPostalCode: string | null;
-    businessCountry: string | null;
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  businessAddress: string | null;
+  businessCity: string | null;
+  businessState: string | null;
+  businessPostalCode: string | null;
+  businessCountry: string | null;
 };
 
 const collectSupplierContacts = (
-    products: Array<{
-        supplier?: SupplierPickupContact | null;
-    }>
+  products: Array<{
+    supplier?: SupplierPickupContact | null;
+  }>
 ): { suppliers: SupplierPickupContact[]; missingSupplierCount: number } => {
-    const supplierMap = new Map<string, SupplierPickupContact>();
-    let missingSupplierCount = 0;
+  const supplierMap = new Map<string, SupplierPickupContact>();
+  let missingSupplierCount = 0;
 
-    for (const product of products) {
-        if (!product.supplier?.id) {
-            missingSupplierCount += 1;
-            continue;
-        }
-        if (!supplierMap.has(product.supplier.id)) {
-            supplierMap.set(product.supplier.id, product.supplier);
-        }
+  for (const product of products) {
+    if (!product.supplier?.id) {
+      missingSupplierCount += 1;
+      continue;
     }
+    if (!supplierMap.has(product.supplier.id)) {
+      supplierMap.set(product.supplier.id, product.supplier);
+    }
+  }
 
-    return {
-        suppliers: Array.from(supplierMap.values()),
-        missingSupplierCount,
-    };
+  return {
+    suppliers: Array.from(supplierMap.values()),
+    missingSupplierCount,
+  };
 };
 
 /**
@@ -239,734 +243,751 @@ const collectSupplierContacts = (
  * Returns null to fallback to env-based sender on any validation failure.
  */
 const resolveSenderFromSupplier = (
-    supplier: SupplierPickupContact | null
+  supplier: SupplierPickupContact | null
 ): FanCourierSenderConfig | null => {
-    const useSupplier =
-        process.env.FANCOURIER_USE_SUPPLIER_ADDRESS === "true";
-    if (!useSupplier || !supplier) return null;
+  const useSupplier = process.env.FANCOURIER_USE_SUPPLIER_ADDRESS === "true";
+  if (!useSupplier || !supplier) return null;
 
-    const addr = (supplier.businessAddress ?? "").trim();
-    const city = (supplier.businessCity ?? "").trim();
-    const county = (supplier.businessState ?? "").trim();
-    const phone = (supplier.phone ?? "").trim();
+  const addr = (supplier.businessAddress ?? "").trim();
+  const city = (supplier.businessCity ?? "").trim();
+  const county = (supplier.businessState ?? "").trim();
+  const phone = (supplier.phone ?? "").trim();
 
-    if (!addr || !city || !county || !phone) return null;
+  if (!addr || !city || !county || !phone) return null;
 
-    const { street, streetNo } = parseStreetData(addr, "");
-    const finalStreet = street?.trim() || addr;
-    if (!finalStreet) return null;
+  const { street, streetNo } = parseStreetData(addr, "");
+  const finalStreet = street?.trim() || addr;
+  if (!finalStreet) return null;
 
-    const envFallback = getFanCourierSenderConfig();
-    return {
-        name:
-            (supplier.name && supplier.name.trim()) || envFallback.name,
-        phone,
-        email: supplier.email ?? undefined,
-        county,
-        locality: city,
-        street: finalStreet,
-        number: streetNo ?? "",
-        postalCode: (supplier.businessPostalCode ?? "").trim() || undefined,
-        contactPerson: undefined,
-    };
+  const envFallback = getFanCourierSenderConfig();
+  return {
+    name: (supplier.name && supplier.name.trim()) || envFallback.name,
+    phone,
+    email: supplier.email ?? undefined,
+    county,
+    locality: city,
+    street: finalStreet,
+    number: streetNo ?? "",
+    postalCode: (supplier.businessPostalCode ?? "").trim() || undefined,
+    contactPerson: undefined,
+  };
 };
 
 const resolveSupplierEmail = (supplier: SupplierPickupContact | null) => {
-    if (!supplier) return process.env.SUPPLIER_EMAIL || null;
-    const normalizedSupplierName = supplier.name
-        .trim()
-        .toUpperCase()
-        .replace(/[^A-Z0-9]+/g, "_");
-    const supplierSpecificEmail = process.env[`${normalizedSupplierName}_SUPPLIER_EMAIL`];
-    return supplier.email || supplierSpecificEmail || process.env.SUPPLIER_EMAIL || null;
+  if (!supplier) return process.env.SUPPLIER_EMAIL || null;
+  const normalizedSupplierName = supplier.name
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_");
+  const supplierSpecificEmail =
+    process.env[`${normalizedSupplierName}_SUPPLIER_EMAIL`];
+  return (
+    supplier.email ||
+    supplierSpecificEmail ||
+    process.env.SUPPLIER_EMAIL ||
+    null
+  );
 };
 
 const formatPickupDate = (offsetDays: number) => {
-    const date = new Date();
-    date.setDate(date.getDate() + Math.max(0, offsetDays));
-    return date.toISOString().slice(0, 10);
+  const date = new Date();
+  date.setDate(date.getDate() + Math.max(0, offsetDays));
+  return date.toISOString().slice(0, 10);
 };
 
 const buildPickupOrderPayload = (input: {
-    awbNumber?: string | null;
-    weight: number;
-    dimensions?: { width: number; height: number; depth: number } | null;
-    pickupWindowStart: string;
-    pickupWindowEnd: string;
-    pickupDate: string;
-    observations?: string | null;
+  awbNumber?: string | null;
+  weight: number;
+  dimensions?: { width: number; height: number; depth: number } | null;
+  pickupWindowStart: string;
+  pickupWindowEnd: string;
+  pickupDate: string;
+  observations?: string | null;
 }) => {
-    return {
-        clientId: getFanCourierClientId(),
-        info: {
-            awbnumber: input.awbNumber ?? null,
-            packages: {
-                parcel: 1,
-                envelope: 0,
-            },
-            weight: input.weight,
-            dimensions: input.dimensions
-                ? {
-                      width: input.dimensions.width,
-                      length: input.dimensions.depth,
-                      height: input.dimensions.height,
-                  }
-                : undefined,
-            orderType: "Standard",
-            pickupDate: input.pickupDate,
-            pickupHours: {
-                first: input.pickupWindowStart,
-                second: input.pickupWindowEnd,
-            },
-            observations: input.observations || "",
-        },
-    };
+  return {
+    clientId: getFanCourierClientId(),
+    info: {
+      awbnumber: input.awbNumber ?? null,
+      packages: {
+        parcel: 1,
+        envelope: 0,
+      },
+      weight: input.weight,
+      dimensions: input.dimensions
+        ? {
+            width: input.dimensions.width,
+            length: input.dimensions.depth,
+            height: input.dimensions.height,
+          }
+        : undefined,
+      orderType: "Standard",
+      pickupDate: input.pickupDate,
+      pickupHours: {
+        first: input.pickupWindowStart,
+        second: input.pickupWindowEnd,
+      },
+      observations: input.observations || "",
+    },
+  };
 };
 
 const parseAwbOptionCodes = (raw?: string | null): string[] => {
-    if (!raw) return [];
-    return Array.from(
-        new Set(
-            raw
-                .split(/[,\s;|]+/)
-                .map(code => code.trim().toUpperCase())
-                .filter(Boolean)
-        )
-    );
+  if (!raw) return [];
+  return Array.from(
+    new Set(
+      raw
+        .split(/[,\s;|]+/)
+        .map(code => code.trim().toUpperCase())
+        .filter(Boolean)
+    )
+  );
 };
 
 const resolveAwbOptionCodes = (service: FanCourierServiceType): string[] => {
-    const globalOptions = parseAwbOptionCodes(process.env.FANCOURIER_AWB_OPTIONS);
-    const standardOptions = parseAwbOptionCodes(
-        process.env.FANCOURIER_AWB_OPTIONS_STANDARD
-    );
-    const fanboxOptions = parseAwbOptionCodes(
-        process.env.FANCOURIER_AWB_OPTIONS_FANBOX
-    );
+  const globalOptions = parseAwbOptionCodes(process.env.FANCOURIER_AWB_OPTIONS);
+  const standardOptions = parseAwbOptionCodes(
+    process.env.FANCOURIER_AWB_OPTIONS_STANDARD
+  );
+  const fanboxOptions = parseAwbOptionCodes(
+    process.env.FANCOURIER_AWB_OPTIONS_FANBOX
+  );
 
-    const resolved = new Set<string>(globalOptions);
-    const serviceSpecific = service === "FANbox" ? fanboxOptions : standardOptions;
-    for (const code of serviceSpecific) {
-        resolved.add(code);
-    }
+  const resolved = new Set<string>(globalOptions);
+  const serviceSpecific =
+    service === "FANbox" ? fanboxOptions : standardOptions;
+  for (const code of serviceSpecific) {
+    resolved.add(code);
+  }
 
-    // FanCourier docs indicate FANbox locker pickup should use option "V".
-    if (service === "FANbox") {
-        resolved.add("V");
-    } else {
-        resolved.delete("V");
-    }
+  // FanCourier docs indicate FANbox locker pickup should use option "V".
+  if (service === "FANbox") {
+    resolved.add("V");
+  } else {
+    resolved.delete("V");
+  }
 
-    return Array.from(resolved);
+  return Array.from(resolved);
 };
 
 const buildAwbPayload = (
-    input: {
-        order: {
-            id: string;
-            orderNumber: string;
-            total: number;
-            paymentMethod: string;
-            codAmount?: number | null;
-            declaredValue?: number | null;
-            shippingAddress: {
-                fullName: string;
-                addressLine1: string;
-                addressLine2?: string | null;
-                city: string;
-                state: string;
-                postalCode: string;
-                country: string;
-                phone: string;
-                companyName?: string | null;
-                cui?: string | null;
-            };
-            user?: { email?: string | null } | null;
-            shippingMethod?: string | null;
-            lockerId?: string | null;
-            lockerAddressSnapshot?: unknown | null;
-        };
-        chargeableWeightKg: number;
-        dimensions?: { width: number; height: number; depth: number } | null;
-    },
-    senderConfig?: FanCourierSenderConfig
-): FanCourierAwbPayload => {
-    const isCodPayment =
-        input.order.paymentMethod === "cash_on_delivery" ||
-        input.order.paymentMethod === "cod";
-
-    const pickupLocation = extractPickupLocation(
-        input.order.lockerAddressSnapshot,
-        input.order.lockerId
-    );
-    const service = resolveFanCourierService(
-        input.order.shippingMethod,
-        pickupLocation
-    );
-    const { street, streetNo } = parseStreetData(
-        input.order.shippingAddress.addressLine1,
-        input.order.shippingAddress.addressLine2
-    );
-    const sender = senderConfig ?? getFanCourierSenderConfig();
-    const awbOptions = resolveAwbOptionCodes(service);
-
-    return {
-        clientId: getFanCourierClientId(),
-        shipments: [
-            {
-                info: {
-                    service,
-                    bank: "",
-                    bankAccount: "",
-                    packages: {
-                        parcel: 1,
-                        envelope: 0,
-                    },
-                    weight: input.chargeableWeightKg,
-                    cod: isCodPayment
-                        ? (input.order.codAmount ?? input.order.total)
-                        : 0,
-                    declaredValue: input.order.declaredValue ?? 0,
-                    payment: "sender",
-                    refund: null,
-                    returnPayment: null,
-                    observation: `Order ${input.order.orderNumber}`,
-                    content: `Comanda #${input.order.orderNumber}`,
-                    dimensions: input.dimensions
-                        ? {
-                              length: input.dimensions.depth,
-                              height: input.dimensions.height,
-                              width: input.dimensions.width,
-                          }
-                        : undefined,
-                    costCenter: null,
-                    options: awbOptions,
-                },
-                recipient: {
-                    name: input.order.shippingAddress.fullName,
-                    phone: input.order.shippingAddress.phone,
-                    email: input.order.user?.email || undefined,
-                    address: {
-                        county: input.order.shippingAddress.state,
-                        locality: input.order.shippingAddress.city,
-                        street,
-                        streetNo,
-                        zipCode: input.order.shippingAddress.postalCode,
-                        pickupLocation:
-                            service === "FANbox" ? pickupLocation ?? undefined : undefined,
-                        },
-                },
-                sender: {
-                    name: sender.name,
-                    contactperson: sender.contactPerson,
-                    email: sender.email,
-                    phone: sender.phone,
-                    address: {
-                        county: sender.county,
-                        locality: sender.locality,
-                        street: sender.street,
-                        streetNo: sender.number,
-                        zipCode: sender.postalCode,
-                    },
-                },
-            },
-        ],
+  input: {
+    order: {
+      id: string;
+      orderNumber: string;
+      total: number;
+      paymentMethod: string;
+      codAmount?: number | null;
+      declaredValue?: number | null;
+      shippingAddress: {
+        fullName: string;
+        addressLine1: string;
+        addressLine2?: string | null;
+        city: string;
+        state: string;
+        postalCode: string;
+        country: string;
+        phone: string;
+        companyName?: string | null;
+        cui?: string | null;
+      };
+      user?: { email?: string | null } | null;
+      shippingMethod?: string | null;
+      lockerId?: string | null;
+      lockerAddressSnapshot?: unknown | null;
     };
+    chargeableWeightKg: number;
+    dimensions?: { width: number; height: number; depth: number } | null;
+  },
+  senderConfig?: FanCourierSenderConfig
+): FanCourierAwbPayload => {
+  const isCodPayment =
+    input.order.paymentMethod === "cash_on_delivery" ||
+    input.order.paymentMethod === "cod";
+
+  const pickupLocation = extractPickupLocation(
+    input.order.lockerAddressSnapshot,
+    input.order.lockerId
+  );
+  const service = resolveFanCourierService(
+    input.order.shippingMethod,
+    pickupLocation
+  );
+  const { street, streetNo } = parseStreetData(
+    input.order.shippingAddress.addressLine1,
+    input.order.shippingAddress.addressLine2
+  );
+  const sender = senderConfig ?? getFanCourierSenderConfig();
+  const awbOptions = resolveAwbOptionCodes(service);
+
+  return {
+    clientId: getFanCourierClientId(),
+    shipments: [
+      {
+        info: {
+          service,
+          bank: "",
+          bankAccount: "",
+          packages: {
+            parcel: 1,
+            envelope: 0,
+          },
+          weight: input.chargeableWeightKg,
+          cod: isCodPayment ? (input.order.codAmount ?? input.order.total) : 0,
+          declaredValue: input.order.declaredValue ?? 0,
+          payment: "sender",
+          refund: null,
+          returnPayment: null,
+          observation: `Order ${input.order.orderNumber}`,
+          content: `Comanda #${input.order.orderNumber}`,
+          dimensions: input.dimensions
+            ? {
+                length: input.dimensions.depth,
+                height: input.dimensions.height,
+                width: input.dimensions.width,
+              }
+            : undefined,
+          costCenter: null,
+          options: awbOptions,
+        },
+        recipient: {
+          name: input.order.shippingAddress.fullName,
+          phone: input.order.shippingAddress.phone,
+          email: input.order.user?.email || undefined,
+          address: {
+            county: input.order.shippingAddress.state,
+            locality: input.order.shippingAddress.city,
+            street,
+            streetNo,
+            zipCode: input.order.shippingAddress.postalCode,
+            pickupLocation:
+              service === "FANbox" ? (pickupLocation ?? undefined) : undefined,
+          },
+        },
+        sender: {
+          name: sender.name,
+          contactperson: sender.contactPerson,
+          email: sender.email,
+          phone: sender.phone,
+          address: {
+            county: sender.county,
+            locality: sender.locality,
+            street: sender.street,
+            streetNo: sender.number,
+            zipCode: sender.postalCode,
+          },
+        },
+      },
+    ],
+  };
 };
 
 export interface FanAwbResult {
-    success: boolean;
-    error?: string;
-    shipment?: {
-        id: string;
-        orderId: string;
-        courier: string;
-        awbNumber: string | null;
-        status: string | null;
-        declaredValue: number | null;
+  success: boolean;
+  error?: string;
+  shipment?: {
+    id: string;
+    orderId: string;
+    courier: string;
+    awbNumber: string | null;
+    status: string | null;
+    declaredValue: number | null;
+  };
+  awbNumber?: string | null;
+  alreadyExists?: boolean;
+  response?: Record<string, unknown> | null;
+  manualReviewRequired?: boolean;
+  reviewReason?: string | null;
+  senderDebug?: {
+    useSupplierAddressFlag: boolean;
+    senderSource: "supplier" | "env_fallback";
+    supplierId?: string | null;
+    supplierName?: string | null;
+    missingSupplierFields?: string[];
+    sender: {
+      name: string;
+      phone: string;
+      county: string;
+      locality: string;
+      street: string;
+      number: string;
     };
-    awbNumber?: string | null;
-    alreadyExists?: boolean;
-    response?: Record<string, unknown> | null;
-    manualReviewRequired?: boolean;
-    reviewReason?: string | null;
-    senderDebug?: {
-        useSupplierAddressFlag: boolean;
-        senderSource: "supplier" | "env_fallback";
-        supplierId?: string | null;
-        supplierName?: string | null;
-        missingSupplierFields?: string[];
-        sender: {
-            name: string;
-            phone: string;
-            county: string;
-            locality: string;
-            street: string;
-            number: string;
-        };
-    };
+  };
 }
 
 /**
  * Create AWB for an order using FAN Courier
  */
 export const createFanAwbForOrder = async (
-    orderId: string
+  orderId: string
 ): Promise<FanAwbResult> => {
-    // Check if FAN Courier is configured
-    if (!isFanCourierConfigured()) {
-        return {
-            success: false,
-            error: "FAN Courier is not configured. Please add API credentials.",
-        };
-    }
-
-    const order = await db.order.findUnique({
-        where: { id: orderId },
-        include: {
-            items: true,
-            user: true,
-            shippingAddress: true,
-        },
-    });
-
-    if (!order) {
-        return { success: false, error: "Order not found" };
-    }
-
-    if (!order.shippingAddress) {
-        return { success: false, error: "Shipping address missing" };
-    }
-
-    const hasPhysicalItems = order.items.some((item) => item.isDigital !== true);
-    if (!hasPhysicalItems) {
-        return { success: false, error: "Order has no shippable items" };
-    }
-    const physicalItems = order.items.filter((item) => item.isDigital !== true);
-    const missingProductLinks = physicalItems.filter((item) => !item.productId);
-    if (missingProductLinks.length > 0) {
-        const reason =
-            "Order contains physical items without linked product records. Manual fulfillment review required.";
-        await db.order.update({
-            where: { id: order.id },
-            data: {
-                manualShippingReviewRequired: true,
-                shippingReviewReason: reason,
-            },
-        });
-        return {
-            success: false,
-            error: reason,
-            manualReviewRequired: true,
-            reviewReason: reason,
-        };
-    }
-
-    const isCodPayment =
-        order.paymentMethod === "cash_on_delivery" ||
-        order.paymentMethod === "cod";
-
-    if (order.paymentStatus !== "PAID" && !isCodPayment) {
-        return { success: false, error: "Order payment is not confirmed" };
-    }
-
-    // Check for existing shipment
-    const existingShipment = await db.shipment.findFirst({
-        where: { orderId, courier: COURIER_NAME },
-    });
-
-    if (existingShipment?.awbNumber) {
-        return {
-            success: true,
-            shipment: existingShipment,
-            awbNumber: existingShipment.awbNumber,
-            alreadyExists: true,
-        };
-    }
-
-    // Calculate chargeable weight
-    const productIds = Array.from(
-        new Set(
-            physicalItems
-                .map((item) => item.productId)
-                .filter(Boolean) as string[]
-        )
-    );
-
-    const products = await db.product.findMany({
-        where: { id: { in: productIds } },
-        select: {
-            id: true,
-            weight: true,
-            dimensions: true,
-            supplier: {
-                select: {
-                    id: true,
-                    companyName: true,
-                    contactPersonName: true,
-                    contactPersonEmail: true,
-                    email: true,
-                    phone: true,
-                    businessAddress: true,
-                    businessCity: true,
-                    businessState: true,
-                    businessPostalCode: true,
-                    businessCountry: true,
-                },
-            },
-        },
-    });
-    if (products.length !== productIds.length) {
-        const reason =
-            "One or more ordered products are missing from catalog. Manual fulfillment review required.";
-        await db.order.update({
-            where: { id: order.id },
-            data: {
-                manualShippingReviewRequired: true,
-                shippingReviewReason: reason,
-            },
-        });
-        return {
-            success: false,
-            error: reason,
-            manualReviewRequired: true,
-            reviewReason: reason,
-        };
-    }
-
-    const totalWeight = products.reduce((sum, p) => sum + (p.weight || 0), 0);
-    const chargeableWeightKg = Math.max(totalWeight, 1); // Minimum 1kg
-
-    let maxDimensions: { width: number; height: number; depth: number } | null =
-        null;
-    for (const product of products) {
-        const dims = extractDimensionsCm(product.dimensions as Record<string, unknown>);
-        if (!dims) continue;
-        if (!maxDimensions) {
-            maxDimensions = { ...dims };
-            continue;
-        }
-        maxDimensions = {
-            width: Math.max(maxDimensions.width, dims.width),
-            height: Math.max(maxDimensions.height, dims.height),
-            depth: Math.max(maxDimensions.depth, dims.depth),
-        };
-    }
-
-    const supplierContext = collectSupplierContacts(
-        products.map(product => ({
-            supplier: product.supplier
-                ? {
-                      id: product.supplier.id,
-                      name:
-                          product.supplier.companyName ||
-                          product.supplier.contactPersonName ||
-                          "Supplier",
-                      email:
-                          product.supplier.contactPersonEmail ||
-                          product.supplier.email ||
-                          null,
-                      phone: product.supplier.phone || null,
-                      businessAddress: product.supplier.businessAddress || null,
-                      businessCity: product.supplier.businessCity || null,
-                      businessState: product.supplier.businessState || null,
-                      businessPostalCode:
-                          product.supplier.businessPostalCode || null,
-                      businessCountry: product.supplier.businessCountry || null,
-                  }
-                : null,
-        }))
-    );
-
-    const primarySupplier =
-        supplierContext.suppliers.length === 1
-            ? supplierContext.suppliers[0]
-            : null;
-    if (supplierContext.suppliers.length > 1 || supplierContext.missingSupplierCount > 0) {
-        const reason =
-            supplierContext.suppliers.length > 1
-                ? "Order contains items from multiple suppliers; split shipments manually per supplier."
-                : "One or more products have no assigned supplier; manual shipment review required.";
-        await db.order.update({
-            where: { id: order.id },
-            data: {
-                manualShippingReviewRequired: true,
-                shippingReviewReason: reason,
-            },
-        });
-        return {
-            success: false,
-            error: reason,
-            manualReviewRequired: true,
-            reviewReason: reason,
-        };
-    }
-
-    const useSupplierAddressFlag =
-        process.env.FANCOURIER_USE_SUPPLIER_ADDRESS === "true";
-    const missingSupplierFields: string[] = [];
-    if (primarySupplier) {
-        if (!(primarySupplier.businessAddress || "").trim()) {
-            missingSupplierFields.push("businessAddress");
-        }
-        if (!(primarySupplier.businessCity || "").trim()) {
-            missingSupplierFields.push("businessCity");
-        }
-        if (!(primarySupplier.businessState || "").trim()) {
-            missingSupplierFields.push("businessState");
-        }
-        if (!(primarySupplier.phone || "").trim()) {
-            missingSupplierFields.push("phone");
-        }
-    }
-
-    const supplierSenderConfig = resolveSenderFromSupplier(primarySupplier);
-    const senderConfig = supplierSenderConfig ?? getFanCourierSenderConfig();
-    const senderDebug = {
-        useSupplierAddressFlag,
-        senderSource: supplierSenderConfig ? "supplier" : "env_fallback",
-        supplierId: primarySupplier?.id ?? null,
-        supplierName: primarySupplier?.name ?? null,
-        missingSupplierFields,
-        sender: {
-            name: senderConfig.name,
-            phone: senderConfig.phone,
-            county: senderConfig.county,
-            locality: senderConfig.locality,
-            street: senderConfig.street,
-            number: senderConfig.number,
-        },
+  // Check if FAN Courier is configured
+  if (!isFanCourierConfigured()) {
+    return {
+      success: false,
+      error: "FAN Courier is not configured. Please add API credentials.",
     };
+  }
 
-    if (useSupplierAddressFlag && !supplierSenderConfig) {
-        console.warn(
-            `[FAN Courier] Order ${order.orderNumber} falling back to env sender config.`,
-            senderDebug
-        );
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    include: {
+      items: true,
+      user: true,
+      shippingAddress: true,
+    },
+  });
+
+  if (!order) {
+    return { success: false, error: "Order not found" };
+  }
+
+  if (!order.shippingAddress) {
+    return { success: false, error: "Shipping address missing" };
+  }
+
+  const hasPhysicalItems = order.items.some(item => item.isDigital !== true);
+  if (!hasPhysicalItems) {
+    return { success: false, error: "Order has no shippable items" };
+  }
+  const physicalItems = order.items.filter(item => item.isDigital !== true);
+  const missingProductLinks = physicalItems.filter(item => !item.productId);
+  if (missingProductLinks.length > 0) {
+    const reason =
+      "Order contains physical items without linked product records. Manual fulfillment review required.";
+    await db.order.update({
+      where: { id: order.id },
+      data: {
+        manualShippingReviewRequired: true,
+        shippingReviewReason: reason,
+      },
+    });
+    return {
+      success: false,
+      error: reason,
+      manualReviewRequired: true,
+      reviewReason: reason,
+    };
+  }
+
+  const isCodPayment =
+    order.paymentMethod === "cash_on_delivery" || order.paymentMethod === "cod";
+
+  if (order.paymentStatus !== "PAID" && !isCodPayment) {
+    return { success: false, error: "Order payment is not confirmed" };
+  }
+
+  // Check for existing shipment
+  const existingShipment = await db.shipment.findFirst({
+    where: { orderId, courier: COURIER_NAME },
+  });
+
+  if (existingShipment?.awbNumber) {
+    return {
+      success: true,
+      shipment: existingShipment,
+      awbNumber: existingShipment.awbNumber,
+      alreadyExists: true,
+    };
+  }
+
+  // Calculate chargeable weight
+  const productIds = Array.from(
+    new Set(
+      physicalItems.map(item => item.productId).filter(Boolean) as string[]
+    )
+  );
+
+  const products = await db.product.findMany({
+    where: { id: { in: productIds } },
+    select: {
+      id: true,
+      weight: true,
+      dimensions: true,
+      supplier: {
+        select: {
+          id: true,
+          companyName: true,
+          contactPersonName: true,
+          contactPersonEmail: true,
+          email: true,
+          phone: true,
+          businessAddress: true,
+          businessCity: true,
+          businessState: true,
+          businessPostalCode: true,
+          businessCountry: true,
+        },
+      },
+    },
+  });
+  if (products.length !== productIds.length) {
+    const reason =
+      "One or more ordered products are missing from catalog. Manual fulfillment review required.";
+    await db.order.update({
+      where: { id: order.id },
+      data: {
+        manualShippingReviewRequired: true,
+        shippingReviewReason: reason,
+      },
+    });
+    return {
+      success: false,
+      error: reason,
+      manualReviewRequired: true,
+      reviewReason: reason,
+    };
+  }
+
+  const totalWeight = products.reduce((sum, p) => sum + (p.weight || 0), 0);
+  const chargeableWeightKg = Math.max(totalWeight, 1); // Minimum 1kg
+
+  let maxDimensions: { width: number; height: number; depth: number } | null =
+    null;
+  for (const product of products) {
+    const dims = extractDimensionsCm(
+      product.dimensions as Record<string, unknown>
+    );
+    if (!dims) continue;
+    if (!maxDimensions) {
+      maxDimensions = { ...dims };
+      continue;
+    }
+    maxDimensions = {
+      width: Math.max(maxDimensions.width, dims.width),
+      height: Math.max(maxDimensions.height, dims.height),
+      depth: Math.max(maxDimensions.depth, dims.depth),
+    };
+  }
+
+  const supplierContext = collectSupplierContacts(
+    products.map(product => ({
+      supplier: product.supplier
+        ? {
+            id: product.supplier.id,
+            name:
+              product.supplier.companyName ||
+              product.supplier.contactPersonName ||
+              "Supplier",
+            email:
+              product.supplier.contactPersonEmail ||
+              product.supplier.email ||
+              null,
+            phone: product.supplier.phone || null,
+            businessAddress: product.supplier.businessAddress || null,
+            businessCity: product.supplier.businessCity || null,
+            businessState: product.supplier.businessState || null,
+            businessPostalCode: product.supplier.businessPostalCode || null,
+            businessCountry: product.supplier.businessCountry || null,
+          }
+        : null,
+    }))
+  );
+
+  const primarySupplier =
+    supplierContext.suppliers.length === 1
+      ? supplierContext.suppliers[0]
+      : null;
+  if (
+    supplierContext.suppliers.length > 1 ||
+    supplierContext.missingSupplierCount > 0
+  ) {
+    const reason =
+      supplierContext.suppliers.length > 1
+        ? "Order contains items from multiple suppliers; split shipments manually per supplier."
+        : "One or more products have no assigned supplier; manual shipment review required.";
+    await db.order.update({
+      where: { id: order.id },
+      data: {
+        manualShippingReviewRequired: true,
+        shippingReviewReason: reason,
+      },
+    });
+    return {
+      success: false,
+      error: reason,
+      manualReviewRequired: true,
+      reviewReason: reason,
+    };
+  }
+
+  const useSupplierAddressFlag =
+    process.env.FANCOURIER_USE_SUPPLIER_ADDRESS === "true";
+  const missingSupplierFields: string[] = [];
+  if (primarySupplier) {
+    if (!(primarySupplier.businessAddress || "").trim()) {
+      missingSupplierFields.push("businessAddress");
+    }
+    if (!(primarySupplier.businessCity || "").trim()) {
+      missingSupplierFields.push("businessCity");
+    }
+    if (!(primarySupplier.businessState || "").trim()) {
+      missingSupplierFields.push("businessState");
+    }
+    if (!(primarySupplier.phone || "").trim()) {
+      missingSupplierFields.push("phone");
+    }
+  }
+
+  const supplierSenderConfig = resolveSenderFromSupplier(primarySupplier);
+  const senderConfig = supplierSenderConfig ?? getFanCourierSenderConfig();
+  const senderDebug = {
+    useSupplierAddressFlag,
+    senderSource: supplierSenderConfig ? "supplier" : "env_fallback",
+    supplierId: primarySupplier?.id ?? null,
+    supplierName: primarySupplier?.name ?? null,
+    missingSupplierFields,
+    sender: {
+      name: senderConfig.name,
+      phone: senderConfig.phone,
+      county: senderConfig.county,
+      locality: senderConfig.locality,
+      street: senderConfig.street,
+      number: senderConfig.number,
+    },
+  };
+
+  if (useSupplierAddressFlag && !supplierSenderConfig) {
+    console.warn(
+      `[FAN Courier] Order ${order.orderNumber} falling back to env sender config.`,
+      senderDebug
+    );
+  }
+
+  const payload = buildAwbPayload(
+    {
+      order: {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        total: order.total,
+        paymentMethod: order.paymentMethod,
+        codAmount: order.codAmount,
+        declaredValue: order.declaredValue,
+        shippingAddress: order.shippingAddress,
+        user: order.user,
+        shippingMethod: order.shippingMethod,
+        lockerId: order.lockerId,
+        lockerAddressSnapshot: order.lockerAddressSnapshot,
+      },
+      chargeableWeightKg,
+      dimensions: maxDimensions,
+    },
+    senderConfig
+  );
+
+  // Create shipment record
+  const shipment = await db.shipment.create({
+    data: {
+      orderId: order.id,
+      courier: COURIER_NAME,
+      status: "PENDING",
+      declaredValue: order.declaredValue,
+      payload: JSON.parse(JSON.stringify(payload)) as Prisma.InputJsonValue,
+    },
+  });
+
+  let response: Record<string, unknown> | null = null;
+  let awbNumber: string | null = null;
+  let status = "FAILED";
+  let courierErrorMessage: string | null = null;
+  let manualShippingReviewRequired = false;
+  let shippingReviewReason: string | null = null;
+
+  try {
+    response = await createFanCourierAwb(
+      payload as unknown as Record<string, unknown>
+    );
+    awbNumber = extractAwbNumber(response);
+
+    // Check for extra km / remote locality - CRITICAL SAFETY MECHANISM
+    const { hasExtraKm, reason } = hasExtraKmOrRemoteLocality(response);
+    if (hasExtraKm) {
+      manualShippingReviewRequired = true;
+      shippingReviewReason = reason;
+      console.warn(
+        `[FAN Courier] Order ${order.orderNumber} flagged for manual review: ${reason}`
+      );
     }
 
-    const payload = buildAwbPayload(
-        {
-            order: {
-                id: order.id,
-                orderNumber: order.orderNumber,
-                total: order.total,
-                paymentMethod: order.paymentMethod,
-                codAmount: order.codAmount,
-                declaredValue: order.declaredValue,
-                shippingAddress: order.shippingAddress,
-                user: order.user,
-                shippingMethod: order.shippingMethod,
-                lockerId: order.lockerId,
-                lockerAddressSnapshot: order.lockerAddressSnapshot,
-            },
-            chargeableWeightKg,
-            dimensions: maxDimensions,
-        },
-        senderConfig
+    status = awbNumber ? "CREATED" : "FAILED";
+  } catch (error) {
+    courierErrorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    response = { error: courierErrorMessage };
+
+    // Set manual review required on courier error
+    manualShippingReviewRequired = true;
+    shippingReviewReason = `Courier API error: ${courierErrorMessage}`;
+
+    console.error(
+      `[FAN Courier] AWB creation failed for order ${order.orderNumber}:`,
+      error
     );
+  }
 
-    // Create shipment record
-    const shipment = await db.shipment.create({
-        data: {
-            orderId: order.id,
-            courier: COURIER_NAME,
-            status: "PENDING",
-            declaredValue: order.declaredValue,
-            payload: JSON.parse(JSON.stringify(payload)) as Prisma.InputJsonValue,
-        },
+  // Log AWB event
+  await db.awbEvent.create({
+    data: {
+      shipmentId: shipment.id,
+      eventType: "CREATE_AWB",
+      requestJson: JSON.parse(
+        JSON.stringify(
+          redactPayload(payload as unknown as Record<string, unknown>)
+        )
+      ) as Prisma.InputJsonValue,
+      responseJson: response
+        ? (JSON.parse(JSON.stringify(response)) as Prisma.InputJsonValue)
+        : Prisma.JsonNull,
+    },
+  });
+
+  // Update shipment
+  const updatedShipment = await db.shipment.update({
+    where: { id: shipment.id },
+    data: {
+      awbNumber,
+      status,
+      payload: JSON.parse(
+        JSON.stringify(
+          response
+            ? {
+                request: redactPayload(
+                  payload as unknown as Record<string, unknown>
+                ),
+                response,
+              }
+            : payload
+        )
+      ) as Prisma.InputJsonValue,
+    },
+  });
+
+  // Update order with review flags if needed
+  if (manualShippingReviewRequired || courierErrorMessage) {
+    await db.order.update({
+      where: { id: order.id },
+      data: {
+        manualShippingReviewRequired,
+        shippingReviewReason,
+        courierErrorMessage,
+      },
     });
+  }
 
-    let response: Record<string, unknown> | null = null;
-    let awbNumber: string | null = null;
-    let status = "FAILED";
-    let courierErrorMessage: string | null = null;
-    let manualShippingReviewRequired = false;
-    let shippingReviewReason: string | null = null;
+  if (!awbNumber) {
+    return {
+      success: false,
+      error: courierErrorMessage || "AWB creation failed",
+      shipment: updatedShipment,
+      response,
+      manualReviewRequired: manualShippingReviewRequired,
+      reviewReason: shippingReviewReason,
+      senderDebug,
+    };
+  }
+
+  // Propagate AWB to order so customer tracking and other flows use Order.trackingNumber/carrier
+  await db.order.update({
+    where: { id: order.id },
+    data: {
+      trackingNumber: awbNumber,
+      carrier: COURIER_NAME,
+    },
+  });
+
+  // Propagate same tracking to SupplierOrders for this order so admin/supplier views stay in sync
+  await db.supplierOrder.updateMany({
+    where: { orderId: order.id },
+    data: {
+      trackingNumber: awbNumber,
+      carrier: COURIER_NAME,
+    },
+  });
+
+  if (!manualShippingReviewRequired && primarySupplier) {
+    const supplierEmail = resolveSupplierEmail(primarySupplier);
+
+    if (!supplierEmail) {
+      console.warn(
+        `[FAN Courier] Missing supplier email for order ${order.orderNumber}; skipping AWB email notification.`
+      );
+    } else {
+      let pdfBase64: string | undefined;
+      try {
+        const labelResponse = await getFanCourierAwbLabel({
+          awbNumber,
+        });
+        pdfBase64 = Buffer.from(labelResponse.buffer).toString("base64");
+      } catch (labelError) {
+        console.error(
+          `[FAN Courier] Failed to download AWB label PDF for order ${order.orderNumber}; sending email without attachment.`,
+          labelError
+        );
+      }
+
+      try {
+        if (isSupplierAwbEmailDisabled()) {
+          console.info(
+            `[FAN Courier] Supplier AWB email disabled by DISABLE_SUPPLIER_AWB_EMAIL=true. Skipping email for order ${order.orderNumber}.`
+          );
+        } else {
+          await sendSupplierAwbLabelEmail({
+            to: supplierEmail,
+            supplierName: primarySupplier.name,
+            orderNumber: order.orderNumber,
+            awbNumber,
+            pdfBase64,
+          });
+        }
+      } catch (emailError) {
+        console.error(
+          `[FAN Courier] Failed to email AWB details for order ${order.orderNumber}:`,
+          emailError
+        );
+      }
+    }
 
     try {
-        response = await createFanCourierAwb(
-            payload as unknown as Record<string, unknown>
-        );
-        awbNumber = extractAwbNumber(response);
-
-        // Check for extra km / remote locality - CRITICAL SAFETY MECHANISM
-        const { hasExtraKm, reason } = hasExtraKmOrRemoteLocality(response);
-        if (hasExtraKm) {
-            manualShippingReviewRequired = true;
-            shippingReviewReason = reason;
-            console.warn(
-                `[FAN Courier] Order ${order.orderNumber} flagged for manual review: ${reason}`
-            );
-        }
-
-        status = awbNumber ? "CREATED" : "FAILED";
-    } catch (error) {
-        courierErrorMessage =
-            error instanceof Error ? error.message : "Unknown error";
-        response = { error: courierErrorMessage };
-
-        // Set manual review required on courier error
-        manualShippingReviewRequired = true;
-        shippingReviewReason = `Courier API error: ${courierErrorMessage}`;
-
-        console.error(
-            `[FAN Courier] AWB creation failed for order ${order.orderNumber}:`,
-            error
-        );
-    }
-
-    // Log AWB event
-    await db.awbEvent.create({
-        data: {
-            shipmentId: shipment.id,
-            eventType: "CREATE_AWB",
-            requestJson: JSON.parse(JSON.stringify(redactPayload(payload as unknown as Record<string, unknown>))) as Prisma.InputJsonValue,
-            responseJson: response
-                ? (JSON.parse(JSON.stringify(response)) as Prisma.InputJsonValue)
-                : Prisma.JsonNull,
-        },
-    });
-
-    // Update shipment
-    const updatedShipment = await db.shipment.update({
-        where: { id: shipment.id },
-        data: {
-            awbNumber,
-            status,
-            payload: JSON.parse(JSON.stringify(
-                response
-                    ? { request: redactPayload(payload as unknown as Record<string, unknown>), response }
-                    : payload
-            )) as Prisma.InputJsonValue,
-        },
-    });
-
-    // Update order with review flags if needed
-    if (manualShippingReviewRequired || courierErrorMessage) {
-        await db.order.update({
-            where: { id: order.id },
-            data: {
-                manualShippingReviewRequired,
-                shippingReviewReason,
-                courierErrorMessage,
-            },
+      const shippingSettings = await getShippingSettings();
+      const pickupConfig = (shippingSettings as any)?.fanCourierPickup;
+      if (pickupConfig?.enabled) {
+        const pickupPayload = buildPickupOrderPayload({
+          awbNumber,
+          weight: chargeableWeightKg,
+          dimensions: maxDimensions,
+          pickupWindowStart: pickupConfig.windowStart || "09:00",
+          pickupWindowEnd: pickupConfig.windowEnd || "16:00",
+          pickupDate: formatPickupDate(Number(pickupConfig.offsetDays || 0)),
+          observations: pickupConfig.observations || "",
         });
+
+        await createFanCourierPickupOrder(pickupPayload);
+      }
+    } catch (pickupError) {
+      console.error(
+        `[FAN Courier] Pickup order failed for order ${order.orderNumber}:`,
+        pickupError
+      );
     }
+  }
 
-    if (!awbNumber) {
-        return {
-            success: false,
-            error: courierErrorMessage || "AWB creation failed",
-            shipment: updatedShipment,
-            response,
-            manualReviewRequired: manualShippingReviewRequired,
-            reviewReason: shippingReviewReason,
-            senderDebug,
-        };
-    }
-
-    // Propagate AWB to order so customer tracking and other flows use Order.trackingNumber/carrier
-    await db.order.update({
-        where: { id: order.id },
-        data: {
-            trackingNumber: awbNumber,
-            carrier: COURIER_NAME,
-        },
-    });
-
-    // Propagate same tracking to SupplierOrders for this order so admin/supplier views stay in sync
-    await db.supplierOrder.updateMany({
-        where: { orderId: order.id },
-        data: {
-            trackingNumber: awbNumber,
-            carrier: COURIER_NAME,
-        },
-    });
-
-    if (!manualShippingReviewRequired && primarySupplier) {
-        const supplierEmail = resolveSupplierEmail(primarySupplier);
-
-        if (!supplierEmail) {
-            console.warn(
-                `[FAN Courier] Missing supplier email for order ${order.orderNumber}; skipping AWB email notification.`
-            );
-        } else {
-            let pdfBase64: string | undefined;
-            try {
-                const labelResponse = await getFanCourierAwbLabel({
-                    awbNumber,
-                });
-                pdfBase64 = Buffer.from(labelResponse.buffer).toString(
-                    "base64"
-                );
-            } catch (labelError) {
-                console.error(
-                    `[FAN Courier] Failed to download AWB label PDF for order ${order.orderNumber}; sending email without attachment.`,
-                    labelError
-                );
-            }
-
-            try {
-                await sendSupplierAwbLabelEmail({
-                    to: supplierEmail,
-                    supplierName: primarySupplier.name,
-                    orderNumber: order.orderNumber,
-                    awbNumber,
-                    pdfBase64,
-                });
-            } catch (emailError) {
-                console.error(
-                    `[FAN Courier] Failed to email AWB details for order ${order.orderNumber}:`,
-                    emailError
-                );
-            }
-        }
-
-        try {
-            const shippingSettings = await getShippingSettings();
-            const pickupConfig = (shippingSettings as any)?.fanCourierPickup;
-            if (pickupConfig?.enabled) {
-                const pickupPayload = buildPickupOrderPayload({
-                    awbNumber,
-                    weight: chargeableWeightKg,
-                    dimensions: maxDimensions,
-                    pickupWindowStart: pickupConfig.windowStart || "09:00",
-                    pickupWindowEnd: pickupConfig.windowEnd || "16:00",
-                    pickupDate: formatPickupDate(
-                        Number(pickupConfig.offsetDays || 0)
-                    ),
-                    observations: pickupConfig.observations || "",
-                });
-
-                await createFanCourierPickupOrder(pickupPayload);
-            }
-        } catch (pickupError) {
-            console.error(
-                `[FAN Courier] Pickup order failed for order ${order.orderNumber}:`,
-                pickupError
-            );
-        }
-    }
-
-    return {
-        success: true,
-        shipment: updatedShipment,
-        awbNumber,
-        manualReviewRequired: manualShippingReviewRequired,
-        reviewReason: shippingReviewReason,
-        senderDebug,
-    };
+  return {
+    success: true,
+    shipment: updatedShipment,
+    awbNumber,
+    manualReviewRequired: manualShippingReviewRequired,
+    reviewReason: shippingReviewReason,
+    senderDebug,
+  };
 };
 
 /**
  * Check if an order already has a FAN Courier shipment
  */
 export const hasFanCourierShipment = async (
-    orderId: string
+  orderId: string
 ): Promise<boolean> => {
-    const shipment = await db.shipment.findFirst({
-        where: { orderId, courier: COURIER_NAME },
-    });
-    return !!shipment?.awbNumber;
+  const shipment = await db.shipment.findFirst({
+    where: { orderId, courier: COURIER_NAME },
+  });
+  return !!shipment?.awbNumber;
 };

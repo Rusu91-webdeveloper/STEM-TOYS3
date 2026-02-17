@@ -6,6 +6,8 @@ import { sendSupplierAwbLabelEmail } from "@/lib/email/supplier-awb";
 import { getFanCourierAwbLabel } from "@/lib/integrations/fancourier/client";
 
 const COURIER_NAME = "FANCOURIER";
+const isSupplierAwbEmailDisabled = () =>
+  process.env.DISABLE_SUPPLIER_AWB_EMAIL === "true";
 
 type SupplierContact = {
   id: string;
@@ -83,7 +85,12 @@ const resolveSupplierEmail = (supplier: SupplierContact | null) => {
   const supplierSpecificEmail =
     process.env[`${normalizedSupplierName}_SUPPLIER_EMAIL`];
 
-  return supplier.email || supplierSpecificEmail || process.env.SUPPLIER_EMAIL || null;
+  return (
+    supplier.email ||
+    supplierSpecificEmail ||
+    process.env.SUPPLIER_EMAIL ||
+    null
+  );
 };
 
 export async function POST(
@@ -148,12 +155,17 @@ export async function POST(
 
     step = "resolve-products";
     const productIds = Array.from(
-      new Set(order.items.map(item => item.productId).filter(Boolean) as string[])
+      new Set(
+        order.items.map(item => item.productId).filter(Boolean) as string[]
+      )
     );
 
     if (productIds.length === 0) {
       return NextResponse.json(
-        { error: "Order has no physical product links to resolve supplier email" },
+        {
+          error:
+            "Order has no physical product links to resolve supplier email",
+        },
         { status: 400 }
       );
     }
@@ -184,7 +196,8 @@ export async function POST(
           product.supplier.companyName ||
           product.supplier.contactPersonName ||
           "Supplier",
-        email: product.supplier.contactPersonEmail || product.supplier.email || null,
+        email:
+          product.supplier.contactPersonEmail || product.supplier.email || null,
       });
     }
 
@@ -223,13 +236,20 @@ export async function POST(
     }
 
     step = "send-email";
-    await sendSupplierAwbLabelEmail({
-      to: supplierEmail,
-      supplierName: supplier.name,
-      orderNumber: order.orderNumber,
-      awbNumber,
-      pdfBase64,
-    });
+    const emailSkipped = isSupplierAwbEmailDisabled();
+    if (emailSkipped) {
+      console.info(
+        `[FAN Courier] Supplier AWB resend email disabled by DISABLE_SUPPLIER_AWB_EMAIL=true. Skipping email for order ${order.orderNumber}.`
+      );
+    } else {
+      await sendSupplierAwbLabelEmail({
+        to: supplierEmail,
+        supplierName: supplier.name,
+        orderNumber: order.orderNumber,
+        awbNumber,
+        pdfBase64,
+      });
+    }
 
     step = "response";
     return NextResponse.json({
@@ -239,9 +259,11 @@ export async function POST(
       awbNumber,
       supplierEmail,
       attachmentIncluded: Boolean(pdfBase64),
+      emailSkipped,
       debug: {
         useSupplierAddressFlag:
           process.env.FANCOURIER_USE_SUPPLIER_ADDRESS === "true",
+        disableSupplierAwbEmailFlag: emailSkipped,
         senderFromAwbPayload,
       },
     });
