@@ -18,8 +18,9 @@ interface OrderReviewProps {
   onEditStep: (step: CheckoutStep) => void;
   onBack: () => void;
   onPlaceOrder: () => void;
+  onGoToCart?: () => void;
   isProcessingOrder?: boolean;
-  orderError?: string | null;
+  orderError?: unknown;
   appliedCoupon?: any;
   discountAmount?: number;
 }
@@ -29,6 +30,7 @@ export function OrderReview({
   onEditStep,
   onBack,
   onPlaceOrder,
+  onGoToCart,
   isProcessingOrder = false,
   orderError = null,
   appliedCoupon,
@@ -323,6 +325,7 @@ export function OrderReview({
       <OrderActions
         onBack={onBack}
         onPlaceOrder={onPlaceOrder}
+        onGoToCart={onGoToCart}
         isProcessingOrder={isProcessingOrder}
         orderError={orderError}
       />

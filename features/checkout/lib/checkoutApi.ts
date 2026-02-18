@@ -2,6 +2,19 @@
  * API functions for interacting with the checkout backend
  */
 
+import { CheckoutError, ERROR_CODES } from "./errorHandling";
+
+type CheckoutOrderApiError = {
+  success?: boolean;
+  message?: string;
+  error?: string;
+  details?: {
+    productName?: string;
+    requested?: number;
+    available?: number;
+  };
+};
+
 /**
  * Create a payment intent
  */
@@ -96,9 +109,33 @@ export async function createOrder(orderData: any) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        `Error: ${response.status} - ${errorData.message || response.statusText}`
+      const errorData: CheckoutOrderApiError = await response
+        .json()
+        .catch(() => ({}));
+
+      if (errorData.error === "INSUFFICIENT_STOCK") {
+        const productName = errorData.details?.productName || "a product";
+        const requested = errorData.details?.requested;
+        const available = errorData.details?.available;
+
+        const stockMessage =
+          typeof requested === "number" && typeof available === "number"
+            ? `Stoc actualizat: "${productName}" are disponibil ${available} buc. (ai cerut ${requested}). Te rugăm să actualizezi coșul și să încerci din nou.`
+            : `Stoc actualizat: "${productName}" nu mai este disponibil în cantitatea cerută. Te rugăm să actualizezi coșul și să încerci din nou.`;
+
+        throw new CheckoutError(
+          ERROR_CODES.INVENTORY_ERROR,
+          stockMessage,
+          false,
+          "cart"
+        );
+      }
+
+      throw new CheckoutError(
+        "CHECKOUT_ORDER_FAILED",
+        errorData.message || `Error: ${response.status} - ${response.statusText}`,
+        true,
+        "retry"
       );
     }
 

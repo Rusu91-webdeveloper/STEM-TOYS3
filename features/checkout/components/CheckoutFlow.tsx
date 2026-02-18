@@ -4,21 +4,22 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 
+import { toast } from "@/components/ui/use-toast";
 import { useCart } from "@/features/cart/context/CartContext";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation } from "@/lib/i18n";
-import { toast } from "@/components/ui/use-toast";
+import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 
+import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
 import { createOrder } from "../lib/checkoutApi";
+import { CheckoutData, CheckoutStep } from "../types";
+
 import { CheckoutSummary } from "./CheckoutSummary";
 import { EnhancedCheckoutStepper } from "./EnhancedCheckoutStepper";
 import { OrderReview } from "./OrderReview";
 import { PaymentForm } from "./PaymentForm";
 import { ShippingAddressForm } from "./ShippingAddressForm";
 import { ShippingMethodSelector } from "./ShippingMethodSelector";
-import { useCheckoutSettings } from "../hooks/useCheckoutSettings";
-import { CheckoutData, CheckoutStep } from "../types";
-import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 
 export function CheckoutFlow() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export function CheckoutFlow() {
     billingAddressSameAsShipping: true,
   });
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
-  const [orderError, setOrderError] = useState<string | null>(null);
+  const [orderError, setOrderError] = useState<unknown>(null);
   const [redirectToConfirmation, setRedirectToConfirmation] = useState<
     string | null
   >(null);
@@ -147,9 +148,8 @@ export function CheckoutFlow() {
   ): number => {
     if (coupon.type === "PERCENTAGE") {
       return Math.round((cartTotal * coupon.value) / 100 * 100) / 100;
-    } else {
-      return Math.min(coupon.value, cartTotal);
     }
+    return Math.min(coupon.value, cartTotal);
   };
 
   // Automatically fetch and apply welcome discount for new users
@@ -282,11 +282,7 @@ export function CheckoutFlow() {
       }
     } catch (error) {
       console.error("Order creation failed:", error);
-      setOrderError(
-        error instanceof Error
-          ? error.message
-          : t("orderError", "Failed to create order. Please try again.")
-      );
+      setOrderError(error);
       setIsProcessingOrder(false);
     }
   };
@@ -359,7 +355,7 @@ export function CheckoutFlow() {
       // Create order first (will be in pending payment status)
       const order = await createOrder(orderData);
 
-      if (order && order.success) {
+      if (order?.success) {
         // Store order ID for Netopia callback
         sessionStorage.setItem("pendingOrderId", order.orderId);
         sessionStorage.setItem(
@@ -403,10 +399,9 @@ export function CheckoutFlow() {
             // Redirect to Netopia payment page
             window.location.href = paymentResult.paymentUrl;
             return;
-          } else {
-            console.error("❌ [CHECKOUT] No payment URL in response");
-            throw new Error("Netopia did not return a payment URL");
           }
+          console.error("❌ [CHECKOUT] No payment URL in response");
+          throw new Error("Netopia did not return a payment URL");
         } else {
           const errorData = await response.json().catch(() => ({}));
           console.error("❌ [CHECKOUT] Payment creation failed:");
@@ -429,7 +424,7 @@ export function CheckoutFlow() {
         ? error.message
         : "Failed to initiate Netopia payment. Please try again or contact support.";
       
-      setOrderError(userMessage);
+      setOrderError(new Error(userMessage));
       throw error;
     } finally {
       setIsProcessingOrder(false);
@@ -541,7 +536,7 @@ export function CheckoutFlow() {
       // Create order with COD status
       const order = await createOrder(orderData);
 
-      if (order && order.success) {
+      if (order?.success) {
         // Set a flag in session storage to indicate order completion
         sessionStorage.setItem("orderCompleted", "true");
         sessionStorage.setItem("orderId", order.orderId);
@@ -571,7 +566,7 @@ export function CheckoutFlow() {
         ? error.message
         : "Failed to create COD order. Please try again or contact support.";
       
-      setOrderError(userMessage);
+      setOrderError(new Error(userMessage));
       throw error;
     } finally {
       setIsProcessingOrder(false);
@@ -651,7 +646,7 @@ export function CheckoutFlow() {
 
       const order = await createOrder(orderData);
 
-      if (order && order.success) {
+      if (order?.success) {
         // Set a flag in session storage to indicate order completion FIRST
         sessionStorage.setItem("orderCompleted", "true");
         sessionStorage.setItem("orderId", order.orderId);
@@ -822,6 +817,7 @@ export function CheckoutFlow() {
               onEditStep={goToStep}
               onBack={() => setCurrentStep("payment")}
               onPlaceOrder={handlePlaceOrder}
+              onGoToCart={() => router.push("/cart")}
               isProcessingOrder={isProcessingOrder}
               orderError={orderError}
               appliedCoupon={appliedCoupon}
