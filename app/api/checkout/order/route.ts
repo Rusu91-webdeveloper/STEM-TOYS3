@@ -1,31 +1,28 @@
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
 
 import type { CartItem } from "@/features/cart/context/CartContext";
 import { auth } from "@/lib/auth";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
-import { DatabaseTemplateService } from "@/lib/email/database-template-service";
 import { AdminNotificationService } from "@/lib/email/admin-notification-service";
-import { getStripeApiVersion, getStripeCurrency } from "@/lib/stripe-config";
-import {
-  getShippingSettings,
-  getTaxSettings,
-} from "@/lib/utils/store-settings";
+import { DatabaseTemplateService } from "@/lib/email/database-template-service";
 import {
   getCodThreshold,
   getRecipientType,
 } from "@/lib/shipping/cod-thresholds";
 import {
-  calculateShippingQuote,
-  resolveShippingService,
-} from "@/lib/shipping/shipping-pricing";
-import {
   DEFAULT_COURIERS,
   parseShippingMethodId,
 } from "@/lib/shipping/couriers";
+import { calculateDeclaredValue } from "@/lib/shipping/declared-value";
+import {
+  calculateShippingQuote,
+  resolveShippingService,
+} from "@/lib/shipping/shipping-pricing";
+import { getStripeApiVersion, getStripeCurrency } from "@/lib/stripe-config";
 import {
   shouldAutoFulfillOrder,
   calculateProcessingTime,
@@ -37,7 +34,10 @@ import {
   shouldAlertHighValueOrder,
   getNotificationSettings,
 } from "@/lib/utils/order-processing";
-import { calculateDeclaredValue } from "@/lib/shipping/declared-value";
+import {
+  getShippingSettings,
+  getTaxSettings,
+} from "@/lib/utils/store-settings";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripeClient = stripeSecretKey
@@ -47,9 +47,18 @@ const stripeClient = stripeSecretKey
 // Order validation schema - more lenient version
 const shippingAddressSchema = z
   .object({
+    companyName: z.string().optional(),
+    cui: z.string().optional(),
     fullName: z.string().min(1, "Full name is required"),
     addressLine1: z.string().min(1, "Address line 1 is required"),
     addressLine2: z.string().optional().nullable(),
+    street: z.string().optional(),
+    streetNumber: z.string().optional(),
+    block: z.string().optional(),
+    entrance: z.string().optional(),
+    floor: z.string().optional(),
+    apartment: z.string().optional(),
+    addressDetails: z.string().optional(),
     city: z.string().min(1, "City is required"),
     state: z.string().min(1, "State is required"),
     postalCode: z.string().min(1, "Postal code is required"),
@@ -141,6 +150,97 @@ const normalizeOptionalString = (value: unknown): string | null => {
   return trimmed.length > 0 ? trimmed : null;
 };
 
+type CheckoutAddressInput = z.infer<typeof shippingAddressSchema>;
+
+const parseStreetAndNumber = (
+  addressLine1: string,
+  addressLine2?: string | null,
+  city?: string
+): { street: string | null; streetNumber: string | null } => {
+  const normalizedCity = (city || "").trim().toLowerCase();
+  const line1Parts = addressLine1
+    .split(",")
+    .map(part => part.trim())
+    .filter(Boolean)
+    .filter(part => part.toLowerCase() !== normalizedCity);
+  const primary = line1Parts[0] || addressLine1.trim();
+
+  const match = primary.match(
+    /^(.*?)(?:\s+(?:nr\.?|no\.?)?\s*(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?))$/i
+  );
+
+  const street = normalizeOptionalString(match?.[1] || primary);
+  let streetNumber = normalizeOptionalString(match?.[2]);
+  if (!streetNumber) {
+    const fromLine2 = normalizeOptionalString(addressLine2);
+    if (fromLine2 && /^\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?$/.test(fromLine2)) {
+      streetNumber = fromLine2.replace(/\s+/g, "");
+    }
+  }
+
+  return { street, streetNumber };
+};
+
+const normalizeCheckoutAddress = (input: CheckoutAddressInput) => {
+  const country = normalizeOptionalString(input.country) || input.country;
+  const city = normalizeOptionalString(input.city) || input.city;
+  const street = normalizeOptionalString(input.street);
+  const streetNumber = normalizeOptionalString(input.streetNumber);
+  const block = normalizeOptionalString(input.block);
+  const entrance = normalizeOptionalString(input.entrance);
+  const floor = normalizeOptionalString(input.floor);
+  const apartment = normalizeOptionalString(input.apartment);
+  const addressDetails = normalizeOptionalString(input.addressDetails);
+
+  const parsed = parseStreetAndNumber(input.addressLine1, input.addressLine2, city);
+  const finalStreet = street || parsed.street;
+  const finalStreetNumber = streetNumber || parsed.streetNumber;
+  const isRomania = (country || "").toUpperCase() === "RO";
+
+  if (isRomania && (!finalStreet || !finalStreetNumber)) {
+    return {
+      success: false as const,
+      error:
+        "Street and street number are required for Romanian deliveries. Please complete address details.",
+    };
+  }
+
+  const line1 = [finalStreet, finalStreetNumber]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  const legacyLine2 = normalizeOptionalString(input.addressLine2);
+  const line2Parts = [
+    block ? `Bl. ${block}` : null,
+    entrance ? `Sc. ${entrance}` : null,
+    floor ? `Et. ${floor}` : null,
+    apartment ? `Ap. ${apartment}` : null,
+    addressDetails || null,
+    !block && !entrance && !floor && !apartment && !addressDetails
+      ? legacyLine2
+      : null,
+  ].filter(Boolean) as string[];
+
+  return {
+    success: true as const,
+    address: {
+      ...input,
+      city,
+      country,
+      street: finalStreet || undefined,
+      streetNumber: finalStreetNumber || undefined,
+      block: block || undefined,
+      entrance: entrance || undefined,
+      floor: floor || undefined,
+      apartment: apartment || undefined,
+      addressDetails: addressDetails || undefined,
+      addressLine1: line1 || input.addressLine1,
+      addressLine2: line2Parts.length > 0 ? line2Parts.join(", ") : null,
+    },
+  };
+};
+
 // POST /api/checkout/order - Create a new order
 export async function POST(request: Request) {
   try {
@@ -195,6 +295,40 @@ export async function POST(request: Request) {
 
     // Validate request body
     const orderData = orderSchema.parse(body);
+    const normalizedShippingAddressResult = normalizeCheckoutAddress(
+      orderData.shippingAddress
+    );
+    if (!normalizedShippingAddressResult.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: normalizedShippingAddressResult.error,
+          error: "INVALID_SHIPPING_ADDRESS",
+        },
+        { status: 400 }
+      );
+    }
+
+    let normalizedBillingAddress: CheckoutAddressInput | undefined = undefined;
+    if (orderData.billingAddress) {
+      const normalizedBillingAddressResult = normalizeCheckoutAddress(
+        orderData.billingAddress
+      );
+      if (!normalizedBillingAddressResult.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: normalizedBillingAddressResult.error,
+            error: "INVALID_BILLING_ADDRESS",
+          },
+          { status: 400 }
+        );
+      }
+      normalizedBillingAddress = normalizedBillingAddressResult.address;
+    }
+
+    const shippingAddressData = normalizedShippingAddressResult.address;
+    const billingAddressData = normalizedBillingAddress;
 
     const shippingMethodId = (orderData.shippingMethod?.id || "").toLowerCase();
     const lockerRequired =
@@ -611,8 +745,8 @@ export async function POST(request: Request) {
     }
 
     const recipientType = getRecipientType([
-      orderData.shippingAddress,
-      orderData.billingAddress,
+      shippingAddressData,
+      billingAddressData,
     ]);
 
     // Calculate declared value for insurance (bundles and high-value orders)
@@ -810,20 +944,20 @@ export async function POST(request: Request) {
 
     try {
       const shippingCompanyName = normalizeOptionalString(
-        orderData.shippingAddress.companyName
+        shippingAddressData.companyName
       );
       const shippingCui = normalizeOptionalString(
-        orderData.shippingAddress.cui
+        shippingAddressData.cui
       );
 
       // Check if user has an existing address with the same details
       const existingAddress = await db.address.findFirst({
         where: {
           userId: user.id,
-          fullName: orderData.shippingAddress.fullName,
-          addressLine1: orderData.shippingAddress.addressLine1,
-          city: orderData.shippingAddress.city,
-          postalCode: orderData.shippingAddress.postalCode,
+          fullName: shippingAddressData.fullName,
+          addressLine1: shippingAddressData.addressLine1,
+          city: shippingAddressData.city,
+          postalCode: shippingAddressData.postalCode,
           ...(shippingCompanyName ? { companyName: shippingCompanyName } : {}),
           ...(shippingCui ? { cui: shippingCui } : {}),
         },
@@ -839,14 +973,14 @@ export async function POST(request: Request) {
             name: "Shipping Address", // Default name
             companyName: shippingCompanyName,
             cui: shippingCui,
-            fullName: orderData.shippingAddress.fullName,
-            addressLine1: orderData.shippingAddress.addressLine1,
-            addressLine2: orderData.shippingAddress.addressLine2 || null,
-            city: orderData.shippingAddress.city,
-            state: orderData.shippingAddress.state,
-            postalCode: orderData.shippingAddress.postalCode,
-            country: orderData.shippingAddress.country,
-            phone: orderData.shippingAddress.phone,
+            fullName: shippingAddressData.fullName,
+            addressLine1: shippingAddressData.addressLine1,
+            addressLine2: shippingAddressData.addressLine2 || null,
+            city: shippingAddressData.city,
+            state: shippingAddressData.state,
+            postalCode: shippingAddressData.postalCode,
+            country: shippingAddressData.country,
+            phone: shippingAddressData.phone,
           },
         });
         shippingAddressId = newAddress.id;
@@ -1523,7 +1657,7 @@ export async function POST(request: Request) {
               recipientEmail,
               {
                 customerName:
-                  orderData?.shippingAddress?.fullName ||
+                  shippingAddressData?.fullName ||
                   user?.name ||
                   "Client",
                 orderNumber: String(orderNumberForEmail),
@@ -1533,7 +1667,7 @@ export async function POST(request: Request) {
                   quantity: item.quantity,
                   price: item.price,
                 })),
-                shippingAddress: orderData.shippingAddress,
+                shippingAddress: shippingAddressData,
                 subtotal,
                 tax,
                 shippingCost: finalShippingCost,

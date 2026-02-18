@@ -2,6 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import React, { useState, useEffect } from "react";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,13 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { glassCardClass } from "@/features/home/components/homeTheme";
 import { createFormValidator } from "@/lib/formValidation";
 import { useTranslation } from "@/lib/i18n";
-import {
-  addressSchema,
-  internationalAddressSchema,
-} from "@/lib/validations";
-import { glassCardClass } from "@/features/home/components/homeTheme";
 import { cn } from "@/lib/utils";
 
 import { ShippingAddress } from "../types";
@@ -47,10 +44,57 @@ interface ShippingAddressFormProps {
   allowInternational?: boolean;
 }
 
-// Create a form validator using our address schema
-const romanianAddressValidator = createFormValidator(addressSchema);
+const optionalStructuredField = (maxLength = 64) =>
+  z.preprocess(
+    value =>
+      typeof value === "string" && value.trim().length === 0 ? undefined : value,
+    z.string().max(maxLength).optional()
+  );
+
+const checkoutAddressSchemaBase = {
+  companyName: optionalStructuredField(128),
+  cui: optionalStructuredField(64),
+  fullName: z.string().trim().min(2, "Full name is required"),
+  street: z.string().trim().min(2, "Street is required"),
+  streetNumber: z.string().trim().min(1, "Street number is required"),
+  block: optionalStructuredField(32),
+  entrance: optionalStructuredField(32),
+  floor: optionalStructuredField(32),
+  apartment: optionalStructuredField(32),
+  addressDetails: optionalStructuredField(200),
+  addressLine1: z.string().optional(),
+  addressLine2: z.string().optional(),
+  city: z.string().trim().min(2, "City is required"),
+  state: z.string().trim().min(1, "State is required"),
+  postalCode: z.string().trim(),
+  country: z.string().trim().min(2, "Country is required"),
+  phone: z.string().trim(),
+};
+
+const checkoutRomanianAddressSchema = z.object({
+  ...checkoutAddressSchemaBase,
+  postalCode: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, "Please enter a valid Romanian postal code (6 digits)"),
+  phone: z
+    .string()
+    .trim()
+    .regex(
+      /^(07\d{8}|\+407\d{8}|0\d{9})$/,
+      "Please enter a valid Romanian phone number"
+    ),
+});
+
+const checkoutInternationalAddressSchema = z.object({
+  ...checkoutAddressSchemaBase,
+  postalCode: z.string().trim().min(2, "Postal code is required"),
+  phone: z.string().trim().min(6, "Phone number is required"),
+});
+
+const romanianAddressValidator = createFormValidator(checkoutRomanianAddressSchema);
 const internationalAddressValidator = createFormValidator(
-  internationalAddressSchema
+  checkoutInternationalAddressSchema
 );
 
 // Romanian counties
@@ -102,6 +146,118 @@ const romanianCounties = [
 // Only Romania is available for shipping
 const countries = [{ code: "RO", name: "România" }];
 
+const parseStreetFromLegacyAddress = (
+  line1: string,
+  line2?: string,
+  city?: string
+): Pick<
+  ShippingAddress,
+  "street" | "streetNumber" | "block" | "entrance" | "floor" | "apartment" | "addressDetails"
+> => {
+  const cleanedCity = (city || "").trim().toLowerCase();
+  const firstPart = line1
+    .split(",")
+    .map(part => part.trim())
+    .filter(Boolean)
+    .find(part => part.toLowerCase() !== cleanedCity) || line1.trim();
+
+  const streetNoMatch = firstPart.match(
+    /^(.*?)(?:\s+(?:nr\.?|no\.?)?\s*(\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?))$/i
+  );
+  const street = (streetNoMatch?.[1] || firstPart).trim();
+  const streetNumber =
+    (streetNoMatch?.[2] || "").replace(/\s+/g, "") ||
+    ((line2 || "").trim().match(/^\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?$/)?.[0] ??
+      "");
+
+  const detailsSource = [line1, line2 || ""].join(", ");
+  const block = detailsSource.match(/\b(?:bl(?:oc)?\.?)\s*([a-zA-Z0-9\-\/]+)/i)?.[1];
+  const entrance = detailsSource.match(
+    /\b(?:sc(?:ara)?\.?|entr(?:are)?\.?)\s*([a-zA-Z0-9\-\/]+)/i
+  )?.[1];
+  const floor = detailsSource.match(/\b(?:et(?:aj)?\.?|floor)\s*([a-zA-Z0-9\-\/]+)/i)?.[1];
+  const apartment = detailsSource.match(
+    /\b(?:ap(?:t|artament)?\.?)\s*([a-zA-Z0-9\-\/]+)/i
+  )?.[1];
+
+  let addressDetails = (line2 || "").trim();
+  if (addressDetails) {
+    addressDetails = addressDetails
+      .replace(/\b(?:bl(?:oc)?\.?)\s*[a-zA-Z0-9\-\/]+/gi, "")
+      .replace(/\b(?:sc(?:ara)?\.?|entr(?:are)?\.?)\s*[a-zA-Z0-9\-\/]+/gi, "")
+      .replace(/\b(?:et(?:aj)?\.?|floor)\s*[a-zA-Z0-9\-\/]+/gi, "")
+      .replace(/\b(?:ap(?:t|artament)?\.?)\s*[a-zA-Z0-9\-\/]+/gi, "")
+      .replace(/\s{2,}/g, " ")
+      .replace(/^[,\s]+|[,\s]+$/g, "")
+      .trim();
+  }
+
+  return {
+    street,
+    streetNumber: streetNumber || undefined,
+    block: block || undefined,
+    entrance: entrance || undefined,
+    floor: floor || undefined,
+    apartment: apartment || undefined,
+    addressDetails: addressDetails || undefined,
+  };
+};
+
+const composeLegacyAddressLines = (address: ShippingAddress): ShippingAddress => {
+  const street = (address.street || "").trim();
+  const streetNumber = (address.streetNumber || "").trim();
+  const block = (address.block || "").trim();
+  const entrance = (address.entrance || "").trim();
+  const floor = (address.floor || "").trim();
+  const apartment = (address.apartment || "").trim();
+  const addressDetails = (address.addressDetails || "").trim();
+
+  const addressLine1 = [street, streetNumber].filter(Boolean).join(" ").trim();
+  const line2Parts = [
+    block ? `Bl. ${block}` : null,
+    entrance ? `Sc. ${entrance}` : null,
+    floor ? `Et. ${floor}` : null,
+    apartment ? `Ap. ${apartment}` : null,
+    addressDetails || null,
+  ].filter(Boolean) as string[];
+
+  return {
+    ...address,
+    addressLine1,
+    addressLine2: line2Parts.length > 0 ? line2Parts.join(", ") : undefined,
+  };
+};
+
+const mapSavedAddressToCheckout = (
+  address: Address,
+  fallbackCountry: string
+): ShippingAddress => {
+  const parsed = parseStreetFromLegacyAddress(
+    address.addressLine1,
+    address.addressLine2,
+    address.city
+  );
+  return {
+    companyName: address.companyName || "",
+    cui: address.cui || "",
+    fullName: address.fullName,
+    addressLine1: address.addressLine1,
+    addressLine2: address.addressLine2 || "",
+    city: address.city,
+    state: address.state,
+    postalCode: address.postalCode,
+    country: address.country || fallbackCountry,
+    phone: address.phone,
+    street: parsed.street,
+    streetNumber: parsed.streetNumber,
+    block: parsed.block,
+    entrance: parsed.entrance,
+    floor: parsed.floor,
+    apartment: parsed.apartment,
+    addressDetails: parsed.addressDetails,
+  };
+};
+
 export function ShippingAddressForm({
   initialData,
   onSubmit,
@@ -112,11 +268,37 @@ export function ShippingAddressForm({
   const addressValidator = allowInternational
     ? internationalAddressValidator
     : romanianAddressValidator;
-  const [formData, setFormData] = useState<ShippingAddress>(
-    initialData || {
+  const [formData, setFormData] = useState<ShippingAddress>(() => {
+    if (initialData) {
+      const parsed = parseStreetFromLegacyAddress(
+        initialData.addressLine1,
+        initialData.addressLine2,
+        initialData.city
+      );
+      return {
+        ...initialData,
+        street: initialData.street || parsed.street,
+        streetNumber: initialData.streetNumber || parsed.streetNumber,
+        block: initialData.block || parsed.block,
+        entrance: initialData.entrance || parsed.entrance,
+        floor: initialData.floor || parsed.floor,
+        apartment: initialData.apartment || parsed.apartment,
+        addressDetails: initialData.addressDetails || parsed.addressDetails,
+        country: initialData.country || defaultCountry,
+      };
+    }
+
+    return {
       companyName: "",
       cui: "",
       fullName: "",
+      street: "",
+      streetNumber: "",
+      block: "",
+      entrance: "",
+      floor: "",
+      apartment: "",
+      addressDetails: "",
       addressLine1: "",
       addressLine2: "",
       city: "",
@@ -124,8 +306,8 @@ export function ShippingAddressForm({
       postalCode: "",
       country: defaultCountry,
       phone: "",
-    }
-  );
+    };
+  });
 
   const [errors, setErrors] = useState<
     Partial<Record<keyof ShippingAddress, string>>
@@ -150,19 +332,7 @@ export function ShippingAddressForm({
           );
           if (defaultAddress && !initialData) {
             setSelectedAddressId(defaultAddress.id);
-            const shippingAddress: ShippingAddress = {
-              companyName: defaultAddress.companyName || "",
-              cui: defaultAddress.cui || "",
-              fullName: defaultAddress.fullName,
-              addressLine1: defaultAddress.addressLine1,
-              addressLine2: defaultAddress.addressLine2 || "",
-              city: defaultAddress.city,
-              state: defaultAddress.state,
-              postalCode: defaultAddress.postalCode,
-              country: defaultAddress.country,
-              phone: defaultAddress.phone,
-            };
-            setFormData(shippingAddress);
+            setFormData(mapSavedAddressToCheckout(defaultAddress, defaultCountry));
           }
         }
       } catch (error) {
@@ -173,7 +343,7 @@ export function ShippingAddressForm({
     };
 
     fetchAddresses();
-  }, [initialData]);
+  }, [defaultCountry, initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -200,12 +370,13 @@ export function ShippingAddressForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const composedAddress = composeLegacyAddressLines(formData);
 
     // Validate the entire form
-    const validation = addressValidator.validateForm(formData);
+    const validation = addressValidator.validateForm(composedAddress);
 
     if (validation.success) {
-      onSubmit(formData);
+      onSubmit(composedAddress);
     } else {
       // Update errors state with validation errors
       setErrors(validation.errors || {});
@@ -221,6 +392,13 @@ export function ShippingAddressForm({
         companyName: "",
         cui: "",
         fullName: "",
+        street: "",
+        streetNumber: "",
+        block: "",
+        entrance: "",
+        floor: "",
+        apartment: "",
+        addressDetails: "",
         addressLine1: "",
         addressLine2: "",
         city: "",
@@ -235,22 +413,13 @@ export function ShippingAddressForm({
         addr => addr.id === addressId
       );
       if (selectedAddress) {
-        const shippingAddress: ShippingAddress = {
-          companyName: selectedAddress.companyName || "",
-          cui: selectedAddress.cui || "",
-          fullName: selectedAddress.fullName,
-          addressLine1: selectedAddress.addressLine1,
-          addressLine2: selectedAddress.addressLine2 || "",
-          city: selectedAddress.city,
-          state: selectedAddress.state,
-          postalCode: selectedAddress.postalCode,
-          country: selectedAddress.country,
-          phone: selectedAddress.phone,
-        };
-        setFormData(shippingAddress);
+        setFormData(mapSavedAddressToCheckout(selectedAddress, defaultCountry));
       }
     }
   };
+
+  const requiresManualAddressDetails =
+    !formData.street || !formData.streetNumber;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -341,8 +510,16 @@ export function ShippingAddressForm({
           </div>
         ) : null}
 
-        {selectedAddressId === "new" && (
+        {(selectedAddressId === "new" || requiresManualAddressDetails) && (
           <div className="space-y-4">
+            {selectedAddressId !== "new" && (
+              <div className="rounded-md border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-100">
+                {t(
+                  "completeAddressForCourier",
+                  "Completează strada și numărul pentru livrare corectă prin curier."
+                )}
+              </div>
+            )}
             <div>
               <Label htmlFor="fullName" className="text-slate-200">
                 {t("fullName")}
@@ -404,36 +581,115 @@ export function ShippingAddressForm({
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="addressLine1" className="text-slate-200">
-                {t("addressLine1")}
-              </Label>
-              <Input
-                id="addressLine1"
-                name="addressLine1"
-                value={formData.addressLine1}
-                onChange={handleChange}
-                className={cn(
-                  "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
-                  errors.addressLine1 && "border-red-500"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="street" className="text-slate-200">
+                  {t("streetLabel", "Stradă")}
+                </Label>
+                <Input
+                  id="street"
+                  name="street"
+                  value={formData.street || ""}
+                  onChange={handleChange}
+                  className={cn(
+                    "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                    errors.street && "border-red-500"
+                  )}
+                />
+                {errors.street && (
+                  <p className="mt-1 text-sm text-red-400">{errors.street}</p>
                 )}
-              />
-              {errors.addressLine1 && (
-                <p className="mt-1 text-sm text-red-400">
-                  {errors.addressLine1}
-                </p>
-              )}
+              </div>
+
+              <div>
+                <Label htmlFor="streetNumber" className="text-slate-200">
+                  {t("streetNumberLabel", "Număr")}
+                </Label>
+                <Input
+                  id="streetNumber"
+                  name="streetNumber"
+                  value={formData.streetNumber || ""}
+                  onChange={handleChange}
+                  className={cn(
+                    "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                    errors.streetNumber && "border-red-500"
+                  )}
+                />
+                {errors.streetNumber && (
+                  <p className="mt-1 text-sm text-red-400">
+                    {errors.streetNumber}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <Label htmlFor="block" className="text-slate-200">
+                  {t("blockLabel", "Bloc")}
+                </Label>
+                <Input
+                  id="block"
+                  name="block"
+                  value={formData.block || ""}
+                  onChange={handleChange}
+                  className="border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="entrance" className="text-slate-200">
+                  {t("entranceLabel", "Scară")}
+                </Label>
+                <Input
+                  id="entrance"
+                  name="entrance"
+                  value={formData.entrance || ""}
+                  onChange={handleChange}
+                  className="border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="floor" className="text-slate-200">
+                  {t("floorLabel", "Etaj")}
+                </Label>
+                <Input
+                  id="floor"
+                  name="floor"
+                  value={formData.floor || ""}
+                  onChange={handleChange}
+                  className="border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="apartment" className="text-slate-200">
+                  {t("apartmentLabel", "Apartament")}
+                </Label>
+                <Input
+                  id="apartment"
+                  name="apartment"
+                  value={formData.apartment || ""}
+                  onChange={handleChange}
+                  className="border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400"
+                />
+              </div>
             </div>
 
             <div>
-              <Label htmlFor="addressLine2" className="text-slate-200">
-                {t("addressLine2")}
+              <Label htmlFor="addressDetails" className="text-slate-200">
+                {t("addressDetailsLabel", "Detalii adresă (opțional)")}
               </Label>
               <Input
-                id="addressLine2"
-                name="addressLine2"
-                value={formData.addressLine2 || ""}
+                id="addressDetails"
+                name="addressDetails"
+                value={formData.addressDetails || ""}
                 onChange={handleChange}
+                placeholder={t(
+                  "addressDetailsPlaceholder",
+                  "Ex: Interfon 23, lângă farmacia X"
+                )}
                 className="border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400"
               />
             </div>

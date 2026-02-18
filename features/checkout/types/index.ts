@@ -9,6 +9,13 @@ export interface ShippingAddress {
   companyName?: string;
   cui?: string;
   fullName: string;
+  street?: string;
+  streetNumber?: string;
+  block?: string;
+  entrance?: string;
+  floor?: string;
+  apartment?: string;
+  addressDetails?: string;
   addressLine1: string;
   addressLine2?: string;
   city: string;
