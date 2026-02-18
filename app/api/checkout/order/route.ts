@@ -10,7 +10,10 @@ import { db } from "@/lib/db";
 import { DatabaseTemplateService } from "@/lib/email/database-template-service";
 import { AdminNotificationService } from "@/lib/email/admin-notification-service";
 import { getStripeApiVersion, getStripeCurrency } from "@/lib/stripe-config";
-import { getShippingSettings, getTaxSettings } from "@/lib/utils/store-settings";
+import {
+  getShippingSettings,
+  getTaxSettings,
+} from "@/lib/utils/store-settings";
 import {
   getCodThreshold,
   getRecipientType,
@@ -195,7 +198,8 @@ export async function POST(request: Request) {
 
     const shippingMethodId = (orderData.shippingMethod?.id || "").toLowerCase();
     const lockerRequired =
-      shippingMethodId.includes("fanbox") || shippingMethodId.includes("easybox");
+      shippingMethodId.includes("fanbox") ||
+      shippingMethodId.includes("easybox");
     if (lockerRequired && !normalizeOptionalString(orderData.lockerId)) {
       return NextResponse.json(
         {
@@ -230,6 +234,18 @@ export async function POST(request: Request) {
       paymentProvider === "netopia" &&
       typeof orderData.paymentMethod === "string" &&
       orderData.paymentMethod.startsWith("netopia_");
+
+    if (lockerRequired && isCODPayment) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Cash on delivery is not available for FANbox/Easybox delivery. Please choose card payment.",
+          error: "COD_NOT_ALLOWED_FOR_LOCKER",
+        },
+        { status: 400 }
+      );
+    }
 
     // Optional testing gate: keep checkout admin-only only when explicitly enabled.
     const isAdmin = user?.role === "ADMIN";
@@ -377,14 +393,20 @@ export async function POST(request: Request) {
           orderData.shippingMethod.id
         );
         const selectedCourier = configuredCouriers.find(
-          (courier: any) => courier.id === courierId && courier.enabled !== false
+          (courier: any) =>
+            courier.id === courierId && courier.enabled !== false
         );
         const selectedService = selectedCourier?.services?.find(
-          (service: any) => service.id === serviceId && service.enabled !== false
+          (service: any) =>
+            service.id === serviceId && service.enabled !== false
         );
 
         const overrideRaw = selectedService?.priceOverride;
-        if (overrideRaw !== undefined && overrideRaw !== null && overrideRaw !== "") {
+        if (
+          overrideRaw !== undefined &&
+          overrideRaw !== null &&
+          overrideRaw !== ""
+        ) {
           const parsedOverride = Number(overrideRaw);
           if (Number.isFinite(parsedOverride)) {
             selectedServicePriceOverride = parsedOverride;
@@ -435,8 +457,7 @@ export async function POST(request: Request) {
           shippingBasePrice = quote.basePrice;
           shippingTotalEstimate = quote.totalPrice;
           pricingVersion = quote.pricingVersion;
-          finalShippingCost =
-            selectedServicePriceOverride ?? quote.totalPrice;
+          finalShippingCost = selectedServicePriceOverride ?? quote.totalPrice;
         }
       }
     }
@@ -738,7 +759,10 @@ export async function POST(request: Request) {
         select: { id: true, name: true, stockQuantity: true },
       });
       const productStockMap = new Map(
-        productsWithStock.map(p => [p.id, { name: p.name, stockQuantity: p.stockQuantity }])
+        productsWithStock.map(p => [
+          p.id,
+          { name: p.name, stockQuantity: p.stockQuantity },
+        ])
       );
       for (const item of items) {
         if (item.isBook === true || !item.productId) continue;
@@ -1370,7 +1394,9 @@ export async function POST(request: Request) {
           });
 
           if (supplierOrderCount === 0) {
-            const processResult = await OrderProcessor.processNewOrder(dbOrder.id);
+            const processResult = await OrderProcessor.processNewOrder(
+              dbOrder.id
+            );
             if (!processResult.success && processResult.errors.length > 0) {
               console.warn(
                 `[CHECKOUT][COD] Supplier orders had errors for order ${dbOrder.id}:`,

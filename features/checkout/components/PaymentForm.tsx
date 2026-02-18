@@ -158,7 +158,8 @@ export function PaymentForm({
         const hasPhysicalItems = cartItems.some(item => item.isBook !== true);
 
         const deliveryPrice = settings?.shippingSettings?.deliveryPrice?.active
-          ? parseFloat(settings.shippingSettings.deliveryPrice.price || "0") || 0
+          ? parseFloat(settings.shippingSettings.deliveryPrice.price || "0") ||
+            0
           : 0;
 
         const baseShippingPrice =
@@ -267,7 +268,9 @@ export function PaymentForm({
       setUserLocale(navigator.language);
 
       const resolvedCountry =
-        (useSameAddress ? shippingAddress?.country : currentBillingAddress?.country) ||
+        (useSameAddress
+          ? shippingAddress?.country
+          : currentBillingAddress?.country) ||
         billingAddress?.country ||
         shippingAddress?.country;
 
@@ -577,7 +580,10 @@ export function PaymentForm({
 
     if (showBillingForm && !currentBillingAddress) {
       setPaymentError(
-        t("billingAddressRequired", "Te rugăm să completezi adresa de facturare.")
+        t(
+          "billingAddressRequired",
+          "Te rugăm să completezi adresa de facturare."
+        )
       );
       return;
     }
@@ -612,6 +618,7 @@ export function PaymentForm({
           shippingCountry={shippingAddress?.country}
           isAdmin={isAdmin}
           checkoutAdminOnly={settings?.checkoutAdminOnly === true}
+          shippingMethod={shippingMethod}
         />
 
         <PaymentSummary
