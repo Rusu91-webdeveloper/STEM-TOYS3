@@ -125,6 +125,70 @@ const extractPickupLocation = (snapshot: unknown, lockerId?: string | null) => {
   return null;
 };
 
+const extractPickupLocationCandidates = (
+  snapshot: unknown,
+  lockerId?: string | null
+): string[] => {
+  const candidates: string[] = [];
+  const pushCandidate = (value: unknown) => {
+    if (typeof value !== "string") return;
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    if (!candidates.includes(trimmed)) {
+      candidates.push(trimmed);
+    }
+  };
+
+  if (snapshot && typeof snapshot === "object") {
+    const record = snapshot as Record<string, unknown>;
+    pushCandidate(record.pickupLocation);
+    pushCandidate(record.name);
+    pushCandidate(record.title);
+    pushCandidate(record.id);
+    pushCandidate(record.lockerId);
+  }
+
+  pushCandidate(lockerId);
+  return candidates;
+};
+
+const hasPickupLocationValidationError = (
+  response: Record<string, unknown> | null
+): boolean => {
+  if (!response) return false;
+
+  const data = response.data as Record<string, unknown> | undefined;
+  const responseEntries = Array.isArray(response.response)
+    ? (response.response as Array<Record<string, unknown>>)
+    : [];
+  const dataResponseEntries = Array.isArray(data?.response)
+    ? (data.response as Array<Record<string, unknown>>)
+    : [];
+  const allEntries = [...responseEntries, ...dataResponseEntries];
+
+  const containsPickupLocationToken = (value: unknown): boolean => {
+    if (typeof value === "string") {
+      const normalized = value.toLowerCase();
+      return (
+        normalized.includes("pickuplocation") ||
+        normalized.includes("fanboxisinvalid")
+      );
+    }
+    if (Array.isArray(value)) {
+      return value.some(containsPickupLocationToken);
+    }
+    if (value && typeof value === "object") {
+      return Object.entries(value).some(([key, inner]) => {
+        if (key.toLowerCase().includes("pickuplocation")) return true;
+        return containsPickupLocationToken(inner);
+      });
+    }
+    return false;
+  };
+
+  return allEntries.some(entry => containsPickupLocationToken(entry.errors));
+};
+
 /**
  * Parse street address into street name and number.
  * Handles Romanian formats: "Str. X Nr. 54-56", "Strada X 54", "B-dul Unirii nr. 10", etc.
@@ -409,16 +473,16 @@ const buildAwbPayload = (
     chargeableWeightKg: number;
     dimensions?: { width: number; height: number; depth: number } | null;
   },
-  senderConfig?: FanCourierSenderConfig
+  senderConfig?: FanCourierSenderConfig,
+  pickupLocationOverride?: string | null
 ): FanCourierAwbPayload => {
   const isCodPayment =
     input.order.paymentMethod === "cash_on_delivery" ||
     input.order.paymentMethod === "cod";
 
-  const pickupLocation = extractPickupLocation(
-    input.order.lockerAddressSnapshot,
-    input.order.lockerId
-  );
+  const pickupLocation =
+    pickupLocationOverride ??
+    extractPickupLocation(input.order.lockerAddressSnapshot, input.order.lockerId);
   const service = resolveFanCourierService(
     input.order.shippingMethod,
     pickupLocation
@@ -746,9 +810,12 @@ export const createFanAwbForOrder = async (
 
   const supplierSenderConfig = resolveSenderFromSupplier(primarySupplier);
   const senderConfig = supplierSenderConfig ?? getFanCourierSenderConfig();
+  const senderSource: "supplier" | "env_fallback" = supplierSenderConfig
+    ? "supplier"
+    : "env_fallback";
   const senderDebug = {
     useSupplierAddressFlag,
-    senderSource: supplierSenderConfig ? "supplier" : "env_fallback",
+    senderSource,
     supplierId: primarySupplier?.id ?? null,
     supplierName: primarySupplier?.name ?? null,
     missingSupplierFields,
@@ -769,25 +836,31 @@ export const createFanAwbForOrder = async (
     );
   }
 
-  const payload = buildAwbPayload(
-    {
-      order: {
-        id: order.id,
-        orderNumber: order.orderNumber,
-        total: order.total,
-        paymentMethod: order.paymentMethod,
-        codAmount: order.codAmount,
-        declaredValue: order.declaredValue,
-        shippingAddress: order.shippingAddress,
-        user: order.user,
-        shippingMethod: order.shippingMethod,
-        lockerId: order.lockerId,
-        lockerAddressSnapshot: order.lockerAddressSnapshot,
-      },
-      chargeableWeightKg,
-      dimensions: maxDimensions,
+  const awbInput = {
+    order: {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      total: order.total,
+      paymentMethod: order.paymentMethod,
+      codAmount: order.codAmount,
+      declaredValue: order.declaredValue,
+      shippingAddress: order.shippingAddress,
+      user: order.user,
+      shippingMethod: order.shippingMethod,
+      lockerId: order.lockerId,
+      lockerAddressSnapshot: order.lockerAddressSnapshot,
     },
-    senderConfig
+    chargeableWeightKg,
+    dimensions: maxDimensions,
+  };
+  const pickupLocationCandidates = extractPickupLocationCandidates(
+    order.lockerAddressSnapshot,
+    order.lockerId
+  );
+  let payload = buildAwbPayload(
+    awbInput,
+    senderConfig,
+    pickupLocationCandidates[0] ?? null
   );
 
   // Create shipment record
@@ -813,6 +886,33 @@ export const createFanAwbForOrder = async (
       payload as unknown as Record<string, unknown>
     );
     awbNumber = extractAwbNumber(response);
+
+    const currentService = payload.shipments[0]?.info?.service;
+    const currentPickupLocation =
+      payload.shipments[0]?.recipient?.address?.pickupLocation || null;
+    if (
+      !awbNumber &&
+      currentService === "FANbox" &&
+      hasPickupLocationValidationError(response)
+    ) {
+      const fallbackPickupLocation = pickupLocationCandidates.find(
+        candidate => candidate !== currentPickupLocation
+      );
+      if (fallbackPickupLocation) {
+        console.warn(
+          `[FAN Courier] Retrying FANbox AWB for order ${order.orderNumber} with fallback pickup location.`,
+          {
+            initialPickupLocation: currentPickupLocation,
+            fallbackPickupLocation,
+          }
+        );
+        payload = buildAwbPayload(awbInput, senderConfig, fallbackPickupLocation);
+        response = await createFanCourierAwb(
+          payload as unknown as Record<string, unknown>
+        );
+        awbNumber = extractAwbNumber(response);
+      }
+    }
 
     // Check for extra km / remote locality - CRITICAL SAFETY MECHANISM
     const { hasExtraKm, reason } = hasExtraKmOrRemoteLocality(response);
