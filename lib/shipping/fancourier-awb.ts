@@ -444,6 +444,60 @@ const resolveCodReturnPayment = (): string => {
   return raw;
 };
 
+const parsePositiveDimensionCm = (raw: string | undefined): number | null => {
+  if (!raw) return null;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return Math.max(1, Math.round(parsed));
+};
+
+const getFanCourierDefaultDimensions = (): {
+  length: number;
+  width: number;
+  height: number;
+} => {
+  const length = parsePositiveDimensionCm(
+    process.env.FANCOURIER_DEFAULT_LENGTH_CM
+  );
+  const width = parsePositiveDimensionCm(process.env.FANCOURIER_DEFAULT_WIDTH_CM);
+  const height = parsePositiveDimensionCm(
+    process.env.FANCOURIER_DEFAULT_HEIGHT_CM
+  );
+
+  return {
+    length: length ?? 20,
+    width: width ?? 20,
+    height: height ?? 20,
+  };
+};
+
+const resolveShipmentDimensions = (
+  service: FanCourierServiceType,
+  dimensions?: { width: number; height: number; depth: number } | null
+): { length: number; width: number; height: number } | null => {
+  if (
+    dimensions &&
+    Number.isFinite(dimensions.depth) &&
+    Number.isFinite(dimensions.width) &&
+    Number.isFinite(dimensions.height) &&
+    dimensions.depth > 0 &&
+    dimensions.width > 0 &&
+    dimensions.height > 0
+  ) {
+    return {
+      length: Math.max(1, Math.round(dimensions.depth)),
+      width: Math.max(1, Math.round(dimensions.width)),
+      height: Math.max(1, Math.round(dimensions.height)),
+    };
+  }
+
+  if (service === "FANbox") {
+    return getFanCourierDefaultDimensions();
+  }
+
+  return null;
+};
+
 const buildAwbPayload = (
   input: {
     order: {
@@ -493,6 +547,7 @@ const buildAwbPayload = (
   );
   const sender = senderConfig ?? getFanCourierSenderConfig();
   const awbOptions = resolveAwbOptionCodes(service);
+  const shipmentDimensions = resolveShipmentDimensions(service, input.dimensions);
   const codValue = isCodPayment
     ? (input.order.codAmount ?? input.order.total)
     : 0;
@@ -518,11 +573,14 @@ const buildAwbPayload = (
           returnPayment,
           observation: `Order ${input.order.orderNumber}`,
           content: `Comanda #${input.order.orderNumber}`,
-          dimensions: input.dimensions
+          length: shipmentDimensions?.length,
+          width: shipmentDimensions?.width,
+          height: shipmentDimensions?.height,
+          dimensions: shipmentDimensions
             ? {
-                length: input.dimensions.depth,
-                height: input.dimensions.height,
-                width: input.dimensions.width,
+                length: shipmentDimensions.length,
+                height: shipmentDimensions.height,
+                width: shipmentDimensions.width,
               }
             : undefined,
           costCenter: null,

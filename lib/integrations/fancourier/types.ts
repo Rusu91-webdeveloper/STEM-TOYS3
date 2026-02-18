@@ -88,6 +88,9 @@ export interface FanCourierShipmentInfo {
     returnPayment?: number | null;
     observation?: string | null;
     content?: string | null;
+    length?: number;
+    width?: number;
+    height?: number;
     dimensions?: FanCourierDimensions;
     costCenter?: string | null;
     options?: string[];
