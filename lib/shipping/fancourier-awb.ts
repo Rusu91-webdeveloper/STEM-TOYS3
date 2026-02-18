@@ -270,6 +270,90 @@ const parseStreetData = (line1: string, line2?: string | null) => {
   return { street: trimmed, streetNo: undefined };
 };
 
+const normalizeAddressToken = (value: string): string =>
+  value
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+const extractAddressDetailToken = (
+  source: string,
+  pattern: RegExp
+): string | undefined => {
+  const match = source.match(pattern);
+  const value = match?.[1]?.trim();
+  return value || undefined;
+};
+
+const extractRecipientAddressParts = (input: {
+  addressLine1: string;
+  addressLine2?: string | null;
+  locality: string;
+}): {
+  street: string;
+  streetNo?: string;
+  building?: string;
+  entrance?: string;
+  floor?: string;
+  apartment?: string;
+} => {
+  const line1Parts = input.addressLine1
+    .split(",")
+    .map(part => part.trim())
+    .filter(Boolean);
+  const line2Parts = (input.addressLine2 || "")
+    .split(",")
+    .map(part => part.trim())
+    .filter(Boolean);
+
+  const localityNormalized = normalizeAddressToken(input.locality);
+  const line1WithoutLocality = line1Parts.filter(
+    part => normalizeAddressToken(part) !== localityNormalized
+  );
+  const baseStreetLine =
+    line1WithoutLocality[0] || line1Parts[0] || input.addressLine1.trim();
+  const extraLine1Parts = line1WithoutLocality.slice(1);
+
+  const rawLine2 = (input.addressLine2 || "").trim();
+  const isLine2StreetNumberOnly = /^\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?$/.test(
+    rawLine2
+  );
+
+  const parsedStreet = parseStreetData(baseStreetLine);
+  let streetNo = parsedStreet.streetNo;
+  if (!streetNo && isLine2StreetNumberOnly) {
+    streetNo = rawLine2.replace(/\s+/g, "");
+  }
+
+  const detailsSource = [...extraLine1Parts, ...line2Parts]
+    .filter(part => !isLine2StreetNumberOnly || part !== rawLine2)
+    .join(", ");
+
+  return {
+    street: parsedStreet.street || baseStreetLine || input.addressLine1.trim(),
+    streetNo,
+    building: extractAddressDetailToken(
+      detailsSource,
+      /\b(?:bl(?:oc)?\.?)\s*([a-zA-Z0-9\-\/]+)/i
+    ),
+    entrance: extractAddressDetailToken(
+      detailsSource,
+      /\b(?:sc(?:ara)?\.?|entr(?:are)?\.?)\s*([a-zA-Z0-9\-\/]+)/i
+    ),
+    floor: extractAddressDetailToken(
+      detailsSource,
+      /\b(?:et(?:aj)?\.?|floor)\s*([a-zA-Z0-9\-\/]+)/i
+    ),
+    apartment: extractAddressDetailToken(
+      detailsSource,
+      /\b(?:ap(?:t|artament)?\.?)\s*([a-zA-Z0-9\-\/]+)/i
+    ),
+  };
+};
+
 type SupplierPickupContact = {
   id: string;
   name: string;
@@ -541,10 +625,11 @@ const buildAwbPayload = (
     input.order.shippingMethod,
     pickupLocation
   );
-  const { street, streetNo } = parseStreetData(
-    input.order.shippingAddress.addressLine1,
-    input.order.shippingAddress.addressLine2
-  );
+  const recipientAddress = extractRecipientAddressParts({
+    addressLine1: input.order.shippingAddress.addressLine1,
+    addressLine2: input.order.shippingAddress.addressLine2,
+    locality: input.order.shippingAddress.city,
+  });
   const sender = senderConfig ?? getFanCourierSenderConfig();
   const awbOptions = resolveAwbOptionCodes(service);
   const shipmentDimensions = resolveShipmentDimensions(service, input.dimensions);
@@ -593,8 +678,12 @@ const buildAwbPayload = (
           address: {
             county: input.order.shippingAddress.state,
             locality: input.order.shippingAddress.city,
-            street,
-            streetNo,
+            street: recipientAddress.street,
+            streetNo: recipientAddress.streetNo,
+            building: recipientAddress.building,
+            entrance: recipientAddress.entrance,
+            floor: recipientAddress.floor,
+            apartment: recipientAddress.apartment,
             zipCode: input.order.shippingAddress.postalCode,
             pickupLocation:
               service === "FANbox" ? (pickupLocation ?? undefined) : undefined,
