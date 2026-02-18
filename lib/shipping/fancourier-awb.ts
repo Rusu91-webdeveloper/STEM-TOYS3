@@ -109,15 +109,20 @@ const resolveFanCourierService = (
 };
 
 const extractPickupLocation = (snapshot: unknown, lockerId?: string | null) => {
-  if (lockerId) return lockerId;
-  if (!snapshot || typeof snapshot !== "object") return null;
-  const record = snapshot as Record<string, unknown>;
-  const possible =
-    (record.pickupLocation as string | undefined) ||
-    (record.name as string | undefined) ||
-    (record.title as string | undefined) ||
-    (record.id as string | undefined);
-  return possible || null;
+  if (snapshot && typeof snapshot === "object") {
+    const record = snapshot as Record<string, unknown>;
+    const fromSnapshot =
+      (record.pickupLocation as string | undefined) ||
+      (record.name as string | undefined) ||
+      (record.title as string | undefined);
+    if (fromSnapshot?.trim()) return fromSnapshot.trim();
+
+    const snapshotId = record.id as string | undefined;
+    if (snapshotId?.trim()) return snapshotId.trim();
+  }
+
+  if (lockerId?.trim()) return lockerId.trim();
+  return null;
 };
 
 /**
@@ -611,6 +616,7 @@ export const createFanAwbForOrder = async (
     where: { id: { in: productIds } },
     select: {
       id: true,
+      sku: true,
       weight: true,
       dimensions: true,
       supplier: {
@@ -915,6 +921,14 @@ export const createFanAwbForOrder = async (
 
   if (!manualShippingReviewRequired && primarySupplier) {
     const supplierEmail = resolveSupplierEmail(primarySupplier);
+    const productSkuById = new Map(
+      products.map(product => [product.id, product.sku ?? null])
+    );
+    const orderItemsForEmail = physicalItems.map(item => ({
+      name: item.name || "Produs",
+      sku: item.productId ? productSkuById.get(item.productId) || null : null,
+      quantity: item.quantity,
+    }));
 
     if (!supplierEmail) {
       console.warn(
@@ -946,6 +960,7 @@ export const createFanAwbForOrder = async (
             orderNumber: order.orderNumber,
             awbNumber,
             pdfBase64,
+            orderItems: orderItemsForEmail,
           });
         }
       } catch (emailError) {

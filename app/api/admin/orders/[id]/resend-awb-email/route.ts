@@ -118,6 +118,13 @@ export async function POST(
           where: { isDigital: { not: true } },
           select: {
             productId: true,
+            name: true,
+            quantity: true,
+            product: {
+              select: {
+                sku: true,
+              },
+            },
           },
         },
         shipments: {
@@ -248,6 +255,11 @@ export async function POST(
         orderNumber: order.orderNumber,
         awbNumber,
         pdfBase64,
+        orderItems: order.items.map(item => ({
+          name: item.name || "Produs",
+          sku: item.product?.sku || null,
+          quantity: item.quantity,
+        })),
       });
     }
 
