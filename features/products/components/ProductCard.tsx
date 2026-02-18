@@ -42,6 +42,7 @@ export function ProductCard({
   // Non-hook code after all hooks
   const isOnSale =
     product.compareAtPrice && product.compareAtPrice > product.price;
+  const stockQuantity = Math.max(0, product.stockQuantity ?? 0);
 
   // Render star rating - compact for mobile
   const renderRating = () => {
@@ -81,11 +82,11 @@ export function ProductCard({
   );
 
   // Handle add to cart on image click
-  const handleAddToCart = async (e: React.MouseEvent) => {
+  const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isAddingToCart || product.stockQuantity === 0) return;
+    if (isAddingToCart || stockQuantity <= 0) return;
 
     setIsAddingToCart(true);
 
@@ -128,8 +129,8 @@ export function ProductCard({
       ? product.images[0]
       : "/placeholder-product.png";
 
-  const isOutOfStock = product.stockQuantity === 0;
-  const isLowStock = product.stockQuantity !== undefined && product.stockQuantity > 0 && product.stockQuantity < 4;
+  const isOutOfStock = stockQuantity <= 0;
+  const isLowStock = stockQuantity > 0 && stockQuantity < 4;
 
   if (layout === "list") {
     return (
@@ -196,7 +197,7 @@ export function ProductCard({
               )}
               {isLowStock && (
                 <div className="inline-flex items-center px-2 py-1 rounded-md bg-amber-50 border border-amber-100 text-xs font-medium text-amber-700">
-                  Only {product.stockQuantity} left
+                  Only {stockQuantity} left
                 </div>
               )}
             </div>

@@ -86,7 +86,7 @@ export const POST = withRateLimit(
       let body: unknown;
       try {
         body = JSON.parse(rawBody);
-      } catch (parseError) {
+      } catch {
         console.error("❌ [POST] Invalid JSON body for cart update");
         return NextResponse.json(
           {
@@ -158,6 +158,28 @@ export const POST = withRateLimit(
           continue;
         }
 
+        let effectiveQuantity = item.quantity;
+
+        // Enforce stock for physical products when cart is synced.
+        if (!item.isBook) {
+          const productEntity = productMap.get(item.productId);
+          const availableStock = Math.max(0, productEntity?.stockQuantity ?? 0);
+
+          if (availableStock <= 0) {
+            console.warn(
+              `Product ${item.productId} is out of stock. Removing from cart sync payload.`
+            );
+            continue;
+          }
+
+          if (effectiveQuantity > availableStock) {
+            console.warn(
+              `Product ${item.productId} quantity reduced from ${effectiveQuantity} to ${availableStock} due to stock limits.`
+            );
+            effectiveQuantity = availableStock;
+          }
+        }
+
         // Create cart item with proper ID
         const cartItemId = item.variantId
           ? `${item.productId}_${item.variantId}`
@@ -168,6 +190,7 @@ export const POST = withRateLimit(
         cartWithIds.push({
           ...item,
           id: cartItemId,
+          quantity: effectiveQuantity,
         });
       }
 

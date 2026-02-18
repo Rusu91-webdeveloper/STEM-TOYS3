@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
 import { Star } from "lucide-react";
+import React from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/email/base";
+
 import { ProductActionButtons } from "./ProductActionButtons";
 
 interface ProductHeaderProps {
@@ -49,6 +51,7 @@ export function ProductHeader({
   size = "sm",
 }: ProductHeaderProps) {
   const hasDiscount = compareAtPrice && compareAtPrice > price;
+  const isOutOfStock = !isBook && stockQuantity <= 0;
   const discountPercentage = hasDiscount
     ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
     : 0;
@@ -91,6 +94,8 @@ export function ProductHeader({
               ? t("addedToCart", "Adăugat în coș")
               : t("addToCart", "Adaugă în coș")
           }
+          disableQuickAddToCart={isOutOfStock}
+          quickAddDisabledTitle={t("outOfStock", "Stoc epuizat")}
           size={size}
         />
       </div>

@@ -12,6 +12,7 @@ const cartItemSchema = z.object({
   price: z.number().positive(),
   quantity: z.number().int().positive(),
   image: z.string().optional(),
+  isBook: z.boolean().optional(),
 });
 
 // POST /api/cart/items - Add an item to the cart
@@ -24,18 +25,32 @@ export async function POST(request: Request) {
     const cartId = await getCartId(request);
 
     // --- STOCK VALIDATION ---
-    const product = await db.product.findUnique({
-      where: { id: validatedItem.productId },
-    });
+    // Books are treated as non-limited in this cart endpoint.
+    let stockQuantity: number | null = null;
+    if (!validatedItem.isBook) {
+      const product = await db.product.findUnique({
+        where: { id: validatedItem.productId },
+      });
 
-    if (!product) {
-      return NextResponse.json(
-        { success: false, message: "Product not found." },
-        { status: 404 }
-      );
+      if (!product) {
+        return NextResponse.json(
+          { success: false, message: "Product not found." },
+          { status: 404 }
+        );
+      }
+
+      stockQuantity = Math.max(0, product.stockQuantity ?? 0);
+      if (stockQuantity <= 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Out of stock.",
+            error: "OUT_OF_STOCK",
+          },
+          { status: 400 }
+        );
+      }
     }
-
-    const stockQuantity = product.stockQuantity;
     // --- END STOCK VALIDATION ---
 
     console.log(`🛒 [ITEMS POST] Adding item to cart for session: ${cartId}`);
@@ -56,7 +71,7 @@ export async function POST(request: Request) {
       newQuantity += cart[existingItemIndex].quantity;
     }
 
-    if (stockQuantity < newQuantity) {
+    if (stockQuantity !== null && stockQuantity < newQuantity) {
       return NextResponse.json(
         {
           success: false,

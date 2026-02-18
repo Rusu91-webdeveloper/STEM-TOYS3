@@ -1,7 +1,8 @@
 "use client";
 
-import React, { Component, ReactNode } from "react";
 import { Heart, Share2, ShoppingCart, Check } from "lucide-react";
+import React, { Component, ReactNode } from "react";
+
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -75,6 +76,8 @@ interface ProductActionButtonsProps {
   favoriteTitle: string;
   shareTitle: string;
   addToCartTitle?: string;
+  disableQuickAddToCart?: boolean;
+  quickAddDisabledTitle?: string;
   size?: "sm" | "md";
   isBook?: boolean; // Flag to indicate if this is a book (wishlist not supported for books)
 }
@@ -94,8 +97,10 @@ export function ProductActionButtons({
   favoriteTitle,
   shareTitle,
   addToCartTitle = "Add to cart",
+  disableQuickAddToCart = false,
+  quickAddDisabledTitle = "Out of stock",
   size = "sm",
-  isBook = false,
+  isBook: _isBook = false,
 }: ProductActionButtonsProps) {
   const { toast } = useToast();
 
@@ -153,8 +158,8 @@ export function ProductActionButtons({
                 : "bg-slate-900 border-slate-900 text-white hover:bg-slate-800 hover:text-white shadow-md"
               }`}
             onClick={onQuickAddToCart}
-            disabled={isAddingToCart || justAddedToCart}
-            title={addToCartTitle}
+            disabled={disableQuickAddToCart || isAddingToCart || justAddedToCart}
+            title={disableQuickAddToCart ? quickAddDisabledTitle : addToCartTitle}
           >
             {justAddedToCart ? (
               <Check className={`${iconSize}`} />

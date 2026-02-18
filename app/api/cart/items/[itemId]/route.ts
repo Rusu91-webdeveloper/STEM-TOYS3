@@ -62,7 +62,8 @@ export async function PATCH(
 
     // --- STOCK VALIDATION ---
     const productId = cart[itemIndex].productId;
-    if (productId) {
+    const isBookItem = cart[itemIndex].isBook === true;
+    if (productId && !isBookItem) {
       // Dynamically import db to avoid circular deps if any
       const { db } = (await import("@/lib/db")) as { db: PrismaClient };
       const product = await db.product.findUnique({ where: { id: productId } });
@@ -72,11 +73,22 @@ export async function PATCH(
           { status: 404 }
         );
       }
-      if (quantity > product.stockQuantity) {
+      const stockQuantity = Math.max(0, product.stockQuantity ?? 0);
+      if (stockQuantity <= 0) {
         return NextResponse.json(
           {
             success: false,
-            message: `Not enough stock. Only ${product.stockQuantity} left.`,
+            message: "Out of stock.",
+            error: "OUT_OF_STOCK",
+          },
+          { status: 400 }
+        );
+      }
+      if (quantity > stockQuantity) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Not enough stock. Only ${stockQuantity} left.`,
           },
           { status: 400 }
         );
