@@ -25,6 +25,10 @@ export async function POST(request: Request) {
   const ok = () => NextResponse.json({ errorCode: 0 }, { status: 200 });
 
   try {
+    const requestUrl = new URL(request.url);
+    const orderIdFromQuery = requestUrl.searchParams.get("orderId");
+    const orderNumberFromQuery = requestUrl.searchParams.get("orderNumber");
+
     const body = await request.text();
     const headersList = await headers();
     const signatureHeaderCandidates = [
@@ -102,11 +106,16 @@ export async function POST(request: Request) {
         payload?.ntpId
     );
     const orderID = normalizeId(
-      payload?.order?.orderID ??
+      orderIdFromQuery ??
+        orderNumberFromQuery ??
+        payload?.order?.orderID ??
         payload?.order?.orderId ??
         payload?.order?.id ??
         payload?.order?.data?.orderID ??
         payload?.order?.data?.orderId ??
+        payload?.order?.data?.id ??
+        payload?.data?.orderId ??
+        payload?.data?.orderID ??
         payload?.orderID ??
         payload?.orderId ??
         payload?.order_id

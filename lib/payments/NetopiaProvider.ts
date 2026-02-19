@@ -197,6 +197,9 @@ export class NetopiaProvider implements IPaymentProvider {
       };
 
       // Prepare config data
+      const notifyUrl = `${this.baseUrl}/api/payments/netopia/webhook?orderId=${encodeURIComponent(
+        orderData.id
+      )}`;
       const configData = {
         emailTemplate: "default",
         emailSubject: `Order Confirmation - ${orderData.id}`,
@@ -204,7 +207,7 @@ export class NetopiaProvider implements IPaymentProvider {
         cancelUrl: `${this.baseUrl}/checkout/netopia/callback?orderId=${encodeURIComponent(
           orderData.id
         )}`,
-        notifyUrl: `${this.baseUrl}/api/payments/netopia/webhook`,
+        notifyUrl,
         redirectUrl: `${this.baseUrl}/checkout/netopia/callback?orderId=${encodeURIComponent(
           orderData.id
         )}`,
