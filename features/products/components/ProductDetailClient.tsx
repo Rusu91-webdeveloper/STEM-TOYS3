@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "@/lib/i18n";
 
 import { LazyProductReviews } from "@/components/lazy/client";
+import { BundleContents, type BundleContentItem } from "./BundleContents";
 import { ProductImageGallery } from "./ProductImageGallery";
 import { ProductBreadcrumb } from "./ProductBreadcrumb";
 import { ProductHeader } from "./ProductHeader";
@@ -31,6 +32,7 @@ interface ProductDetailClientProps {
   initialReviews?: Review[];
   userLoggedIn?: boolean;
   isBook?: boolean;
+  bundleContents?: BundleContentItem[];
 }
 
 export default function ProductDetailClient({
@@ -39,6 +41,7 @@ export default function ProductDetailClient({
   initialReviews = [],
   userLoggedIn = false,
   isBook,
+  bundleContents = [],
 }: ProductDetailClientProps) {
   const { t } = useTranslation();
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<
@@ -163,6 +166,10 @@ export default function ProductDetailClient({
                   categoryName={getCategoryName()}
                   t={t}
                 />
+
+                {bundleContents.length > 0 && (
+                  <BundleContents items={bundleContents} t={t} />
+                )}
               </div>
             </div>
 

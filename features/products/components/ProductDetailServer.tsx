@@ -3,9 +3,11 @@ import React from "react";
 
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import { getCombinedProduct } from "@/lib/api/products";
+import { db } from "@/lib/db";
 import { generateCompleteProductSchema } from "@/lib/seo/advanced-schema";
 import type { Product } from "@/types/product";
 
+import type { BundleContentItem } from "./BundleContents";
 import ProductDetailClient from "./ProductDetailClient";
 import { Review } from "./ProductReviews";
 
@@ -32,6 +34,68 @@ async function fetchReviews(productId: string): Promise<Review[]> {
   }
 }
 
+function parseBundleItemIds(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map(value => (typeof value === "string" ? value.trim() : ""))
+    .filter(Boolean);
+}
+
+async function fetchBundleContents(
+  productId: string
+): Promise<BundleContentItem[]> {
+  const bundleMeta = await db.product.findUnique({
+    where: { id: productId },
+    select: {
+      isBundle: true,
+      bundleItems: true,
+    },
+  });
+
+  if (!bundleMeta?.isBundle) return [];
+
+  const itemIds = parseBundleItemIds(bundleMeta.bundleItems);
+  if (itemIds.length === 0) return [];
+
+  const bundleProducts = await db.product.findMany({
+    where: {
+      id: { in: itemIds },
+      isBundle: false,
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      images: true,
+      price: true,
+      stockQuantity: true,
+      isActive: true,
+    },
+  });
+
+  const bundleProductsById = new Map(bundleProducts.map(item => [item.id, item]));
+
+  // Preserve bundle item order from bundleItems.
+  const orderedItems: BundleContentItem[] = [];
+  for (const itemId of itemIds) {
+    const item = bundleProductsById.get(itemId);
+    if (!item) continue;
+    orderedItems.push({
+      id: item.id,
+      name: item.name,
+      slug: item.slug,
+      description: item.description ?? "",
+      images: item.images as string[],
+      price: item.price,
+      stockQuantity: item.stockQuantity,
+      isActive: item.isActive,
+    });
+  }
+
+  return orderedItems;
+}
+
 const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
   // 🚀 PERFORMANCE: First get product data
   const product: Product | null = await getCombinedProduct(slug);
@@ -41,13 +105,18 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
     notFound();
   }
 
-  // 🚀 PERFORMANCE: Fetch reviews asynchronously without awaiting
-  const reviewsPromise = fetchReviews(product.id);
-
   const isBook = product.isBook === true;
 
-  // 🚀 PERFORMANCE: Start fetching reviews but don't await - let components handle the promise
-  const reviews = await reviewsPromise;
+  // 🚀 PERFORMANCE: Fetch secondary data in parallel.
+  const reviewsPromise = fetchReviews(product.id);
+  const bundleContentsPromise = isBook || product.isBundle !== true
+    ? Promise.resolve([])
+    : fetchBundleContents(product.id);
+
+  const [reviews, bundleContents] = await Promise.all([
+    reviewsPromise,
+    bundleContentsPromise,
+  ]);
 
   const reviewsForSchema = reviews
     .filter(
@@ -109,6 +178,7 @@ const ProductDetailServer = async ({ slug }: ProductDetailServerProps) => {
         isBook={isBook}
         initialReviews={reviews}
         userLoggedIn={false}
+        bundleContents={bundleContents}
       />
     </>
   );

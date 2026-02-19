@@ -160,6 +160,14 @@ export async function GET(
         stockQuantity: dbProduct.stockQuantity,
         reservedQuantity: dbProduct.reservedQuantity,
         featured: dbProduct.featured,
+        isBundle: dbProduct.isBundle,
+        bundleItems: Array.isArray(dbProduct.bundleItems)
+          ? (dbProduct.bundleItems as string[])
+          : [],
+        bundleDiscount:
+          typeof dbProduct.bundleDiscount === "number"
+            ? dbProduct.bundleDiscount
+            : undefined,
         isBook: false,
         weight: dbProduct.weight ?? undefined,
         dimensions,
