@@ -1,7 +1,7 @@
 /**
- * Create 10 Product Bundles Script
+ * Create Product Bundles Script
  *
- * This script creates 10 product bundles as separate bundle products to raise AOV.
+ * This script creates curated product bundles as separate bundle products to raise AOV.
  *
  * Usage:
  *   pnpm tsx scripts/create-bundles.ts [--dry-run]
@@ -33,36 +33,301 @@ interface BundleDefinition {
   supplierId?: string; // Optional explicit supplier check (recommended)
 }
 
-// Example bundle definitions - update with actual product IDs after importing products
+const SUPPLIER_A = "26f5418c-965d-4630-994c-b51947cdec04";
+const SUPPLIER_B = "ee75eea8-9f64-4076-96a2-52f5d6926c14";
+
+// If product IDs differ between environments, resolve by stable slug fallback.
+const fallbackSlugByProductId: Record<string, string> = {
+  "f7d2fe64-6cfa-4353-989a-adc129943d38":
+    "kit-constructie-robot-solar-stiinta-verde-green-science-4M-03294",
+  "a4b052bf-6a5e-4cbc-91f3-29004ee50fbf":
+    "kit-constructie-vehicul-solar-stiinta-verde-green-science-4M-03286",
+  "9e5884a7-4907-49c6-8629-ec998d3b0728":
+    "kit-constructie-robot-solar-mini-3-in-1-stiinta-verde-green-science-4M-03377",
+  "ca59e2e0-30fb-4cd3-b9e1-86a71518fa81":
+    "kit-constructie-sistemul-solar-stiinta-verde-green-science-4M-03416",
+  "7ef54a14-a9b3-4c33-a949-c587777b6d2d":
+    "kit-stiintific-model-pamant-luna-kidzlabs-4M-03241",
+  "81c98796-f3c3-4b4a-bd15-42ee58c58bc0":
+    "kit-constructie-racheta-ecologica-stiinta-verde-green-science-4M-03298",
+  "0b640779-a1d0-44c1-8046-737af3e9f97b":
+    "kit-stem-proiector-identitati-trusa-spionului-kidzlabs-4M-03468",
+  "1d11dd52-6652-4248-8bed-d59fc0bb6962":
+    "lumina-intermitenta-de-urgenta-kidzlabs-4M-03444",
+  "333fcc89-b53a-4ce5-91f1-f97b90a233d8":
+    "lacat-gigant-translucid-kidzlabs-4M-03445",
+  "0dedfb02-186b-44c3-a1fd-a6f709af7b59":
+    "set-experimente-de-crescut-cristale-stiinta-cristalelor-4M-03917-EU",
+  "34c20ad1-679e-44a1-8b5f-0d8da7a08dba":
+    "kit-de-sapat-cristale-kidzlabs-4M-03252",
+  "17b1ac62-9b9c-4a36-8d97-3a1e0ec07f61":
+    "mini-experiment-sparge-o-geoda-cristal-4M-03925",
+  "08fcc22d-2367-41c7-880c-d070ea8b2182":
+    "set-educativ-sapa-si-descopera-dinozauri-t-rex-4M-03221",
+  "39231a01-1622-40c2-b976-4119a577ed58":
+    "set-educativ-sapa-si-descopera-dinozauri-stegosaurus-4M-03229",
+  "682ccbc9-692b-4a96-b0b2-52fb4df681b9":
+    "set-educativ-sapa-si-descopera-dinozauri-pteranodon-4M-03459",
+  "f8888ef9-e927-434d-9dd9-40c9fde8f5ce":
+    "set-educativ-sapa-si-descopera-dinozauri-triceratops-4M-03228",
+  "db3b31bd-38f8-468d-be17-45f9848452cf":
+    "set-pentru-explorarea-naturii-outdoor-adventure-HU-401",
+  "b054f550-18d9-4bce-a2c7-c4332fc7201e": "binoclu-compact-hawk-HU-530",
+  "6dd34d7c-ac76-4a54-865c-da57aebca328":
+    "microscop-portabil-cu-breloc-marire-20x-micromini-safari-MM-280G",
+  "347b4498-48a1-46f3-a63a-1348dc047638":
+    "microscop-de-buzunar-cu-adaptor-pentru-smartphone-marire-20x-micromini-MM-380",
+  "2ba9915a-f62a-428f-8390-e59935a25cff":
+    "set-magnetic-de-construit-brick-tiles-16-piese-cleverclixx-CC-1023",
+  "6c368f15-6406-49b1-b50e-3dc08a7239e0":
+    "set-magnetic-de-constuit-dome-pastel-34-piese-cleverclixx-CC-1025",
+  "adc0aac3-5805-4220-b0e1-184a61d23a3f":
+    "joc-magnetic-circuit-pastel-cu-bile-70-piese-cleverclixx-CC-1002",
+  "1bdd5572-8c47-4a8f-be0f-f4bc695cc6f2":
+    "set-de-construit-clicformers-insecte-30-piese-clic-804005",
+  "662a2814-dbd1-4834-9570-075b867e8c6e":
+    "set-de-construit-clicformers-mini-animal-set-30-piese-clic-804004",
+  "3b21e993-1834-450e-9076-ecb8264976f3":
+    "nano-clics-pentru-constructori-creativi-250-piese-clicformers-clics_NC002",
+  "0542c6b5-bc2e-46a5-8ac2-e4a0925fa58d":
+    "joc-de-logica-eduludo-topologix-djeco-DJ08354",
+  "0e3a0bc2-bfa7-4314-b747-44bb04592ed1":
+    "joc-de-logica-orbita-spatiala-djeco-DJ00817",
+  "545124d8-9a14-4cba-9e91-82fb0bbe2f82":
+    "joc-de-logica-hotelogic-djeco-DJ08586",
+  "08b2c5fe-b8d6-49a6-946b-bf3d21b00759":
+    "puzzle-descopera-dinozaurii-londji-LJ_PZ393U",
+  "37763e24-9240-4a2e-a7d8-7b18649b0298":
+    "caleidoscop-poveste-cu-printi-si-printese-londji-LJ_CD005S12",
+  "18337bd9-43a9-4da2-820e-7b4a41416139":
+    "jucarie-optica-racheta-londji-Lj_CD037U",
+  "10d5c3f6-b9ad-4f74-b4a4-7d520ab02221":
+    "jucarie-optica-albina-londji-LJ_CD023U",
+  "09f378d6-17a8-45b5-b7a0-14cb25164b64":
+    "joc-logic-iq-puzzle-cu-snur-elibereaza-inelul-1-fridolin-Fr_17131",
+  "35ef74ba-e208-40ca-9706-d21fe617629d":
+    "joc-logic-iq-puzzle-cu-snur-elibereaza-inelul-2-fridolin-Fr_17132",
+  "26f222e4-1ed7-4363-9ab3-befb99b2c2cc":
+    "joc-logic-iq-puzzle-cu-snur-elibereaza-inelul-4-fridolin-Fr_17134",
+  "3330e08b-bfdf-4f75-b06c-dddc20534e01":
+    "joc-logic-iq-puzzle-cu-snur-elibereaza-inelul-6-fridolin-Fr_17136",
+  "2433f701-233d-443e-8978-f2430fa378d7":
+    "joc-logic-iq-3d-puzzle-magic-frame-fridolin-Fr_17497",
+  "055c7518-8567-4500-bed1-f25cc391bc02":
+    "kit-stem-de-construit-motoare-si-generatoare-thames-and-kosmos-K_665036",
+  "e65a9160-441a-4d17-9137-703e5d900588":
+    "kit-stem-electricitate-si-forta-magnetica-thames-and-kosmos-K_620417",
+  "28e2825d-091a-4019-8263-e63a08331da0":
+    "kit-stem-marul-lui-newton-thames-and-kosmos-K_620304",
+  "4c660443-eda6-4983-a9b4-3e640ba90acd":
+    "jocuri-magnetice-tangram-egmont-toys-Egm_630679",
+  "667b3cfe-8a1c-40bd-8bea-9755809fa89d":
+    "joc-magnetic-sudoku-pentru-copii-egmont-toys-Egm_630680",
+  "5cd32c03-6754-435f-8e9f-3bb1d88b105d":
+    "joc-magnetic-fluturi-egmont-toys-Egm_630677",
+};
+
+// Curated bundle definitions based on Product.csv (same-supplier only)
 const bundleDefinitions: BundleDefinition[] = [
   {
-    name: "Magnetic Building Starter Bundle",
-    description: "Complete magnetic building set with multiple components for endless creativity",
-    productIds: [], // Will be populated with actual product IDs
-    discountPercent: 15,
-    category: "Magnetic Building",
-    stemDiscipline: "ENGINEERING",
-    ageGroup: "6-10",
-  },
-  {
-    name: "Coding & Robotics Essentials Bundle",
-    description: "Everything needed to start coding and robotics journey",
-    productIds: [],
-    discountPercent: 20,
-    category: "Coding & Robotics",
-    stemDiscipline: "TECHNOLOGY",
-    ageGroup: "9-12",
-  },
-  {
-    name: "Science Experiments Lab Bundle",
-    description: "Complete science lab kit with multiple experiment sets",
-    productIds: [],
-    discountPercent: 18,
+    name: "Solar Robots Trio Bundle",
+    description: "Build three solar models and explore renewable energy through play.",
+    productIds: [
+      "f7d2fe64-6cfa-4353-989a-adc129943d38",
+      "a4b052bf-6a5e-4cbc-91f3-29004ee50fbf",
+      "9e5884a7-4907-49c6-8629-ec998d3b0728",
+    ],
+    discountPercent: 10,
     category: "Science & Experiments",
     stemDiscipline: "SCIENCE",
-    ageGroup: "8-12",
+    ageGroup: "ELEMENTARY_6_8",
+    supplierId: SUPPLIER_A,
   },
-  // Add 7 more bundle definitions...
+  {
+    name: "Space & Orbits STEM Pack",
+    description: "Hands-on astronomy and space science set with planetary and rocket builds.",
+    productIds: [
+      "ca59e2e0-30fb-4cd3-b9e1-86a71518fa81",
+      "7ef54a14-a9b3-4c33-a949-c587777b6d2d",
+      "81c98796-f3c3-4b4a-bd15-42ee58c58bc0",
+    ],
+    discountPercent: 10,
+    category: "Science & Experiments",
+    stemDiscipline: "SCIENCE",
+    ageGroup: "ELEMENTARY_6_8",
+    supplierId: SUPPLIER_A,
+  },
+  {
+    name: "Spy & Security STEM Pack",
+    description: "A logic and gadget set for kids who love spy missions and engineering puzzles.",
+    productIds: [
+      "0b640779-a1d0-44c1-8046-737af3e9f97b",
+      "1d11dd52-6652-4248-8bed-d59fc0bb6962",
+      "333fcc89-b53a-4ce5-91f1-f97b90a233d8",
+    ],
+    discountPercent: 10,
+    category: "Science & Experiments",
+    stemDiscipline: "SCIENCE",
+    ageGroup: "ELEMENTARY_6_8",
+    supplierId: SUPPLIER_A,
+  },
+  {
+    name: "Crystals & Geology Mini Lab Bundle",
+    description: "Grow, dig, and crack crystal experiments in one compact starter bundle.",
+    productIds: [
+      "0dedfb02-186b-44c3-a1fd-a6f709af7b59",
+      "34c20ad1-679e-44a1-8b5f-0d8da7a08dba",
+      "17b1ac62-9b9c-4a36-8d97-3a1e0ec07f61",
+    ],
+    discountPercent: 12,
+    category: "Science & Experiments",
+    stemDiscipline: "SCIENCE",
+    ageGroup: "MIDDLE_SCHOOL_9_12",
+    supplierId: SUPPLIER_A,
+  },
+  {
+    name: "Dino Dig Mega Pack Bundle",
+    description: "Four dinosaur dig kits for a complete junior paleontology adventure.",
+    productIds: [
+      "08fcc22d-2367-41c7-880c-d070ea8b2182",
+      "39231a01-1622-40c2-b976-4119a577ed58",
+      "682ccbc9-692b-4a96-b0b2-52fb4df681b9",
+      "f8888ef9-e927-434d-9dd9-40c9fde8f5ce",
+    ],
+    discountPercent: 12,
+    category: "Science & Experiments",
+    stemDiscipline: "SCIENCE",
+    ageGroup: "PRESCHOOL_3_5",
+    supplierId: SUPPLIER_A,
+  },
+  {
+    name: "Outdoor Nature Explorer Bundle",
+    description: "Outdoor discovery set with binoculars and pocket microscopes for field adventures.",
+    productIds: [
+      "db3b31bd-38f8-468d-be17-45f9848452cf",
+      "b054f550-18d9-4bce-a2c7-c4332fc7201e",
+      "6dd34d7c-ac76-4a54-865c-da57aebca328",
+      "347b4498-48a1-46f3-a63a-1348dc047638",
+    ],
+    discountPercent: 10,
+    category: "Outdoor & Nature",
+    stemDiscipline: "ENGINEERING",
+    ageGroup: "MIDDLE_SCHOOL_9_12",
+    supplierId: SUPPLIER_A,
+  },
+  {
+    name: "Cleverclixx Starter Shapes Bundle",
+    description: "A balanced magnetic building starter combining tiles and dome structures.",
+    productIds: [
+      "2ba9915a-f62a-428f-8390-e59935a25cff",
+      "6c368f15-6406-49b1-b50e-3dc08a7239e0",
+    ],
+    discountPercent: 10,
+    category: "Magnetic Building",
+    stemDiscipline: "ENGINEERING",
+    ageGroup: "TODDLERS_1_3",
+    supplierId: SUPPLIER_B,
+  },
+  {
+    name: "Cleverclixx Ball Run Starter Bundle",
+    description: "Start magnetic marble run play with one core circuit plus extension tiles.",
+    productIds: [
+      "adc0aac3-5805-4220-b0e1-184a61d23a3f",
+      "2ba9915a-f62a-428f-8390-e59935a25cff",
+    ],
+    discountPercent: 9,
+    category: "Magnetic Building",
+    stemDiscipline: "ENGINEERING",
+    ageGroup: "ELEMENTARY_6_8",
+    supplierId: SUPPLIER_B,
+  },
+  {
+    name: "Clicformers Builder Variety Bundle",
+    description: "Creative construction bundle combining insects, animals, and advanced nano pieces.",
+    productIds: [
+      "1bdd5572-8c47-4a8f-be0f-f4bc695cc6f2",
+      "662a2814-dbd1-4834-9570-075b867e8c6e",
+      "3b21e993-1834-450e-9076-ecb8264976f3",
+    ],
+    discountPercent: 11,
+    category: "Magnetic Building",
+    stemDiscipline: "ENGINEERING",
+    ageGroup: "ELEMENTARY_6_8",
+    supplierId: SUPPLIER_B,
+  },
+  {
+    name: "Djeco Logic Trio Bundle",
+    description: "Three top logic games for spatial reasoning, sequencing, and problem solving.",
+    productIds: [
+      "0542c6b5-bc2e-46a5-8ac2-e4a0925fa58d",
+      "0e3a0bc2-bfa7-4314-b747-44bb04592ed1",
+      "545124d8-9a14-4cba-9e91-82fb0bbe2f82",
+    ],
+    discountPercent: 10,
+    category: "Logic Games",
+    stemDiscipline: "MATHEMATICS",
+    ageGroup: "ELEMENTARY_6_8",
+    supplierId: SUPPLIER_B,
+  },
+  {
+    name: "Londji Puzzle & Optical Bundle",
+    description: "A premium puzzle plus optical toys bundle for curiosity and imaginative play.",
+    productIds: [
+      "08b2c5fe-b8d6-49a6-946b-bf3d21b00759",
+      "37763e24-9240-4a2e-a7d8-7b18649b0298",
+      "18337bd9-43a9-4da2-820e-7b4a41416139",
+      "10d5c3f6-b9ad-4f74-b4a4-7d520ab02221",
+    ],
+    discountPercent: 12,
+    category: "Puzzles & Optics",
+    stemDiscipline: "SCIENCE",
+    ageGroup: "ELEMENTARY_6_8",
+    supplierId: SUPPLIER_B,
+  },
+  {
+    name: "Fridolin IQ Challenge Bundle",
+    description: "Rope and 3D puzzles for concentration, patience, and advanced thinking.",
+    productIds: [
+      "09f378d6-17a8-45b5-b7a0-14cb25164b64",
+      "35ef74ba-e208-40ca-9706-d21fe617629d",
+      "26f222e4-1ed7-4363-9ab3-befb99b2c2cc",
+      "3330e08b-bfdf-4f75-b06c-dddc20534e01",
+      "2433f701-233d-443e-8978-f2430fa378d7",
+    ],
+    discountPercent: 15,
+    category: "Logic Games",
+    stemDiscipline: "MATHEMATICS",
+    ageGroup: "ELEMENTARY_6_8",
+    supplierId: SUPPLIER_B,
+  },
+  {
+    name: "Thames Energy & Physics Lab Bundle",
+    description: "Advanced STEM lab bundle focused on energy systems, electricity, and physics.",
+    productIds: [
+      "055c7518-8567-4500-bed1-f25cc391bc02",
+      "e65a9160-441a-4d17-9137-703e5d900588",
+      "28e2825d-091a-4019-8263-e63a08331da0",
+    ],
+    discountPercent: 9,
+    category: "Science & Experiments",
+    stemDiscipline: "TECHNOLOGY",
+    ageGroup: "MIDDLE_SCHOOL_9_12",
+    supplierId: SUPPLIER_B,
+  },
+  {
+    name: "Egmont Magnetic Games Trio Bundle",
+    description: "Three compact magnetic logic games ideal for travel and quick brain practice.",
+    productIds: [
+      "4c660443-eda6-4983-a9b4-3e640ba90acd",
+      "667b3cfe-8a1c-40bd-8bea-9755809fa89d",
+      "5cd32c03-6754-435f-8e9f-3bb1d88b105d",
+    ],
+    discountPercent: 12,
+    category: "Logic Games",
+    stemDiscipline: "MATHEMATICS",
+    ageGroup: "ELEMENTARY_6_8",
+    supplierId: SUPPLIER_B,
+  },
 ];
 
 async function createBundles() {
@@ -79,6 +344,7 @@ async function createBundles() {
     },
     select: {
       id: true,
+      slug: true,
       name: true,
       price: true,
       costPrice: true,
@@ -114,46 +380,57 @@ async function createBundles() {
 
   const results = {
     created: 0,
+    updated: 0,
     failed: 0,
     errors: [] as string[],
   };
+  const supplierIdAliases = new Map<string, string>();
 
   for (const bundleDef of bundleDefinitions) {
     try {
-      // Find products for this bundle
-      let bundleProducts = productsByCategory[bundleDef.category] || [];
-      
-      // If bundle definition has specific product IDs, use those
-      if (bundleDef.productIds.length > 0) {
-        bundleProducts = products.filter(p => bundleDef.productIds.includes(p.id));
-      }
+      let selectedProducts: typeof products = [];
 
-      // If no products found, skip this bundle
-      if (bundleProducts.length < 2) {
-        console.log(`⚠️  Skipping bundle "${bundleDef.name}" - not enough products in category`);
-        results.failed++;
-        results.errors.push(`${bundleDef.name}: Not enough products in category`);
-        continue;
-      }
-
-      // Ensure all requested IDs exist (for explicit bundle definitions)
+      // Resolve explicit bundle product references by ID first, then slug fallback.
       if (bundleDef.productIds.length > 0) {
-        const foundIds = new Set(bundleProducts.map((p) => p.id));
-        const missingIds = bundleDef.productIds.filter((id) => !foundIds.has(id));
+        const productById = new Map(products.map(p => [p.id, p]));
+        const productBySlug = new Map(products.map(p => [p.slug, p]));
+        const resolvedProducts = bundleDef.productIds.map(id => {
+          const byId = productById.get(id);
+          if (byId) return byId;
+          const fallbackSlug = fallbackSlugByProductId[id];
+          if (!fallbackSlug) return undefined;
+          return productBySlug.get(fallbackSlug);
+        });
+
+        const missingIds = bundleDef.productIds.filter(
+          (_id, index) => !resolvedProducts[index]
+        );
+
         if (missingIds.length > 0) {
           console.log(
-            `⚠️  Skipping bundle "${bundleDef.name}" - missing product IDs: ${missingIds.join(", ")}`
+            `⚠️  Skipping bundle "${bundleDef.name}" - missing product references: ${missingIds.join(", ")}`
           );
           results.failed++;
-          results.errors.push(`${bundleDef.name}: Missing product IDs (${missingIds.join(", ")})`);
+          results.errors.push(
+            `${bundleDef.name}: Missing product references (${missingIds.join(", ")})`
+          );
           continue;
         }
+
+        selectedProducts = resolvedProducts.filter(Boolean) as typeof products;
+      } else {
+        const bundleProducts = productsByCategory[bundleDef.category] || [];
+        selectedProducts = bundleProducts.slice(0, Math.min(4, bundleProducts.length));
       }
 
-      // Take first 2-4 products for bundle (or use specified IDs)
-      const selectedProducts = bundleDef.productIds.length > 0
-        ? bundleProducts
-        : bundleProducts.slice(0, Math.min(4, bundleProducts.length));
+      if (selectedProducts.length < 2) {
+        console.log(
+          `⚠️  Skipping bundle "${bundleDef.name}" - not enough products after resolution`
+        );
+        results.failed++;
+        results.errors.push(`${bundleDef.name}: Not enough resolved products`);
+        continue;
+      }
 
       // Validate supplier consistency: all items must come from one supplier
       const supplierIds = [...new Set(selectedProducts.map((p) => p.supplierId).filter(Boolean))];
@@ -167,15 +444,23 @@ async function createBundles() {
       }
 
       const inferredSupplierId = supplierIds[0] as string;
-      if (bundleDef.supplierId && bundleDef.supplierId !== inferredSupplierId) {
-        console.log(
-          `⚠️  Skipping bundle "${bundleDef.name}" - supplier mismatch (expected ${bundleDef.supplierId}, got ${inferredSupplierId})`
-        );
-        results.failed++;
-        results.errors.push(
-          `${bundleDef.name}: Supplier mismatch (${bundleDef.supplierId} vs ${inferredSupplierId})`
-        );
-        continue;
+      if (bundleDef.supplierId) {
+        const mappedSupplierId = supplierIdAliases.get(bundleDef.supplierId);
+
+        // First bundle for this legacy supplier id establishes a runtime alias.
+        // This supports environments where supplier IDs differ from CSV exports.
+        if (!mappedSupplierId) {
+          supplierIdAliases.set(bundleDef.supplierId, inferredSupplierId);
+        } else if (mappedSupplierId !== inferredSupplierId) {
+          console.log(
+            `⚠️  Skipping bundle "${bundleDef.name}" - supplier mismatch (expected-mapped ${mappedSupplierId}, got ${inferredSupplierId})`
+          );
+          results.failed++;
+          results.errors.push(
+            `${bundleDef.name}: Supplier mismatch (${mappedSupplierId} vs ${inferredSupplierId})`
+          );
+          continue;
+        }
       }
 
       // Calculate bundle price
@@ -212,53 +497,68 @@ async function createBundles() {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
 
-      // Check if bundle already exists
+      const bundleData = {
+        name: bundleDef.name,
+        slug,
+        description: bundleDef.description,
+        price: bundlePrice,
+        compareAtPrice: itemsTotal, // Show original total as compare price
+        isBundle: true,
+        bundleItems: selectedProducts.map(p => p.id),
+        bundleDiscount: bundleDef.discountPercent,
+        supplierId: inferredSupplierId,
+        categoryId: category.id,
+        stemDiscipline: bundleDef.stemDiscipline,
+        ageGroup: bundleDef.ageGroup,
+        images: bundleDef.images || selectedProducts[0]?.images || [],
+        tags: [bundleDef.category, "Bundle", bundleDef.stemDiscipline],
+        isActive: true,
+        featured: true, // Feature bundles
+        stockQuantity: Math.min(...selectedProducts.map(p => p.stockQuantity || 0)),
+        // Calculate cost price from bundle items
+        costPrice: selectedProducts.reduce((sum, p) => sum + (p.costPrice || 0), 0),
+      };
+
+      // Check if bundle already exists and update idempotently
       const existing = await prisma.product.findFirst({
         where: { slug },
+        select: { id: true, isBundle: true },
       });
 
-      if (existing) {
-        console.log(`⚠️  Bundle already exists: ${bundleDef.name}`);
+      if (existing && !existing.isBundle) {
+        console.log(`⚠️  Slug conflict with non-bundle product: ${bundleDef.name}`);
         results.failed++;
-        results.errors.push(`${bundleDef.name}: Already exists`);
+        results.errors.push(`${bundleDef.name}: Slug conflict with non-bundle product`);
         continue;
       }
 
       if (dryRun) {
-        console.log(
-          `📝 [DRY RUN] Would create bundle: ${bundleDef.name} (${selectedProducts.length} items, supplier ${inferredSupplierId}, ${bundleDef.discountPercent}% off)`
-        );
-        results.created++;
+        if (existing?.isBundle) {
+          console.log(
+            `📝 [DRY RUN] Would update bundle: ${bundleDef.name} (${selectedProducts.length} items, supplier ${inferredSupplierId}, ${bundleDef.discountPercent}% off)`
+          );
+          results.updated++;
+        } else {
+          console.log(
+            `📝 [DRY RUN] Would create bundle: ${bundleDef.name} (${selectedProducts.length} items, supplier ${inferredSupplierId}, ${bundleDef.discountPercent}% off)`
+          );
+          results.created++;
+        }
         continue;
       }
 
-      // Create bundle product
-      const bundle = await prisma.product.create({
-        data: {
-          name: bundleDef.name,
-          slug,
-          description: bundleDef.description,
-          price: bundlePrice,
-          compareAtPrice: itemsTotal, // Show original total as compare price
-          isBundle: true,
-          bundleItems: selectedProducts.map(p => p.id),
-          bundleDiscount: bundleDef.discountPercent,
-          supplierId: inferredSupplierId,
-          categoryId: category.id,
-          stemDiscipline: bundleDef.stemDiscipline,
-          ageGroup: bundleDef.ageGroup,
-          images: bundleDef.images || selectedProducts[0]?.images || [],
-          tags: [bundleDef.category, "Bundle", bundleDef.stemDiscipline],
-          isActive: true,
-          featured: true, // Feature bundles
-          stockQuantity: Math.min(...selectedProducts.map(p => p.stockQuantity || 0)),
-          // Calculate cost price from bundle items
-          costPrice: selectedProducts.reduce((sum, p) => sum + (p.costPrice || 0), 0),
-        },
-      });
-
-      console.log(`✅ Created bundle: ${bundleDef.name} (${selectedProducts.length} items, ${bundleDef.discountPercent}% off)`);
-      results.created++;
+      if (existing?.isBundle) {
+        await prisma.product.update({
+          where: { id: existing.id },
+          data: bundleData,
+        });
+        console.log(`♻️  Updated bundle: ${bundleDef.name}`);
+        results.updated++;
+      } else {
+        await prisma.product.create({ data: bundleData });
+        console.log(`✅ Created bundle: ${bundleDef.name}`);
+        results.created++;
+      }
     } catch (error) {
       console.error(`❌ Failed to create bundle "${bundleDef.name}":`, error);
       results.failed++;
@@ -268,10 +568,17 @@ async function createBundles() {
 
   console.log("\n📊 Bundle Creation Summary:");
   console.log(`  ✅ Created: ${results.created}`);
+  console.log(`  ♻️  Updated: ${results.updated}`);
   console.log(`  ❌ Failed: ${results.failed}`);
   if (results.errors.length > 0) {
     console.log("\n❌ Errors:");
     results.errors.forEach(err => console.log(`  - ${err}`));
+  }
+  if (supplierIdAliases.size > 0) {
+    console.log("\n🔎 Supplier ID aliases resolved:");
+    for (const [legacyId, runtimeId] of supplierIdAliases.entries()) {
+      console.log(`  - ${legacyId} -> ${runtimeId}`);
+    }
   }
 
   await prisma.$disconnect();

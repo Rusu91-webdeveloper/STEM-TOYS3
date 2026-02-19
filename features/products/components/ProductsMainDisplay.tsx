@@ -169,43 +169,44 @@ export function ProductsMainDisplay({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {bundleCount > 0 && (
-            <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white/90 p-1">
-              <button
-                type="button"
-                onClick={() => onBundleViewModeChange("all")}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                  bundleViewMode === "all"
-                    ? "bg-slate-900 text-white"
+          <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white/90 p-1">
+            <button
+              type="button"
+              onClick={() => onBundleViewModeChange("all")}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                bundleViewMode === "all"
+                  ? "bg-slate-900 text-white"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {t("all", "All")}
+            </button>
+            <button
+              type="button"
+              onClick={() => onBundleViewModeChange("bundles")}
+              disabled={bundleCount === 0}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                bundleViewMode === "bundles"
+                  ? "bg-cyan-600 text-white"
+                  : bundleCount === 0
+                    ? "cursor-not-allowed text-slate-400"
                     : "text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {t("all", "All")}
-              </button>
-              <button
-                type="button"
-                onClick={() => onBundleViewModeChange("bundles")}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                  bundleViewMode === "bundles"
-                    ? "bg-cyan-600 text-white"
-                    : "text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {t("bundles", "Bundles")} ({bundleCount})
-              </button>
-              <button
-                type="button"
-                onClick={() => onBundleViewModeChange("products")}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                  bundleViewMode === "products"
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {t("products", "Products")} ({regularCount})
-              </button>
-            </div>
-          )}
+              }`}
+            >
+              {t("bundles", "Bundles")} ({bundleCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => onBundleViewModeChange("products")}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                bundleViewMode === "products"
+                  ? "bg-slate-900 text-white"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {t("products", "Products")} ({regularCount})
+            </button>
+          </div>
           {visibleProductsCount > 0 && (
             <span className="text-xs sm:text-sm text-slate-500">
               {visibleProductsCount} {t("items")}
