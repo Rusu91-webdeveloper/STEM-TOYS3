@@ -152,7 +152,10 @@ export async function POST(request: Request) {
           orderSearchClauses.push({ id: orderID }, { orderNumber: orderID });
         }
         if (ntpID) {
-          orderSearchClauses.push({ netopiaTransactionId: ntpID });
+          orderSearchClauses.push(
+            { netopiaTransactionId: ntpID },
+            { netopiaInvoiceId: ntpID }
+          );
         }
         const orderBeforeUpdate = await db.order.findFirst({
           where: {
