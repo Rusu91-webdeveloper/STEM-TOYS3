@@ -39,14 +39,52 @@ export async function POST(request: Request) {
       "x-signature",
       "signature",
     ];
-    const signature =
-      signatureHeaderCandidates
-        .map(name => headersList.get(name))
-        .find(value => value && value.length > 0) || "";
+
+    const normalizeSignatureToken = (raw: string): string => {
+      let value = raw.trim();
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1).trim();
+      }
+      value = value.replace(/^Bearer\s+/i, "").trim();
+      return value;
+    };
+
+    const signatureSources = signatureHeaderCandidates.flatMap(name => {
+      const rawValue = headersList.get(name);
+      if (!rawValue) return [];
+
+      const normalized = normalizeSignatureToken(rawValue);
+      if (!normalized) return [];
+
+      const variants = normalized.includes(",")
+        ? normalized
+            .split(",")
+            .map(part => normalizeSignatureToken(part))
+            .filter(Boolean)
+        : [normalized];
+
+      return variants.map(value => ({ header: name, value }));
+    });
+
+    const uniqueSignatureSources = signatureSources.filter(
+      (item, index, arr) =>
+        arr.findIndex(candidate => candidate.value === item.value) === index
+    );
 
     console.log("📩 [WEBHOOK] Request details:");
     console.log(`   Content-Length: ${body.length} bytes`);
-    console.log(`   Has Signature: ${signature ? "Yes" : "No"}`);
+    console.log(
+      `   Has Signature: ${uniqueSignatureSources.length > 0 ? "Yes" : "No"}`
+    );
+    if (uniqueSignatureSources.length > 0) {
+      const preview = uniqueSignatureSources
+        .map(source => `${source.header}:${source.value.slice(0, 18)}...`)
+        .join(", ");
+      console.log(`   Signature candidates: ${preview}`);
+    }
 
     // Parse the webhook payload
     let payload;
@@ -65,13 +103,35 @@ export async function POST(request: Request) {
 
     // Handle webhook with signature verification (use raw body for hashing)
     console.log("🔐 [WEBHOOK] Verifying signature...");
-    try {
-      await netopiaProvider.handleWebhook(body, signature);
-      console.log("✅ [WEBHOOK] Signature verified successfully");
-    } catch (verificationError) {
+    let signatureVerified = false;
+    const verificationErrors: string[] = [];
+
+    const candidates =
+      uniqueSignatureSources.length > 0
+        ? uniqueSignatureSources
+        : [{ header: "none", value: "" }];
+
+    for (const candidate of candidates) {
+      try {
+        await netopiaProvider.handleWebhook(body, candidate.value);
+        console.log(
+          `✅ [WEBHOOK] Signature verified successfully (header: ${candidate.header})`
+        );
+        signatureVerified = true;
+        break;
+      } catch (verificationError) {
+        const message =
+          verificationError instanceof Error
+            ? verificationError.message
+            : String(verificationError);
+        verificationErrors.push(`${candidate.header}: ${message}`);
+      }
+    }
+
+    if (!signatureVerified) {
       console.error(
         "❌ [WEBHOOK] Signature verification failed:",
-        verificationError
+        verificationErrors.join(" | ")
       );
       // Do not process further, but still acknowledge with HTTP 200.
       return ok();

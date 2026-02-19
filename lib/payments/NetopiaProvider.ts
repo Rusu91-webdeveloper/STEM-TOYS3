@@ -696,9 +696,16 @@ export class NetopiaProvider implements IPaymentProvider {
                 verificationResult
               );
             } else {
+              const verificationDetails = [
+                `errorType=${verificationResult.errorType}`,
+                `errorCode=${verificationResult.errorCode ?? "n/a"}`,
+                `status=${verificationResult.status ?? "n/a"}`,
+                `errorMessage=${verificationResult.errorMessage ?? "n/a"}`,
+                `message=${verificationResult.message ?? "n/a"}`,
+              ].join(", ");
               throw new NetopiaPaymentError(
                 NetopiaErrorCode.INVALID_SIGNATURE,
-                "Invalid webhook signature"
+                `Invalid webhook signature (${verificationDetails})`
               );
             }
           }
@@ -711,7 +718,7 @@ export class NetopiaProvider implements IPaymentProvider {
           } else {
             throw new NetopiaPaymentError(
               NetopiaErrorCode.INVALID_SIGNATURE,
-              "Invalid webhook signature"
+              `Invalid webhook signature (${verifyError instanceof Error ? verifyError.message : "unknown verification error"})`
             );
           }
         }
