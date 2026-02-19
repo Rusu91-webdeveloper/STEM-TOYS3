@@ -81,18 +81,36 @@ export async function POST(request: Request) {
     const normalizedStatusCode = Number.isFinite(paymentStatusCode)
       ? paymentStatusCode
       : undefined;
-    const ntpID =
-      payload?.payment?.ntpID ||
-      payload?.payment?.ntpId ||
-      payload?.ntpID ||
-      payload?.ntpId;
-    const orderID =
-      payload?.order?.orderID ||
-      payload?.order?.orderId ||
-      payload?.order?.id ||
-      payload?.orderID ||
-      payload?.orderId ||
-      payload?.order_id;
+    const normalizeId = (value: unknown): string | null => {
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        return trimmed || null;
+      }
+      if (typeof value === "number" && Number.isFinite(value)) {
+        return String(Math.trunc(value));
+      }
+      if (typeof value === "bigint") {
+        return value.toString();
+      }
+      return null;
+    };
+
+    const ntpID = normalizeId(
+      payload?.payment?.ntpID ??
+        payload?.payment?.ntpId ??
+        payload?.ntpID ??
+        payload?.ntpId
+    );
+    const orderID = normalizeId(
+      payload?.order?.orderID ??
+        payload?.order?.orderId ??
+        payload?.order?.id ??
+        payload?.order?.data?.orderID ??
+        payload?.order?.data?.orderId ??
+        payload?.orderID ??
+        payload?.orderId ??
+        payload?.order_id
+    );
     const amount = payload?.payment?.amount ?? payload?.amount;
     const currency = payload?.payment?.currency ?? payload?.currency;
 
@@ -106,8 +124,10 @@ export async function POST(request: Request) {
     );
     console.log(`   Amount: ${amount} ${currency || ""}`);
 
-    if (orderID) {
-      console.log(`🗄️  [WEBHOOK] Processing order ${orderID}...`);
+    if (orderID || ntpID) {
+      const orderIdentifier = orderID || ntpID;
+      console.log(`🗄️  [WEBHOOK] Processing order ${orderIdentifier}...`);
+      let resolvedOrderId: string | null = null;
 
       try {
         const { db } = await import("@/lib/db");
@@ -116,13 +136,32 @@ export async function POST(request: Request) {
         let paymentStatus = "PENDING";
         let orderStatus = "PROCESSING";
 
-        // First, check if order has digital books to determine correct status
-        const orderBeforeUpdate = await db.order.findUnique({
-          where: { id: orderID },
+        // First, locate the order robustly and check if it has digital books.
+        // Netopia may send id as orderID/orderId or we can resolve by ntpID.
+        const orderSearchClauses: Record<string, string>[] = [];
+        if (orderID) {
+          orderSearchClauses.push({ id: orderID }, { orderNumber: orderID });
+        }
+        if (ntpID) {
+          orderSearchClauses.push({ netopiaTransactionId: ntpID });
+        }
+        const orderBeforeUpdate = await db.order.findFirst({
+          where: {
+            OR: orderSearchClauses,
+          },
           include: {
             items: true,
           },
         });
+
+        if (!orderBeforeUpdate) {
+          console.warn(
+            `⚠️ [WEBHOOK] Could not match order from payload (orderID=${orderID ?? "n/a"}, ntpID=${ntpID ?? "n/a"})`
+          );
+          return ok();
+        }
+
+        resolvedOrderId = orderBeforeUpdate.id;
 
         const allItemsAreDigital =
           orderBeforeUpdate?.items &&
@@ -178,11 +217,12 @@ export async function POST(request: Request) {
         // Update order in database
         console.log("💾 [WEBHOOK] Updating order in database...");
         await db.order.update({
-          where: { id: orderID },
+          where: { id: resolvedOrderId },
           data: {
             paymentStatus: paymentStatus as any,
             status: orderStatus as any,
-            netopiaTransactionId: ntpID,
+            netopiaTransactionId:
+              ntpID || orderBeforeUpdate.netopiaTransactionId || null,
             // Set deliveredAt for digital orders, completedAt for others
             ...(allItemsAreDigital && isPaymentSuccess
               ? { deliveredAt: new Date() }
@@ -196,7 +236,7 @@ export async function POST(request: Request) {
         // Get updated order for email processing
         console.log("📧 [WEBHOOK] Preparing post-payment processing...");
         const updatedOrder = await db.order.findUnique({
-          where: { id: orderID },
+          where: { id: resolvedOrderId },
           include: {
             items: true,
             user: true,
@@ -221,30 +261,30 @@ export async function POST(request: Request) {
           );
           if (hasPhysicalItems) {
             let supplierOrderCount = await db.supplierOrder.count({
-              where: { orderId: orderID },
+              where: { orderId: resolvedOrderId },
             });
             try {
               const { OrderProcessor } = await import("@/lib/order-processor");
               if (supplierOrderCount === 0) {
                 const processResult =
-                  await OrderProcessor.processNewOrder(orderID);
+                  await OrderProcessor.processNewOrder(resolvedOrderId);
                 if (!processResult.success && processResult.errors.length > 0) {
                   console.warn(
-                    `[WEBHOOK] Supplier orders had errors for order ${orderID}:`,
+                    `[WEBHOOK] Supplier orders had errors for order ${resolvedOrderId}:`,
                     processResult.errors
                   );
                 } else if (processResult.supplierOrders.length > 0) {
                   console.log(
-                    `✅ [WEBHOOK] Created ${processResult.supplierOrders.length} supplier order(s) for order ${orderID}`
+                    `✅ [WEBHOOK] Created ${processResult.supplierOrders.length} supplier order(s) for order ${resolvedOrderId}`
                   );
                 }
                 supplierOrderCount = await db.supplierOrder.count({
-                  where: { orderId: orderID },
+                  where: { orderId: resolvedOrderId },
                 });
               }
             } catch (processorError) {
               console.error(
-                `❌ [WEBHOOK] OrderProcessor failed for order ${orderID}:`,
+                `❌ [WEBHOOK] OrderProcessor failed for order ${resolvedOrderId}:`,
                 processorError
               );
             }
@@ -252,47 +292,48 @@ export async function POST(request: Request) {
               const reason =
                 "Supplier orders were not created after Netopia payment confirmation. Manual fulfillment review required.";
               await db.order.update({
-                where: { id: orderID },
+                where: { id: resolvedOrderId },
                 data: {
                   manualShippingReviewRequired: true,
                   shippingReviewReason: reason,
                 },
               });
               console.warn(
-                `⚠️ [WEBHOOK] Skipping AWB for order ${orderID}: ${reason}`
+                `⚠️ [WEBHOOK] Skipping AWB for order ${resolvedOrderId}: ${reason}`
               );
             } else {
               try {
                 const existingAwbShipment = await db.shipment.findFirst({
                   where: {
-                    orderId: orderID,
+                    orderId: resolvedOrderId,
                     awbNumber: { not: null },
                   },
                   select: { awbNumber: true, courier: true },
                 });
                 if (existingAwbShipment?.awbNumber) {
                   console.log(
-                    `ℹ️ [WEBHOOK] AWB already exists for order ${orderID}: ${existingAwbShipment.awbNumber} (${existingAwbShipment.courier})`
+                    `ℹ️ [WEBHOOK] AWB already exists for order ${resolvedOrderId}: ${existingAwbShipment.awbNumber} (${existingAwbShipment.courier})`
                   );
                 } else {
                   const { createCourierAwbForOrder } = await import(
                     "@/lib/shipping/awb-dispatcher"
                   );
-                  const awbResult = await createCourierAwbForOrder(orderID);
+                  const awbResult =
+                    await createCourierAwbForOrder(resolvedOrderId);
                   if (awbResult.success) {
                     console.log(
-                      `✅ [WEBHOOK] AWB created for order ${orderID}: ${awbResult.awbNumber}`
+                      `✅ [WEBHOOK] AWB created for order ${resolvedOrderId}: ${awbResult.awbNumber}`
                     );
                   } else {
                     console.warn(
-                      `⚠️ [WEBHOOK] AWB creation failed for order ${orderID}:`,
+                      `⚠️ [WEBHOOK] AWB creation failed for order ${resolvedOrderId}:`,
                       awbResult.error
                     );
                   }
                 }
               } catch (awbError) {
                 console.error(
-                  `❌ [WEBHOOK] AWB creation error for order ${orderID}:`,
+                  `❌ [WEBHOOK] AWB creation error for order ${resolvedOrderId}:`,
                   awbError
                 );
               }
@@ -302,7 +343,7 @@ export async function POST(request: Request) {
           // Check if order contains digital books
           const digitalItems = await db.orderItem.findMany({
             where: {
-              orderId: orderID,
+              orderId: resolvedOrderId,
               isDigital: true,
             },
           });
@@ -316,7 +357,7 @@ export async function POST(request: Request) {
               "@/lib/services/digital-order-service"
             );
             try {
-              await processDigitalBookOrder(orderID);
+              await processDigitalBookOrder(resolvedOrderId);
               console.log(
                 "✅ [WEBHOOK] Digital books processed and delivery email sent"
               );
@@ -432,12 +473,12 @@ export async function POST(request: Request) {
         }
 
         console.log("✅ [WEBHOOK] Order processing completed");
-        console.log(`   Order ID: ${orderID}`);
+        console.log(`   Order ID: ${resolvedOrderId}`);
         console.log(`   Payment Status: ${paymentStatus}`);
         console.log(`   Order Status: ${orderStatus}`);
       } catch (dbError) {
         console.error(
-          `❌ [WEBHOOK] Failed to process order ${orderID}:`,
+          `❌ [WEBHOOK] Failed to process order ${orderID || ntpID}:`,
           dbError
         );
         // Netopia requires HTTP 200 on notifyURL even on errors.
@@ -445,7 +486,7 @@ export async function POST(request: Request) {
       }
     } else {
       console.warn(
-        "⚠️  [WEBHOOK] No order ID in payload - skipping database update"
+        "⚠️  [WEBHOOK] No order ID or transaction ID in payload - skipping database update"
       );
     }
 
