@@ -1,20 +1,25 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
-import { useTranslation } from "@/lib/i18n";
 
 import { LazyProductReviews } from "@/components/lazy/client";
+import { useTranslation } from "@/lib/i18n";
+
+import { useProductActions } from "../hooks/useProductActions";
+
 import { BundleContents, type BundleContentItem } from "./BundleContents";
-import { ProductImageGallery } from "./ProductImageGallery";
 import { ProductBreadcrumb } from "./ProductBreadcrumb";
-import { ProductHeader } from "./ProductHeader";
 import { ProductDescription } from "./ProductDescription";
-import { ProductFeatures } from "./ProductFeatures";
-import ProductSpecs from "./ProductSpecs";
 import ProductEducation from "./ProductEducation";
 import ProductFAQ from "./ProductFAQ";
-import { useProductActions } from "../hooks/useProductActions";
+import { ProductFeatures } from "./ProductFeatures";
+import { ProductHeader } from "./ProductHeader";
+import { ProductImageGallery } from "./ProductImageGallery";
 import type { Review } from "./ProductReviews";
+import ProductSpecs from "./ProductSpecs";
 import {
   productBackgroundClass,
   productContentWrapperClass,
@@ -37,13 +42,14 @@ interface ProductDetailClientProps {
 
 export default function ProductDetailClient({
   product,
-  relatedProducts = [],
+  relatedProducts: _relatedProducts = [],
   initialReviews = [],
   userLoggedIn = false,
   isBook,
   bundleContents = [],
 }: ProductDetailClientProps) {
   const { t } = useTranslation();
+  const searchParams = useSearchParams();
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<
     number | null
   >(null);
@@ -82,9 +88,7 @@ export default function ProductDetailClient({
     fetchFreeShippingSettings();
   }, []);
 
-  const getCategoryName = () => {
-    return product.category?.name || t("generalCategory");
-  };
+  const getCategoryName = () => product.category?.name || t("generalCategory");
 
   const derivedIsBook = Boolean(
     isBook ??
@@ -106,6 +110,14 @@ export default function ProductDetailClient({
         ) / initialReviews.length
       : product.averageRating || 0;
 
+  const rawFromBundleSlug = searchParams.get("fromBundle");
+  const fromBundleSlug =
+    rawFromBundleSlug && /^[a-z0-9-]+$/i.test(rawFromBundleSlug)
+      ? rawFromBundleSlug
+      : null;
+  const showBackToBundle =
+    Boolean(fromBundleSlug) && fromBundleSlug !== product.slug;
+
   return (
     <div className={productBackgroundClass}>
       <div className={productOverlayTopClass} aria-hidden />
@@ -120,6 +132,17 @@ export default function ProductDetailClient({
             productName={product.name}
             t={t}
           />
+          {showBackToBundle && (
+            <div className="mt-3">
+              <Link
+                href={`/products/${fromBundleSlug}`}
+                className="inline-flex items-center gap-2 rounded-md border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-semibold text-cyan-800 transition hover:border-cyan-300 hover:bg-cyan-100"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                {t("backToBundle", "Back to bundle")}
+              </Link>
+            </div>
+          )}
 
           {/* Hero Section - Picture, Name, Price, Description */}
           <div className="mt-6 space-y-6 lg:space-y-8">
@@ -168,7 +191,11 @@ export default function ProductDetailClient({
                 />
 
                 {bundleContents.length > 0 && (
-                  <BundleContents items={bundleContents} t={t} />
+                  <BundleContents
+                    items={bundleContents}
+                    bundleSlug={product.slug}
+                    t={t}
+                  />
                 )}
               </div>
             </div>

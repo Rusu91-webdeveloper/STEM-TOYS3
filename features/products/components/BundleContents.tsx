@@ -24,6 +24,7 @@ export interface BundleContentItem {
 
 interface BundleContentsProps {
   items: BundleContentItem[];
+  bundleSlug?: string;
   t: (key: string, fallback?: string) => string;
 }
 
@@ -34,8 +35,13 @@ const formatPrice = (price: number) =>
     maximumFractionDigits: 2,
   }).format(price);
 
-export function BundleContents({ items, t }: BundleContentsProps) {
+export function BundleContents({ items, bundleSlug, t }: BundleContentsProps) {
   if (items.length === 0) return null;
+
+  const buildProductHref = (itemSlug: string) => {
+    if (!bundleSlug) return `/products/${itemSlug}`;
+    return `/products/${itemSlug}?fromBundle=${encodeURIComponent(bundleSlug)}`;
+  };
 
   return (
     <div className={`${productSubSectionCardClass} space-y-4`}>
@@ -72,7 +78,7 @@ export function BundleContents({ items, t }: BundleContentsProps) {
             >
               <div className="flex gap-3">
                 <Link
-                  href={`/products/${item.slug}`}
+                  href={buildProductHref(item.slug)}
                   className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50"
                 >
                   <OptimizedProductImage
@@ -94,7 +100,7 @@ export function BundleContents({ items, t }: BundleContentsProps) {
                     </span>
                   </div>
 
-                  <Link href={`/products/${item.slug}`} className="block">
+                  <Link href={buildProductHref(item.slug)} className="block">
                     <h3 className="line-clamp-2 text-sm font-semibold text-slate-900 group-hover:text-cyan-700">
                       {item.name}
                     </h3>
@@ -123,7 +129,7 @@ export function BundleContents({ items, t }: BundleContentsProps) {
                     </span>
 
                     <Link
-                      href={`/products/${item.slug}`}
+                      href={buildProductHref(item.slug)}
                       className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-700 hover:text-cyan-800"
                     >
                       {t("viewProduct", "View product")}
