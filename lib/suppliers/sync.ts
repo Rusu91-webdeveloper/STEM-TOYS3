@@ -14,6 +14,7 @@ import {
   createGenericApiAdapter,
 } from "@/lib/suppliers/adapters";
 import { FieldMapping, ProductFeedItem } from "@/lib/suppliers/types";
+import { recomputeBundles } from "@/lib/bundles/recompute";
 import { calculateDropshippingPrice } from "@/lib/pricing/dropshipping-pricing";
 import { calculateProfitMargin } from "@/lib/utils/unit-economics";
 import { slugify } from "@/lib/utils";
@@ -117,6 +118,7 @@ export async function runSupplierFeedSync(
     failed: number;
     error?: string | null;
   }> = [];
+  let shouldRecomputeBundlePricing = false;
 
   for (const feed of feeds) {
     const since = new Date(Date.now() - SYNC_IN_PROGRESS_WINDOW_MS);
@@ -218,6 +220,7 @@ export async function runSupplierFeedSync(
         updated,
         failed,
       });
+      shouldRecomputeBundlePricing = true;
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unknown sync failure";
@@ -249,6 +252,17 @@ export async function runSupplierFeedSync(
         failed: 0,
         error: message,
       });
+    }
+  }
+
+  if (shouldRecomputeBundlePricing) {
+    try {
+      const bundleResult = await recomputeBundles();
+      console.log(
+        `[SUPPLIER SYNC] Bundle recompute completed: processed=${bundleResult.processed}, updated=${bundleResult.updated}, disabled=${bundleResult.disabled}, failed=${bundleResult.failed}`
+      );
+    } catch (error) {
+      console.error("[SUPPLIER SYNC] Bundle recompute failed:", error);
     }
   }
 
@@ -345,10 +359,28 @@ async function upsertProducts(
             id: true,
             price: true,
             isActive: true,
+            isBundle: true,
           },
         },
       },
     });
+
+    if (existing?.product?.isBundle) {
+      failed += 1;
+      await db.supplierProduct.update({
+        where: { id: existing.id },
+        data: {
+          status: SupplierProductStatus.ERROR,
+          lastError:
+            "Linked product is a bundle; supplier sync skipped to protect bundle integrity",
+          lastSyncAt: new Date(),
+        },
+      });
+      console.warn(
+        `[SUPPLIER SYNC] Skipped supplier SKU ${item.supplierSku} because it is linked to bundle product ${existing.product.id}`
+      );
+      continue;
+    }
 
     const costCandidate =
       Number.isFinite(item.cost ?? NaN)
@@ -470,6 +502,7 @@ async function upsertProducts(
 
       const existingProduct = await db.product.findFirst({
         where: {
+          isBundle: false,
           OR: [
             { slug: baseSlug },
             { supplierId: feed.supplierId, name: item.name },
@@ -670,7 +703,7 @@ async function disableProductsNotInAllowlist(
   if (productIds.length === 0) return;
 
   await db.product.updateMany({
-    where: { id: { in: productIds }, supplierId: feed.supplierId },
+    where: { id: { in: productIds }, supplierId: feed.supplierId, isBundle: false },
     data: { isActive: false, featured: false },
   });
 }

@@ -31,10 +31,13 @@ interface ProductsMainDisplayProps {
   activeCategory: CategoryInfo | null;
   categoryInfo: Record<string, CategoryIconInfo>;
   filteredProducts: any[];
+  visibleProductsCount: number;
   displayedProducts: any[];
   viewMode: "grid" | "list";
   sortOption?: string;
   onSortChange?: (value: string) => void;
+  bundleViewMode: "all" | "bundles" | "products";
+  onBundleViewModeChange: (mode: "all" | "bundles" | "products") => void;
   getLearningTitle: () => string;
   getLearningDescription: () => string;
   getProductCardContent: (product: any) => {
@@ -48,10 +51,13 @@ export function ProductsMainDisplay({
   activeCategory,
   categoryInfo,
   filteredProducts,
+  visibleProductsCount,
   displayedProducts,
   viewMode,
   sortOption,
   onSortChange,
+  bundleViewMode,
+  onBundleViewModeChange,
   getLearningTitle,
   getLearningDescription,
   getProductCardContent,
@@ -109,6 +115,10 @@ export function ProductsMainDisplay({
   const accent =
     categoryAccentMap[activeCategory?.id ?? "default"] ??
     categoryAccentMap.default;
+  const bundleCount = filteredProducts.filter(
+    product => product?.isBundle === true
+  ).length;
+  const regularCount = Math.max(0, filteredProducts.length - bundleCount);
 
   // Update products without loading animation to prevent CLS
   useEffect(() => {
@@ -149,7 +159,7 @@ export function ProductsMainDisplay({
           </div>
           <p className="text-sm sm:text-base font-medium text-slate-900">
             {(() => {
-              const countStr = filteredProducts.length.toString();
+              const countStr = visibleProductsCount.toString();
               const template = t("showingProducts", `Showing {count} products`);
               return template
                 .replace("{count}", countStr)
@@ -158,15 +168,54 @@ export function ProductsMainDisplay({
             })()}
           </p>
         </div>
-        {filteredProducts.length > 0 && (
-          <span className="text-xs sm:text-sm text-slate-500">
-            {filteredProducts.length} {t("items")}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {bundleCount > 0 && (
+            <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white/90 p-1">
+              <button
+                type="button"
+                onClick={() => onBundleViewModeChange("all")}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                  bundleViewMode === "all"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {t("all", "All")}
+              </button>
+              <button
+                type="button"
+                onClick={() => onBundleViewModeChange("bundles")}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                  bundleViewMode === "bundles"
+                    ? "bg-cyan-600 text-white"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {t("bundles", "Bundles")} ({bundleCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => onBundleViewModeChange("products")}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                  bundleViewMode === "products"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {t("products", "Products")} ({regularCount})
+              </button>
+            </div>
+          )}
+          {visibleProductsCount > 0 && (
+            <span className="text-xs sm:text-sm text-slate-500">
+              {visibleProductsCount} {t("items")}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Educational categories banner */}
-      {activeCategory && filteredProducts.length > 0 && (
+      {activeCategory && visibleProductsCount > 0 && (
         <div
           className={`${productsGlassPanelClass} relative mb-6 overflow-hidden p-4 sm:p-5`}
         >

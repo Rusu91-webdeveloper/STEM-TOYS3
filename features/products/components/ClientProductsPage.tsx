@@ -146,6 +146,8 @@ interface ClientProductsPageProps {
   allSidebarCategories?: Array<{ id: string; label: string; count: number }>;
 }
 
+type BundleViewMode = "all" | "bundles" | "products";
+
 // Helper function to get category translation
 const getCategoryTranslation = (
   categoryId: string,
@@ -186,12 +188,23 @@ function ClientProductsPageContent({
     const pageNumber = value ? Number.parseInt(value, 10) : 1;
     return Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
   }, [urlSearchParams]);
+  const parsedBundleViewMode = useMemo<BundleViewMode>(() => {
+    const value = urlSearchParams?.get("bundleView");
+    if (value === "bundles" || value === "products") return value;
+    return "all";
+  }, [urlSearchParams]);
 
   const [page, setPage] = useState(parsedPage);
+  const [bundleViewMode, setBundleViewMode] =
+    useState<BundleViewMode>(parsedBundleViewMode);
 
   useEffect(() => {
     setPage(parsedPage);
   }, [parsedPage]);
+
+  useEffect(() => {
+    setBundleViewMode(parsedBundleViewMode);
+  }, [parsedBundleViewMode]);
 
   // Initialize from search params on mount
   useEffect(() => {
@@ -395,13 +408,23 @@ function ClientProductsPageContent({
     state.searchQuery,
   ]);
 
+  const bundleFilteredProducts = useMemo(() => {
+    if (bundleViewMode === "bundles") {
+      return filteredProducts.filter(product => product.isBundle === true);
+    }
+    if (bundleViewMode === "products") {
+      return filteredProducts.filter(product => product.isBundle !== true);
+    }
+    return filteredProducts;
+  }, [filteredProducts, bundleViewMode]);
+
   const sortOption = useMemo(
     () => (state.sortBy === "relevance" ? "featured" : state.sortBy),
     [state.sortBy]
   );
 
   const sortedProducts = useMemo(() => {
-    if (filteredProducts.length <= 1) return filteredProducts;
+    if (bundleFilteredProducts.length <= 1) return bundleFilteredProducts;
 
     const getPrice = (value: ProductData["price"]) => {
       const parsed =
@@ -424,7 +447,7 @@ function ClientProductsPageContent({
       return Number.isFinite(rating) ? rating : 0;
     };
 
-    const withIndex = filteredProducts.map((product, index) => ({
+    const withIndex = bundleFilteredProducts.map((product, index) => ({
       product,
       index,
     }));
@@ -477,7 +500,7 @@ function ClientProductsPageContent({
     });
 
     return withIndex.map(entry => entry.product);
-  }, [filteredProducts, sortOption]);
+  }, [bundleFilteredProducts, sortOption]);
 
   const totalPages = Math.ceil(sortedProducts.length / PAGE_SIZE);
 
@@ -492,6 +515,10 @@ function ClientProductsPageContent({
       setPage(1);
     }
   }, [page, totalPages]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [bundleViewMode]);
 
   const paginationSearchParams = useMemo(() => {
     const params: Record<string, string> = {};
@@ -529,6 +556,10 @@ function ClientProductsPageContent({
       params.sort = state.sortBy;
     }
 
+    if (bundleViewMode !== "all") {
+      params.bundleView = bundleViewMode;
+    }
+
     if (state.viewMode !== "grid") {
       params.view = state.viewMode;
     }
@@ -549,7 +580,7 @@ function ClientProductsPageContent({
     }
 
     return params;
-  }, [state]);
+  }, [state, bundleViewMode]);
 
   // Get active category for hero section
   const activeCategory = useMemo(() => {
@@ -726,6 +757,7 @@ function ClientProductsPageContent({
                 ? 1
                 : 0) +
               state.selectedSpecialCategories.length +
+              (bundleViewMode !== "all" ? 1 : 0) +
               (!state.noPriceFilter &&
               (state.priceRangeFilter[0] !== 0 ||
                 state.priceRangeFilter[1] !== 1000)
@@ -794,23 +826,26 @@ function ClientProductsPageContent({
                     activeCategory={activeCategory}
                     categoryInfo={categoryInfo}
                     filteredProducts={filteredProducts}
+                    visibleProductsCount={bundleFilteredProducts.length}
                     displayedProducts={displayedProducts}
                     viewMode={state.viewMode}
                     sortOption={sortOption}
                     onSortChange={handleSortChange}
+                    bundleViewMode={bundleViewMode}
+                    onBundleViewModeChange={setBundleViewMode}
                     getLearningTitle={getLearningTitle}
                     getLearningDescription={getLearningDescription}
                     getProductCardContent={getProductCardContent}
                     t={t}
                   />
-                  {filteredProducts.length > 0 && (
+                  {bundleFilteredProducts.length > 0 && (
                     <div className="mt-6">
                       <ProductsPagination
                         currentPage={page}
                         totalPages={totalPages}
                         baseUrl="/products"
                         searchParams={paginationSearchParams}
-                        totalItems={filteredProducts.length}
+                        totalItems={bundleFilteredProducts.length}
                       />
                     </div>
                   )}

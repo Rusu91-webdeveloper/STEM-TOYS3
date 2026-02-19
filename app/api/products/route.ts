@@ -615,6 +615,14 @@ async function fetchProductsFromDatabase(params: {
         description: product.description,
         price: product.price,
         compareAtPrice: product.compareAtPrice,
+        isBundle: Boolean(product.isBundle),
+        bundleItems: Array.isArray(product.bundleItems)
+          ? (product.bundleItems as string[])
+          : [],
+        bundleDiscount:
+          typeof product.bundleDiscount === "number"
+            ? product.bundleDiscount
+            : undefined,
         images: product.images,
         featured: product.featured,
         isActive: product.isActive,

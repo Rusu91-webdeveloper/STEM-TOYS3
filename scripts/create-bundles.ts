@@ -1,20 +1,25 @@
 /**
  * Create 10 Product Bundles Script
- * 
+ *
  * This script creates 10 product bundles as separate bundle products to raise AOV.
- * 
+ *
  * Usage:
- *   pnpm tsx scripts/create-bundles.ts
- * 
+ *   pnpm tsx scripts/create-bundles.ts [--dry-run]
+ *
  * Bundle Structure:
  *   - Bundle is a separate Product with isBundle = true
  *   - bundleItems contains array of product IDs
  *   - Bundle price = sum of items with discount applied
+ *   - Bundle supplierId is derived from bundle items (must all match)
+ *
+ * Notes:
+ *   - Source Product.csv remains unchanged; bundles are created as new Product rows.
  */
 
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+const dryRun = process.argv.includes("--dry-run");
 
 interface BundleDefinition {
   name: string;
@@ -25,6 +30,7 @@ interface BundleDefinition {
   stemDiscipline: "SCIENCE" | "TECHNOLOGY" | "ENGINEERING" | "MATHEMATICS" | "GENERAL";
   ageGroup?: string;
   images?: string[];
+  supplierId?: string; // Optional explicit supplier check (recommended)
 }
 
 // Example bundle definitions - update with actual product IDs after importing products
@@ -61,6 +67,9 @@ const bundleDefinitions: BundleDefinition[] = [
 
 async function createBundles() {
   console.log("📦 Starting bundle creation...");
+  if (dryRun) {
+    console.log("🧪 Dry run mode enabled (no DB writes)");
+  }
 
   // Get all active products to use in bundles
   const products = await prisma.product.findMany({
@@ -72,6 +81,10 @@ async function createBundles() {
       id: true,
       name: true,
       price: true,
+      costPrice: true,
+      stockQuantity: true,
+      images: true,
+      supplierId: true,
       categoryId: true,
       category: {
         select: {
@@ -123,10 +136,47 @@ async function createBundles() {
         continue;
       }
 
+      // Ensure all requested IDs exist (for explicit bundle definitions)
+      if (bundleDef.productIds.length > 0) {
+        const foundIds = new Set(bundleProducts.map((p) => p.id));
+        const missingIds = bundleDef.productIds.filter((id) => !foundIds.has(id));
+        if (missingIds.length > 0) {
+          console.log(
+            `⚠️  Skipping bundle "${bundleDef.name}" - missing product IDs: ${missingIds.join(", ")}`
+          );
+          results.failed++;
+          results.errors.push(`${bundleDef.name}: Missing product IDs (${missingIds.join(", ")})`);
+          continue;
+        }
+      }
+
       // Take first 2-4 products for bundle (or use specified IDs)
       const selectedProducts = bundleDef.productIds.length > 0
         ? bundleProducts
         : bundleProducts.slice(0, Math.min(4, bundleProducts.length));
+
+      // Validate supplier consistency: all items must come from one supplier
+      const supplierIds = [...new Set(selectedProducts.map((p) => p.supplierId).filter(Boolean))];
+      if (supplierIds.length !== 1) {
+        console.log(
+          `⚠️  Skipping bundle "${bundleDef.name}" - bundle items must belong to exactly one supplier`
+        );
+        results.failed++;
+        results.errors.push(`${bundleDef.name}: Mixed/invalid supplierIds in bundle items`);
+        continue;
+      }
+
+      const inferredSupplierId = supplierIds[0] as string;
+      if (bundleDef.supplierId && bundleDef.supplierId !== inferredSupplierId) {
+        console.log(
+          `⚠️  Skipping bundle "${bundleDef.name}" - supplier mismatch (expected ${bundleDef.supplierId}, got ${inferredSupplierId})`
+        );
+        results.failed++;
+        results.errors.push(
+          `${bundleDef.name}: Supplier mismatch (${bundleDef.supplierId} vs ${inferredSupplierId})`
+        );
+        continue;
+      }
 
       // Calculate bundle price
       const itemsTotal = selectedProducts.reduce((sum, p) => sum + p.price, 0);
@@ -174,6 +224,14 @@ async function createBundles() {
         continue;
       }
 
+      if (dryRun) {
+        console.log(
+          `📝 [DRY RUN] Would create bundle: ${bundleDef.name} (${selectedProducts.length} items, supplier ${inferredSupplierId}, ${bundleDef.discountPercent}% off)`
+        );
+        results.created++;
+        continue;
+      }
+
       // Create bundle product
       const bundle = await prisma.product.create({
         data: {
@@ -185,6 +243,7 @@ async function createBundles() {
           isBundle: true,
           bundleItems: selectedProducts.map(p => p.id),
           bundleDiscount: bundleDef.discountPercent,
+          supplierId: inferredSupplierId,
           categoryId: category.id,
           stemDiscipline: bundleDef.stemDiscipline,
           ageGroup: bundleDef.ageGroup,

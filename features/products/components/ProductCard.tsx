@@ -1,6 +1,6 @@
 "use client";
 
-import { ShoppingCart, StarIcon } from "lucide-react";
+import { Package, ShoppingCart, StarIcon } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 
@@ -43,6 +43,14 @@ export function ProductCard({
   const isOnSale =
     product.compareAtPrice && product.compareAtPrice > product.price;
   const stockQuantity = Math.max(0, product.stockQuantity ?? 0);
+  const isBundle = product.isBundle === true;
+  const bundleItemsCount = Array.isArray(product.bundleItems)
+    ? product.bundleItems.length
+    : 0;
+  const savingsAmount =
+    isOnSale && product.compareAtPrice
+      ? Math.max(0, product.compareAtPrice - product.price)
+      : 0;
 
   // Render star rating - compact for mobile
   const renderRating = () => {
@@ -122,6 +130,11 @@ export function ProductCard({
   const discountPercentage = isOnSale && product.compareAtPrice
     ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
     : 0;
+  const bundleDiscount =
+    typeof product.bundleDiscount === "number" &&
+    Number.isFinite(product.bundleDiscount)
+      ? Math.max(0, Math.round(product.bundleDiscount))
+      : discountPercentage;
 
   // Use placeholder image if product image is missing
   const imageUrl =
@@ -137,6 +150,8 @@ export function ProductCard({
       <div
         className={cn(
           "group relative flex flex-col xs:flex-row overflow-hidden rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300",
+          isBundle &&
+            "border-cyan-300/70 ring-2 ring-cyan-200/70 bg-gradient-to-br from-cyan-50 via-white to-indigo-50/60",
           className
         )}
       >
@@ -154,6 +169,12 @@ export function ProductCard({
 
           {/* Badges - Floating over image */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20">
+            {isBundle && (
+              <Badge className="bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-700 hover:to-sky-700 text-white border-0 shadow-sm px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                <Package className="h-3 w-3 mr-1" />
+                Bundle Deal
+              </Badge>
+            )}
             {isOnSale && (
               <Badge className="bg-rose-500 hover:bg-rose-600 text-white border-0 shadow-sm px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
                 -{discountPercentage}%
@@ -165,6 +186,11 @@ export function ProductCard({
               </Badge>
             )}
           </div>
+          {isBundle && bundleItemsCount > 0 && (
+            <div className="absolute top-3 right-3 z-20 rounded-md bg-slate-900/85 px-2 py-1 text-[10px] font-semibold text-white shadow-sm">
+              {bundleItemsCount} items
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col flex-1 p-4 sm:p-6 justify-between">
@@ -189,7 +215,26 @@ export function ProductCard({
               {product.description}
             </p>
 
+            {isBundle && (
+              <div className="rounded-lg border border-cyan-200 bg-cyan-50/80 px-3 py-2 flex items-center justify-between gap-2">
+                <span className="inline-flex items-center text-xs font-semibold text-cyan-800">
+                  <Package className="h-3.5 w-3.5 mr-1.5" />
+                  Curated STEM Bundle
+                </span>
+                {bundleDiscount > 0 && (
+                  <span className="text-xs font-bold text-emerald-700">
+                    -{bundleDiscount}% OFF
+                  </span>
+                )}
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-2">
+              {isBundle && bundleItemsCount > 0 && (
+                <div className="inline-flex items-center px-2 py-1 rounded-md bg-cyan-50 border border-cyan-100 text-xs font-medium text-cyan-700">
+                  {bundleItemsCount} items included
+                </div>
+              )}
               {product.ageRange && (
                 <div className="inline-flex items-center px-2 py-1 rounded-md bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600">
                   Ages {product.ageRange}
@@ -215,6 +260,11 @@ export function ProductCard({
                   </span>
                 )}
               </div>
+              {isBundle && savingsAmount > 0 && (
+                <p className="text-xs font-medium text-emerald-600">
+                  Save {formatPrice(savingsAmount)}
+                </p>
+              )}
               {/* Optional: Add unit text if needed, e.g. "per item" */}
             </div>
 
@@ -227,7 +277,9 @@ export function ProductCard({
                   ? "bg-slate-100 text-slate-400"
                   : justAdded
                     ? "bg-emerald-500 hover:bg-emerald-600 text-white"
-                    : "bg-slate-900 hover:bg-slate-800 text-white hover:shadow-md"
+                    : isBundle
+                      ? "bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-700 hover:to-sky-700 text-white hover:shadow-md"
+                      : "bg-slate-900 hover:bg-slate-800 text-white hover:shadow-md"
               )}
               size="sm"
             >
@@ -244,7 +296,7 @@ export function ProductCard({
                 "Out of Stock"
               ) : (
                 <span className="flex items-center gap-2 font-medium">
-                  Add to Cart
+                  {isBundle ? "Add Bundle" : "Add to Cart"}
                 </span>
               )}
             </Button>
@@ -259,6 +311,8 @@ export function ProductCard({
     <div
       className={cn(
         "group relative flex flex-col h-full bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden",
+        isBundle &&
+          "border-cyan-300/70 ring-2 ring-cyan-200/70 bg-gradient-to-br from-cyan-50 via-white to-indigo-50/70",
         className
       )}
     >
@@ -280,6 +334,12 @@ export function ProductCard({
 
         {/* Floating Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20">
+          {isBundle && (
+            <Badge className="bg-gradient-to-r from-cyan-600 to-sky-600 text-white border-0 shadow-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
+              <Package className="h-3 w-3 mr-1" />
+              Bundle
+            </Badge>
+          )}
           {isOnSale && (
             <Badge className="bg-rose-500 text-white border-0 shadow-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md bg-opacity-95">
               -{discountPercentage}%
@@ -296,6 +356,11 @@ export function ProductCard({
             </Badge>
           )}
         </div>
+        {isBundle && bundleItemsCount > 0 && (
+          <div className="absolute top-3 right-3 z-20 rounded-md bg-slate-900/85 px-2 py-1 text-[10px] font-semibold text-white shadow-sm">
+            {bundleItemsCount} items
+          </div>
+        )}
 
         {/* Quick Add Overlay Button (Desktop) & Mobile Icon */}
         <div className="absolute bottom-3 right-3 z-20">
@@ -305,9 +370,13 @@ export function ProductCard({
             size="icon"
             className={cn(
               "h-10 w-10 rounded-full shadow-md transition-all duration-300 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 sm:flex hidden",
-              justAdded ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-white hover:bg-slate-50 text-slate-900 hover:text-sky-600"
+              justAdded
+                ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                : isBundle
+                  ? "bg-cyan-600 hover:bg-cyan-700 text-white"
+                  : "bg-white hover:bg-slate-50 text-slate-900 hover:text-sky-600"
             )}
-            title="Quick Add"
+            title={isBundle ? "Quick Add Bundle" : "Quick Add"}
           >
             {isAddingToCart ? (
               <div className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
@@ -354,6 +423,16 @@ export function ProductCard({
               {product.name}
             </h3>
           </Link>
+          {isBundle && bundleDiscount > 0 && (
+            <p className="text-[11px] font-semibold text-cyan-800">
+              Curated bundle · -{bundleDiscount}% discount
+            </p>
+          )}
+          {isBundle && bundleItemsCount > 0 && (
+            <p className="text-[11px] font-medium text-cyan-700">
+              {bundleItemsCount} items included
+            </p>
+          )}
         </div>
 
         <div className="mt-auto flex items-center justify-between pt-2">
@@ -368,6 +447,11 @@ export function ProductCard({
                 </span>
               )}
             </div>
+            {isBundle && savingsAmount > 0 && (
+              <span className="text-[11px] font-medium text-emerald-600">
+                Save {formatPrice(savingsAmount)}
+              </span>
+            )}
           </div>
 
           {/* Add to Cart Text Button (Visible on hover desktop, always elsewhere if desired, but we have the icon) 

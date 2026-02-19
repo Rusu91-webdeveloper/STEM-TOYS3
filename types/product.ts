@@ -40,6 +40,9 @@ export interface Product {
   stockQuantity: number;
   reservedQuantity: number;
   featured: boolean;
+  isBundle?: boolean;
+  bundleItems?: string[];
+  bundleDiscount?: number;
   isBook?: boolean;
   // Logistics / physical specs
   weight?: number;
