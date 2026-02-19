@@ -659,10 +659,14 @@ export class NetopiaProvider implements IPaymentProvider {
       } else {
         try {
           const verificationResult = await this.ipn.verify(signature, rawBody);
-          if (
-            verificationResult.errorType !== 0 ||
-            verificationResult.status !== 1
-          ) {
+          // Netopia verify() returns payment status codes (e.g. 1=new, 3=paid, 5=confirmed),
+          // not just 1. Treat as invalid only when verification failed or status is missing.
+          const isVerificationValid =
+            verificationResult.errorType === 0 &&
+            verificationResult.status !== null &&
+            verificationResult.status !== undefined;
+
+          if (!isVerificationValid) {
             if (isSandboxMode) {
               console.warn(
                 "⚠️ [NETOPIA] Signature verification failed in sandbox - proceeding with caution",
