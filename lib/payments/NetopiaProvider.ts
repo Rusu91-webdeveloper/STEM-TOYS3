@@ -107,11 +107,31 @@ export class NetopiaProvider implements IPaymentProvider {
       );
     }
 
-    // Get the public key certificate from environment
-    const publicKeyCertificateRaw = process.env.NETOPIA_WEBHOOK_SECRET;
-    const publicKeyCertificate = publicKeyCertificateRaw
-      ? publicKeyCertificateRaw.replace(/\\n/g, "\n").trim()
-      : "";
+    // Get and normalize the public key certificate from environment.
+    // Handles both multiline PEM and collapsed one-line PEM values.
+    const normalizePem = (raw?: string): string => {
+      if (!raw) return "";
+      const withNewlines = raw.replace(/\r/g, "").replace(/\\n/g, "\n").trim();
+
+      const begin = "-----BEGIN CERTIFICATE-----";
+      const end = "-----END CERTIFICATE-----";
+      if (!withNewlines.includes(begin) || !withNewlines.includes(end)) {
+        return withNewlines;
+      }
+
+      const certMatch = withNewlines.match(
+        /-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/
+      );
+      if (!certMatch) return withNewlines;
+
+      const base64Body = certMatch[1].replace(/\s+/g, "");
+      if (!base64Body) return withNewlines;
+
+      const wrapped = base64Body.match(/.{1,64}/g)?.join("\n") || base64Body;
+      return `${begin}\n${wrapped}\n${end}`;
+    };
+
+    const publicKeyCertificate = normalizePem(process.env.NETOPIA_WEBHOOK_SECRET);
     console.log(
       `   Webhook Secret: ${publicKeyCertificate ? "SET" : "NOT SET (optional)"}`
     );
