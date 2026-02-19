@@ -287,17 +287,28 @@ export default function OrderDetailsPage() {
         body: JSON.stringify({ orderId: order.id }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(data?.error || data?.message || "Failed to create AWB");
+        const backendError =
+          data?.error ||
+          data?.message ||
+          data?.details ||
+          data?.reviewReason ||
+          data?.warning ||
+          "Failed to create AWB";
+        throw new Error(backendError);
       }
 
       toast({
         title: "AWB created",
-        description: data?.awbNumber
-          ? `AWB ${data.awbNumber} created successfully.`
-          : "AWB created successfully.",
+        description: data?.warning
+          ? data?.awbNumber
+            ? `AWB ${data.awbNumber} created. ${data.warning}`
+            : data.warning
+          : data?.awbNumber
+            ? `AWB ${data.awbNumber} created successfully.`
+            : "AWB created successfully.",
       });
 
       await fetchOrderDetails();
@@ -305,7 +316,10 @@ export default function OrderDetailsPage() {
       console.error("Error creating AWB:", error);
       toast({
         title: "Error",
-        description: "Failed to create AWB. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to create AWB. Please try again.",
         variant: "destructive",
       });
     } finally {
