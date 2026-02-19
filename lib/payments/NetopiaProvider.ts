@@ -107,31 +107,55 @@ export class NetopiaProvider implements IPaymentProvider {
       );
     }
 
-    // Get and normalize the public key certificate from environment.
-    // Handles both multiline PEM and collapsed one-line PEM values.
+    // Get and normalize the webhook verification key from environment.
+    // Handles both multiline and collapsed one-line PEM values for:
+    // - CERTIFICATE
+    // - PUBLIC KEY
     const normalizePem = (raw?: string): string => {
       if (!raw) return "";
       const withNewlines = raw.replace(/\r/g, "").replace(/\\n/g, "\n").trim();
 
-      const begin = "-----BEGIN CERTIFICATE-----";
-      const end = "-----END CERTIFICATE-----";
-      if (!withNewlines.includes(begin) || !withNewlines.includes(end)) {
-        return withNewlines;
+      const pemBlocks = [
+        {
+          begin: "-----BEGIN CERTIFICATE-----",
+          end: "-----END CERTIFICATE-----",
+        },
+        {
+          begin: "-----BEGIN PUBLIC KEY-----",
+          end: "-----END PUBLIC KEY-----",
+        },
+      ] as const;
+
+      for (const block of pemBlocks) {
+        if (!withNewlines.includes(block.begin) || !withNewlines.includes(block.end)) {
+          continue;
+        }
+
+        const pattern = new RegExp(
+          `${block.begin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([\\s\\S]*?)${block.end.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`
+        );
+        const match = withNewlines.match(pattern);
+        if (!match) {
+          continue;
+        }
+
+        const base64Body = match[1].replace(/\s+/g, "");
+        if (!base64Body) {
+          continue;
+        }
+
+        const wrapped = base64Body.match(/.{1,64}/g)?.join("\n") || base64Body;
+        return `${block.begin}\n${wrapped}\n${block.end}`;
       }
 
-      const certMatch = withNewlines.match(
-        /-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/
-      );
-      if (!certMatch) return withNewlines;
-
-      const base64Body = certMatch[1].replace(/\s+/g, "");
-      if (!base64Body) return withNewlines;
-
-      const wrapped = base64Body.match(/.{1,64}/g)?.join("\n") || base64Body;
-      return `${begin}\n${wrapped}\n${end}`;
+      // Already normalized PEM-like content or unknown format.
+      // Return as-is and let jwt verification surface a clear error.
+      return withNewlines;
     };
 
-    const publicKeyCertificate = normalizePem(process.env.NETOPIA_WEBHOOK_SECRET);
+    const publicKeyCertificate = normalizePem(
+      process.env.NETOPIA_WEBHOOK_SECRET
+    );
     console.log(
       `   Webhook Secret: ${publicKeyCertificate ? "SET" : "NOT SET (optional)"}`
     );
