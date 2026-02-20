@@ -1,7 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  CheckCircle,
+  Clock,
+  DollarSign,
+  Eye,
+  LineChart,
+  MousePointer,
+  ShoppingCart,
+  Target,
+  TrendingUp,
+  Users,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -9,27 +27,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import {
-  Users,
-  TrendingUp,
-  DollarSign,
-  ShoppingCart,
-  Activity,
-  Eye,
-  MousePointer,
-  Clock,
-  Target,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  BarChart3,
-  PieChart,
-  LineChart,
-  Zap,
-} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface DashboardMetrics {
   overview: {
@@ -81,6 +80,37 @@ interface DashboardMetrics {
     errorRate: number;
     uptime: number;
     throughput: number;
+  };
+  homepageConversion: {
+    summary: {
+      totalHomepageEvents: number;
+      heroImpressions: number;
+      heroPrimaryClicks: number;
+      heroSecondaryClicks: number;
+      heroAgeChipClicks: number;
+      fiveSecondStepClicks: number;
+      fiveSecondPrimaryClicks: number;
+      fiveSecondSecondaryClicks: number;
+      bundleCardClicks: number;
+      bundleListClicks: number;
+      trustBadgeClicks: number;
+      heroPrimaryCtr: number;
+      bundleEngagementRate: number;
+    };
+    eventBreakdown: Array<{
+      key: string;
+      label: string;
+      count: number;
+    }>;
+    topBundles: Array<{
+      slug: string;
+      name: string;
+      clicks: number;
+    }>;
+    topFiveSecondSteps: Array<{
+      title: string;
+      clicks: number;
+    }>;
   };
 }
 
@@ -138,21 +168,18 @@ export default function AnalyticsDashboard() {
   }
 
   const formatNumber = (num: number) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
-    if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("ro-RO", {
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("ro-RO", {
       style: "currency",
       currency: "RON",
     }).format(amount);
-  };
 
-  const formatPercentage = (value: number) => {
-    return `${(value * 100).toFixed(1)}%`;
-  };
+  const formatPercentage = (value: number) => `${(value * 100).toFixed(1)}%`;
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -392,6 +419,9 @@ export default function AnalyticsDashboard() {
         <TabsList>
           <TabsTrigger value="segmentation">User Segmentation</TabsTrigger>
           <TabsTrigger value="behavior">User Behavior</TabsTrigger>
+          <TabsTrigger value="homepage-conversion">
+            Homepage Conversion
+          </TabsTrigger>
           <TabsTrigger value="performance">System Performance</TabsTrigger>
         </TabsList>
 
@@ -594,6 +624,178 @@ export default function AnalyticsDashboard() {
                     </div>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Homepage Conversion Tab */}
+        <TabsContent value="homepage-conversion" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Homepage Events
+                </CardTitle>
+                <MousePointer className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatNumber(
+                    metrics.homepageConversion.summary.totalHomepageEvents
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Total trackable actions
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Hero Impressions
+                </CardTitle>
+                <Eye className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatNumber(metrics.homepageConversion.summary.heroImpressions)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  First fold exposures
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Hero Primary CTR
+                </CardTitle>
+                <Target className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatPercentage(
+                    metrics.homepageConversion.summary.heroPrimaryCtr
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Hero primary CTA clicks / impressions
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Bundle Engagement
+                </CardTitle>
+                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatPercentage(
+                    metrics.homepageConversion.summary.bundleEngagementRate
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Bundle clicks / hero impressions
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Homepage Action Mix</CardTitle>
+                <CardDescription>
+                  Which actions users take first on homepage
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {metrics.homepageConversion.eventBreakdown.map(item => (
+                  <div key={item.key} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{item.label}</span>
+                      <span className="font-medium">
+                        {formatNumber(item.count)}
+                      </span>
+                    </div>
+                    <Progress
+                      value={
+                        (item.count /
+                          Math.max(
+                            metrics.homepageConversion.summary.totalHomepageEvents,
+                            1
+                          )) *
+                        100
+                      }
+                    />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Bundle-uri</CardTitle>
+                <CardDescription>
+                  Cele mai accesate bundle-uri din homepage
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {metrics.homepageConversion.topBundles.length > 0 ? (
+                  metrics.homepageConversion.topBundles.map((bundle, index) => (
+                    <div
+                      key={bundle.slug}
+                      className="flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="text-sm font-medium">{bundle.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          /products/{bundle.slug}
+                        </p>
+                      </div>
+                      <Badge variant="secondary">
+                        #{index + 1} · {formatNumber(bundle.clicks)}
+                      </Badge>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Nu există click-uri pe cardurile de bundle în perioada
+                    selectată.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Pași 5 Secunde</CardTitle>
+                <CardDescription>
+                  Ce pas captează cel mai bine atenția
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {metrics.homepageConversion.topFiveSecondSteps.length > 0 ? (
+                  metrics.homepageConversion.topFiveSecondSteps.map(step => (
+                    <div
+                      key={step.title}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="text-sm font-medium">{step.title}</span>
+                      <Badge variant="outline">{formatNumber(step.clicks)}</Badge>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Nu există încă date pentru pașii de conversie rapidă.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>

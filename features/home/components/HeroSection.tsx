@@ -1,88 +1,139 @@
 "use client";
 
-import { Brain, Rocket, Sparkles, Star, ChevronDown, CheckCircle } from "lucide-react";
+import {
+  Brain,
+  ChevronDown,
+  CheckCircle,
+  Rocket,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect } from "react";
-import { gradientButtonClass } from "@/features/home/components/homeTheme";
-// **PERFORMANCE**: Lazy load analytics and A/B testing to reduce initial bundle
-const trackEvent = async (event: string, data?: any) => {
-  try {
-    const { trackEvent: gaTrackEvent } = await import("@/lib/analytics/ga4");
-    gaTrackEvent(event, data);
-  } catch (error) {
-    console.error("Analytics error:", error);
-  }
-};
+import React, { useEffect, useRef } from "react";
 
-const useABTestLazy = () => ({ variant: null, trackConversion: () => { } });
-const useConversionTrackingLazy = () => ({ trackEvent: () => { } });
+import { gradientButtonClass } from "@/features/home/components/homeTheme";
+import { useABTest } from "@/hooks/useABTest";
+import {
+  HOMEPAGE_CONVERSION_EVENTS,
+  trackHomepageConversionEvent,
+} from "@/lib/analytics/homepage-conversion-events";
+
+const HERO_HEADLINE_TEST_NAME = "homepage_hero_headline";
+const HERO_CTA_TEST_NAME = "homepage_hero_cta";
 
 interface HeroSectionProps {
   t: (key: string, defaultValue?: string) => string;
 }
 
-// [REFAC] HeroSection V2: Million Dollar App Look
-// - Immersive full-screen height (min-h-[90svh])
-// - Cinematic typography with spotlight effects
-// - Trust signals integrated organically
-// - Preserved all analytics/A/B testing
-
 const HeroSectionComponent = ({ t }: HeroSectionProps) => {
-  // **PERFORMANCE**: Use lazy-loaded A/B testing to reduce bundle size
-  const { variant: headlineVariant, trackConversion: trackHeadlineConversion } =
-    useABTestLazy();
+  const {
+    variant: headlineVariant,
+    isLoading: headlineVariantLoading,
+    track: trackHeadlineAB,
+  } = useABTest(
+    HERO_HEADLINE_TEST_NAME
+  );
+  const {
+    variant: ctaVariant,
+    isLoading: ctaVariantLoading,
+    track: trackCTAAB,
+  } = useABTest(HERO_CTA_TEST_NAME);
+  const hasTrackedHeroImpressionRef = useRef(false);
 
-  // **PERFORMANCE**: Use lazy-loaded CTA testing to reduce bundle size
-  const { variant: ctaVariant, trackConversion: trackCTAConversion } =
-    useABTestLazy();
+  const headlineVariantKey =
+    (headlineVariant?.name ?? headlineVariant?.id ?? "control").toLowerCase();
+  const ctaVariantKey =
+    (ctaVariant?.name ?? ctaVariant?.id ?? "control").toLowerCase();
 
-  // **PERFORMANCE**: Use lazy-loaded conversion tracking to reduce bundle size
-  const { trackEvent: lazyTrackEvent } = useConversionTrackingLazy();
-
-  // GA4: hero impression - lazy loaded
   useEffect(() => {
-    trackEvent("hero_impression", { section: "hero" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (headlineVariantLoading || ctaVariantLoading) return;
+    if (hasTrackedHeroImpressionRef.current) return;
 
-  // Get headline based on A/B test variant
+    trackHomepageConversionEvent(HOMEPAGE_CONVERSION_EVENTS.HERO_IMPRESSION, {
+      headline_variant: headlineVariant?.name ?? headlineVariant?.id ?? "control",
+      cta_variant: ctaVariant?.name ?? ctaVariant?.id ?? "control",
+      section: "hero",
+    });
+    hasTrackedHeroImpressionRef.current = true;
+  }, [
+    ctaVariant?.id,
+    ctaVariant?.name,
+    ctaVariantLoading,
+    headlineVariant?.id,
+    headlineVariant?.name,
+    headlineVariantLoading,
+  ]);
+
   const getHeadline = () => {
-    switch (headlineVariant?.id) {
-      case "variant_a":
-        return "De la Dependent de Ecran la Geniu STEM";
-      case "variant_b":
-        return "Stop Luptelor cu Temele - Creează un Inventator";
-      default:
-        return t("homepageH1", "Transformă Învățarea în Joacă STEM");
+    if (headlineVariantKey.includes("variant_a")) {
+      return "Înlocuiește timpul de ecran cu rezultate reale la școală";
     }
+
+    if (headlineVariantKey.includes("variant_b")) {
+      return "Alege jucăria potrivită vârstei și vezi progres rapid";
+    }
+
+    return t(
+      "homepageH1",
+      "Jucării STEM care transformă curiozitatea copilului în progres vizibil"
+    );
   };
 
-  // Get CTA text based on A/B test variant
   const getCTAText = () => {
-    switch (ctaVariant?.id) {
-      case "variant_a":
-        return "Începe Acum";
-      case "variant_b":
-        return "Vreau Transformarea";
-      default:
-        return t("ctaShopNow", "Vezi Colecția 2025");
+    if (ctaVariantKey.includes("variant_a")) {
+      return "Văd Pachetele";
     }
+
+    if (ctaVariantKey.includes("variant_b")) {
+      return "Aleg Ce Mi Se Potrivește";
+    }
+
+    return t("ctaShopNow", "Descoperă Pachetele STEM");
   };
 
-  // Benefits of STEM toys with icons - Reduced for cleaner look
-  const stemBenefits = [
-    { icon: Brain, titleKey: "cognitiveDevelopment" },
-    { icon: Rocket, titleKey: "futureReady" },
-    { icon: Sparkles, titleKey: "creativityInnovation" },
+  const quickOutcomes: Array<{
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+  }> = [
+    {
+      icon: Brain,
+      label: "Concentrare mai bună prin joacă practică",
+    },
+    {
+      icon: Sparkles,
+      label: "Creativitate și gândire logică în fiecare sesiune",
+    },
+    {
+      icon: Rocket,
+      label: "Pași clari spre tehnologie, știință și inginerie",
+    },
+  ];
+
+  const ageFastLinks: Array<{ label: string; href: string }> = [
+    {
+      label: "3-5 ani",
+      href: "/products?ageGroup=PRESCHOOL_3_5",
+    },
+    {
+      label: "6-8 ani",
+      href: "/products?ageGroup=ELEMENTARY_6_8",
+    },
+    {
+      label: "9-12 ani",
+      href: "/products?ageGroup=MIDDLE_SCHOOL_9_12",
+    },
+    {
+      label: "13+ ani",
+      href: "/products?ageGroup=TEENS_13_PLUS",
+    },
   ];
 
   return (
     <section
-      className="relative flex h-[92svh] min-h-[600px] w-full flex-col justify-center overflow-hidden"
+      className="relative flex min-h-[86svh] w-full flex-col justify-center overflow-hidden"
       aria-label={t("heroSection", "Homepage Hero Section")}
     >
-      {/* 1. Immersive Background (The "Million Dollar" Foundation) */}
       <div className="absolute inset-0 z-0 select-none">
         <Image
           src="/images/optimized/homepage_hero_banner_01_fallback.jpg"
@@ -90,86 +141,170 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
           fill
           priority
           sizes="100vw"
-          className="h-full w-full object-cover object-[center_35%] lg:object-center" // Center-ish focus
+          className="h-full w-full object-cover object-[center_35%] lg:object-center"
           fetchPriority="high"
           quality={85}
           placeholder="blur"
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
         />
-        {/* Cinematic Gradient Overlay: Darker background for better text contrast */}
         <div
-          className="absolute inset-0 bg-gradient-to-b from-gray-950/30 via-black/20 to-gray-950/90"
+          className="absolute inset-0 bg-gradient-to-b from-slate-950/30 via-black/30 to-slate-950/90"
           aria-hidden="true"
         />
-        {/* Additional overlay for general darkening */}
         <div className="absolute inset-0 bg-black/30" aria-hidden="true" />
       </div>
 
-      {/* 2. Content Layer (Floating, clean, authoritative) */}
-      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 pt-16 sm:align-middle sm:px-6 lg:px-8">
-        <div className="flex max-w-3xl flex-col items-center text-center sm:items-start sm:text-left animate-in fade-in slide-in-from-bottom-8 duration-1000 fill-mode-forwards">
-
-          {/* Trust Badge - Glassmorphism */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-1.5 backdrop-blur-md transition-transform hover:scale-105">
-            <div className="flex -space-x-1.5">
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 pt-16 sm:px-6 lg:px-8">
+        <div className="animate-in slide-in-from-bottom-8 fade-in flex max-w-4xl flex-col items-center text-center duration-1000 fill-mode-forwards sm:items-start sm:text-left">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 backdrop-blur-md transition-transform hover:scale-105">
+            <div className="flex -space-x-1.5" aria-hidden>
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-4 w-4 rounded-full border border-white/20 bg-gray-400" />
               ))}
             </div>
-            <span className="text-[11px] font-bold uppercase tracking-widest text-white shadow-sm">
-              ⭐ 4.9/5 TrustScore
+            <span className="text-[11px] font-bold uppercase tracking-widest text-white/95 shadow-sm">
+              10.000+ familii au ales deja STEM
             </span>
           </div>
 
-          {/* HEADLINE - The "Apple" Style */}
-          <h1 className="mb-6 text-4xl font-black leading-[1.1] tracking-tight text-white drop-shadow-xl sm:text-6xl lg:text-7xl">
+          <h1 className="mb-4 text-3xl font-black leading-[1.08] tracking-tight text-white drop-shadow-xl sm:text-5xl lg:text-6xl">
             {t("homepageH1Short", getHeadline())}
           </h1>
 
-          {/* Subheadline - Readable & Persuasive */}
-          <p className="mb-8 max-w-lg text-lg font-medium leading-relaxed text-gray-200 drop-shadow-md sm:text-xl md:max-w-2xl">
+          <p className="mb-6 max-w-2xl text-base font-medium leading-relaxed text-slate-200 drop-shadow-md sm:text-lg">
             {t(
               "heroDescription",
-              "Descoperă jucăriile care transformă 'timpul de ecran' în 'timp de geniu'. Educație STEM premiată, acum în România."
+              "Intri, vezi imediat ce i se potrivește copilului, alegi un pachet complet și comanzi în câteva minute, fără stres."
             )}
           </p>
 
-          {/* 3. High-Conversion Action Area */}
-          <div className="flex w-full flex-col items-center gap-4 sm:flex-row sm:gap-6">
+          <div className="mb-5 grid w-full max-w-3xl gap-2.5 sm:grid-cols-3">
+            {quickOutcomes.map((outcome) => {
+              const Icon = outcome.icon;
+              return (
+                <div
+                  key={outcome.label}
+                  className="rounded-2xl border border-white/15 bg-white/10 px-3 py-2.5 text-left backdrop-blur-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4 text-emerald-300" />
+                    <p className="text-xs font-medium text-white/90">
+                      {outcome.label}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex w-full flex-col items-center gap-3 sm:flex-row sm:gap-4">
             <Link
-              href="/products"
+              href="/products?bundleView=bundles"
               onClick={() => {
-                trackCTAConversion("cta_click", "hero", {
-                  element: "primary_button",
-                  label: getCTAText(),
-                });
-                lazyTrackEvent("hero_cta_click", "conversion", {
-                  element: "primary_button",
-                  variant: ctaVariant?.name,
-                });
+                void trackHeadlineAB("clicks");
+                void trackCTAAB("clicks");
+                trackHomepageConversionEvent(
+                  HOMEPAGE_CONVERSION_EVENTS.HERO_PRIMARY_CTA_CLICK,
+                  {
+                    cta_label: getCTAText(),
+                    headline_variant:
+                      headlineVariant?.name ?? headlineVariant?.id ?? "control",
+                    cta_variant: ctaVariant?.name ?? ctaVariant?.id ?? "control",
+                  }
+                );
               }}
-              className="group relative flex h-14 w-full items-center justify-center overflow-hidden rounded-full bg-white px-8 text-base font-bold text-gray-950 transition-all hover:bg-gray-100 hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.5)] active:scale-95 sm:w-auto sm:px-10"
+              data-conversion="cta"
+              data-conversion-type="click"
+              data-conversion-category="ecommerce"
+              data-conversion-action="hero_primary_bundle_cta_click"
+              data-conversion-element="hero_primary_bundle_cta"
+              data-conversion-metadata={`{"cta":"primary_bundle","headlineVariant":"${
+                headlineVariant?.name ?? headlineVariant?.id ?? "control"
+              }","ctaVariant":"${
+                ctaVariant?.name ?? ctaVariant?.id ?? "control"
+              }"}`}
+              className={`${gradientButtonClass} group relative flex h-12 w-full items-center justify-center overflow-hidden px-6 text-sm font-bold transition-all active:scale-95 sm:w-auto sm:px-9 sm:text-base`}
             >
               <span className="relative z-10 flex items-center gap-2">
                 {getCTAText()}
                 <Rocket className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
+
+            <Link
+              href="/products"
+              onClick={() => {
+                void trackHeadlineAB("clicks");
+                void trackCTAAB("clicks");
+                trackHomepageConversionEvent(
+                  HOMEPAGE_CONVERSION_EVENTS.HERO_SECONDARY_CTA_CLICK,
+                  {
+                    cta_label: "Vezi toate jucăriile",
+                    headline_variant:
+                      headlineVariant?.name ?? headlineVariant?.id ?? "control",
+                    cta_variant: ctaVariant?.name ?? ctaVariant?.id ?? "control",
+                  }
+                );
+              }}
+              data-conversion="cta"
+              data-conversion-type="click"
+              data-conversion-category="navigation"
+              data-conversion-action="hero_secondary_products_cta_click"
+              data-conversion-element="hero_secondary_products_cta"
+              data-conversion-metadata={`{"cta":"secondary_products","headlineVariant":"${
+                headlineVariant?.name ?? headlineVariant?.id ?? "control"
+              }","ctaVariant":"${
+                ctaVariant?.name ?? ctaVariant?.id ?? "control"
+              }"}`}
+              className="group inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-6 text-sm font-semibold text-white transition hover:border-white/35 hover:bg-white/15 sm:w-auto sm:px-8 sm:text-base"
+            >
+              Vezi toate jucăriile
+            </Link>
           </div>
 
-          {/* 4. Organic Trust Footnote */}
-          <div className="mt-10 flex items-center gap-2 text-xs font-medium text-white/60">
+          <div className="mt-4 flex w-full flex-wrap items-center gap-2">
+            {ageFastLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => {
+                  trackHomepageConversionEvent(
+                    HOMEPAGE_CONVERSION_EVENTS.HERO_AGE_CHIP_CLICK,
+                    {
+                      age_label: link.label,
+                      age_group_query: link.href,
+                      headline_variant:
+                        headlineVariant?.name ?? headlineVariant?.id ?? "control",
+                    }
+                  );
+                }}
+                data-conversion="cta"
+                data-conversion-type="click"
+                data-conversion-category="navigation"
+                data-conversion-action="hero_age_chip_click"
+                data-conversion-element={`hero_age_chip_${link.label.replace("+", "plus").replace("-", "_")}`}
+                className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/90 transition hover:border-emerald-300/50 hover:bg-emerald-300/10"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+          {/*
+            Keep this trust line close to CTAs to reduce last-second hesitation.
+          */}
+          <div className="mt-7 flex flex-wrap items-center gap-2 text-xs font-medium text-white/75">
             <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
-            <span>30 de zile garanție</span>
+            <span>Retur simplu</span>
+            <span className="h-1 w-1 rounded-full bg-white/20" />
+            <ShieldCheck className="h-3.5 w-3.5 text-sky-300" />
+            <span>Plată securizată</span>
             <span className="h-1 w-1 rounded-full bg-white/20" />
             <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
-            <span>Livrare gratuită {">"} 250 lei</span>
+            <span>Livrare rapidă în România</span>
           </div>
-
         </div>
       </div>
 
-      {/* 5. Minimal Scroll Indicator */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 animate-bounce opacity-60">
         <ChevronDown className="h-6 w-6 text-white" />
       </div>

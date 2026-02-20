@@ -1,25 +1,33 @@
 // [INFO] This file orchestrates the homepage layout. All child sections (Hero, Categories, Value Proposition, Featured Products) have been refactored for perfect responsiveness, accessibility, and a premium, app-like user experience. See individual section files for detailed comments and rationale.
 "use client";
 
-import React, { Suspense } from "react";
 import dynamic from "next/dynamic";
+import React, { Suspense } from "react";
 
-// **PERFORMANCE**: Lazy load non-critical components
+import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import {
+  AgeQuickLinksRow,
+  BundlesShowcaseSection,
   CategoriesSection,
-  FeaturedProductsAccordion,
+  FiveSecondConversionStrip,
   FeaturedProductsGrid,
-  FeaturedProductsSkeleton,
   PerformanceOptimizer,
   PillarSection,
   TrustBadgesRow,
-  AgeQuickLinksRow,
 } from "@/features/home/components";
-
-// **PERFORMANCE**: Import HeroSection directly to avoid preload warnings and improve LCP
 import { HeroSection } from "@/features/home/components/HeroSection";
-import SeoJsonLd from "@/components/seo/SeoJsonLd";
+import {
+  glassPanelClass,
+  homeBackgroundClass,
+  homeContentWrapperClass,
+  homeOverlayBottomClass,
+  homeOverlayTopClass,
+} from "@/features/home/components/homeTheme";
+import type { HomeBundle } from "@/features/home/types";
+import { useCurrency } from "@/lib/currency";
+import { useTranslation } from "@/lib/i18n";
 import { getBaseUrl } from "@/lib/site";
+import type { Product } from "@/types/product";
 
 // Code-split below-the-fold sections with better loading strategy
 const ValuePropositionSection = dynamic(
@@ -46,18 +54,6 @@ const MobileConversionOptimizer = dynamic(
     ssr: false, // Already disabled
   }
 );
-
-// **PERFORMANCE**: HeroSection is now lazy loaded above to reduce bundle size
-import { useCurrency } from "@/lib/currency";
-import { useTranslation } from "@/lib/i18n";
-import type { Product } from "@/types/product";
-import {
-  glassPanelClass,
-  homeBackgroundClass,
-  homeContentWrapperClass,
-  homeOverlayBottomClass,
-  homeOverlayTopClass,
-} from "@/features/home/components/homeTheme";
 
 // Define categories data
 const categories = [
@@ -142,8 +138,10 @@ const FeaturedProductsLoader = () => (
 
 export default function HomePageClient({
   initialFeaturedProducts: originalFeaturedProducts,
+  initialBundles,
 }: {
   initialFeaturedProducts: Product[];
+  initialBundles: HomeBundle[];
 }) {
   // Force the component to display all 6 products by duplicating some if needed
   const initialFeaturedProducts = [...originalFeaturedProducts];
@@ -316,6 +314,9 @@ export default function HomePageClient({
         {/* **PERFORMANCE**: Hero Section - Critical for FCP */}
         <HeroSection t={t} />
 
+        {/* Rapid conversion framing in first viewport interactions */}
+        <FiveSecondConversionStrip t={t} />
+
         {/* Featured Products Grid - Modern e-commerce showcase - Load with suspense for better performance */}
         <Suspense fallback={<FeaturedProductsLoader />}>
           <FeaturedProductsGrid
@@ -324,6 +325,12 @@ export default function HomePageClient({
             isLoading={initialFeaturedProducts.length === 0}
           />
         </Suspense>
+
+        {/* Bundles Showcase - High-conversion section for package deals */}
+        <BundlesShowcaseSection
+          bundles={initialBundles}
+          formatPrice={formatPrice}
+        />
 
         {/* **PERFORMANCE**: Trust badges and age links - Keep above fold for UX but optimize loading */}
         <div className="-mt-1 sm:-mt-2 mb-3 sm:mb-5">

@@ -13,3 +13,5 @@ export { default as MobileConversionOptimizer } from "./MobileConversionOptimize
 export { default as PerformanceOptimizer } from "./PerformanceOptimizer";
 export { default as TrustBadgesRow } from "./TrustBadgesRow";
 export { default as AgeQuickLinksRow } from "./AgeQuickLinksRow";
+export { BundlesShowcaseSection } from "./BundlesShowcaseSection";
+export { default as FiveSecondConversionStrip } from "./FiveSecondConversionStrip";

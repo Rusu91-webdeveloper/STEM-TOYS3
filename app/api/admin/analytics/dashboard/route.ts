@@ -1,9 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { UserAnalyticsService } from "@/lib/services/user-analytics-service";
-import { SegmentationService } from "@/lib/services/segmentation-service";
-import { getUserCache } from "@/lib/cache/user-cache";
+
+const HOMEPAGE_ACTION_GROUPS = {
+  HERO_IMPRESSION: ["homepage_hero_impression"],
+  HERO_PRIMARY_CTA_CLICK: [
+    "hero_primary_bundle_cta_click",
+    "homepage_hero_primary_cta_click",
+  ],
+  HERO_SECONDARY_CTA_CLICK: [
+    "hero_secondary_products_cta_click",
+    "homepage_hero_secondary_cta_click",
+  ],
+  HERO_AGE_CHIP_CLICK: ["hero_age_chip_click", "homepage_hero_age_chip_click"],
+  FIVE_SECOND_STEP_CLICK: [
+    "five_second_step_click",
+    "homepage_five_second_step_click",
+  ],
+  FIVE_SECOND_PRIMARY_CTA_CLICK: [
+    "five_second_primary_bundle_cta_click",
+    "homepage_five_second_primary_cta_click",
+  ],
+  FIVE_SECOND_SECONDARY_CTA_CLICK: [
+    "five_second_secondary_products_cta_click",
+    "homepage_five_second_secondary_cta_click",
+  ],
+  BUNDLE_CARD_CLICK: ["bundle_card_click", "homepage_bundle_card_click"],
+  BUNDLE_LIST_CTA_CLICK: [
+    "bundle_list_cta_click",
+    "homepage_bundle_list_cta_click",
+  ],
+  TRUST_BADGE_CLICK: ["trust_badge_click", "homepage_trust_badge_click"],
+} as const;
+
+const HOMEPAGE_TRACKED_ACTIONS = Array.from(
+  new Set(
+    Object.values(HOMEPAGE_ACTION_GROUPS).flatMap(actions => [...actions])
+  )
+);
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,11 +47,6 @@ export async function GET(request: NextRequest) {
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    // Initialize services
-    const analyticsService = new UserAnalyticsService(db);
-    const segmentationService = new SegmentationService(db, analyticsService);
-    const userCache = getUserCache();
 
     // Get date range for metrics (default to last 30 days)
     const url = new URL(request.url);
@@ -31,12 +61,14 @@ export async function GET(request: NextRequest) {
       segmentationMetrics,
       behaviorMetrics,
       performanceMetrics,
+      homepageConversionMetrics,
     ] = await Promise.all([
       getOverviewMetrics(startDate, endDate),
       getRealtimeMetrics(),
       getSegmentationMetrics(),
-      getBehaviorMetrics(startDate, endDate),
+      getBehaviorMetrics(),
       getPerformanceMetrics(),
+      getHomepageConversionMetrics(startDate, endDate),
     ]);
 
     // Combine all metrics
@@ -46,6 +78,7 @@ export async function GET(request: NextRequest) {
       segmentation: segmentationMetrics,
       behavior: behaviorMetrics,
       performance: performanceMetrics,
+      homepageConversion: homepageConversionMetrics,
       metadata: {
         generatedAt: new Date().toISOString(),
         timeRange: {
@@ -253,7 +286,7 @@ async function getSegmentationMetrics() {
   };
 }
 
-async function getBehaviorMetrics(startDate: Date, endDate: Date) {
+async function getBehaviorMetrics() {
   const [topPages, userJourney, engagementMetrics] = await Promise.all([
     // Top pages (simulated - would come from analytics events)
     getTopPages(),
@@ -298,6 +331,185 @@ async function getPerformanceMetrics() {
   };
 }
 
+async function getHomepageConversionMetrics(startDate: Date, endDate: Date) {
+  const where = {
+    timestamp: {
+      gte: startDate,
+      lte: endDate,
+    },
+    action: {
+      in: HOMEPAGE_TRACKED_ACTIONS,
+    },
+  };
+
+  const [actionCountsRaw, bundleClickEvents, fiveSecondStepEvents] =
+    await Promise.all([
+      db.conversionLog.groupBy({
+        by: ["action"],
+        where,
+        _count: {
+          action: true,
+        },
+      }),
+      db.conversionLog.findMany({
+        where: {
+          timestamp: {
+            gte: startDate,
+            lte: endDate,
+          },
+          action: {
+            in: HOMEPAGE_ACTION_GROUPS.BUNDLE_CARD_CLICK,
+          },
+        },
+        select: {
+          metadata: true,
+        },
+        orderBy: {
+          timestamp: "desc",
+        },
+        take: 5000,
+      }),
+      db.conversionLog.findMany({
+        where: {
+          timestamp: {
+            gte: startDate,
+            lte: endDate,
+          },
+          action: {
+            in: HOMEPAGE_ACTION_GROUPS.FIVE_SECOND_STEP_CLICK,
+          },
+        },
+        select: {
+          metadata: true,
+        },
+        orderBy: {
+          timestamp: "desc",
+        },
+        take: 5000,
+      }),
+    ]);
+
+  const actionCounts = actionCountsRaw.reduce<Record<string, number>>(
+    (acc, item) => {
+      if (!item.action) return acc;
+      acc[item.action] = item._count.action;
+      return acc;
+    },
+    {}
+  );
+
+  const heroImpressions = sumActionCounts(
+    actionCounts,
+    HOMEPAGE_ACTION_GROUPS.HERO_IMPRESSION
+  );
+  const heroPrimaryClicks = sumActionCounts(
+    actionCounts,
+    HOMEPAGE_ACTION_GROUPS.HERO_PRIMARY_CTA_CLICK
+  );
+  const heroSecondaryClicks = sumActionCounts(
+    actionCounts,
+    HOMEPAGE_ACTION_GROUPS.HERO_SECONDARY_CTA_CLICK
+  );
+  const heroAgeChipClicks = sumActionCounts(
+    actionCounts,
+    HOMEPAGE_ACTION_GROUPS.HERO_AGE_CHIP_CLICK
+  );
+  const fiveSecondStepClicks = sumActionCounts(
+    actionCounts,
+    HOMEPAGE_ACTION_GROUPS.FIVE_SECOND_STEP_CLICK
+  );
+  const fiveSecondPrimaryClicks = sumActionCounts(
+    actionCounts,
+    HOMEPAGE_ACTION_GROUPS.FIVE_SECOND_PRIMARY_CTA_CLICK
+  );
+  const fiveSecondSecondaryClicks = sumActionCounts(
+    actionCounts,
+    HOMEPAGE_ACTION_GROUPS.FIVE_SECOND_SECONDARY_CTA_CLICK
+  );
+  const bundleCardClicks = sumActionCounts(
+    actionCounts,
+    HOMEPAGE_ACTION_GROUPS.BUNDLE_CARD_CLICK
+  );
+  const bundleListClicks = sumActionCounts(
+    actionCounts,
+    HOMEPAGE_ACTION_GROUPS.BUNDLE_LIST_CTA_CLICK
+  );
+  const trustBadgeClicks = sumActionCounts(
+    actionCounts,
+    HOMEPAGE_ACTION_GROUPS.TRUST_BADGE_CLICK
+  );
+
+  const totalHomepageEvents = Object.values(actionCounts).reduce(
+    (sum, count) => sum + count,
+    0
+  );
+  const totalBundleClicks = bundleCardClicks + bundleListClicks;
+
+  const topBundlesMap = new Map<string, { slug: string; name: string; clicks: number }>();
+  for (const event of bundleClickEvents) {
+    const slug = readMetadataString(event.metadata, ["bundle_slug", "bundleSlug"]);
+    if (!slug) continue;
+
+    const name =
+      readMetadataString(event.metadata, ["bundle_name", "bundleName"]) || slug;
+    const current = topBundlesMap.get(slug);
+    if (current) {
+      current.clicks += 1;
+    } else {
+      topBundlesMap.set(slug, { slug, name, clicks: 1 });
+    }
+  }
+
+  const topFiveSecondStepsMap = new Map<string, { title: string; clicks: number }>();
+  for (const event of fiveSecondStepEvents) {
+    const stepTitle =
+      readMetadataString(event.metadata, ["step_title", "stepTitle"]) ||
+      "Pas necunoscut";
+    const current = topFiveSecondStepsMap.get(stepTitle);
+    if (current) {
+      current.clicks += 1;
+    } else {
+      topFiveSecondStepsMap.set(stepTitle, { title: stepTitle, clicks: 1 });
+    }
+  }
+
+  return {
+    summary: {
+      totalHomepageEvents,
+      heroImpressions,
+      heroPrimaryClicks,
+      heroSecondaryClicks,
+      heroAgeChipClicks,
+      fiveSecondStepClicks,
+      fiveSecondPrimaryClicks,
+      fiveSecondSecondaryClicks,
+      bundleCardClicks,
+      bundleListClicks,
+      trustBadgeClicks,
+      heroPrimaryCtr: heroImpressions > 0 ? heroPrimaryClicks / heroImpressions : 0,
+      bundleEngagementRate:
+        heroImpressions > 0 ? totalBundleClicks / heroImpressions : 0,
+    },
+    eventBreakdown: [
+      { key: "hero_primary", label: "Hero CTA principal", count: heroPrimaryClicks },
+      { key: "hero_secondary", label: "Hero CTA secundar", count: heroSecondaryClicks },
+      { key: "hero_age", label: "Click pe grupe de vârstă", count: heroAgeChipClicks },
+      { key: "five_second_steps", label: "Click pe pașii de 5 secunde", count: fiveSecondStepClicks },
+      { key: "five_second_primary", label: "CTA principal 5 secunde", count: fiveSecondPrimaryClicks },
+      { key: "five_second_secondary", label: "CTA secundar 5 secunde", count: fiveSecondSecondaryClicks },
+      { key: "bundle_cards", label: "Click pe carduri bundle", count: bundleCardClicks },
+      { key: "bundle_list", label: "CTA listă bundle-uri", count: bundleListClicks },
+      { key: "trust_badges", label: "Interacțiuni trust badges", count: trustBadgeClicks },
+    ],
+    topBundles: Array.from(topBundlesMap.values())
+      .sort((a, b) => b.clicks - a.clicks)
+      .slice(0, 5),
+    topFiveSecondSteps: Array.from(topFiveSecondStepsMap.values())
+      .sort((a, b) => b.clicks - a.clicks)
+      .slice(0, 5),
+  };
+}
+
 async function getConversionRate(startDate: Date, endDate: Date) {
   const [totalVisitors, totalCustomers] = await Promise.all([
     // Total unique users who viewed pages (simulated)
@@ -332,7 +544,7 @@ async function getConversionRate(startDate: Date, endDate: Date) {
   return totalVisitors > 0 ? totalCustomers / totalVisitors : 0;
 }
 
-async function getTopPages() {
+function getTopPages() {
   // Simulated top pages data
   // In a real implementation, this would come from analytics events
   return [
@@ -433,6 +645,32 @@ async function getEngagementMetrics() {
   return {
     avgSessionDuration: Number(avgSessionDuration),
     pagesPerSession: Number(avgPagesPerSession),
-    returnVisitorRate: returnVisitorRate,
+    returnVisitorRate,
   };
+}
+
+function sumActionCounts(
+  actionCounts: Record<string, number>,
+  actions: readonly string[]
+) {
+  return actions.reduce((sum, action) => sum + (actionCounts[action] || 0), 0);
+}
+
+function readMetadataString(
+  metadata: unknown,
+  possibleKeys: string[]
+): string | null {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return null;
+  }
+
+  const metadataRecord = metadata as Record<string, unknown>;
+  for (const key of possibleKeys) {
+    const value = metadataRecord[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return null;
 }

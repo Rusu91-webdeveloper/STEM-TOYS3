@@ -43,6 +43,10 @@ This file lists all markdown docs in the project so tools/AI can quickly see wha
 - `docs/PRODUCT_IMPORT_GUIDE.md` – Product import script, CSV/JSON schema, and linkage to suppliers/categories.
 - `docs/CUSTOMER_SUPPORT_MACROS.md` – Email macros/templates for common support scenarios (orders, delays, returns, defects).
 - `docs/BUNDLE_CREATION_GUIDE.md` – Bundle product strategy and the bundle creation script behavior.
+- `docs/HOMEPAGE_CONVERSION_EVENT_MAP.md` – Canonical map for homepage conversion events, parameters, and KPI interpretation.
+- `docs/GA4_HOMEPAGE_TRACKING_SETUP_CHECKLIST.md` – GA4 admin checklist for event registration, custom dimensions, and validation.
+- `docs/LOOKER_STUDIO_HOMEPAGE_DASHBOARD_BLUEPRINT.md` – Step-by-step Looker Studio implementation blueprint (pages, formulas, filters, QA).
+- `docs/LOOKER_STUDIO_CLICK_BY_CLICK_RUNBOOK.md` – Click-by-click execution order to build and publish the homepage conversion dashboard safely.
 
 ### Launch & planning
 

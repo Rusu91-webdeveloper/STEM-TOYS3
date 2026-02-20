@@ -1,6 +1,6 @@
 // [INFO] This is the Next.js homepage entry point. All child components have been refactored for perfect responsiveness, accessibility, and a premium, app-like user experience. See section files for detailed comments and rationale.
+import type { HomeBundle } from "@/features/home/types";
 import type { Product } from "@/types/product";
-import { headers } from "next/headers";
 
 import HomePageClient from "./HomePageClient";
 
@@ -191,6 +191,91 @@ async function fetchFeaturedProductsOptimized(): Promise<Product[]> {
   }
 }
 
+// **PERFORMANCE**: Cached homepage bundles query with defensive fallbacks
+async function getHomepageBundles(): Promise<HomeBundle[]> {
+  try {
+    const cacheKey = "homepage_bundles_v1";
+    const { getCached } = await import("@/lib/cache");
+    const TIME = (await import("@/lib/constants")).TIME;
+
+    const cachedResult = await getCached(
+      cacheKey,
+      () => fetchHomepageBundlesOptimized(),
+      TIME.CACHE_DURATION.MEDIUM
+    );
+
+    return cachedResult || [];
+  } catch (error) {
+    console.error("Error fetching homepage bundles:", error);
+    return [];
+  }
+}
+
+async function fetchHomepageBundlesOptimized(): Promise<HomeBundle[]> {
+  const { db } = await import("@/lib/db");
+
+  try {
+    const queryPromise = db.product.findMany({
+      where: {
+        isActive: true,
+        status: "APPROVED",
+        isBundle: true,
+        stockQuantity: {
+          gt: 0,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        price: true,
+        compareAtPrice: true,
+        images: true,
+        bundleDiscount: true,
+        stockQuantity: true,
+      },
+      orderBy: [{ bundleDiscount: "desc" }, { createdAt: "desc" }],
+      take: 3,
+    });
+
+    const timeoutMs = process.env.NODE_ENV === "development" ? 5000 : 500;
+    const timeoutPromise = new Promise<HomeBundle[]>((resolve) => {
+      setTimeout(() => {
+        if (process.env.NODE_ENV === "development") {
+          console.warn(`[Homepage Bundles] Query timed out after ${timeoutMs}ms`);
+        }
+        resolve([]);
+      }, timeoutMs);
+    });
+
+    const bundles = await Promise.race([queryPromise, timeoutPromise]);
+
+    return (bundles ?? []).map((bundle) => {
+      const trimmedDescription = bundle.description?.trim();
+      const description =
+        trimmedDescription && trimmedDescription.length > 0
+          ? trimmedDescription
+          : "Pachet atent selectat pentru progres rapid si invatare distractiva.";
+
+      return {
+        id: bundle.id,
+        name: bundle.name,
+        slug: bundle.slug,
+        description,
+        price: bundle.price,
+        compareAtPrice: bundle.compareAtPrice,
+        images: Array.isArray(bundle.images) ? bundle.images : [],
+        bundleDiscount: bundle.bundleDiscount,
+        stockQuantity: bundle.stockQuantity,
+      };
+    });
+  } catch (error) {
+    console.error("Database error in fetchHomepageBundlesOptimized:", error);
+    return [];
+  }
+}
+
 // **PERFORMANCE**: Incremental Static Regeneration for optimal TTFB and LCP
 export const revalidate = 1800; // Revalidate every 30 minutes for better cache freshness
 // Route uses dynamic no-store fetch via cache/redis during build; avoid static pre-render
@@ -199,26 +284,42 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   // **PERFORMANCE**: Aggressive caching strategy for TTFB optimization
   let featuredProducts: Product[] = [];
+  let homepageBundles: HomeBundle[] = [];
 
   try {
-    // **PERFORMANCE**: Get featured products with reasonable timeout to prevent blocking LCP
-    const cachePromise = getFeaturedProducts();
-    const timeoutPromise = new Promise<Product[]>(resolve => {
-      setTimeout(() => resolve([]), 200); // **PERFORMANCE**: 200ms timeout - balance TTFB with content availability
-    });
+    const featuredProductsPromise = Promise.race([
+      getFeaturedProducts(),
+      new Promise<Product[]>(resolve => {
+        setTimeout(() => resolve([]), 200);
+      }),
+    ]);
 
-    featuredProducts = await Promise.race([cachePromise, timeoutPromise]);
+    const bundlesPromise = Promise.race([
+      getHomepageBundles(),
+      new Promise<HomeBundle[]>(resolve => {
+        setTimeout(() => resolve([]), 220);
+      }),
+    ]);
+
+    [featuredProducts, homepageBundles] = await Promise.all([
+      featuredProductsPromise,
+      bundlesPromise,
+    ]);
   } catch (error) {
     // **PERFORMANCE**: Silent fallback to prevent TTFB blocking
     console.error("Cache error in homepage:", error);
     featuredProducts = [];
+    homepageBundles = [];
   }
 
   return (
     <>
       {/* **PERFORMANCE**: Inline critical CSS for immediate rendering */}
       <style dangerouslySetInnerHTML={{ __html: heroSectionCriticalCSS }} />
-      <HomePageClient initialFeaturedProducts={featuredProducts} />
+      <HomePageClient
+        initialFeaturedProducts={featuredProducts}
+        initialBundles={homepageBundles}
+      />
     </>
   );
 }
