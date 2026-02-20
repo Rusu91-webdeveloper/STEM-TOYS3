@@ -3,6 +3,10 @@ export interface HomeBundle {
   name: string;
   slug: string;
   description: string;
+  nameRo?: string | null;
+  descriptionRo?: string | null;
+  nameEn?: string | null;
+  descriptionEn?: string | null;
   price: number;
   compareAtPrice?: number | null;
   images: string[];

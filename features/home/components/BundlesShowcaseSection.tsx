@@ -10,6 +10,7 @@ import {
   HOMEPAGE_CONVERSION_EVENTS,
   trackHomepageConversionEvent,
 } from "@/lib/analytics/homepage-conversion-events";
+import { useTranslation } from "@/lib/i18n";
 
 interface BundlesShowcaseSectionProps {
   bundles: HomeBundle[];
@@ -36,8 +37,50 @@ function getBundleSavings(bundle: HomeBundle): number {
   return 0;
 }
 
+function isProbablyRomanian(text: string): boolean {
+  return /[ăâîșț]/i.test(text) || /\b(și|pentru|copil|vârstă|pachet|joc|rapid)\b/i.test(text);
+}
+
+function looksEnglish(text: string): boolean {
+  return /\b(and|for|with|the|plus|quick|bundle|games|challenge|practice|thinking|curiosity|imaginative)\b/i.test(
+    text
+  );
+}
+
+function getRomanianFallbackName(name: string): string {
+  if (!name.trim()) return "Pachet STEM";
+  if (/bundle/i.test(name)) {
+    return name.replace(/bundle/gi, "Pachet");
+  }
+  return name;
+}
+
+function getRomanianFallbackDescription(description: string): string {
+  if (description.trim() && isProbablyRomanian(description)) {
+    return description;
+  }
+
+  if (looksEnglish(description)) {
+    return "Pachet STEM complet pentru joacă practică, logică, creativitate și progres real acasă.";
+  }
+
+  return description.trim()
+    ? description
+    : "Pachet STEM complet pentru joacă practică, logică, creativitate și progres real acasă.";
+}
+
+function withStringFallback(
+  primary: string | null | undefined,
+  fallback: string
+): string {
+  return primary && primary.trim().length > 0 ? primary.trim() : fallback;
+}
+
 export const BundlesShowcaseSection = React.memo(
   ({ bundles, formatPrice }: BundlesShowcaseSectionProps) => {
+    const { language } = useTranslation();
+    const isRomanian = language === "ro";
+
     if (bundles.length === 0) {
       return null;
     }
@@ -54,26 +97,43 @@ export const BundlesShowcaseSection = React.memo(
             <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
               <div className="max-w-3xl">
                 <span className="inline-flex items-center rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-200">
-                  Pachete speciale pentru familii istețe
+                  {isRomanian
+                    ? "Pachete speciale pentru familii istețe"
+                    : "Special bundles for smart families"}
                 </span>
                 <h2 className="mt-3 bg-gradient-to-r from-amber-200 via-sky-100 to-emerald-200 bg-clip-text text-2xl font-extrabold text-transparent sm:text-3xl lg:text-4xl">
-                  Mai multă valoare, mai puțin cost: alege un pachet STEM
+                  {isRomanian
+                    ? "Mai multă valoare, mai puțin cost: alege un pachet STEM"
+                    : "More value, lower cost: choose a STEM bundle"}
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-slate-200/85 sm:text-base">
-                  Cu pachetele noastre obții produse care se completează
-                  perfect, progres clar pentru copil și un preț de pachet care
-                  îți păstrează bugetul sub control. Ideal când vrei impact mai
-                  mare cu o singură decizie.
+                  {isRomanian
+                    ? "Cu pachetele noastre obții produse care se completează perfect, progres clar pentru copil și un preț de pachet care îți păstrează bugetul sub control. Ideal când vrei impact mai mare cu o singură decizie."
+                    : "Our bundles combine products that work better together, offer clear progress for your child, and keep your budget under control."}
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-3 text-sm font-semibold text-emerald-100">
-                Economisești mai mult când cumperi împreună
+                {isRomanian
+                  ? "Economisești mai mult când cumperi împreună"
+                  : "Save more when you buy together"}
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {bundles.map((bundle, index) => {
                 const savings = getBundleSavings(bundle);
+                const displayName = isRomanian
+                  ? withStringFallback(
+                      bundle.nameRo,
+                      getRomanianFallbackName(bundle.name)
+                    )
+                  : withStringFallback(bundle.nameEn, bundle.name);
+                const displayDescription = isRomanian
+                  ? withStringFallback(
+                      bundle.descriptionRo,
+                      getRomanianFallbackDescription(bundle.description)
+                    )
+                  : withStringFallback(bundle.descriptionEn, bundle.description);
 
                 return (
                   <Link
@@ -85,7 +145,7 @@ export const BundlesShowcaseSection = React.memo(
                         {
                           bundle_id: bundle.id,
                           bundle_slug: bundle.slug,
-                          bundle_name: bundle.name,
+                          bundle_name: displayName,
                           bundle_price: bundle.price,
                           bundle_discount: bundle.bundleDiscount ?? 0,
                         }
@@ -98,7 +158,11 @@ export const BundlesShowcaseSection = React.memo(
                     data-conversion-element={`bundle_card_${bundle.slug}`}
                     data-conversion-metadata={`{"bundleId":"${bundle.id}","bundleSlug":"${bundle.slug}","bundlePrice":${bundle.price}}`}
                     className="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 p-3 shadow-xl shadow-black/25 transition-all duration-300 hover:-translate-y-1 hover:border-sky-300/50 hover:shadow-sky-900/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
-                    aria-label={`Vezi pachetul ${bundle.name}`}
+                    aria-label={
+                      isRomanian
+                        ? `Vezi pachetul ${displayName}`
+                        : `View bundle ${displayName}`
+                    }
                     style={{
                       animationDelay: `${Math.min(index * 0.08, 0.2)}s`,
                     }}
@@ -113,7 +177,7 @@ export const BundlesShowcaseSection = React.memo(
                     <div className="relative h-40 overflow-hidden rounded-xl">
                       <Image
                         src={bundle.images[0] || "/images/placeholder.png"}
-                        alt={bundle.name}
+                        alt={displayName}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -122,10 +186,10 @@ export const BundlesShowcaseSection = React.memo(
 
                     <div className="mt-4">
                       <h3 className="line-clamp-2 text-lg font-bold text-white">
-                        {bundle.name}
+                        {displayName}
                       </h3>
                       <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-300/85">
-                        {bundle.description}
+                        {displayDescription}
                       </p>
 
                       <div className="mt-4 flex items-end justify-between gap-2">
@@ -142,13 +206,15 @@ export const BundlesShowcaseSection = React.memo(
                         </div>
 
                         <span className="rounded-lg bg-gradient-to-r from-sky-500 to-indigo-500 px-3 py-2 text-xs font-semibold text-white transition-all duration-200 group-hover:from-sky-400 group-hover:to-indigo-400">
-                          Vezi pachetul
+                          {isRomanian ? "Vezi pachetul" : "View bundle"}
                         </span>
                       </div>
 
                       {savings > 0 && (
                         <p className="mt-3 text-xs font-medium text-amber-200">
-                          Economie estimată: {formatPrice(savings)}
+                          {isRomanian
+                            ? `Economie estimată: ${formatPrice(savings)}`
+                            : `Estimated savings: ${formatPrice(savings)}`}
                         </p>
                       )}
                     </div>
@@ -164,7 +230,9 @@ export const BundlesShowcaseSection = React.memo(
                   trackHomepageConversionEvent(
                     HOMEPAGE_CONVERSION_EVENTS.BUNDLE_LIST_CTA_CLICK,
                     {
-                      cta_label: "Vezi toate pachetele și economiile active",
+                      cta_label: isRomanian
+                        ? "Vezi toate pachetele și economiile active"
+                        : "See all bundles and current savings",
                       target_href: "/products?bundleView=bundles",
                     }
                   )
@@ -176,7 +244,9 @@ export const BundlesShowcaseSection = React.memo(
                 data-conversion-element="bundle_list_cta"
                 className="inline-flex items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 px-5 py-2.5 text-sm font-bold text-amber-100 transition hover:border-amber-200/50 hover:bg-amber-300/20"
               >
-                Vezi toate pachetele și economiile active
+                {isRomanian
+                  ? "Vezi toate pachetele și economiile active"
+                  : "See all bundles and current savings"}
               </Link>
             </div>
           </div>

@@ -211,6 +211,62 @@ async function getHomepageBundles(): Promise<HomeBundle[]> {
   }
 }
 
+function toRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as Record<string, unknown>;
+}
+
+function readString(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
+}
+
+function readLocalizedField(
+  metadata: unknown,
+  language: "ro" | "en",
+  keys: string[]
+): string | null {
+  const meta = toRecord(metadata);
+  if (!meta) return null;
+
+  const containerKeys = ["localized", "translations", "multilingual", language];
+  const candidates: Array<unknown> = [meta];
+
+  containerKeys.forEach((containerKey) => {
+    const next = toRecord(meta[containerKey]);
+    if (next) {
+      candidates.push(next);
+      const langObject = toRecord(next[language]);
+      if (langObject) {
+        candidates.push(langObject);
+      }
+    }
+  });
+
+  for (const candidate of candidates) {
+    const asRecord = toRecord(candidate);
+    if (!asRecord) continue;
+
+    for (const key of keys) {
+      const direct = readString(asRecord[key]);
+      if (direct) return direct;
+
+      const suffixed = readString(asRecord[`${key}_${language}`]);
+      if (suffixed) return suffixed;
+
+      const langSuffix =
+        language === "ro"
+          ? `${key}Ro`
+          : `${key}En`;
+      const bySuffix = readString(asRecord[langSuffix]);
+      if (bySuffix) return bySuffix;
+    }
+  }
+
+  return null;
+}
+
 async function fetchHomepageBundlesOptimized(): Promise<HomeBundle[]> {
   const { db } = await import("@/lib/db");
 
@@ -234,6 +290,7 @@ async function fetchHomepageBundlesOptimized(): Promise<HomeBundle[]> {
         images: true,
         bundleDiscount: true,
         stockQuantity: true,
+        metadata: true,
       },
       orderBy: [{ bundleDiscount: "desc" }, { createdAt: "desc" }],
       take: 3,
@@ -263,6 +320,18 @@ async function fetchHomepageBundlesOptimized(): Promise<HomeBundle[]> {
         name: bundle.name,
         slug: bundle.slug,
         description,
+        nameRo: readLocalizedField(bundle.metadata, "ro", ["name", "title"]),
+        descriptionRo: readLocalizedField(bundle.metadata, "ro", [
+          "description",
+          "shortDescription",
+          "summary",
+        ]),
+        nameEn: readLocalizedField(bundle.metadata, "en", ["name", "title"]),
+        descriptionEn: readLocalizedField(bundle.metadata, "en", [
+          "description",
+          "shortDescription",
+          "summary",
+        ]),
         price: bundle.price,
         compareAtPrice: bundle.compareAtPrice,
         images: Array.isArray(bundle.images) ? bundle.images : [],
