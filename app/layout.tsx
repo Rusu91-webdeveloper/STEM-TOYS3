@@ -1,4 +1,5 @@
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
@@ -128,6 +129,7 @@ export default async function RootLayout({
                   <ClientLayout initialStoreSettings={initialStoreSettings}>
                     {children}
                     <SpeedInsights />
+                    <Analytics />
                   </ClientLayout>
                   <Toaster />
                   <ServiceWorkerRegistration />

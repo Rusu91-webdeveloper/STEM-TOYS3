@@ -133,6 +133,7 @@
     "@types/ws": "^8.18.1",
     "@uploadthing/react": "^7.3.2",
     "@upstash/redis": "^1.35.0",
+    "@vercel/analytics": "^1.6.1",
     "@vercel/speed-insights": "^1.2.0",
     "@xyflow/react": "^12.8.6",
     "autoprefixer": "^10.4.16",
