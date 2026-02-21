@@ -76,6 +76,7 @@ export async function recomputeBundles(
       costPrice: true,
       stockQuantity: true,
       isActive: true,
+      status: true,
       supplierId: true,
       featured: true,
     },
@@ -252,6 +253,7 @@ export async function recomputeBundles(
         stockQuantity?: number;
         supplierId?: string;
         isActive?: boolean;
+        status?: "APPROVED";
         featured?: boolean;
       } = {};
 
@@ -272,6 +274,9 @@ export async function recomputeBundles(
       }
       if (bundle.isActive !== shouldBeActive) {
         updateData.isActive = shouldBeActive;
+      }
+      if (shouldBeActive && bundle.status !== "APPROVED") {
+        updateData.status = "APPROVED";
       }
       if (!shouldBeActive && bundle.featured) {
         updateData.featured = false;

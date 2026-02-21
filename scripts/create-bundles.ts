@@ -513,6 +513,7 @@ async function createBundles() {
         images: bundleDef.images || selectedProducts[0]?.images || [],
         tags: [bundleDef.category, "Bundle", bundleDef.stemDiscipline],
         isActive: true,
+        status: "APPROVED" as const,
         featured: true, // Feature bundles
         stockQuantity: Math.min(...selectedProducts.map(p => p.stockQuantity || 0)),
         // Calculate cost price from bundle items
