@@ -14,6 +14,7 @@ import {
   getFanCourierAwbLabel,
   getFanCourierClientId,
   isFanCourierConfigured,
+  normalizeFanCourierCountyName,
 } from "@/lib/integrations/fancourier/client";
 import type {
   FanCourierAwbPayload,
@@ -476,6 +477,7 @@ const buildPickupOrderPayload = (input: {
   pickupWindowEnd: string;
   pickupDate: string;
   observations?: string | null;
+  sender: FanCourierSenderConfig;
 }) => {
   const pickupPaymentLabel = getFanCourierPickupPaymentLabel();
 
@@ -503,6 +505,19 @@ const buildPickupOrderPayload = (input: {
       },
       observations: input.observations || "",
       ...(pickupPaymentLabel ? { payment: pickupPaymentLabel } : {}),
+    },
+    sender: {
+      name: input.sender.name,
+      contactperson: input.sender.contactPerson,
+      email: input.sender.email,
+      phone: input.sender.phone,
+      address: {
+        county: normalizeFanCourierCountyName(input.sender.county),
+        locality: input.sender.locality,
+        street: input.sender.street,
+        streetNo: input.sender.number,
+        zipCode: input.sender.postalCode,
+      },
     },
   };
 };
@@ -699,7 +714,7 @@ const buildAwbPayload = (
           phone: input.order.shippingAddress.phone,
           email: input.order.user?.email || undefined,
           address: {
-            county: input.order.shippingAddress.state,
+            county: normalizeFanCourierCountyName(input.order.shippingAddress.state),
             locality: input.order.shippingAddress.city,
             street: recipientAddress.street,
             streetNo: recipientAddress.streetNo,
@@ -718,7 +733,7 @@ const buildAwbPayload = (
           email: sender.email,
           phone: sender.phone,
           address: {
-            county: sender.county,
+            county: normalizeFanCourierCountyName(sender.county),
             locality: sender.locality,
             street: sender.street,
             streetNo: sender.number,
@@ -1253,6 +1268,7 @@ export const createFanAwbForOrder = async (
           pickupWindowEnd: pickupConfig.windowEnd || "16:00",
           pickupDate: formatPickupDate(Number(pickupConfig.offsetDays || 0)),
           observations: pickupConfig.observations || "",
+          sender: senderConfig,
         });
 
         await createFanCourierPickupOrder(pickupPayload);

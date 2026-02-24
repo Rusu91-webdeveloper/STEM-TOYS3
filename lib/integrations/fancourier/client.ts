@@ -44,8 +44,13 @@ const getBaseUrl = (): string => {
     return baseUrl.replace(/\/+$/, "");
 };
 
+const useOccasionalFanCourierAccount = (): boolean =>
+    process.env.FANCOURIER_USE_OCCASIONAL_ACCOUNT === "true";
+
 const getClientId = (): number => {
-    const clientId = process.env.FANCOURIER_CLIENT_ID;
+    const clientId = useOccasionalFanCourierAccount()
+        ? process.env.FANCOURIER_OCCASIONAL_CLIENT_ID || process.env.FANCOURIER_CLIENT_ID
+        : process.env.FANCOURIER_CLIENT_ID;
     if (!clientId) {
         throw new FanCourierClientError("FANCOURIER_CLIENT_ID missing");
     }
@@ -60,8 +65,12 @@ const getAuthCredentials = (): {
     username: string;
     password: string;
 } => {
-    const username = process.env.FANCOURIER_USERNAME;
-    const password = process.env.FANCOURIER_PASSWORD;
+    const username = useOccasionalFanCourierAccount()
+        ? process.env.FANCOURIER_OCCASIONAL_USERNAME || process.env.FANCOURIER_USERNAME
+        : process.env.FANCOURIER_USERNAME;
+    const password = useOccasionalFanCourierAccount()
+        ? process.env.FANCOURIER_OCCASIONAL_PASSWORD || process.env.FANCOURIER_PASSWORD
+        : process.env.FANCOURIER_PASSWORD;
 
     if (!username || !password) {
         throw new FanCourierClientError(
@@ -301,11 +310,21 @@ export const hasExtraKmOrRemoteLocality = (
  * Check if FAN Courier is configured
  */
 export const isFanCourierConfigured = (): boolean => {
+    const hasClientId = useOccasionalFanCourierAccount()
+        ? !!(process.env.FANCOURIER_OCCASIONAL_CLIENT_ID || process.env.FANCOURIER_CLIENT_ID)
+        : !!process.env.FANCOURIER_CLIENT_ID;
+    const hasUsername = useOccasionalFanCourierAccount()
+        ? !!(process.env.FANCOURIER_OCCASIONAL_USERNAME || process.env.FANCOURIER_USERNAME)
+        : !!process.env.FANCOURIER_USERNAME;
+    const hasPassword = useOccasionalFanCourierAccount()
+        ? !!(process.env.FANCOURIER_OCCASIONAL_PASSWORD || process.env.FANCOURIER_PASSWORD)
+        : !!process.env.FANCOURIER_PASSWORD;
+
     return !!(
         process.env.FANCOURIER_BASE_URL &&
-        process.env.FANCOURIER_CLIENT_ID &&
-        process.env.FANCOURIER_USERNAME &&
-        process.env.FANCOURIER_PASSWORD
+        hasClientId &&
+        hasUsername &&
+        hasPassword
     );
 };
 
@@ -386,6 +405,68 @@ const normalizeCountyInput = (value: unknown): string => {
         return COUNTY_CODE_MAP[upper];
     }
     return normalize(raw);
+};
+
+const COUNTY_CANONICAL_NAME_MAP: Record<string, string> = {
+    alba: "Alba",
+    arad: "Arad",
+    arges: "Arges",
+    bacau: "Bacau",
+    bihor: "Bihor",
+    bistrita nasaud: "Bistrita-Nasaud",
+    botosani: "Botosani",
+    brasov: "Brasov",
+    braila: "Braila",
+    bucuresti: "Bucuresti",
+    buzau: "Buzau",
+    caras severin: "Caras-Severin",
+    calarasi: "Calarasi",
+    cluj: "Cluj",
+    constanta: "Constanta",
+    covasna: "Covasna",
+    dambovita: "Dambovita",
+    dolj: "Dolj",
+    galati: "Galati",
+    giurgiu: "Giurgiu",
+    gorj: "Gorj",
+    harghita: "Harghita",
+    hunedoara: "Hunedoara",
+    ialomita: "Ialomita",
+    iasi: "Iasi",
+    ilfov: "Ilfov",
+    maramures: "Maramures",
+    mehedinti: "Mehedinti",
+    mures: "Mures",
+    neamt: "Neamt",
+    olt: "Olt",
+    prahova: "Prahova",
+    salaj: "Salaj",
+    satu mare: "Satu Mare",
+    sibiu: "Sibiu",
+    suceava: "Suceava",
+    teleorman: "Teleorman",
+    timis: "Timis",
+    tulcea: "Tulcea",
+    valcea: "Valcea",
+    vaslui: "Vaslui",
+    vrancea: "Vrancea",
+};
+
+export const normalizeFanCourierCountyName = (value: unknown): string => {
+    const raw = String(value ?? "").trim();
+    if (!raw) return "";
+
+    // FAN examples use "Bucuresti" even when the source stores sector details.
+    if (/^bucuresti/i.test(raw)) {
+        return "Bucuresti";
+    }
+
+    const normalized = normalizeCountyInput(raw);
+    if (COUNTY_CANONICAL_NAME_MAP[normalized]) {
+        return COUNTY_CANONICAL_NAME_MAP[normalized];
+    }
+
+    return raw;
 };
 
 const toArray = (input: unknown): Record<string, unknown>[] => {
