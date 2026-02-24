@@ -30,6 +30,10 @@ export function ProductFeatures({
   productSlug,
   t,
 }: ProductFeaturesProps) {
+  const hasDynamicFreeShippingThreshold =
+    typeof freeShippingThreshold === "number" &&
+    Number.isFinite(freeShippingThreshold);
+
   return (
     <div className="space-y-6 lg:space-y-8">
       {/* Product Features - Single Row */}
@@ -57,10 +61,10 @@ export function ProductFeatures({
             </div>
             <div>
               <div className="text-sm font-semibold text-slate-900">
-                {t("freeShipping", "Transport gratuit")}
+                {t("freeShippingLabel", "Livrare gratuită")}
               </div>
               <div className={`${productMutedTextClass} text-xs`}>
-                {isFreeShippingActive && freeShippingThreshold
+                {isFreeShippingActive && hasDynamicFreeShippingThreshold
                   ? `${t("over", "Peste")} ${formatPrice(freeShippingThreshold)}`
                   : t("notAvailable", "Indisponibil")}
               </div>
