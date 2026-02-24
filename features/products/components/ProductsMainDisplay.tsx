@@ -1,16 +1,16 @@
 "use client";
 
-import { ShoppingBag } from "lucide-react";
+import { Search, ShoppingBag, X } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { ProductGrid } from "@/features/products";
 import type { Product } from "@/types/product";
 
 import { OptimizedProductImage } from "./OptimizedProductImage";
 import {
-  productsAccentPillClass,
   productsGlassCardClass,
   productsGlassPanelClass,
 } from "./productsTheme";
@@ -36,6 +36,9 @@ interface ProductsMainDisplayProps {
   viewMode: "grid" | "list";
   sortOption?: string;
   onSortChange?: (value: string) => void;
+  searchQuery?: string;
+  onSearchQueryChange?: (value: string) => void;
+  onClearSearch?: () => void;
   bundleViewMode: "all" | "bundles" | "products";
   onBundleViewModeChange: (mode: "all" | "bundles" | "products") => void;
   getLearningTitle: () => string;
@@ -56,6 +59,9 @@ export function ProductsMainDisplay({
   viewMode,
   sortOption,
   onSortChange,
+  searchQuery = "",
+  onSearchQueryChange,
+  onClearSearch,
   bundleViewMode,
   onBundleViewModeChange,
   getLearningTitle,
@@ -151,67 +157,124 @@ export function ProductsMainDisplay({
     <div className="flex-1 text-slate-900">
       {/* Product area header */}
       <div
-        className={`${productsGlassCardClass} mb-4 flex items-center justify-between gap-2 px-4 py-3`}
+        className={`${productsGlassCardClass} mb-4 px-3 py-3 sm:px-4 sm:py-4`}
       >
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-700 ring-1 ring-sky-200/60">
-            <ShoppingBag className="w-4 h-4" />
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-700 ring-1 ring-sky-200/60">
+                <ShoppingBag className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm sm:text-base font-medium text-slate-900">
+                  {(() => {
+                    const countStr = visibleProductsCount.toString();
+                    const template = t(
+                      "showingProducts",
+                      `Showing {count} products`
+                    );
+                    return template
+                      .replace("{count}", countStr)
+                      .replace("{0}", countStr)
+                      .replace("{1}", countStr);
+                  })()}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {t("searchByToyName", "Search by toy name, kit, or book")}
+                </p>
+              </div>
+            </div>
+
+            <div className="w-full lg:max-w-xl">
+              <label htmlFor="products-search" className="sr-only">
+                {t("searchProducts", "Search products")}
+              </label>
+              <div className="relative">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                  aria-hidden="true"
+                />
+                <Input
+                  id="products-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={event =>
+                    onSearchQueryChange?.(event.currentTarget.value)
+                  }
+                  placeholder={t(
+                    "productsSearchPlaceholder",
+                    "Search toys by name..."
+                  )}
+                  className="h-11 rounded-xl border-slate-200/90 bg-white/95 pl-10 pr-11 text-sm shadow-sm transition focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-200"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={onClearSearch}
+                    className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                    aria-label={t("clearSearch", "Clear search")}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
-          <p className="text-sm sm:text-base font-medium text-slate-900">
-            {(() => {
-              const countStr = visibleProductsCount.toString();
-              const template = t("showingProducts", `Showing {count} products`);
-              return template
-                .replace("{count}", countStr)
-                .replace("{0}", countStr)
-                .replace("{1}", countStr);
-            })()}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white/90 p-1">
-            <button
-              type="button"
-              onClick={() => onBundleViewModeChange("all")}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                bundleViewMode === "all"
-                  ? "bg-slate-900 text-white"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              {t("all", "All")}
-            </button>
-            <button
-              type="button"
-              onClick={() => onBundleViewModeChange("bundles")}
-              disabled={bundleCount === 0}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                bundleViewMode === "bundles"
-                  ? "bg-cyan-600 text-white"
-                  : bundleCount === 0
-                    ? "cursor-not-allowed text-slate-400"
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="inline-flex w-full flex-wrap items-center rounded-lg border border-slate-200 bg-white/90 p-1 sm:w-auto">
+              <button
+                type="button"
+                onClick={() => onBundleViewModeChange("all")}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                  bundleViewMode === "all"
+                    ? "bg-slate-900 text-white"
                     : "text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              {t("bundles", "Bundles")} ({bundleCount})
-            </button>
-            <button
-              type="button"
-              onClick={() => onBundleViewModeChange("products")}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                bundleViewMode === "products"
-                  ? "bg-slate-900 text-white"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              {t("products", "Products")} ({regularCount})
-            </button>
+                }`}
+              >
+                {t("all", "All")}
+              </button>
+              <button
+                type="button"
+                onClick={() => onBundleViewModeChange("bundles")}
+                disabled={bundleCount === 0}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                  bundleViewMode === "bundles"
+                    ? "bg-cyan-600 text-white"
+                    : bundleCount === 0
+                      ? "cursor-not-allowed text-slate-400"
+                      : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {t("bundles", "Bundles")} ({bundleCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => onBundleViewModeChange("products")}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                  bundleViewMode === "products"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {t("products", "Products")} ({regularCount})
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-slate-500">
+              {searchQuery && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-sky-700">
+                  <Search className="h-3.5 w-3.5" />
+                  {searchQuery}
+                </span>
+              )}
+              {visibleProductsCount > 0 && (
+                <span>
+                  {visibleProductsCount} {t("items", "items")}
+                </span>
+              )}
+            </div>
           </div>
-          {visibleProductsCount > 0 && (
-            <span className="text-xs sm:text-sm text-slate-500">
-              {visibleProductsCount} {t("items")}
-            </span>
-          )}
         </div>
       </div>
 

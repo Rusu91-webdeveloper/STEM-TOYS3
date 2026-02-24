@@ -676,6 +676,16 @@ function ClientProductsPageContent({
     actions.setSortBy(value === "featured" ? "relevance" : value);
   };
 
+  const handleSearchQueryChange = (value: string) => {
+    setPage(1);
+    actions.setSearchQuery(value);
+  };
+
+  const handleSearchClear = () => {
+    setPage(1);
+    actions.setSearchQuery("");
+  };
+
   const handleClearFilters = () => {
     actions.clearFilters();
   };
@@ -831,6 +841,9 @@ function ClientProductsPageContent({
                     viewMode={state.viewMode}
                     sortOption={sortOption}
                     onSortChange={handleSortChange}
+                    searchQuery={state.searchQuery}
+                    onSearchQueryChange={handleSearchQueryChange}
+                    onClearSearch={handleSearchClear}
                     bundleViewMode={bundleViewMode}
                     onBundleViewModeChange={setBundleViewMode}
                     getLearningTitle={getLearningTitle}
