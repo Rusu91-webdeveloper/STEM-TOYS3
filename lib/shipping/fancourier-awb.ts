@@ -448,6 +448,26 @@ const formatPickupDate = (offsetDays: number) => {
   return date.toISOString().slice(0, 10);
 };
 
+/**
+ * FAN support may require a billing account label in pickup order "info.payment"
+ * (distinct from AWB "info.payment", which is the payer party enum sender/recipient).
+ * Keep this optional to avoid changing existing working behavior.
+ */
+const getFanCourierPickupPaymentLabel = (): string | undefined => {
+  const candidates = [
+    process.env.FANCOURIER_PICKUP_PAYMENT_LABEL,
+    process.env.FANCOURIER_PAYMENT_LABEL,
+    process.env.FANCOURIER_PAYMENT,
+  ];
+
+  for (const raw of candidates) {
+    const value = raw?.trim();
+    if (value) return value;
+  }
+
+  return undefined;
+};
+
 const buildPickupOrderPayload = (input: {
   awbNumber?: string | null;
   weight: number;
@@ -457,6 +477,8 @@ const buildPickupOrderPayload = (input: {
   pickupDate: string;
   observations?: string | null;
 }) => {
+  const pickupPaymentLabel = getFanCourierPickupPaymentLabel();
+
   return {
     clientId: getFanCourierClientId(),
     info: {
@@ -480,6 +502,7 @@ const buildPickupOrderPayload = (input: {
         second: input.pickupWindowEnd,
       },
       observations: input.observations || "",
+      ...(pickupPaymentLabel ? { payment: pickupPaymentLabel } : {}),
     },
   };
 };
