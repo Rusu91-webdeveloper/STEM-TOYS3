@@ -17,7 +17,7 @@ const socialProofBadges = [
 const faqCards = [
   {
     icon: CheckCircle,
-    gradient: "border border-white/10 bg-white/5",
+    gradient: "border border-slate-200/80 bg-white/90",
     titleKey: "faqWhatAreStemH2",
     bodyKey: "faqWhatAreStemAnswer",
     highlight: {
@@ -29,7 +29,7 @@ const faqCards = [
   },
   {
     icon: Shield,
-    gradient: "border border-white/10 bg-white/5",
+    gradient: "border border-slate-200/80 bg-white/90",
     titleKey: "faqAgeAppropriateH2",
     bodyKey: "faqAgeAppropriateAnswer",
     highlight: {
@@ -41,7 +41,7 @@ const faqCards = [
   },
   {
     icon: Shield,
-    gradient: "border border-white/10 bg-white/5",
+    gradient: "border border-slate-200/80 bg-white/90",
     titleKey: "faqSafetyH2",
     bodyKey: "faqSafetyAnswer",
     certifications: [
@@ -53,7 +53,7 @@ const faqCards = [
   },
   {
     icon: Star,
-    gradient: "border border-white/10 bg-white/5",
+    gradient: "border border-slate-200/80 bg-white/90",
     titleKey: "faqEducationalH2",
     bodyKey: "faqEducationalAnswer",
     highlightStats: [
@@ -64,7 +64,7 @@ const faqCards = [
   },
   {
     icon: Clock,
-    gradient: "border border-white/10 bg-white/5",
+    gradient: "border border-slate-200/80 bg-white/90",
     titleKey: "faqPurchaseH2",
     bodyKey: "faqReturnPolicyAnswer",
     commitments: [
@@ -127,16 +127,16 @@ export default function FAQPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(74,222,128,0.12),_transparent_60%)]" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/70 text-slate-900">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(16,185,129,0.07),_transparent_60%)]" />
 
       <div className="relative z-10">
         <SeoJsonLd data={faqStructuredData} />
 
         <section className="container mx-auto max-w-5xl px-3 py-6 sm:px-6 sm:py-10 md:py-14">
           <div className="text-center">
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/40 backdrop-blur sm:p-10">
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/90 via-indigo-900/75 to-slate-950/90 p-8 shadow-xl shadow-black/40 backdrop-blur sm:p-10">
               <h1 className="text-2xl font-bold leading-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">{t("faqH1")}</h1>
               <p className="mt-4 text-sm text-slate-200 sm:text-base md:text-lg">{t("faqSubtitle")}</p>
 
@@ -178,15 +178,15 @@ export default function FAQPage() {
               ({ icon: Icon, gradient, titleKey, bodyKey, highlight, certifications, highlightStats, commitments }) => (
                 <section key={titleKey} className={`rounded-3xl ${gradient} p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-6 md:p-8`}>
                   <div className="flex items-start gap-3 sm:gap-4">
-                    <Icon className="h-6 w-6 flex-shrink-0 text-emerald-300 sm:h-7 sm:w-7 md:h-8 md:w-8" />
+                    <Icon className="h-6 w-6 flex-shrink-0 text-emerald-500 sm:h-7 sm:w-7 md:h-8 md:w-8" />
                     <div className="space-y-3">
-                      <h2 className="text-base font-bold text-white sm:text-lg md:text-2xl">{t(titleKey)}</h2>
-                      <p className="text-xs leading-relaxed text-slate-200 sm:text-sm md:text-base lg:text-lg">{t(bodyKey)}</p>
+                      <h2 className="text-base font-bold text-slate-900 sm:text-lg md:text-2xl">{t(titleKey)}</h2>
+                      <p className="text-xs leading-relaxed text-slate-700 sm:text-sm md:text-base lg:text-lg">{t(bodyKey)}</p>
 
                       {highlight && (
-                        <div className={`rounded-2xl border ${highlight.border} p-4 text-xs text-emerald-100 shadow-inner sm:text-sm md:text-base`}>
+                        <div className={`rounded-2xl border ${highlight.border} p-4 text-xs text-slate-900 shadow-inner sm:text-sm md:text-base`}>
                           <p className="font-semibold">{highlight.title}</p>
-                          <p className="mt-2 text-slate-100">{highlight.body}</p>
+                          <p className="mt-2 text-slate-700">{highlight.body}</p>
                         </div>
                       )}
 
@@ -205,13 +205,13 @@ export default function FAQPage() {
                       )}
 
                       {highlightStats && (
-                        <div className="rounded-2xl border border-purple-400/30 bg-purple-500/10 p-4 text-xs text-purple-100 shadow-inner sm:text-sm md:text-base">
+                        <div className="rounded-2xl border border-purple-300/40 bg-purple-500/10 p-4 text-xs text-slate-900 shadow-inner sm:text-sm md:text-base">
                           <p className="font-semibold">📈 Proven Results:</p>
                           <div className="mt-3 grid grid-cols-3 gap-3 text-center">
                             {highlightStats.map(stat => (
-                              <div key={stat.label} className="rounded-xl border border-white/10 bg-white/10 p-3">
-                                <div className="text-lg font-bold text-white sm:text-xl md:text-2xl">{stat.value}</div>
-                                <div className="text-[10px] text-purple-100 sm:text-xs md:text-sm">{stat.label}</div>
+                              <div key={stat.label} className="rounded-xl border border-purple-200/60 bg-white/70 p-3">
+                                <div className="text-lg font-bold text-purple-700 sm:text-xl md:text-2xl">{stat.value}</div>
+                                <div className="text-[10px] text-purple-700/80 sm:text-xs md:text-sm">{stat.label}</div>
                               </div>
                             ))}
                           </div>
@@ -219,9 +219,9 @@ export default function FAQPage() {
                       )}
 
                       {commitments && (
-                        <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-xs text-rose-100 shadow-inner sm:text-sm md:text-base">
+                        <div className="rounded-2xl border border-rose-300/40 bg-rose-500/10 p-4 text-xs text-slate-900 shadow-inner sm:text-sm md:text-base">
                           <p className="font-semibold">💯 Our Commitment to You:</p>
-                          <div className="mt-3 space-y-2 text-slate-100">
+                          <div className="mt-3 space-y-2 text-slate-700">
                             {commitments.map(item => (
                               <div key={item} className="flex items-center gap-2 text-xs sm:text-sm md:text-base">
                                 <CheckCircle className="h-4 w-4 flex-shrink-0 text-emerald-300" />
@@ -272,4 +272,3 @@ export default function FAQPage() {
     </div>
   );
 }
-

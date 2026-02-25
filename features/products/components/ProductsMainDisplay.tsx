@@ -156,17 +156,15 @@ export function ProductsMainDisplay({
   return (
     <div className="flex-1 text-slate-900">
       {/* Product area header */}
-      <div
-        className={`${productsGlassCardClass} mb-4 px-3 py-3 sm:px-4 sm:py-4`}
-      >
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mb-3 rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm sm:mb-4 sm:px-4 sm:py-3.5">
+        <div className="flex flex-col gap-2.5 sm:gap-3">
+          <div className="flex flex-col gap-2.5 sm:gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-700 ring-1 ring-sky-200/60">
+              <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-700 ring-1 ring-sky-200/60">
                 <ShoppingBag className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm sm:text-base font-medium text-slate-900">
+                <p className="text-sm sm:text-base font-semibold text-slate-900">
                   {(() => {
                     const countStr = visibleProductsCount.toString();
                     const template = t(
@@ -179,7 +177,7 @@ export function ProductsMainDisplay({
                       .replace("{1}", countStr);
                   })()}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="hidden sm:block text-xs text-slate-500">
                   {t("searchByToyName", "Search by toy name, kit, or book")}
                 </p>
               </div>
@@ -205,7 +203,7 @@ export function ProductsMainDisplay({
                     "productsSearchPlaceholder",
                     "Search toys by name..."
                   )}
-                  className="h-11 rounded-xl border-slate-200/90 bg-white/95 pl-10 pr-11 text-sm shadow-sm transition focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-200"
+                  className="h-10 sm:h-11 rounded-xl border-slate-200/90 bg-white/95 pl-10 pr-11 text-sm shadow-sm transition focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-200"
                 />
                 {searchQuery && (
                   <button
@@ -222,11 +220,11 @@ export function ProductsMainDisplay({
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="inline-flex w-full flex-wrap items-center rounded-lg border border-slate-200 bg-white/90 p-1 sm:w-auto">
+            <div className="inline-flex w-full flex-wrap items-center rounded-lg border border-slate-200 bg-slate-50/90 p-1 sm:w-auto">
               <button
                 type="button"
                 onClick={() => onBundleViewModeChange("all")}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
                   bundleViewMode === "all"
                     ? "bg-slate-900 text-white"
                     : "text-slate-600 hover:bg-slate-100"
@@ -238,7 +236,7 @@ export function ProductsMainDisplay({
                 type="button"
                 onClick={() => onBundleViewModeChange("bundles")}
                 disabled={bundleCount === 0}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
                   bundleViewMode === "bundles"
                     ? "bg-cyan-600 text-white"
                     : bundleCount === 0
@@ -251,7 +249,7 @@ export function ProductsMainDisplay({
               <button
                 type="button"
                 onClick={() => onBundleViewModeChange("products")}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
                   bundleViewMode === "products"
                     ? "bg-slate-900 text-white"
                     : "text-slate-600 hover:bg-slate-100"
@@ -261,7 +259,7 @@ export function ProductsMainDisplay({
               </button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-slate-500">
+            <div className="flex min-h-6 flex-wrap items-center gap-2 text-xs sm:text-sm text-slate-500">
               {searchQuery && (
                 <span className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-sky-700">
                   <Search className="h-3.5 w-3.5" />
@@ -281,24 +279,27 @@ export function ProductsMainDisplay({
       {/* Educational categories banner */}
       {activeCategory && visibleProductsCount > 0 && (
         <div
-          className={`${productsGlassPanelClass} relative mb-6 overflow-hidden p-4 sm:p-5`}
+          className={`${productsGlassPanelClass} relative mb-5 overflow-hidden p-4 sm:mb-6 sm:p-5`}
         >
           <div
-            className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${accent.surface}`}
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(251,247,239,0.98),rgba(255,255,255,0.9))]"
             aria-hidden
           />
           <div
-            className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-white/60 blur-2xl"
+            className="pointer-events-none absolute inset-0 opacity-[0.04] bg-[radial-gradient(circle,_rgba(15,23,42,0.6)_1px,_transparent_1px)] bg-[length:12px_12px]"
             aria-hidden
           />
           <div className="relative z-10 flex items-center gap-4">
             <div
-              className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${accent.icon} ${accent.glow} shadow-md`}
+              className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${accent.icon} shadow-sm`}
             >
               <IconComponent className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold mb-1 text-slate-900 leading-tight">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                {t("editorialGuide", "Category Guide")}
+              </div>
+              <h3 className="mb-1 font-serif text-lg leading-tight text-slate-900">
                 {getLearningTitle()}
               </h3>
               <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">
@@ -328,9 +329,7 @@ export function ProductsMainDisplay({
       {/* Products Display */}
       <div className={viewMode === "list" ? "space-y-4" : ""}>
         {viewMode === "grid" ? (
-          <div
-            className={`${productsGlassPanelClass} relative overflow-hidden p-2 sm:p-4 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle,_rgba(14,116,144,0.08)_1px,_transparent_1px)] before:bg-[length:22px_22px] before:opacity-40`}
-          >
+          <div className="relative">
             <ProductGrid
               products={displayProducts.map((product, index) => {
                 // If the product name or description contains raw translation keys,

@@ -30,7 +30,10 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
 import { MobileLanguageSelector } from "@/components/ui/mobile-language-selector";
 import { CartButton } from "@/features/cart";
-import { glassPanelClass } from "@/features/home/components/homeTheme";
+import {
+  glassPanelClass,
+  gradientButtonClass,
+} from "@/features/home/components/homeTheme";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation, TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -71,11 +74,11 @@ const navigation: {
 ];
 
 const desktopNavLinkBaseClass =
-  "relative group flex items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-3 2xl:px-4 py-2 text-sm 2xl:text-base font-medium transition-all duration-200 backdrop-blur-sm";
+  "relative group flex items-center gap-2 whitespace-nowrap rounded-2xl border px-3 2xl:px-4 py-2 text-sm 2xl:text-base font-semibold transition-all duration-200 shadow-[0_12px_24px_-20px_rgba(15,23,42,0.2)]";
 const desktopNavLinkActiveClass =
-  "text-white bg-white/10 border-white/20 shadow-[0_18px_45px_rgba(99,102,241,0.45)]";
+  "text-slate-900 bg-white border-sky-200 shadow-[0_16px_32px_-20px_rgba(14,165,233,0.25)]";
 const desktopNavLinkInactiveClass =
-  "text-slate-200/80 hover:text-white hover:bg-white/5 hover:border-white/15";
+  "text-slate-600 border-transparent bg-white/45 hover:text-slate-900 hover:bg-white/90 hover:border-slate-200";
 const desktopIconBaseClass =
   "hidden lg:block w-4 h-4 2xl:w-5 2xl:h-5 transition-colors duration-200";
 
@@ -278,19 +281,19 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-gradient-to-br from-slate-950/95 via-indigo-950/85 to-slate-900/90 shadow-[0_18px_45px_rgba(2,6,23,0.65)] transition-[background,shadow] duration-500 supports-[backdrop-filter]:backdrop-blur-2xl">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/70 bg-white/60 shadow-[0_14px_35px_-24px_rgba(15,23,42,0.2)] transition-[background,shadow] duration-500 supports-[backdrop-filter]:backdrop-blur-xl">
       {/* Unified responsive header */}
       <div className="px-3 sm:px-5 lg:px-8 py-1.5 lg:py-3 max-[400px]:px-2.5">
         <div
           className={cn(
             glassPanelClass,
-            "pointer-events-auto flex items-center justify-between min-h-[3.25rem] sm:min-h-[3.75rem] lg:min-h-[4.5rem] 2xl:min-h-[5.5rem] px-3 sm:px-4 lg:px-6 2xl:px-9 bg-gradient-to-br from-white/15 via-white/10 to-white/5 shadow-[0_18px_50px_rgba(2,132,199,0.16)] text-slate-100 max-[400px]:px-2 max-[400px]:min-h-[3rem]"
+            "pointer-events-auto flex items-center justify-between min-h-[3.25rem] sm:min-h-[3.75rem] lg:min-h-[4.5rem] 2xl:min-h-[5.5rem] px-3 sm:px-4 lg:px-6 2xl:px-9 bg-gradient-to-br from-slate-950/85 via-indigo-950/75 to-slate-900/80 text-slate-100 shadow-[0_18px_50px_rgba(2,132,199,0.16)] lg:border-slate-200/80 lg:bg-white/88 lg:text-slate-900 lg:shadow-[0_20px_45px_-28px_rgba(15,23,42,0.18)] max-[400px]:px-2 max-[400px]:min-h-[3rem]"
           )}
         >
           {/* Logo + Desktop Navigation */}
           <div className="flex items-center gap-2.5 sm:gap-3.5 lg:gap-8 2xl:gap-12 min-w-0 max-[400px]:gap-1.5">
             <Link href="/" className="flex items-center">
-              <div className="relative h-9 w-24 xs:h-10 xs:w-28 sm:h-12 sm:w-32 lg:h-12 lg:w-32 2xl:h-14 2xl:w-36 max-[400px]:h-8 max-[400px]:w-20">
+              <div className="relative h-9 w-24 overflow-hidden rounded-xl border border-white/20 bg-white/95 p-1 shadow-[0_12px_26px_-18px_rgba(15,23,42,0.25)] xs:h-10 xs:w-28 sm:h-12 sm:w-32 lg:h-12 lg:w-32 2xl:h-14 2xl:w-36 max-[400px]:h-8 max-[400px]:w-20">
                 <Image
                   className="object-contain"
                   src="/TechTots_LOGO.png"
@@ -326,15 +329,15 @@ export default function Header() {
                       className={cn(
                         desktopIconBaseClass,
                         isActive
-                          ? "text-indigo-300 drop-shadow-[0_0_14px_rgba(99,102,241,0.55)]"
-                          : "text-slate-400 group-hover:text-indigo-200 group-hover:drop-shadow-[0_0_12px_rgba(129,140,248,0.4)]"
+                          ? "text-sky-600"
+                          : "text-slate-400 group-hover:text-sky-600"
                       )}
                     />
                     <span className="relative">
                       {t(item.name)}
                       <span
                         className={cn(
-                          "absolute -bottom-1 left-0 h-[2px] w-0 rounded-full bg-sky-400/80 transition-all duration-200 group-hover:w-full group-hover:shadow-[0_0_15px_rgba(56,189,248,0.6)]",
+                          "absolute -bottom-1 left-0 h-[2px] w-0 rounded-full bg-sky-500 transition-all duration-200 group-hover:w-full",
                           isActive ? "w-full" : ""
                         )}
                       ></span>
@@ -346,7 +349,7 @@ export default function Header() {
           </div>
 
           {/* Responsive utilities */}
-          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 2xl:gap-6 text-slate-200 min-w-0 max-[400px]:gap-1.5">
+          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 2xl:gap-6 text-slate-200 lg:text-slate-700 min-w-0 max-[400px]:gap-1.5">
             {/* Mobile controls */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 lg:hidden max-[400px]:gap-1">
               <button
@@ -406,19 +409,22 @@ export default function Header() {
 
             {/* Desktop utilities */}
             <div className="hidden lg:flex items-center gap-4 2xl:gap-6">
-              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 shadow-inner shadow-black/20 backdrop-blur-sm">
+              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-3 py-1 shadow-[0_12px_24px_-20px_rgba(15,23,42,0.18)] backdrop-blur-sm">
                 <LanguageSwitcher />
               </div>
 
-              <div className="flex items-center justify-center rounded-full border border-white/10 bg-white/10 p-2 shadow-inner shadow-black/30 transition hover:bg-white/15">
-                <CartButton />
+              <div className="flex items-center justify-center rounded-full border border-slate-200 bg-white/95 p-2 shadow-[0_12px_24px_-20px_rgba(15,23,42,0.18)] transition hover:bg-white">
+                <CartButton
+                  variant="header"
+                  className="rounded-full bg-transparent text-slate-700 hover:bg-slate-100 hover:text-sky-700"
+                />
               </div>
 
               {shouldShowAuthenticatedUI ? (
-                <div className="flex items-center gap-3 2xl:gap-4 border-l border-white/10 pl-4 2xl:pl-6">
+                <div className="flex items-center gap-3 2xl:gap-4 border-l border-slate-200 pl-4 2xl:pl-6">
                   <Link
                     href="/account"
-                    className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-4 2xl:px-5 py-2 text-sm 2xl:text-base font-medium text-slate-200 transition-all duration-200 hover:border-white/20 hover:bg-white/15 hover:text-white shadow-[0_16px_40px_rgba(148,163,184,0.25)]"
+                    className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 2xl:px-5 py-2 text-sm 2xl:text-base font-semibold text-slate-700 transition-all duration-200 hover:border-slate-300 hover:bg-white hover:text-slate-900 shadow-[0_12px_24px_-20px_rgba(15,23,42,0.18)]"
                   >
                     <User className="h-4 w-4 2xl:h-5 2xl:w-5" />
                     <span>{t("account")}</span>
@@ -458,17 +464,17 @@ export default function Header() {
                   <Button
                     onClick={handleSignOut}
                     variant="ghost"
-                    className="flex items-center gap-2 rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 2xl:px-5 py-2 text-sm 2xl:text-base font-semibold text-rose-200 transition-all duration-200 hover:bg-rose-500/20 hover:text-rose-100 hover:border-rose-300/60 shadow-[0_16px_40px_rgba(244,63,94,0.45)] h-auto"
+                    className="flex h-auto items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 2xl:px-5 py-2 text-sm 2xl:text-base font-semibold text-rose-700 transition-all duration-200 hover:bg-rose-100 hover:text-rose-800 hover:border-rose-300 shadow-[0_12px_24px_-18px_rgba(244,63,94,0.16)]"
                   >
                     <LogOut className="h-4 w-4 2xl:h-5 2xl:w-5" />
                     <span>{t("logout")}</span>
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center border-l border-white/10 pl-4 2xl:pl-6">
+                <div className="flex items-center border-l border-slate-200 pl-4 2xl:pl-6">
                   <Link
                     href="/auth/login"
-                    className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 2xl:px-6 py-2 text-sm 2xl:text-base font-semibold text-white transition-all duration-200 hover:border-white/40 hover:bg-white/20 hover:text-slate-900 shadow-[0_18px_45px_rgba(148,163,184,0.35)]"
+                    className={`${gradientButtonClass} flex items-center gap-2 rounded-2xl px-5 2xl:px-6 py-2 text-sm 2xl:text-base font-bold text-white shadow-[0_16px_30px_-14px_rgba(14,165,233,0.45)] ring-1 ring-white/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_36px_-14px_rgba(14,165,233,0.55)]`}
                   >
                     <span>{t("login")}</span>
                     <span aria-hidden="true">&rarr;</span>

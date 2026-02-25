@@ -42,7 +42,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
             {/* Image section */}
             <div className="relative w-full h-48 sm:h-56 md:h-64">
               <Image
-                src={category.image}
+                src={getCategoryCardImage(category.slug, category.image)}
                 alt={`${category.name} category of STEM toys`}
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
@@ -160,4 +160,19 @@ function getCategoryBenefits(slug: string): string[] {
   };
 
   return benefits[slug] || [];
+}
+
+function getCategoryCardImage(slug: string, apiImage?: string): string {
+  const imageMap: Record<string, string> = {
+    science: "/Science.png",
+    "science-experiments": "/Science.png",
+    technology: "/Technology.png",
+    "coding-robotics": "/coding-robotic.png",
+    engineering: "/Engineering.png",
+    "magnetic-building": "/Engineering.png",
+    math: "/Mathematic.png",
+    mathematics: "/Mathematic.png",
+  };
+
+  return imageMap[slug] || apiImage || "/HeroImageTechTechtots.png";
 }

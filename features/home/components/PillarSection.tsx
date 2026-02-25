@@ -1,13 +1,22 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useEffect, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowUpRight,
+  BookOpen,
+  Brain,
+  ChevronLeft,
+  ChevronRight,
+  CircleHelp,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
 import {
-  glassCardClass,
   glassPanelClass,
 } from "@/features/home/components/homeTheme";
 
@@ -16,6 +25,17 @@ type PillarItem = {
   descriptionKey: string;
   href: string;
   accent: string; // tailwind color class for gradient background
+};
+
+type PillarVisual = {
+  image: string;
+  imagePosition?: string;
+  chip: string;
+  chipClass: string;
+  icon: React.ComponentType<{ className?: string }>;
+  iconClass: string;
+  headerTint: string;
+  previewLabel: string;
 };
 
 interface PillarSectionProps {
@@ -51,7 +71,7 @@ const DEFAULT_PILLARS: PillarItem[] = [
 
 export function PillarSection({ items = DEFAULT_PILLARS }: PillarSectionProps) {
   const { t } = useTranslation();
-  
+
   // Carousel setup for mobile only
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
@@ -92,51 +112,147 @@ export function PillarSection({ items = DEFAULT_PILLARS }: PillarSectionProps) {
     };
   }, [emblaApi, onSelect]);
 
+  const getPillarVisual = (href: string): PillarVisual => {
+    const visuals: Record<string, PillarVisual> = {
+      "/ghid-jucarii-stem-2025": {
+        image: "/HeroImageTechTechtots.png",
+        imagePosition: "object-center",
+        chip: "Ghid practic",
+        chipClass: "border-indigo-200 bg-indigo-50 text-indigo-700",
+        icon: BookOpen,
+        iconClass: "text-indigo-600",
+        headerTint:
+          "from-indigo-900/30 via-blue-900/10 to-transparent",
+        previewLabel: "Trenduri & recomandări 2025",
+      },
+      "/jucarii-stem-dupa-varsta": {
+        image: "/Engineering.png",
+        imagePosition: "object-center",
+        chip: "Selecție rapidă",
+        chipClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
+        icon: Users,
+        iconClass: "text-emerald-600",
+        headerTint:
+          "from-emerald-900/25 via-emerald-800/5 to-transparent",
+        previewLabel: "Alege ușor după vârstă",
+      },
+      "/beneficiile-jucariilor-stem": {
+        image: "/Mathematic.png",
+        imagePosition: "object-center",
+        chip: "Educație & impact",
+        chipClass: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
+        icon: Brain,
+        iconClass: "text-fuchsia-600",
+        headerTint:
+          "from-fuchsia-900/14 via-indigo-900/4 to-transparent",
+        previewLabel: "Curiozitate • logică • creativitate",
+      },
+      "/faq": {
+        image: "/Technology.png",
+        imagePosition: "object-center",
+        chip: "Răspunsuri clare",
+        chipClass: "border-amber-200 bg-amber-50 text-amber-700",
+        icon: CircleHelp,
+        iconClass: "text-amber-600",
+        headerTint:
+          "from-amber-900/18 via-orange-900/5 to-transparent",
+        previewLabel: "Livrare • vârstă • siguranță",
+      },
+    };
+
+    return (
+      visuals[href] ?? {
+        image: "/HeroImageTechTechtots.png",
+        imagePosition: "object-center",
+        chip: "Ghid",
+        chipClass: "border-slate-200 bg-slate-50 text-slate-700",
+        icon: Sparkles,
+        iconClass: "text-slate-600",
+        headerTint: "from-slate-900/20 via-slate-900/5 to-transparent",
+        previewLabel: "Resurse utile",
+      }
+    );
+  };
+
   // Pillar card component
-  const PillarCard = ({ item }: { item: PillarItem }) => (
-    <Link
-      href={item.href}
-      className={`${glassCardClass} group relative overflow-hidden p-3 sm:p-4 transition-all duration-300 hover:border-emerald-400/60 hover:shadow-emerald-500/20`}
-    >
-      <div
-        className={`pointer-events-none absolute inset-0 opacity-80 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-br ${item.accent}`}
-        aria-hidden="true"
-      />
-      <div className="relative flex h-16 items-center justify-center sm:h-20 md:h-24 lg:h-28">
-        <div className="text-3xl font-bold text-white/40 sm:text-4xl md:text-5xl">
-          {t(item.titleKey).charAt(0)}
-        </div>
-      </div>
+  const PillarCard = ({ item }: { item: PillarItem }) => {
+    const visual = getPillarVisual(item.href);
+    const Icon = visual.icon;
 
-      <div className="relative rounded-2xl bg-slate-950/60 p-3 backdrop-blur-sm sm:p-4">
-        <h3 className="flex items-center gap-2 text-xs font-semibold text-white sm:text-sm md:text-base">
-          <span className="truncate">{t(item.titleKey)}</span>
-          <span className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[0.55rem] uppercase tracking-wide text-slate-200">
-            {t("pillarNewBadge")}
-          </span>
-        </h3>
-        <p className="mt-2 line-clamp-2 text-[0.7rem] text-slate-300 sm:text-xs md:text-sm">
-          {t(item.descriptionKey)}
-        </p>
+    return (
+      <Link
+        href={item.href}
+        className="group relative block overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_22px_50px_-36px_rgba(15,23,42,0.25)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-200 hover:shadow-[0_28px_60px_-38px_rgba(14,165,233,0.24)]"
+      >
+        <div className="relative h-44 sm:h-48 md:h-44 lg:h-48 overflow-hidden">
+          <Image
+            src={visual.image}
+            alt=""
+            fill
+            sizes="(max-width: 768px) 100vw, 25vw"
+            className={`object-cover ${visual.imagePosition ?? "object-center"} blur-[1px] saturate-110 contrast-105 scale-[1.03] transition duration-500 group-hover:scale-100`}
+            aria-hidden
+            onError={(e) => {
+              const target = e.currentTarget as HTMLImageElement;
+              if (target.src && !target.src.includes("HeroImageTechTechtots.png")) {
+                target.src = "/HeroImageTechTechtots.png";
+              }
+            }}
+          />
+          <div
+            className={`absolute inset-0 bg-gradient-to-br ${visual.headerTint}`}
+            aria-hidden
+          />
+          <div
+            className="absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(255,255,255,0.18),transparent_34%),radial-gradient(circle_at_88%_12%,rgba(255,255,255,0.12),transparent_36%)]"
+            aria-hidden
+          />
+          <div
+            className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent"
+            aria-hidden
+          />
 
-        <div className="mt-3 flex items-center text-[0.7rem] font-semibold text-emerald-200 transition group-hover:text-white sm:text-xs md:text-sm">
-          <span className="truncate">{t("pillarSeeDetails")}</span>
-          <svg
-            className="ml-2 h-3 w-3 flex-shrink-0 sm:h-4 sm:w-4"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 11-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <div className="absolute left-4 top-4 flex items-center gap-2">
+            <span
+              className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold ${visual.chipClass}`}
+            >
+              {visual.chip}
+            </span>
+          </div>
+
+          <div className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/70 bg-white/85 shadow-[0_10px_20px_-16px_rgba(15,23,42,0.35)] backdrop-blur">
+            <Icon className={`h-5 w-5 ${visual.iconClass}`} />
+          </div>
+
+          <div className="absolute left-4 right-4 bottom-4">
+            <div className="inline-flex max-w-full items-center rounded-xl border border-white/70 bg-white/85 px-3 py-1.5 text-[11px] font-semibold text-slate-700 shadow-[0_10px_20px_-16px_rgba(15,23,42,0.2)] backdrop-blur">
+              <span className="truncate">{visual.previewLabel}</span>
+            </div>
+          </div>
         </div>
-      </div>
-    </Link>
-  );
+
+        <div className="relative p-4 sm:p-5">
+          <div className="flex items-start gap-2">
+            <h3 className="flex-1 text-base font-bold leading-tight text-slate-900 sm:text-lg">
+              {t(item.titleKey)}
+            </h3>
+            <span className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-slate-600">
+              {t("pillarNewBadge")}
+            </span>
+          </div>
+
+          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-600">
+            {t(item.descriptionKey)}
+          </p>
+
+          <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 transition group-hover:text-cyan-700">
+            <span>{t("pillarSeeDetails")}</span>
+            <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          </div>
+        </div>
+      </Link>
+    );
+  };
 
   return (
     <section
@@ -144,15 +260,17 @@ export function PillarSection({ items = DEFAULT_PILLARS }: PillarSectionProps) {
       className="hidden lg:block relative py-4 sm:py-6 md:py-8 lg:py-10"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className={`${glassPanelClass} mx-auto max-w-6xl p-4 sm:p-6`}>
+        <div
+          className={`${glassPanelClass} mx-auto max-w-6xl border-slate-200/80 bg-white/95 p-4 shadow-[0_28px_70px_-42px_rgba(15,23,42,0.2)] sm:p-6 lg:p-8`}
+        >
           <div className="mb-4 text-center sm:mb-6 md:mb-8">
-            <span className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-emerald-200 sm:text-xs">
+            <span className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-emerald-700 sm:text-xs">
               {t("pillarSectionTag")}
             </span>
-            <h2 className="mt-3 bg-gradient-to-r from-emerald-200 via-sky-200 to-indigo-200 bg-clip-text text-xl font-extrabold tracking-tight text-transparent sm:text-3xl md:text-4xl">
+            <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl md:text-4xl lg:text-5xl">
               {t("pillarSectionTitle")}
             </h2>
-            <p className="mt-2 text-[0.85rem] text-slate-200/80 sm:text-sm md:text-base">
+            <p className="mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg">
               {t("pillarSectionSubtitle")}
             </p>
           </div>
@@ -161,7 +279,7 @@ export function PillarSection({ items = DEFAULT_PILLARS }: PillarSectionProps) {
           <div className="relative md:hidden">
             <div className="overflow-hidden" ref={emblaRef}>
               <div className="flex">
-                {items.map((item, index) => (
+                {items.map((item) => (
                   <div
                     key={item.href}
                     className="flex-[0_0_100%] min-w-0 px-2"
@@ -175,7 +293,7 @@ export function PillarSection({ items = DEFAULT_PILLARS }: PillarSectionProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 disabled:opacity-30"
+              className="absolute left-0 top-1/2 z-10 h-9 w-9 -translate-y-1/2 rounded-full border border-slate-200 bg-white text-slate-700 shadow-md hover:bg-slate-50 disabled:opacity-30"
               onClick={scrollPrev}
               disabled={!prevBtnEnabled}
               aria-label="Previous pillar"
@@ -185,7 +303,7 @@ export function PillarSection({ items = DEFAULT_PILLARS }: PillarSectionProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 disabled:opacity-30"
+              className="absolute right-0 top-1/2 z-10 h-9 w-9 -translate-y-1/2 rounded-full border border-slate-200 bg-white text-slate-700 shadow-md hover:bg-slate-50 disabled:opacity-30"
               onClick={scrollNext}
               disabled={!nextBtnEnabled}
               aria-label="Next pillar"

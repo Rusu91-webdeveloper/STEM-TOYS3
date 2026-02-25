@@ -346,7 +346,7 @@ export function SupplierRequirements() {
           variant="outline"
           size="sm"
           onClick={() => setLanguage(language === "ro" ? "en" : "ro")}
-          className="flex items-center gap-2 rounded-full border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur transition hover:bg-white/20 sm:text-sm"
+          className="flex items-center gap-2 rounded-full border border-slate-200/80 bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm shadow-slate-900/10 backdrop-blur transition hover:bg-white sm:text-sm"
         >
           <Languages className="h-4 w-4" />
           {language === "ro" ? "EN" : "RO"}
@@ -395,44 +395,44 @@ export function SupplierRequirements() {
 
       <section className="container mx-auto px-4 pb-20 sm:px-6 lg:px-12">
         <div className="text-center">
-          <Badge className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-200 sm:text-sm">
+          <Badge className="rounded-full border border-slate-200/80 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 sm:text-sm">
             {t("keyRequirements2025")}
           </Badge>
-          <h2 className="mt-4 text-2xl font-semibold text-white sm:text-3xl lg:text-4xl">
+          <h2 className="mt-4 text-2xl font-semibold text-slate-900 sm:text-3xl lg:text-4xl">
             {t("keyRequirementsDescription")}
           </h2>
         </div>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {requiredCriteria.map(criterion => (
-            <Card key={criterion.title} className="rounded-3xl border border-white/10 bg-white/5 shadow-lg shadow-black/25">
+            <Card key={criterion.title} className="rounded-3xl border border-slate-200/80 bg-white/90 shadow-lg shadow-slate-900/10 backdrop-blur-sm">
               <CardHeader className="space-y-4">
                 <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br ${iconAccent} text-white shadow-lg shadow-black/30`}>
                   <criterion.icon className="h-6 w-6" />
                 </div>
-                <CardTitle className="text-lg text-white">{criterion.title}</CardTitle>
-                <CardDescription className="text-sm text-slate-200">
+                <CardTitle className="text-lg text-slate-900">{criterion.title}</CardTitle>
+                <CardDescription className="text-sm text-slate-600">
                   {criterion.description}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-xs text-slate-300">{criterion.details}</p>
+                <p className="text-xs text-slate-500">{criterion.details}</p>
               </CardContent>
             </Card>
           ))}
         </div>
         {innovationCriteria.length > 0 && (
-          <div className="mt-12 rounded-3xl border border-dashed border-white/20 bg-white/5 p-6 shadow-inner shadow-black/20 sm:p-10">
-            <h3 className="text-lg font-semibold text-white sm:text-xl">{t("innovationFocus")}</h3>
-            <p className="mt-3 text-sm text-slate-200 sm:text-base">{t("innovationFocusDetails")}</p>
+          <div className="mt-12 rounded-3xl border border-dashed border-slate-300 bg-white/90 p-6 shadow-inner shadow-slate-900/5 sm:p-10">
+            <h3 className="text-lg font-semibold text-slate-900 sm:text-xl">{t("innovationFocus")}</h3>
+            <p className="mt-3 text-sm text-slate-600 sm:text-base">{t("innovationFocusDetails")}</p>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               {innovationCriteria.map(item => (
-                <div key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                  <div className="flex items-center gap-3 text-sky-200">
+                <div key={item.title} className="rounded-2xl border border-slate-200/80 bg-white p-5">
+                  <div className="flex items-center gap-3 text-sky-600">
                     <item.icon className="h-5 w-5" />
-                    <span className="text-sm font-semibold text-white">{item.title}</span>
+                    <span className="text-sm font-semibold text-slate-900">{item.title}</span>
                   </div>
-                  <p className="mt-3 text-sm text-slate-200">{item.description}</p>
-                  <p className="mt-2 text-xs text-slate-300">{item.details}</p>
+                  <p className="mt-3 text-sm text-slate-600">{item.description}</p>
+                  <p className="mt-2 text-xs text-slate-500">{item.details}</p>
                 </div>
               ))}
             </div>
@@ -474,27 +474,27 @@ export function SupplierRequirements() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/25 sm:p-10">
+          <Card className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-900/10 backdrop-blur-sm sm:p-10">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-white">
-                <Shield className="h-5 w-5 text-emerald-300" />
+              <CardTitle className="flex items-center gap-3 text-slate-900">
+                <Shield className="h-5 w-5 text-emerald-500" />
                 {t("qualityStandardsSection")}
               </CardTitle>
-              <CardDescription className="text-sm text-slate-300">
+              <CardDescription className="text-sm text-slate-600">
                 {t("qualityStandardsSectionDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {qualityStandards.map(standard => (
-                <div key={standard.category} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="flex items-center gap-3 text-white">
-                    <standard.icon className="h-4 w-4 text-sky-200" />
+                <div key={standard.category} className="rounded-2xl border border-slate-200/80 bg-white p-4">
+                  <div className="flex items-center gap-3 text-slate-900">
+                    <standard.icon className="h-4 w-4 text-sky-500" />
                     <span className="text-sm font-semibold">{standard.category}</span>
                   </div>
-                  <ul className="mt-3 grid gap-2 text-xs text-slate-200 sm:grid-cols-2">
+                  <ul className="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
                     {standard.requirements.map(req => (
                       <li key={req} className="flex items-start gap-2">
-                        <Target className="mt-0.5 h-3 w-3 text-emerald-300" />
+                        <Target className="mt-0.5 h-3 w-3 text-emerald-500" />
                         <span>{req}</span>
                       </li>
                     ))}
@@ -507,33 +507,33 @@ export function SupplierRequirements() {
       </section>
 
       <section className="container mx-auto px-4 pb-20 sm:px-6 lg:px-12">
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20 sm:p-10">
+        <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-900/10 backdrop-blur-sm sm:p-10">
           <div className="text-center">
-            <Badge className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-200 sm:text-sm">
+            <Badge className="rounded-full border border-slate-200/80 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 sm:text-sm">
               {t("applicationProcess")}
             </Badge>
-            <h2 className="mt-4 text-2xl font-semibold text-white sm:text-3xl">
+            <h2 className="mt-4 text-2xl font-semibold text-slate-900 sm:text-3xl">
               {t("applicationProcessDescription")}
             </h2>
           </div>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {applicationProcess.map(step => (
-              <Card key={step.step} className="rounded-2xl border border-white/10 bg-white/5 shadow-inner shadow-black/20">
+              <Card key={step.step} className="rounded-2xl border border-slate-200/80 bg-white shadow-inner shadow-slate-900/5">
                 <CardHeader className="flex items-center justify-between">
-                  <Badge className="rounded-full border border-sky-400/40 bg-sky-500/15 text-xs text-sky-100">
+                  <Badge className="rounded-full border border-sky-200 bg-sky-50 text-xs text-sky-700">
                     {step.step}
                   </Badge>
-                  <Badge className="rounded-full border border-white/20 bg-white/10 text-xs text-slate-200">
+                  <Badge className="rounded-full border border-slate-200 bg-slate-100 text-xs text-slate-600">
                     {step.duration}
                   </Badge>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <p className="text-sm font-semibold text-white">{step.title}</p>
-                  <p className="text-xs text-slate-300">{step.description}</p>
-                  <ul className="space-y-2 text-xs text-slate-200">
+                  <p className="text-sm font-semibold text-slate-900">{step.title}</p>
+                  <p className="text-xs text-slate-500">{step.description}</p>
+                  <ul className="space-y-2 text-xs text-slate-600">
                     {step.requirements.map(req => (
                       <li key={req} className="flex items-start gap-2">
-                        <CheckCircle className="mt-0.5 h-3 w-3 text-emerald-300" />
+                        <CheckCircle className="mt-0.5 h-3 w-3 text-emerald-500" />
                         <span>{req}</span>
                       </li>
                     ))}
@@ -548,17 +548,17 @@ export function SupplierRequirements() {
       <section className="container mx-auto px-4 pb-20 sm:px-6 lg:px-12">
         <div className="grid gap-6 lg:grid-cols-3">
           {commissionStructure.map(tier => (
-            <Card key={tier.tier} className="rounded-3xl border border-white/10 bg-white/5 shadow-xl shadow-black/25">
+            <Card key={tier.tier} className="rounded-3xl border border-slate-200/80 bg-white/90 shadow-xl shadow-slate-900/10 backdrop-blur-sm">
               <CardHeader className="text-center">
-                <CardTitle className="text-xl text-white">{tier.tier}</CardTitle>
-                <p className="mt-2 text-3xl font-semibold text-sky-200">{tier.rate}</p>
-                <CardDescription className="text-xs text-slate-300">{tier.requirements}</CardDescription>
+                <CardTitle className="text-xl text-slate-900">{tier.tier}</CardTitle>
+                <p className="mt-2 text-3xl font-semibold text-sky-600">{tier.rate}</p>
+                <CardDescription className="text-xs text-slate-500">{tier.requirements}</CardDescription>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-2 text-xs text-slate-200">
+                <ul className="space-y-2 text-xs text-slate-600">
                   {tier.features.map(feature => (
                     <li key={feature} className="flex items-start gap-2">
-                      <Zap className="mt-0.5 h-3 w-3 text-emerald-300" />
+                      <Zap className="mt-0.5 h-3 w-3 text-emerald-500" />
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -665,4 +665,3 @@ export function SupplierRequirements() {
     </>
   );
 }
-

@@ -24,9 +24,9 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
 
 const surfaceBase =
-  "rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20 backdrop-blur-sm sm:p-8";
+  "rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-900/10 backdrop-blur-sm sm:p-8";
 
-const listBulletClass = "pl-3 text-left text-sm text-slate-200 sm:text-base";
+const listBulletClass = "pl-3 text-left text-sm text-slate-700 sm:text-base";
 
 interface AgeSectionLink {
   href: string;
@@ -146,7 +146,7 @@ export function StemByAgeLanding() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/70 text-slate-900">
       <section className="container relative z-10 mx-auto px-4 pb-12 pt-20 sm:px-6 lg:px-12 lg:pb-16 lg:pt-24">
         <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/90 via-indigo-900/75 to-slate-950/90 p-6 shadow-2xl shadow-black/40 sm:p-10">
           <div className="absolute -right-16 top-10 hidden h-72 w-72 rounded-full bg-emerald-500/25 blur-3xl lg:block" />
@@ -201,13 +201,13 @@ export function StemByAgeLanding() {
 
       <section className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16">
         <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-          <Card className={cn(surfaceBase, "border-white/15 bg-white/10")}>
+          <Card className={cn(surfaceBase, "border-slate-200/80 bg-white/95")}>
             <CardHeader className="p-0">
-              <CardTitle className="flex items-center gap-3 text-base text-white sm:text-lg lg:text-xl">
-                <ListChecks className="h-5 w-5 text-emerald-300" />
+              <CardTitle className="flex items-center gap-3 text-base text-slate-900 sm:text-lg lg:text-xl">
+                <ListChecks className="h-5 w-5 text-emerald-500" />
                 {translate("guide2025QuickSummary")}
               </CardTitle>
-              <CardDescription className="mt-2 text-sm text-slate-300">
+              <CardDescription className="mt-2 text-sm text-slate-600">
                 {translate("byAgeSelectionTips")}
               </CardDescription>
             </CardHeader>
@@ -215,10 +215,10 @@ export function StemByAgeLanding() {
               {quickSummaryItems.map(item => (
                 <div
                   key={`summary-${item.key}`}
-                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900/70 to-indigo-900/60 p-4 shadow-inner shadow-black/30"
+                  className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50 p-4 shadow-inner shadow-slate-900/5"
                 >
-                  <Lightbulb className="mt-1 h-5 w-5 text-amber-300" />
-                  <p className="text-sm text-slate-100 sm:text-base">{item.label}</p>
+                  <Lightbulb className="mt-1 h-5 w-5 text-amber-500" />
+                  <p className="text-sm text-slate-700 sm:text-base">{item.label}</p>
                 </div>
               ))}
             </CardContent>
@@ -302,11 +302,11 @@ function AgeSectionCard({ section }: { section: AgeSection }) {
       className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16"
       aria-labelledby={`${section.id}-title`}
     >
-      <div className={cn(surfaceBase, "space-y-6 bg-white/8")}>
-        <Badge className="w-fit rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-200">
+      <div className={cn(surfaceBase, "space-y-6 bg-white/90")}>
+        <Badge className="w-fit rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-700">
           {section.badge}
         </Badge>
-        <h2 id={`${section.id}-title`} className="text-2xl font-semibold text-white sm:text-3xl">
+        <h2 id={`${section.id}-title`} className="text-2xl font-semibold text-slate-900 sm:text-3xl">
           {section.title}
         </h2>
         <ul className="space-y-3">
@@ -315,21 +315,21 @@ function AgeSectionCard({ section }: { section: AgeSection }) {
           ))}
         </ul>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-300 sm:text-sm">
+          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 sm:text-sm">
             {section.linkIntro}
           </span>
           {section.links.map(link => (
             <Link
               key={`${section.id}-${link.href}`}
               href={link.href}
-              className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200 transition hover:border-emerald-300/60 hover:bg-emerald-500/20 sm:text-sm"
+              className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 sm:text-sm"
             >
               {link.label}
               <ArrowRight className="h-4 w-4" />
             </Link>
           ))}
         </div>
-        <p className="text-sm text-slate-200 sm:text-base">{section.insight}</p>
+        <p className="text-sm text-slate-700 sm:text-base">{section.insight}</p>
       </div>
     </section>
   );
@@ -354,4 +354,3 @@ function ListItem({
     </Component>
   );
 }
-

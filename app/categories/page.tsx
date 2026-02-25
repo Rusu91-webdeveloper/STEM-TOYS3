@@ -39,13 +39,13 @@ async function CategoriesContent({ locale }: { locale: string }) {
           <div
             className={`${glassPanelClass} mx-auto max-w-4xl px-6 py-8 sm:px-10 sm:py-10 text-center`}
           >
-            <span className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200">
+            <span className="inline-flex items-center justify-center rounded-full border border-slate-200/80 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700">
               {t("stemCategories")}
             </span>
-            <h1 className="mt-4 text-3xl font-bold leading-tight text-white sm:text-4xl md:text-5xl">
+            <h1 className="mt-4 text-3xl font-bold leading-tight text-slate-900 sm:text-4xl md:text-5xl">
               {t("categoriesH1")}
             </h1>
-            <p className="mt-4 text-sm text-slate-200/80 sm:text-base md:text-lg">
+            <p className="mt-4 text-sm text-slate-600 sm:text-base md:text-lg">
               {t("stemCategoriesDesc")}
             </p>
           </div>

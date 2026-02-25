@@ -6,23 +6,13 @@ import React, { Suspense } from "react";
 
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import {
-  AgeQuickLinksRow,
   BundlesShowcaseSection,
   CategoriesSection,
-  FiveSecondConversionStrip,
   FeaturedProductsGrid,
   PerformanceOptimizer,
   PillarSection,
-  TrustBadgesRow,
 } from "@/features/home/components";
 import { HeroSection } from "@/features/home/components/HeroSection";
-import {
-  glassPanelClass,
-  homeBackgroundClass,
-  homeContentWrapperClass,
-  homeOverlayBottomClass,
-  homeOverlayTopClass,
-} from "@/features/home/components/homeTheme";
 import type { HomeBundle } from "@/features/home/types";
 import { useCurrency } from "@/lib/currency";
 import { useTranslation } from "@/lib/i18n";
@@ -58,30 +48,53 @@ const MobileConversionOptimizer = dynamic(
 // Define categories data
 const categories = [
   {
-    name: "Science",
-    description: "Explore the wonders of science through hands-on experiments",
-    slug: "science",
-    image: "/images/category_banner_science_01.png",
+    name: "Coding & Robotics",
+    description: "Coding games, robots, and programmable toys",
+    slug: "coding-robotics",
+    image: "/coding-robotic.png",
+    productFilterCategory: "technology",
   },
   {
-    name: "Technology",
-    description: "Learn coding, robotics, and digital innovation",
-    slug: "technology",
-    image: "/images/category_banner_technology_01.png",
+    name: "Science Kits",
+    description: "Experiments and science sets that spark curiosity",
+    slug: "science-experiments",
+    image: "/Science.png",
+    productFilterCategory: "science",
   },
   {
     name: "Engineering",
-    description: "Build, design, and solve problems with engineering kits",
-    slug: "engineering",
-    image: "/images/category_banner_engineering_01.png",
+    description: "Build-and-create toys for future inventors",
+    slug: "magnetic-building",
+    image: "/Engineering.png",
+    productFilterCategory: "engineering",
+  },
+  {
+    name: "Technology",
+    description: "Tech-focused toys and smart learning tools",
+    slug: "technology",
+    image: "/Technology.png",
+    productFilterCategory: "technology",
   },
   {
     name: "Mathematics",
-    description: "Make math fun with interactive games and puzzles",
+    description: "Math games and logic activities for fun learning",
     slug: "mathematics",
-    image: "/images/category_banner_math_01.png",
+    image: "/Mathematic.png",
+    productFilterCategory: "mathematics",
   },
 ];
+
+const homePageShellClass =
+  "relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f1f8ff_0%,#ffffff_48%,#eef6ff_100%)] text-slate-900";
+
+const homePageOverlayTopClass =
+  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(56,189,248,0.18),transparent_42%),radial-gradient(circle_at_85%_12%,rgba(250,204,21,0.14),transparent_38%)]";
+
+const homePageOverlayBottomClass =
+  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_85%,rgba(34,197,94,0.12),transparent_42%),radial-gradient(circle_at_80%_82%,rgba(99,102,241,0.12),transparent_44%)]";
+
+const homePageContentWrapperClass =
+  "relative z-10 flex flex-col gap-4 sm:gap-6 lg:gap-10";
 
 // Loading fallback for featured products accordion
 const FeaturedProductsLoader = () => (
@@ -303,21 +316,29 @@ export default function HomePageClient({
   ];
 
   return (
-    <div className={homeBackgroundClass}>
+    <div className={homePageShellClass}>
       <SeoJsonLd data={jsonLd} />
-      <div className={homeOverlayTopClass} aria-hidden />
-      <div className={homeOverlayBottomClass} aria-hidden />
-      <div className={homeContentWrapperClass}>
+      <div className={homePageOverlayTopClass} aria-hidden />
+      <div className={homePageOverlayBottomClass} aria-hidden />
+      <div className={homePageContentWrapperClass}>
         {/* Performance Optimizer - Loads first for optimal Core Web Vitals */}
         <PerformanceOptimizer />
 
         {/* **PERFORMANCE**: Hero Section - Critical for FCP */}
         <HeroSection t={t} />
 
-        {/* Rapid conversion framing in first viewport interactions */}
-        <FiveSecondConversionStrip t={t} />
+        {/* Shop by Category - first shopping section under hero */}
+        <Suspense
+          fallback={
+            <div className="mx-4 max-w-7xl animate-pulse rounded-2xl bg-white/70 shadow-sm sm:mx-6 lg:mx-8"></div>
+          }
+        >
+          <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <CategoriesSection categories={categories} t={t} />
+          </div>
+        </Suspense>
 
-        {/* Featured Products Grid - Modern e-commerce showcase - Load with suspense for better performance */}
+        {/* Featured Products - second section (as in screenshot) */}
         <Suspense fallback={<FeaturedProductsLoader />}>
           <FeaturedProductsGrid
             products={initialFeaturedProducts}
@@ -326,58 +347,59 @@ export default function HomePageClient({
           />
         </Suspense>
 
+        {/* Bundle promo strip + Bundles - directly under featured products */}
+        <section className="px-4 sm:px-6 lg:px-8">
+          <div className="container mx-auto max-w-7xl">
+            <div className="relative overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 px-4 py-5 text-white shadow-[0_18px_50px_-20px_rgba(37,99,235,0.55)] sm:px-6 sm:py-6">
+              <div className="pointer-events-none absolute -left-10 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-white/15 blur-2xl" />
+              <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-amber-300/25 blur-2xl" />
+              <div className="relative flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+                <div>
+                  <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-blue-100">
+                    Bundle Deal
+                  </p>
+                  <h2 className="mt-1 text-2xl font-black leading-tight sm:text-3xl">
+                    Save 10% on STEM Bundles
+                  </h2>
+                  <p className="mt-1 text-sm text-blue-100/95 sm:text-base">
+                    Build a real toy-store experience with ready-made bundles instead of shopping items one by one.
+                  </p>
+                </div>
+                <a
+                  href="/products?bundleView=bundles"
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-white/30 bg-white/15 px-5 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20"
+                >
+                  Shop Bundles
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Bundles Showcase - High-conversion section for package deals */}
         <BundlesShowcaseSection
           bundles={initialBundles}
           formatPrice={formatPrice}
         />
 
-        {/* **PERFORMANCE**: Trust badges and age links - Keep above fold for UX but optimize loading */}
-        <div className="-mt-1 sm:-mt-2 mb-3 sm:mb-5">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div
-              className={`${glassPanelClass} mx-auto w-full max-w-5xl p-2.5 sm:p-4 lg:p-6`}
-            >
-              {/* Trust badges row */}
-              <TrustBadgesRow t={t} />
-
-              {/* Subtle divider */}
-              <div className="my-3 sm:my-4 border-t border-white/10"></div>
-
-              {/* Age quick links row */}
-              <AgeQuickLinksRow t={t} />
-            </div>
+        {/* Supporting content below the main storefront sections */}
+        <Suspense
+          fallback={
+            <div className="mx-4 max-w-7xl animate-pulse rounded-2xl bg-white/70 shadow-sm sm:mx-6 lg:mx-8"></div>
+          }
+        >
+          <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ValuePropositionSection t={t} />
           </div>
-        </div>
+        </Suspense>
 
         {/* **PERFORMANCE**: Defer non-critical sections below the fold */}
         <Suspense
           fallback={
-            <div className="mx-4 max-w-7xl animate-pulse rounded-xl bg-white/5 backdrop-blur sm:mx-6 lg:mx-8"></div>
+            <div className="mx-4 max-w-7xl animate-pulse rounded-2xl bg-white/70 shadow-sm sm:mx-6 lg:mx-8"></div>
           }
         >
           <PillarSection />
-        </Suspense>
-
-        {/* Categories and Value Proposition - Side by side on desktop, stacked on mobile */}
-        <Suspense
-          fallback={
-            <div className="mx-4 max-w-7xl animate-pulse rounded-xl bg-white/5 backdrop-blur sm:mx-6 lg:mx-8"></div>
-          }
-        >
-          <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-stretch lg:gap-6">
-              {/* Categories Section - Takes 50% on desktop */}
-              <div className="w-full lg:w-1/2 lg:flex-shrink-0">
-                <CategoriesSection categories={categories} t={t} />
-              </div>
-              
-              {/* Value Proposition Section (Carousel) - Takes 50% on desktop */}
-              <div className="w-full lg:w-1/2 lg:flex-shrink-0">
-                <ValuePropositionSection t={t} />
-              </div>
-            </div>
-          </div>
         </Suspense>
 
         {/* Supplier Banner - Only visible on Home page */}

@@ -605,19 +605,19 @@ function ClientProductsPageContent({
   // Helper functions for hero section
   const getCategoryImagePath = () => {
     if (!activeCategory) {
-      return "/images/homepage_hero_banner_01.png";
+      return "/HeroImage.png";
     }
 
     // Map category IDs to actual image file names
     const imageMap: Record<string, string> = {
-      mathematics: "/images/category_banner_math_01.png",
-      science: "/images/category_banner_science_01.png",
-      technology: "/images/category_banner_technology_01.png",
-      engineering: "/images/category_banner_engineering_01.png",
+      mathematics: "/Mathematic.png",
+      science: "/Science.png",
+      technology: "/Technology.png",
+      engineering: "/Engineering.png",
       "educational-books": "/images/category_banner_books_01.jpg",
     };
 
-    return imageMap[activeCategory.id] || "/images/homepage_hero_banner_01.png";
+    return imageMap[activeCategory.id] || "/HeroImage.png";
   };
 
   const getCategoryTitle = () => {
@@ -743,127 +743,131 @@ function ClientProductsPageContent({
   const content = (
     <ProductsErrorBoundary>
       <ProductVariantProvider>
-        <section className="mb-4 sm:mb-6 lg:mb-10">
-          <ProductsHeroSection
-            categoryImagePath={getCategoryImagePath()}
-            activeCategory={activeCategory}
-            activeCategoryInfo={activeCategoryInfo}
-            getCategoryTitle={getCategoryTitle}
-            getCategoryDescription={getCategoryDescription}
-            t={t}
-          />
-        </section>
+        <div className="flex flex-col">
+          <section className="order-2 mt-6 mb-4 sm:mb-6 md:order-1 md:mt-0 lg:mb-10">
+            <ProductsHeroSection
+              categoryImagePath={getCategoryImagePath()}
+              activeCategory={activeCategory}
+              activeCategoryInfo={activeCategoryInfo}
+              getCategoryTitle={getCategoryTitle}
+              getCategoryDescription={getCategoryDescription}
+              t={t}
+            />
+          </section>
 
-        {/* Removed redundant category quick buttons to avoid duplication with sidebar and mobile filters */}
+          <div className="order-1 md:order-2">
+            {/* Removed redundant category quick buttons to avoid duplication with sidebar and mobile filters */}
 
-        {/* Premium Mobile Filter Bar - Optimized for Performance */}
-        <div className="md:hidden">
-          <MobileFilterBar
-            activeFilterCount={
-              state.selectedCategories.length +
-              Object.values(state.selectedFilters).flat().length +
-              state.selectedLearningOutcomes.length +
-              (state.selectedProductType && state.selectedProductType !== "all"
-                ? 1
-                : 0) +
-              state.selectedSpecialCategories.length +
-              (bundleViewMode !== "all" ? 1 : 0) +
-              (!state.noPriceFilter &&
-              (state.priceRangeFilter[0] !== 0 ||
-                state.priceRangeFilter[1] !== 1000)
-                ? 1
-                : 0)
-            }
-            selectedCategories={state.selectedCategories}
-            selectedPriceRange={state.priceRangeFilter}
-            onCategoryQuickSelect={handleCategoryQuickSelect}
-            onPriceQuickSelect={handlePriceQuickSelect}
-            onOpenFilters={() => actions.setMobileFiltersOpen(true)}
-            onClearFilters={handleClearFilters}
-            t={t}
-          />
-          <MobileAgeBar
-            selectedAgeGroup={state.selectedAgeGroup}
-            onSelectAgeGroup={age => actions.setAgeGroup(age)}
-            t={t}
-          />
-        </div>
+            {/* Premium Mobile Filter Bar - Optimized for Performance */}
+            <div className="md:hidden">
+              <MobileFilterBar
+                activeFilterCount={
+                  state.selectedCategories.length +
+                  Object.values(state.selectedFilters).flat().length +
+                  state.selectedLearningOutcomes.length +
+                  (state.selectedProductType && state.selectedProductType !== "all"
+                    ? 1
+                    : 0) +
+                  state.selectedSpecialCategories.length +
+                  (bundleViewMode !== "all" ? 1 : 0) +
+                  (!state.noPriceFilter &&
+                  (state.priceRangeFilter[0] !== 0 ||
+                    state.priceRangeFilter[1] !== 1000)
+                    ? 1
+                    : 0)
+                }
+                selectedCategories={state.selectedCategories}
+                selectedPriceRange={state.priceRangeFilter}
+                onCategoryQuickSelect={handleCategoryQuickSelect}
+                onPriceQuickSelect={handlePriceQuickSelect}
+                onOpenFilters={() => actions.setMobileFiltersOpen(true)}
+                onClearFilters={handleClearFilters}
+                t={t}
+              />
+              <MobileAgeBar
+                selectedAgeGroup={state.selectedAgeGroup}
+                onSelectAgeGroup={age => actions.setAgeGroup(age)}
+                t={t}
+              />
+            </div>
 
-        <div className="w-full max-w-full overflow-x-hidden bg-transparent">
-          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 lg:py-10 relative z-10">
-            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-stretch">
-              <ProductFiltersErrorBoundary
-                onError={() => {
-                  // Fallback: clear filters and reload
-                  handleClearFilters();
-                }}
-              >
-                <ProductsSidebar
-                  categoryFilter={categoryFilter}
-                  dynamicFilters={dynamicFilters}
-                  priceRangeFilter={state.priceRangeFilter}
-                  products={products}
-                  selectedCategories={state.selectedCategories}
-                  selectedFilters={state.selectedFilters}
-                  noPriceFilter={state.noPriceFilter}
-                  selectedLearningOutcomes={state.selectedLearningOutcomes}
-                  selectedProductType={state.selectedProductType}
-                  selectedSpecialCategories={state.selectedSpecialCategories}
-                  selectedAgeGroup={state.selectedAgeGroup}
-                  handleCategoryChange={handleCategoryChange}
-                  handleFilterChange={handleFilterChange}
-                  handlePriceChange={handlePriceChange}
-                  handleNoPriceFilterChange={handleNoPriceFilterChange}
-                  setSelectedLearningOutcomes={actions.setLearningOutcomes}
-                  setSelectedProductType={actions.setProductType}
-                  setSelectedSpecialCategories={actions.setSpecialCategories}
-                  setSelectedAgeGroup={age => actions.setAgeGroup(age)}
-                  handleClearFilters={handleClearFilters}
-                  setMobileFiltersOpen={actions.setMobileFiltersOpen}
-                  t={t}
-                />
-              </ProductFiltersErrorBoundary>
+            <div className="w-full max-w-full overflow-x-hidden bg-transparent">
+              <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-2 pb-4 sm:py-6 md:py-8 lg:py-10 relative z-10">
+                <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-stretch">
+                  <ProductFiltersErrorBoundary
+                    onError={() => {
+                      // Fallback: clear filters and reload
+                      handleClearFilters();
+                    }}
+                  >
+                    <ProductsSidebar
+                      categoryFilter={categoryFilter}
+                      dynamicFilters={dynamicFilters}
+                      priceRangeFilter={state.priceRangeFilter}
+                      products={products}
+                      selectedCategories={state.selectedCategories}
+                      selectedFilters={state.selectedFilters}
+                      noPriceFilter={state.noPriceFilter}
+                      selectedLearningOutcomes={state.selectedLearningOutcomes}
+                      selectedProductType={state.selectedProductType}
+                      selectedSpecialCategories={state.selectedSpecialCategories}
+                      selectedAgeGroup={state.selectedAgeGroup}
+                      handleCategoryChange={handleCategoryChange}
+                      handleFilterChange={handleFilterChange}
+                      handlePriceChange={handlePriceChange}
+                      handleNoPriceFilterChange={handleNoPriceFilterChange}
+                      setSelectedLearningOutcomes={actions.setLearningOutcomes}
+                      setSelectedProductType={actions.setProductType}
+                      setSelectedSpecialCategories={actions.setSpecialCategories}
+                      setSelectedAgeGroup={age => actions.setAgeGroup(age)}
+                      handleClearFilters={handleClearFilters}
+                      setMobileFiltersOpen={actions.setMobileFiltersOpen}
+                      t={t}
+                    />
+                  </ProductFiltersErrorBoundary>
 
-              <ProductGridErrorBoundary
-                onRetry={() => {
-                  // Retry by clearing filters and resetting state
-                  handleClearFilters();
-                  window.location.reload();
-                }}
-              >
-                <div className="flex-1 min-w-0">
-                  <ProductsMainDisplay
-                    activeCategory={activeCategory}
-                    categoryInfo={categoryInfo}
-                    filteredProducts={filteredProducts}
-                    visibleProductsCount={bundleFilteredProducts.length}
-                    displayedProducts={displayedProducts}
-                    viewMode={state.viewMode}
-                    sortOption={sortOption}
-                    onSortChange={handleSortChange}
-                    searchQuery={state.searchQuery}
-                    onSearchQueryChange={handleSearchQueryChange}
-                    onClearSearch={handleSearchClear}
-                    bundleViewMode={bundleViewMode}
-                    onBundleViewModeChange={setBundleViewMode}
-                    getLearningTitle={getLearningTitle}
-                    getLearningDescription={getLearningDescription}
-                    getProductCardContent={getProductCardContent}
-                    t={t}
-                  />
-                  {bundleFilteredProducts.length > 0 && (
-                    <div className="mt-6">
-                      <ProductsPagination
-                        currentPage={page}
-                        totalPages={totalPages}
-                        baseUrl="/products"
-                        searchParams={paginationSearchParams}
-                        totalItems={bundleFilteredProducts.length}
+                  <ProductGridErrorBoundary
+                    onRetry={() => {
+                      // Retry by clearing filters and resetting state
+                      handleClearFilters();
+                      window.location.reload();
+                    }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <ProductsMainDisplay
+                        activeCategory={activeCategory}
+                        categoryInfo={categoryInfo}
+                        filteredProducts={filteredProducts}
+                        visibleProductsCount={bundleFilteredProducts.length}
+                        displayedProducts={displayedProducts}
+                        viewMode={state.viewMode}
+                        sortOption={sortOption}
+                        onSortChange={handleSortChange}
+                        searchQuery={state.searchQuery}
+                        onSearchQueryChange={handleSearchQueryChange}
+                        onClearSearch={handleSearchClear}
+                        bundleViewMode={bundleViewMode}
+                        onBundleViewModeChange={setBundleViewMode}
+                        getLearningTitle={getLearningTitle}
+                        getLearningDescription={getLearningDescription}
+                        getProductCardContent={getProductCardContent}
+                        t={t}
                       />
+                      {bundleFilteredProducts.length > 0 && (
+                        <div className="mt-6">
+                          <ProductsPagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            baseUrl="/products"
+                            searchParams={paginationSearchParams}
+                            totalItems={bundleFilteredProducts.length}
+                          />
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </ProductGridErrorBoundary>
                 </div>
-              </ProductGridErrorBoundary>
+              </div>
             </div>
           </div>
         </div>

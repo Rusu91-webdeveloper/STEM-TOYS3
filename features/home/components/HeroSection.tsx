@@ -1,16 +1,12 @@
 "use client";
 
 import {
-  Brain,
+  ArrowRight,
   ChevronDown,
-  CheckCircle,
-  Rocket,
-  ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { gradientButtonClass } from "@/features/home/components/homeTheme";
 import { useABTest } from "@/hooks/useABTest";
@@ -40,11 +36,27 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
     track: trackCTAAB,
   } = useABTest(HERO_CTA_TEST_NAME);
   const hasTrackedHeroImpressionRef = useRef(false);
+  const [heroImageSrc, setHeroImageSrc] = useState("/HeroImage.png");
 
   const headlineVariantKey =
     (headlineVariant?.name ?? headlineVariant?.id ?? "control").toLowerCase();
-  const ctaVariantKey =
-    (ctaVariant?.name ?? ctaVariant?.id ?? "control").toLowerCase();
+  const trustHighlights = [
+    { icon: "⭐", label: "4.9/5 Rating" },
+    { icon: "🎯", label: "By Age" },
+    { icon: "📦", label: "Bundle Savings" },
+    { icon: "🔒", label: "Secure Pay" },
+    { icon: "🚚", label: "1-3 Day Delivery" },
+  ];
+  const ageQuickLinks = [
+    { icon: "🐣", label: "3-5", href: "/products?ageGroup=PRESCHOOL_3_5" },
+    { icon: "🎒", label: "6-8", href: "/products?ageGroup=ELEMENTARY_6_8" },
+    {
+      icon: "🧠",
+      label: "9-12",
+      href: "/products?ageGroup=MIDDLE_SCHOOL_9_12",
+    },
+    { icon: "🚀", label: "13+", href: "/products?ageGroup=TEENS_13_PLUS" },
+  ];
 
   useEffect(() => {
     if (headlineVariantLoading || ctaVariantLoading) return;
@@ -67,146 +79,90 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
 
   const getHeadline = () => {
     if (headlineVariantKey.includes("variant_a")) {
-      return "Înlocuiește timpul de ecran cu rezultate reale la școală";
+      return "Mai puțin ecran. Mai multă învățare.";
     }
 
     if (headlineVariantKey.includes("variant_b")) {
-      return "Alege jucăria potrivită vârstei și vezi progres rapid";
+      return "Alege rapid după vârstă.";
     }
 
     return t(
       "homepageH1",
-      "Jucării STEM care transformă curiozitatea copilului în progres vizibil"
+      "Jucării STEM alese pe vârste"
     );
   };
 
-  const getCTAText = () => {
-    if (ctaVariantKey.includes("variant_a")) {
-      return "Văd Pachetele";
-    }
-
-    if (ctaVariantKey.includes("variant_b")) {
-      return "Aleg Ce Mi Se Potrivește";
-    }
-
-    return t("ctaShopNow", "Descoperă Pachetele STEM");
-  };
-
-  const quickOutcomes: Array<{
-    icon: React.ComponentType<{ className?: string }>;
-    label: string;
-  }> = [
-    {
-      icon: Brain,
-      label: "Concentrare mai bună prin joacă practică",
-    },
-    {
-      icon: Sparkles,
-      label: "Creativitate și gândire logică în fiecare sesiune",
-    },
-    {
-      icon: Rocket,
-      label: "Pași clari spre tehnologie, știință și inginerie",
-    },
-  ];
-
-  const ageFastLinks: Array<{ label: string; href: string }> = [
-    {
-      label: "3-5 ani",
-      href: "/products?ageGroup=PRESCHOOL_3_5",
-    },
-    {
-      label: "6-8 ani",
-      href: "/products?ageGroup=ELEMENTARY_6_8",
-    },
-    {
-      label: "9-12 ani",
-      href: "/products?ageGroup=MIDDLE_SCHOOL_9_12",
-    },
-    {
-      label: "13+ ani",
-      href: "/products?ageGroup=TEENS_13_PLUS",
-    },
-  ];
+  const primaryCtaText = "Shop Now";
+  const secondaryCtaText = "Learn More";
 
   return (
     <section
-      className="relative flex min-h-[86svh] w-full flex-col justify-center overflow-hidden"
+      className="relative flex min-h-[58svh] w-full flex-col justify-center overflow-hidden pt-2 sm:min-h-[520px] lg:min-h-[560px]"
       aria-label={t("heroSection", "Homepage Hero Section")}
     >
       <div className="absolute inset-0 z-0 select-none">
         <Image
-          src="/images/optimized/homepage_hero_banner_01_fallback.jpg"
+          src={heroImageSrc}
           alt={t("inspireMinds", "Inspire Curious Minds")}
           fill
           priority
           sizes="100vw"
-          className="h-full w-full object-cover object-[center_35%] lg:object-center"
+          className="h-full w-full object-cover object-center"
           fetchPriority="high"
-          quality={85}
-          placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+          quality={90}
+          onError={() => {
+            if (heroImageSrc !== "/HeroImageTechTechtots.png") {
+              setHeroImageSrc("/HeroImageTechTechtots.png");
+            }
+          }}
         />
         <div
-          className="absolute inset-0 bg-gradient-to-b from-slate-950/30 via-black/30 to-slate-950/90"
+          className="absolute inset-0 bg-gradient-to-r from-blue-900/45 via-blue-700/32 to-sky-500/15"
           aria-hidden="true"
         />
-        <div className="absolute inset-0 bg-black/30" aria-hidden="true" />
+        <div
+          className="absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(255,255,255,0.2),transparent_38%),radial-gradient(circle_at_78%_18%,rgba(255,255,255,0.14),transparent_35%),radial-gradient(circle_at_25%_85%,rgba(253,224,71,0.14),transparent_32%)]"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.12),rgba(2,6,23,0.3))]"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute inset-y-0 left-0 w-full bg-[linear-gradient(90deg,rgba(2,6,23,0.62)_0%,rgba(2,6,23,0.38)_35%,rgba(2,6,23,0.15)_65%,rgba(2,6,23,0.06)_100%)]"
+          aria-hidden="true"
+        />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 pt-16 sm:px-6 lg:px-8">
-        <div className="animate-in slide-in-from-bottom-8 fade-in flex max-w-4xl flex-col items-center text-center duration-1000 fill-mode-forwards sm:items-start sm:text-left">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 backdrop-blur-md transition-transform hover:scale-105">
-            <div className="flex -space-x-1.5" aria-hidden>
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-4 w-4 rounded-full border border-white/20 bg-gray-400" />
-              ))}
-            </div>
-            <span className="text-[11px] font-bold uppercase tracking-widest text-white/95 shadow-sm">
-              10.000+ familii au ales deja STEM
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <div className="animate-in slide-in-from-bottom-8 fade-in flex w-full flex-col text-left duration-1000 fill-mode-forwards">
+          <div className="max-w-5xl">
+            <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[0.7rem] font-bold uppercase tracking-[0.28em] text-white/90 backdrop-blur-md">
+              STEM Toys • TechTots
             </span>
           </div>
 
-          <h1 className="mb-4 text-3xl font-black leading-[1.08] tracking-tight text-white drop-shadow-xl sm:text-5xl lg:text-6xl">
+          <h1 className="mt-4 max-w-6xl text-4xl font-black leading-[0.95] tracking-tight text-white [text-shadow:0_6px_26px_rgba(15,23,42,0.55)] sm:text-6xl lg:text-7xl xl:text-[5.4rem]">
             {t("homepageH1Short", getHeadline())}
           </h1>
 
-          <p className="mb-6 max-w-2xl text-base font-medium leading-relaxed text-slate-200 drop-shadow-md sm:text-lg">
+          <p className="mt-4 max-w-4xl text-base font-semibold leading-relaxed text-white/95 [text-shadow:0_2px_14px_rgba(15,23,42,0.5)] sm:text-lg lg:text-xl">
             {t(
               "heroDescription",
-              "Intri, vezi imediat ce i se potrivește copilului, alegi un pachet complet și comanzi în câteva minute, fără stres."
+              "Pachete STEM clare, livrare rapidă, comandă simplă."
             )}
           </p>
 
-          <div className="mb-5 grid w-full max-w-3xl gap-2.5 sm:grid-cols-3">
-            {quickOutcomes.map((outcome) => {
-              const Icon = outcome.icon;
-              return (
-                <div
-                  key={outcome.label}
-                  className="rounded-2xl border border-white/15 bg-white/10 px-3 py-2.5 text-left backdrop-blur-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4 text-emerald-300" />
-                    <p className="text-xs font-medium text-white/90">
-                      {outcome.label}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="flex w-full flex-col items-center gap-3 sm:flex-row sm:gap-4">
+          <div className="mt-7 flex w-full max-w-4xl flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
             <Link
-              href="/products?bundleView=bundles"
+              href="/products"
               onClick={() => {
                 void trackHeadlineAB("clicks");
                 void trackCTAAB("clicks");
                 trackHomepageConversionEvent(
                   HOMEPAGE_CONVERSION_EVENTS.HERO_PRIMARY_CTA_CLICK,
                   {
-                    cta_label: getCTAText(),
+                    cta_label: primaryCtaText,
                     headline_variant:
                       headlineVariant?.name ?? headlineVariant?.id ?? "control",
                     cta_variant: ctaVariant?.name ?? ctaVariant?.id ?? "control",
@@ -223,23 +179,27 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
               }","ctaVariant":"${
                 ctaVariant?.name ?? ctaVariant?.id ?? "control"
               }"}`}
-              className={`${gradientButtonClass} group relative flex h-12 w-full items-center justify-center overflow-hidden px-6 text-sm font-bold transition-all active:scale-95 sm:w-auto sm:px-9 sm:text-base`}
+              className={`${gradientButtonClass} group relative flex h-14 w-full items-center justify-center overflow-hidden rounded-2xl px-7 text-base font-black shadow-[0_22px_38px_-18px_rgba(37,99,235,0.7)] ring-1 ring-white/25 transition-all hover:-translate-y-0.5 hover:shadow-[0_28px_46px_-18px_rgba(14,165,233,0.65)] active:scale-[0.99] sm:w-auto sm:min-w-[250px] sm:px-10`}
             >
+              <span
+                aria-hidden
+                className="absolute inset-y-0 -left-10 w-16 skew-x-[-20deg] bg-white/25 blur-sm transition-transform duration-700 group-hover:translate-x-[18rem]"
+              />
               <span className="relative z-10 flex items-center gap-2">
-                {getCTAText()}
-                <Rocket className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                {primaryCtaText}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
 
             <Link
-              href="/products"
+              href="/blog"
               onClick={() => {
                 void trackHeadlineAB("clicks");
                 void trackCTAAB("clicks");
                 trackHomepageConversionEvent(
                   HOMEPAGE_CONVERSION_EVENTS.HERO_SECONDARY_CTA_CLICK,
                   {
-                    cta_label: "Vezi toate jucăriile",
+                    cta_label: secondaryCtaText,
                     headline_variant:
                       headlineVariant?.name ?? headlineVariant?.id ?? "control",
                     cta_variant: ctaVariant?.name ?? ctaVariant?.id ?? "control",
@@ -249,64 +209,70 @@ const HeroSectionComponent = ({ t }: HeroSectionProps) => {
               data-conversion="cta"
               data-conversion-type="click"
               data-conversion-category="navigation"
-              data-conversion-action="hero_secondary_products_cta_click"
-              data-conversion-element="hero_secondary_products_cta"
-              data-conversion-metadata={`{"cta":"secondary_products","headlineVariant":"${
+              data-conversion-action="hero_secondary_blog_cta_click"
+              data-conversion-element="hero_secondary_blog_cta"
+              data-conversion-metadata={`{"cta":"secondary_blog","headlineVariant":"${
                 headlineVariant?.name ?? headlineVariant?.id ?? "control"
               }","ctaVariant":"${
                 ctaVariant?.name ?? ctaVariant?.id ?? "control"
               }"}`}
-              className="group inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-6 text-sm font-semibold text-white transition hover:border-white/35 hover:bg-white/15 sm:w-auto sm:px-8 sm:text-base"
+              className="group inline-flex h-14 w-full items-center justify-center rounded-2xl border border-white/55 bg-white/90 px-7 text-base font-bold text-slate-900 shadow-[0_12px_26px_-18px_rgba(15,23,42,0.45)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white sm:w-auto sm:min-w-[220px] sm:px-10"
             >
-              Vezi toate jucăriile
+              {secondaryCtaText}
             </Link>
           </div>
 
-          <div className="mt-4 flex w-full flex-wrap items-center gap-2">
-            {ageFastLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => {
-                  trackHomepageConversionEvent(
-                    HOMEPAGE_CONVERSION_EVENTS.HERO_AGE_CHIP_CLICK,
-                    {
-                      age_label: link.label,
-                      age_group_query: link.href,
-                      headline_variant:
-                        headlineVariant?.name ?? headlineVariant?.id ?? "control",
-                    }
-                  );
-                }}
-                data-conversion="cta"
-                data-conversion-type="click"
-                data-conversion-category="navigation"
-                data-conversion-action="hero_age_chip_click"
-                data-conversion-element={`hero_age_chip_${link.label.replace("+", "plus").replace("-", "_")}`}
-                className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/90 transition hover:border-emerald-300/50 hover:bg-emerald-300/10"
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold text-white/90">
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.2)]" />
+              Livrare 1-3 zile
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_0_4px_rgba(34,211,238,0.18)]" />
+              Plată securizată
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-indigo-400 shadow-[0_0_0_4px_rgba(129,140,248,0.18)]" />
+              Recomandări pe vârstă
+            </span>
+          </div>
+
+          <div className="mt-5 flex w-full max-w-6xl flex-wrap items-center gap-2.5">
+            {trustHighlights.map(item => (
+              <div
+                key={item.label}
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-3 py-2 text-xs font-semibold text-white/95 shadow-[0_10px_20px_-18px_rgba(15,23,42,0.75)] backdrop-blur-md"
               >
-                {link.label}
-              </Link>
+                <span
+                  aria-hidden
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-sm"
+                >
+                  {item.icon}
+                </span>
+                <span>{item.label}</span>
+              </div>
             ))}
           </div>
-          {/*
-            Keep this trust line close to CTAs to reduce last-second hesitation.
-          */}
-          <div className="mt-7 flex flex-wrap items-center gap-2 text-xs font-medium text-white/75">
-            <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
-            <span>Retur simplu</span>
-            <span className="h-1 w-1 rounded-full bg-white/20" />
-            <ShieldCheck className="h-3.5 w-3.5 text-sky-300" />
-            <span>Plată securizată</span>
-            <span className="h-1 w-1 rounded-full bg-white/20" />
-            <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
-            <span>Livrare rapidă în România</span>
+
+          <div className="mt-4 grid w-full max-w-6xl grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+            {ageQuickLinks.map(link => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="group inline-flex items-center justify-center gap-2 rounded-2xl border border-white/22 bg-white/10 px-3 py-3 text-sm font-semibold text-white shadow-[0_12px_20px_-18px_rgba(15,23,42,0.65)] backdrop-blur-md transition hover:-translate-y-0.5 hover:border-white/35 hover:bg-white/16"
+              >
+                <span aria-hidden className="text-base">
+                  {link.icon}
+                </span>
+                <span>{link.label}</span>
+              </Link>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 animate-bounce opacity-60">
-        <ChevronDown className="h-6 w-6 text-white" />
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 animate-bounce opacity-70">
+        <ChevronDown className="h-6 w-6 text-white/90" />
       </div>
     </section>
   );

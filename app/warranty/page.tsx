@@ -2,14 +2,14 @@ import { Card } from "@/components/ui/card";
 
 export default function WarrantyPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(16,185,129,0.12),_transparent_60%)]" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/70 text-slate-900">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(16,185,129,0.07),_transparent_60%)]" />
 
       <div className="relative z-10 py-8 sm:py-10 lg:py-16">
         <div className="container mx-auto px-3 sm:px-6">
           <div className="mx-auto max-w-4xl text-center">
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/40 backdrop-blur sm:p-10">
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/90 via-indigo-900/75 to-slate-950/90 p-8 shadow-xl shadow-black/40 backdrop-blur sm:p-10">
               <span className="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-200">
                 TechTots Warranty
               </span>
@@ -28,15 +28,15 @@ export default function WarrantyPage() {
           </div>
 
           <section className="mx-auto mt-10 max-w-5xl space-y-8 sm:mt-12 lg:space-y-12">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/30 backdrop-blur sm:p-8">
-              <h2 className="mb-5 flex items-center gap-3 text-base font-semibold text-white sm:text-lg md:text-2xl">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-200">
+            <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-900/10 backdrop-blur sm:p-8">
+              <h2 className="mb-5 flex items-center gap-3 text-base font-semibold text-slate-900 sm:text-lg md:text-2xl">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-700">
                   ✓
                 </span>
                 Garanția Legală (2 Ani)
               </h2>
 
-              <div className="prose prose-sm max-w-none text-slate-200 sm:prose-base">
+              <div className="prose prose-sm max-w-none text-slate-700 sm:prose-base">
                 <p className="leading-relaxed">
                   Toate produsele noastre beneficiază de{" "}
                   <strong>garanție legală de 2 ani</strong> împotriva defectelor
@@ -47,19 +47,19 @@ export default function WarrantyPage() {
 
                 <div className="mt-6 grid gap-4 sm:grid-cols-2 md:gap-6">
                   <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 shadow-inner shadow-emerald-500/20">
-                    <h3 className="text-sm font-semibold text-emerald-100 sm:text-base md:text-lg">
+                    <h3 className="text-sm font-semibold text-emerald-800 sm:text-base md:text-lg">
                       Primele 12 luni
                     </h3>
-                    <p className="mt-2 text-xs text-emerald-50 sm:text-sm">
+                    <p className="mt-2 text-xs text-emerald-900/80 sm:text-sm">
                       Nu trebuie să demonstrezi că defectul exista la momentul
                       livrării. Se presupune că defectul era prezent la livrare.
                     </p>
                   </div>
                   <div className="rounded-2xl border border-sky-400/30 bg-sky-500/10 p-4 shadow-inner shadow-sky-500/20">
-                    <h3 className="text-sm font-semibold text-sky-100 sm:text-base md:text-lg">
+                    <h3 className="text-sm font-semibold text-sky-800 sm:text-base md:text-lg">
                       Următoarele 12 luni
                     </h3>
-                    <p className="mt-2 text-xs text-sky-50 sm:text-sm">
+                    <p className="mt-2 text-xs text-sky-900/80 sm:text-sm">
                       Produsul rămâne sub garanție, dar s-ar putea să fie nevoie
                       să demonstrezi că defectul nu a fost cauzat de utilizarea
                       normală.
@@ -67,10 +67,10 @@ export default function WarrantyPage() {
                   </div>
                 </div>
 
-                <h3 className="mt-7 text-sm font-semibold text-white sm:text-base md:text-lg">
+                <h3 className="mt-7 text-sm font-semibold text-slate-900 sm:text-base md:text-lg">
                   Produsul poate fi returnat sub garanție dacă:
                 </h3>
-                <ul className="mt-3 space-y-2 text-xs text-slate-200 sm:text-sm md:text-base">
+                <ul className="mt-3 space-y-2 text-xs text-slate-700 sm:text-sm md:text-base">
                   <li>Nu corespunde descrierii produsului</li>
                   <li>Are calități diferite față de modelul prezentat</li>
                   <li>
@@ -146,13 +146,13 @@ export default function WarrantyPage() {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/30 backdrop-blur sm:p-8">
-              <h2 className="text-base font-semibold text-white sm:text-lg md:text-xl">
+            <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-900/10 backdrop-blur sm:p-8">
+              <h2 className="text-base font-semibold text-slate-900 sm:text-lg md:text-xl">
                 📋 Baza Legală
               </h2>
-              <div className="mt-4 space-y-2 text-xs text-slate-200 sm:text-sm">
+              <div className="mt-4 space-y-2 text-xs text-slate-700 sm:text-sm">
                 <p>Această politică de garanție se bazează pe:</p>
-                <ul className="ml-3 list-disc space-y-1 text-slate-200 sm:ml-4">
+                <ul className="ml-3 list-disc space-y-1 text-slate-700 sm:ml-4">
                   <li>
                     Directiva UE 2019/771 privind contractele de vânzare a
                     bunurilor
@@ -170,7 +170,7 @@ export default function WarrantyPage() {
                     consumatorilor
                   </li>
                 </ul>
-                <p className="mt-4 text-slate-300">
+                <p className="mt-4 text-slate-500">
                   <strong>Ultimă actualizare:</strong>{" "}
                   {new Date().toLocaleDateString("ro-RO")} | Versiunea 1.0
                 </p>

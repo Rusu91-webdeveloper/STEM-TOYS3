@@ -16,8 +16,6 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product";
 
 import { ProductCard } from "./ProductCard";
-import { productsGlassCardClass } from "./productsTheme";
-
 type GridColumnsConfig = {
   base?: number;
   sm?: number;
@@ -218,15 +216,13 @@ export function ProductGrid({
   const isEffectivelySingleColumn = visibleColumns === 1;
 
   return (
-    <div className={cn("space-y-2 sm:space-y-6", className)}>
+    <div className={cn("space-y-3 sm:space-y-4", className)}>
       {(showLayoutToggle || showSortOptions) && (
-        <div
-          className={`${productsGlassCardClass} flex flex-col gap-3 sm:gap-4 sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 mb-4`}
-        >
+        <div className="mb-3 flex flex-col gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-2 shadow-sm sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-3 sm:py-2.5">
           {showSortOptions && (
-            <div className="w-full sm:w-48">
+            <div className="w-full sm:w-56">
               <Select value={sortOption} onValueChange={handleSortChange}>
-                <SelectTrigger className="h-9 sm:h-10 text-sm bg-white/80 border-slate-200 text-slate-700 shadow-sm rounded-lg hover:border-slate-300">
+                <SelectTrigger className="h-10 text-sm bg-white border-slate-200 text-slate-700 shadow-none rounded-lg hover:border-slate-300 focus:ring-2 focus:ring-sky-100">
                   <SelectValue placeholder={t("sortBy")} />
                 </SelectTrigger>
                 <SelectContent className="border-slate-200 bg-white text-slate-700 shadow-lg">
@@ -266,51 +262,51 @@ export function ProductGrid({
           )}
 
           {showLayoutToggle && (
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-slate-500 mr-2">
+            <div className="flex items-center justify-between sm:justify-end">
+              <span className="text-xs sm:text-sm text-slate-500 mr-2">
                 {t("view")}:
               </span>
-              <Button
-                variant={layout === "grid" ? "default" : "outline"}
-                size="sm"
-                className={cn(
-                  "px-3 h-9 transition-all duration-200",
-                  layout === "grid"
-                    ? "bg-sky-600 text-white hover:bg-sky-700"
-                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                )}
-                onClick={() => setLayout("grid")}
-                aria-label={t("gridView")}
-              >
-                <Grid2X2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={layout === "list" ? "default" : "outline"}
-                size="sm"
-                className={cn(
-                  "px-3 h-9 transition-all duration-200",
-                  layout === "list"
-                    ? "bg-sky-600 text-white hover:bg-sky-700"
-                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                )}
-                onClick={() => setLayout("list")}
-                aria-label={t("listView")}
-              >
-                <List className="h-4 w-4" />
-              </Button>
+              <div className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 p-1">
+                <Button
+                  variant={layout === "grid" ? "default" : "outline"}
+                  size="sm"
+                  className={cn(
+                    "px-3 h-8 border-0 shadow-none transition-all duration-200",
+                    layout === "grid"
+                      ? "bg-slate-900 text-white hover:bg-slate-800"
+                      : "bg-transparent text-slate-600 hover:bg-white hover:text-slate-900"
+                  )}
+                  onClick={() => setLayout("grid")}
+                  aria-label={t("gridView")}
+                >
+                  <Grid2X2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={layout === "list" ? "default" : "outline"}
+                  size="sm"
+                  className={cn(
+                    "px-3 h-8 border-0 shadow-none transition-all duration-200",
+                    layout === "list"
+                      ? "bg-slate-900 text-white hover:bg-slate-800"
+                      : "bg-transparent text-slate-600 hover:bg-white hover:text-slate-900"
+                  )}
+                  onClick={() => setLayout("list")}
+                  aria-label={t("listView")}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </div>
       )}
 
       {sortedProducts.length === 0 ? (
-        <div
-          className={`${productsGlassCardClass} text-center py-12 text-slate-500 text-sm`}
-        >
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center text-sm text-slate-500">
           {t("noProductsFound")}
         </div>
       ) : layout === "grid" && !isEffectivelySingleColumn ? (
-        <div className={`grid ${gridColsClass} gap-2 sm:gap-4 lg:gap-6`}>
+        <div className={`grid ${gridColsClass} gap-3 sm:gap-4 lg:gap-5`}>
           {sortedProducts.map((product, index) => (
             <div
               key={product.id}
@@ -319,7 +315,7 @@ export function ProductGrid({
             >
               <ProductCard
                 product={product}
-                className="hover:shadow-lg transition-shadow duration-300"
+                className="transition-shadow duration-300"
                 layout="grid"
                 priority={index < aboveFoldItems}
               />

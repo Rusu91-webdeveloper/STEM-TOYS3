@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Mail, Sparkles } from "lucide-react";
+import Image from "next/image";
 
 import {
   glassPanelClass,
@@ -47,30 +48,46 @@ export default function NewsletterSignup() {
 
   return (
     <section className="relative overflow-hidden py-14 sm:py-16 md:py-20">
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950/95 to-slate-900" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%)] opacity-70" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(165,180,252,0.18),_transparent_60%)] opacity-80" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,#f6fbff_0%,#eef7ff_48%,#f6f9ff_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.10),_transparent_55%)] opacity-80" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(129,140,248,0.12),_transparent_60%)] opacity-80" />
+      <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle,_#0f172a_1px,_transparent_1px)] bg-[length:16px_16px]" />
 
       <div className="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
         <div
-          className={`${glassPanelClass} mx-auto flex max-w-4xl flex-col gap-6 rounded-3xl border-white/15 bg-white/10 px-6 py-10 shadow-[0_20px_60px_rgba(15,23,42,0.55)] backdrop-blur-2xl sm:px-10 sm:py-12`}
+          className={`${glassPanelClass} mx-auto relative flex max-w-4xl flex-col gap-6 overflow-hidden rounded-3xl border-slate-200/80 bg-white/95 px-6 py-10 shadow-[0_28px_70px_-40px_rgba(15,23,42,0.2)] backdrop-blur-xl sm:px-10 sm:py-12`}
         >
+          <div className="pointer-events-none absolute inset-0" aria-hidden>
+            <div className="absolute -right-8 -top-6 h-36 w-36 rounded-full bg-cyan-200/35 blur-3xl" />
+            <div className="absolute -left-8 bottom-0 h-32 w-32 rounded-full bg-emerald-200/30 blur-3xl" />
+            <div className="absolute right-0 top-0 hidden h-full w-[38%] lg:block">
+              <Image
+                src="/Science.png"
+                alt=""
+                fill
+                sizes="30vw"
+                className="object-cover object-center opacity-10 blur-[2px]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-l from-white/90 via-white/80 to-transparent" />
+            </div>
+          </div>
+
           <div className="flex flex-col items-center text-center">
-            <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-sky-200 sm:text-xs">
-              <Sparkles className="h-4 w-4 text-sky-300" aria-hidden="true" />
+            <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-4 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-sky-700 sm:text-xs">
+              <Sparkles className="h-4 w-4 text-sky-600" aria-hidden="true" />
               {t("exclusiveInsights", "Inspirație STEM exclusivă")}
             </span>
-            <h3 className="text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl">
+            <h3 className="relative z-10 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl md:text-4xl">
               {t("joinEducatorsParents")}
             </h3>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-200/85 sm:text-base">
+            <p className="relative z-10 mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
               {t("newsletterSubtitle")}
             </p>
           </div>
 
           <form
             onSubmit={handleNewsletterSubmit}
-            className="mx-auto flex w-full flex-col gap-3 rounded-2xl bg-slate-950/40 p-4 shadow-inner shadow-black/30 sm:flex-row sm:items-center sm:gap-4 sm:p-5"
+            className="relative z-10 mx-auto flex w-full flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_16px_35px_-28px_rgba(15,23,42,0.18)] sm:flex-row sm:items-center sm:gap-4 sm:p-5"
             aria-label="Newsletter signup"
           >
             <label htmlFor="newsletter-email" className="sr-only">
@@ -87,7 +104,7 @@ export default function NewsletterSignup() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder={t("emailAddressPlaceholder")}
-                className="w-full rounded-2xl border border-white/10 bg-white/10 px-12 py-3 text-sm text-white placeholder:text-slate-300 outline-none transition focus:border-sky-400 focus:bg-slate-900/60 focus:ring-2 focus:ring-sky-400/40 sm:text-base"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-12 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-400/25 sm:text-base"
                 aria-label="Email address for newsletter"
                 required
               />
@@ -95,23 +112,23 @@ export default function NewsletterSignup() {
             <button
               type="submit"
               disabled={isSubscribing}
-              className={`${gradientButtonClass} w-full shrink-0 rounded-2xl px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-[0_20px_45px_rgba(56,189,248,0.45)] transition hover:shadow-[0_25px_55px_rgba(56,189,248,0.55)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:text-base`}
+              className={`${gradientButtonClass} relative w-full shrink-0 rounded-2xl px-6 py-3 text-sm font-extrabold uppercase tracking-wide text-white shadow-[0_18px_36px_-18px_rgba(56,189,248,0.55)] ring-1 ring-white/20 transition hover:-translate-y-0.5 hover:shadow-[0_24px_45px_-18px_rgba(56,189,248,0.65)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-[260px] sm:text-base`}
               aria-label="Subscribe to newsletter"
             >
               {isSubscribing ? t("subscribing") : t("getFreeResources")}
             </button>
           </form>
 
-          <div className="flex flex-col items-center gap-3 text-center text-xs text-slate-300/90 sm:text-sm">
-            <div className="flex flex-wrap items-center justify-center gap-2 font-medium text-slate-200">
-              <span className="rounded-full border border-emerald-300/30 bg-emerald-400/10 px-3 py-1 text-[0.65rem] uppercase tracking-[0.25em] text-emerald-200">
+          <div className="relative z-10 flex flex-col items-center gap-3 text-center text-xs text-slate-600 sm:text-sm">
+            <div className="flex flex-wrap items-center justify-center gap-2 font-medium text-slate-700">
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[0.65rem] uppercase tracking-[0.25em] text-emerald-700">
                 {t("noSpamGuarantee", "Zero spam")}
               </span>
-              <span className="rounded-full border border-indigo-300/30 bg-indigo-400/10 px-3 py-1 text-[0.65rem] uppercase tracking-[0.25em] text-indigo-100">
+              <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-[0.65rem] uppercase tracking-[0.25em] text-indigo-700">
                 {t("unsubscribeAnytime", "Te dezabonezi oricând")}
               </span>
             </div>
-            <p className="max-w-2xl text-slate-300/80">
+            <p className="max-w-2xl text-slate-600">
               {t(
                 "newsletterValueBullet",
                 "Primești săptămânal experimente STEM, ghiduri pentru părinți și oferte dedicate membrilor comunității TechTots."
@@ -121,7 +138,7 @@ export default function NewsletterSignup() {
 
           {subscriptionStatus === "success" && (
             <p
-              className="mx-auto w-full max-w-md rounded-2xl border border-emerald-300/40 bg-emerald-500/15 px-4 py-3 text-center text-sm font-medium text-emerald-50 shadow-[0_12px_35px_rgba(16,185,129,0.25)] sm:text-base"
+              className="mx-auto w-full max-w-md rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700 shadow-[0_12px_35px_-24px_rgba(16,185,129,0.2)] sm:text-base"
               role="status"
               aria-live="polite"
             >
@@ -130,7 +147,7 @@ export default function NewsletterSignup() {
           )}
           {subscriptionStatus === "error" && (
             <p
-              className="mx-auto w-full max-w-md rounded-2xl border border-rose-300/40 bg-rose-600/10 px-4 py-3 text-center text-sm font-medium text-rose-100 shadow-[0_12px_35px_rgba(244,63,94,0.25)] sm:text-base"
+              className="mx-auto w-full max-w-md rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-center text-sm font-medium text-rose-700 shadow-[0_12px_35px_-24px_rgba(244,63,94,0.2)] sm:text-base"
               role="alert"
               aria-live="polite"
             >

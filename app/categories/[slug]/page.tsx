@@ -175,19 +175,19 @@ async function RelatedBlogs({ slug }: { slug: string }) {
     return (
       <section className="container mx-auto w-full px-4 pt-8 sm:px-6 sm:pt-12 lg:px-10 lg:pt-14">
         <div
-          className={`${glassPanelClass} mx-auto max-w-5xl rounded-3xl border-white/15 bg-slate-900/60 px-5 py-6 shadow-xl shadow-black/30 sm:px-8 sm:py-8 lg:px-10 lg:py-10`}
+          className={`${glassPanelClass} mx-auto max-w-5xl rounded-3xl border-slate-200/70 bg-white/85 px-5 py-6 shadow-xl shadow-slate-900/10 sm:px-8 sm:py-8 lg:px-10 lg:py-10`}
         >
-          <div className="mb-6 flex items-center gap-2 text-sky-200 sm:gap-3">
+          <div className="mb-6 flex items-center gap-2 text-sky-700 sm:gap-3">
             <BookOpen className="h-5 w-5 text-sky-300 sm:h-6 sm:w-6" />
-            <h3 className="text-lg font-semibold text-white sm:text-xl md:text-2xl">
+            <h3 className="text-lg font-semibold text-slate-900 sm:text-xl md:text-2xl">
               Articole recomandate
             </h3>
           </div>
           <div
-            className={`${glassCardClass} flex flex-col items-center justify-center gap-4 rounded-2xl border-white/10 bg-slate-900/70 px-6 py-10 text-center sm:px-8 sm:py-12`}
+            className={`${glassCardClass} flex flex-col items-center justify-center gap-4 rounded-2xl border-slate-200/70 bg-white/95 px-6 py-10 text-center shadow-inner shadow-slate-900/5 sm:px-8 sm:py-12`}
           >
             <BookOpen className="h-12 w-12 text-sky-300/70 sm:h-14 sm:w-14" />
-            <p className="text-sm text-slate-200/85 sm:text-base">
+            <p className="text-sm text-slate-600 sm:text-base">
               Nu există încă articole pentru această categorie.
             </p>
             <Link
@@ -206,18 +206,18 @@ async function RelatedBlogs({ slug }: { slug: string }) {
   return (
     <section className="container mx-auto w-full px-4 pt-8 sm:px-6 sm:pt-12 lg:px-10 lg:pt-14">
       <div
-        className={`${glassPanelClass} rounded-3xl border-white/15 bg-slate-900/60 px-5 py-6 shadow-xl shadow-black/30 sm:px-8 sm:py-8 lg:px-10 lg:py-10`}
+        className={`${glassPanelClass} rounded-3xl border-slate-200/70 bg-white/85 px-5 py-6 shadow-xl shadow-slate-900/10 sm:px-8 sm:py-8 lg:px-10 lg:py-10`}
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 text-sky-200 sm:gap-3">
+          <div className="flex items-center gap-2 text-sky-700 sm:gap-3">
             <BookOpen className="h-5 w-5 text-sky-300 sm:h-6 sm:w-6" />
-            <h3 className="text-lg font-semibold text-white sm:text-xl md:text-2xl">
+            <h3 className="text-lg font-semibold text-slate-900 sm:text-xl md:text-2xl">
               Articole recomandate pentru {getCategoryName(slug, "ro")}
             </h3>
           </div>
           <Link
             href="/blog"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-indigo-200 transition-colors hover:text-white sm:text-sm"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-indigo-700 transition-colors hover:text-indigo-900 sm:text-sm"
           >
             Vezi toate articolele
             <ArrowRight className="h-4 w-4" />
@@ -230,7 +230,7 @@ async function RelatedBlogs({ slug }: { slug: string }) {
               <Link
                 key={blog.id}
                 href={`/blog/${blog.slug}`}
-                className={`${glassCardClass} group flex h-full flex-col overflow-hidden rounded-2xl border-white/10 bg-slate-900/70 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:shadow-xl`}
+                className={`${glassCardClass} group flex h-full flex-col overflow-hidden rounded-2xl border-slate-200/70 bg-white/95 transition-all duration-300 hover:-translate-y-1 hover:border-slate-300/80 hover:shadow-xl`}
               >
                 {blog.coverImage ? (
                   <div className="relative h-40 w-full overflow-hidden">
@@ -248,24 +248,24 @@ async function RelatedBlogs({ slug }: { slug: string }) {
                   </div>
                 )}
                 <div className="flex flex-1 flex-col gap-3 px-5 py-6">
-                  <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-indigo-200/80">
+                  <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-indigo-600/80">
                     <Calendar className="h-3 w-3" />
                     <span>{blog.author?.name ?? "TechTots Team"}</span>
                     {blog.readingTime && (
                       <>
-                        <span className="text-indigo-200/50">•</span>
+                        <span className="text-indigo-400/60">•</span>
                         <Clock className="h-3 w-3" />
                         <span>{blog.readingTime} min citire</span>
                       </>
                     )}
                   </div>
-                  <h4 className="text-base font-semibold leading-snug text-white transition-colors group-hover:text-sky-300">
+                  <h4 className="text-base font-semibold leading-snug text-slate-900 transition-colors group-hover:text-sky-700">
                     {blog.title}
                   </h4>
-                  <p className="text-sm text-slate-200/80 line-clamp-3">
+                  <p className="text-sm text-slate-600 line-clamp-3">
                     {blog.excerpt}
                   </p>
-                  <div className="mt-auto inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sky-300">
+                  <div className="mt-auto inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sky-700">
                     <span>Citește mai mult</span>
                     <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" />
                   </div>
@@ -509,11 +509,11 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
   return (
     <section className="container mx-auto w-full px-4 pt-8 sm:px-6 sm:pt-12 lg:px-10 lg:pt-14">
       <div
-        className={`${glassPanelClass} rounded-3xl border-white/15 bg-slate-900/60 px-5 py-6 shadow-xl shadow-black/30 sm:px-8 sm:py-8 lg:px-10 lg:py-10`}
+        className={`${glassPanelClass} rounded-3xl border-slate-200/70 bg-white/85 px-5 py-6 shadow-xl shadow-slate-900/10 sm:px-8 sm:py-8 lg:px-10 lg:py-10`}
       >
         <div className="mb-6 flex items-center gap-2 sm:gap-3 md:mb-8">
           <Quote className="h-5 w-5 text-sky-300 sm:h-6 sm:w-6" />
-          <h3 className="text-lg font-bold text-white sm:text-2xl md:text-3xl">
+          <h3 className="text-lg font-bold text-slate-900 sm:text-2xl md:text-3xl">
             Ce spun părinții și educatorii
           </h3>
         </div>
@@ -523,7 +523,7 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
             return (
               <blockquote
                 key={idx}
-                className={`${glassCardClass} relative rounded-2xl border-white/10 bg-slate-900/70 p-4 text-left transition-all duration-300 hover:border-white/20 hover:shadow-lg sm:p-5 md:p-6`}
+                className={`${glassCardClass} relative rounded-2xl border-slate-200/70 bg-white/95 p-4 text-left transition-all duration-300 hover:border-slate-300/80 hover:shadow-lg sm:p-5 md:p-6`}
               >
                 <div className="absolute right-3 top-3 opacity-20 transition-opacity group-hover:opacity-40">
                   <IconComponent className="h-6 w-6 text-sky-300 sm:h-7 sm:w-7 md:h-8 md:w-8" />
@@ -540,16 +540,16 @@ function Testimonials({ slug }: { slug: KnownSlug | string }) {
                     />
                   ))}
                 </div>
-                <p className="mb-3 text-xs italic leading-relaxed text-slate-200/90 sm:text-sm md:mb-4">
+                <p className="mb-3 text-xs italic leading-relaxed text-slate-700 sm:text-sm md:mb-4">
                   &ldquo;{t.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-sky-300 sm:h-11 sm:w-11 md:h-12 md:w-12">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-700 sm:h-11 sm:w-11 md:h-12 md:w-12">
                     <User className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
                   </div>
-                  <div className="text-xs text-slate-200 sm:text-sm">
-                    <div className="font-semibold text-white">{t.author}</div>
-                    <div className="text-[10px] uppercase tracking-wide text-indigo-200/80 sm:text-xs">
+                  <div className="text-xs text-slate-600 sm:text-sm">
+                    <div className="font-semibold text-slate-900">{t.author}</div>
+                    <div className="text-[10px] uppercase tracking-wide text-indigo-600/80 sm:text-xs">
                       {t.role}
                     </div>
                   </div>
@@ -717,24 +717,24 @@ function Overview({ slug, locale }: { slug: string; locale: string }) {
   return (
     <section className="container mx-auto w-full px-4 pt-6 sm:px-6 sm:pt-10 lg:px-10 lg:pt-12">
       <div
-        className={`${glassPanelClass} rounded-3xl border-white/15 bg-slate-900/60 px-5 py-6 shadow-xl shadow-black/30 sm:px-8 sm:py-8 lg:px-10 lg:py-10`}
+        className={`${glassPanelClass} rounded-3xl border-slate-200/70 bg-white/85 px-5 py-6 shadow-xl shadow-slate-900/10 sm:px-8 sm:py-8 lg:px-10 lg:py-10`}
       >
         <div className="mb-4 flex items-center gap-2 sm:gap-3 md:mb-6">
           <Target className="h-5 w-5 text-sky-300 sm:h-6 sm:w-6" />
-          <h2 className="text-lg font-bold text-white sm:text-2xl md:text-3xl">
+          <h2 className="text-lg font-bold text-slate-900 sm:text-2xl md:text-3xl">
             {title}
           </h2>
         </div>
-        <p className="max-w-3xl text-xs leading-relaxed text-slate-200/85 sm:text-sm md:text-base lg:text-lg">
+        <p className="max-w-3xl text-xs leading-relaxed text-slate-700 sm:text-sm md:text-base lg:text-lg">
           {copy[slug] ??
             "Descoperiți resurse care stârnesc pasiunea pentru învățare în rândul copiilor."}
         </p>
 
         <div className="mt-5 space-y-4 sm:mt-6 sm:space-y-6 md:mt-8">
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 backdrop-blur sm:px-6 sm:py-6 md:px-7 md:py-7">
+          <div className="rounded-2xl border border-slate-200/70 bg-white/95 px-4 py-4 backdrop-blur sm:px-6 sm:py-6 md:px-7 md:py-7">
             <div className="mb-4 flex items-center gap-2 sm:gap-3 md:mb-6">
               <Sparkles className="h-4 w-4 text-violet-300 sm:h-5 sm:w-5" />
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-indigo-200 sm:text-base">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-indigo-700 sm:text-base">
                 Beneficii educaționale
               </h3>
             </div>
@@ -744,22 +744,22 @@ function Overview({ slug, locale }: { slug: string; locale: string }) {
                 return (
                   <div
                     key={index}
-                    className={`${glassCardClass} flex items-start gap-3 rounded-2xl border-white/10 bg-slate-900/70 px-4 py-4 transition-all duration-300 hover:border-white/20 hover:shadow-lg sm:gap-4 sm:px-5 sm:py-5`}
+                    className={`${glassCardClass} flex items-start gap-3 rounded-2xl border-slate-200/70 bg-white px-4 py-4 transition-all duration-300 hover:border-slate-300/80 hover:shadow-lg sm:gap-4 sm:px-5 sm:py-5`}
                   >
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 text-sky-300 sm:h-11 sm:w-11">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-700 sm:h-11 sm:w-11">
                       <IconComponent className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs leading-relaxed text-slate-200/90 sm:text-sm">
+                      <p className="text-xs leading-relaxed text-slate-700 sm:text-sm">
                         {benefit.text}
                       </p>
-                      <div className="mt-3 h-1.5 w-full rounded-full bg-white/10 sm:h-2">
+                      <div className="mt-3 h-1.5 w-full rounded-full bg-slate-200/80 sm:h-2">
                         <div
                           className="h-1.5 rounded-full bg-gradient-to-r from-emerald-400 via-sky-400 to-indigo-400 transition-all duration-1000 ease-out sm:h-2"
                           style={{ width: `${benefit.progress}%` }}
                         />
                       </div>
-                      <div className="mt-1 text-[10px] font-medium uppercase tracking-wide text-indigo-200/70 sm:text-xs">
+                      <div className="mt-1 text-[10px] font-medium uppercase tracking-wide text-indigo-600/80 sm:text-xs">
                         {benefit.progress}% eficiență
                       </div>
                     </div>
@@ -773,15 +773,15 @@ function Overview({ slug, locale }: { slug: string; locale: string }) {
             {overviewCards.map(({ icon: IconComponent, title: cardTitle, copy: cardCopy }) => (
               <div
                 key={cardTitle}
-                className={`${glassCardClass} group rounded-2xl border-white/10 bg-slate-900/70 px-4 py-4 transition-all duration-300 hover:border-white/20 hover:shadow-lg sm:px-5 sm:py-5`}
+                className={`${glassCardClass} group rounded-2xl border-slate-200/70 bg-white/95 px-4 py-4 transition-all duration-300 hover:border-slate-300/80 hover:shadow-lg sm:px-5 sm:py-5`}
               >
-                <div className="mb-2 flex items-center gap-2 text-indigo-200 sm:mb-3">
+                <div className="mb-2 flex items-center gap-2 text-indigo-700 sm:mb-3">
                   <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <h4 className="text-sm font-semibold text-white sm:text-base">
+                  <h4 className="text-sm font-semibold text-slate-900 sm:text-base">
                     {cardTitle}
                   </h4>
                 </div>
-                <p className="text-xs leading-relaxed text-slate-200/80 sm:text-sm">
+                <p className="text-xs leading-relaxed text-slate-600 sm:text-sm">
                   {cardCopy}
                 </p>
               </div>
@@ -918,18 +918,18 @@ function CategoryEducationalBenefits({ slug }: { slug: string }) {
   return (
     <section className="container mx-auto w-full px-4 pt-8 sm:px-6 sm:pt-12 lg:px-10 lg:pt-14">
       <div
-        className={`${glassPanelClass} mx-auto max-w-6xl rounded-3xl border-white/15 bg-slate-900/60 px-5 py-6 shadow-xl shadow-black/30 sm:px-8 sm:py-8 lg:px-12 lg:py-10`}
+        className={`${glassPanelClass} mx-auto max-w-6xl rounded-3xl border-slate-200/70 bg-white/85 px-5 py-6 shadow-xl shadow-slate-900/10 sm:px-8 sm:py-8 lg:px-12 lg:py-10`}
       >
         <div className="mb-6 flex items-center justify-center gap-3 text-center sm:mb-8">
           <GraduationCap className="h-6 w-6 text-sky-300" />
-          <h2 className="text-2xl font-bold text-white sm:text-3xl">
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
             Beneficii Educaționale pentru {getCategoryName(slug, "ro")}
           </h2>
         </div>
-        <div className={`${glassCardClass} border-white/10 bg-slate-900/70 px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8`}>
+        <div className={`${glassCardClass} border-slate-200/70 bg-white/95 px-4 py-5 shadow-inner shadow-slate-900/5 sm:px-6 sm:py-7 lg:px-8 lg:py-8`}>
           <div className="mb-4 flex items-center gap-3 sm:mb-6">
             <Lightbulb className="h-5 w-5 text-amber-300" />
-            <h3 className="text-base font-semibold text-white sm:text-lg">
+            <h3 className="text-base font-semibold text-slate-900 sm:text-lg">
               Ce învață copiii prin jucăriile {getCategoryName(slug, "ro").toLowerCase()}:
             </h3>
           </div>
@@ -939,16 +939,16 @@ function CategoryEducationalBenefits({ slug }: { slug: string }) {
               return (
                 <div
                   key={index}
-                  className={`${glassCardClass} flex items-start gap-4 rounded-2xl border-white/10 bg-slate-950/60 px-4 py-4 transition-all duration-300 hover:border-white/20 hover:shadow-lg sm:px-5 sm:py-5`}
+                  className={`${glassCardClass} flex items-start gap-4 rounded-2xl border-slate-200/70 bg-white px-4 py-4 transition-all duration-300 hover:border-slate-300/80 hover:shadow-lg sm:px-5 sm:py-5`}
                 >
-                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 text-sky-300">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-700">
                     <IconComponent className="h-6 w-6" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-white mb-2 leading-relaxed">
+                    <h4 className="mb-2 font-semibold leading-relaxed text-slate-900">
                       {benefit.text}
                     </h4>
-                    <p className="text-sm leading-relaxed text-slate-200/80">
+                    <p className="text-sm leading-relaxed text-slate-600">
                       {benefit.description}
                     </p>
                   </div>
@@ -974,15 +974,15 @@ export default async function CategoryDetailPage({
   const _t = getTranslation(locale);
 
   const headerImageBySlug: Record<string, string> = {
-    science: "/images/category_banner_science_01.png",
-    technology: "/images/category_banner_technology_01.png",
-    engineering: "/images/category_banner_engineering_01.png",
-    math: "/images/category_banner_math_01.png",
+    science: "/Science.png",
+    technology: "/Technology.png",
+    engineering: "/Engineering.png",
+    math: "/Mathematic.png",
     "educational-books": "/images/category_banner_books_01.jpg",
   };
 
   const heroTitle = getCategoryName(slug, locale);
-  const heroImg = headerImageBySlug[slug] ?? "/images/hero.jpg";
+  const heroImg = headerImageBySlug[slug] ?? "/HeroImageTechTechtots.png";
   const categoryIcons = getCategoryIcons(slug);
 
   return (
@@ -1087,17 +1087,17 @@ export default async function CategoryDetailPage({
             className={`${glassPanelClass} mx-auto mt-4 flex w-full max-w-5xl flex-col gap-4 rounded-3xl px-5 py-5 sm:mt-6 sm:px-7 sm:py-6 md:mt-8 md:px-10 md:py-8`}
           >
             <div>
-              <h2 className="text-lg font-semibold text-white sm:text-xl md:text-2xl">
+              <h2 className="text-lg font-semibold text-slate-900 sm:text-xl md:text-2xl">
                 Resurse utile
               </h2>
-              <p className="mt-1 text-xs text-slate-200/80 sm:text-sm md:text-base">
+              <p className="mt-1 text-xs text-slate-600 sm:text-sm md:text-base">
                 Nu ești sigur ce să alegi? Consultă ghidurile noastre:
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-indigo-200 sm:gap-2.5 sm:text-sm">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-indigo-700 sm:gap-2.5 sm:text-sm">
               <Link
                 href="/ghid-jucarii-stem-2025"
-                className="transition-colors hover:text-white"
+                className="transition-colors hover:text-indigo-900"
                 data-conversion="cta"
                 data-conversion-type="click"
                 data-conversion-category="category"
@@ -1109,7 +1109,7 @@ export default async function CategoryDetailPage({
               <span className="text-slate-400">·</span>
               <Link
                 href="/jucarii-stem-dupa-varsta"
-                className="transition-colors hover:text-white"
+                className="transition-colors hover:text-indigo-900"
                 data-conversion="cta"
                 data-conversion-type="click"
                 data-conversion-category="category"
@@ -1121,7 +1121,7 @@ export default async function CategoryDetailPage({
               <span className="text-slate-400">·</span>
               <Link
                 href="/beneficiile-jucariilor-stem"
-                className="transition-colors hover:text-white"
+                className="transition-colors hover:text-indigo-900"
                 data-conversion="cta"
                 data-conversion-type="click"
                 data-conversion-category="category"
@@ -1133,7 +1133,7 @@ export default async function CategoryDetailPage({
               <span className="text-slate-400">·</span>
               <Link
                 href="/faq"
-                className="transition-colors hover:text-white"
+                className="transition-colors hover:text-indigo-900"
                 data-conversion="cta"
                 data-conversion-type="click"
                 data-conversion-category="category"

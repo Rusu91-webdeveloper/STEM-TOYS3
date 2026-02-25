@@ -1,11 +1,11 @@
 export const homeBackgroundClass =
-  "relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100";
+  "relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f8fcff_0%,#eef8ff_48%,#f7fbff_100%)] text-slate-900";
 
 export const homeOverlayTopClass =
-  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.12),_transparent_55%)]";
+  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),_transparent_55%),radial-gradient(circle_at_14%_16%,_rgba(16,185,129,0.06),_transparent_42%)]";
 
 export const homeOverlayBottomClass =
-  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(165,180,252,0.14),_transparent_60%)]";
+  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(165,180,252,0.09),_transparent_60%),radial-gradient(circle_at_78%_88%,_rgba(251,191,36,0.04),_transparent_40%)]";
 
 export const homeContentWrapperClass =
   "relative z-10 flex flex-col gap-4 sm:gap-8 lg:gap-16";

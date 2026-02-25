@@ -66,7 +66,7 @@ export function BlogFilterBar({
       <Button
         key={categoryId}
         variant={isActive ? "default" : "outline"}
-        className={`flex items-center gap-2 rounded-full px-4 py-1 text-sm font-medium transition-all border ${isActive ? "border-indigo-500 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 text-white shadow-lg shadow-indigo-500/30" : "border-white/20 bg-white/5 text-white/80 hover:bg-white/10"}`}
+        className={`flex items-center gap-2 rounded-full px-4 py-1 text-sm font-medium transition-all border ${isActive ? "border-indigo-500 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 text-white shadow-lg shadow-indigo-500/30" : "border-slate-200/80 bg-white/80 text-slate-700 hover:bg-white"}`}
         onClick={() => onCategorySelect(categoryId)}
         aria-pressed={isActive}
       >
@@ -78,13 +78,13 @@ export function BlogFilterBar({
 
   return (
     <>
-      <div className="md:hidden sticky top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur">
+      <div className="md:hidden sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur">
         <Container className="py-3">
           <Dialog>
             <DialogTrigger asChild>
               <Button
                 variant="outline"
-                className={`${blogGlassPanelClass} flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 text-white transition-colors`}
+                className={`${blogGlassPanelClass} flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200/80 bg-white/85 text-slate-900 transition-colors`}
                 aria-label="Open filters"
               >
                 <Icon icon={SlidersHorizontal} size="md" decorative />
@@ -92,7 +92,7 @@ export function BlogFilterBar({
                   {t("Filters") || DEFAULT_CATEGORY.name}
                 </span>
                 {isFiltered && (
-                  <span className="ml-2 flex items-center rounded-full bg-white/15 px-2 py-1 text-xs font-semibold text-white">
+                  <span className="ml-2 flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
                     {categories.find(cat => cat.id === activeCategoryId)?.name ??
                       t("Filtered") ??
                       "Filtered"}
@@ -136,11 +136,11 @@ export function BlogFilterBar({
         </Container>
       </div>
 
-      <nav className="hidden md:block sticky top-0 z-30 border-b border-white/10 bg-slate-950/75 backdrop-blur">
+      <nav className="hidden md:block sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur">
         <Container className="flex items-center gap-3 overflow-x-auto py-4">
           {renderCategoryButton(DEFAULT_CATEGORY.id, t("All") || "All")}
           {categories.length > 0 && (
-            <span className="mx-2 text-sm text-white/30">|</span>
+            <span className="mx-2 text-sm text-slate-300">|</span>
           )}
           {categories.map(category =>
             renderCategoryButton(category.id, category.name)
@@ -148,7 +148,7 @@ export function BlogFilterBar({
           {isFiltered && (
             <Button
               variant="secondary"
-              className="ml-4 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20"
+              className="ml-4 rounded-full border border-slate-200/80 bg-white/85 text-slate-900 hover:bg-white"
               onClick={onResetFilters}
             >
               {t("Reset Filters") || "Reset Filters"}
@@ -159,4 +159,3 @@ export function BlogFilterBar({
     </>
   );
 }
-

@@ -1,0 +1,47 @@
+<svg width="640" height="320" viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Robotics toy category illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#bfdbfe"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="320" fill="url(#bg)"/>
+  <rect y="255" width="640" height="65" fill="#dbeafe"/>
+  <ellipse cx="315" cy="250" rx="215" ry="20" fill="#0f172a" opacity="0.12"/>
+  <g transform="translate(110 145)">
+    <circle cx="40" cy="90" r="30" fill="#0f172a"/>
+    <circle cx="170" cy="90" r="30" fill="#0f172a"/>
+    <circle cx="40" cy="90" r="12" fill="#94a3b8"/>
+    <circle cx="170" cy="90" r="12" fill="#94a3b8"/>
+    <rect x="34" y="40" width="142" height="36" rx="14" fill="#334155"/>
+    <rect x="66" y="22" width="84" height="28" rx="10" fill="#2563eb"/>
+  </g>
+  <g transform="translate(230 52)">
+    <rect x="44" y="14" width="132" height="58" rx="24" fill="#1e293b"/>
+    <rect x="54" y="22" width="112" height="42" rx="20" fill="#334155"/>
+    <circle cx="90" cy="43" r="13" fill="#67e8f9"/>
+    <circle cx="132" cy="43" r="13" fill="#93c5fd"/>
+    <circle cx="90" cy="43" r="5" fill="#ffffff"/>
+    <circle cx="132" cy="43" r="5" fill="#ffffff"/>
+    <rect x="94" y="70" width="30" height="22" rx="8" fill="#64748b"/>
+    <rect x="62" y="90" width="94" height="102" rx="16" fill="url(#metal)" stroke="#94a3b8" stroke-width="4"/>
+    <rect x="78" y="108" width="62" height="34" rx="8" fill="#2563eb"/>
+    <rect x="85" y="150" width="48" height="22" rx="6" fill="#facc15"/>
+    <rect x="38" y="100" width="26" height="70" rx="12" fill="#2563eb"/>
+    <rect x="154" y="100" width="26" height="70" rx="12" fill="#2563eb"/>
+    <circle cx="42" cy="173" r="12" fill="#0f172a"/>
+    <circle cx="176" cy="173" r="12" fill="#0f172a"/>
+    <rect x="92" y="193" width="18" height="44" rx="8" fill="#334155"/>
+    <rect x="118" y="193" width="18" height="44" rx="8" fill="#334155"/>
+    <circle cx="101" cy="242" r="17" fill="#0f172a"/>
+    <circle cx="127" cy="242" r="17" fill="#0f172a"/>
+    <circle cx="101" cy="242" r="6" fill="#94a3b8"/>
+    <circle cx="127" cy="242" r="6" fill="#94a3b8"/>
+    <path d="M22 126 C-2 116, -4 152, 20 156" stroke="#0ea5e9" stroke-width="10" stroke-linecap="round" fill="none"/>
+    <path d="M186 126 C210 116, 212 152, 188 156" stroke="#f97316" stroke-width="10" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

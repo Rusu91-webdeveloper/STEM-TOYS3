@@ -310,21 +310,20 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col h-full bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden",
-        isBundle &&
-          "border-cyan-300/70 ring-2 ring-cyan-200/70 bg-gradient-to-br from-cyan-50 via-white to-indigo-50/70",
+        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_12px_32px_-24px_rgba(15,23,42,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-24px_rgba(15,23,42,0.45)]",
+        isBundle && "border-cyan-200",
         className
       )}
     >
       {/* Image Container */}
-      <div className="relative aspect-square overflow-hidden bg-slate-50">
+      <div className="relative aspect-square overflow-hidden border-b border-slate-100 bg-white">
         <Link href={`/products/${product.slug}`} className="block w-full h-full">
-          <div className="w-full h-full p-6 flex items-center justify-center">
+          <div className="flex h-full w-full items-center justify-center p-4 sm:p-5">
             <OptimizedProductImage
               src={imageUrl}
               alt={product.name}
               fill
-              className="object-contain transition-transform duration-500 group-hover:scale-110"
+              className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               priority={priority}
               quality={90}
@@ -333,31 +332,31 @@ export function ProductCard({
         </Link>
 
         {/* Floating Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20">
+        <div className="absolute left-2.5 top-2.5 z-20 flex flex-col gap-1.5">
           {isBundle && (
-            <Badge className="bg-gradient-to-r from-cyan-600 to-sky-600 text-white border-0 shadow-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
+            <Badge className="border border-cyan-200 bg-cyan-50 text-cyan-800 shadow-none px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
               <Package className="h-3 w-3 mr-1" />
               Bundle
             </Badge>
           )}
           {isOnSale && (
-            <Badge className="bg-rose-500 text-white border-0 shadow-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md bg-opacity-95">
+            <Badge className="border-0 bg-rose-600 text-white shadow-sm px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
               -{discountPercentage}%
             </Badge>
           )}
           {isOutOfStock && (
-            <Badge className="bg-slate-900 text-white border-0 shadow-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
+            <Badge className="border-0 bg-slate-900 text-white shadow-sm px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
               Sold Out
             </Badge>
           )}
           {!isOutOfStock && isLowStock && (
-            <Badge className="bg-amber-500 text-white border-0 shadow-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
+            <Badge className="border-0 bg-amber-500 text-white shadow-sm px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
               Low Stock
             </Badge>
           )}
         </div>
         {isBundle && bundleItemsCount > 0 && (
-          <div className="absolute top-3 right-3 z-20 rounded-md bg-slate-900/85 px-2 py-1 text-[10px] font-semibold text-white shadow-sm">
+          <div className="absolute right-2.5 top-2.5 z-20 rounded-full border border-white/80 bg-white/95 px-2 py-0.5 text-[10px] font-semibold text-slate-700 shadow-sm">
             {bundleItemsCount} items
           </div>
         )}
@@ -369,12 +368,10 @@ export function ProductCard({
             disabled={isAddingToCart || isOutOfStock}
             size="icon"
             className={cn(
-              "h-10 w-10 rounded-full shadow-md transition-all duration-300 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 sm:flex hidden",
+              "hidden h-9 w-9 rounded-full border border-slate-200 bg-white text-slate-900 shadow-sm transition-all duration-300 opacity-0 group-hover:opacity-100 hover:bg-slate-900 hover:text-white sm:flex",
               justAdded
                 ? "bg-emerald-500 hover:bg-emerald-600 text-white"
-                : isBundle
-                  ? "bg-cyan-600 hover:bg-cyan-700 text-white"
-                  : "bg-white hover:bg-slate-50 text-slate-900 hover:text-sky-600"
+                : isBundle && "hover:border-cyan-600 hover:bg-cyan-600"
             )}
             title={isBundle ? "Quick Add Bundle" : "Quick Add"}
           >
@@ -393,8 +390,10 @@ export function ProductCard({
             disabled={isAddingToCart || isOutOfStock}
             size="icon"
             className={cn(
-              "h-9 w-9 rounded-full shadow-sm sm:hidden flex",
-              justAdded ? "bg-emerald-500 text-white" : "bg-white/90 backdrop-blur-sm text-slate-900 border border-slate-100"
+              "flex h-9 w-9 rounded-full border border-slate-200 bg-white text-slate-900 shadow-sm sm:hidden",
+              justAdded
+                ? "border-emerald-500 bg-emerald-500 text-white"
+                : isBundle && "border-cyan-200 text-cyan-700"
             )}
           >
             {isAddingToCart ? (
@@ -407,42 +406,45 @@ export function ProductCard({
       </div>
 
       {/* Content */}
-      <div className="flex flex-col flex-1 p-4 pt-5 gap-3">
-        <div className="space-y-1.5">
+      <div className="flex flex-1 flex-col gap-3 p-3.5 sm:p-4">
+        <div className="space-y-1">
           <div className="flex items-center justify-between gap-2">
             {categoryName && (
-              <span className="text-[10px] font-bold tracking-wider text-sky-600 uppercase truncate">
+              <span className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                 {categoryName}
               </span>
             )}
             {renderRating()}
           </div>
 
-          <Link href={`/products/${product.slug}`} className="block group-hover:text-sky-600 transition-colors">
-            <h3 className="font-bold text-base text-slate-900 leading-snug line-clamp-2 h-10">
+          <Link
+            href={`/products/${product.slug}`}
+            className="block transition-colors group-hover:text-slate-700"
+          >
+            <h3 className="line-clamp-2 min-h-[2.5rem] text-sm sm:text-base font-semibold leading-snug text-slate-900">
               {product.name}
             </h3>
           </Link>
           {isBundle && bundleDiscount > 0 && (
-            <p className="text-[11px] font-semibold text-cyan-800">
+            <p className="text-[11px] font-medium text-cyan-700">
               Curated bundle · -{bundleDiscount}% discount
             </p>
           )}
           {isBundle && bundleItemsCount > 0 && (
-            <p className="text-[11px] font-medium text-cyan-700">
+            <p className="text-[11px] text-slate-500">
               {bundleItemsCount} items included
             </p>
           )}
         </div>
 
-        <div className="mt-auto flex items-center justify-between pt-2">
+        <div className="mt-auto flex items-end justify-between gap-2 border-t border-slate-100 pt-2.5">
           <div className="flex flex-col">
             <div className="flex items-baseline gap-2">
-              <span className="text-lg font-bold text-slate-900">
+              <span className="text-base sm:text-lg font-semibold text-slate-900">
                 {formatPrice(product.price)}
               </span>
               {isOnSale && (
-                <span className="text-xs text-slate-400 line-through font-medium">
+                <span className="text-[11px] font-medium text-slate-400 line-through">
                   {formatPrice(product.compareAtPrice!)}
                 </span>
               )}
@@ -454,18 +456,12 @@ export function ProductCard({
             )}
           </div>
 
-          {/* Add to Cart Text Button (Visible on hover desktop, always elsewhere if desired, but we have the icon) 
-              Let's make this a subtle "View Details" or just keep it clean? 
-              Actually, let's add a nice "Add" button that expands on hover or just a clean text button.
-          */}
-          {/* <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 px-2 text-xs font-medium text-slate-500 hover:text-sky-600 hover:bg-sky-50 -mr-2"
-            onClick={handleAddToCart}
+          <Link
+            href={`/products/${product.slug}`}
+            className="inline-flex items-center rounded-lg px-2 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
           >
-            Add to Bag
-          </Button> */}
+            Details
+          </Link>
         </div>
       </div>
     </div>

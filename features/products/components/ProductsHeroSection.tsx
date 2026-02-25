@@ -4,7 +4,7 @@ import { LucideIcon } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useConversionTracking } from "@/lib/conversion-tracking";
 
 interface CategoryIconInfo {
@@ -38,6 +38,8 @@ export function ProductsHeroSection({
 }: ProductsHeroSectionProps) {
   const IconComponent = activeCategoryInfo.icon;
   const { getVariant, trackConversion } = useConversionTracking();
+  const [resolvedCategoryImagePath, setResolvedCategoryImagePath] =
+    useState(categoryImagePath);
   const variant = getVariant("products_hero_headline");
   const variantName = variant?.id || "control";
   const isControl = variant?.isControl ?? true;
@@ -73,6 +75,10 @@ export function ProductsHeroSection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    setResolvedCategoryImagePath(categoryImagePath);
+  }, [categoryImagePath]);
+
   const mobileStats = [
     { label: t("heroStatProducts", "Produse STEM"), value: "120+" },
     { label: t("heroStatFamilies", "Familii fericite"), value: "2.5k+" },
@@ -81,118 +87,119 @@ export function ProductsHeroSection({
 
   return (
     <section className="relative">
-      {/* Premium Hero Image with enhanced mobile visuals */}
-      <div className="relative w-full overflow-hidden rounded-[1.75rem] sm:rounded-[2.5rem]">
-        <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-b from-slate-900/70 via-slate-900/30 to-slate-900/85" />
-        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-sky-500/25 via-transparent to-emerald-500/25 mix-blend-multiply" />
-        <div className="relative h-auto min-h-[260px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[420px]">
-        {/* Decorative pattern overlay - non-interactive */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[length:20px_20px] z-10 mix-blend-soft-light"></div>
+      <div className="relative overflow-hidden rounded-[1.5rem] border border-[#e5dcc9] bg-[#f7f1e5] shadow-[0_28px_55px_-45px_rgba(30,41,59,0.55)] sm:rounded-[2rem]">
+        <div className="pointer-events-none absolute inset-0 opacity-40 bg-[radial-gradient(circle,_rgba(15,23,42,0.10)_1px,_transparent_1px)] bg-[length:16px_16px]" />
 
-        {/* Soft gradient mesh - non-interactive */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-500/10 via-emerald-500/10 to-amber-500/10 motion-safe:animate-pulse z-0"></div>
+        <div className="grid min-h-[320px] grid-cols-1 md:min-h-[380px] md:grid-cols-[1.05fr_0.95fr]">
+          <div className="relative order-2 min-h-[180px] md:order-1 md:min-h-full">
+            <Image
+              src={resolvedCategoryImagePath}
+              alt={
+                activeCategory ? `${activeCategory.label} category` : "STEM Toys"
+              }
+              fill
+              sizes="(max-width: 768px) 100vw, 45vw"
+              priority
+              className="object-cover object-center"
+              onError={() => {
+                if (resolvedCategoryImagePath !== "/HeroImageTechTechtots.png") {
+                  setResolvedCategoryImagePath("/HeroImageTechTechtots.png");
+                }
+              }}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/55 via-slate-900/15 to-transparent md:bg-gradient-to-r md:from-slate-900/35 md:via-transparent md:to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#f7f1e5] to-transparent md:hidden" />
+          </div>
 
-        <Image
-          src={categoryImagePath}
-          alt={
-            activeCategory ? `${activeCategory.label} category` : "STEM Toys"
-          }
-          fill
-          sizes="100vw"
-          style={{ objectFit: "cover" }}
-          priority
-          className="brightness-90 object-cover"
-        />
-
-        {/* Content overlay should capture clicks */}
-        <div className="absolute inset-0 z-30 flex items-end sm:items-center">
-          <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-0 text-white">
-            <div className="max-w-3xl xl:max-w-4xl animate-fadeIn">
-              {/* Premium category badge */}
-              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                <div
-                  className={`${activeCategoryInfo.bgColor} p-2 sm:p-3 rounded-2xl shadow-2xl backdrop-blur-sm border border-white/20`}
-                >
-                  <IconComponent className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+          <div className="order-1 p-3 sm:p-4 md:order-2 md:p-6 lg:p-8">
+            <div className="relative h-full rounded-2xl border border-white/80 bg-white/80 p-4 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.35)] backdrop-blur-sm sm:p-5 md:flex md:flex-col md:justify-between">
+              <div>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    {t("curatedStemStore", "Curated STEM Store")}
+                  </div>
+                  <div
+                    className={`${activeCategoryInfo.bgColor} flex h-9 w-9 items-center justify-center rounded-xl border border-white/60 shadow-sm`}
+                  >
+                    <IconComponent className="h-4 w-4 text-white" />
+                  </div>
                 </div>
-                <span className="text-sm sm:text-base md:text-lg font-black bg-gradient-to-r from-white to-white/90 text-transparent bg-clip-text px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl backdrop-blur-md bg-white/10 border border-white/20 shadow-xl">
+
+                <div className="mb-3 inline-flex items-center rounded-full border border-[#eadfca] bg-[#fbf7ef] px-3 py-1 text-xs font-medium text-slate-700">
                   {activeCategory ? activeCategory.label : t("allCategories")}
-                </span>
-              </div>
+                </div>
 
-              {/* Premium headline with better mobile typography */}
-              <h1 className="text-2xl sm:text-3xl md:text-[2.5rem] lg:text-[2.75rem] xl:text-[3rem] font-black mb-3 sm:mb-4 drop-shadow-2xl tracking-tight leading-tight">
-                <span className="bg-gradient-to-r from-white via-sky-100 to-emerald-100 text-transparent bg-clip-text">
+                <h1 className="font-serif text-[1.7rem] leading-tight text-slate-900 sm:text-[2rem] md:text-[2.15rem] lg:text-[2.35rem]">
                   {headline}
-                </span>
-              </h1>
+                </h1>
 
-              {/* Premium subheadline */}
-              <p className="text-sm sm:text-base md:text-lg max-w-xl xl:max-w-2xl text-white/95 drop-shadow-lg backdrop-blur-md bg-black/20 px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl shadow-xl border border-white/10 leading-relaxed">
-                {subheadline}
-              </p>
-
-              {/* CTAs */}
-              <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <Link
-                  href="/blog"
-                  onClick={() =>
-                    trackEvent("cta_click", "products", {
-                      label: "see_success_stories",
-                      element: "products-hero-secondary",
-                      variant: variantName,
-                    })
-                  }
-                  className="relative z-30 group inline-flex items-center justify-center rounded-2xl bg-white/15 backdrop-blur-xl px-5 py-2.5 sm:px-6 sm:py-3.5 text-sm sm:text-base font-black text-white border border-white/30 shadow-xl hover:bg-white/25 hover:shadow-2xl transition-all duration-500 hover:scale-[1.03] overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
-                >
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                  <span className="relative z-10">
-                    {t("seeSuccessStories")}
-                  </span>
-                </Link>
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base">
+                  {subheadline}
+                </p>
               </div>
 
-              {/* Premium social proof */}
-              <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-white/90 backdrop-blur-md bg-gradient-to-r from-black/20 to-black/10 inline-flex items-center gap-2 px-4 py-2 rounded-2xl border border-white/10 shadow-lg">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
-                <span className="font-black">{t("socialProofNumber")}</span>
-                <span>{t("socialProofText")}</span>
+              <div className="mt-4 space-y-3 sm:mt-5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <Link
+                    href="/blog"
+                    onClick={() =>
+                      trackEvent("cta_click", "products", {
+                        label: "see_success_stories",
+                        element: "products-hero-secondary",
+                        variant: variantName,
+                      })
+                    }
+                    className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+                  >
+                    {t("seeSuccessStories")}
+                  </Link>
+
+                  <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-600">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="font-semibold text-slate-900">
+                      {t("socialProofNumber")}
+                    </span>
+                    <span>{t("socialProofText")}</span>
+                  </div>
+                </div>
+
+                <div className="hidden sm:grid grid-cols-3 gap-2.5">
+                  {mobileStats.map(stat => (
+                    <div
+                      key={stat.label}
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2.5"
+                    >
+                      <div className="text-lg font-semibold text-slate-900">
+                        {stat.value}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">
+                        {stat.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
-        </div>
       </div>
 
-      {/* Mobile quick stats */}
-      <div className="grid grid-cols-2 gap-2 mt-3 px-4 sm:hidden">
+      <div className="mt-3 grid grid-cols-2 gap-2 px-1 sm:hidden">
         {mobileStats.map(stat => (
           <div
             key={stat.label}
-            className="rounded-2xl bg-white text-slate-900 px-4 py-3 shadow-lg shadow-slate-900/5 border border-slate-100/60"
+            className="rounded-xl border border-slate-200 bg-white/95 px-3 py-2.5 shadow-sm"
           >
-            <div className="text-xl font-black">{stat.value}</div>
-            <div className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+            <div className="text-lg font-semibold text-slate-900">
+              {stat.value}
+            </div>
+            <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">
               {stat.label}
             </div>
           </div>
         ))}
       </div>
-
-      {/* Decorative bubbles - non-interactive (hidden on small screens) */}
-      <div className="hidden sm:block pointer-events-none absolute -bottom-4 left-0 w-20 h-20 rounded-full bg-sky-500/20 blur-2xl motion-safe:animate-pulse"></div>
-      <div
-        className="hidden sm:block pointer-events-none absolute -bottom-6 left-1/4 w-24 h-24 rounded-full bg-emerald-500/20 blur-2xl motion-safe:animate-pulse"
-        style={{ animationDelay: "0.5s" }}
-      ></div>
-      <div
-        className="hidden sm:block pointer-events-none absolute -bottom-8 right-1/3 w-32 h-32 rounded-full bg-yellow-500/20 blur-2xl motion-safe:animate-pulse"
-        style={{ animationDelay: "1s" }}
-      ></div>
-      <div
-        className="hidden sm:block pointer-events-none absolute -bottom-5 right-0 w-20 h-20 rounded-full bg-teal-500/20 blur-2xl motion-safe:animate-pulse"
-        style={{ animationDelay: "1.5s" }}
-      ></div>
     </section>
   );
 }

@@ -27,7 +27,7 @@ const getProcessSteps = (ordersHref: string) => [
   {
     icon: "🛒",
     title: "1. Mergi la Comenzile Mele",
-    description: `Accesează <a href="${ordersHref}" class="text-sky-200 underline underline-offset-4 hover:text-sky-100">Comenzile Mele</a> din contul tău`,
+    description: `Accesează <a href="${ordersHref}" class="text-sky-700 underline underline-offset-4 hover:text-sky-600">Comenzile Mele</a> din contul tău`,
   },
   {
     icon: "🔄",
@@ -134,9 +134,9 @@ export default async function ReturnsPage() {
   const quickSummaryLeft = getQuickSummaryLeft(formattedThreshold);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.16),_transparent_55%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(165,180,252,0.12),_transparent_60%)]" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/70 text-slate-900">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(99,102,241,0.08),_transparent_60%)]" />
 
       <div className="relative z-10">
         <section className="container mx-auto px-3 py-8 sm:px-6 sm:py-10 lg:py-16">
@@ -146,14 +146,14 @@ export default async function ReturnsPage() {
               <span className="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-sky-200">
                 TechTots Returns
               </span>
-              <h1 className="mt-4 text-2xl font-bold leading-tight sm:text-3xl lg:text-4xl">
+              <h1 className="mt-4 text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-4xl">
                 Politica de Returnare
               </h1>
               <p className="mt-4 text-sm text-slate-200 sm:text-lg">
                 Returnări simple și sigure pentru produsele tale educaționale STEM, cu transparență
                 totală și garanție de confort.
               </p>
-              <div className="mx-auto mt-6 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-slate-200 backdrop-blur">
+              <div className="mx-auto mt-6 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-3 text-xs text-slate-200 backdrop-blur">
                 <span>📅 Ultimă actualizare: {lastUpdated}</span>
                 <span className="h-1 w-1 rounded-full bg-white/30" />
                 <span>Conformă cu legislația UE 2025</span>
@@ -164,19 +164,19 @@ export default async function ReturnsPage() {
 
         <div className="container mx-auto px-3 pb-10 sm:px-6 lg:pb-16">
           <div className="mx-auto max-w-5xl space-y-8 sm:space-y-10">
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-black/30 backdrop-blur sm:p-6 lg:p-8">
+            <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-4 shadow-lg shadow-slate-900/10 backdrop-blur sm:p-6 lg:p-8">
               <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                  <h2 className="text-base font-semibold text-white sm:text-lg md:text-xl">
+                  <h2 className="text-base font-semibold text-slate-900 sm:text-lg md:text-xl">
                     🚀 Returnare Rapidă Online
                   </h2>
-                  <p className="mt-1 text-xs text-slate-300 sm:text-sm md:text-base">
+                  <p className="mt-1 text-xs text-slate-600 sm:text-sm md:text-base">
                     Cea mai simplă modalitate de a returna un produs este prin contul tău online.
                   </p>
                 </div>
                 <Link
                   href={ordersLinkHref}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-sky-500/40 bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-100 shadow-sky-500/20 transition hover:border-sky-400/60 hover:bg-sky-500/30 sm:w-auto sm:px-5 sm:py-2.5 md:px-6 md:py-3 md:text-base"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-700 shadow-sky-500/10 transition hover:border-sky-300 hover:bg-sky-100 sm:w-auto sm:px-5 sm:py-2.5 md:px-6 md:py-3 md:text-base"
                 >
                   <span>🛒</span>
                   {ordersLinkCtaLabel}
@@ -184,22 +184,22 @@ export default async function ReturnsPage() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-7 md:p-8">
-              <h2 className="text-center text-base font-semibold text-white sm:text-lg md:text-xl">
+            <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-5 shadow-lg shadow-slate-900/10 backdrop-blur sm:p-7 md:p-8">
+              <h2 className="text-center text-base font-semibold text-slate-900 sm:text-lg md:text-xl">
                 📋 Rezumat Rapid - Drepturile Tale
               </h2>
-              <div className="mt-5 grid gap-4 text-xs text-slate-200 sm:grid-cols-2 sm:text-sm md:gap-6">
+              <div className="mt-5 grid gap-4 text-xs text-slate-700 sm:grid-cols-2 sm:text-sm md:gap-6">
                 {[quickSummaryLeft, quickSummaryRight].map((column, columnIndex) => (
                   <div key={columnIndex} className="space-y-2 sm:space-y-3">
                     {column.map(item => (
                       <div
                         key={item}
-                        className="flex items-start gap-3 rounded-2xl border border-white/10 bg-slate-900/60 p-3"
+                        className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50 p-3 shadow-inner shadow-slate-900/5"
                       >
-                        <span className="mt-0.5 flex-shrink-0 text-lg text-emerald-300 sm:text-xl md:text-2xl">
+                        <span className="mt-0.5 flex-shrink-0 text-lg text-emerald-500 sm:text-xl md:text-2xl">
                           ✅
                         </span>
-                        <div className="leading-relaxed text-slate-200">{item}</div>
+                        <div className="leading-relaxed text-slate-700">{item}</div>
                       </div>
                     ))}
                   </div>
@@ -207,14 +207,14 @@ export default async function ReturnsPage() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-7 md:p-9">
-              <h2 className="mb-5 flex items-center text-base font-semibold text-white sm:text-lg md:mb-7 md:text-2xl">
-                <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-sky-500/20 text-xs font-bold text-sky-300 sm:h-9 sm:w-9 sm:text-sm md:h-10 md:w-10">
+            <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-5 shadow-lg shadow-slate-900/10 backdrop-blur sm:p-7 md:p-9">
+              <h2 className="mb-5 flex items-center text-base font-semibold text-slate-900 sm:text-lg md:mb-7 md:text-2xl">
+                <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-xs font-bold text-sky-700 sm:h-9 sm:w-9 sm:text-sm md:h-10 md:w-10">
                   1
                 </span>
                 Dreptul de Retragere (14 Zile)
               </h2>
-              <div className="prose prose-sm sm:prose-base max-w-none text-slate-200">
+              <div className="prose prose-sm sm:prose-base max-w-none text-slate-700">
                 <p className="leading-relaxed">
                   În conformitate cu <strong>Directiva UE privind Drepturile Consumatorilor</strong>, ai dreptul să returnezi
                   orice produs comandat online în termen de <strong>14 zile calendaristice</strong> de la primirea produsului,
@@ -222,27 +222,27 @@ export default async function ReturnsPage() {
                 </p>
               </div>
               <div className="my-5 rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4 shadow-inner shadow-sky-500/30 sm:my-6">
-                <h3 className="text-sm font-semibold text-sky-100 sm:text-base md:text-lg">📅 Perioada de Răgândire</h3>
-                <p className="mt-2 text-xs text-slate-100 sm:text-sm">
+                <h3 className="text-sm font-semibold text-sky-800 sm:text-base md:text-lg">📅 Perioada de Răgândire</h3>
+                <p className="mt-2 text-xs text-slate-700 sm:text-sm">
                   Perioada de 14 zile începe din ziua în care <strong>tu sau o persoană desemnată de tine</strong> (alta decât
                   transportatorul) iei în posesie produsul. Dacă comanda conține mai multe produse livrate separat, termenul
                   începe din ziua primirii ultimului produs.
                 </p>
               </div>
-              <div className="my-5 rounded-2xl border border-white/10 bg-slate-900/60 p-4 sm:my-6 sm:p-5 md:my-7 md:p-6">
-                <h3 className="mb-3 text-sm font-semibold text-white sm:text-base md:text-lg">
+              <div className="my-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-inner shadow-slate-900/5 sm:my-6 sm:p-5 md:my-7 md:p-6">
+                <h3 className="mb-3 text-sm font-semibold text-slate-900 sm:text-base md:text-lg">
                   🔄 Procesul Simplificat de Returnare
                 </h3>
                 <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-4">
-                  <p className="mb-2 text-xs font-medium text-sky-100 sm:text-sm">
+                  <p className="mb-2 text-xs font-medium text-sky-800 sm:text-sm">
                     Pentru clienții înregistrați - Metoda Recomandată:
                   </p>
-                  <ol className="ml-3 list-decimal space-y-1.5 text-xs text-slate-100 sm:ml-5 sm:space-y-2 sm:text-sm">
+                  <ol className="ml-3 list-decimal space-y-1.5 text-xs text-slate-700 sm:ml-5 sm:space-y-2 sm:text-sm">
                     <li>
                       Accesează contul tău și mergi la{" "}
                       <Link
                         href={ordersLinkHref}
-                        className="font-semibold text-sky-200 underline underline-offset-4 hover:text-sky-100"
+                        className="font-semibold text-sky-700 underline underline-offset-4 hover:text-sky-600"
                       >
                         {ordersLinkInlineLabel}
                       </Link>
@@ -267,11 +267,11 @@ export default async function ReturnsPage() {
                 </div>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white sm:text-base md:text-lg">Alternativ - Contact Direct:</h3>
-                <ol className="ml-3 mt-2 list-decimal space-y-1.5 text-xs text-slate-200 sm:ml-5 sm:space-y-2 sm:text-sm">
+                <h3 className="text-sm font-semibold text-slate-900 sm:text-base md:text-lg">Alternativ - Contact Direct:</h3>
+                <ol className="ml-3 mt-2 list-decimal space-y-1.5 text-xs text-slate-700 sm:ml-5 sm:space-y-2 sm:text-sm">
                   <li>
                     Contactează-ne prin email la{" "}
-                    <a href={`mailto:${contactEmail}`} className="text-sky-200 underline underline-offset-4 hover:text-sky-100">
+                    <a href={`mailto:${contactEmail}`} className="text-sky-700 underline underline-offset-4 hover:text-sky-600">
                       {contactEmail}
                     </a>{" "}
                     sau telefon la 0771 248 029
@@ -284,9 +284,9 @@ export default async function ReturnsPage() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-7 md:p-9">
-              <h2 className="mb-5 flex items-center text-base font-semibold text-white sm:text-lg md:mb-7 md:text-2xl">
-                <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-purple-500/20 text-xs font-bold text-purple-200 sm:h-9 sm:w-9 sm:text-sm md:h-10 md:w-10">
+            <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-5 shadow-lg shadow-slate-900/10 backdrop-blur sm:p-7 md:p-9">
+              <h2 className="mb-5 flex items-center text-base font-semibold text-slate-900 sm:text-lg md:mb-7 md:text-2xl">
+                <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 text-xs font-bold text-purple-700 sm:h-9 sm:w-9 sm:text-sm md:h-10 md:w-10">
                   2
                 </span>
                 Procesul de Returnare
@@ -294,20 +294,20 @@ export default async function ReturnsPage() {
               <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
                 {processSteps.map(step => (
                   <div key={step.title} className="text-center">
-                    <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-white/25 bg-white/10 text-2xl shadow-inner sm:h-16 sm:w-16">
+                    <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-2xl shadow-inner shadow-slate-900/5 sm:h-16 sm:w-16">
                       {step.icon}
                     </div>
-                    <h3 className="text-xs font-semibold text-white sm:text-sm md:text-base">{step.title}</h3>
+                    <h3 className="text-xs font-semibold text-slate-900 sm:text-sm md:text-base">{step.title}</h3>
                     <p
-                      className="mt-1 text-[10px] text-slate-300 sm:text-xs md:text-sm"
+                      className="mt-1 text-[10px] text-slate-600 sm:text-xs md:text-sm"
                       dangerouslySetInnerHTML={{ __html: step.description }}
                     />
                   </div>
                 ))}
               </div>
-              <div className="mt-6 rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 text-xs text-amber-100 shadow-inner shadow-amber-500/20 sm:mt-7 sm:p-5 sm:text-sm">
-                <h3 className="text-sm font-semibold text-amber-100 sm:text-base md:text-lg">⚠️ Important - Costurile de Returnare</h3>
-                <ul className="mt-3 space-y-2 text-amber-100/90">
+              <div className="mt-6 rounded-2xl border border-amber-300/40 bg-amber-500/10 p-4 text-xs text-slate-900 shadow-inner shadow-amber-500/20 sm:mt-7 sm:p-5 sm:text-sm">
+                <h3 className="text-sm font-semibold text-amber-900 sm:text-base md:text-lg">⚠️ Important - Costurile de Returnare</h3>
+                <ul className="mt-3 space-y-2 text-amber-900/90">
                   <li>
                     • <strong>Returnări în perioada de răgândire (14 zile):</strong> Returnare gratuită pentru comenzi ≥{" "}
                     <strong>{formattedThreshold} lei</strong>, altfel costurile sunt suportate de client
@@ -325,41 +325,41 @@ export default async function ReturnsPage() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-7 md:p-9">
-              <h2 className="mb-5 flex items-center text-base font-semibold text-white sm:text-lg md:mb-7 md:text-2xl">
-                <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/20 text-xs font-bold text-rose-200 sm:h-9 sm:w-9 sm:text-sm md:h-10 md:w-10">
+            <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-5 shadow-lg shadow-slate-900/10 backdrop-blur sm:p-7 md:p-9">
+              <h2 className="mb-5 flex items-center text-base font-semibold text-slate-900 sm:text-lg md:mb-7 md:text-2xl">
+                <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-rose-100 text-xs font-bold text-rose-700 sm:h-9 sm:w-9 sm:text-sm md:h-10 md:w-10">
                   3
                 </span>
                 Excepții de la Dreptul de Returnare
               </h2>
-              <p className="mb-4 text-xs text-slate-200 sm:mb-5 sm:text-sm md:text-base">
+              <p className="mb-4 text-xs text-slate-700 sm:mb-5 sm:text-sm md:text-base">
                 Conform legislației UE, următoarele produse nu pot fi returnate în perioada de răgândire:
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 {exceptionsList.map(item => (
-                  <div key={item.title} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-slate-900/60 p-3">
-                    <span className="mt-1 text-sm text-rose-300 sm:text-base">❌</span>
+                  <div key={item.title} className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-inner shadow-slate-900/5">
+                    <span className="mt-1 text-sm text-rose-500 sm:text-base">❌</span>
                     <div>
-                      <p className="text-xs font-medium text-white sm:text-sm md:text-base">{item.title}</p>
-                      <p className="text-[10px] text-slate-300 sm:text-xs md:text-sm">{item.description}</p>
+                      <p className="text-xs font-medium text-slate-900 sm:text-sm md:text-base">{item.title}</p>
+                      <p className="text-[10px] text-slate-600 sm:text-xs md:text-sm">{item.description}</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-5 rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4 text-xs text-sky-100 shadow-inner shadow-sky-500/20 sm:mt-6 sm:text-sm">
+              <div className="mt-5 rounded-2xl border border-sky-300/40 bg-sky-500/10 p-4 text-xs text-slate-900 shadow-inner shadow-sky-500/20 sm:mt-6 sm:text-sm">
                 <strong>Notă:</strong> Aceste excepții se aplică doar dreptului de retragere (14 zile). Garanția legală de 2 ani pentru produse defecte rămâne
                 valabilă pentru toate produsele.
               </div>
             </section>
 
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-7 md:p-9">
-              <h2 className="mb-5 flex items-center text-base font-semibold text-white sm:text-lg md:mb-7 md:text-2xl">
-                <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-200 sm:h-9 sm:w-9 sm:text-sm md:h-10 md:w-10">
+            <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-5 shadow-lg shadow-slate-900/10 backdrop-blur sm:p-7 md:p-9">
+              <h2 className="mb-5 flex items-center text-base font-semibold text-slate-900 sm:text-lg md:mb-7 md:text-2xl">
+                <span className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700 sm:h-9 sm:w-9 sm:text-sm md:h-10 md:w-10">
                   🌱
                 </span>
                 Returnări Sustenabile și Responsabile
               </h2>
-              <p className="mb-4 text-xs leading-relaxed text-slate-200 sm:mb-5 sm:text-sm md:mb-6 md:text-base">
+              <p className="mb-4 text-xs leading-relaxed text-slate-700 sm:mb-5 sm:text-sm md:mb-6 md:text-base">
                 În spiritul <strong>Planului de Acțiune pentru Economia Circulară al UE</strong>, ne angajăm să gestionăm returnările într-un mod sustenabil și
                 responsabil pentru mediu.
               </p>
@@ -367,18 +367,18 @@ export default async function ReturnsPage() {
                 {sustainabilityCards.map(card => (
                   <div
                     key={card.title}
-                    className="rounded-2xl border border-white/15 bg-white/5 p-4 shadow-inner shadow-black/20 backdrop-blur"
+                    className="rounded-2xl border border-slate-200 bg-white p-4 shadow-inner shadow-slate-900/5 backdrop-blur"
                   >
-                    <h3 className="flex items-center text-xs font-semibold text-white sm:text-sm md:text-base">
+                    <h3 className="flex items-center text-xs font-semibold text-slate-900 sm:text-sm md:text-base">
                       <span className="mr-2">{card.icon}</span>
                       {card.title}
                     </h3>
-                    <p className="mt-2 text-[10px] text-slate-200 sm:text-xs md:text-sm">{card.description}</p>
+                    <p className="mt-2 text-[10px] text-slate-600 sm:text-xs md:text-sm">{card.description}</p>
                   </div>
                 ))}
               </div>
-              <div className="mt-5 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-xs text-emerald-50 shadow-inner shadow-emerald-500/20 sm:mt-6 sm:text-sm md:text-base">
-                <h3 className="text-sm font-semibold text-emerald-100 sm:text-base md:text-lg">🌍 Programul Nostru "Jucării pentru Viitor"</h3>
+              <div className="mt-5 rounded-2xl border border-emerald-300/40 bg-emerald-500/10 p-4 text-xs text-emerald-900 shadow-inner shadow-emerald-500/20 sm:mt-6 sm:text-sm md:text-base">
+                <h3 className="text-sm font-semibold text-emerald-900 sm:text-base md:text-lg">🌍 Programul Nostru "Jucării pentru Viitor"</h3>
                 <p className="mt-2">
                   Pentru produse în stare foarte bună care nu pot fi revândute, oferim opțiunea de donare către școli și organizații educaționale din România.
                   Contactează-ne dacă dorești să participi la acest program.
@@ -430,16 +430,16 @@ export default async function ReturnsPage() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/30 backdrop-blur sm:p-7 md:p-9">
-              <h2 className="text-base font-semibold text-white sm:text-lg md:text-xl">📋 Legislație și Conformitate</h2>
-              <div className="mt-4 space-y-2 text-xs text-slate-200 sm:text-sm">
+            <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-5 shadow-lg shadow-slate-900/10 backdrop-blur sm:p-7 md:p-9">
+              <h2 className="text-base font-semibold text-slate-900 sm:text-lg md:text-xl">📋 Legislație și Conformitate</h2>
+              <div className="mt-4 space-y-2 text-xs text-slate-700 sm:text-sm">
                 <p>Această politică de returnare este în conformitate cu:</p>
-                <ul className="ml-3 list-disc space-y-1 text-slate-200 sm:ml-4">
+                <ul className="ml-3 list-disc space-y-1 text-slate-700 sm:ml-4">
                   {legalItems.map(item => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
-                <p className="mt-4 text-slate-300">
+                <p className="mt-4 text-slate-500">
                   <strong>Ultimă actualizare:</strong> {lastUpdated} | Versiunea 2.1 - Adaptată pentru 2025
                 </p>
               </div>

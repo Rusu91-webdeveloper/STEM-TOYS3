@@ -166,13 +166,13 @@ export function SupplierLanding() {
 
       <section className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16">
         <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-          <Card className="rounded-3xl border border-white/10 bg-white/5 shadow-lg shadow-black/20">
+          <Card className="rounded-3xl border border-slate-200/80 bg-white/90 shadow-lg shadow-slate-900/10 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-base text-white sm:text-lg lg:text-xl">
-                <Shield className="h-5 w-5 text-sky-300" />
+              <CardTitle className="flex items-center gap-3 text-base text-slate-900 sm:text-lg lg:text-xl">
+                <Shield className="h-5 w-5 text-sky-500" />
                 Why suppliers choose TechTots
               </CardTitle>
-              <CardDescription className="text-sm text-slate-300">
+              <CardDescription className="text-sm text-slate-600">
                 Partnerships rooted in pedagogy, compliance, and long-term value creation.
               </CardDescription>
             </CardHeader>
@@ -180,11 +180,11 @@ export function SupplierLanding() {
               {benefits.map(benefit => (
                 <div
                   key={benefit.title}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-emerald-400/40 hover:bg-white/10"
+                  className="rounded-2xl border border-slate-200/80 bg-white p-5 transition hover:-translate-y-0.5 hover:border-emerald-300/60 hover:shadow-md"
                 >
-                  <benefit.icon className="mb-3 h-6 w-6 text-emerald-300" />
-                  <h3 className="text-base font-semibold text-white">{benefit.title}</h3>
-                  <p className="mt-2 text-sm text-slate-300">{benefit.description}</p>
+                  <benefit.icon className="mb-3 h-6 w-6 text-emerald-500" />
+                  <h3 className="text-base font-semibold text-slate-900">{benefit.title}</h3>
+                  <p className="mt-2 text-sm text-slate-600">{benefit.description}</p>
                 </div>
               ))}
             </CardContent>
@@ -212,16 +212,16 @@ export function SupplierLanding() {
       </section>
 
       <section className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16">
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20 sm:p-8">
+        <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-900/10 backdrop-blur-sm sm:p-8">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
-              <Badge className="mb-3 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">
+              <Badge className="mb-3 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-700">
                 Supplier Journey
               </Badge>
-              <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+              <h2 className="text-2xl font-semibold text-slate-900 sm:text-3xl">
                 From application to launch in under four weeks
               </h2>
-              <p className="mt-3 text-sm text-slate-200 sm:text-base">
+              <p className="mt-3 text-sm text-slate-600 sm:text-base">
                 A streamlined path that keeps momentum high while ensuring every product meets TechTots quality and educational standards.
               </p>
             </div>
@@ -240,13 +240,13 @@ export function SupplierLanding() {
             {steps.map(step => (
               <div
                 key={step.title}
-                className="rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-sky-400/40 hover:bg-white/10"
+                className="rounded-2xl border border-slate-200/80 bg-white p-5 transition hover:-translate-y-0.5 hover:border-sky-300/60 hover:shadow-md"
               >
-                <Badge className="mb-3 rounded-full border border-white/20 bg-white/10 text-xs font-semibold uppercase tracking-[0.3em] text-sky-200">
+                <Badge className="mb-3 rounded-full border border-sky-200 bg-sky-50 text-xs font-semibold uppercase tracking-[0.3em] text-sky-700">
                   {step.badge}
                 </Badge>
-                <h3 className="text-lg font-semibold text-white">{step.title}</h3>
-                <p className="mt-2 text-sm text-slate-200">{step.description}</p>
+                <h3 className="text-lg font-semibold text-slate-900">{step.title}</h3>
+                <p className="mt-2 text-sm text-slate-600">{step.description}</p>
               </div>
             ))}
           </div>

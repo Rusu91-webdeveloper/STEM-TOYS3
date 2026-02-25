@@ -71,8 +71,11 @@ export default function MobileAgeBar({
   };
 
   return (
-    <div className="md:hidden bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 border-b border-slate-200/70">
-      <div className="px-3 py-1.5">
+    <div className="md:hidden border-b border-slate-200/80 bg-[#fbf8f1]/95 backdrop-blur supports-[backdrop-filter]:bg-[#fbf8f1]/90">
+      <div className="px-3 py-2">
+        <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+          {t("shopByAge", "Shop by age")}
+        </div>
         <div
           className="flex gap-1.5 overflow-x-auto pb-1"
           style={scrollbarHideStyle}
@@ -83,21 +86,25 @@ export default function MobileAgeBar({
               <button
                 key={opt.id}
                 onClick={() => onSelectAgeGroup(opt.id)}
-                className={`flex-shrink-0 flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                className={`flex-shrink-0 flex items-center gap-2 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all border ${
                   isActive
-                    ? "bg-sky-600 text-white border-sky-600 shadow-sm"
+                    ? "bg-slate-900 text-white border-slate-900 shadow-sm"
                     : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
                 }`}
               >
                 <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full ${opt.accent}`}
+                  className={`flex h-6 w-6 items-center justify-center rounded-full border border-white/70 ${opt.accent}`}
                   aria-hidden
                 >
                   <span className="text-xs">{opt.icon}</span>
                 </span>
-                <span>
+                <span className="whitespace-nowrap">
                   <span className="font-semibold">{t(opt.labelKey)}</span>
-                  <span className="ml-1 text-[10px] text-slate-500">
+                  <span
+                    className={`ml-1 text-[10px] ${
+                      isActive ? "text-white/80" : "text-slate-500"
+                    }`}
+                  >
                     {opt.short} {t("years", "yrs")}
                   </span>
                 </span>

@@ -3,7 +3,6 @@
 import React from "react";
 import { trackEvent as gaTrackEvent } from "@/lib/analytics/ga4";
 import Link from "next/link";
-import { glassCardClass } from "@/features/home/components/homeTheme";
 
 interface AgeQuickLinksRowProps {
   t: (key: string, defaultValue?: string) => string;
@@ -53,7 +52,7 @@ const AGE_LINKS: Array<{
 export default function AgeQuickLinksRow({ t }: AgeQuickLinksRowProps) {
   return (
     <section aria-label="Age quick links" className="w-full">
-      <h4 className="mb-2.5 text-center text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-emerald-200 sm:mb-3 sm:text-sm">
+      <h4 className="mb-2.5 text-center text-[0.7rem] font-extrabold uppercase tracking-[0.22em] text-blue-700 sm:mb-3 sm:text-sm">
         {t("findPerfectToysForAge", "Find Perfect Toys for Your Child's Age")}
       </h4>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
@@ -62,7 +61,7 @@ export default function AgeQuickLinksRow({ t }: AgeQuickLinksRowProps) {
             key={link.id}
             href={`/products?ageGroup=${encodeURIComponent(link.id)}`}
             aria-label={`${t(link.labelKey)} (${link.short})`}
-            className={`${glassCardClass} group flex items-center gap-3 p-3 transition-all duration-300 hover:border-emerald-400/60 hover:shadow-emerald-500/20`}
+            className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_12px_24px_-18px_rgba(59,130,246,0.5)]"
             onClick={() =>
               gaTrackEvent("age_quick_link_click", {
                 age_group: link.id,
@@ -70,21 +69,21 @@ export default function AgeQuickLinksRow({ t }: AgeQuickLinksRowProps) {
             }
           >
             <div
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400/60 via-sky-400/60 to-indigo-400/60 text-white shadow-md shadow-emerald-500/20 transition-transform duration-300 group-hover:scale-105 sm:h-10 sm:w-10"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-cyan-400 to-emerald-300 text-white shadow-sm transition-transform duration-300 group-hover:scale-105 sm:h-10 sm:w-10"
               aria-hidden
             >
               <span className="text-base sm:text-lg">{link.icon}</span>
             </div>
             <div className="min-w-0 flex-grow">
-              <div className="truncate text-xs font-semibold text-white sm:text-sm">
+              <div className="truncate text-xs font-semibold text-slate-800 sm:text-sm">
                 {t(link.labelKey)}
               </div>
-              <div className="text-[10px] text-slate-300">
+              <div className="text-[10px] text-slate-500">
                 {link.short} {t("years", "yrs")}
               </div>
             </div>
             <svg
-              className="h-4 w-4 text-slate-300 transition-opacity group-hover:opacity-100"
+              className="h-4 w-4 text-slate-400 transition-opacity group-hover:opacity-100"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

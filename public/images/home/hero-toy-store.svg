@@ -1,0 +1,163 @@
+<svg width="1600" height="700" viewBox="0 0 1600 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Toy store hero illustration with robot and rocket">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1d6fe8"/>
+      <stop offset="55%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#7dd3fc"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f1d39d"/>
+      <stop offset="100%" stop-color="#d8a86a"/>
+    </linearGradient>
+    <linearGradient id="robotBody" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <linearGradient id="blueTrim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#0ea5e9"/>
+    </linearGradient>
+    <linearGradient id="rocketBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#dbeafe"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="700" fill="url(#sky)"/>
+  <g opacity="0.22" fill="#ffffff">
+    <circle cx="170" cy="95" r="2"/><circle cx="210" cy="80" r="3"/><circle cx="250" cy="115" r="2"/>
+    <circle cx="540" cy="95" r="2"/><circle cx="620" cy="140" r="3"/><circle cx="720" cy="105" r="2"/>
+    <circle cx="930" cy="90" r="2"/><circle cx="1040" cy="120" r="3"/><circle cx="1170" cy="80" r="2"/>
+    <circle cx="1380" cy="110" r="3"/><circle cx="1460" cy="140" r="2"/><circle cx="1510" cy="90" r="2"/>
+  </g>
+
+  <g fill="#ffffff" opacity="0.9">
+    <g transform="translate(70 95)">
+      <circle cx="25" cy="20" r="20"/><circle cx="50" cy="25" r="25"/><circle cx="78" cy="20" r="18"/>
+      <rect x="20" y="24" width="70" height="20" rx="10"/>
+    </g>
+    <g transform="translate(1230 85)">
+      <circle cx="18" cy="18" r="18"/><circle cx="40" cy="22" r="22"/><circle cx="66" cy="18" r="16"/>
+      <rect x="10" y="20" width="62" height="18" rx="9"/>
+    </g>
+    <g transform="translate(560 55)" opacity="0.75">
+      <circle cx="16" cy="16" r="16"/><circle cx="36" cy="20" r="20"/><circle cx="58" cy="16" r="15"/>
+      <rect x="8" y="18" width="56" height="16" rx="8"/>
+    </g>
+  </g>
+
+  <rect y="585" width="1600" height="115" fill="url(#floor)"/>
+  <rect y="576" width="1600" height="18" fill="#f5e4bf"/>
+
+  <g transform="translate(40 350)">
+    <ellipse cx="160" cy="220" rx="155" ry="22" fill="#0f172a" opacity="0.14"/>
+    <rect x="40" y="80" width="170" height="78" rx="18" fill="#1e293b"/>
+    <rect x="48" y="88" width="154" height="62" rx="14" fill="#2563eb"/>
+    <rect x="56" y="96" width="56" height="22" rx="6" fill="#facc15"/>
+    <rect x="118" y="96" width="34" height="22" rx="6" fill="#22c55e"/>
+    <rect x="158" y="96" width="34" height="22" rx="6" fill="#fb7185"/>
+    <rect x="56" y="124" width="72" height="18" rx="5" fill="#60a5fa"/>
+    <rect x="132" y="124" width="60" height="18" rx="5" fill="#93c5fd"/>
+
+    <rect x="210" y="104" width="68" height="38" rx="12" fill="#334155"/>
+    <rect x="219" y="112" width="50" height="22" rx="8" fill="#0ea5e9"/>
+    <circle cx="232" cy="123" r="6" fill="#e0f2fe"/>
+    <circle cx="256" cy="123" r="6" fill="#e0f2fe"/>
+    <rect x="258" y="95" width="14" height="8" rx="4" fill="#f97316"/>
+    <rect x="276" y="109" width="10" height="16" rx="4" fill="#64748b"/>
+
+    <rect x="74" y="160" width="18" height="28" rx="7" fill="#1f2937"/>
+    <rect x="164" y="160" width="18" height="28" rx="7" fill="#1f2937"/>
+    <rect x="218" y="144" width="12" height="42" rx="6" fill="#1f2937"/>
+    <rect x="254" y="144" width="12" height="42" rx="6" fill="#1f2937"/>
+    <circle cx="85" cy="198" r="26" fill="#0f172a"/>
+    <circle cx="175" cy="198" r="26" fill="#0f172a"/>
+    <circle cx="224" cy="192" r="19" fill="#111827"/>
+    <circle cx="260" cy="192" r="19" fill="#111827"/>
+    <circle cx="85" cy="198" r="10" fill="#94a3b8"/>
+    <circle cx="175" cy="198" r="10" fill="#94a3b8"/>
+    <circle cx="224" cy="192" r="7" fill="#94a3b8"/>
+    <circle cx="260" cy="192" r="7" fill="#94a3b8"/>
+
+    <g transform="translate(22 148)">
+      <rect x="0" y="38" width="24" height="20" rx="4" fill="#f59e0b"/>
+      <rect x="18" y="26" width="24" height="32" rx="4" fill="#22c55e"/>
+      <rect x="36" y="14" width="24" height="44" rx="4" fill="#ef4444"/>
+      <rect x="54" y="30" width="24" height="28" rx="4" fill="#3b82f6"/>
+    </g>
+  </g>
+
+  <g transform="translate(1030 205)">
+    <ellipse cx="180" cy="390" rx="235" ry="28" fill="#0f172a" opacity="0.16"/>
+
+    <g transform="translate(15 0)">
+      <rect x="35" y="35" width="170" height="72" rx="28" fill="#1e293b"/>
+      <rect x="47" y="45" width="146" height="52" rx="24" fill="#334155"/>
+      <circle cx="84" cy="71" r="17" fill="#67e8f9"/>
+      <circle cx="145" cy="71" r="17" fill="#93c5fd"/>
+      <circle cx="84" cy="71" r="8" fill="#e0f2fe"/>
+      <circle cx="145" cy="71" r="8" fill="#e0f2fe"/>
+      <rect x="205" y="48" width="38" height="44" rx="10" fill="#0f172a"/>
+      <rect x="214" y="58" width="20" height="10" rx="4" fill="#fb923c"/>
+      <rect x="214" y="74" width="20" height="10" rx="4" fill="#f59e0b"/>
+      <rect x="115" y="104" width="18" height="18" rx="6" fill="#64748b"/>
+      <rect x="92" y="102" width="64" height="16" rx="8" fill="#475569"/>
+    </g>
+
+    <g transform="translate(0 110)">
+      <rect x="55" y="0" width="175" height="190" rx="28" fill="url(#robotBody)" stroke="#cbd5e1" stroke-width="4"/>
+      <rect x="78" y="32" width="130" height="68" rx="14" fill="#94a3b8"/>
+      <rect x="87" y="40" width="46" height="18" rx="5" fill="#1d4ed8"/>
+      <rect x="139" y="40" width="60" height="18" rx="5" fill="#facc15"/>
+      <rect x="87" y="63" width="112" height="28" rx="6" fill="#e2e8f0"/>
+      <rect x="90" y="116" width="106" height="18" rx="6" fill="#2563eb" opacity="0.9"/>
+      <rect x="96" y="140" width="94" height="26" rx="8" fill="#334155"/>
+      <rect x="122" y="106" width="42" height="74" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+      <rect x="128" y="112" width="30" height="30" rx="6" fill="#f8fafc"/>
+      <circle cx="143" cy="127" r="7" fill="#facc15"/>
+    </g>
+
+    <g transform="translate(-25 180)">
+      <path d="M60 86 C20 90, 10 130, 34 152 L84 122 Z" fill="#2563eb"/>
+      <rect x="78" y="104" width="50" height="24" rx="10" fill="#334155"/>
+      <circle cx="42" cy="140" r="18" fill="#0f172a"/>
+      <circle cx="98" cy="140" r="18" fill="#0f172a"/>
+      <circle cx="42" cy="140" r="7" fill="#94a3b8"/>
+      <circle cx="98" cy="140" r="7" fill="#94a3b8"/>
+      <path d="M96 56 C90 28, 118 10, 142 22 L136 66 Z" fill="#f97316"/>
+      <circle cx="136" cy="86" r="11" fill="#0ea5e9"/>
+    </g>
+
+    <g transform="translate(255 154)">
+      <rect x="18" y="120" width="26" height="108" rx="11" fill="#2563eb"/>
+      <rect x="120" y="120" width="26" height="108" rx="11" fill="#2563eb"/>
+      <circle cx="31" cy="236" r="24" fill="#0f172a"/>
+      <circle cx="133" cy="236" r="24" fill="#0f172a"/>
+      <circle cx="31" cy="236" r="9" fill="#94a3b8"/>
+      <circle cx="133" cy="236" r="9" fill="#94a3b8"/>
+      <path d="M46 30 C64 2, 112 2, 130 30 L96 30 Z" fill="#ef4444"/>
+      <rect x="52" y="30" width="72" height="128" rx="32" fill="url(#rocketBody)" stroke="#cbd5e1" stroke-width="4"/>
+      <ellipse cx="88" cy="78" rx="17" ry="20" fill="#38bdf8" stroke="#1d4ed8" stroke-width="4"/>
+      <path d="M52 122 L26 160 L52 154 Z" fill="#ef4444"/>
+      <path d="M124 122 L150 160 L124 154 Z" fill="#ef4444"/>
+      <path d="M78 158 L88 198 L98 158 Z" fill="#f59e0b"/>
+      <path d="M74 170 C80 220, 96 220, 102 170" fill="#fbbf24" opacity="0.8"/>
+      <ellipse cx="88" cy="210" rx="38" ry="20" fill="#fbbf24" opacity="0.25"/>
+    </g>
+  </g>
+
+  <g transform="translate(820 548)">
+    <rect x="0" y="10" width="68" height="42" rx="8" fill="#ef4444"/>
+    <rect x="18" y="0" width="56" height="30" rx="8" fill="#f59e0b"/>
+    <rect x="64" y="18" width="64" height="36" rx="8" fill="#3b82f6"/>
+    <rect x="118" y="4" width="54" height="48" rx="8" fill="#22c55e"/>
+    <rect x="166" y="20" width="52" height="34" rx="8" fill="#a855f7"/>
+    <rect x="222" y="8" width="42" height="46" rx="8" fill="#f43f5e"/>
+  </g>
+
+  <circle cx="760" cy="210" r="120" fill="url(#glow)" opacity="0.18"/>
+</svg>

@@ -93,7 +93,15 @@ export default async function MagneticBuildingPage() {
       <div className={`${homeContentWrapperClass} pb-16`}>
         {/* Hero Section */}
         <section className="relative h-[200px] sm:h-[250px] md:h-[300px] lg:h-[360px] w-full overflow-hidden rounded-none sm:rounded-3xl border-b border-white/5 sm:border border-white/10 shadow-lg shadow-black/40">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/90 via-purple-950/80 to-slate-900/70" />
+          <Image
+            src="/Engineering.png"
+            alt="Magnetic Building"
+            fill
+            priority
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/85 via-purple-950/75 to-slate-900/70" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,255,255,0.14),transparent_34%),radial-gradient(circle_at_82%_18%,rgba(129,140,248,0.14),transparent_36%)]" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center px-4">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">

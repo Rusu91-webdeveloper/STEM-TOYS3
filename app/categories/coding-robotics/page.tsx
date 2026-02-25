@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Package, Play, HelpCircle, Code, Bot } from "lucide-react";
@@ -89,7 +90,15 @@ export default async function CodingRoboticsPage() {
       <div className={`${homeContentWrapperClass} pb-16`}>
         {/* Hero */}
         <section className="relative h-[200px] sm:h-[250px] md:h-[300px] lg:h-[360px] w-full overflow-hidden rounded-none sm:rounded-3xl border-b border-white/5 sm:border border-white/10 shadow-lg shadow-black/40">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-950/90 via-cyan-950/80 to-slate-900/70" />
+          <Image
+            src="/coding-robotic.png"
+            alt="Coding & Robotics"
+            fill
+            priority
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-950/85 via-cyan-950/75 to-slate-900/70" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(255,255,255,0.14),transparent_32%),radial-gradient(circle_at_82%_18%,rgba(34,211,238,0.12),transparent_34%)]" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center px-4">
               <div className="flex items-center justify-center gap-3 mb-4">

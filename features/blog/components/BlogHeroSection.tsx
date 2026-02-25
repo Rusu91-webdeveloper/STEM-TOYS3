@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 
 import { Container } from "@/components/ui/container";
@@ -19,29 +20,37 @@ export function BlogHeroSection({
   language,
   onLanguageToggle,
 }: BlogHeroSectionProps) {
+  const [heroImageSrc, setHeroImageSrc] = useState("/HeroImage.png");
+
   return (
     <section className="relative w-full flex items-center justify-center">
       <div className="absolute inset-0">
         <Image
-          src="/images/category_banner_science_01.png"
+          src={heroImageSrc}
           alt="STEM Toys Blog - Educational articles and insights"
           fill
           priority
           sizes="100vw"
-          className="object-cover"
+          className="object-cover object-center"
+          onError={() => {
+            if (heroImageSrc !== "/HeroImageTechTechtots.png") {
+              setHeroImageSrc("/HeroImageTechTechtots.png");
+            }
+          }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-indigo-950/70 to-slate-950/85" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/68 via-sky-50/62 to-white/72" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_24%,rgba(255,255,255,0.28),transparent_35%),radial-gradient(circle_at_80%_18%,rgba(34,211,238,0.08),transparent_38%),radial-gradient(circle_at_50%_90%,rgba(251,191,36,0.08),transparent_40%)]" />
       </div>
 
-      <Container className="relative z-10 flex flex-col items-center justify-center py-14 sm:py-16 md:py-20 lg:py-24 text-center text-white">
+      <Container className="relative z-10 flex flex-col items-center justify-center py-14 sm:py-16 md:py-20 lg:py-24 text-center text-slate-900">
         <div className="max-w-4xl space-y-4 sm:space-y-6">
-          <span className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
+          <span className="inline-flex items-center justify-center rounded-full border border-white/50 bg-white/60 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700">
             {t("blogLabel") || "TechTots Blog"}
           </span>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight leading-[1.05] drop-shadow-2xl">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight leading-[1.05] text-slate-900 drop-shadow-[0_2px_10px_rgba(255,255,255,0.35)]">
             {t("blogH1")}
           </h1>
-          <p className="mx-auto max-w-3xl text-sm sm:text-base md:text-lg lg:text-xl text-white/85 leading-relaxed drop-shadow-md">
+          <p className="mx-auto max-w-3xl text-sm sm:text-base md:text-lg lg:text-xl text-slate-700 leading-relaxed">
             {t("blogDescription")}
           </p>
         </div>
@@ -52,7 +61,7 @@ export function BlogHeroSection({
           >
             <button
               onClick={onLanguageToggle}
-              className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/10 transition-all duration-300 hover:border-white/40 hover:bg-white/20"
+              className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-white/40 bg-white/60 transition-all duration-300 hover:border-white/70 hover:bg-white/80"
               aria-label={`Switch to ${language === "ro" ? "English" : "Română"}`}
             >
               <div
@@ -63,10 +72,10 @@ export function BlogHeroSection({
               </span>
             </button>
             <div className="flex flex-col items-start">
-              <span className="text-[10px] font-medium uppercase tracking-[0.4em] text-white/60">
+              <span className="text-[10px] font-medium uppercase tracking-[0.4em] text-slate-500">
                 {t("language") || "Language"}
               </span>
-              <span className="text-sm font-semibold text-white">
+              <span className="text-sm font-semibold text-slate-900">
                 {language === "ro" ? "Română" : "English"}
               </span>
             </div>
@@ -76,4 +85,3 @@ export function BlogHeroSection({
     </section>
   );
 }
-

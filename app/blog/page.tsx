@@ -100,15 +100,15 @@ export default function BlogPage() {
   const getDefaultImage = (category: string) => {
     switch (category) {
       case "SCIENCE":
-        return "/images/category_banner_science_01.png";
+        return "/Science.png";
       case "TECHNOLOGY":
-        return "/images/category_banner_technology_01.png";
+        return "/Technology.png";
       case "ENGINEERING":
-        return "/images/category_banner_engineering_01.png";
+        return "/Engineering.png";
       case "MATHEMATICS":
-        return "/images/category_banner_math_01.png";
+        return "/Mathematic.png";
       default:
-        return "/images/category_banner_science_01.png";
+        return "/Science.png";
     }
   };
 

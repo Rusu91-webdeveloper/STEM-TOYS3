@@ -25,9 +25,9 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
 
 const surfaceBase =
-  "rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20 backdrop-blur-sm sm:p-8";
+  "rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-900/10 backdrop-blur-sm sm:p-8";
 
-const listBulletClass = "pl-3 text-left text-sm text-slate-200 sm:text-base";
+const listBulletClass = "pl-3 text-left text-sm text-slate-700 sm:text-base";
 
 export function StemGuideLanding() {
   const { t } = useTranslation();
@@ -64,7 +64,7 @@ export function StemGuideLanding() {
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/70 text-slate-900">
       <section className="container relative z-10 mx-auto px-4 pb-12 pt-20 sm:px-6 lg:px-12 lg:pb-16 lg:pt-24">
         <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/90 via-indigo-900/75 to-slate-950/90 p-6 shadow-2xl shadow-black/40 sm:p-10">
           <div className="absolute -right-16 top-10 hidden h-72 w-72 rounded-full bg-sky-500/30 blur-3xl lg:block" />
@@ -122,13 +122,13 @@ export function StemGuideLanding() {
 
       <section className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16">
         <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-          <Card className={cn(surfaceBase, "border-white/15 bg-white/10")}>
+          <Card className={cn(surfaceBase, "border-slate-200/80 bg-white/95")}>
             <CardHeader className="p-0">
-              <CardTitle className="flex items-center gap-3 text-base text-white sm:text-lg lg:text-xl">
-                <ListChecks className="h-5 w-5 text-emerald-300" />
+              <CardTitle className="flex items-center gap-3 text-base text-slate-900 sm:text-lg lg:text-xl">
+                <ListChecks className="h-5 w-5 text-emerald-500" />
                 {translate("guide2025QuickSummary")}
               </CardTitle>
-              <CardDescription className="mt-2 text-sm text-slate-300">
+              <CardDescription className="mt-2 text-sm text-slate-600">
                 {translate("guide2025PracticalSuggestion")}
               </CardDescription>
             </CardHeader>
@@ -136,10 +136,10 @@ export function StemGuideLanding() {
               {quickSummaryItems.map(item => (
                 <div
                   key={`summary-${item.key}`}
-                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900/70 to-indigo-900/60 p-4 shadow-inner shadow-black/30"
+                  className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50 p-4 shadow-inner shadow-slate-900/5"
                 >
-                  <Lightbulb className="mt-1 h-5 w-5 text-amber-300" />
-                  <p className="text-sm text-slate-100 sm:text-base">{item.label}</p>
+                  <Lightbulb className="mt-1 h-5 w-5 text-amber-500" />
+                  <p className="text-sm text-slate-700 sm:text-base">{item.label}</p>
                 </div>
               ))}
             </CardContent>
@@ -189,16 +189,16 @@ export function StemGuideLanding() {
         className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16"
         aria-labelledby="categorii-title"
       >
-        <div className={cn(surfaceBase, "bg-white/8")}>
+        <div className={cn(surfaceBase, "bg-white/90")}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <Badge className="mb-3 w-fit rounded-full border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-200">
+              <Badge className="mb-3 w-fit rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700">
                 {translate("guide2025Categories")}
               </Badge>
-              <h2 id="categorii-title" className="text-2xl font-semibold text-white sm:text-3xl">
+              <h2 id="categorii-title" className="text-2xl font-semibold text-slate-900 sm:text-3xl">
                 {translate("guide2025CategoriesH2")}
               </h2>
-              <p className="mt-3 max-w-2xl text-sm text-slate-200 sm:text-base">{translate("guide2025Description")}</p>
+              <p className="mt-3 max-w-2xl text-sm text-slate-600 sm:text-base">{translate("guide2025Description")}</p>
             </div>
             <Button
               asChild
@@ -275,10 +275,10 @@ export function StemGuideLanding() {
         className="container mx-auto px-4 pb-12 sm:px-6 lg:px-12 lg:pb-16"
         aria-labelledby="alegere-title"
       >
-        <div className={cn(surfaceBase, "space-y-6 bg-white/8")}>
+        <div className={cn(surfaceBase, "space-y-6 bg-white/90")}>
           <div className="flex items-center gap-3">
-            <Target className="h-6 w-6 text-emerald-300" />
-            <h2 id="alegere-title" className="text-2xl font-semibold text-white sm:text-3xl">
+            <Target className="h-6 w-6 text-emerald-500" />
+            <h2 id="alegere-title" className="text-2xl font-semibold text-slate-900 sm:text-3xl">
               {translate("guide2025HowToChooseH2")}
             </h2>
           </div>
@@ -288,7 +288,7 @@ export function StemGuideLanding() {
             <ListItem as="li">{translate("guide2025HowToChooseContent3")}</ListItem>
             <ListItem as="li">{translate("guide2025HowToChooseContent4")}</ListItem>
           </ol>
-          <p className="text-sm text-slate-200 sm:text-base">{translate("guide2025HowToChooseContent5")}</p>
+          <p className="text-sm text-slate-700 sm:text-base">{translate("guide2025HowToChooseContent5")}</p>
         </div>
       </section>
 
@@ -319,7 +319,7 @@ export function StemGuideLanding() {
         className="container mx-auto px-4 pb-16 sm:px-6 lg:px-12"
         aria-labelledby="faq-title"
       >
-        <div className={cn(surfaceBase, "space-y-6 bg-white/10")}>
+        <div className={cn(surfaceBase, "space-y-6 bg-slate-900/80")}>
           <div className="flex items-center gap-3">
             <BookIcon />
             <h2 id="faq-title" className="text-2xl font-semibold text-white sm:text-3xl">
@@ -358,12 +358,12 @@ export function StemGuideLanding() {
 
 function CategoryCard({ title, description, href }: { title: string; description: string; href: string }) {
   return (
-    <div className="flex flex-col justify-between rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950/60 via-indigo-900/50 to-slate-900/60 p-5 shadow-inner shadow-black/30 transition hover:border-emerald-400/40 hover:bg-white/10">
+    <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300/60 hover:shadow-md">
       <div>
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
-        <p className="mt-2 text-sm text-slate-200 sm:text-base">{description}</p>
+        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+        <p className="mt-2 text-sm text-slate-600 sm:text-base">{description}</p>
       </div>
-      <Link href={href} className="mt-4 inline-flex items-center text-sm font-semibold text-emerald-300 underline underline-offset-4">
+      <Link href={href} className="mt-4 inline-flex items-center text-sm font-semibold text-emerald-700 underline underline-offset-4">
         {href}
         <ArrowRight className="ml-2 h-4 w-4" />
       </Link>
@@ -398,4 +398,3 @@ function BookIcon() {
     </span>
   );
 }
-
