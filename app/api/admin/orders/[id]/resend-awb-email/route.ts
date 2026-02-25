@@ -123,6 +123,8 @@ export async function POST(
             product: {
               select: {
                 sku: true,
+                barcode: true,
+                images: true,
               },
             },
           },
@@ -258,6 +260,8 @@ export async function POST(
         orderItems: order.items.map(item => ({
           name: item.name || "Produs",
           sku: item.product?.sku || null,
+          barcode: item.product?.barcode || null,
+          imageUrl: item.product?.images?.[0] || null,
           quantity: item.quantity,
         })),
       });

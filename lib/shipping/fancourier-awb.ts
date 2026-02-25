@@ -866,6 +866,8 @@ export const createFanAwbForOrder = async (
     select: {
       id: true,
       sku: true,
+      barcode: true,
+      images: true,
       weight: true,
       dimensions: true,
       supplier: {
@@ -1206,14 +1208,28 @@ export const createFanAwbForOrder = async (
 
   if (!manualShippingReviewRequired && primarySupplier) {
     const supplierEmail = resolveSupplierEmail(primarySupplier);
-    const productSkuById = new Map(
-      products.map(product => [product.id, product.sku ?? null])
+    const productDataById = new Map(
+      products.map(product => [
+        product.id,
+        {
+          sku: product.sku ?? null,
+          barcode: product.barcode ?? null,
+          imageUrl: product.images?.[0] ?? null,
+        },
+      ])
     );
-    const orderItemsForEmail = physicalItems.map(item => ({
-      name: item.name || "Produs",
-      sku: item.productId ? productSkuById.get(item.productId) || null : null,
-      quantity: item.quantity,
-    }));
+    const orderItemsForEmail = physicalItems.map(item => {
+      const productData = item.productId
+        ? productDataById.get(item.productId)
+        : null;
+      return {
+        name: item.name || "Produs",
+        sku: productData?.sku || null,
+        barcode: productData?.barcode || null,
+        imageUrl: productData?.imageUrl || null,
+        quantity: item.quantity,
+      };
+    });
 
     if (!supplierEmail) {
       console.warn(

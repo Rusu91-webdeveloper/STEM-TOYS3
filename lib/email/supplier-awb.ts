@@ -4,6 +4,8 @@ import { getStoreSettings } from "@/lib/utils/store-settings";
 type SupplierAwbEmailItem = {
   name: string;
   sku?: string | null;
+  barcode?: string | null;
+  imageUrl?: string | null;
   quantity: number;
 };
 
@@ -37,9 +39,10 @@ export async function sendSupplierAwbLabelEmail(input: {
             <table role="presentation" style="width:100%;border-collapse:collapse;font-size:13px;color:#0f172a;">
               <thead>
                 <tr>
+                  <th align="left" style="padding:8px;border:1px solid #e2e8f0;background:#f8fafc;width:60px;">Foto</th>
                   <th align="left" style="padding:8px;border:1px solid #e2e8f0;background:#f8fafc;">Produs</th>
-                  <th align="left" style="padding:8px;border:1px solid #e2e8f0;background:#f8fafc;">SKU</th>
-                  <th align="right" style="padding:8px;border:1px solid #e2e8f0;background:#f8fafc;">Cantitate</th>
+                  <th align="left" style="padding:8px;border:1px solid #e2e8f0;background:#f8fafc;">SKU / Cod</th>
+                  <th align="right" style="padding:8px;border:1px solid #e2e8f0;background:#f8fafc;">Cant.</th>
                 </tr>
               </thead>
               <tbody>
@@ -47,13 +50,20 @@ export async function sendSupplierAwbLabelEmail(input: {
                   .orderItems!.map(
                     item => `
                   <tr>
-                    <td style="padding:8px;border:1px solid #e2e8f0;">${escapeHtml(
-                      item.name || "Produs"
-                    )}</td>
-                    <td style="padding:8px;border:1px solid #e2e8f0;">${escapeHtml(
-                      item.sku?.trim() || "-"
-                    )}</td>
-                    <td align="right" style="padding:8px;border:1px solid #e2e8f0;">${item.quantity}</td>
+                    <td style="padding:8px;border:1px solid #e2e8f0;text-align:center;">
+                      ${
+                        item.imageUrl
+                          ? `<img src="${item.imageUrl}" alt="" width="50" height="50" style="width:50px;height:50px;object-fit:cover;border-radius:4px;display:block;margin:0 auto;" />`
+                          : `<div style="width:50px;height:50px;background:#f1f5f9;border-radius:4px;display:inline-block;line-height:50px;text-align:center;font-size:18px;">📦</div>`
+                      }
+                    </td>
+                    <td style="padding:8px;border:1px solid #e2e8f0;">${escapeHtml(item.name || "Produs")}</td>
+                    <td style="padding:8px;border:1px solid #e2e8f0;">
+                      ${item.sku?.trim() ? `<span style="display:block;font-weight:600;">SKU: ${escapeHtml(item.sku.trim())}</span>` : ""}
+                      ${item.barcode?.trim() ? `<span style="display:block;color:#475569;font-size:12px;">Cod de bare: ${escapeHtml(item.barcode.trim())}</span>` : ""}
+                      ${!item.sku?.trim() && !item.barcode?.trim() ? `<span style="color:#94a3b8;">-</span>` : ""}
+                    </td>
+                    <td align="right" style="padding:8px;border:1px solid #e2e8f0;font-weight:600;">${item.quantity}</td>
                   </tr>
                 `
                   )
