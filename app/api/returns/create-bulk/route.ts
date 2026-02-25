@@ -1,6 +1,7 @@
 import { differenceInDays } from "date-fns";
 import { NextResponse } from "next/server";
 
+import { appConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -179,9 +180,8 @@ export async function POST(request: Request) {
       select: { name: true, email: true },
     });
 
-    // Admin email from environment or fallback
-    const adminEmail =
-      process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || "admin@techtots.com";
+    // Admin email from environment via appConfig
+    const adminEmail = appConfig.adminEmail;
 
     // Map reason code to human-readable text
     const reasonLabels = {

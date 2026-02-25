@@ -9,6 +9,7 @@
  * - Return requests
  */
 
+import { appConfig } from "@/lib/config/app-config";
 import { prisma } from "@/lib/prisma";
 import { DatabaseTemplateService } from "./database-template-service";
 
@@ -18,7 +19,7 @@ export class AdminNotificationService {
    */
   static async sendNewOrderNotification(
     orderId: string,
-    adminEmail: string = process.env.ADMIN_EMAIL || "webira.rem.srl@gmail.com"
+    adminEmail: string = appConfig.adminEmail
   ): Promise<{ success: boolean; error?: string; messageId?: string }> {
     try {
       console.log(`📧 Preparing admin notification for order ${orderId}`);
@@ -119,7 +120,7 @@ export class AdminNotificationService {
     orderId: string,
     paymentError: string,
     paymentMethod?: string,
-    adminEmail: string = process.env.ADMIN_EMAIL || "webira.rem.srl@gmail.com"
+    adminEmail: string = appConfig.adminEmail
   ): Promise<{ success: boolean; error?: string; messageId?: string }> {
     try {
       console.log(
@@ -196,7 +197,7 @@ export class AdminNotificationService {
     issueType: string,
     issueDescription: string,
     priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT" = "MEDIUM",
-    adminEmail: string = process.env.ADMIN_EMAIL || "webira.rem.srl@gmail.com"
+    adminEmail: string = appConfig.adminEmail
   ): Promise<{ success: boolean; error?: string; messageId?: string }> {
     try {
       console.log(`📧 Preparing order issue notification: ${issueType}`);
@@ -256,7 +257,7 @@ export class AdminNotificationService {
     productId: string,
     currentStock: number,
     minimumStock: number,
-    adminEmail: string = process.env.ADMIN_EMAIL || "webira.rem.srl@gmail.com"
+    adminEmail: string = appConfig.adminEmail
   ): Promise<{ success: boolean; error?: string; messageId?: string }> {
     try {
       console.log(`📧 Preparing low stock alert for product ${productId}`);
@@ -343,7 +344,7 @@ export class AdminNotificationService {
    */
   static async sendReturnRequestNotification(
     returnId: string,
-    adminEmail: string = process.env.ADMIN_EMAIL || "webira.rem.srl@gmail.com"
+    adminEmail: string = appConfig.adminEmail
   ): Promise<{ success: boolean; error?: string; messageId?: string }> {
     try {
       console.log(`📧 Preparing return request notification: ${returnId}`);

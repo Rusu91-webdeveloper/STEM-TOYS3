@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
+import { publicConfig } from "@/lib/config/app-config";
+
 import { Button } from "@/components/ui/button";
 import { LegalPageShell } from "@/components/legal/LegalPageShell";
 import { Icon, StatusIcons } from "@/components/ui/icon-system";
@@ -26,7 +28,7 @@ const toc = [
 
 export default function TermsPage() {
   const { t } = useTranslation();
-  const [contactEmail, setContactEmail] = useState("webira.rem.srl@gmail.com");
+  const [contactEmail, setContactEmail] = useState(publicConfig.contactEmail);
   const lastUpdated = t("termsLastUpdated", "9 august 2024");
 
   // Fetch store settings for contact info

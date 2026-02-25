@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import nodemailer from "nodemailer";
 
+import { appConfig } from "@/lib/config/app-config";
 import { logger } from "./logger";
 
 const prisma = new PrismaClient();
@@ -206,7 +207,7 @@ export const emailTemplates = {
               <img src="${logoUrl}" alt="TechTots" style="max-width: 120px; height: auto; opacity: 0.8;" onerror="this.src='${faviconUrl}'; this.style.width='32px'; this.style.height='32px';">
             </div>
             <p style="margin: 0 0 8px 0; font-weight: 600; color: #ffffff;">TechTots - Jucării Educaționale STEM</p>
-            <p style="margin: 0 0 16px 0;">📧 webira.rem.srl@gmail.com | 📞 +40 771 248 029</p>
+            <p style="margin: 0 0 16px 0;">📧 ${appConfig.contactEmail} | 📞 ${appConfig.storePhoneFormatted}</p>
             <div style="border-top: 1px solid #374151; padding-top: 16px; margin-top: 16px;">
               <p style="margin: 0; font-size: 12px;">
                 © ${new Date().getFullYear()} TechTots. Toate drepturile rezervate. | 
@@ -223,8 +224,8 @@ export const emailTemplates = {
     return emailTemplates({
       to,
       subject: "Bun venit la TechTots! 🎉",
-      html: html.replace("+40 123 456 789", "+40 771 248 029"),
-      from: `"TechTots" <webira.rem.srl@gmail.com>`,
+      html: html.replace("+40 123 456 789", appConfig.storePhoneFormatted),
+      from: `"TechTots" <${appConfig.contactEmail}>`,
     });
   },
 
@@ -255,7 +256,7 @@ export const emailTemplates = {
     // Make sure we log the email being used
     logger.info("Sending return notification email", {
       to,
-      from: EMAIL_FROM || process.env.EMAIL_FROM || "webira.rem.srl@gmail.com",
+      from: EMAIL_FROM || process.env.EMAIL_FROM || "${appConfig.contactEmail}",
     });
 
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://techtots.ro";
@@ -347,7 +348,7 @@ export const emailTemplates = {
               <img src="${logoUrl}" alt="TechTots" style="max-width: 120px; height: auto; opacity: 0.8;" onerror="this.src='${faviconUrl}'; this.style.width='32px'; this.style.height='32px';">
             </div>
             <p style="margin: 0 0 8px 0; font-weight: 600; color: #ffffff;">TechTots Admin - Notificare Internă</p>
-            <p style="margin: 0 0 16px 0;">📧 webira.rem.srl@gmail.com | 📞 +40 771 248 029</p>
+            <p style="margin: 0 0 16px 0;">📧 ${appConfig.contactEmail} | 📞 ${appConfig.storePhoneFormatted}</p>
             <div style="border-top: 1px solid #374151; padding-top: 16px; margin-top: 16px;">
               <p style="margin: 0; font-size: 12px;">
                 © ${new Date().getFullYear()} TechTots. Toate drepturile rezervate.
@@ -361,7 +362,7 @@ export const emailTemplates = {
 
     // Force the use of the EMAIL_FROM environment variable
     const from =
-      EMAIL_FROM || process.env.EMAIL_FROM || "webira.rem.srl@gmail.com";
+      EMAIL_FROM || process.env.EMAIL_FROM || "${appConfig.contactEmail}";
 
     return emailTemplates({
       to,
@@ -486,8 +487,8 @@ export const emailTemplates = {
             <p style="margin: 0 0 16px 0; font-weight: 600; color: #f3f4f6;">TechTots - Jucării STEM pentru Minți Curioase</p>
             
             <div style="margin-bottom: 20px;">
-              <p style="margin: 0 0 8px 0;">📧 webira.rem.srl@gmail.com</p>
-              <p style="margin: 0 0 16px 0;">📞 +40 771 248 029</p>
+              <p style="margin: 0 0 8px 0;">📧 ${appConfig.contactEmail}</p>
+              <p style="margin: 0 0 16px 0;">📞 ${appConfig.storePhoneFormatted}</p>
             </div>
             
             <div style="margin-bottom: 20px;">
@@ -689,7 +690,7 @@ export const emailTemplates = {
             <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 24px 0;">
               <p style="margin: 0 0 12px 0; color: #92400e; font-weight: 600;">📋 Informații Importante:</p>
               <p style="margin: 0 0 8px 0; color: #92400e;">Pentru orice întrebări legate de comanda ta, menționează ID-ul comenzii <strong>#${order.id}</strong></p>
-              <p style="margin: 0; color: #92400e;">Contactează-ne la <a href="mailto:webira.rem.srl@gmail.com" style="color: #92400e; text-decoration: none; font-weight: 600;">webira.rem.srl@gmail.com</a> sau la <strong>+40 771 248 029</strong></p>
+              <p style="margin: 0; color: #92400e;">Contactează-ne la <a href="mailto:${appConfig.contactEmail}" style="color: #92400e; text-decoration: none; font-weight: 600;">${appConfig.contactEmail}</a> sau la <strong>${appConfig.storePhoneFormatted}</strong></p>
             </div>
             
             <p style="font-size: 16px; color: #374151; text-align: center; margin-top: 32px; line-height: 1.6;">Cu respect,<br><strong>Echipa TechTots</strong></p>
@@ -704,8 +705,8 @@ export const emailTemplates = {
             <p style="margin: 0 0 16px 0; font-weight: 600; color: #f3f4f6;">TechTots - Jucării STEM pentru Minți Curioase</p>
             
             <div style="margin-bottom: 20px;">
-              <p style="margin: 0 0 8px 0;">📧 webira.rem.srl@gmail.com</p>
-              <p style="margin: 0 0 16px 0;">📞 +40 771 248 029</p>
+              <p style="margin: 0 0 8px 0;">📧 ${appConfig.contactEmail}</p>
+              <p style="margin: 0 0 16px 0;">📞 ${appConfig.storePhoneFormatted}</p>
             </div>
             
             <div style="margin-bottom: 20px;">
@@ -725,7 +726,7 @@ export const emailTemplates = {
       to,
       subject: `Confirmare Comandă TechTots #${order.id}`,
       html,
-      from: `"TechTots" <webira.rem.srl@gmail.com>`,
+      from: `"TechTots" <${appConfig.contactEmail}>`,
     });
   },
 
@@ -805,7 +806,7 @@ export const emailTemplates = {
               <img src="${logoUrl}" alt="TechTots" style="max-width: 120px; height: auto; opacity: 0.8;" onerror="this.src='${faviconUrl}'; this.style.width='32px'; this.style.height='32px';">
             </div>
             <p style="margin: 0 0 8px 0; font-weight: 600; color: #ffffff;">TechTots - Jucării Educaționale STEM</p>
-            <p style="margin: 0 0 16px 0;">📧 webira.rem.srl@gmail.com | 📞 +40 771 248 029</p>
+            <p style="margin: 0 0 16px 0;">📧 ${appConfig.contactEmail} | 📞 ${appConfig.storePhoneFormatted}</p>
             <div style="border-top: 1px solid #374151; padding-top: 16px; margin-top: 16px;">
               <p style="margin: 0; font-size: 12px;">
                 © ${new Date().getFullYear()} TechTots. Toate drepturile rezervate. | 
@@ -822,8 +823,8 @@ export const emailTemplates = {
     return emailTemplates({
       to,
       subject: "Resetare Parolă - TechTots",
-      html: html.replace("+40 123 456 789", "+40 771 248 029"),
-      from: `"TechTots" <webira.rem.srl@gmail.com>`,
+      html: html.replace("+40 123 456 789", appConfig.storePhoneFormatted),
+      from: `"TechTots" <${appConfig.contactEmail}>`,
     });
   },
 };

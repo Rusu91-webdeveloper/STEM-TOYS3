@@ -5,6 +5,8 @@
  * These templates are optimized for deliverability and user engagement
  */
 
+import { appConfig } from "@/lib/config/app-config";
+
 export interface EmailTemplate {
     id: string;
     name: string;
@@ -88,7 +90,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong><br>
-                +40 771 248 029
+                ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -298,7 +300,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                +40 771 248 029
+                ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -464,7 +466,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
             
             <div style="background-color: #fff3cd; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 20px 0;">
                 <p style="margin: 0; color: #92400e; font-size: 14px;">
-                    <strong>⚠️ Important:</strong> Dacă nu ai făcut această schimbare, te rugăm să ne contactezi imediat la support@techtots.ro
+                    <strong>⚠️ Important:</strong> Dacă nu ai făcut această schimbare, te rugăm să ne contactezi imediat la ${appConfig.supportEmail}
                 </p>
             </div>
             
@@ -480,7 +482,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                +40 771 248 029
+                ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -562,7 +564,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                +40 771 248 029
+                ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -664,7 +666,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                +40 771 248 029
+                ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -753,7 +755,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                +40 771 248 029
+                ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -843,7 +845,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                +40 771 248 029
+                ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -931,7 +933,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                +40 771 248 029
+                ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -1020,7 +1022,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                +40 771 248 029
+                ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -1399,7 +1401,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                +40 771 248 029
+                ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -1493,7 +1495,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                +40 771 248 029
+                ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -1585,7 +1587,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                +40 771 248 029
+                ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>

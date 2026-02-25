@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 
+import { appConfig } from "@/lib/config/app-config";
 import { getStoreSettings } from "@/lib/utils/store-settings";
 
 // Lazy initialization of Resend client
@@ -204,7 +205,7 @@ export const sendEmailViaUnifiedSystem = {
                 <img src="${logoUrl}" alt="TechTots" style="max-width: 140px; height: auto; opacity: 0.95; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" onerror="this.src='${faviconUrl}'; this.style.width='32px'; this.style.height='32px';">
               </div>
               <p style="margin: 0 0 12px 0; font-weight: 700; color: #ffffff; font-size: 18px; letter-spacing: -0.3px;">TechTots - Jucării Educaționale STEM</p>
-              <p style="margin: 0 0 24px 0; color: #d1d5db; font-size: 15px; font-weight: 500;">📧 webira.rem.srl@gmail.com | 📞 +40 771 248 029</p>
+              <p style="margin: 0 0 24px 0; color: #d1d5db; font-size: 15px; font-weight: 500;">📧 ${appConfig.contactEmail} | 📞 ${appConfig.storePhoneFormatted}</p>
               <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; margin-top: 20px;">
                 <p style="margin: 0; font-size: 13px; color: #9ca3af; font-weight: 500;">
                   © ${new Date().getFullYear()} TechTots. Toate drepturile rezervate. | 
@@ -306,7 +307,7 @@ export const sendEmailViaUnifiedSystem = {
             <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 24px 0;">
               <p style="margin: 0 0 12px 0; color: #92400e; font-weight: 600;">📋 Informații Importante:</p>
               <p style="margin: 0 0 8px 0; color: #92400e;">Dacă ai întrebări despre expediere, menționează codul comenzii <strong>#${order.id}</strong></p>
-              <p style="margin: 0; color: #92400e;">Contactează-ne la <a href="mailto:webira.rem.srl@gmail.com" style="color: #92400e; text-decoration: none; font-weight: 600;">webira.rem.srl@gmail.com</a> sau la <strong>+40 771 248 029</strong></p>
+              <p style="margin: 0; color: #92400e;">Contactează-ne la <a href="mailto:${appConfig.contactEmail}" style="color: #92400e; text-decoration: none; font-weight: 600;">${appConfig.contactEmail}</a> sau la <strong>${appConfig.storePhoneFormatted}</strong></p>
             </div>
             
             <p style="font-size: 16px; color: #374151; text-align: center; margin-top: 32px; line-height: 1.6;">Cu respect,<br><strong>Echipa TechTots</strong></p>
@@ -323,8 +324,8 @@ export const sendEmailViaUnifiedSystem = {
             <div style="margin-bottom: 20px;">
               <p style="margin: 0 0 8px 0;">📍 Mehedinti 54-56, Bl D5, sc 2, apt 70</p>
               <p style="margin: 0 0 8px 0;">Cluj-Napoca, Cluj, România</p>
-              <p style="margin: 0 0 8px 0;">📧 webira.rem.srl@gmail.com</p>
-              <p style="margin: 0 0 16px 0;">📞 +40 771 248 029</p>
+              <p style="margin: 0 0 8px 0;">📧 ${appConfig.contactEmail}</p>
+              <p style="margin: 0 0 16px 0;">📞 ${appConfig.storePhoneFormatted}</p>
             </div>
             
             <div style="margin-bottom: 20px;">
@@ -407,7 +408,7 @@ export const sendEmailViaUnifiedSystem = {
               <img src="${logoUrl}" alt="TechTots" style="max-width: 120px; height: auto; opacity: 0.8;" onerror="this.src='${faviconUrl}'; this.style.width='32px'; this.style.height='32px';">
             </div>
             <p style="margin: 0 0 8px 0; font-weight: 600; color: #ffffff;">TechTots - Jucării Educaționale STEM</p>
-            <p style="margin: 0 0 16px 0;">📧 webira.rem.srl@gmail.com | 📞 +40 771 248 029</p>
+            <p style="margin: 0 0 16px 0;">📧 ${appConfig.contactEmail} | 📞 ${appConfig.storePhoneFormatted}</p>
             <div style="border-top: 1px solid #374151; padding-top: 16px; margin-top: 16px;">
               <p style="margin: 0; font-size: 12px;">
                 © ${new Date().getFullYear()} TechTots. Toate drepturile rezervate. | 

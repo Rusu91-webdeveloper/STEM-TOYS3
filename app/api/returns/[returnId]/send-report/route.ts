@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { format } from "date-fns";
 import { ro } from "date-fns/locale";
 
+import { getAppConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmailViaUnifiedSystem } from "@/lib/nodemailer";
@@ -161,7 +162,7 @@ function generateSupplierEmailTemplate(data: {
               Cu respect,<br><br>
               <strong>${data.storeName}</strong><br>
               📧 ${data.storeEmail}<br>
-              📞 +40 771 248 029<br>
+              📞 ${cfg.storePhoneFormatted}<br>
               📍 ${data.storeAddress}
             </p>
           </div>
@@ -330,7 +331,7 @@ function generateCourierEmailTemplate(data: {
               <strong>${data.storeLegalName}</strong><br>
               CUI: ${data.storeCUI}<br>
               📧 ${data.storeEmail}<br>
-              📞 +40 771 248 029<br>
+              📞 ${cfg.storePhoneFormatted}<br>
               📍 ${data.storeAddress}
             </p>
           </div>
@@ -417,14 +418,15 @@ export async function POST(
       );
     }
 
-    // Get environment variables
+    // Load store config from database (with env var fallbacks)
+    const cfg = await getAppConfig();
     const supplierEmail = process.env.SUPPLIER_EMAIL;
     const courierEmail = process.env.COURIER_CLAIMS_EMAIL;
-    const storeName = process.env.EMAIL_FROM_NAME || "TechTots STEM Store";
-    const storeLegalName = process.env.STORE_LEGAL_NAME || "WEBIRA REM S.R.L.";
+    const storeName = cfg.storeName;
+    const storeLegalName = process.env.STORE_LEGAL_NAME || cfg.legalName;
     const storeCUI = process.env.STORE_CUI || "";
-    const storeEmail = process.env.EMAIL_FROM || "webira.rem.srl@gmail.com";
-    const storeAddress = process.env.STORE_ADDRESS || "Cluj-Napoca, România";
+    const storeEmail = cfg.fromEmail;
+    const storeAddress = cfg.fullAddress;
 
     // Determine recipient email
     let recipientEmail: string;
@@ -455,7 +457,7 @@ export async function POST(
         photos: returnData.photos || [],
         storeName,
         storeEmail,
-        storePhone: "+40 771 248 029",
+        storePhone: cfg.storePhoneFormatted,
         storeAddress,
       });
     } else {
@@ -494,7 +496,7 @@ export async function POST(
         storeLegalName,
         storeCUI,
         storeEmail,
-        storePhone: "+40 771 248 029",
+        storePhone: cfg.storePhoneFormatted,
         storeAddress,
       });
     }

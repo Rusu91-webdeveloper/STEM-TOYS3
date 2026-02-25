@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 
+import { publicConfig } from "@/lib/config/app-config";
+
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
 
@@ -17,8 +19,8 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [contactEmail, setContactEmail] = useState("webira.rem.srl@gmail.com");
-  const [contactPhone, setContactPhone] = useState("+40771 248 029");
+  const [contactEmail, setContactEmail] = useState(publicConfig.contactEmail);
+  const [contactPhone, setContactPhone] = useState(publicConfig.storePhoneFormatted);
 
   // Fetch store settings for contact info
   useEffect(() => {

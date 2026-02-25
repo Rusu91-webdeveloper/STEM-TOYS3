@@ -40,10 +40,10 @@ export default function UnsubscribeErrorPage() {
           Dacă problema persistă, te rugăm să ne contactezi direct la adresa de
           email
           <a
-            href="mailto:support@techtots.ro"
+            href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@techtots.ro"}`}
             className="text-primary hover:underline mx-1"
           >
-            support@techtots.ro
+            {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@techtots.ro"}
           </a>
           pentru asistență.
         </p>

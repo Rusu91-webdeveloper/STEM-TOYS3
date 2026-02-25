@@ -8,6 +8,8 @@
  * - Professional Romanian company branding
  */
 
+import { appConfig } from "@/lib/config/app-config";
+
 import { StoreSettings, Product, Blog } from "@prisma/client";
 
 import { ro as roTranslations } from "@/lib/i18n/translations/ro";
@@ -55,8 +57,8 @@ async function getStoreSettings(): Promise<StoreSettings> {
       storeName: "TechTots STEM Store",
       storeUrl: "https://stem-toys-3.vercel.app",
       storeDescription: "Jucării STEM pentru Minți Curioase",
-      contactEmail: "webira.rem.srl@gmail.com",
-      contactPhone: "+40 771 248 029",
+      contactEmail: appConfig.contactEmail,
+      contactPhone: appConfig.storePhoneFormatted,
       currency: "RON",
       timezone: "Europe/Bucharest",
       dateFormat: "dd-mm-yyyy",
@@ -124,8 +126,8 @@ function generateEmailFooter(storeSettings: StoreSettings): string {
         <p style="margin: 0 0 16px 0; font-weight: 600; color: #1f2937;">${storeSettings.storeName} - Jucării STEM pentru Minți Curioase</p>
         
         <div style="margin-bottom: 20px;">
-          <p style="margin: 0 0 8px 0;"><strong>Email:</strong> webira.rem.srl@gmail.com</p>
-          <p style="margin: 0 0 16px 0;"><strong>Telefon:</strong> +40 771 248 029</p>
+          <p style="margin: 0 0 8px 0;"><strong>Email:</strong> ${appConfig.contactEmail}</p>
+          <p style="margin: 0 0 16px 0;"><strong>Telefon:</strong> ${appConfig.storePhoneFormatted}</p>
         </div>
         
         <div style="margin-bottom: 20px;">
@@ -1482,8 +1484,8 @@ export const sendEmailViaUnifiedSystem = {
         <h3 style="color: #1e40af; margin: 0 0 12px 0; font-size: 16px;">💬 Ai întrebări despre returul tău?</h3>
         <p style="margin: 0; color: #1e40af;">
           Contactează echipa noastră de relații cu clienții la 
-          <a href="mailto:webira.rem.srl@gmail.com" style="color: #1e40af; text-decoration: none; font-weight: 600;">webira.rem.srl@gmail.com</a> 
-          sau sună-ne la <strong>+40 771 248 029</strong>
+          <a href="mailto:${appConfig.contactEmail}" style="color: #1e40af; text-decoration: none; font-weight: 600;">${appConfig.contactEmail}</a> 
+          sau sună-ne la <strong>${appConfig.storePhoneFormatted}</strong>
         </p>
       </div>
       
@@ -1638,8 +1640,8 @@ export const sendEmailViaUnifiedSystem = {
         <h3 style="color: #1e40af; margin: 0 0 12px 0; font-size: 16px;">💬 Ai întrebări despre returul tău?</h3>
         <p style="margin: 0; color: #1e40af;">
           Echipa noastră de relații cu clienții este aici pentru tine! 
-          <a href="mailto:webira.rem.srl@gmail.com" style="color: #1e40af; text-decoration: none; font-weight: 600;">webira.rem.srl@gmail.com</a> 
-          sau sună-ne la <strong>+40 771 248 029</strong>
+          <a href="mailto:${appConfig.contactEmail}" style="color: #1e40af; text-decoration: none; font-weight: 600;">${appConfig.contactEmail}</a> 
+          sau sună-ne la <strong>${appConfig.storePhoneFormatted}</strong>
         </p>
       </div>
       

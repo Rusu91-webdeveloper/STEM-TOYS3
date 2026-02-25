@@ -1,3 +1,4 @@
+import { appConfig } from "@/lib/config/app-config";
 import { createMetadata } from "@/lib/metadata";
 
 // Main website keywords for SEO - Optimized for Romania 2025
@@ -92,7 +93,7 @@ const structuredData = {
     },
     contactPoint: {
       "@type": "ContactPoint",
-      telephone: "+40-xxx-xxx-xxx",
+      telephone: appConfig.storePhone,
       contactType: "customer service",
       areaServed: "RO",
       availableLanguage: ["Romanian", "English"],
@@ -196,8 +197,8 @@ const organizationSchema = {
     {
       "@type": "ContactPoint",
       contactType: "customer service",
-      telephone: "+40-xxx-xxx-xxx",
-      email: "contact@techtots.ro",
+      telephone: appConfig.storePhone,
+      email: appConfig.contactEmail,
       availableLanguage: ["Romanian", "English"],
       hoursAvailable: {
         "@type": "OpeningHoursSpecification",

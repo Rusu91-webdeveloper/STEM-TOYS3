@@ -1,6 +1,7 @@
 import { differenceInDays } from "date-fns";
 import { NextResponse } from "next/server";
 
+import { appConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -124,7 +125,7 @@ export async function POST(request: Request) {
 
     // Get store settings for admin email
     const storeSettings = await db.storeSettings.findFirst();
-    const adminEmail = storeSettings?.contactEmail || "info@techtots.com";
+    const adminEmail = storeSettings?.contactEmail || appConfig.adminEmail;
 
     // Email configuration verified
 

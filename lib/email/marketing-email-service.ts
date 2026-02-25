@@ -3,6 +3,7 @@
  * Integrates marketing settings with actual email functionality
  */
 
+import { appConfig } from "@/lib/config/app-config";
 import {
   getMarketingSettings,
   getEmailMarketingConfig,
@@ -331,7 +332,7 @@ export class MarketingEmailService {
     const defaultVariables = {
       storeName: "TechTots",
       storeUrl: "https://techtots.com",
-      supportEmail: "support@techtots.com",
+      supportEmail: appConfig.supportEmail,
       currentYear: new Date().getFullYear(),
     };
 

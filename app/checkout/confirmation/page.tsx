@@ -2,6 +2,8 @@ import { CheckCircle, Package, Mail, Clock, Truck } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
+import { appConfig } from "@/lib/config/app-config";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 // import { getTranslations } from "@/lib/i18n/server";
@@ -138,10 +140,10 @@ export default async function OrderConfirmationPage({
                   <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
                   Pentru întrebări, contactați-ne la{" "}
                   <a
-                    href="mailto:webira.rem.srl@gmail.com"
+                    href={`mailto:${appConfig.contactEmail}`}
                     className="text-blue-600 underline font-medium hover:text-blue-800"
                   >
-                    webira.rem.srl@gmail.com
+                    {appConfig.contactEmail}
                   </a>
                 </li>
                 <li className="flex items-start gap-2">

@@ -1,3 +1,4 @@
+import { appConfig } from "@/lib/config/app-config";
 import { prisma } from "@/lib/prisma";
 import { getCached, invalidateCache, CacheKeys } from "@/lib/cache";
 import { DEFAULT_COURIERS } from "@/lib/shipping/couriers";
@@ -58,19 +59,19 @@ export async function getStoreSettings() {
         storeUrl: "https://techtots.com",
         storeDescription:
           "TechTots is a premier online destination for STEM toys that inspire learning through play.",
-        contactEmail: "info@techtots.com",
-        contactPhone: "+1 (555) 123-4567",
-        currency: "usd",
-        timezone: "america-new_york",
-        dateFormat: "mm-dd-yyyy",
-        weightUnit: "lb",
-        metaTitle: "TechTots | STEM Toys for Curious Minds",
+        contactEmail: appConfig.contactEmail,
+        contactPhone: appConfig.storePhoneFormatted,
+        currency: "ron",
+        timezone: "europe-bucharest",
+        dateFormat: "dd-mm-yyyy",
+        weightUnit: "kg",
+        metaTitle: "TechTots | Jucării STEM pentru Minți Curioase",
         metaDescription:
-          "Discover the best STEM toys for curious minds at TechTots. Educational toys that make learning fun for children of all ages.",
+          "Descoperă cele mai bune jucării STEM la TechTots. Jucării educaționale care fac învățarea distractivă pentru copii de toate vârstele.",
         metaKeywords:
-          "STEM toys, educational toys, science toys, technology toys, engineering toys, math toys",
-        businessAddress: "Mehedinți 54-56, Bl D5, sc 2, apt 70",
-        businessCity: "Cluj-Napoca",
+          "jucării STEM, jucării educaționale, jucării știință, jucării tehnologie, jucării inginerie, jucării matematică",
+        businessAddress: process.env.STORE_STREET_ADDRESS || "Strada Mehedinți 54-56",
+        businessCity: process.env.STORE_CITY || "Cluj-Napoca",
         businessState: "Cluj",
         businessCountry: "România",
         businessPostalCode: "400000",
@@ -134,23 +135,23 @@ export async function getStoreSettings() {
 
     // Return default settings on error
     const defaultSettings = {
-      storeName: "TechTots",
-      storeUrl: "https://techtots.com",
+      storeName: process.env.EMAIL_FROM_NAME || "TechTots",
+      storeUrl: process.env.NEXT_PUBLIC_SITE_URL || "https://techtots.ro",
       storeDescription:
-        "TechTots is a premier online destination for STEM toys that inspire learning through play.",
-      contactEmail: "info@techtots.com",
-      contactPhone: "+1 (555) 123-4567",
-      currency: "usd",
-      timezone: "america-new_york",
-      dateFormat: "mm-dd-yyyy",
-      weightUnit: "lb",
-      metaTitle: "TechTots | STEM Toys for Curious Minds",
+        "TechTots este destinația online pentru jucării STEM care inspiră învățarea prin joacă.",
+      contactEmail: appConfig.contactEmail,
+      contactPhone: appConfig.storePhoneFormatted,
+      currency: "ron",
+      timezone: "europe-bucharest",
+      dateFormat: "dd-mm-yyyy",
+      weightUnit: "kg",
+      metaTitle: "TechTots | Jucării STEM pentru Minți Curioase",
       metaDescription:
-        "Discover the best STEM toys for curious minds at TechTots. Educational toys that make learning fun for children of all ages.",
+        "Descoperă cele mai bune jucării STEM la TechTots. Jucării educaționale care fac învățarea distractivă pentru copii de toate vârstele.",
       metaKeywords:
-        "STEM toys, educational toys, science toys, technology toys, engineering toys, math toys",
-      businessAddress: "Mehedinți 54-56, Bl D5, sc 2, apt 70",
-      businessCity: "Cluj-Napoca",
+        "jucării STEM, jucării educaționale, jucării știință, jucării tehnologie, jucării inginerie, jucării matematică",
+      businessAddress: process.env.STORE_STREET_ADDRESS || "Strada Mehedinți 54-56",
+      businessCity: process.env.STORE_CITY || "Cluj-Napoca",
       businessState: "Cluj",
       businessCountry: "România",
       businessPostalCode: "400000",

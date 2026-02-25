@@ -53,7 +53,7 @@ export function SupplierPerformanceDashboard() {
         supplier: {
           id: "supplier-1",
           name: "TechToys Romania SRL",
-          email: "contact@techtots.ro",
+          email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "contact@techtots.ro",
           status: "APPROVED",
           commissionRate: 15.0,
           paymentTerms: 30,

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Metadata } from "next";
 
+import { appConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/server/auth";
 import { getStoreSettings, getShippingSettings } from "@/lib/utils/store-settings";
 
@@ -118,8 +119,8 @@ export default async function ReturnsPage() {
     maximumFractionDigits: 0,
   }).format(parseFloat(freeThreshold));
 
-  const contactEmail = storeSettings?.contactEmail ?? "webira.rem.srl@gmail.com";
-  const contactPhone = storeSettings?.contactPhone ?? "+40 771 248 029";
+  const contactEmail = storeSettings?.contactEmail ?? appConfig.contactEmail;
+  const contactPhone = storeSettings?.contactPhone ?? appConfig.storePhoneFormatted;
   const isAuthenticated = Boolean(session?.user);
   const ordersLinkHref = isAuthenticated ? "/account/orders" : "/auth/login";
   const ordersLinkCtaLabel = isAuthenticated
@@ -274,7 +275,10 @@ export default async function ReturnsPage() {
                     <a href={`mailto:${contactEmail}`} className="text-sky-700 underline underline-offset-4 hover:text-sky-600">
                       {contactEmail}
                     </a>{" "}
-                    sau telefon la 0771 248 029
+                    sau telefon la{" "}
+                    <a href={`tel:${contactPhone.replace(/\s/g, "")}`} className="text-sky-700 underline underline-offset-4 hover:text-sky-600">
+                      {contactPhone}
+                    </a>
                   </li>
                   <li>Specifică numărul comenzii și motivul returnării (opțional pentru perioada de răgândire)</li>
                   <li>Vei primi un email cu eticheta de returnare și instrucțiuni detaliate</li>
@@ -407,8 +411,8 @@ export default async function ReturnsPage() {
                     </p>
                     <p>
                       📱 Telefon:{" "}
-                      <a href="tel:+40771248029" className="text-sky-100 underline underline-offset-4 hover:text-white">
-                        0771 248 029
+                      <a href={`tel:${contactPhone.replace(/\s/g, "")}`} className="text-sky-100 underline underline-offset-4 hover:text-white">
+                        {contactPhone}
                       </a>
                     </p>
                     <p>🕒 Program: Luni - Duminică, 9:00 - 18:00</p>

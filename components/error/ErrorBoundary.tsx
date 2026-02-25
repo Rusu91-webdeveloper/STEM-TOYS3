@@ -207,10 +207,10 @@ export class ErrorBoundary extends Component<Props, State> {
                 <p>
                   If this problem persists, please contact our support team at{" "}
                   <a
-                    href="mailto:support@techtots.com"
+                    href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@techtots.ro"}`}
                     className="text-blue-600 hover:underline"
                   >
-                    support@techtots.com
+                    {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@techtots.ro"}
                   </a>
                 </p>
                 <p className="mt-1">

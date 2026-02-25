@@ -3,6 +3,8 @@
  * Monitors and alerts on critical issues
  */
 
+import { appConfig } from "@/lib/config/app-config";
+
 interface AlertConfig {
   email: string;
   slackWebhook?: string;
@@ -278,7 +280,7 @@ class AlertManager {
 
 // Default configuration
 const defaultConfig: AlertConfig = {
-  email: process.env.ALERT_EMAIL || "admin@techtots.com",
+  email: appConfig.alertEmail,
   slackWebhook: process.env.SLACK_WEBHOOK_URL,
   enableConsoleAlerts: true,
   enableEmailAlerts: process.env.NODE_ENV === "production",

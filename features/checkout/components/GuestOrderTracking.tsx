@@ -378,17 +378,17 @@ export function GuestOrderTracking() {
                 If you have any questions about your order, please contact our
                 support team at{" "}
                 <a
-                  href="mailto:support@techtots.com"
+                  href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@techtots.ro"}`}
                   className="underline hover:no-underline"
                 >
-                  support@techtots.com
+                  {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@techtots.ro"}
                 </a>{" "}
                 or call us at{" "}
                 <a
-                  href="tel:+1234567890"
+                  href={`tel:${process.env.NEXT_PUBLIC_STORE_PHONE || "+40771248029"}`}
                   className="underline hover:no-underline"
                 >
-                  (123) 456-7890
+                  {process.env.NEXT_PUBLIC_STORE_PHONE || "+40771248029"}
                 </a>
                 . Please include your order number when contacting us.
               </p>

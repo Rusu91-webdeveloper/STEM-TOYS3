@@ -4,6 +4,8 @@
 import dynamic from "next/dynamic";
 import React, { Suspense } from "react";
 
+import { publicConfig } from "@/lib/config/app-config";
+
 import SeoJsonLd from "@/components/seo/SeoJsonLd";
 import {
   BundlesShowcaseSection,
@@ -197,14 +199,14 @@ export default function HomePageClient({
       description:
         "Magazinul #1 de jucării STEM din România. Transformăm copiii din 'urăsc matematica' în 'când facem experimente?' în doar 30 de zile. Peste 10,000 de părinți mulțumiți.",
       url: baseUrl,
-      telephone: "+40771248029",
-      email: "webira.rem.srl@gmail.com",
+      telephone: publicConfig.storePhone,
+      email: publicConfig.contactEmail,
       address: {
         "@type": "PostalAddress",
-        streetAddress: "Str. Mehedinți 54-56",
-        addressLocality: "Cluj-Napoca",
-        postalCode: "400000",
-        addressRegion: "Cluj",
+        streetAddress: process.env.NEXT_PUBLIC_STORE_STREET_ADDRESS || "Str. Mehedinți 54-56",
+        addressLocality: process.env.NEXT_PUBLIC_STORE_CITY || "Cluj-Napoca",
+        postalCode: process.env.NEXT_PUBLIC_STORE_POSTAL_CODE || "400000",
+        addressRegion: process.env.NEXT_PUBLIC_STORE_STATE || "Cluj",
         addressCountry: "RO",
       },
       geo: {

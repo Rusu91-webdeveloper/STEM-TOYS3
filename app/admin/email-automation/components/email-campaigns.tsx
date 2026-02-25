@@ -1,5 +1,6 @@
 "use client";
 
+import { publicConfig } from "@/lib/config/app-config";
 import {
   Mail,
   Plus,
@@ -343,7 +344,7 @@ export function EmailCampaigns() {
   ) => {
     const recipientEmails = testMode
       ? ["test@example.com"] // Test email
-      : ["admin@techtots.com"]; // For now, send to admin email
+      : [publicConfig.contactEmail]; // For now, send to admin email
 
     setSendingCampaign(campaignId);
     try {

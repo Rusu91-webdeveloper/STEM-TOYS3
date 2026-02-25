@@ -211,7 +211,8 @@ export default function NetopiaCallback() {
         ? `Bună ziua,\n\nAcesta este un raport automat pentru comanda ${orderId}.\nDescriere problemă:\n`
         : "Bună ziua,\n\nDescriere problemă:\n"
     );
-    window.location.href = `mailto:support@techtots.com?subject=${subject}&body=${body}`;
+    const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@techtots.ro";
+    window.location.href = `mailto:${supportEmail}?subject=${subject}&body=${body}`;
   };
 
   return (

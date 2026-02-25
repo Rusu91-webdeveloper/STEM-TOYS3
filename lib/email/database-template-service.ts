@@ -1,3 +1,4 @@
+import { getAppConfig } from "@/lib/config/app-config";
 import { prisma } from "@/lib/prisma";
 import { EMAIL_TEMPLATES } from "./template-library";
 
@@ -570,9 +571,11 @@ export class DatabaseTemplateService {
           ? `https://www.fancourier.ro/awb-tracking/?tracking=${shippingData.trackingNumber}`
           : undefined,
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        storeName: "TechTots STEM Store",
-        contactEmail: "webira.rem.srl@gmail.com",
-        contactPhone: "+40 771 248 029",
+        ...await getAppConfig().then(c => ({
+          storeName: c.storeName,
+          contactEmail: c.contactEmail,
+          contactPhone: c.storePhoneFormatted,
+        })),
       },
     });
   }
@@ -670,9 +673,11 @@ export class DatabaseTemplateService {
         productName: returnData.productName,
         reason: returnData.reason,
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        storeName: "TechTots STEM Store",
-        contactEmail: "webira.rem.srl@gmail.com",
-        contactPhone: "+40 771 248 029",
+        ...await getAppConfig().then(c => ({
+          storeName: c.storeName,
+          contactEmail: c.contactEmail,
+          contactPhone: c.storePhoneFormatted,
+        })),
       },
     });
   }

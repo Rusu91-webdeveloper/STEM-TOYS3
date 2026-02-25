@@ -26,15 +26,15 @@ const aboutStructuredData = {
     foundingDate: "2025",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Strada Mehedinți 54-56",
-      addressLocality: "Cluj-Napoca",
-      addressRegion: "Cluj",
-      postalCode: "400000",
+      streetAddress: process.env.NEXT_PUBLIC_STORE_STREET_ADDRESS || "Strada Mehedinți 54-56",
+      addressLocality: process.env.NEXT_PUBLIC_STORE_CITY || "Cluj-Napoca",
+      addressRegion: process.env.NEXT_PUBLIC_STORE_STATE || "Cluj",
+      postalCode: process.env.NEXT_PUBLIC_STORE_POSTAL_CODE || "400000",
       addressCountry: "RO",
     },
     contactPoint: {
       "@type": "ContactPoint",
-      telephone: "+40-xxx-xxx-xxx",
+      telephone: process.env.NEXT_PUBLIC_STORE_PHONE || "+40771248029",
       contactType: "customer service",
       availableLanguage: "Romanian",
     },
@@ -546,12 +546,14 @@ export default function AboutPage() {
                     <dl className="space-y-3 text-xs text-slate-700 sm:text-sm">
                       <div>
                         <dt className="text-emerald-700">{t("companyLegalEntity", "Denumire")}</dt>
-                        <dd className="mt-1 text-slate-900">WEBIRA REM S.R.L.</dd>
+                        <dd className="mt-1 text-slate-900">
+                          {process.env.NEXT_PUBLIC_STORE_LEGAL_NAME || "WEBIRA REM S.R.L."}
+                        </dd>
                       </div>
                       <div>
                         <dt className="text-emerald-700">{t("companyLegalAddress", "Sediu social")}</dt>
                         <dd className="mt-1 leading-relaxed">
-                          Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70
+                          {process.env.NEXT_PUBLIC_STORE_LEGAL_ADDRESS || "Jud. Cluj, Municipiul Cluj-Napoca, Strada Mehedinți, Nr. 54-56, Bl. D5, Sc. 2, Ap. 70"}
                         </dd>
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2">

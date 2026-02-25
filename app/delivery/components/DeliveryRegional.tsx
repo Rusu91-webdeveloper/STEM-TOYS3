@@ -1,6 +1,10 @@
+import { getAppConfig } from "@/lib/config/app-config";
 import type { LogisticsPillar } from "../data";
 
-export function DeliveryRegional({ logisticsPillars }: { logisticsPillars: LogisticsPillar[] }) {
+export async function DeliveryRegional({ logisticsPillars }: { logisticsPillars: LogisticsPillar[] }) {
+  const cfg = await getAppConfig();
+  const phoneRaw = cfg.contactPhone.replace(/[^0-9]/g, "");
+
   return (
     <section className="container mx-auto px-4 py-12 sm:py-16 lg:py-20">
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -43,7 +47,7 @@ export function DeliveryRegional({ logisticsPillars }: { logisticsPillars: Logis
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/10 p-4 text-xs text-slate-100">
               <p className="font-semibold text-white">Cum revendici garanția:</p>
               <ol className="mt-2 space-y-2">
-                <li>1. Trimite dovada întârzierii la suport@techtots.ro</li>
+                <li>1. Trimite dovada întârzierii la {cfg.contactEmail}</li>
                 <li>2. Primești voucherul în cel mai scurt timp posibil (valabil 60 de zile)</li>
                 <li>3. Livrăm următoarea comandă cu prioritate</li>
               </ol>
@@ -58,26 +62,26 @@ export function DeliveryRegional({ logisticsPillars }: { logisticsPillars: Logis
             <div className="mt-4 space-y-2 text-sm text-slate-100">
               <p>
                 📞 <strong>Telefon:</strong>{" "}
-                <a href="tel:+40771248029" className="text-sky-300 underline underline-offset-4">
-                  0771 248 029
+                <a href={`tel:${cfg.contactPhone}`} className="text-sky-300 underline underline-offset-4">
+                  {cfg.storePhoneFormatted}
                 </a>
               </p>
               <p>
                 💬 <strong>WhatsApp:</strong>{" "}
                 <a
-                  href="https://wa.me/40771248029"
+                  href={`https://wa.me/${phoneRaw}`}
                   className="text-sky-300 underline underline-offset-4"
                 >
-                  wa.me/40771248029
+                  wa.me/{phoneRaw}
                 </a>
               </p>
               <p>
                 ✉️ <strong>Email:</strong>{" "}
                 <a
-                  href="mailto:support@techtots.ro"
+                  href={`mailto:${cfg.contactEmail}`}
                   className="break-all text-sky-300 underline underline-offset-4"
                 >
-                  support@techtots.ro
+                  {cfg.contactEmail}
                 </a>
               </p>
             </div>
@@ -87,5 +91,3 @@ export function DeliveryRegional({ logisticsPillars }: { logisticsPillars: Logis
     </section>
   );
 }
-
-

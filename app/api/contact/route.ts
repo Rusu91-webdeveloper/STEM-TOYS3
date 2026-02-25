@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { getAppConfig } from "@/lib/config/app-config";
 import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 
 const contactFormSchema = z.object({
@@ -32,9 +33,9 @@ export async function POST(request: Request) {
 
     const { name, email, subject, message } = result.data;
 
-    // Get the correct recipient email from environment or use default
-    const recipientEmail =
-      process.env.CONTACT_EMAIL || "webira.rem.srl@gmail.com";
+    // Load store contact details from the database
+    const cfg = await getAppConfig();
+    const recipientEmail = cfg.contactEmail;
 
     // Create HTML email content
     const html = `
@@ -170,8 +171,8 @@ Date: ${new Date().toLocaleDateString("ro-RO", {
             <div style="background-color: #ecfdf5; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 24px 0;">
               <h3 style="color: #047857; margin: 0 0 12px 0; font-size: 16px;">📞 Informații de Contact</h3>
               <p style="margin: 0; color: #047857; font-size: 14px;">
-                <strong>Email:</strong> webira.rem.srl@gmail.com<br>
-                <strong>Telefon:</strong> +40 771 248 029<br>
+                <strong>Email:</strong> ${cfg.contactEmail}<br>
+                <strong>Telefon:</strong> ${cfg.storePhoneFormatted}<br>
                 <strong>Program:</strong> Luni-Vineri, 9:00-17:00
               </p>
             </div>
@@ -191,7 +192,7 @@ Date: ${new Date().toLocaleDateString("ro-RO", {
               <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase
             </p>
             <p style="margin: 8px 0 0 0; color: #6b7280; font-size: 12px;">
-              Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+              ${cfg.fullAddress} | ${cfg.storePhoneFormatted}
             </p>
           </div>
           
@@ -207,7 +208,7 @@ Date: ${new Date().toLocaleDateString("ro-RO", {
       confirmationHtml,
       {
         variables: {
-          textContent: `Bună ${name},\n\nAm primit mesajul tău cu subiectul "${subject}" și îți vom răspunde în cel mai scurt timp posibil.\n\nÎți mulțumim că ne-ai contactat!\n\nEchipa TechTots\nEmail: webira.rem.srl@gmail.com\nTelefon: +40 771 248 029`,
+          textContent: `Bună ${name},\n\nAm primit mesajul tău cu subiectul "${subject}" și îți vom răspunde în cel mai scurt timp posibil.\n\nÎți mulțumim că ne-ai contactat!\n\nEchipa TechTots\nEmail: ${cfg.contactEmail}\nTelefon: ${cfg.storePhoneFormatted}`,
         },
       }
     );

@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 
+import { publicConfig } from "@/lib/config/app-config";
+
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import BusinessHoursSettings from "@/components/admin/BusinessHoursSettings";
 import InventoryManagementSettings from "@/components/admin/InventoryManagementSettings";
@@ -410,17 +412,17 @@ const defaultSettings: StoreSettings = {
   storeUrl: "https://techtots.com",
   storeDescription:
     "TechTots is a premier online destination for STEM toys that inspire learning through play.",
-  contactEmail: "info@techtots.com",
-  contactPhone: "+1 (555) 123-4567",
-  currency: "usd",
-  timezone: "america-new_york",
-  dateFormat: "mm-dd-yyyy",
-  weightUnit: "lb",
-  metaTitle: "TechTots | STEM Toys for Curious Minds",
+  contactEmail: publicConfig.contactEmail,
+  contactPhone: publicConfig.storePhoneFormatted,
+  currency: "ron",
+  timezone: "europe-bucharest",
+  dateFormat: "dd-mm-yyyy",
+  weightUnit: "kg",
+  metaTitle: "TechTots | Jucării STEM pentru Minți Curioase",
   metaDescription:
-    "Discover the best STEM toys for curious minds at TechTots. Educational toys that make learning fun for children of all ages.",
+    "Descoperă cele mai bune jucării STEM la TechTots. Jucării educaționale care fac învățarea distractivă pentru copii de toate vârstele.",
   metaKeywords:
-    "STEM toys, educational toys, science toys, technology toys, engineering toys, math toys",
+    "jucării STEM, jucării educaționale, jucării știință, jucării tehnologie, jucării inginerie, jucării matematică",
   shippingSettings: {
     deliveryPrice: {
       price: "15.00",
@@ -546,7 +548,7 @@ const defaultSettings: StoreSettings = {
       supplierPerformanceReport: true,
       priceChangeReport: true,
       leadTimeReport: true,
-      reportRecipients: ["admin@techtots.com", "manager@techtots.com"],
+      reportRecipients: [publicConfig.contactEmail],
     },
     automatedInventory: {
       enabled: true,
@@ -562,9 +564,9 @@ const defaultSettings: StoreSettings = {
       enabled: true,
       provider: "sendgrid",
       apiKey: "YOUR_SENDGRID_API_KEY",
-      fromEmail: "info@techtots.com",
+      fromEmail: publicConfig.contactEmail,
       fromName: "TechTots",
-      replyToEmail: "support@techtots.com",
+      replyToEmail: publicConfig.supportEmail,
       doubleOptIn: true,
       unsubscribeRequired: true,
       sendEmailViaUnifiedSystem: {
@@ -3217,10 +3219,7 @@ export default function SettingsPage() {
                       supplierPerformanceReport: true,
                       priceChangeReport: true,
                       leadTimeReport: true,
-                      reportRecipients: [
-                        "admin@techtots.com",
-                        "manager@techtots.com",
-                      ],
+                      reportRecipients: [publicConfig.contactEmail],
                     },
                     automatedInventory: {
                       enabled: true,
@@ -3260,9 +3259,9 @@ export default function SettingsPage() {
                       enabled: true,
                       provider: "sendgrid",
                       apiKey: "YOUR_SENDGRID_API_KEY",
-                      fromEmail: "info@techtots.com",
+                      fromEmail: publicConfig.contactEmail,
                       fromName: "TechTots",
-                      replyToEmail: "support@techtots.com",
+                      replyToEmail: publicConfig.supportEmail,
                       doubleOptIn: true,
                       unsubscribeRequired: true,
                       sendEmailViaUnifiedSystem: {

@@ -1,5 +1,7 @@
 import React from "react";
 
+import { appConfig } from "@/lib/config/app-config";
+
 interface StandardEmailFooterProps {
   isMarketing?: boolean;
   unsubscribeUrl?: string;
@@ -14,8 +16,8 @@ export default function StandardEmailFooter({
   unsubscribeUrl = "#",
   currentYear = new Date().getFullYear(),
   siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://techtots.ro",
-  contactEmail = "webira.rem.srl@gmail.com",
-  contactPhone = "+40 771 248 029",
+  contactEmail = appConfig.contactEmail,
+  contactPhone = appConfig.storePhoneFormatted,
 }: StandardEmailFooterProps) {
   return (
     <footer

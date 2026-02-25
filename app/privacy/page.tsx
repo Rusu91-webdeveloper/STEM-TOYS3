@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
+import { publicConfig } from "@/lib/config/app-config";
+
 import { Button } from "@/components/ui/button";
 import { LegalPageShell } from "@/components/legal/LegalPageShell";
 import { Icon, StatusIcons } from "@/components/ui/icon-system";
@@ -24,8 +26,8 @@ const toc = [
 
 export default function PrivacyPage() {
   const { t } = useTranslation();
-  const [contactEmail, setContactEmail] = useState("webira.rem.srl@gmail.com");
-  const [contactPhone, setContactPhone] = useState("+40 771 248 029");
+  const [contactEmail, setContactEmail] = useState(publicConfig.contactEmail);
+  const [contactPhone, setContactPhone] = useState(publicConfig.storePhoneFormatted);
   const lastUpdated = new Intl.DateTimeFormat("ro-RO", {
     day: "numeric",
     month: "long",

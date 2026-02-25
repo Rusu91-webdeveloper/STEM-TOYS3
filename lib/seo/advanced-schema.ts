@@ -4,6 +4,7 @@
  */
 
 import { Product } from "@/types/product";
+import { appConfig } from "@/lib/config/app-config";
 
 /**
  * Educational Product Schema - Custom schema for STEM educational products
@@ -103,7 +104,7 @@ export function generateEducationalOrganizationSchema() {
       "@type": "ContactPoint",
       contactType: "customer service",
       availableLanguage: ["Romanian", "English"],
-      email: "contact@techtots.ro",
+      email: appConfig.contactEmail,
     },
     // Educational focus
     educationalCredentialAwarded: "Certificare MECTS pentru produse educaționale",
@@ -183,8 +184,8 @@ export function generateLocalBusinessSchema() {
     name: "TechTots România - Magazin Online Jucării STEM",
     description: "Cel mai mare magazin online de jucării educaționale STEM din România",
     url: "https://www.techtots.ro",
-    telephone: "+40-XXX-XXX-XXX", // Add your phone number
-    email: "contact@techtots.ro",
+    telephone: appConfig.storePhone,
+    email: appConfig.contactEmail,
     address: {
       "@type": "PostalAddress",
       addressCountry: "RO",

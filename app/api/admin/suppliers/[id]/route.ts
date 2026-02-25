@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { hash } from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 
+import { appConfig } from "@/lib/config/app-config";
 import { resolveAdminUserId } from "@/lib/admin-utils";
 import { auth } from "@/lib/auth";
 import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
@@ -701,7 +702,7 @@ async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
   const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier/dashboard`;
   const productsUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier/products`;
   const ordersUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier/orders`;
-  const supportEmail = "support@techtots.com";
+  const supportEmail = appConfig.supportEmail;
 
   const htmlContent = `
       <!DOCTYPE html>
@@ -864,7 +865,7 @@ async function sendSupplierRejectionEmail(
   supplier: any,
   rejectionReason?: string
 ) {
-  const supportEmail = "support@techtots.com";
+  const supportEmail = appConfig.supportEmail;
   const reapplyUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier`;
 
   const htmlContent = `

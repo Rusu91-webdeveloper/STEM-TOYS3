@@ -3,6 +3,8 @@
  * Dominates local search results for STEM toys in Romania
  */
 
+import { appConfig } from "@/lib/config/app-config";
+
 export interface RomanianCity {
   name: string;
   population: number;
@@ -108,8 +110,8 @@ export function generateLocalBusinessSchema(city: RomanianCity) {
     name: `TechTots - Jucării STEM ${city.name}`,
     description: `Magazin online de jucării educaționale STEM pentru copiii din ${city.name} și împrejurimi. Livrare rapidă și gratuită în ${city.name}.`,
     url: `https://www.techtots.ro/${city.name.toLowerCase()}`,
-    telephone: "+40-XXX-XXX-XXX",
-    email: "contact@techtots.ro",
+    telephone: appConfig.storePhone,
+    email: appConfig.contactEmail,
     address: {
       "@type": "PostalAddress",
       addressLocality: city.name,

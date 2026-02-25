@@ -1,9 +1,10 @@
+import { appConfig } from "@/lib/config/app-config";
 import { logger } from "./logger";
 import { sendEmailViaUnifiedSystem } from "./nodemailer";
 
-// Admin email configuration
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@techtots.com";
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "support@techtots.com";
+// Admin email configuration — sourced from environment variables via appConfig
+const ADMIN_EMAIL = appConfig.adminEmail;
+const SUPPORT_EMAIL = appConfig.supportEmail;
 
 interface SupplierMessageNotification {
   supplierName: string;

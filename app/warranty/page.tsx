@@ -1,6 +1,8 @@
+import { getAppConfig } from "@/lib/config/app-config";
 import { Card } from "@/components/ui/card";
 
-export default function WarrantyPage() {
+export default async function WarrantyPage() {
+  const cfg = await getAppConfig();
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/70 text-slate-900">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),_transparent_55%)]" />
@@ -102,19 +104,19 @@ export default function WarrantyPage() {
                     <p>
                       📧 Email:{" "}
                       <a
-                        href="mailto:webira.rem.srl@gmail.com"
+                        href={`mailto:${cfg.supportEmail}`}
                         className="text-emerald-100 underline underline-offset-4 hover:text-white"
                       >
-                        webira.rem.srl@gmail.com
+                        {cfg.supportEmail}
                       </a>
                     </p>
                     <p>
                       📱 Telefon:{" "}
                       <a
-                        href="tel:+40771248029"
+                        href={`tel:${cfg.contactPhone}`}
                         className="text-emerald-100 underline underline-offset-4 hover:text-white"
                       >
-                        0771 248 029
+                        {cfg.storePhoneFormatted}
                       </a>
                     </p>
                     <p>🕒 Program: Luni - Duminică, 9:00 - 18:00</p>

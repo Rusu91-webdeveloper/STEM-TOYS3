@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { appConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/auth";
 import { validateCsrfForRequest } from "@/lib/csrf";
 import { db } from "@/lib/db";
@@ -484,7 +485,7 @@ export async function POST(request: NextRequest) {
       );
       const siteUrl =
         process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-      const adminEmail = process.env.ADMIN_EMAIL || "admin@techtots.com";
+      const adminEmail = appConfig.adminEmail;
       const supplierEmail = session.user.email as string | undefined;
 
       await sendEmailViaUnifiedSystem({

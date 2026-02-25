@@ -4,6 +4,7 @@
  * automation, and performance optimization engines
  */
 
+import { appConfig } from "@/lib/config/app-config";
 import { sendEmailViaUnifiedSystem } from "@/lib/email/migration-helper";
 import { db } from "@/lib/db";
 import { getStoreSettings } from "@/lib/utils/store-settings";
@@ -79,7 +80,7 @@ export class EmailService {
     enableAutomation: true,
     enablePerformanceOptimization: true,
     defaultTemplate: "professional",
-    fallbackEmail: "noreply@techtots.com",
+    fallbackEmail: appConfig.fromEmail,
     maxRetries: 3,
     timeout: 30000,
   };

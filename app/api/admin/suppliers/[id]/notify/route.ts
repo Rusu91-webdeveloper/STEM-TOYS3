@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { appConfig } from "@/lib/config/app-config";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
@@ -9,7 +10,7 @@ async function sendSupplierApprovalEmail(supplier: any, tempPassword?: string) {
   const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier/dashboard`;
   const productsUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier/products`;
   const ordersUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier/orders`;
-  const supportEmail = "support@techtots.com";
+  const supportEmail = appConfig.supportEmail;
 
   const { sendEmailViaUnifiedSystem } = await import(
     "@/lib/email/migration-helper"
@@ -174,7 +175,7 @@ async function sendSupplierRejectionEmail(
   supplier: any,
   rejectionReason?: string
 ) {
-  const supportEmail = "support@techtots.com";
+  const supportEmail = appConfig.supportEmail;
   const reapplyUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/supplier`;
 
   const { sendEmailViaUnifiedSystem } = await import(

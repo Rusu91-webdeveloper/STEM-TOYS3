@@ -102,7 +102,7 @@ export function createEmailService() {
   return new UnifiedEmailService({
     primaryProvider,
     fallbackProvider,
-    fromEmail: process.env.EMAIL_FROM || "noreply@techtots.com",
+    fromEmail: process.env.EMAIL_FROM || process.env.SUPPORT_EMAIL || "noreply@techtots.ro",
     fromName: process.env.EMAIL_FROM_NAME || "TechTots STEM Store",
     replyTo: process.env.EMAIL_REPLY_TO,
   });

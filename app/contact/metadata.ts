@@ -1,3 +1,4 @@
+import { appConfig } from "@/lib/config/app-config";
 import { createMetadata } from "@/lib/metadata";
 
 const contactStructuredData = {
@@ -15,8 +16,8 @@ const contactStructuredData = {
     contactPoint: [
       {
         "@type": "ContactPoint",
-        telephone: "+40-xxx-xxx-xxx",
-        email: "contact@techtots.ro",
+        telephone: appConfig.storePhone,
+        email: appConfig.contactEmail,
         contactType: "customer service",
         areaServed: "RO",
         availableLanguage: ["Romanian", "English"],
@@ -40,7 +41,7 @@ const contactStructuredData = {
 export const metadata = createMetadata({
   title: "Contact TechTots România | Suport Clienți și Parteneriate",
   description:
-    "Suntem aici pentru întrebări despre comenzi, recomandări de jucării STEM sau parteneriate educaționale. Scrie-ne la contact@techtots.ro sau completează formularul de contact.",
+    `Suntem aici pentru întrebări despre comenzi, recomandări de jucării STEM sau parteneriate educaționale. Scrie-ne la ${appConfig.contactEmail} sau completează formularul de contact.`,
   keywords: [
     "contact TechTots",
     "suport clienți TechTots",
@@ -55,12 +56,12 @@ export const metadata = createMetadata({
     ro: {
       title: "Contact TechTots România | Suport Clienți și Parteneriate",
       description:
-        "Suntem aici pentru întrebări despre comenzi, recomandări de jucării STEM sau parteneriate educaționale. Scrie-ne la contact@techtots.ro sau completează formularul de contact.",
+        `Suntem aici pentru întrebări despre comenzi, recomandări de jucării STEM sau parteneriate educaționale. Scrie-ne la ${appConfig.contactEmail} sau completează formularul de contact.`,
     },
     en: {
       title: "Contact TechTots Romania | Customer Support & Partnerships",
       description:
-        "Reach out for order questions, STEM toy recommendations, or educational partnerships. Email contact@techtots.ro or use the contact form.",
+        `Reach out for order questions, STEM toy recommendations, or educational partnerships. Email ${appConfig.contactEmail} or use the contact form.`,
     },
   },
 });

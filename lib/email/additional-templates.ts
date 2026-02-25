@@ -4,6 +4,8 @@
  * Additional templates for admin notifications, returns, digital products, and password reset
  */
 
+import { appConfig } from "@/lib/config/app-config";
+
 export const ADDITIONAL_EMAIL_TEMPLATES = [
   // ADMIN TEMPLATES
   {
@@ -96,7 +98,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Admin Panel<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                ${appConfig.fullAddress} | ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -204,7 +206,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Admin Panel<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                ${appConfig.fullAddress} | ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -298,7 +300,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                ${appConfig.fullAddress} | ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -410,7 +412,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                ${appConfig.fullAddress} | ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
@@ -498,7 +500,7 @@ export const ADDITIONAL_EMAIL_TEMPLATES = [
         <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
                 <strong>TechTots STEM Store</strong> - Jucării STEM pentru Minți Curioase<br>
-                Mehedinti 54-56, Cluj-Napoca, Cluj | +40 771 248 029
+                ${appConfig.fullAddress} | ${appConfig.storePhoneFormatted}
             </p>
         </div>
     </div>
