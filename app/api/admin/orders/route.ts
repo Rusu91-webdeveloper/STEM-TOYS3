@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
+import { deriveAdminOrderWorkflowSummary } from "@/lib/admin/order-workflow-action";
 import { getCached } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { withRateLimit } from "@/lib/rate-limit";
@@ -28,7 +29,12 @@ export const GET = withRateLimit(
         "status",
         "period",
         "search",
+        "workflowBucket",
       ]);
+      const workflowBucketFilter =
+        filters.workflowBucket && filters.workflowBucket !== "all"
+          ? String(filters.workflowBucket)
+          : null;
 
       // Build where clause for filtering
       const where: any = {};
@@ -80,66 +86,97 @@ export const GET = withRateLimit(
         ];
       }
 
-      // Use shared cache key utility
-      const cacheKey = getCacheKey("admin-orders", { ...filters, page, limit });
-      const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
-
-      // Get total count for pagination (not cached to ensure accuracy)
-      const totalCount = await db.order.count({ where });
-
-      // Get orders with proper relations
-      const orders = await getCached(
-        cacheKey,
-        () =>
-          db.order.findMany({
-            where,
-            include: {
-              user: {
-                select: {
-                  name: true,
-                  email: true,
-                },
-              },
-              items: {
-                select: {
-                  id: true,
-                  quantity: true,
-                },
-              },
+      const orderQueryBase = {
+        where,
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
             },
-            orderBy: {
-              createdAt: "desc",
+          },
+          items: {
+            select: {
+              id: true,
+              quantity: true,
+              isDigital: true,
             },
-            skip,
-            take: limit,
-          }),
-        CACHE_TTL
-      );
+          },
+          shipments: {
+            where: { awbNumber: { not: null } },
+            select: { awbNumber: true },
+            take: 3,
+          },
+          supplierOrders: {
+            select: {
+              id: true,
+              status: true,
+              trackingNumber: true,
+              supplierOrderId: true,
+              supplierId: true,
+              shippedAt: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc" as const,
+        },
+      };
 
-      // Format orders for frontend
-      const formattedOrders = orders.map(order => {
-        // Safely handle date - check if it's valid before converting
-        let dateStr = "N/A";
-        if (order.createdAt) {
-          const date = new Date(order.createdAt);
-          if (!isNaN(date.getTime())) {
-            dateStr = date.toISOString().split("T")[0]; // Format as YYYY-MM-DD
-          }
-        }
+      let totalCount = 0;
+      let formattedOrders: any[] = [];
 
-        return {
-          id: order.orderNumber ?? order.id,
-          customer: order.user?.name ?? "Guest User",
-          email: order.user?.email ?? "N/A",
-          date: dateStr,
-          total: order.total,
-          status: formatStatus(order.status),
-          payment: order.paymentMethod ?? "N/A",
-          items: order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
-          manualShippingReviewRequired: order.manualShippingReviewRequired ?? false,
-          shippingReviewReason: order.shippingReviewReason ?? null,
-        };
-      });
+      if (workflowBucketFilter) {
+        const allOrders = await db.order.findMany(orderQueryBase);
+
+        const mapped = allOrders.map(order => {
+          const workflow = deriveAdminOrderWorkflowSummary({
+            status: order.status,
+            trackingNumber: order.trackingNumber,
+            manualShippingReviewRequired: order.manualShippingReviewRequired,
+            items: order.items,
+            shipments: order.shipments,
+            supplierOrders: order.supplierOrders,
+          });
+          return mapAdminOrderRow(order, workflow);
+        });
+
+        const filtered = mapped.filter(
+          row => row.workflowBucket === workflowBucketFilter
+        );
+        totalCount = filtered.length;
+        formattedOrders = filtered.slice(skip, skip + limit);
+      } else {
+        // Use shared cache key utility
+        const cacheKey = getCacheKey("admin-orders", { ...filters, page, limit });
+        const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
+        // Get total count for pagination (not cached to ensure accuracy)
+        totalCount = await db.order.count({ where });
+
+        const orders = await getCached(
+          cacheKey,
+          () =>
+            db.order.findMany({
+              ...orderQueryBase,
+              skip,
+              take: limit,
+            }),
+          CACHE_TTL
+        );
+
+        formattedOrders = orders.map(order => {
+          const workflow = deriveAdminOrderWorkflowSummary({
+            status: order.status,
+            trackingNumber: order.trackingNumber,
+            manualShippingReviewRequired: order.manualShippingReviewRequired,
+            items: order.items,
+            shipments: order.shipments,
+            supplierOrders: order.supplierOrders,
+          });
+          return mapAdminOrderRow(order, workflow);
+        });
+      }
 
       // Calculate pagination
       const totalPages = Math.ceil(totalCount / limit);
@@ -169,6 +206,33 @@ export const GET = withRateLimit(
 function formatStatus(status: string): string {
   // Convert from enum format (e.g., PROCESSING) to title case (e.g., Processing)
   return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+}
+
+function mapAdminOrderRow(order: any, workflow: any) {
+  let dateStr = "N/A";
+  if (order.createdAt) {
+    const date = new Date(order.createdAt);
+    if (!isNaN(date.getTime())) {
+      dateStr = date.toISOString().split("T")[0];
+    }
+  }
+
+  return {
+    dbId: order.id,
+    id: order.orderNumber ?? order.id,
+    customer: order.user?.name ?? "Guest User",
+    email: order.user?.email ?? "N/A",
+    date: dateStr,
+    total: Number(order.total ?? 0),
+    status: formatStatus(order.status),
+    payment: order.paymentMethod ?? "N/A",
+    items: order.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) ?? 0,
+    manualShippingReviewRequired: order.manualShippingReviewRequired ?? false,
+    shippingReviewReason: order.shippingReviewReason ?? null,
+    workflowBucket: workflow.actionBucket,
+    workflowLabel: workflow.actionLabel,
+    fulfillmentStatus: workflow.fulfillmentStatus,
+  };
 }
 
 // After any admin order mutation (POST, PUT, DELETE), add:

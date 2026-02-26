@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useOptimizedSession } from "@/lib/auth/SessionContext";
 import { useTranslation } from "@/lib/i18n";
 
+import AdminOrderNotificationsBell from "./components/admin-order-notifications-bell";
 import SidebarNav, { adminNavItems } from "./components/sidebar-nav";
 
 export default function AdminLayout({
@@ -106,6 +107,8 @@ export default function AdminLayout({
 
           {/* Right side - User info and actions */}
           <div className="flex items-center gap-4">
+            <AdminOrderNotificationsBell />
+
             {/* Back to main site */}
             <Link
               href="/"

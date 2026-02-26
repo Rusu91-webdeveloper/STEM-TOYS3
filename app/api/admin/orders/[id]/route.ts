@@ -56,9 +56,11 @@ export async function GET(
           include: {
             product: {
               select: {
+                id: true,
                 name: true,
                 images: true,
                 slug: true,
+                sku: true,
               },
             },
             book: {
@@ -89,6 +91,7 @@ export async function GET(
                 id: true,
                 name: true,
                 images: true,
+                sku: true,
               },
             },
           },
@@ -115,6 +118,16 @@ export async function GET(
     );
     const supplierShipmentGroups = groupSupplierOrdersForOperations(
       order.supplierOrders
+    );
+    const supplierMetaByOrderItemId = new Map(
+      order.supplierOrders.map(so => [
+        so.orderItemId,
+        {
+          supplierName: so.supplier.name || so.supplier.companyName || null,
+          sku: so.product?.sku || null,
+          supplierOrderStatus: so.status || null,
+        },
+      ])
     );
 
     const formattedOrder = {
@@ -152,6 +165,11 @@ export async function GET(
         supplierShipmentGroups,
       },
       items: order.items.map(item => ({
+        ...(supplierMetaByOrderItemId.get(item.id) || {
+          supplierName: null,
+          supplierOrderStatus: null,
+          sku: null,
+        }),
         id: item.id,
         name:
           item.product?.name ??
@@ -169,6 +187,7 @@ export async function GET(
               name: item.product.name,
               slug: item.product.slug,
               images: item.product.images,
+              sku: item.product.sku ?? null,
             }
           : null,
         book: item.book
@@ -183,10 +202,12 @@ export async function GET(
       })),
       supplierOrders: order.supplierOrders.map(so => ({
         id: so.id,
+        orderItemId: so.orderItemId,
         supplierId: so.supplierId,
         supplierName: so.supplier.name || so.supplier.companyName,
         productId: so.productId,
         productName: so.product.name,
+        sku: so.product.sku ?? null,
         quantity: so.quantity,
         unitCost: so.unitCost,
         totalCost: so.totalCost,

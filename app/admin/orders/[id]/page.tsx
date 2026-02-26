@@ -48,11 +48,15 @@ type OrderItem = {
   isDigital: boolean;
   returnStatus: string | null;
   isBook: boolean;
+  sku?: string | null;
+  supplierName?: string | null;
+  supplierOrderStatus?: string | null;
   product: {
     id: string;
     name: string;
     slug: string;
     images: string[];
+    sku?: string | null;
   } | null;
   book: {
     id: string;
@@ -150,10 +154,12 @@ type OrderDetails = {
 
 type SupplierOrder = {
   id: string;
+  orderItemId?: string;
   supplierId: string;
   supplierName: string;
   productId: string;
   productName: string;
+  sku?: string | null;
   quantity: number;
   unitCost: number;
   totalCost: number;
@@ -358,6 +364,103 @@ const SUPPLIER_WORKFLOW_STATUS_OPTIONS = [
   "CANCELLED",
   "REFUNDED",
 ] as const;
+
+const QUICK_SUPPLIER_WORKFLOW_ACTIONS: Array<{
+  status: string;
+  label: string;
+  description: string;
+  requiresTracking?: boolean;
+}> = [
+  {
+    status: "PLACED_TO_SUPPLIER",
+    label: "Placed to Supplier",
+    description: "Use after you place the order on the supplier website",
+  },
+  {
+    status: "AWB_UPLOADED",
+    label: "AWB Uploaded",
+    description: "Use after you save supplier AWB / tracking",
+    requiresTracking: true,
+  },
+  {
+    status: "SHIPPED",
+    label: "Shipped",
+    description: "Use after supplier/courier confirms pickup",
+    requiresTracking: true,
+  },
+  {
+    status: "DELIVERED",
+    label: "Delivered",
+    description: "Use when delivery is confirmed",
+  },
+];
+
+const getSupplierLineWorkflowHint = (supplierOrder: SupplierOrder) => {
+  const phase = supplierOrder.phase || "UNKNOWN";
+  const hasTracking = Boolean(supplierOrder.trackingNumber?.trim());
+
+  if (phase === "ISSUE_OOS" || phase === "ISSUE_DELAYED") {
+    return {
+      title: "Resolve supplier issue",
+      description:
+        "Use the OOS/Delayed workflow below, contact the customer, then continue fulfillment.",
+      tone: "warning" as const,
+    };
+  }
+
+  if (phase === "DELIVERED" || supplierOrder.status === "DELIVERED") {
+    return {
+      title: "Done",
+      description: "This supplier line is completed.",
+      tone: "success" as const,
+    };
+  }
+
+  if (phase === "SHIPPED" || supplierOrder.status === "SHIPPED") {
+    return {
+      title: "Next step",
+      description: "Monitor the shipment and mark Delivered when courier confirms delivery.",
+      tone: "info" as const,
+    };
+  }
+
+  if (hasTracking && (phase === "AWB_UPLOADED" || phase === "AWB_PENDING")) {
+    return {
+      title: "Next step",
+      description:
+        "Tracking is saved. Mark Shipped after pickup/dispatch is confirmed.",
+      tone: "info" as const,
+    };
+  }
+
+  if (hasTracking) {
+    return {
+      title: "Next step",
+      description:
+        "Tracking exists. Click AWB Uploaded (or Shipped if already dispatched).",
+      tone: "info" as const,
+    };
+  }
+
+  if (
+    phase === "PLACED_TO_SUPPLIER" ||
+    supplierOrder.status === "PLACED_TO_SUPPLIER"
+  ) {
+    return {
+      title: "Next step",
+      description:
+        "Wait for supplier AWB, then save tracking and click AWB Uploaded.",
+      tone: "info" as const,
+    };
+  }
+
+  return {
+    title: "Next step",
+    description:
+      "Place the order on the supplier website, then click Placed to Supplier.",
+    tone: "warning" as const,
+  };
+};
 
 type OosResolutionAction =
   | "WAIT_RESTOCK"
@@ -711,8 +814,47 @@ export default function OrderDetailsPage() {
     }
   };
 
+  const copySupplierLineForOrdering = async (supplierOrder: SupplierOrder) => {
+    const lines = [
+      `Order: ${order?.orderNumber || "-"}`,
+      `Supplier: ${supplierOrder.supplierName}`,
+      `Product: ${supplierOrder.productName}`,
+      `SKU: ${supplierOrder.sku || "-"}`,
+      `Qty: ${supplierOrder.quantity}`,
+      `Supplier Ref: ${supplierOrder.supplierOrderId || "-"}`,
+      `Tracking: ${supplierOrder.trackingNumber || "-"}`,
+    ];
+
+    try {
+      await navigator.clipboard.writeText(lines.join("\n"));
+      toast({
+        title: "Copied",
+        description: "Supplier order line summary copied to clipboard.",
+      });
+    } catch (error) {
+      console.error("Error copying supplier line summary:", error);
+      toast({
+        title: "Error",
+        description: "Failed to copy supplier line summary.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Update tracking number
-  const updateTrackingNumber = async (supplierOrderId: string) => {
+  const updateTrackingNumber = async (supplierOrder: SupplierOrder) => {
+    const supplierOrderId = supplierOrder.id;
+    const normalizedTracking = trackingInput.trim();
+    const shouldAutoMarkAwbUploaded =
+      normalizedTracking.length > 0 &&
+      ![
+        "AWB_UPLOADED",
+        "SHIPPED",
+        "DELIVERED",
+        "CANCELLED",
+        "REFUNDED",
+      ].includes((supplierOrder.status || "").toUpperCase());
+
     try {
       const response = await fetch(
         `/api/admin/supplier-orders/${supplierOrderId}`,
@@ -722,8 +864,9 @@ export default function OrderDetailsPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            trackingNumber: trackingInput,
+            trackingNumber: normalizedTracking,
             carrier: "FanCourier", // Default carrier, can be made configurable
+            ...(shouldAutoMarkAwbUploaded ? { status: "AWB_UPLOADED" } : {}),
           }),
         }
       );
@@ -734,9 +877,16 @@ export default function OrderDetailsPage() {
 
       toast({
         title: "Success",
-        description: "Tracking number updated",
+        description: shouldAutoMarkAwbUploaded
+          ? "Tracking saved and status set to AWB Uploaded"
+          : "Tracking number updated",
       });
 
+      setSupplierStatusDrafts(prev =>
+        shouldAutoMarkAwbUploaded
+          ? { ...prev, [supplierOrderId]: "AWB_UPLOADED" }
+          : prev
+      );
       setEditingTracking(null);
       setTrackingInput("");
       await fetchOrderDetails();
@@ -753,7 +903,13 @@ export default function OrderDetailsPage() {
   const updateSupplierOrderStatus = async (supplierOrderId: string) => {
     const nextStatus = supplierStatusDrafts[supplierOrderId];
     if (!nextStatus) return;
+    await saveSupplierOrderStatus(supplierOrderId, nextStatus);
+  };
 
+  const saveSupplierOrderStatus = async (
+    supplierOrderId: string,
+    nextStatus: string
+  ) => {
     setSavingSupplierStatusId(supplierOrderId);
     try {
       const response = await fetch(
@@ -771,12 +927,18 @@ export default function OrderDetailsPage() {
         throw new Error("Failed to update supplier order status");
       }
 
+      setSupplierStatusDrafts(prev => ({
+        ...prev,
+        [supplierOrderId]: nextStatus,
+      }));
+
       toast({
         title: "Success",
         description: `Supplier line updated to ${formatWorkflowLabel(nextStatus)}`,
       });
 
       await fetchOrderDetails();
+      return true;
     } catch (error) {
       console.error("Error updating supplier order status:", error);
       toast({
@@ -784,9 +946,38 @@ export default function OrderDetailsPage() {
         description: "Failed to update supplier order status",
         variant: "destructive",
       });
+      return false;
     } finally {
       setSavingSupplierStatusId(null);
     }
+  };
+
+  const applyQuickSupplierStatus = async (
+    supplierOrder: SupplierOrder,
+    nextStatus: string
+  ) => {
+    const needsTracking =
+      nextStatus === "AWB_UPLOADED" || nextStatus === "SHIPPED";
+    const hasTracking = Boolean(supplierOrder.trackingNumber?.trim());
+
+    if (needsTracking && !hasTracking) {
+      toast({
+        title: "Tracking required first",
+        description:
+          "Save the supplier AWB / tracking number first, then click this quick action.",
+        variant: "destructive",
+      });
+      setEditingTracking(supplierOrder.id);
+      setTrackingInput(supplierOrder.trackingNumber || "");
+      return;
+    }
+
+    setSupplierStatusDrafts(prev => ({
+      ...prev,
+      [supplierOrder.id]: nextStatus,
+    }));
+
+    await saveSupplierOrderStatus(supplierOrder.id, nextStatus);
   };
 
   const copyOosCustomerMessage = async (supplierOrder: SupplierOrder) => {
@@ -1349,6 +1540,21 @@ export default function OrderDetailsPage() {
                           by {item.book.author}
                         </p>
                       )}
+                      {!item.isDigital && (
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">
+                            Supplier: {item.supplierName || "Not assigned"}
+                          </span>
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">
+                            SKU: {item.sku || item.product?.sku || "Missing"}
+                          </span>
+                          {item.supplierOrderStatus && (
+                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-700">
+                              Supplier Line: {item.supplierOrderStatus}
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                         <span>Qty: {item.quantity}</span>
                         <span>Price: {formatPrice(item.price)}</span>
@@ -1704,28 +1910,76 @@ export default function OrderDetailsPage() {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">
-                        Supplier Order Lines
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Existing line-level actions (tracking / AWB) remain
-                        unchanged
-                      </p>
-                    </div>
-                    {order.supplierOrders.map(so => (
-                      <div
-                        key={so.id}
-                        className="p-4 border rounded-lg space-y-3"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{so.supplierName}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {so.productName} × {so.quantity}
-                            </p>
-                          </div>
-                          <span
+	                    <div className="flex items-center justify-between">
+	                      <p className="text-sm font-medium">
+	                        Supplier Order Lines
+	                      </p>
+	                      <p className="text-xs text-muted-foreground">
+	                        Use the quick steps below and only use manual status
+	                        dropdown for special cases
+	                      </p>
+	                    </div>
+	                    <div className="rounded-lg border bg-slate-50 p-4 space-y-2">
+	                      <p className="text-sm font-medium">
+	                        Supplier Fulfillment Playbook (per supplier line)
+	                      </p>
+	                      <ol className="list-decimal pl-4 space-y-1 text-xs text-muted-foreground">
+	                        <li>
+	                          Place the order on supplier website, then click{" "}
+	                          <strong>Placed to Supplier</strong>.
+	                        </li>
+	                        <li>
+	                          When supplier sends AWB, save the tracking number
+	                          (AWB), then click <strong>AWB Uploaded</strong>.
+	                        </li>
+	                        <li>
+	                          After courier pickup/dispatch is confirmed, click{" "}
+	                          <strong>Shipped</strong>.
+	                        </li>
+	                        <li>
+	                          When delivered, click <strong>Delivered</strong>.
+	                        </li>
+	                      </ol>
+	                      <p className="text-xs text-slate-600">
+	                        Parent order status updates automatically based on
+	                        supplier line statuses.
+	                      </p>
+	                    </div>
+	                    {order.supplierOrders.map(so => {
+	                      const hasTracking = Boolean(so.trackingNumber?.trim());
+	                      const workflowHint = getSupplierLineWorkflowHint(so);
+	                      const hintToneClasses =
+	                        workflowHint.tone === "success"
+	                          ? "border-green-200 bg-green-50 text-green-900"
+	                          : workflowHint.tone === "warning"
+	                            ? "border-amber-200 bg-amber-50 text-amber-900"
+	                            : "border-blue-200 bg-blue-50 text-blue-900";
+
+	                      return (
+	                      <div
+	                        key={so.id}
+	                        className="p-4 border rounded-lg space-y-3"
+	                      >
+	                        <div className="flex items-center justify-between">
+	                          <div>
+	                            <p className="font-medium">{so.supplierName}</p>
+	                            <p className="text-sm text-muted-foreground">
+	                              {so.productName} × {so.quantity}
+	                            </p>
+	                            <div className="mt-1 flex flex-wrap gap-2 text-xs">
+	                              {so.sku && (
+	                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">
+	                                  SKU: {so.sku}
+	                                </span>
+	                              )}
+	                              {so.supplierOrderId && (
+	                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">
+	                                  Supplier Ref: {so.supplierOrderId}
+	                                </span>
+	                              )}
+	                            </div>
+	                          </div>
+	                          <span
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                               so.status === "SHIPPED"
                                 ? "bg-purple-100 text-purple-800"
@@ -1735,11 +1989,22 @@ export default function OrderDetailsPage() {
                             }`}
                           >
                             {so.status}
-                          </span>
-                        </div>
+	                          </span>
+	                        </div>
 
-                        {so.phase && (
-                          <div>
+	                        <div
+	                          className={`rounded-md border p-3 ${hintToneClasses}`}
+	                        >
+	                          <p className="text-sm font-medium">
+	                            {workflowHint.title}
+	                          </p>
+	                          <p className="mt-1 text-xs opacity-90">
+	                            {workflowHint.description}
+	                          </p>
+	                        </div>
+
+	                        {so.phase && (
+	                          <div>
                             <span
                               className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getPhaseColor(
                                 so.phase
@@ -1747,27 +2012,89 @@ export default function OrderDetailsPage() {
                             >
                               Workflow phase: {formatWorkflowLabel(so.phase)}
                             </span>
-                          </div>
-                        )}
+	                          </div>
+	                        )}
 
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
+	                        <div className="rounded-md border bg-slate-50/70 p-3 space-y-3">
+	                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+	                            <div>
+	                            <p className="text-sm font-medium">
+	                              Quick Workflow Actions
+	                            </p>
+	                            <p className="text-xs text-muted-foreground">
+	                              Fast path for the common dropshipping flow.
+	                            </p>
+	                            </div>
+	                            <Button
+	                              type="button"
+	                              size="sm"
+	                              variant="outline"
+	                              onClick={() => copySupplierLineForOrdering(so)}
+	                            >
+	                              <Copy className="mr-2 h-4 w-4" />
+	                              Copy Supplier Line
+	                            </Button>
+	                          </div>
+	                          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">
+	                            {QUICK_SUPPLIER_WORKFLOW_ACTIONS.map(action => {
+	                              const isCurrent = so.status === action.status;
+	                              const isDisabled =
+	                                savingSupplierStatusId === so.id ||
+	                                Boolean(action.requiresTracking && !hasTracking);
+	                              return (
+	                                <Button
+	                                  key={`${so.id}-${action.status}`}
+	                                  type="button"
+	                                  size="sm"
+	                                  variant={isCurrent ? "default" : "outline"}
+	                                  disabled={isDisabled}
+	                                  onClick={() =>
+	                                    applyQuickSupplierStatus(so, action.status)
+	                                  }
+	                                  className="justify-start h-auto py-2"
+	                                  title={
+	                                    action.requiresTracking && !hasTracking
+	                                      ? "Save tracking number first"
+	                                      : action.description
+	                                  }
+	                                >
+	                                  <span className="text-left">
+	                                    <span className="block text-xs font-medium">
+	                                      {action.label}
+	                                    </span>
+	                                    <span className="block text-[10px] opacity-80 whitespace-normal leading-tight">
+	                                      {action.description}
+	                                    </span>
+	                                  </span>
+	                                </Button>
+	                              );
+	                            })}
+	                          </div>
+	                          {!hasTracking && (
+	                            <p className="text-xs text-amber-700">
+	                              Save AWB/tracking first to enable{" "}
+	                              <strong>AWB Uploaded</strong> and{" "}
+	                              <strong>Shipped</strong>.
+	                            </p>
+	                          )}
+	                        </div>
+
+	                        <div className="grid grid-cols-2 gap-4 text-sm">
+	                          <div>
                             <span className="text-muted-foreground">Cost:</span>
                             <span className="ml-2 font-medium">
                               {formatPrice(so.totalCost)}
                             </span>
                           </div>
-                          {so.supplierOrderId && (
-                            <div>
-                              <span className="text-muted-foreground">
-                                Supplier Order ID:
-                              </span>
-                              <span className="ml-2 font-medium">
-                                {so.supplierOrderId}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+	                          <div>
+	                            <span className="text-muted-foreground">
+	                              Tracking:
+	                            </span>
+	                            <span className="ml-2 font-medium">
+	                              {so.trackingNumber || "Not added yet"}
+	                            </span>
+	                          </div>
+	                        </div>
 
                         <div className="space-y-2">
                           <label className="text-sm font-medium">
@@ -2108,9 +2435,9 @@ export default function OrderDetailsPage() {
                                       </span>
                                     </div>
                                     <div className="space-y-2">
-                                      {oosOps.events
-                                        .slice(0, 8)
-                                        .map((event, idx) => (
+	                                      {oosOps.events
+	                                        .slice(0, 8)
+	                                        .map((event, idx) => (
                                           <div
                                             key={`${event.tag}-${event.timestampText || idx}-${idx}`}
                                             className="rounded border bg-white p-2 text-xs"
@@ -2127,22 +2454,22 @@ export default function OrderDetailsPage() {
                                               </span>
                                             </div>
                                             <div className="mt-1 text-muted-foreground space-y-1">
-                                              {Object.entries(event.data).map(
-                                                ([k, v]) => (
-                                                  <div key={k}>
+	                                              {Object.entries(event.data).map(
+	                                                ([k, v]) => (
+	                                                  <div key={k}>
                                                     <span className="font-medium text-foreground/80">
                                                       {k}:
                                                     </span>{" "}
                                                     <span>{v}</span>
-                                                  </div>
-                                                )
-                                              )}
-                                            </div>
-                                          </div>
-                                        ))}
-                                    </div>
-                                  </div>
-                                )}
+	                                                  </div>
+	                                                )
+	                                              )}
+	                                            </div>
+	                                          </div>
+	                                        ))}
+	                                    </div>
+	                                  </div>
+	                                )}
                               </div>
                             );
                           })()}
@@ -2198,12 +2525,12 @@ export default function OrderDetailsPage() {
                                 placeholder="Enter AWB/tracking number"
                                 className="flex-1 px-3 py-2 border rounded-md text-sm"
                               />
-                              <Button
-                                size="sm"
-                                onClick={() => updateTrackingNumber(so.id)}
-                              >
-                                Save
-                              </Button>
+	                              <Button
+	                                size="sm"
+	                                onClick={() => updateTrackingNumber(so)}
+	                              >
+	                                Save
+	                              </Button>
                             </div>
                           ) : (
                             <p className="text-sm text-muted-foreground">

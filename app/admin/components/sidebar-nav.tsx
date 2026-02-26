@@ -99,6 +99,11 @@ export const adminNavItems = [
     icon: ShoppingCart,
   },
   {
+    title: "My Ops Queue",
+    href: "/admin/ops-queue",
+    icon: Cog,
+  },
+  {
     title: "Order Management",
     href: "/admin/order-management",
     icon: Truck,

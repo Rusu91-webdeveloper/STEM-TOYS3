@@ -72,6 +72,9 @@ type Order = {
   items: number;
   manualShippingReviewRequired?: boolean;
   shippingReviewReason?: string | null;
+  workflowBucket?: "needs_action" | "in_progress" | "done";
+  workflowLabel?: string;
+  fulfillmentStatus?: string;
 };
 
 type Pagination = {
@@ -117,6 +120,27 @@ const getStatusColor = (status: string) => {
 const formatStatus = (status: string): string =>
   status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 
+const formatWorkflowStatusLabel = (value?: string) =>
+  String(value || "")
+    .toLowerCase()
+    .split("_")
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
+const getWorkflowBucketBadgeClasses = (bucket?: string) => {
+  switch (bucket) {
+    case "needs_action":
+      return "bg-red-100 text-red-800";
+    case "done":
+      return "bg-green-100 text-green-800";
+    case "in_progress":
+      return "bg-blue-100 text-blue-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
 export default function OrdersPage() {
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -129,6 +153,7 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [status, setStatus] = useState("all");
+  const [workflowBucket, setWorkflowBucket] = useState("all");
   const [period, setPeriod] = useState("30");
   const { formatPrice } = useCurrency();
 
@@ -154,6 +179,9 @@ export default function OrdersPage() {
       const params = new URLSearchParams();
       if (status !== "all") params.append("status", status);
       if (period !== "all") params.append("period", period);
+      if (workflowBucket !== "all") {
+        params.append("workflowBucket", workflowBucket);
+      }
       if (searchTerm) params.append("search", searchTerm);
       params.append("page", pagination.page.toString());
       params.append("limit", pagination.limit.toString());
@@ -182,7 +210,15 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [status, period, searchTerm, pagination.page, pagination.limit, toast]);
+  }, [
+    status,
+    workflowBucket,
+    period,
+    searchTerm,
+    pagination.page,
+    pagination.limit,
+    toast,
+  ]);
 
   // Function to open status update modal
   const openStatusUpdateModal = (order: Order) => {
@@ -398,6 +434,21 @@ export default function OrdersPage() {
                   </SelectContent>
                 </Select>
                 <Select
+                  defaultValue="all"
+                  value={workflowBucket}
+                  onValueChange={value => setWorkflowBucket(value)}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Workflow" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Workflow</SelectItem>
+                    <SelectItem value="needs_action">Needs Action</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="done">Done</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
                   defaultValue="30"
                   value={period}
                   onValueChange={value => setPeriod(value)}
@@ -478,6 +529,20 @@ export default function OrdersPage() {
                             <div className="mt-1 flex items-center gap-1 text-amber-600" title={order.shippingReviewReason || "Requires shipping review"}>
                               <AlertTriangle className="h-3 w-3" />
                               <span className="text-xs font-medium">Shipping Review</span>
+                            </div>
+                          )}
+                          {order.workflowLabel && (
+                            <div className="mt-1 flex flex-wrap items-center gap-1">
+                              <span
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getWorkflowBucketBadgeClasses(order.workflowBucket)}`}
+                              >
+                                {order.workflowLabel}
+                              </span>
+                              {order.fulfillmentStatus && (
+                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
+                                  {formatWorkflowStatusLabel(order.fulfillmentStatus)}
+                                </span>
+                              )}
                             </div>
                           )}
                         </td>

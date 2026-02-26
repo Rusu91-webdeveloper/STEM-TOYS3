@@ -72,7 +72,7 @@ export function MobileFilterBar({
   };
 
   return (
-    <div className="xl:hidden sticky top-16 z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
+    <div className="xl:hidden relative z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 sm:sticky sm:top-16">
       {/* Compact Header */}
       <div className="px-3 py-2">
         <div className="flex items-center justify-between text-slate-700">

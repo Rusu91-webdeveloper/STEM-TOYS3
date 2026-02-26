@@ -1431,6 +1431,17 @@ export async function POST(request: Request) {
       try {
         const notificationSettings = await getNotificationSettings();
 
+        if (dbOrder?.id) {
+          AdminNotificationService.sendNewOrderNotification(dbOrder.id).catch(
+            err => {
+              console.error(
+                `Failed to send admin new order notification for ${dbOrder.id}:`,
+                err
+              );
+            }
+          );
+        }
+
         if (notificationSettings?.orderConfirmation) {
           console.log(
             `Sending order confirmation email for order ${dbOrder.id}`
