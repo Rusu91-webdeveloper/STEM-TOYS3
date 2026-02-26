@@ -2559,7 +2559,8 @@ export default function OrderDetailsPage() {
                           </div>
                         )}
                       </div>
-                    })}
+                    );
+                  })}
                   </div>
                 ) : (
                   <div className="text-center py-4 text-muted-foreground">
