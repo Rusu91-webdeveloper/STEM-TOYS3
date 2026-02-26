@@ -21,10 +21,11 @@ export async function GET(_req: NextRequest) {
       SHIPPING_SETTINGS_CACHE_TTL
     );
 
-    // **PERFORMANCE**: Add cache headers for client-side caching
+    // Keep browser cache disabled so admin changes appear immediately.
+    // Server-side caching above still protects the database.
     const response = NextResponse.json(shippingSettings);
-    response.headers.set("Cache-Control", "public, max-age=300, s-maxage=300"); // 5 minutes
-    response.headers.set("X-Settings-Cache", "HIT");
+    response.headers.set("Cache-Control", "no-store");
+    response.headers.set("X-Settings-Cache", "SERVER");
 
     return response;
   } catch (error) {

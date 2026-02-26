@@ -2142,22 +2142,24 @@ export default function SettingsPage() {
                   <div className="flex flex-col space-y-1">
                     <div className="flex items-center gap-1">
                       <Label htmlFor="delivery-price">
-                        Delivery Price (for orders under 199 lei)
+                        Delivery Price (when free shipping does not apply)
                       </Label>
                       <HelpTooltip
                         content={
                           <div className="space-y-2">
                             <p className="font-medium">Delivery Price</p>
                             <p>
-                              The delivery price applied to orders under 199 lei.
-                              This price applies to both "FanCourier Standard" (Home delivery)
-                              and "FanCourier FANbox" options. Orders over 199 lei will have
-                              free shipping.
+                              The delivery price applied when an order does not
+                              qualify for free shipping. This price applies to
+                              both "FanCourier Standard" (Home delivery) and
+                              "FanCourier FANbox" options.
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              <strong>Example:</strong> Set to 15.00 lei. Customers with
-                              orders under 199 lei will pay 15.00 lei for delivery, regardless
-                              of whether they choose home delivery or FANbox.
+                              <strong>Example:</strong> Set to 15.00 lei.
+                              Customers whose orders are below your free
+                              shipping threshold will pay 15.00 lei for
+                              delivery, regardless of whether they choose home
+                              delivery or FANbox.
                             </p>
                           </div>
                         }

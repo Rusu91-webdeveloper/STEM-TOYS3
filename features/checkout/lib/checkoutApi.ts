@@ -161,7 +161,9 @@ export async function createOrder(orderData: any) {
  */
 export async function fetchShippingSettings() {
   try {
-    const response = await fetch("/api/checkout/shipping-settings");
+    const response = await fetch("/api/checkout/shipping-settings", {
+      cache: "no-store",
+    });
     if (!response.ok) {
       throw new Error(
         `Error fetching shipping settings: ${response.statusText}`

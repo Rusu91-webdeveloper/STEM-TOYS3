@@ -750,6 +750,8 @@ export async function invalidateCachePattern(pattern: string): Promise<void> {
  */
 export async function invalidateCache(key: string): Promise<void> {
   try {
+    // Also clear local in-memory fallback cache (used when Redis is unavailable)
+    await memoryCache.del(key);
     await cache.del(key);
     console.log(`Invalidated cache key: ${key}`);
   } catch (error) {
