@@ -1379,6 +1379,11 @@ export default function OrderDetailsPage() {
   );
   const hasPhysicalItems = order.items.some(item => item.isDigital !== true);
   const fulfillment = order.fulfillment;
+  const canShowSupplierOrdersSection =
+    order.paymentStatus === "PAID" ||
+    ["cash_on_delivery", "cod"].includes(
+      String(order.paymentMethod || "").toLowerCase()
+    );
 
   return (
     <div className="space-y-6">
@@ -1740,7 +1745,7 @@ export default function OrderDetailsPage() {
           </Card>
 
           {/* Supplier Orders Section */}
-          {order.paymentStatus === "PAID" && (
+          {canShowSupplierOrdersSection && (
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
