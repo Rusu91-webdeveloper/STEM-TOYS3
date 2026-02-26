@@ -1,6 +1,13 @@
 "use client";
 
-import { X, ShoppingBag, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  X,
+  ShoppingBag,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  Check,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
