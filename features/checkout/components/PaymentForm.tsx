@@ -169,9 +169,15 @@ export function PaymentForm({
 
         let shippingCost = 0;
         if (hasPhysicalItems) {
+          const isMixedSupplierCart =
+            shippingMethod?.isMixedSupplierCart === true;
+          const mixedSupplierSurcharge = Math.max(
+            0,
+            shippingMethod?.mixedSupplierSurcharge || 0
+          );
           // Check free shipping threshold FIRST - key fix for consistent UX!
           if (checkFreeShipping(subtotal, settings?.shippingSettings)) {
-            shippingCost = 0; // Free shipping when threshold is exceeded
+            shippingCost = isMixedSupplierCart ? mixedSupplierSurcharge : 0;
           } else {
             shippingCost = baseShippingPrice;
           }
@@ -523,6 +529,15 @@ export function PaymentForm({
     }
 
     if (selectedPaymentMethod === "cash_on_delivery") {
+      if (shippingMethod?.isMixedSupplierCart && shippingMethod?.requiresPrepaid) {
+        setPaymentError(
+          t(
+            "mixedSupplierPrepaidOnly",
+            "Pentru comenzile livrate din furnizori diferiți, plata ramburs nu este disponibilă. Te rugăm să alegi plata cu cardul."
+          )
+        );
+        return;
+      }
       if (showBillingForm && !currentBillingAddress) {
         setPaymentError(
           t(

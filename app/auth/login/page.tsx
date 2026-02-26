@@ -286,11 +286,13 @@ function LoginForm() {
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-center">
-        <p className="text-sm uppercase tracking-[0.3em] text-emerald-300/80">
+        <p className="text-sm uppercase tracking-[0.3em] text-emerald-700/80">
           {t("welcomeBack")}
         </p>
-        <h2 className="text-3xl font-bold text-white">{t("signInCredentials")}</h2>
-        <p className="text-sm text-slate-300">
+        <h2 className="text-3xl font-bold text-slate-900">
+          {t("signInCredentials")}
+        </h2>
+        <p className="text-sm text-slate-600">
           {t(
             "loginHeroSubtitle",
             "Blochează accesul la istoricul comenzilor, recompense și oferte exclusive."
@@ -299,9 +301,9 @@ function LoginForm() {
       </div>
 
       {error && (
-        <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-red-200">
+        <div className="rounded-2xl border border-red-400/40 bg-red-50 p-4 text-red-800">
           <p className="font-medium">{t("signInFailed")}</p>
-          <p className="text-sm">{error}</p>
+          <p className="text-sm text-red-700">{error}</p>
           {error.includes("not verified") && (
             <div className="mt-2 text-sm">
               <p>
@@ -319,18 +321,18 @@ function LoginForm() {
       )}
 
       {success && (
-        <div className="flex items-start gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100">
-          <CheckCircle className="h-5 w-5 flex-shrink-0" />
+        <div className="flex items-start gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-50 p-4 text-emerald-900">
+          <CheckCircle className="h-5 w-5 flex-shrink-0 text-emerald-600" />
           <div>
             <p className="font-medium">{t("authSuccess")}</p>
-            <p className="text-sm">{success}</p>
+            <p className="text-sm text-emerald-800">{success}</p>
           </div>
         </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-slate-200">
+          <Label htmlFor="email" className="text-slate-800">
             {t("email")}
           </Label>
           <Input
@@ -339,28 +341,32 @@ function LoginForm() {
             placeholder={t("emailPlaceholderExample")}
             autoComplete="email"
             {...register("email")}
-            className={cn("bg-transparent text-white placeholder:text-slate-400", {
-              "border-red-400 focus-visible:ring-red-400": Boolean(errors.email),
-            })}
+            className={cn(
+              "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-sky-400 focus-visible:ring-sky-400",
+              {
+                "border-red-400 focus-visible:ring-red-400":
+                  Boolean(errors.email),
+              }
+            )}
           />
           {errors.email && (
-            <p className="text-sm text-red-300">{errors.email.message}</p>
+            <p className="text-sm text-red-600">{errors.email.message}</p>
           )}
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password" className="text-slate-200">
+            <Label htmlFor="password" className="text-slate-800">
               {t("password")}
             </Label>
             <div className="flex flex-col items-end">
               <Link
                 href="/auth/forgot-password"
-                className="text-sm text-emerald-200 hover:text-emerald-100"
+                className="text-sm text-emerald-700 hover:text-emerald-800"
               >
                 {t("forgotPassword")}
               </Link>
-              <p className="mt-1 text-xs text-slate-400">{t("oauthUserHint")}</p>
+              <p className="mt-1 text-xs text-slate-500">{t("oauthUserHint")}</p>
             </div>
           </div>
           <PasswordInput
@@ -369,18 +375,18 @@ function LoginForm() {
             autoComplete="current-password"
             {...register("password")}
             className={cn(
-              "bg-transparent text-white placeholder:text-slate-400",
+              "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-sky-400 focus-visible:ring-sky-400",
               errors.password && "border-red-400 focus-visible:ring-red-400"
             )}
           />
           {errors.password && (
-            <p className="text-sm text-red-300">{errors.password.message}</p>
+            <p className="text-sm text-red-600">{errors.password.message}</p>
           )}
         </div>
 
         <Button
           type="submit"
-          className="w-full bg-gradient-to-r from-emerald-400 via-sky-500 to-indigo-500 text-white shadow-lg shadow-emerald-500/40 hover:from-emerald-300 hover:via-sky-400 hover:to-indigo-400"
+          className="w-full bg-gradient-to-r from-emerald-500 via-sky-500 to-indigo-500 text-white shadow-lg shadow-emerald-400/50 hover:from-emerald-400 hover:via-sky-400 hover:to-indigo-400"
           disabled={isLoading}
         >
           {isLoading ? t("signingIn") : t("signIn")}
@@ -389,10 +395,10 @@ function LoginForm() {
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <Separator className="w-full bg-white/10" />
+          <Separator className="w-full bg-slate-200" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-slate-900 px-2 text-sm text-slate-400">
+          <span className="bg-white px-2 text-sm text-slate-500">
             {t("orContinueWith")}
           </span>
         </div>
@@ -400,11 +406,11 @@ function LoginForm() {
 
       <GoogleSignInButton />
 
-      <div className="text-center text-sm text-slate-300">
+      <div className="text-center text-sm text-slate-600">
         {t("dontHaveAccount")}{" "}
         <Link
           href="/auth/register"
-          className="font-medium text-emerald-200 hover:text-emerald-100"
+          className="font-medium text-emerald-700 hover:text-emerald-800"
         >
           {t("createAccount")}
         </Link>

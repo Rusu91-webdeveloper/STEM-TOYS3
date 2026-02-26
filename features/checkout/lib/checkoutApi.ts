@@ -131,6 +131,16 @@ export async function createOrder(orderData: any) {
         );
       }
 
+      if (errorData.error === "MIXED_SUPPLIER_PREPAID_REQUIRED") {
+        throw new CheckoutError(
+          "MIXED_SUPPLIER_PREPAID_REQUIRED",
+          errorData.message ||
+            "Comenzile cu produse din furnizori diferiți pot fi plătite doar online.",
+          false,
+          "payment"
+        );
+      }
+
       throw new CheckoutError(
         "CHECKOUT_ORDER_FAILED",
         errorData.message || `Error: ${response.status} - ${response.statusText}`,

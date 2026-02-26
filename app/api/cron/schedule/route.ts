@@ -29,6 +29,13 @@ export async function GET(req: NextRequest) {
         frequency: "Every hour",
         lastRun: new Date().toISOString(),
       },
+      {
+        name: "oos-reminders",
+        endpoint: "/api/cron/oos-reminders",
+        description: "Send admin reminders for unresolved supplier OOS issues",
+        frequency: "Every hour",
+        lastRun: new Date().toISOString(),
+      },
     ];
 
     return NextResponse.json({
@@ -88,6 +95,9 @@ export async function POST(req: NextRequest) {
         break;
       case "auto-complete-orders":
         endpoint = "/api/cron/auto-complete-orders";
+        break;
+      case "oos-reminders":
+        endpoint = "/api/cron/oos-reminders";
         break;
       default:
         return NextResponse.json(

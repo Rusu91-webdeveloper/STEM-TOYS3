@@ -4,6 +4,10 @@ import { auth } from "@/lib/auth";
 import { SESSION_CART_STORAGE, getCartId } from "@/lib/cart-storage";
 import { db } from "@/lib/db";
 import {
+  analyzeSupplierCartComposition,
+  calculateMixedSupplierShippingSurcharge,
+} from "@/lib/checkout/supplier-cart-rules";
+import {
   calculateShippingQuote,
   resolveShippingService,
 } from "@/lib/shipping/shipping-pricing";
@@ -34,9 +38,22 @@ export async function GET(request: NextRequest) {
     const productIds = physicalItems.map(item => item.productId);
     const products = await db.product.findMany({
       where: { id: { in: productIds } },
-      select: { id: true, weight: true, dimensions: true },
+      select: {
+        id: true,
+        weight: true,
+        dimensions: true,
+        supplierId: true,
+        supplier: {
+          select: {
+            id: true,
+            name: true,
+            companyName: true,
+          },
+        },
+      },
     });
     const productMap = new Map(products.map(product => [product.id, product]));
+    const supplierCartRules = analyzeSupplierCartComposition(physicalItems, products);
 
     const shippingItems = physicalItems
       .map(item => {
@@ -85,6 +102,14 @@ export async function GET(request: NextRequest) {
             const priceOverride = service.priceOverride
               ? Number(service.priceOverride)
               : null;
+            const singleShipmentPrice =
+              Number.isFinite(priceOverride) && priceOverride !== null
+                ? priceOverride
+                : quote?.totalPrice ?? 0;
+            const mixedSupplierSurcharge = calculateMixedSupplierShippingSurcharge(
+              singleShipmentPrice,
+              supplierCartRules
+            );
 
             return {
               id: methodId,
@@ -92,12 +117,18 @@ export async function GET(request: NextRequest) {
               description: service.description,
               estimatedDelivery: service.estimatedDelivery,
               serviceId: service.id,
-              price:
-                Number.isFinite(priceOverride) && priceOverride !== null
-                  ? priceOverride
-                  : quote?.totalPrice ?? 0,
+              price: singleShipmentPrice + mixedSupplierSurcharge,
               pricingVersion: quote?.pricingVersion ?? null,
               basePrice: quote?.basePrice ?? null,
+              singleShipmentPrice,
+              mixedSupplierSurcharge,
+              isMixedSupplierCart: supplierCartRules.isMixedSupplierCart,
+              requiresPrepaid: supplierCartRules.requiresPrepaid,
+              supplierCount: supplierCartRules.supplierCount,
+              supplierNames: supplierCartRules.supplierNames,
+              shippingPolicyMessage: supplierCartRules.isMixedSupplierCart
+                ? "Order ships in multiple packages. An additional shipping fee applies for split supplier fulfillment."
+                : null,
               weights: quote?.weights ?? null,
               courierId: courier.id,
               methodType: service.methodType,
@@ -109,6 +140,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       isDigitalOnly: false,
+      cartRules: {
+        ...supplierCartRules,
+        shippingPolicyMessage: supplierCartRules.isMixedSupplierCart
+          ? "Mixed-supplier orders ship in multiple packages and require prepaid payment."
+          : null,
+      },
       methods,
     });
   } catch (error) {

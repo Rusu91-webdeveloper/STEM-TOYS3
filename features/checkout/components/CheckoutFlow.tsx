@@ -62,10 +62,16 @@ export function CheckoutFlow() {
       return 0;
     }
 
+    const isMixedSupplierCart = checkoutData.shippingMethod?.isMixedSupplierCart === true;
+    const mixedSupplierSurcharge = Math.max(
+      0,
+      checkoutData.shippingMethod?.mixedSupplierSurcharge || 0
+    );
+
     // Check free shipping threshold FIRST - this is the key fix!
     const cartSubtotal = getCartTotal();
     if (checkFreeShipping(cartSubtotal, settings?.shippingSettings)) {
-      return 0; // Free shipping when threshold is exceeded
+      return isMixedSupplierCart ? mixedSupplierSurcharge : 0;
     }
 
     const deliveryPrice = settings?.shippingSettings?.deliveryPrice?.active

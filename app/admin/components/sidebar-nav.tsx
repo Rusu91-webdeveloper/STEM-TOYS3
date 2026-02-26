@@ -26,6 +26,7 @@ import {
   Truck,
   Cog,
   CreditCard,
+  AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -101,6 +102,11 @@ export const adminNavItems = [
     title: "Order Management",
     href: "/admin/order-management",
     icon: Truck,
+  },
+  {
+    title: "Fulfillment Issues",
+    href: "/admin/fulfillment-issues",
+    icon: AlertCircle,
   },
   {
     title: "Returns",

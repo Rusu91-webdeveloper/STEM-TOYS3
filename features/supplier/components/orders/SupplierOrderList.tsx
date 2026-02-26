@@ -60,6 +60,21 @@ const statusConfig = {
     color: "bg-orange-100 text-orange-800 border-orange-200",
     icon: Package
   },
+  PLACED_TO_SUPPLIER: {
+    label: "Placed to Supplier",
+    color: "bg-blue-100 text-blue-800 border-blue-200",
+    icon: Package
+  },
+  AWB_PENDING: {
+    label: "AWB Pending",
+    color: "bg-orange-100 text-orange-800 border-orange-200",
+    icon: Clock
+  },
+  AWB_UPLOADED: {
+    label: "AWB Uploaded",
+    color: "bg-cyan-100 text-cyan-800 border-cyan-200",
+    icon: Package
+  },
   SHIPPED: {
     label: "Shipped",
     color: "bg-indigo-100 text-indigo-800 border-indigo-200",
@@ -74,6 +89,21 @@ const statusConfig = {
     label: "Cancelled",
     color: "bg-red-100 text-red-800 border-red-200",
     icon: XCircle
+  },
+  ISSUE_OOS: {
+    label: "Out of Stock",
+    color: "bg-red-100 text-red-800 border-red-200",
+    icon: AlertTriangle
+  },
+  ISSUE_DELAYED: {
+    label: "Delayed",
+    color: "bg-amber-100 text-amber-800 border-amber-200",
+    icon: AlertTriangle
+  },
+  REFUNDED: {
+    label: "Refunded",
+    color: "bg-slate-100 text-slate-800 border-slate-200",
+    icon: CheckCircle
   }
 };
 

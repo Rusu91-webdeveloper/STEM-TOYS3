@@ -73,8 +73,14 @@ export type SupplierOrderStatus =
   | "CONFIRMED"
   | "IN_PRODUCTION"
   | "READY_TO_SHIP"
+  | "PLACED_TO_SUPPLIER"
+  | "AWB_PENDING"
+  | "AWB_UPLOADED"
   | "SHIPPED"
   | "DELIVERED"
+  | "ISSUE_OOS"
+  | "ISSUE_DELAYED"
+  | "REFUNDED"
   | "CANCELLED";
 
 export type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED";

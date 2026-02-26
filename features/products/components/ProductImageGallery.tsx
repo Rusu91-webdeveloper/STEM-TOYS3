@@ -187,21 +187,25 @@ export function ProductImageGallery({
           className="fixed inset-0 z-[90] bg-black/95 p-0 sm:p-6"
           onClick={closeFullscreen}
         >
+          {/* Close button — fixed to viewport so it always shows above the image */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-3 top-3 z-[100] h-10 w-10 rounded-full border border-white/25 bg-black/70 text-white hover:bg-white/20 sm:right-5 sm:top-5"
+            onClick={event => {
+              event.stopPropagation();
+              closeFullscreen();
+            }}
+            aria-label="Close full screen image viewer"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+
           <div
             className="relative mx-auto flex h-full w-full max-w-6xl items-center justify-center"
             onClick={event => event.stopPropagation()}
           >
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 z-20 h-10 w-10 rounded-full border border-white/25 bg-black/60 text-white hover:bg-black/80 sm:right-2 sm:top-2"
-              onClick={closeFullscreen}
-              aria-label="Close full screen image viewer"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-
             {images.length > 1 && (
               <Button
                 type="button"

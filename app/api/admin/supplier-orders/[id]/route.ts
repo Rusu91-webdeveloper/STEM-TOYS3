@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { syncParentOrderFromSupplierOrders } from "@/lib/order-fulfillment-sync";
 
 // Validation schema for updating supplier order
 const updateSupplierOrderSchema = z.object({
@@ -11,6 +12,7 @@ const updateSupplierOrderSchema = z.object({
   carrier: z.string().optional(),
   status: z.string().optional(),
   notes: z.string().optional(),
+  appendNote: z.string().optional(),
 });
 
 // PATCH - Update supplier order (admin only)
@@ -30,7 +32,7 @@ export async function PATCH(
     const body = await request.json();
 
     // Validate the request body
-    const updateData = updateSupplierOrderSchema.parse(body);
+    const updatePayload = updateSupplierOrderSchema.parse(body);
 
     // Find the existing supplier order
     const existingOrder = await db.supplierOrder.findUnique({
@@ -45,13 +47,41 @@ export async function PATCH(
     }
 
     // Update the supplier order
+    const mergedNotes = updatePayload.appendNote
+      ? [existingOrder.notes, updatePayload.appendNote.trim()]
+          .filter(Boolean)
+          .join("\n\n")
+      : updatePayload.notes;
+
+    const updateData: Record<string, unknown> = {
+      updatedAt: new Date(),
+    };
+
+    if (typeof updatePayload.trackingNumber !== "undefined") {
+      updateData.trackingNumber = updatePayload.trackingNumber;
+    }
+    if (typeof updatePayload.supplierOrderId !== "undefined") {
+      updateData.supplierOrderId = updatePayload.supplierOrderId;
+    }
+    if (typeof updatePayload.carrier !== "undefined") {
+      updateData.carrier = updatePayload.carrier;
+    }
+    if (typeof updatePayload.status !== "undefined") {
+      updateData.status = updatePayload.status;
+    }
+    if (
+      typeof updatePayload.notes !== "undefined" ||
+      typeof updatePayload.appendNote !== "undefined"
+    ) {
+      updateData.notes = mergedNotes;
+    }
+
     const updatedOrder = await db.supplierOrder.update({
       where: { id: supplierOrderId },
       data: {
         ...updateData,
-        updatedAt: new Date(),
         // Set shippedAt if status is SHIPPED
-        ...(updateData.status === "SHIPPED" && !existingOrder.shippedAt
+        ...(updatePayload.status === "SHIPPED" && !existingOrder.shippedAt
           ? { shippedAt: new Date() }
           : {}),
       },
@@ -78,16 +108,11 @@ export async function PATCH(
       },
     });
 
-    // If tracking number is added, also update the main order
-    if (updateData.trackingNumber && existingOrder.orderId) {
-      await db.order.update({
-        where: { id: existingOrder.orderId },
-        data: {
-          trackingNumber: updateData.trackingNumber,
-          carrier: updateData.carrier || existingOrder.carrier,
-          ...(updateData.status === "SHIPPED" ? { status: "SHIPPED" } : {}),
-        },
-      });
+    if (existingOrder.orderId) {
+      await syncParentOrderFromSupplierOrders(
+        existingOrder.orderId,
+        "admin-supplier-order-update"
+      );
     }
 
     return NextResponse.json({

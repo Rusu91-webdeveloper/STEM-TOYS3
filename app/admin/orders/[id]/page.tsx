@@ -17,6 +17,8 @@ import {
   Plus,
   Edit,
   Mail,
+  Copy,
+  MessageSquareWarning,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -70,6 +72,49 @@ type ShipmentSummary = {
   updatedAt?: string;
 };
 
+type SupplierFulfillmentPhase =
+  | "READY_TO_PLACE"
+  | "PLACED_TO_SUPPLIER"
+  | "AWB_PENDING"
+  | "AWB_UPLOADED"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "ISSUE_OOS"
+  | "ISSUE_DELAYED"
+  | "CANCELLED"
+  | "REFUNDED"
+  | "UNKNOWN";
+
+type SupplierShipmentTaskGroup = {
+  key: string;
+  supplierId: string | null;
+  supplierName: string;
+  lineCount: number;
+  totalQuantity: number;
+  displayStatus: string;
+  dbOrderStatus: string;
+  phases: SupplierFulfillmentPhase[];
+  trackingNumbers: string[];
+  lines: Array<{
+    supplierOrderId?: string;
+    lineStatus?: string | null;
+    phase: SupplierFulfillmentPhase;
+    productName: string | null;
+    quantity: number;
+    trackingNumber: string | null;
+  }>;
+};
+
+type FulfillmentSummary = {
+  displayStatus: string;
+  dbOrderStatus: string;
+  hasMixedSuppliers: boolean;
+  supplierCount: number;
+  hasIssues: boolean;
+  counts: Record<string, number>;
+  supplierShipmentGroups: SupplierShipmentTaskGroup[];
+};
+
 type OrderDetails = {
   id: string;
   orderNumber: string;
@@ -100,6 +145,7 @@ type OrderDetails = {
   items: OrderItem[];
   shipments?: ShipmentSummary[];
   supplierOrders?: SupplierOrder[];
+  fulfillment?: FulfillmentSummary;
 };
 
 type SupplierOrder = {
@@ -112,12 +158,153 @@ type SupplierOrder = {
   unitCost: number;
   totalCost: number;
   status: string;
+  phase?: SupplierFulfillmentPhase;
   trackingNumber?: string | null;
   supplierOrderId?: string | null;
   carrier?: string | null;
   shippedAt?: string | null;
   estimatedDelivery?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   notes?: string | null;
+};
+
+type OosNotificationChannel = "EMAIL" | "PHONE" | "WHATSAPP" | "SMS" | "OTHER";
+
+type OosNoteEvent = {
+  tag: string;
+  timestamp?: Date;
+  timestampText?: string;
+  data: Record<string, string>;
+  raw: string;
+};
+
+const OOS_NOTIFICATION_CHANNEL_OPTIONS: OosNotificationChannel[] = [
+  "EMAIL",
+  "PHONE",
+  "WHATSAPP",
+  "SMS",
+  "OTHER",
+];
+
+const OOS_SLA_WARNING_HOURS = 24;
+
+const formatOosEventLabel = (tag: string) =>
+  tag
+    .replace(/^OOS_/, "")
+    .toLowerCase()
+    .split("_")
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
+const parseOosNoteEvents = (notes?: string | null): OosNoteEvent[] => {
+  if (!notes) return [];
+
+  return notes
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.startsWith("[OOS_"))
+    .map(line => {
+      const tagMatch = line.match(/^\[(OOS_[A-Z_]+)\]\s*(.*)$/);
+      if (!tagMatch) {
+        return {
+          tag: "OOS_UNKNOWN",
+          raw: line,
+          data: {},
+        } as OosNoteEvent;
+      }
+
+      const [, tag, restRaw] = tagMatch;
+      const segments = restRaw
+        .split(" ; ")
+        .map(seg => seg.trim())
+        .filter(Boolean);
+      const timestampText = segments[0];
+      const parsedTimestamp = timestampText
+        ? new Date(timestampText)
+        : undefined;
+      const timestamp =
+        parsedTimestamp && !Number.isNaN(parsedTimestamp.getTime())
+          ? parsedTimestamp
+          : undefined;
+
+      const data: Record<string, string> = {};
+      for (const segment of segments.slice(1)) {
+        const idx = segment.indexOf("=");
+        if (idx <= 0) continue;
+        const key = segment.slice(0, idx).trim();
+        const value = segment.slice(idx + 1).trim();
+        if (key) data[key] = value;
+      }
+
+      return {
+        tag,
+        timestamp,
+        timestampText,
+        data,
+        raw: line,
+      };
+    })
+    .sort((a, b) => {
+      const at = a.timestamp?.getTime() ?? 0;
+      const bt = b.timestamp?.getTime() ?? 0;
+      return bt - at;
+    });
+};
+
+const getLatestOosEvent = (events: OosNoteEvent[], tags: string[]) =>
+  events.find(event => tags.includes(event.tag));
+
+const getOosOpsSnapshot = (supplierOrder: SupplierOrder) => {
+  const events = parseOosNoteEvents(supplierOrder.notes);
+  const latestDecision = getLatestOosEvent(events, ["OOS_DECISION"]);
+  const latestNotification = getLatestOosEvent(events, [
+    "OOS_CUSTOMER_NOTIFIED",
+  ]);
+  const latestResponse = getLatestOosEvent(events, ["OOS_CUSTOMER_RESPONSE"]);
+
+  const issueDecisionAt = latestDecision?.timestamp
+    ? latestDecision.timestamp
+    : supplierOrder.createdAt
+      ? new Date(supplierOrder.createdAt)
+      : null;
+  const lastActivityAt = supplierOrder.updatedAt
+    ? new Date(supplierOrder.updatedAt)
+    : supplierOrder.createdAt
+      ? new Date(supplierOrder.createdAt)
+      : null;
+
+  const issueAgeHours =
+    issueDecisionAt && !Number.isNaN(issueDecisionAt.getTime())
+      ? (Date.now() - issueDecisionAt.getTime()) / (1000 * 60 * 60)
+      : null;
+
+  const inactivityHours =
+    lastActivityAt && !Number.isNaN(lastActivityAt.getTime())
+      ? (Date.now() - lastActivityAt.getTime()) / (1000 * 60 * 60)
+      : null;
+
+  const latestDecisionTs = latestDecision?.timestamp?.getTime() ?? 0;
+  const latestNotificationTs = latestNotification?.timestamp?.getTime() ?? 0;
+
+  const needsCustomerNotification =
+    Boolean(latestDecision) &&
+    (!latestNotification || latestNotificationTs < latestDecisionTs);
+
+  const isSlaOverdue =
+    typeof inactivityHours === "number" &&
+    inactivityHours >= OOS_SLA_WARNING_HOURS;
+
+  return {
+    events,
+    latestDecision,
+    latestNotification,
+    latestResponse,
+    issueAgeHours,
+    inactivityHours,
+    needsCustomerNotification,
+    isSlaOverdue,
+  };
 };
 
 // Helper functions
@@ -156,6 +343,118 @@ const getStatusColor = (status: string) => {
 const formatStatus = (status: string): string =>
   status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 
+const SUPPLIER_WORKFLOW_STATUS_OPTIONS = [
+  "PENDING",
+  "CONFIRMED",
+  "IN_PRODUCTION",
+  "READY_TO_SHIP",
+  "PLACED_TO_SUPPLIER",
+  "AWB_PENDING",
+  "AWB_UPLOADED",
+  "SHIPPED",
+  "DELIVERED",
+  "ISSUE_OOS",
+  "ISSUE_DELAYED",
+  "CANCELLED",
+  "REFUNDED",
+] as const;
+
+type OosResolutionAction =
+  | "WAIT_RESTOCK"
+  | "OFFER_REPLACEMENT"
+  | "PARTIAL_REFUND_ITEM"
+  | "REPLACEMENT_CONFIRMED";
+
+const OOS_RESOLUTION_OPTIONS: Array<{
+  value: OosResolutionAction;
+  label: string;
+  targetStatus: string;
+  detailPlaceholder: string;
+}> = [
+  {
+    value: "WAIT_RESTOCK",
+    label: "Wait for Restock",
+    targetStatus: "ISSUE_DELAYED",
+    detailPlaceholder:
+      "ETA from supplier (example: 3-5 days) or cutoff for customer reply",
+  },
+  {
+    value: "OFFER_REPLACEMENT",
+    label: "Offer Replacement",
+    targetStatus: "ISSUE_OOS",
+    detailPlaceholder: "Replacement options / SKUs / price difference",
+  },
+  {
+    value: "PARTIAL_REFUND_ITEM",
+    label: "Partial Refund (Item)",
+    targetStatus: "CANCELLED",
+    detailPlaceholder: "Refund timing / reference / who approved",
+  },
+  {
+    value: "REPLACEMENT_CONFIRMED",
+    label: "Replacement Confirmed",
+    targetStatus: "READY_TO_PLACE",
+    detailPlaceholder: "Approved replacement item + internal note",
+  },
+];
+
+const OOS_ACTION_TO_TARGET_STATUS: Record<OosResolutionAction, string> =
+  Object.fromEntries(
+    OOS_RESOLUTION_OPTIONS.map(option => [option.value, option.targetStatus])
+  ) as Record<OosResolutionAction, string>;
+
+const formatWorkflowLabel = (value: string): string =>
+  value
+    .toLowerCase()
+    .split("_")
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
+const getFulfillmentBadgeColor = (status: string) => {
+  switch (status.toUpperCase()) {
+    case "PARTIALLY_SHIPPED":
+      return "bg-amber-100 text-amber-800";
+    case "SHIPPED":
+      return "bg-purple-100 text-purple-800";
+    case "DELIVERED":
+      return "bg-green-100 text-green-800";
+    case "ISSUE":
+      return "bg-red-100 text-red-800";
+    case "PROCESSING":
+      return "bg-blue-100 text-blue-800";
+    case "CANCELLED":
+      return "bg-gray-200 text-gray-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+const getPhaseColor = (phase?: string) => {
+  switch ((phase || "").toUpperCase()) {
+    case "READY_TO_PLACE":
+      return "bg-yellow-100 text-yellow-800";
+    case "PLACED_TO_SUPPLIER":
+      return "bg-blue-100 text-blue-800";
+    case "AWB_PENDING":
+      return "bg-orange-100 text-orange-800";
+    case "AWB_UPLOADED":
+      return "bg-cyan-100 text-cyan-800";
+    case "SHIPPED":
+      return "bg-purple-100 text-purple-800";
+    case "DELIVERED":
+      return "bg-green-100 text-green-800";
+    case "ISSUE_OOS":
+    case "ISSUE_DELAYED":
+      return "bg-red-100 text-red-800";
+    case "CANCELLED":
+      return "bg-gray-200 text-gray-800";
+    case "REFUNDED":
+      return "bg-slate-200 text-slate-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
 export default function OrderDetailsPage() {
   const params = useParams();
   const { toast } = useToast();
@@ -171,8 +470,146 @@ export default function OrderDetailsPage() {
   const [trackingInput, setTrackingInput] = useState("");
   const [creatingAwb, setCreatingAwb] = useState(false);
   const [resendingAwbEmail, setResendingAwbEmail] = useState(false);
+  const [savingSupplierStatusId, setSavingSupplierStatusId] = useState<
+    string | null
+  >(null);
+  const [supplierStatusDrafts, setSupplierStatusDrafts] = useState<
+    Record<string, string>
+  >({});
+  const [savingOosResolutionId, setSavingOosResolutionId] = useState<
+    string | null
+  >(null);
+  const [oosResolutionDrafts, setOosResolutionDrafts] = useState<
+    Record<
+      string,
+      {
+        action: OosResolutionAction;
+        detail: string;
+      }
+    >
+  >({});
+  const [savingOosNotificationId, setSavingOosNotificationId] = useState<
+    string | null
+  >(null);
+  const [sendingOosEmailId, setSendingOosEmailId] = useState<string | null>(
+    null
+  );
+  const [oosNotificationDrafts, setOosNotificationDrafts] = useState<
+    Record<
+      string,
+      {
+        channel: OosNotificationChannel;
+        summary: string;
+        customerResponse: string;
+      }
+    >
+  >({});
 
   const orderId = params.id as string;
+
+  const getOosDraft = (supplierOrderId: string) =>
+    oosResolutionDrafts[supplierOrderId] || {
+      action: "WAIT_RESTOCK" as OosResolutionAction,
+      detail: "",
+    };
+
+  const setOosDraft = (
+    supplierOrderId: string,
+    patch: Partial<{ action: OosResolutionAction; detail: string }>
+  ) => {
+    setOosResolutionDrafts(prev => ({
+      ...prev,
+      [supplierOrderId]: {
+        ...getOosDraft(supplierOrderId),
+        ...patch,
+      },
+    }));
+  };
+
+  const getOosNotificationDraft = (supplierOrderId: string) =>
+    oosNotificationDrafts[supplierOrderId] || {
+      channel: "EMAIL" as OosNotificationChannel,
+      summary: "",
+      customerResponse: "",
+    };
+
+  const setOosNotificationDraft = (
+    supplierOrderId: string,
+    patch: Partial<{
+      channel: OosNotificationChannel;
+      summary: string;
+      customerResponse: string;
+    }>
+  ) => {
+    setOosNotificationDrafts(prev => ({
+      ...prev,
+      [supplierOrderId]: {
+        ...getOosNotificationDraft(supplierOrderId),
+        ...patch,
+      },
+    }));
+  };
+
+  const buildOosCustomerMessage = (
+    supplierOrder: SupplierOrder,
+    action: OosResolutionAction,
+    detail: string
+  ) => {
+    const productLabel = `${supplierOrder.productName} (${supplierOrder.quantity}x)`;
+    const cleanDetail = detail.trim();
+
+    switch (action) {
+      case "WAIT_RESTOCK":
+        return [
+          `Hello ${order?.customer || "there"},`,
+          "",
+          `We have an update for your order #${order?.orderNumber}: the item ${productLabel} is temporarily unavailable from our supplier.`,
+          `We can keep your order active and ship it as soon as it is restocked.${
+            cleanDetail ? ` Estimated availability: ${cleanDetail}.` : ""
+          }`,
+          "",
+          "If you prefer, we can also offer a replacement or a partial refund for this item.",
+          "",
+          "Please reply with your preferred option.",
+        ].join("\n");
+      case "OFFER_REPLACEMENT":
+        return [
+          `Hello ${order?.customer || "there"},`,
+          "",
+          `The item ${productLabel} from order #${order?.orderNumber} is currently unavailable from our supplier.`,
+          "We can offer a replacement option instead so we can continue processing your order.",
+          cleanDetail
+            ? `Replacement options: ${cleanDetail}`
+            : "We will send replacement options once you confirm.",
+          "",
+          "Please reply with your preferred replacement or let us know if you prefer a partial refund for this item.",
+        ].join("\n");
+      case "PARTIAL_REFUND_ITEM":
+        return [
+          `Hello ${order?.customer || "there"},`,
+          "",
+          `The item ${productLabel} from order #${order?.orderNumber} is unavailable and cannot be fulfilled.`,
+          "We will proceed with a partial refund for this item and continue shipping any remaining available items.",
+          cleanDetail ? `Refund note: ${cleanDetail}` : "",
+          "",
+          "We will confirm once the refund is processed.",
+        ]
+          .filter(Boolean)
+          .join("\n");
+      case "REPLACEMENT_CONFIRMED":
+        return [
+          `Hello ${order?.customer || "there"},`,
+          "",
+          `Your replacement for the unavailable item in order #${order?.orderNumber} has been confirmed.`,
+          cleanDetail ? `Replacement details: ${cleanDetail}` : "",
+          "We are proceeding with fulfillment now and will send tracking as soon as the parcel is dispatched.",
+        ]
+          .filter(Boolean)
+          .join("\n");
+      default:
+        return "";
+    }
+  };
 
   // Fetch order details
   const fetchOrderDetails = useCallback(async () => {
@@ -187,6 +624,42 @@ export default function OrderDetailsPage() {
       const data = await response.json();
       setOrder(data.order);
       setNewStatus(data.order.status);
+      setSupplierStatusDrafts(
+        Object.fromEntries(
+          (data.order.supplierOrders || []).map((so: SupplierOrder) => [
+            so.id,
+            so.status,
+          ])
+        )
+      );
+      setOosResolutionDrafts(prev => {
+        const next = { ...prev };
+        for (const so of data.order.supplierOrders || []) {
+          if (!next[so.id]) {
+            next[so.id] = {
+              action:
+                so.phase === "ISSUE_DELAYED"
+                  ? "WAIT_RESTOCK"
+                  : ("WAIT_RESTOCK" as OosResolutionAction),
+              detail: "",
+            };
+          }
+        }
+        return next;
+      });
+      setOosNotificationDrafts(prev => {
+        const next = { ...prev };
+        for (const so of data.order.supplierOrders || []) {
+          if (!next[so.id]) {
+            next[so.id] = {
+              channel: "EMAIL",
+              summary: "",
+              customerResponse: "",
+            };
+          }
+        }
+        return next;
+      });
     } catch (error) {
       console.error("Error fetching order details:", error);
       toast({
@@ -241,16 +714,19 @@ export default function OrderDetailsPage() {
   // Update tracking number
   const updateTrackingNumber = async (supplierOrderId: string) => {
     try {
-      const response = await fetch(`/api/admin/supplier-orders/${supplierOrderId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          trackingNumber: trackingInput,
-          carrier: "FanCourier", // Default carrier, can be made configurable
-        }),
-      });
+      const response = await fetch(
+        `/api/admin/supplier-orders/${supplierOrderId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            trackingNumber: trackingInput,
+            carrier: "FanCourier", // Default carrier, can be made configurable
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to update tracking number");
@@ -271,6 +747,241 @@ export default function OrderDetailsPage() {
         description: "Failed to update tracking number",
         variant: "destructive",
       });
+    }
+  };
+
+  const updateSupplierOrderStatus = async (supplierOrderId: string) => {
+    const nextStatus = supplierStatusDrafts[supplierOrderId];
+    if (!nextStatus) return;
+
+    setSavingSupplierStatusId(supplierOrderId);
+    try {
+      const response = await fetch(
+        `/api/admin/supplier-orders/${supplierOrderId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: nextStatus }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update supplier order status");
+      }
+
+      toast({
+        title: "Success",
+        description: `Supplier line updated to ${formatWorkflowLabel(nextStatus)}`,
+      });
+
+      await fetchOrderDetails();
+    } catch (error) {
+      console.error("Error updating supplier order status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update supplier order status",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingSupplierStatusId(null);
+    }
+  };
+
+  const copyOosCustomerMessage = async (supplierOrder: SupplierOrder) => {
+    const draft = getOosDraft(supplierOrder.id);
+    const message = buildOosCustomerMessage(
+      supplierOrder,
+      draft.action,
+      draft.detail
+    );
+
+    try {
+      await navigator.clipboard.writeText(message);
+      toast({
+        title: "Copied",
+        description: "Customer message template copied to clipboard.",
+      });
+    } catch (error) {
+      console.error("Error copying OOS message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to copy customer message.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const applyOosResolution = async (supplierOrder: SupplierOrder) => {
+    const draft = getOosDraft(supplierOrder.id);
+    const targetStatus = OOS_ACTION_TO_TARGET_STATUS[draft.action];
+
+    setSavingOosResolutionId(supplierOrder.id);
+    try {
+      const response = await fetch(
+        `/api/admin/supplier-orders/${supplierOrder.id}/oos-resolution`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: draft.action,
+            detail: draft.detail,
+          }),
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(
+          data?.error || data?.details || "Failed to apply OOS resolution"
+        );
+      }
+
+      toast({
+        title: "OOS Resolution Saved",
+        description:
+          draft.action === "PARTIAL_REFUND_ITEM" && data?.refund
+            ? `${formatWorkflowLabel(draft.action)} applied. ${
+                data.refund.message ||
+                formatWorkflowLabel(data.refund.status || "updated")
+              }`
+            : `${formatWorkflowLabel(
+                draft.action
+              )} applied. Supplier line set to ${formatWorkflowLabel(
+                targetStatus
+              )}.`,
+      });
+
+      await fetchOrderDetails();
+    } catch (error) {
+      console.error("Error applying OOS resolution:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to apply OOS resolution.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingOosResolutionId(null);
+    }
+  };
+
+  const sendOosCustomerEmail = async (supplierOrder: SupplierOrder) => {
+    const message = buildOosCustomerMessage(
+      supplierOrder,
+      getOosDraft(supplierOrder.id).action,
+      getOosDraft(supplierOrder.id).detail
+    );
+    const notificationDraft = getOosNotificationDraft(supplierOrder.id);
+    const subject = `Update regarding your order #${order?.orderNumber || ""}`;
+
+    setSendingOosEmailId(supplierOrder.id);
+    try {
+      const response = await fetch(
+        `/api/admin/supplier-orders/${supplierOrder.id}/oos-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message,
+            subject,
+            summary:
+              notificationDraft.summary.trim() ||
+              getOosDraft(supplierOrder.id).detail.trim(),
+          }),
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(
+          data?.error || data?.details || "Failed to send customer email"
+        );
+      }
+
+      toast({
+        title: "OOS Email Sent",
+        description: data?.email?.to
+          ? `Customer update sent to ${data.email.to}.`
+          : "Customer update email sent.",
+      });
+
+      setOosNotificationDraft(supplierOrder.id, {
+        channel: "EMAIL",
+      });
+
+      await fetchOrderDetails();
+    } catch (error) {
+      console.error("Error sending OOS customer email:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to send customer email.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingOosEmailId(null);
+    }
+  };
+
+  const logOosCustomerNotification = async (supplierOrder: SupplierOrder) => {
+    const draft = getOosNotificationDraft(supplierOrder.id);
+
+    setSavingOosNotificationId(supplierOrder.id);
+    try {
+      const response = await fetch(
+        `/api/admin/supplier-orders/${supplierOrder.id}/oos-notification`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            channel: draft.channel,
+            summary: draft.summary,
+            customerResponse: draft.customerResponse,
+          }),
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(
+          data?.error || data?.details || "Failed to log customer notification"
+        );
+      }
+
+      toast({
+        title: "Customer Contact Logged",
+        description: `Saved OOS customer notification via ${draft.channel}.`,
+      });
+
+      setOosNotificationDraft(supplierOrder.id, {
+        customerResponse: "",
+      });
+
+      await fetchOrderDetails();
+    } catch (error) {
+      console.error("Error logging OOS customer notification:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to log customer notification.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingOosNotificationId(null);
     }
   };
 
@@ -332,13 +1043,18 @@ export default function OrderDetailsPage() {
 
     setResendingAwbEmail(true);
     try {
-      const response = await fetch(`/api/admin/orders/${order.id}/resend-awb-email`, {
-        method: "POST",
-      });
+      const response = await fetch(
+        `/api/admin/orders/${order.id}/resend-awb-email`,
+        {
+          method: "POST",
+        }
+      );
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.error || data?.details || "Failed to resend AWB email");
+        throw new Error(
+          data?.error || data?.details || "Failed to resend AWB email"
+        );
       }
 
       const withAttachment = Boolean(data?.attachmentIncluded);
@@ -471,6 +1187,7 @@ export default function OrderDetailsPage() {
     shipment => shipment.courier === courierName
   );
   const hasPhysicalItems = order.items.some(item => item.isDigital !== true);
+  const fulfillment = order.fulfillment;
 
   return (
     <div className="space-y-6">
@@ -490,12 +1207,33 @@ export default function OrderDetailsPage() {
               Placed on{" "}
               {order.date
                 ? new Date(order.date).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })
                 : "N/A"}
             </p>
+            {fulfillment && (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getFulfillmentBadgeColor(
+                    fulfillment.displayStatus
+                  )}`}
+                >
+                  Fulfillment: {formatWorkflowLabel(fulfillment.displayStatus)}
+                </span>
+                {fulfillment.hasMixedSuppliers && (
+                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                    Mixed Order ({fulfillment.supplierCount} suppliers)
+                  </span>
+                )}
+                {fulfillment.hasIssues && (
+                  <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                    Needs attention
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -708,7 +1446,8 @@ export default function OrderDetailsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Truck className="h-5 w-5" />
-                  {courierName === "SAMEDAY" ? "Sameday" : "FanCourier"} Shipment
+                  {courierName === "SAMEDAY" ? "Sameday" : "FanCourier"}{" "}
+                  Shipment
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -725,21 +1464,22 @@ export default function OrderDetailsPage() {
                   </span>
                 </div>
                 <div className="flex justify-end gap-2">
-                  {activeShipment?.awbNumber && courierName === "FANCOURIER" && (
-                    <Button
-                      onClick={resendAwbEmail}
-                      size="sm"
-                      variant="outline"
-                      disabled={resendingAwbEmail}
-                    >
-                      {resendingAwbEmail ? (
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Mail className="h-4 w-4 mr-2" />
-                      )}
-                      Resend AWB Email
-                    </Button>
-                  )}
+                  {activeShipment?.awbNumber &&
+                    courierName === "FANCOURIER" && (
+                      <Button
+                        onClick={resendAwbEmail}
+                        size="sm"
+                        variant="outline"
+                        disabled={resendingAwbEmail}
+                      >
+                        {resendingAwbEmail ? (
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Mail className="h-4 w-4 mr-2" />
+                        )}
+                        Resend AWB Email
+                      </Button>
+                    )}
                   <Button
                     onClick={createAwb}
                     size="sm"
@@ -750,9 +1490,7 @@ export default function OrderDetailsPage() {
                     ) : (
                       <Package className="h-4 w-4 mr-2" />
                     )}
-                    {activeShipment?.awbNumber
-                      ? "AWB Created"
-                      : "Create AWB"}
+                    {activeShipment?.awbNumber ? "AWB Created" : "Create AWB"}
                   </Button>
                 </div>
               </CardContent>
@@ -804,7 +1542,8 @@ export default function OrderDetailsPage() {
                     <ShoppingCart className="h-5 w-5" />
                     Supplier Orders
                   </CardTitle>
-                  {(!order.supplierOrders || order.supplierOrders.length === 0) && (
+                  {(!order.supplierOrders ||
+                    order.supplierOrders.length === 0) && (
                     <Button
                       onClick={createSupplierOrder}
                       disabled={creatingSupplierOrder}
@@ -823,6 +1562,157 @@ export default function OrderDetailsPage() {
               <CardContent>
                 {order.supplierOrders && order.supplierOrders.length > 0 ? (
                   <div className="space-y-4">
+                    {fulfillment && (
+                      <div className="p-4 border rounded-lg bg-slate-50 space-y-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-medium">
+                              Supplier Fulfillment Overview
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Operational view grouped by supplier shipment task
+                            </p>
+                          </div>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getFulfillmentBadgeColor(
+                              fulfillment.displayStatus
+                            )}`}
+                          >
+                            {formatWorkflowLabel(fulfillment.displayStatus)}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          <div className="rounded border bg-white p-2">
+                            <p className="text-xs text-muted-foreground">
+                              Ready to place
+                            </p>
+                            <p className="text-sm font-semibold">
+                              {(
+                                (fulfillment.counts.READY_TO_PLACE || 0) +
+                                (fulfillment.counts.PLACED_TO_SUPPLIER || 0)
+                              ).toString()}
+                            </p>
+                          </div>
+                          <div className="rounded border bg-white p-2">
+                            <p className="text-xs text-muted-foreground">
+                              AWB work
+                            </p>
+                            <p className="text-sm font-semibold">
+                              {(
+                                (fulfillment.counts.AWB_PENDING || 0) +
+                                (fulfillment.counts.AWB_UPLOADED || 0)
+                              ).toString()}
+                            </p>
+                          </div>
+                          <div className="rounded border bg-white p-2">
+                            <p className="text-xs text-muted-foreground">
+                              Shipped/Delivered
+                            </p>
+                            <p className="text-sm font-semibold">
+                              {(
+                                (fulfillment.counts.SHIPPED || 0) +
+                                (fulfillment.counts.DELIVERED || 0)
+                              ).toString()}
+                            </p>
+                          </div>
+                          <div className="rounded border bg-white p-2">
+                            <p className="text-xs text-muted-foreground">
+                              Issues
+                            </p>
+                            <p className="text-sm font-semibold">
+                              {(
+                                (fulfillment.counts.ISSUE_OOS || 0) +
+                                (fulfillment.counts.ISSUE_DELAYED || 0)
+                              ).toString()}
+                            </p>
+                          </div>
+                        </div>
+
+                        {fulfillment.supplierShipmentGroups?.length > 0 && (
+                          <div className="space-y-3">
+                            {fulfillment.supplierShipmentGroups.map(group => (
+                              <div
+                                key={group.key}
+                                className="rounded-lg border bg-white p-3 space-y-3"
+                              >
+                                <div className="flex flex-wrap items-start justify-between gap-2">
+                                  <div>
+                                    <p className="font-medium">
+                                      {group.supplierName}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {group.lineCount} line
+                                      {group.lineCount === 1 ? "" : "s"} · Qty{" "}
+                                      {group.totalQuantity}
+                                    </p>
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    <span
+                                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getFulfillmentBadgeColor(
+                                        group.displayStatus
+                                      )}`}
+                                    >
+                                      {formatWorkflowLabel(group.displayStatus)}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {group.trackingNumbers.length > 0 && (
+                                  <div className="text-xs text-muted-foreground">
+                                    Tracking: {group.trackingNumbers.join(", ")}
+                                  </div>
+                                )}
+
+                                <div className="space-y-2">
+                                  {group.lines.map(line => (
+                                    <div
+                                      key={`${group.key}-${line.supplierOrderId || line.productName}`}
+                                      className="flex flex-wrap items-center justify-between gap-2 rounded border p-2"
+                                    >
+                                      <div className="min-w-0">
+                                        <p className="text-sm font-medium truncate">
+                                          {line.productName ||
+                                            "Unknown product"}{" "}
+                                          × {line.quantity}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                          Raw status: {line.lineStatus || "N/A"}
+                                        </p>
+                                      </div>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <span
+                                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getPhaseColor(
+                                            line.phase
+                                          )}`}
+                                        >
+                                          {formatWorkflowLabel(line.phase)}
+                                        </span>
+                                        {line.trackingNumber && (
+                                          <span className="text-xs text-muted-foreground">
+                                            {line.trackingNumber}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">
+                        Supplier Order Lines
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Existing line-level actions (tracking / AWB) remain
+                        unchanged
+                      </p>
+                    </div>
                     {order.supplierOrders.map(so => (
                       <div
                         key={so.id}
@@ -836,16 +1726,29 @@ export default function OrderDetailsPage() {
                             </p>
                           </div>
                           <span
-                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${so.status === "SHIPPED"
+                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                              so.status === "SHIPPED"
                                 ? "bg-purple-100 text-purple-800"
                                 : so.status === "DELIVERED"
                                   ? "bg-green-100 text-green-800"
                                   : "bg-blue-100 text-blue-800"
-                              }`}
+                            }`}
                           >
                             {so.status}
                           </span>
                         </div>
+
+                        {so.phase && (
+                          <div>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getPhaseColor(
+                                so.phase
+                              )}`}
+                            >
+                              Workflow phase: {formatWorkflowLabel(so.phase)}
+                            </span>
+                          </div>
+                        )}
 
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
@@ -865,6 +1768,395 @@ export default function OrderDetailsPage() {
                             </div>
                           )}
                         </div>
+
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Workflow / Supplier Status
+                          </label>
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                            <Select
+                              value={supplierStatusDrafts[so.id] || so.status}
+                              onValueChange={value =>
+                                setSupplierStatusDrafts(prev => ({
+                                  ...prev,
+                                  [so.id]: value,
+                                }))
+                              }
+                            >
+                              <SelectTrigger className="w-full sm:w-[260px]">
+                                <SelectValue placeholder="Choose status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {SUPPLIER_WORKFLOW_STATUS_OPTIONS.map(
+                                  statusOption => (
+                                    <SelectItem
+                                      key={statusOption}
+                                      value={statusOption}
+                                    >
+                                      {formatWorkflowLabel(statusOption)}
+                                    </SelectItem>
+                                  )
+                                )}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={
+                                savingSupplierStatusId === so.id ||
+                                (supplierStatusDrafts[so.id] || so.status) ===
+                                  so.status
+                              }
+                              onClick={() => updateSupplierOrderStatus(so.id)}
+                            >
+                              {savingSupplierStatusId === so.id ? (
+                                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                <Save className="h-4 w-4 mr-2" />
+                              )}
+                              Save Status
+                            </Button>
+                          </div>
+                        </div>
+
+                        {(so.phase === "ISSUE_OOS" ||
+                          so.phase === "ISSUE_DELAYED") &&
+                          (() => {
+                            const oosOps = getOosOpsSnapshot(so);
+                            const oosNotificationDraft =
+                              getOosNotificationDraft(so.id);
+
+                            return (
+                              <div className="space-y-3 rounded-lg border border-red-200 bg-red-50/60 p-3">
+                                <div className="flex items-center gap-2">
+                                  <MessageSquareWarning className="h-4 w-4 text-red-700" />
+                                  <p className="text-sm font-medium text-red-900">
+                                    Out-of-Stock Resolution Workflow
+                                  </p>
+                                </div>
+                                <p className="text-xs text-red-800">
+                                  Choose a resolution path, save it to the
+                                  supplier line, then copy the customer message
+                                  template and send it.
+                                </p>
+
+                                <div className="flex flex-wrap gap-2">
+                                  {typeof oosOps.issueAgeHours === "number" && (
+                                    <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-700 border">
+                                      Issue age:{" "}
+                                      {Math.floor(oosOps.issueAgeHours)}h
+                                    </span>
+                                  )}
+                                  {typeof oosOps.inactivityHours ===
+                                    "number" && (
+                                    <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-700 border">
+                                      Last activity:{" "}
+                                      {Math.floor(oosOps.inactivityHours)}h ago
+                                    </span>
+                                  )}
+                                  {oosOps.needsCustomerNotification ? (
+                                    <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 border border-red-200">
+                                      Customer not notified yet
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 border border-green-200">
+                                      Customer contact logged
+                                    </span>
+                                  )}
+                                  {oosOps.isSlaOverdue && (
+                                    <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 border border-amber-200">
+                                      Follow-up overdue ({OOS_SLA_WARNING_HOURS}
+                                      h+)
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="grid gap-3 md:grid-cols-2">
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-medium">
+                                      Resolution Action
+                                    </label>
+                                    <Select
+                                      value={getOosDraft(so.id).action}
+                                      onValueChange={value =>
+                                        setOosDraft(so.id, {
+                                          action: value as OosResolutionAction,
+                                        })
+                                      }
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Choose action" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {OOS_RESOLUTION_OPTIONS.map(option => (
+                                          <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                          >
+                                            {option.label} (
+                                            {formatWorkflowLabel(
+                                              option.targetStatus
+                                            )}
+                                            )
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-medium">
+                                      Internal Details
+                                    </label>
+                                    <Textarea
+                                      value={getOosDraft(so.id).detail}
+                                      onChange={e =>
+                                        setOosDraft(so.id, {
+                                          detail: e.target.value,
+                                        })
+                                      }
+                                      placeholder={
+                                        OOS_RESOLUTION_OPTIONS.find(
+                                          option =>
+                                            option.value ===
+                                            getOosDraft(so.id).action
+                                        )?.detailPlaceholder ||
+                                        "Add internal details"
+                                      }
+                                      className="min-h-[84px] bg-white"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <label className="text-sm font-medium">
+                                    Customer Message Template (Preview)
+                                  </label>
+                                  <Textarea
+                                    value={buildOosCustomerMessage(
+                                      so,
+                                      getOosDraft(so.id).action,
+                                      getOosDraft(so.id).detail
+                                    )}
+                                    readOnly
+                                    className="min-h-[140px] bg-white text-xs"
+                                  />
+                                </div>
+
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => copyOosCustomerMessage(so)}
+                                  >
+                                    <Copy className="mr-2 h-4 w-4" />
+                                    Copy Customer Message
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => sendOosCustomerEmail(so)}
+                                    disabled={
+                                      sendingOosEmailId === so.id ||
+                                      !order?.email ||
+                                      order.email === "N/A"
+                                    }
+                                  >
+                                    {sendingOosEmailId === so.id ? (
+                                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Mail className="mr-2 h-4 w-4" />
+                                    )}
+                                    Send OOS Email
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => applyOosResolution(so)}
+                                    disabled={savingOosResolutionId === so.id}
+                                  >
+                                    {savingOosResolutionId === so.id ? (
+                                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Save className="mr-2 h-4 w-4" />
+                                    )}
+                                    Save OOS Resolution
+                                  </Button>
+                                </div>
+
+                                <div className="space-y-3 rounded-md border bg-white/80 p-3">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div>
+                                      <p className="text-sm font-medium">
+                                        Customer Contact Log
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        Log when/how you contacted the customer
+                                        and what they replied.
+                                      </p>
+                                    </div>
+                                    {oosOps.latestNotification?.timestamp && (
+                                      <span className="text-xs text-muted-foreground">
+                                        Last contact:{" "}
+                                        {oosOps.latestNotification.timestamp.toLocaleString()}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {(!order?.email || order.email === "N/A") && (
+                                    <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                                      Customer email is not available for this
+                                      order. Use phone/WhatsApp contact and log
+                                      it below.
+                                    </div>
+                                  )}
+
+                                  <div className="grid gap-3 md:grid-cols-2">
+                                    <div className="space-y-2">
+                                      <label className="text-sm font-medium">
+                                        Channel
+                                      </label>
+                                      <Select
+                                        value={oosNotificationDraft.channel}
+                                        onValueChange={value =>
+                                          setOosNotificationDraft(so.id, {
+                                            channel:
+                                              value as OosNotificationChannel,
+                                          })
+                                        }
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {OOS_NOTIFICATION_CHANNEL_OPTIONS.map(
+                                            channel => (
+                                              <SelectItem
+                                                key={channel}
+                                                value={channel}
+                                              >
+                                                {channel}
+                                              </SelectItem>
+                                            )
+                                          )}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <label className="text-sm font-medium">
+                                        Contact Summary
+                                      </label>
+                                      <Textarea
+                                        value={oosNotificationDraft.summary}
+                                        onChange={e =>
+                                          setOosNotificationDraft(so.id, {
+                                            summary: e.target.value,
+                                          })
+                                        }
+                                        placeholder="What did you tell the customer? (ETA, replacement options, refund offer)"
+                                        className="min-h-[84px] bg-white"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-medium">
+                                      Customer Response (Optional)
+                                    </label>
+                                    <Textarea
+                                      value={
+                                        oosNotificationDraft.customerResponse
+                                      }
+                                      onChange={e =>
+                                        setOosNotificationDraft(so.id, {
+                                          customerResponse: e.target.value,
+                                        })
+                                      }
+                                      placeholder="Customer chose wait / replacement / refund, or asked for more time"
+                                      className="min-h-[72px] bg-white"
+                                    />
+                                  </div>
+
+                                  <div className="flex justify-end">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() =>
+                                        logOosCustomerNotification(so)
+                                      }
+                                      disabled={
+                                        savingOosNotificationId === so.id
+                                      }
+                                    >
+                                      {savingOosNotificationId === so.id ? (
+                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Save className="mr-2 h-4 w-4" />
+                                      )}
+                                      Mark Customer Notified
+                                    </Button>
+                                  </div>
+                                </div>
+
+                                {oosOps.events.length > 0 && (
+                                  <div className="space-y-2 rounded-md border bg-white/80 p-3">
+                                    <div className="flex items-center justify-between">
+                                      <p className="text-sm font-medium">
+                                        OOS Timeline
+                                      </p>
+                                      <span className="text-xs text-muted-foreground">
+                                        {oosOps.events.length} event
+                                        {oosOps.events.length === 1 ? "" : "s"}
+                                      </span>
+                                    </div>
+                                    <div className="space-y-2">
+                                      {oosOps.events
+                                        .slice(0, 8)
+                                        .map((event, idx) => (
+                                          <div
+                                            key={`${event.tag}-${event.timestampText || idx}-${idx}`}
+                                            className="rounded border bg-white p-2 text-xs"
+                                          >
+                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                              <span className="font-medium">
+                                                {formatOosEventLabel(event.tag)}
+                                              </span>
+                                              <span className="text-muted-foreground">
+                                                {event.timestamp
+                                                  ? event.timestamp.toLocaleString()
+                                                  : event.timestampText ||
+                                                    "Unknown time"}
+                                              </span>
+                                            </div>
+                                            <div className="mt-1 text-muted-foreground space-y-1">
+                                              {Object.entries(event.data).map(
+                                                ([k, v]) => (
+                                                  <div key={k}>
+                                                    <span className="font-medium text-foreground/80">
+                                                      {k}:
+                                                    </span>{" "}
+                                                    <span>{v}</span>
+                                                  </div>
+                                                )
+                                              )}
+                                            </div>
+                                          </div>
+                                        ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+
+                        {so.notes && (
+                          <div className="space-y-1">
+                            <label className="text-sm font-medium">
+                              Supplier Line Notes
+                            </label>
+                            <div className="rounded-md border bg-muted/30 p-2 text-xs whitespace-pre-wrap text-muted-foreground">
+                              {so.notes}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Tracking Number */}
                         <div className="space-y-2">
@@ -922,14 +2214,18 @@ export default function OrderDetailsPage() {
 
                         {so.carrier && (
                           <div className="text-sm">
-                            <span className="text-muted-foreground">Carrier:</span>
+                            <span className="text-muted-foreground">
+                              Carrier:
+                            </span>
                             <span className="ml-2">{so.carrier}</span>
                           </div>
                         )}
 
                         {so.shippedAt && (
                           <div className="text-sm">
-                            <span className="text-muted-foreground">Shipped:</span>
+                            <span className="text-muted-foreground">
+                              Shipped:
+                            </span>
                             <span className="ml-2">
                               {new Date(so.shippedAt).toLocaleDateString()}
                             </span>

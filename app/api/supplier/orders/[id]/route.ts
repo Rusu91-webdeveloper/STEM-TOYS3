@@ -4,11 +4,28 @@ import { z } from "zod";
 import { withSupplierAuth } from "@/lib/authorization";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { syncParentOrderFromSupplierOrders } from "@/lib/order-fulfillment-sync";
 import { getCurrentSupplier } from "@/lib/supplier-auth";
 
 // Validation schema for order status update
 const orderUpdateSchema = z.object({
-  status: z.enum(["PENDING", "CONFIRMED", "IN_PRODUCTION", "READY_TO_SHIP", "SHIPPED", "DELIVERED", "CANCELLED"]).optional(),
+  status: z
+    .enum([
+      "PENDING",
+      "CONFIRMED",
+      "IN_PRODUCTION",
+      "READY_TO_SHIP",
+      "PLACED_TO_SUPPLIER",
+      "AWB_PENDING",
+      "AWB_UPLOADED",
+      "SHIPPED",
+      "DELIVERED",
+      "ISSUE_OOS",
+      "ISSUE_DELAYED",
+      "CANCELLED",
+      "REFUNDED",
+    ])
+    .optional(),
   trackingNumber: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -201,6 +218,11 @@ export const PUT = withSupplierAuth(async (request: NextRequest, session, { para
         }
       }
     });
+
+    await syncParentOrderFromSupplierOrders(
+      updatedOrder.orderId,
+      "supplier-order-update"
+    );
 
     logger.info("Supplier order updated successfully", {
       supplierId: supplier.id,

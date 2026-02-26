@@ -88,6 +88,11 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     const methodId = (shippingMethod.id || "").toLowerCase();
     return methodId.includes("fanbox") || methodId.includes("easybox");
   }, [shippingMethod]);
+  const codBlockedByMixedSupplier = useMemo(() => {
+    return Boolean(
+      shippingMethod?.isMixedSupplierCart && shippingMethod?.requiresPrepaid
+    );
+  }, [shippingMethod]);
 
   // Check if cart contains only digital books (no physical items)
   const isDigitalOnlyCart =
@@ -208,7 +213,8 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       codEnabled &&
       isRomanianUser &&
       !isDigitalOnlyCart &&
-      !codBlockedByFanbox
+      !codBlockedByFanbox &&
+      !codBlockedByMixedSupplier
     ) {
       methods.push({
         id: "cash_on_delivery",
@@ -231,6 +237,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     isRomanianUser,
     isDigitalOnlyCart,
     codBlockedByFanbox,
+    codBlockedByMixedSupplier,
     netopiaEnabled,
     codEnabled,
     savedCards,
@@ -248,7 +255,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     // If COD is selected but cart is digital-only, switch to first available method
     if (
       selectedPaymentMethod === "cash_on_delivery" &&
-      (isDigitalOnlyCart || codBlockedByFanbox)
+      (isDigitalOnlyCart || codBlockedByFanbox || codBlockedByMixedSupplier)
     ) {
       const nonCODMethod = paymentMethods.find(
         m => m.id !== "cash_on_delivery"
@@ -272,6 +279,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     onPaymentMethodChange,
     isDigitalOnlyCart,
     codBlockedByFanbox,
+    codBlockedByMixedSupplier,
   ]);
 
   if (isLoadingCards) {
@@ -401,6 +409,11 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       {codBlockedByFanbox && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Pentru livrarea la FANbox, plata ramburs nu este disponibilă.
+        </div>
+      )}
+      {codBlockedByMixedSupplier && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Pentru comenzile cu produse din furnizori diferiți, plata este disponibilă doar online (card).
         </div>
       )}
       <RadioGroup

@@ -6,6 +6,11 @@ import { auth } from "@/lib/auth";
 import { invalidateCachePattern } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { invalidateAnalyticsOnOrderChange } from "@/lib/cache/analytics-cache";
+import {
+  deriveOrderFulfillmentSummary,
+  groupSupplierOrdersForOperations,
+  normalizeSupplierFulfillmentPhase,
+} from "@/lib/utils/supplier-fulfillment";
 
 // Schema for updating order status
 const updateOrderSchema = z.object({
@@ -96,12 +101,21 @@ export async function GET(
     }
 
     // Format the response - safely handle dates
-    const formatDateSafe = (date: Date | null | undefined): string | undefined => {
+    const formatDateSafe = (
+      date: Date | null | undefined
+    ): string | undefined => {
       if (!date) return undefined;
       const dateObj = new Date(date);
       if (isNaN(dateObj.getTime())) return undefined;
       return dateObj.toISOString();
     };
+
+    const supplierFulfillmentSummary = deriveOrderFulfillmentSummary(
+      order.supplierOrders
+    );
+    const supplierShipmentGroups = groupSupplierOrdersForOperations(
+      order.supplierOrders
+    );
 
     const formattedOrder = {
       id: order.id,
@@ -128,6 +142,15 @@ export async function GET(
         createdAt: formatDateSafe(shipment.createdAt),
         updatedAt: formatDateSafe(shipment.updatedAt),
       })),
+      fulfillment: {
+        displayStatus: supplierFulfillmentSummary.displayStatus,
+        dbOrderStatus: supplierFulfillmentSummary.dbOrderStatus,
+        hasMixedSuppliers: supplierFulfillmentSummary.hasMixedSuppliers,
+        supplierCount: supplierFulfillmentSummary.supplierCount,
+        hasIssues: supplierFulfillmentSummary.hasIssues,
+        counts: supplierFulfillmentSummary.byPhase,
+        supplierShipmentGroups,
+      },
       items: order.items.map(item => ({
         id: item.id,
         name:
@@ -168,11 +191,14 @@ export async function GET(
         unitCost: so.unitCost,
         totalCost: so.totalCost,
         status: so.status,
+        phase: normalizeSupplierFulfillmentPhase(so),
         trackingNumber: so.trackingNumber,
         supplierOrderId: so.supplierOrderId,
         carrier: so.carrier,
         shippedAt: formatDateSafe(so.shippedAt),
         estimatedDelivery: formatDateSafe(so.estimatedDelivery),
+        createdAt: formatDateSafe(so.createdAt),
+        updatedAt: formatDateSafe(so.updatedAt),
         notes: so.notes,
       })),
     };

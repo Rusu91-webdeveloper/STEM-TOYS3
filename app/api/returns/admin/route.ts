@@ -60,6 +60,8 @@ export async function GET(request: Request) {
         refundError: true,
         photos: true,
         supplierAuthorizationStatus: true,
+        supplierAuthorizationDeadline: true,
+        supplierAuthorizationRequestedAt: true,
         supplierAuthorizationNumber: true,
         supplierAuthorizationNotes: true,
         user: {
@@ -89,6 +91,12 @@ export async function GET(request: Request) {
                 slug: true,
                 sku: true,
                 images: true,
+                supplier: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
               },
             },
           },
@@ -118,6 +126,8 @@ export async function GET(request: Request) {
           refundError: true,
           photos: true,
           supplierAuthorizationStatus: true,
+          supplierAuthorizationDeadline: true,
+          supplierAuthorizationRequestedAt: true,
           supplierAuthorizationNumber: true,
           supplierAuthorizationNotes: true,
           user: {
@@ -153,6 +163,12 @@ export async function GET(request: Request) {
                   slug: true,
                   sku: true,
                   images: true,
+                  supplier: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
                 },
               },
             },

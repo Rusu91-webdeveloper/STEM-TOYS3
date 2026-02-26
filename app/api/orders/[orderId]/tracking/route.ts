@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { deriveOrderFulfillmentSummary } from "@/lib/utils/supplier-fulfillment";
 
 /** Build courier tracking URL when we have AWB and known carrier. */
 function getTrackingUrl(
@@ -56,7 +57,23 @@ export async function GET(
           where: { awbNumber: { not: null } },
           select: { awbNumber: true, courier: true },
           orderBy: { createdAt: "desc" },
-          take: 1,
+        },
+        supplierOrders: {
+          where: { trackingNumber: { not: null } },
+          select: {
+            id: true,
+            status: true,
+            trackingNumber: true,
+            carrier: true,
+            supplierId: true,
+            supplier: {
+              select: {
+                id: true,
+                name: true,
+                companyName: true,
+              },
+            },
+          },
         },
       },
     });
@@ -81,14 +98,48 @@ export async function GET(
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    // Use real AWB: Order.trackingNumber (set when AWB created) or first Shipment.awbNumber
-    const trackingNumber = order.trackingNumber ?? order.shipments?.[0]?.awbNumber ?? null;
-    const resolvedCarrier = order.carrier ?? order.shipments?.[0]?.courier ?? null;
+    const trackingPackages = Array.from(
+      new Map(
+        [
+          ...(order.shipments || []).map(shipment => ({
+            source: "shipment" as const,
+            trackingNumber: shipment.awbNumber?.trim() || "",
+            carrier: shipment.courier?.trim() || null,
+            supplierName: null,
+            status: null,
+          })),
+          ...((order.supplierOrders || []).map(supplierOrder => ({
+            source: "supplier_order" as const,
+            trackingNumber: supplierOrder.trackingNumber?.trim() || "",
+            carrier: supplierOrder.carrier?.trim() || null,
+            supplierName:
+              supplierOrder.supplier?.name || supplierOrder.supplier?.companyName || null,
+            status: supplierOrder.status || null,
+          })) || []),
+        ]
+          .filter(entry => entry.trackingNumber)
+          .map(entry => [
+            `${entry.trackingNumber}::${(entry.carrier || "").toUpperCase()}`,
+            entry,
+          ])
+      ).values()
+    );
+
+    // Preserve backward-compatible single tracking fields for the first package.
+    const firstPackage = trackingPackages[0];
+    const trackingNumber =
+      order.trackingNumber ??
+      firstPackage?.trackingNumber ??
+      order.shipments?.[0]?.awbNumber ??
+      null;
+    const resolvedCarrier =
+      order.carrier ?? firstPackage?.carrier ?? order.shipments?.[0]?.courier ?? null;
     const trackingAvailable = Boolean(trackingNumber);
     const carrier = trackingAvailable ? resolvedCarrier : null;
     const trackingUrl = trackingAvailable
       ? getTrackingUrl(trackingNumber, carrier)
       : null;
+    const fulfillmentSummary = deriveOrderFulfillmentSummary(order.supplierOrders || []);
 
     // Generate tracking events based on order status
     const trackingEvents = generateTrackingEvents(order, shippingAddress);
@@ -98,16 +149,30 @@ export async function GET(
         id: order.id,
         orderNumber: order.orderNumber,
         status: order.status,
+        fulfillmentStatus:
+          order.supplierOrders && order.supplierOrders.length > 0
+            ? fulfillmentSummary.displayStatus
+            : order.status,
         trackingAvailable,
         trackingNumber: trackingAvailable ? trackingNumber : null,
         carrier,
         trackingUrl,
+        trackingPackages: trackingPackages.map(pkg => ({
+          source: pkg.source,
+          trackingNumber: pkg.trackingNumber,
+          carrier: pkg.carrier,
+          trackingUrl: getTrackingUrl(pkg.trackingNumber, pkg.carrier),
+          supplierName: pkg.supplierName,
+          status: pkg.status,
+        })),
         estimatedDelivery: order.estimatedDelivery ?? null,
         deliveredAt: order.deliveredAt,
         createdAt: order.createdAt,
         shippingAddress,
         trackingStatusMessage: trackingAvailable
-          ? "Tracking is available."
+          ? trackingPackages.length > 1
+            ? "Tracking is available. This order may arrive in multiple packages."
+            : "Tracking is available."
           : "Tracking is not available yet. It will appear once AWB is created.",
       },
       trackingEvents,

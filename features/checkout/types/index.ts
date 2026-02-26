@@ -30,6 +30,13 @@ export interface ShippingMethod {
   name: string;
   description: string;
   price: number;
+  singleShipmentPrice?: number;
+  mixedSupplierSurcharge?: number;
+  isMixedSupplierCart?: boolean;
+  requiresPrepaid?: boolean;
+  supplierCount?: number;
+  supplierNames?: string[];
+  shippingPolicyMessage?: string | null;
   estimatedDelivery: string;
   courierId?: string;
   serviceId?: string;

@@ -426,10 +426,10 @@ export function ShippingAddressForm({
         <div
           className={`${glassCardClass} border-white/10 bg-slate-900/70 p-6 text-slate-100 shadow-lg shadow-black/20`}
         >
-        <h2 className="text-xl font-semibold mb-4 text-slate-100">{t("shippingAddress")}</h2>
+        <h2 className="text-xl font-semibold mb-4 text-white">{t("shippingAddress")}</h2>
 
         {!allowInternational && (
-          <div className="mb-4 rounded-md border border-sky-400/30 bg-sky-500/10 p-3 text-sm text-sky-100">
+          <div className="mb-4 rounded-md border border-sky-400/40 bg-sky-500/15 p-3 text-sm font-medium text-sky-200">
             {t("deliveryOnlyRomania")}
           </div>
         )}
@@ -521,7 +521,7 @@ export function ShippingAddressForm({
               </div>
             )}
             <div>
-              <Label htmlFor="fullName" className="text-slate-200">
+              <Label htmlFor="fullName" className="font-medium text-slate-200">
                 {t("fullName")}
               </Label>
               <Input
@@ -530,7 +530,7 @@ export function ShippingAddressForm({
                 value={formData.fullName}
                 onChange={handleChange}
                 className={cn(
-                  "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                  "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60 focus:ring-sky-400/20",
                   errors.fullName && "border-red-500"
                 )}
               />
@@ -541,7 +541,7 @@ export function ShippingAddressForm({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="companyName" className="text-slate-200">
+                <Label htmlFor="companyName" className="font-medium text-slate-200">
                   {t("companyNameOptional", "Company name (optional)")}
                 </Label>
                 <Input
@@ -550,7 +550,7 @@ export function ShippingAddressForm({
                   value={formData.companyName || ""}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                    "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                     errors.companyName && "border-red-500"
                   )}
                 />
@@ -562,7 +562,7 @@ export function ShippingAddressForm({
               </div>
 
               <div>
-                <Label htmlFor="cui" className="text-slate-200">
+                <Label htmlFor="cui" className="font-medium text-slate-200">
                   {t("cuiOptional", "CUI/VAT (optional)")}
                 </Label>
                 <Input
@@ -571,7 +571,7 @@ export function ShippingAddressForm({
                   value={formData.cui || ""}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                    "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                     errors.cui && "border-red-500"
                   )}
                 />
@@ -583,7 +583,7 @@ export function ShippingAddressForm({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="street" className="text-slate-200">
+                <Label htmlFor="street" className="font-medium text-slate-200">
                   {t("streetLabel", "Stradă")}
                 </Label>
                 <Input
@@ -592,7 +592,7 @@ export function ShippingAddressForm({
                   value={formData.street || ""}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                    "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                     errors.street && "border-red-500"
                   )}
                 />
@@ -602,7 +602,7 @@ export function ShippingAddressForm({
               </div>
 
               <div>
-                <Label htmlFor="streetNumber" className="text-slate-200">
+                <Label htmlFor="streetNumber" className="font-medium text-slate-200">
                   {t("streetNumberLabel", "Număr")}
                 </Label>
                 <Input
@@ -611,7 +611,7 @@ export function ShippingAddressForm({
                   value={formData.streetNumber || ""}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                    "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                     errors.streetNumber && "border-red-500"
                   )}
                 />
@@ -625,7 +625,7 @@ export function ShippingAddressForm({
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <Label htmlFor="block" className="text-slate-200">
+                <Label htmlFor="block" className="font-medium text-slate-200">
                   {t("blockLabel", "Bloc")}
                 </Label>
                 <Input
@@ -633,12 +633,12 @@ export function ShippingAddressForm({
                   name="block"
                   value={formData.block || ""}
                   onChange={handleChange}
-                  className="border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400"
+                  className="border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60"
                 />
               </div>
 
               <div>
-                <Label htmlFor="entrance" className="text-slate-200">
+                <Label htmlFor="entrance" className="font-medium text-slate-200">
                   {t("entranceLabel", "Scară")}
                 </Label>
                 <Input
@@ -646,12 +646,12 @@ export function ShippingAddressForm({
                   name="entrance"
                   value={formData.entrance || ""}
                   onChange={handleChange}
-                  className="border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400"
+                  className="border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60"
                 />
               </div>
 
               <div>
-                <Label htmlFor="floor" className="text-slate-200">
+                <Label htmlFor="floor" className="font-medium text-slate-200">
                   {t("floorLabel", "Etaj")}
                 </Label>
                 <Input
@@ -659,12 +659,12 @@ export function ShippingAddressForm({
                   name="floor"
                   value={formData.floor || ""}
                   onChange={handleChange}
-                  className="border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400"
+                  className="border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60"
                 />
               </div>
 
               <div>
-                <Label htmlFor="apartment" className="text-slate-200">
+                <Label htmlFor="apartment" className="font-medium text-slate-200">
                   {t("apartmentLabel", "Apartament")}
                 </Label>
                 <Input
@@ -672,13 +672,13 @@ export function ShippingAddressForm({
                   name="apartment"
                   value={formData.apartment || ""}
                   onChange={handleChange}
-                  className="border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400"
+                  className="border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60"
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="addressDetails" className="text-slate-200">
+              <Label htmlFor="addressDetails" className="font-medium text-slate-200">
                 {t("addressDetailsLabel", "Detalii adresă (opțional)")}
               </Label>
               <Input
@@ -690,13 +690,13 @@ export function ShippingAddressForm({
                   "addressDetailsPlaceholder",
                   "Ex: Interfon 23, lângă farmacia X"
                 )}
-                className="border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400"
+                className="border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="city" className="text-slate-200">
+                <Label htmlFor="city" className="font-medium text-slate-200">
                   {t("city")}
                 </Label>
                 <Input
@@ -705,7 +705,7 @@ export function ShippingAddressForm({
                   value={formData.city}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                    "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                     errors.city && "border-red-500"
                   )}
                 />
@@ -715,7 +715,7 @@ export function ShippingAddressForm({
               </div>
 
               <div>
-                <Label htmlFor="state" className="text-slate-200">
+                <Label htmlFor="state" className="font-medium text-slate-200">
                   {t("state")}
                 </Label>
                 {allowInternational ? (
@@ -725,7 +725,7 @@ export function ShippingAddressForm({
                     value={formData.state}
                     onChange={handleChange}
                     className={cn(
-                      "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                      "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                       errors.state && "border-red-500"
                     )}
                   />
@@ -736,7 +736,7 @@ export function ShippingAddressForm({
                   >
                     <SelectTrigger
                       className={cn(
-                        "border-white/10 bg-white/5 text-slate-100",
+                        "border-white/20 bg-slate-700/60 text-white",
                         errors.state && "border-red-500"
                       )}
                     >
@@ -765,7 +765,7 @@ export function ShippingAddressForm({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="postalCode" className="text-slate-200">
+                <Label htmlFor="postalCode" className="font-medium text-slate-200">
                   {t("postalCode")}
                 </Label>
                 <Input
@@ -774,7 +774,7 @@ export function ShippingAddressForm({
                   value={formData.postalCode}
                   onChange={handleChange}
                   className={cn(
-                    "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                    "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                     errors.postalCode && "border-red-500"
                   )}
                 />
@@ -786,7 +786,7 @@ export function ShippingAddressForm({
               </div>
 
               <div>
-                <Label htmlFor="country" className="text-slate-200">
+                <Label htmlFor="country" className="font-medium text-slate-200">
                   {t("country")}
                 </Label>
                 {allowInternational ? (
@@ -796,7 +796,7 @@ export function ShippingAddressForm({
                     value={formData.country}
                     onChange={handleChange}
                     className={cn(
-                      "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                      "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                       errors.country && "border-red-500"
                     )}
                   />
@@ -808,7 +808,7 @@ export function ShippingAddressForm({
                   >
                     <SelectTrigger
                       className={cn(
-                        "border-white/10 bg-white/5 text-slate-100 data-[placeholder]:text-slate-400",
+                        "border-white/20 bg-slate-700/60 text-white data-[placeholder]:text-slate-400",
                         errors.country && "border-red-500"
                       )}
                     >
@@ -836,7 +836,7 @@ export function ShippingAddressForm({
             </div>
 
             <div>
-                <Label htmlFor="phone" className="text-slate-200">
+                <Label htmlFor="phone" className="font-medium text-slate-200">
                   {t("phone")}
                 </Label>
               <Input
@@ -845,7 +845,7 @@ export function ShippingAddressForm({
                 value={formData.phone}
                 onChange={handleChange}
                 className={cn(
-                  "border-white/10 bg-white/5 text-slate-100 placeholder:text-slate-400",
+                  "border-white/20 bg-slate-700/60 text-white placeholder:text-slate-400 focus:border-sky-400/60",
                   errors.phone && "border-red-500"
                 )}
               />

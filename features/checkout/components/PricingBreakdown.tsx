@@ -57,9 +57,14 @@ export function usePricingBreakdown({
   let shippingCost = 0;
 
   if (hasPhysicalItems) {
+    const isMixedSupplierCart = checkoutData.shippingMethod?.isMixedSupplierCart === true;
+    const mixedSupplierSurcharge = Math.max(
+      0,
+      checkoutData.shippingMethod?.mixedSupplierSurcharge || 0
+    );
     // Check free shipping threshold first
     if (checkFreeShipping(cartSubtotal, settings?.shippingSettings)) {
-      shippingCost = 0;
+      shippingCost = isMixedSupplierCart ? mixedSupplierSurcharge : 0;
     } else if (checkoutData.shippingMethod?.price !== undefined) {
       // Use explicitly selected shipping method price (e.g., Sameday Easybox)
       shippingCost = checkoutData.shippingMethod.price;

@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { syncParentOrderFromSupplierOrders } from "@/lib/order-fulfillment-sync";
 
 export interface TrackingUpdate {
   orderId: string;
@@ -72,52 +73,7 @@ export class DropshippingTracker {
    */
   private static async updateMainOrderStatus(orderId: string) {
     try {
-      // Get all supplier orders for this order
-      const supplierOrders = await db.supplierOrder.findMany({
-        where: { orderId },
-      });
-
-      if (supplierOrders.length === 0) {
-        return;
-      }
-
-      // Determine overall order status
-      const statuses = supplierOrders.map(so => so.status);
-      const uniqueStatuses = [...new Set(statuses)];
-
-      let newOrderStatus: string;
-
-      if (uniqueStatuses.includes("CANCELLED")) {
-        newOrderStatus = "CANCELLED";
-      } else if (uniqueStatuses.every(status => status === "DELIVERED")) {
-        newOrderStatus = "DELIVERED";
-      } else if (uniqueStatuses.some(status => status === "SHIPPED")) {
-        newOrderStatus = "SHIPPED";
-      } else if (uniqueStatuses.some(status => status === "CONFIRMED")) {
-        newOrderStatus = "PROCESSING";
-      } else {
-        newOrderStatus = "PROCESSING";
-      }
-
-      // Update main order
-      await db.order.update({
-        where: { id: orderId },
-        data: {
-          status: newOrderStatus as any,
-          updatedAt: new Date(),
-        },
-      });
-
-      // Create status history entry
-      await db.orderStatusHistory.create({
-        data: {
-          orderId: orderId,
-          fromStatus: "PROCESSING" as any,
-          toStatus: newOrderStatus as any,
-          reason: "Status updated based on supplier order progress",
-          notes: `Supplier statuses: ${uniqueStatuses.join(", ")}`,
-        },
-      });
+      await syncParentOrderFromSupplierOrders(orderId, "dropshipping-tracker");
     } catch (error) {
       console.error("Error updating main order status:", error);
     }

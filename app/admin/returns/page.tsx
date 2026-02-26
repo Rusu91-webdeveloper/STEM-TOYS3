@@ -63,6 +63,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -90,6 +91,13 @@ type ReturnStatus =
   | "REJECTED"
   | "RECEIVED"
   | "REFUNDED";
+
+type SupplierAuthorizationStatus =
+  | "PENDING"
+  | "REQUESTED"
+  | "APPROVED"
+  | "REJECTED"
+  | "EXPIRED";
 
 type CustomerSegment =
   | "new"
@@ -138,6 +146,8 @@ interface ReturnItem {
   refundError?: string | null;
   photos?: string[];
   supplierAuthorizationStatus?: string | null;
+  supplierAuthorizationDeadline?: string | null;
+  supplierAuthorizationRequestedAt?: string | null;
   supplierAuthorizationNumber?: string | null;
   supplierAuthorizationNotes?: string | null;
   user: {
@@ -161,9 +171,21 @@ interface ReturnItem {
       slug: string;
       sku: string;
       images: string[];
+      supplier?: {
+        id: string;
+        name: string;
+      } | null;
     };
   };
 }
+
+const supplierAuthStatusOptions: SupplierAuthorizationStatus[] = [
+  "PENDING",
+  "REQUESTED",
+  "APPROVED",
+  "REJECTED",
+  "EXPIRED",
+];
 
 interface PaginationMeta {
   total: number;
@@ -225,9 +247,25 @@ export default function AdminReturnsPage() {
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
   // Detail modal
-  const [selectedReturnForDetails, setSelectedReturnForDetails] = useState<ReturnItem | null>(null);
+  const [selectedReturnForDetails, setSelectedReturnForDetails] =
+    useState<ReturnItem | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
-  const [sendingReport, setSendingReport] = useState<"supplier" | "courier" | null>(null);
+  const [sendingReport, setSendingReport] = useState<
+    "supplier" | "courier" | null
+  >(null);
+  const [savingSupplierAuthorization, setSavingSupplierAuthorization] =
+    useState(false);
+  const [supplierAuthDraft, setSupplierAuthDraft] = useState<{
+    status: SupplierAuthorizationStatus;
+    number: string;
+    notes: string;
+    deadline: string;
+  }>({
+    status: "PENDING",
+    number: "",
+    notes: "",
+    deadline: "",
+  });
 
   const { toast } = useToast();
 
@@ -401,13 +439,24 @@ export default function AdminReturnsPage() {
         throw new Error("Failed to update status");
       }
 
+      const data = await response.json().catch(() => null);
+      if (data?.return) {
+        applyUpdatedReturn(data.return);
+      }
+
       toast({
         title: "Status Updated",
         description: `Return status changed to ${statusBadges[newStatus].label}`,
       });
 
       // Refresh the data
-      fetchReturns(pagination.page, filterStatus);
+      fetchReturns(
+        pagination.page,
+        filterStatus,
+        filterReason,
+        filterCustomerSegment,
+        dateRange
+      );
     } catch (error) {
       console.error("Error updating status:", error);
       toast({
@@ -452,7 +501,13 @@ export default function AdminReturnsPage() {
 
       // Clear selection and refresh data
       setSelectedReturns([]);
-      fetchReturns(pagination.page, filterStatus);
+      fetchReturns(
+        pagination.page,
+        filterStatus,
+        filterReason,
+        filterCustomerSegment,
+        dateRange
+      );
     } catch (error) {
       console.error("Error in bulk approval:", error);
       toast({
@@ -541,8 +596,87 @@ export default function AdminReturnsPage() {
 
   // View return details
   const handleViewDetails = (returnItem: ReturnItem) => {
+    setSupplierAuthDraft({
+      status:
+        (returnItem.supplierAuthorizationStatus as SupplierAuthorizationStatus) ||
+        "PENDING",
+      number: returnItem.supplierAuthorizationNumber || "",
+      notes: returnItem.supplierAuthorizationNotes || "",
+      deadline: returnItem.supplierAuthorizationDeadline
+        ? new Date(returnItem.supplierAuthorizationDeadline)
+            .toISOString()
+            .slice(0, 10)
+        : "",
+    });
     setSelectedReturnForDetails(returnItem);
     setDetailsModalOpen(true);
+  };
+
+  const applyUpdatedReturn = (updatedReturn: ReturnItem) => {
+    setReturns(prev =>
+      prev.map(item => (item.id === updatedReturn.id ? updatedReturn : item))
+    );
+    setSelectedReturnForDetails(updatedReturn);
+  };
+
+  const handleSaveSupplierAuthorization = async () => {
+    if (!selectedReturnForDetails) return;
+
+    try {
+      setSavingSupplierAuthorization(true);
+
+      const response = await fetch(
+        `/api/returns/${selectedReturnForDetails.id}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supplierAuthorizationStatus: supplierAuthDraft.status,
+            supplierAuthorizationNumber: supplierAuthDraft.number,
+            supplierAuthorizationNotes: supplierAuthDraft.notes,
+            supplierAuthorizationDeadline: supplierAuthDraft.deadline || null,
+          }),
+        }
+      );
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(
+          data?.error || "Failed to update supplier authorization"
+        );
+      }
+
+      if (data?.return) {
+        applyUpdatedReturn(data.return);
+      } else {
+        fetchReturns(
+          pagination.page,
+          filterStatus,
+          filterReason,
+          filterCustomerSegment,
+          dateRange
+        );
+      }
+
+      toast({
+        title: "Supplier Authorization Updated",
+        description: "RMA/ARP workflow details were saved successfully.",
+      });
+    } catch (error) {
+      console.error("Error updating supplier authorization:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update supplier authorization.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingSupplierAuthorization(false);
+    }
   };
 
   // Send return report to supplier or courier
@@ -570,14 +704,20 @@ export default function AdminReturnsPage() {
       }
 
       toast({
-        title: recipientType === "supplier" ? "Raport trimis la furnizor" : "Reclamație trimisă la curier",
+        title:
+          recipientType === "supplier"
+            ? "Raport trimis la furnizor"
+            : "Reclamație trimisă la curier",
         description: data.message,
       });
     } catch (error) {
       console.error("Error sending report:", error);
       toast({
         title: "Eroare",
-        description: error instanceof Error ? error.message : "Nu s-a putut trimite raportul",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Nu s-a putut trimite raportul",
         variant: "destructive",
       });
     } finally {
@@ -1195,7 +1335,9 @@ export default function AdminReturnsPage() {
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                   <DropdownMenuItem
-                                    onClick={() => handleViewDetails(returnItem)}
+                                    onClick={() =>
+                                      handleViewDetails(returnItem)
+                                    }
                                   >
                                     <Eye className="h-4 w-4 mr-2" />
                                     View Details
@@ -1378,10 +1520,17 @@ export default function AdminReturnsPage() {
                             "N/A"}
                         </p>
                         <p>
-                          Quantity: {selectedReturnForDetails.orderItem.quantity}
+                          Supplier:{" "}
+                          {selectedReturnForDetails.orderItem.product.supplier
+                            ?.name || "In-house / Unknown"}
                         </p>
                         <p>
-                          Price: ${selectedReturnForDetails.orderItem.price.toFixed(2)}
+                          Quantity:{" "}
+                          {selectedReturnForDetails.orderItem.quantity}
+                        </p>
+                        <p>
+                          Price: $
+                          {selectedReturnForDetails.orderItem.price.toFixed(2)}
                         </p>
                         <p>
                           Order #{selectedReturnForDetails.order.orderNumber}
@@ -1463,44 +1612,156 @@ export default function AdminReturnsPage() {
                 </CardContent>
               </Card>
 
-              {/* Supplier Authorization (if applicable) */}
-              {(selectedReturnForDetails.supplierAuthorizationStatus ||
-                selectedReturnForDetails.supplierAuthorizationNumber) && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">
-                      Supplier Authorization
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
-                    {selectedReturnForDetails.supplierAuthorizationStatus && (
-                      <div>
-                        <span className="text-muted-foreground">Status: </span>
-                        <Badge variant="outline">
-                          {selectedReturnForDetails.supplierAuthorizationStatus}
-                        </Badge>
-                      </div>
-                    )}
-                    {selectedReturnForDetails.supplierAuthorizationNumber && (
+              {/* Supplier Routing & Authorization */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Supplier Return Workflow
+                  </CardTitle>
+                  <CardDescription>
+                    Track supplier approval (RMA/ARP) for this return item.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Supplier: </span>
+                      <span className="font-medium">
+                        {selectedReturnForDetails.orderItem.product.supplier
+                          ?.name || "Unknown"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">SKU: </span>
+                      <span className="font-mono">
+                        {selectedReturnForDetails.orderItem.product.sku ||
+                          "N/A"}
+                      </span>
+                    </div>
+                    {selectedReturnForDetails.supplierAuthorizationRequestedAt && (
                       <div>
                         <span className="text-muted-foreground">
-                          RMA/ARP Number:{" "}
+                          Requested At:{" "}
                         </span>
-                        <span className="font-mono">
-                          {selectedReturnForDetails.supplierAuthorizationNumber}
+                        <span>
+                          {format(
+                            new Date(
+                              selectedReturnForDetails.supplierAuthorizationRequestedAt
+                            ),
+                            "MMM dd, yyyy HH:mm"
+                          )}
                         </span>
                       </div>
                     )}
-                    {selectedReturnForDetails.supplierAuthorizationNotes && (
-                      <div className="mt-2 p-2 bg-muted rounded">
-                        <p className="text-muted-foreground">
-                          {selectedReturnForDetails.supplierAuthorizationNotes}
-                        </p>
+                    {selectedReturnForDetails.supplierAuthorizationDeadline && (
+                      <div>
+                        <span className="text-muted-foreground">
+                          Deadline:{" "}
+                        </span>
+                        <span>
+                          {format(
+                            new Date(
+                              selectedReturnForDetails.supplierAuthorizationDeadline
+                            ),
+                            "MMM dd, yyyy"
+                          )}
+                        </span>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
-              )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Supplier Authorization Status
+                      </label>
+                      <Select
+                        value={supplierAuthDraft.status}
+                        onValueChange={value =>
+                          setSupplierAuthDraft(prev => ({
+                            ...prev,
+                            status: value as SupplierAuthorizationStatus,
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {supplierAuthStatusOptions.map(option => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        RMA / ARP Number
+                      </label>
+                      <Input
+                        value={supplierAuthDraft.number}
+                        onChange={e =>
+                          setSupplierAuthDraft(prev => ({
+                            ...prev,
+                            number: e.target.value,
+                          }))
+                        }
+                        placeholder="e.g. KID-RMA-1024"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Supplier Response Deadline
+                      </label>
+                      <Input
+                        type="date"
+                        value={supplierAuthDraft.deadline}
+                        onChange={e =>
+                          setSupplierAuthDraft(prev => ({
+                            ...prev,
+                            deadline: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Supplier Notes
+                    </label>
+                    <Textarea
+                      value={supplierAuthDraft.notes}
+                      onChange={e =>
+                        setSupplierAuthDraft(prev => ({
+                          ...prev,
+                          notes: e.target.value,
+                        }))
+                      }
+                      placeholder="Supplier response, RMA conditions, missing info, next action..."
+                      className="min-h-[90px]"
+                    />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleSaveSupplierAuthorization}
+                      disabled={savingSupplierAuthorization}
+                      variant="outline"
+                    >
+                      {savingSupplierAuthorization && (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      )}
+                      Save Supplier Workflow
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Refund Info (if refunded) */}
               {selectedReturnForDetails.status === "REFUNDED" && (
@@ -1544,7 +1805,8 @@ export default function AdminReturnsPage() {
                     Trimite Raport
                   </CardTitle>
                   <CardDescription>
-                    Trimite detaliile returnării și fotografiile către furnizor sau curier
+                    Trimite detaliile returnării și fotografiile către furnizor
+                    sau curier
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col sm:flex-row gap-3">
@@ -1590,7 +1852,10 @@ export default function AdminReturnsPage() {
                     <Button
                       variant="destructive"
                       onClick={() => {
-                        handleUpdateStatus(selectedReturnForDetails.id, "REJECTED");
+                        handleUpdateStatus(
+                          selectedReturnForDetails.id,
+                          "REJECTED"
+                        );
                         setDetailsModalOpen(false);
                       }}
                     >
@@ -1599,7 +1864,10 @@ export default function AdminReturnsPage() {
                     <Button
                       className="bg-green-600 hover:bg-green-700"
                       onClick={() => {
-                        handleUpdateStatus(selectedReturnForDetails.id, "APPROVED");
+                        handleUpdateStatus(
+                          selectedReturnForDetails.id,
+                          "APPROVED"
+                        );
                         setDetailsModalOpen(false);
                       }}
                     >

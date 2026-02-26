@@ -22,6 +22,7 @@ import {
   calculateShippingQuote,
   resolveShippingService,
 } from "@/lib/shipping/shipping-pricing";
+import { checkFreeShipping } from "@/lib/shipping/shipping-price-resolver";
 import { getStripeApiVersion, getStripeCurrency } from "@/lib/stripe-config";
 import {
   shouldAutoFulfillOrder,
@@ -34,6 +35,10 @@ import {
   shouldAlertHighValueOrder,
   getNotificationSettings,
 } from "@/lib/utils/order-processing";
+import {
+  analyzeSupplierCartComposition,
+  applyMixedSupplierShippingRules,
+} from "@/lib/checkout/supplier-cart-rules";
 import {
   getShippingSettings,
   getTaxSettings,
@@ -499,6 +504,63 @@ export async function POST(request: Request) {
     }
     const isDigitalOnlyOrder = items.length > 0 && !hasPhysicalItems;
 
+    let supplierCartAnalysis = {
+      isMixedSupplierCart: false,
+      supplierCount: 0,
+      supplierNames: [] as string[],
+      fulfillmentSourceIds: [] as string[],
+      requiresPrepaid: false,
+      mixedSupplierExtraShipments: 0,
+    };
+
+    if (!isDigitalOnlyOrder) {
+      const physicalIdsForSupplierAnalysis = items
+        .filter(item => item.isBook !== true && item.productId)
+        .map(item => item.productId) as string[];
+
+      if (physicalIdsForSupplierAnalysis.length > 0) {
+        try {
+          const supplierProducts = await db.product.findMany({
+            where: { id: { in: physicalIdsForSupplierAnalysis } },
+            select: {
+              id: true,
+              supplierId: true,
+              supplier: {
+                select: {
+                  id: true,
+                  name: true,
+                  companyName: true,
+                },
+              },
+            },
+          });
+
+          supplierCartAnalysis = analyzeSupplierCartComposition(items, supplierProducts);
+        } catch (supplierAnalysisError) {
+          console.error(
+            "Failed to analyze supplier composition for checkout order:",
+            supplierAnalysisError
+          );
+        }
+      }
+    }
+
+    if (isCODPayment && supplierCartAnalysis.requiresPrepaid) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Orders containing products from multiple suppliers must be paid online. Cash on delivery is not available for split shipments.",
+          error: "MIXED_SUPPLIER_PREPAID_REQUIRED",
+          details: {
+            supplierCount: supplierCartAnalysis.supplierCount,
+            supplierNames: supplierCartAnalysis.supplierNames,
+          },
+        },
+        { status: 400 }
+      );
+    }
+
     // Get initial shipping method cost (default to 0 if not provided)
     const baseShippingCost = isDigitalOnlyOrder
       ? 0
@@ -514,9 +576,11 @@ export async function POST(request: Request) {
     // Keep checkout/order API in sync with /api/checkout/shipping-quote:
     // if a courier service has priceOverride configured, it must win.
     let selectedServicePriceOverride: number | null = null;
+    let shippingSettingsForPricing: unknown = null;
     if (!isDigitalOnlyOrder && orderData.shippingMethod?.id) {
       try {
         const shippingSettings = await getShippingSettings();
+        shippingSettingsForPricing = shippingSettings;
         const configuredCouriers =
           (shippingSettings as any)?.couriers &&
           Array.isArray((shippingSettings as any).couriers)
@@ -600,6 +664,30 @@ export async function POST(request: Request) {
       finalShippingCost = 0;
       shippingBasePrice = 0;
       shippingTotalEstimate = 0;
+    }
+
+    if (!isDigitalOnlyOrder) {
+      let freeShippingEligible = false;
+      try {
+        if (!shippingSettingsForPricing) {
+          shippingSettingsForPricing = await getShippingSettings();
+        }
+        freeShippingEligible = checkFreeShipping(subtotal, shippingSettingsForPricing);
+      } catch (shippingRulesError) {
+        console.error("Failed to evaluate free shipping rules:", shippingRulesError);
+      }
+
+      const shippingRuleResult = applyMixedSupplierShippingRules({
+        singleShipmentPrice:
+          typeof orderData.shippingMethod?.singleShipmentPrice === "number"
+            ? orderData.shippingMethod.singleShipmentPrice
+            : finalShippingCost,
+        freeShippingEligible,
+        analysis: supplierCartAnalysis,
+      });
+
+      finalShippingCost = shippingRuleResult.finalShippingCost;
+      shippingTotalEstimate = shippingRuleResult.finalShippingCost;
     }
 
     // Get tax settings from the database (dynamic from admin)
@@ -997,6 +1085,12 @@ export async function POST(request: Request) {
 
     // Create order and items in a single database transaction
     let dbOrder;
+    const operationalNotes: string[] = [];
+    if (supplierCartAnalysis.isMixedSupplierCart) {
+      operationalNotes.push(
+        `Split shipment order (${supplierCartAnalysis.supplierCount} fulfillment sources${supplierCartAnalysis.supplierNames.length ? `: ${supplierCartAnalysis.supplierNames.join(", ")}` : ""}). Prepaid only.`
+      );
+    }
     try {
       console.log(
         `Creating order with ${items.length} items:`,
@@ -1033,6 +1127,9 @@ export async function POST(request: Request) {
             declaredValue,
             codAmount: isCODPayment ? codAmount : null,
             currency: "RON",
+            tags: supplierCartAnalysis.isMixedSupplierCart
+              ? ["MIXED_SUPPLIER", "MULTI_PARCEL"]
+              : [],
             // For Netopia we keep the order in a "pending review" state
             // (valid OrderStatus enum) until the IPN/webhook confirms
             // payment success or failure. The actual payment lifecycle
@@ -1046,13 +1143,17 @@ export async function POST(request: Request) {
             shippingAddressId,
             stripePaymentIntentId: orderData.stripePaymentIntentId || null,
             // Store COD information in notes field (we can add proper fields later)
-            notes: isCODPayment
-              ? `COD Order - Fee: ${codFee.toFixed(
-                  2
-                )} RON, Amount to Collect: ${codAmount.toFixed(2)} RON${
-                  orderData.notes ? ` | ${orderData.notes}` : ""
-                }`
-              : orderData.notes || null,
+            notes: [
+              isCODPayment
+                ? `COD Order - Fee: ${codFee.toFixed(
+                    2
+                  )} RON, Amount to Collect: ${codAmount.toFixed(2)} RON`
+                : null,
+              ...(orderData.notes ? [orderData.notes] : []),
+              ...operationalNotes,
+            ]
+              .filter(Boolean)
+              .join(" | ") || null,
           },
         });
 

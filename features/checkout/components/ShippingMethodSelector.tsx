@@ -63,6 +63,9 @@ export function ShippingMethodSelector({
   const [fanboxError, setFanboxError] = useState<string | null>(null);
   const [selectedFanboxId, setSelectedFanboxId] = useState<string>("");
   const [selectionError, setSelectionError] = useState<string | null>(null);
+  const [shippingPolicyMessage, setShippingPolicyMessage] = useState<string | null>(
+    null
+  );
   const { formatPrice } = useCurrency();
   const { t } = useTranslation();
   const { items: cartItems, getCartTotal } = useCart();
@@ -96,6 +99,7 @@ export function ShippingMethodSelector({
         setSelectedMethodId("digital");
         setFreeShippingApplied(true);
         setFreeShippingThreshold(null);
+        setShippingPolicyMessage(null);
         setIsLoading(false);
         return;
       }
@@ -116,6 +120,11 @@ export function ShippingMethodSelector({
         let methods: ShippingMethod[] = [];
 
         if (quoteResponse?.methods?.length) {
+          const mixedSupplierCart =
+            quoteResponse?.cartRules?.isMixedSupplierCart === true;
+          setShippingPolicyMessage(
+            quoteResponse?.cartRules?.shippingPolicyMessage || null
+          );
           methods = quoteResponse.methods.map(
             (method: {
               id: string;
@@ -123,6 +132,13 @@ export function ShippingMethodSelector({
               description: string;
               estimatedDelivery: string;
               price: number;
+              singleShipmentPrice?: number;
+              mixedSupplierSurcharge?: number;
+              isMixedSupplierCart?: boolean;
+              requiresPrepaid?: boolean;
+              supplierCount?: number;
+              supplierNames?: string[];
+              shippingPolicyMessage?: string | null;
               courierId?: string;
               serviceId?: string;
               methodType?: "home" | "easybox";
@@ -136,11 +152,24 @@ export function ShippingMethodSelector({
               serviceId: method.serviceId,
               methodType: method.methodType,
               requiresLocker: Boolean(method.requiresLocker),
-              // Apply free shipping if threshold is exceeded
-              price: isFreeShipping ? 0 : method.price,
+              singleShipmentPrice: method.singleShipmentPrice,
+              mixedSupplierSurcharge: method.mixedSupplierSurcharge,
+              isMixedSupplierCart: Boolean(method.isMixedSupplierCart),
+              requiresPrepaid: Boolean(method.requiresPrepaid),
+              supplierCount: method.supplierCount,
+              supplierNames: method.supplierNames,
+              shippingPolicyMessage: method.shippingPolicyMessage || null,
+              // For mixed-supplier carts, keep the split-shipment surcharge even when
+              // the standard first shipment qualifies for free shipping.
+              price: isFreeShipping
+                ? mixedSupplierCart
+                  ? method.mixedSupplierSurcharge ?? method.price
+                  : 0
+                : method.price,
             })
           );
         } else {
+          setShippingPolicyMessage(null);
           const deliveryPrice = settings.deliveryPrice?.active
             ? parseFloat(settings.deliveryPrice.price || "15.00")
             : 15.0;
@@ -193,6 +222,7 @@ export function ShippingMethodSelector({
         }
       } catch (error) {
         console.error("Error loading shipping settings:", error);
+        setShippingPolicyMessage(null);
 
         // Even in fallback, check free shipping based on cart total
         const cartTotal = getCartTotal();
@@ -385,6 +415,10 @@ export function ShippingMethodSelector({
     );
   }
 
+  const selectedShippingMethod = shippingMethods.find(
+    method => method.id === selectedMethodId
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Free Shipping Banner */}
@@ -406,6 +440,24 @@ export function ShippingMethodSelector({
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {selectedShippingMethod?.isMixedSupplierCart && (
+        <div className="mb-6 rounded-2xl border border-amber-400/40 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-rose-500/10 p-4 text-amber-100 shadow-inner shadow-amber-500/10">
+          <p className="font-semibold">
+            Comandă cu livrare separată în mai multe colete
+          </p>
+          <p className="mt-1 text-sm text-amber-100/90">
+            {selectedShippingMethod?.shippingPolicyMessage ||
+              shippingPolicyMessage ||
+              "Produsele vor fi expediate de furnizori diferiți. Plata ramburs nu este disponibilă pentru această comandă."}
+          </p>
+          {freeShippingApplied && (
+            <p className="mt-1 text-xs text-amber-200/90">
+              Transportul gratuit se aplică primului colet; taxa suplimentară pentru livrare separată rămâne activă.
+            </p>
+          )}
         </div>
       )}
 
@@ -484,6 +536,13 @@ export function ShippingMethodSelector({
                       {t("estimatedDelivery", "Estimated delivery")}:{" "}
                       {method.estimatedDelivery}
                     </p>
+                    {method.isMixedSupplierCart &&
+                      (method.mixedSupplierSurcharge || 0) > 0 && (
+                        <p className="mt-1 text-xs text-amber-200">
+                          Include taxă livrare separată:{" "}
+                          {formatPrice(method.mixedSupplierSurcharge || 0)}
+                        </p>
+                      )}
                     {method.price === 0 && freeShippingApplied && (
                       <p className="mt-1 text-xs text-emerald-300">
                         Transport gratuit pentru comenzi peste{" "}
@@ -504,9 +563,7 @@ export function ShippingMethodSelector({
           </p>
         )}
 
-        {methodRequiresLocker(
-          shippingMethods.find(method => method.id === selectedMethodId)
-        ) && (
+        {methodRequiresLocker(selectedShippingMethod) && (
           <div className="mt-4 rounded-xl border border-sky-300/30 bg-sky-500/10 p-4">
             <Label className="mb-2 block text-sm font-semibold text-sky-100">
               Selectează FANbox pentru adresa ta
