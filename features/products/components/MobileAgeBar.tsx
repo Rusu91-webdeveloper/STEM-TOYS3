@@ -71,7 +71,7 @@ export default function MobileAgeBar({
   };
 
   return (
-    <div className="md:hidden border-b border-slate-200/80 bg-[#fbf8f1]/95 backdrop-blur supports-[backdrop-filter]:bg-[#fbf8f1]/90">
+    <div className="xl:hidden border-b border-slate-200/80 bg-[#fbf8f1]/95 backdrop-blur supports-[backdrop-filter]:bg-[#fbf8f1]/90">
       <div className="px-3 py-2">
         <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
           {t("shopByAge", "Shop by age")}

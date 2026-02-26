@@ -90,15 +90,15 @@ export function ProductsHeroSection({
       <div className="relative overflow-hidden rounded-[1.5rem] border border-[#e5dcc9] bg-[#f7f1e5] shadow-[0_28px_55px_-45px_rgba(30,41,59,0.55)] sm:rounded-[2rem]">
         <div className="pointer-events-none absolute inset-0 opacity-40 bg-[radial-gradient(circle,_rgba(15,23,42,0.10)_1px,_transparent_1px)] bg-[length:16px_16px]" />
 
-        <div className="grid min-h-[320px] grid-cols-1 md:min-h-[380px] md:grid-cols-[1.05fr_0.95fr]">
-          <div className="relative order-2 min-h-[180px] md:order-1 md:min-h-full">
+        <div className="grid min-h-[320px] grid-cols-1 md:min-h-[360px] lg:min-h-[380px] lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="relative order-2 min-h-[180px] lg:order-1 lg:min-h-full">
             <Image
               src={resolvedCategoryImagePath}
               alt={
                 activeCategory ? `${activeCategory.label} category` : "STEM Toys"
               }
               fill
-              sizes="(max-width: 768px) 100vw, 45vw"
+              sizes="(max-width: 1024px) 100vw, 48vw"
               priority
               className="object-cover object-center"
               onError={() => {
@@ -107,12 +107,12 @@ export function ProductsHeroSection({
                 }
               }}
             />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/55 via-slate-900/15 to-transparent md:bg-gradient-to-r md:from-slate-900/35 md:via-transparent md:to-transparent" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#f7f1e5] to-transparent md:hidden" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/55 via-slate-900/15 to-transparent lg:bg-gradient-to-r lg:from-slate-900/35 lg:via-transparent lg:to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#f7f1e5] to-transparent lg:hidden" />
           </div>
 
-          <div className="order-1 p-3 sm:p-4 md:order-2 md:p-6 lg:p-8">
-            <div className="relative h-full rounded-2xl border border-white/80 bg-white/80 p-4 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.35)] backdrop-blur-sm sm:p-5 md:flex md:flex-col md:justify-between">
+          <div className="order-1 p-3 sm:p-4 lg:order-2 lg:p-6 xl:p-8">
+            <div className="relative h-full rounded-2xl border border-white/80 bg-white/80 p-4 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.35)] backdrop-blur-sm sm:p-5 lg:flex lg:flex-col lg:justify-between">
               <div>
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">
@@ -130,7 +130,7 @@ export function ProductsHeroSection({
                   {activeCategory ? activeCategory.label : t("allCategories")}
                 </div>
 
-                <h1 className="font-serif text-[1.7rem] leading-tight text-slate-900 sm:text-[2rem] md:text-[2.15rem] lg:text-[2.35rem]">
+                <h1 className="font-serif text-[1.7rem] leading-tight text-slate-900 sm:text-[2rem] md:text-[2.1rem] lg:text-[2.15rem] xl:text-[2.35rem]">
                   {headline}
                 </h1>
 
@@ -164,7 +164,7 @@ export function ProductsHeroSection({
                   </div>
                 </div>
 
-                <div className="hidden sm:grid grid-cols-3 gap-2.5">
+                <div className="hidden sm:grid sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
                   {mobileStats.map(stat => (
                     <div
                       key={stat.label}

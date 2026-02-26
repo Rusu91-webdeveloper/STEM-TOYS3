@@ -744,7 +744,7 @@ function ClientProductsPageContent({
     <ProductsErrorBoundary>
       <ProductVariantProvider>
         <div className="flex flex-col">
-          <section className="order-2 mt-6 mb-4 sm:mb-6 md:order-1 md:mt-0 lg:mb-10">
+          <section className="order-2 mt-6 mb-4 sm:mb-6 md:order-1 md:mt-0 lg:mb-8 xl:mb-10">
             <ProductsHeroSection
               categoryImagePath={getCategoryImagePath()}
               activeCategory={activeCategory}
@@ -759,7 +759,7 @@ function ClientProductsPageContent({
             {/* Removed redundant category quick buttons to avoid duplication with sidebar and mobile filters */}
 
             {/* Premium Mobile Filter Bar - Optimized for Performance */}
-            <div className="md:hidden">
+            <div className="xl:hidden">
               <MobileFilterBar
                 activeFilterCount={
                   state.selectedCategories.length +
@@ -793,7 +793,7 @@ function ClientProductsPageContent({
 
             <div className="w-full max-w-full overflow-x-hidden bg-transparent">
               <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-2 pb-4 sm:py-6 md:py-8 lg:py-10 relative z-10">
-                <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-stretch">
+                <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 xl:gap-8 items-stretch">
                   <ProductFiltersErrorBoundary
                     onError={() => {
                       // Fallback: clear filters and reload

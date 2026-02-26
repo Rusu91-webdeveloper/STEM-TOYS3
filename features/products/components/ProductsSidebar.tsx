@@ -128,12 +128,12 @@ export function ProductsSidebar({
   return (
     <aside
       className={cn(
-        "hidden md:block shrink-0",
-        "w-full md:w-72 lg:w-80 xl:w-96",
+        "hidden xl:block shrink-0",
+        "w-full xl:w-80 2xl:w-96",
         "min-w-0 max-w-full"
       )}
     >
-      <div className="sticky top-20 sm:top-24 overflow-hidden rounded-2xl border border-slate-200/70 bg-white/85 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)] backdrop-blur-sm">
+      <div className="sticky top-24 overflow-hidden rounded-2xl border border-slate-200/70 bg-white/85 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)] backdrop-blur-sm">
         <div className="relative flex flex-col gap-4 sm:gap-5 px-4 py-4 sm:px-5 sm:py-5 md:px-5 md:py-5 lg:px-6 lg:py-6">
           <div className="flex items-start justify-between gap-2 sm:gap-4 min-w-0">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
