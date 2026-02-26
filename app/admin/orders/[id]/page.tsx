@@ -1458,108 +1458,106 @@ export default function OrderDetailsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Link href="/admin/orders">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Orders
-            </Button>
-          </Link>
-          <Separator orientation="vertical" className="h-6" />
-          <div>
-            <h1 className="text-2xl font-bold">Order #{order.orderNumber}</h1>
-            <p className="text-muted-foreground">
-              Placed on{" "}
-              {order.date
-                ? new Date(order.date).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })
-                : "N/A"}
-            </p>
-            {fulfillment && (
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getFulfillmentBadgeColor(
-                    fulfillment.displayStatus
-                  )}`}
-                >
-                  Fulfillment: {formatWorkflowLabel(fulfillment.displayStatus)}
-                </span>
-                {fulfillment.hasMixedSuppliers && (
-                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                    Mixed Order ({fulfillment.supplierCount} suppliers)
+      <div className="space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <Link href="/admin/orders">
+              <Button variant="ghost" size="sm" className="mt-0.5">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Orders
+              </Button>
+            </Link>
+            <Separator orientation="vertical" className="h-10 mt-0.5" />
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Order #{order.orderNumber}</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Placed{" "}
+                {order.date
+                  ? new Date(order.date).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : "N/A"}
+              </p>
+              {fulfillment && (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getFulfillmentBadgeColor(
+                      fulfillment.displayStatus
+                    )}`}
+                  >
+                    Fulfillment: {formatWorkflowLabel(fulfillment.displayStatus)}
                   </span>
-                )}
-                {fulfillment.hasIssues && (
-                  <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
-                    Needs attention
-                  </span>
-                )}
-              </div>
-            )}
+                  {fulfillment.hasMixedSuppliers && (
+                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                      Mixed ({fulfillment.supplierCount} suppliers)
+                    </span>
+                  )}
+                  {fulfillment.hasIssues && (
+                    <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                      Needs attention
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Status Update Section */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Status:</span>
+          {/* Status Update Section */}
+          <div className="flex items-center gap-2 shrink-0">
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(order.status)}`}
             >
               {getStatusIcon(order.status)}
               {formatStatus(order.status)}
             </span>
+            <Select value={newStatus} onValueChange={setNewStatus}>
+              <SelectTrigger className="w-38">
+                <SelectValue placeholder="Update status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PROCESSING">Processing</SelectItem>
+                <SelectItem value="SHIPPED">Shipped</SelectItem>
+                <SelectItem value="DELIVERED">Delivered</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={updateOrderStatus}
+              disabled={updating || newStatus === order.status}
+              size="sm"
+            >
+              {updating ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Update
+            </Button>
           </div>
-          <Select value={newStatus} onValueChange={setNewStatus}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Update status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="PROCESSING">Processing</SelectItem>
-              <SelectItem value="SHIPPED">Shipped</SelectItem>
-              <SelectItem value="DELIVERED">Delivered</SelectItem>
-              <SelectItem value="COMPLETED">Completed</SelectItem>
-              <SelectItem value="CANCELLED">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            onClick={updateOrderStatus}
-            disabled={updating || newStatus === order.status}
-            size="sm"
-          >
-            {updating ? (
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
-            Update
-          </Button>
         </div>
 
-        {/* Cancellation Reason Field - Only show when status is CANCELLED */}
+        {/* Cancellation Reason Field - full width below header row */}
         {newStatus === "CANCELLED" && (
-          <div className="mt-4 p-4 border rounded-lg bg-red-50">
+          <div className="p-4 border border-red-200 rounded-lg bg-red-50">
             <label
               htmlFor="cancellationReason"
               className="block text-sm font-medium text-red-800 mb-2"
             >
               Cancellation Reason{" "}
-              <span className="text-red-600">(Optional)</span>
+              <span className="font-normal text-red-600">(Optional)</span>
             </label>
             <Textarea
               id="cancellationReason"
               placeholder="Enter the reason for cancelling this order (will be included in the email to customer)..."
               value={cancellationReason}
               onChange={e => setCancellationReason(e.target.value)}
-              className="min-h-[80px] border-red-200 focus:border-red-400"
+              className="min-h-[80px] border-red-200 focus:border-red-400 bg-white"
             />
             <p className="text-xs text-red-600 mt-1">
-              This reason will be sent to the customer in the cancellation
-              email.
+              This reason will be sent to the customer in the cancellation email.
             </p>
           </div>
         )}
@@ -1570,18 +1568,21 @@ export default function OrderDetailsPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Order Items */}
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Order Items ({order.items.length})
+                <Package className="h-5 w-5 text-muted-foreground" />
+                Order Items
+                <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">
+                  {order.items.length}
+                </span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="p-0">
+              <div className="divide-y">
                 {order.items.map(item => (
                   <div
                     key={item.id}
-                    className="flex gap-4 p-4 border rounded-lg"
+                    className="flex gap-4 p-5 hover:bg-muted/20 transition-colors"
                   >
                     <div className="flex-shrink-0">
                       {item.isBook ? (
@@ -1591,9 +1592,9 @@ export default function OrderDetailsPage() {
                             "/images/book-placeholder.jpg"
                           }
                           alt={item.name}
-                          width={64}
-                          height={64}
-                          className="w-16 h-16 object-cover rounded"
+                          width={80}
+                          height={80}
+                          className="w-20 h-20 object-cover rounded-lg border shadow-sm"
                         />
                       ) : (
                         <Image
@@ -1602,214 +1603,76 @@ export default function OrderDetailsPage() {
                             "/images/product-placeholder.jpg"
                           }
                           alt={item.name}
-                          width={64}
-                          height={64}
-                          className="w-16 h-16 object-cover rounded"
+                          width={80}
+                          height={80}
+                          className="w-20 h-20 object-cover rounded-lg border shadow-sm"
                         />
                       )}
                     </div>
-                    <div className="flex-grow">
-                      <h4 className="font-medium">{item.name}</h4>
-                      {item.isBook && item.book && (
-                        <p className="text-sm text-muted-foreground">
-                          by {item.book.author}
-                        </p>
-                      )}
+                    <div className="flex-grow min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <h4 className="font-semibold text-sm leading-snug">
+                            {item.isBook && item.book ? (
+                              <Link
+                                href={`/books/${item.book.slug}`}
+                                className="hover:underline"
+                                target="_blank"
+                              >
+                                {item.name}
+                              </Link>
+                            ) : item.product ? (
+                              <Link
+                                href={`/products/${item.product.slug}`}
+                                className="hover:underline"
+                                target="_blank"
+                              >
+                                {item.name}
+                              </Link>
+                            ) : (
+                              item.name
+                            )}
+                          </h4>
+                          {item.isBook && item.book && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              by {item.book.author}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="font-semibold text-sm">
+                            {formatPrice(item.price * item.quantity)}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {item.quantity} × {formatPrice(item.price)}
+                          </p>
+                        </div>
+                      </div>
                       {!item.isDigital && (
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">
-                            Supplier: {item.supplierName || "Not assigned"}
+                        <div className="mt-2.5 flex flex-wrap gap-1.5 text-xs">
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600 font-medium">
+                            {item.supplierName || "No supplier"}
                           </span>
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">
-                            SKU: {item.sku || item.product?.sku || "Missing"}
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600 font-mono">
+                            {item.sku || item.product?.sku || "No SKU"}
                           </span>
                           {item.supplierOrderStatus && (
-                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-700">
-                              Supplier Line: {item.supplierOrderStatus}
+                            <span className="rounded-md bg-blue-50 border border-blue-100 px-2 py-0.5 text-blue-700 font-medium">
+                              {item.supplierOrderStatus}
                             </span>
                           )}
                         </div>
                       )}
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <span>Qty: {item.quantity}</span>
-                        <span>Price: {formatPrice(item.price)}</span>
-                        <span>
-                          Total: {formatPrice(item.price * item.quantity)}
-                        </span>
-                        {item.isDigital && (
-                          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">
+                      {item.isDigital && (
+                        <div className="mt-2 flex gap-1.5">
+                          <span className="rounded-md bg-violet-50 border border-violet-100 px-2 py-0.5 text-xs text-violet-700 font-medium">
                             Digital
                           </span>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Customer Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Customer
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="font-medium">{order.customer}</p>
-                <p className="text-sm text-muted-foreground">{order.email}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Shipping Address */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Shipping Address
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1 text-sm">
-                <p className="font-medium">{order.shippingAddress.fullName}</p>
-                <p>{order.shippingAddress.addressLine1}</p>
-                {order.shippingAddress.addressLine2 && (
-                  <p>{order.shippingAddress.addressLine2}</p>
-                )}
-                <p>
-                  {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
-                  {order.shippingAddress.postalCode}
-                </p>
-                <p>{order.shippingAddress.country}</p>
-                {order.shippingAddress.phone && (
-                  <p className="pt-2 text-muted-foreground">
-                    Phone: {order.shippingAddress.phone}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Payment Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Payment
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm">Method:</span>
-                <span className="text-sm font-medium">
-                  {order.paymentMethod}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Status:</span>
-                <span className="text-sm font-medium capitalize">
-                  {order.paymentStatus}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Shipment */}
-          {hasPhysicalItems && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Truck className="h-5 w-5" />
-                  {courierName === "SAMEDAY" ? "Sameday" : "FanCourier"}{" "}
-                  Shipment
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span>AWB:</span>
-                  <span className="font-medium">
-                    {activeShipment?.awbNumber || "Not created"}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Status:</span>
-                  <span className="font-medium">
-                    {activeShipment?.status || "Pending"}
-                  </span>
-                </div>
-                <div className="flex justify-end gap-2">
-                  {activeShipment?.awbNumber &&
-                    courierName === "FANCOURIER" && (
-                      <Button
-                        onClick={resendAwbEmail}
-                        size="sm"
-                        variant="outline"
-                        disabled={resendingAwbEmail}
-                      >
-                        {resendingAwbEmail ? (
-                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <Mail className="h-4 w-4 mr-2" />
-                        )}
-                        Resend AWB Email
-                      </Button>
-                    )}
-                  <Button
-                    onClick={createAwb}
-                    size="sm"
-                    disabled={creatingAwb || Boolean(activeShipment?.awbNumber)}
-                  >
-                    {creatingAwb ? (
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Package className="h-4 w-4 mr-2" />
-                    )}
-                    {activeShipment?.awbNumber ? "AWB Created" : "Create AWB"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Order Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span>Subtotal:</span>
-                <span>{formatPrice(order.subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Shipping:</span>
-                <span>{formatPrice(order.shippingCost)}</span>
-              </div>
-              {order.tax > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span>Tax:</span>
-                  <span>{formatPrice(order.tax)}</span>
-                </div>
-              )}
-              {order.discountAmount > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
-                  <span>
-                    Discount {order.couponCode && `(${order.couponCode})`}:
-                  </span>
-                  <span>-{formatPrice(order.discountAmount)}</span>
-                </div>
-              )}
-              <Separator />
-              <div className="flex justify-between font-semibold">
-                <span>Total:</span>
-                <span>{formatPrice(order.total)}</span>
               </div>
             </CardContent>
           </Card>
@@ -2710,6 +2573,192 @@ export default function OrderDetailsPage() {
               </CardContent>
             </Card>
           )}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Customer Information */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                <User className="h-4 w-4" />
+                Customer
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-3">
+              <div>
+                <p className="font-semibold">{order.customer}</p>
+                {order.email && order.email !== "N/A" ? (
+                  <a
+                    href={`mailto:${order.email}`}
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    {order.email}
+                  </a>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No email</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Shipping Address */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                <MapPin className="h-4 w-4" />
+                Shipping Address
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-0.5 text-sm">
+                <p className="font-semibold">{order.shippingAddress.fullName}</p>
+                <p className="text-muted-foreground">{order.shippingAddress.addressLine1}</p>
+                {order.shippingAddress.addressLine2 && (
+                  <p className="text-muted-foreground">{order.shippingAddress.addressLine2}</p>
+                )}
+                <p className="text-muted-foreground">
+                  {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
+                  {order.shippingAddress.postalCode}
+                </p>
+                <p className="text-muted-foreground">{order.shippingAddress.country}</p>
+                {order.shippingAddress.phone && (
+                  <p className="pt-2 font-medium">
+                    {order.shippingAddress.phone}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Information */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                <CreditCard className="h-4 w-4" />
+                Payment
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Method</span>
+                <span className="text-sm font-medium">
+                  {order.paymentMethod}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Status</span>
+                <span
+                  className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${
+                    order.paymentStatus?.toLowerCase() === "paid"
+                      ? "bg-green-100 text-green-800"
+                      : order.paymentStatus?.toLowerCase() === "pending"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-slate-100 text-slate-700"
+                  }`}
+                >
+                  {order.paymentStatus}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Shipment */}
+          {hasPhysicalItems && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  <Truck className="h-4 w-4" />
+                  {courierName === "SAMEDAY" ? "Sameday" : "FanCourier"} Shipment
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">AWB</span>
+                  <span className="text-sm font-mono font-medium">
+                    {activeShipment?.awbNumber || "—"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Status</span>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                    {activeShipment?.status || "Pending"}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2 pt-1">
+                  {activeShipment?.awbNumber && courierName === "FANCOURIER" && (
+                    <Button
+                      onClick={resendAwbEmail}
+                      size="sm"
+                      variant="outline"
+                      disabled={resendingAwbEmail}
+                      className="w-full"
+                    >
+                      {resendingAwbEmail ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Mail className="h-4 w-4 mr-2" />
+                      )}
+                      Resend AWB Email
+                    </Button>
+                  )}
+                  <Button
+                    onClick={createAwb}
+                    size="sm"
+                    disabled={creatingAwb || Boolean(activeShipment?.awbNumber)}
+                    className="w-full"
+                    variant={activeShipment?.awbNumber ? "outline" : "default"}
+                  >
+                    {creatingAwb ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Package className="h-4 w-4 mr-2" />
+                    )}
+                    {activeShipment?.awbNumber ? "AWB Created" : "Create AWB"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Order Summary */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Order Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>{formatPrice(order.subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Shipping</span>
+                <span>{formatPrice(order.shippingCost)}</span>
+              </div>
+              {order.tax > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Tax</span>
+                  <span>{formatPrice(order.tax)}</span>
+                </div>
+              )}
+              {order.discountAmount > 0 && (
+                <div className="flex justify-between text-sm text-green-700">
+                  <span>
+                    Discount {order.couponCode && `(${order.couponCode})`}
+                  </span>
+                  <span>-{formatPrice(order.discountAmount)}</span>
+                </div>
+              )}
+              <Separator className="my-1" />
+              <div className="flex justify-between font-bold text-base">
+                <span>Total</span>
+                <span>{formatPrice(order.total)}</span>
+              </div>
+            </CardContent>
+          </Card>
+
         </div>
       </div>
     </div>
