@@ -119,16 +119,32 @@ export async function GET(
     const supplierShipmentGroups = groupSupplierOrdersForOperations(
       order.supplierOrders
     );
-    const supplierMetaByOrderItemId = new Map(
-      order.supplierOrders.map(so => [
-        so.orderItemId,
-        {
-          supplierName: so.supplier.name || so.supplier.companyName || null,
-          sku: so.product?.sku || null,
-          supplierOrderStatus: so.status || null,
-        },
-      ])
-    );
+    const supplierMetaByOrderItemId = new Map<
+      string,
+      {
+        supplierNames: Set<string>;
+        skus: Set<string>;
+        statuses: Set<string>;
+        lineCount: number;
+      }
+    >();
+
+    for (const so of order.supplierOrders) {
+      const existing = supplierMetaByOrderItemId.get(so.orderItemId) ?? {
+        supplierNames: new Set<string>(),
+        skus: new Set<string>(),
+        statuses: new Set<string>(),
+        lineCount: 0,
+      };
+
+      const supplierName = so.supplier.name || so.supplier.companyName;
+      if (supplierName) existing.supplierNames.add(supplierName);
+      if (so.product?.sku) existing.skus.add(so.product.sku);
+      if (so.status) existing.statuses.add(so.status);
+      existing.lineCount += 1;
+
+      supplierMetaByOrderItemId.set(so.orderItemId, existing);
+    }
 
     const formattedOrder = {
       id: order.id,
@@ -164,12 +180,33 @@ export async function GET(
         counts: supplierFulfillmentSummary.byPhase,
         supplierShipmentGroups,
       },
-      items: order.items.map(item => ({
-        ...(supplierMetaByOrderItemId.get(item.id) || {
-          supplierName: null,
-          supplierOrderStatus: null,
-          sku: null,
-        }),
+      items: order.items.map(item => {
+        const supplierMeta = supplierMetaByOrderItemId.get(item.id);
+        const supplierNames = supplierMeta
+          ? Array.from(supplierMeta.supplierNames)
+          : [];
+        const supplierSkus = supplierMeta ? Array.from(supplierMeta.skus) : [];
+        const supplierStatuses = supplierMeta
+          ? Array.from(supplierMeta.statuses)
+          : [];
+
+        return {
+          supplierName:
+            supplierNames.length === 0
+              ? null
+              : supplierNames.length === 1
+                ? supplierNames[0]
+                : `${supplierNames.length} suppliers`,
+          supplierNames,
+          supplierOrderStatus:
+            supplierStatuses.length === 0
+              ? null
+              : supplierStatuses.length === 1
+                ? supplierStatuses[0]
+                : `${supplierMeta?.lineCount ?? supplierStatuses.length} lines`,
+          sku: supplierSkus.length === 1 ? supplierSkus[0] : null,
+          supplierSkus,
+          supplierLineCount: supplierMeta?.lineCount ?? 0,
         id: item.id,
         name:
           item.product?.name ??
@@ -199,7 +236,8 @@ export async function GET(
               coverImage: item.book.coverImage,
             }
           : null,
-      })),
+        };
+      }),
       supplierOrders: order.supplierOrders.map(so => ({
         id: so.id,
         orderItemId: so.orderItemId,

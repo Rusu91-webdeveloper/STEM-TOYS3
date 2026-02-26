@@ -16,6 +16,38 @@ export interface SupplierOrderData {
   totalCost: number;
 }
 
+function parseBundleItemIds(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map(item => String(item).trim())
+      .filter(Boolean);
+  }
+
+  if (typeof value === "string" && value.trim().length > 0) {
+    try {
+      const parsed = JSON.parse(value);
+      return parseBundleItemIds(parsed);
+    } catch {
+      return value
+        .split(/[,\n\r\t]+/)
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+  }
+
+  return [];
+}
+
+type SupplierLineCandidate = {
+  orderItemId: string;
+  supplierId: string;
+  productId: string;
+  quantity: number;
+  unitCost: number;
+  totalCost: number;
+  noteLabel: string;
+};
+
 export class OrderProcessor {
   /**
    * Process a new order and create supplier orders for each item
@@ -50,13 +82,77 @@ export class OrderProcessor {
 
       const supplierOrders: any[] = [];
       const errors: string[] = [];
+      const supplierLineCandidates: SupplierLineCandidate[] = [];
 
-      // Group items by supplier
-      const itemsBySupplier = new Map<string, any[]>();
+      const bundleItems = order.items.filter(item => item.product?.isBundle === true);
+      const bundleComponentIdsByBundleId = new Map<string, string[]>();
+      const allBundleComponentIds = new Set<string>();
+
+      for (const item of bundleItems) {
+        const bundleId = item.productId;
+        if (!bundleId) continue;
+
+        const componentIds = parseBundleItemIds(item.product.bundleItems);
+        bundleComponentIdsByBundleId.set(bundleId, componentIds);
+        for (const componentId of componentIds) {
+          allBundleComponentIds.add(componentId);
+        }
+      }
+
+      const bundleComponents = allBundleComponentIds.size
+        ? await db.product.findMany({
+            where: { id: { in: Array.from(allBundleComponentIds) } },
+            include: {
+              supplier: true,
+            },
+          })
+        : [];
+      const bundleComponentById = new Map(bundleComponents.map(product => [product.id, product]));
 
       for (const item of order.items) {
         if (!item.product) {
           errors.push(`Product not found for item: ${item.name}`);
+          continue;
+        }
+
+        if (item.product.isBundle) {
+          const bundleId = item.productId;
+          const componentIds = (bundleId && bundleComponentIdsByBundleId.get(bundleId)) || [];
+
+          if (!bundleId || componentIds.length === 0) {
+            const msg = `Bundle has no components: ${item.product.name}`;
+            errors.push(msg);
+            console.warn(`[OrderProcessor] ${msg}; skipping SupplierOrder for order item ${item.id}`);
+            continue;
+          }
+
+          for (const componentId of componentIds) {
+            const component = bundleComponentById.get(componentId);
+            if (!component) {
+              const msg = `Bundle component not found (${componentId}) for bundle: ${item.product.name}`;
+              errors.push(msg);
+              console.warn(`[OrderProcessor] ${msg}; skipping component for order item ${item.id}`);
+              continue;
+            }
+
+            if (!component.supplier) {
+              const msg = `No supplier assigned to bundle component: ${component.name}`;
+              errors.push(msg);
+              console.warn(`[OrderProcessor] ${msg}; skipping component for order item ${item.id}`);
+              continue;
+            }
+
+            supplierLineCandidates.push({
+              orderItemId: item.id,
+              supplierId: component.supplier.id,
+              productId: component.id,
+              quantity: item.quantity,
+              unitCost: component.costPrice || 0,
+              totalCost: (component.costPrice || 0) * item.quantity,
+              noteLabel: `${item.name} (bundle component: ${component.name})`,
+            });
+          }
+
           continue;
         }
 
@@ -67,30 +163,41 @@ export class OrderProcessor {
           continue;
         }
 
-        const supplierId = item.product.supplier.id;
-        if (!itemsBySupplier.has(supplierId)) {
-          itemsBySupplier.set(supplierId, []);
+        supplierLineCandidates.push({
+          orderItemId: item.id,
+          supplierId: item.product.supplier.id,
+          productId: item.productId!,
+          quantity: item.quantity,
+          unitCost: item.product.costPrice || 0,
+          totalCost: (item.product.costPrice || 0) * item.quantity,
+          noteLabel: item.name,
+        });
+      }
+
+      // Group supplier line candidates by supplier for creation + notifications
+      const linesBySupplier = new Map<string, SupplierLineCandidate[]>();
+      for (const line of supplierLineCandidates) {
+        if (!linesBySupplier.has(line.supplierId)) {
+          linesBySupplier.set(line.supplierId, []);
         }
-        itemsBySupplier.get(supplierId)!.push(item);
+        linesBySupplier.get(line.supplierId)!.push(line);
       }
 
       // Create supplier orders for each supplier
-      for (const [supplierId, items] of itemsBySupplier) {
+      for (const [supplierId, lines] of linesBySupplier) {
         try {
-          const supplier = items[0].product.supplier;
-
-          for (const item of items) {
+          for (const line of lines) {
             const supplierOrder = await db.supplierOrder.create({
               data: {
                 orderId: orderId,
-                orderItemId: item.id,
+                orderItemId: line.orderItemId,
                 supplierId: supplierId,
-                productId: item.productId!,
-                quantity: item.quantity,
-                unitCost: item.product.costPrice || 0,
-                totalCost: (item.product.costPrice || 0) * item.quantity,
+                productId: line.productId,
+                quantity: line.quantity,
+                unitCost: line.unitCost,
+                totalCost: line.totalCost,
                 status: "PENDING",
-                notes: `Order #${order.orderNumber} - ${item.name}`,
+                notes: `Order #${order.orderNumber} - ${line.noteLabel}`,
               },
               include: {
                 supplier: true,
@@ -103,7 +210,7 @@ export class OrderProcessor {
           }
 
           // Send notification to supplier
-          await this.notifySupplier(supplierId, order, items);
+          await this.notifySupplier(supplierId, order, lines);
         } catch (error) {
           errors.push(
             `Failed to create supplier order for supplier ${supplierId}: ${error}`

@@ -50,7 +50,10 @@ type OrderItem = {
   isBook: boolean;
   sku?: string | null;
   supplierName?: string | null;
+  supplierNames?: string[];
   supplierOrderStatus?: string | null;
+  supplierSkus?: string[];
+  supplierLineCount?: number;
   product: {
     id: string;
     name: string;
@@ -104,6 +107,7 @@ type SupplierShipmentTaskGroup = {
     lineStatus?: string | null;
     phase: SupplierFulfillmentPhase;
     productName: string | null;
+    productSku?: string | null;
     quantity: number;
     trackingNumber: string | null;
   }>;
@@ -1649,19 +1653,43 @@ export default function OrderDetailsPage() {
                         </div>
                       </div>
                       {!item.isDigital && (
-                        <div className="mt-2.5 flex flex-wrap gap-1.5 text-xs">
-                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600 font-medium">
-                            {item.supplierName || "No supplier"}
-                          </span>
-                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600 font-mono">
-                            {item.sku || item.product?.sku || "No SKU"}
-                          </span>
-                          {item.supplierOrderStatus && (
-                            <span className="rounded-md bg-blue-50 border border-blue-100 px-2 py-0.5 text-blue-700 font-medium">
-                              {item.supplierOrderStatus}
+                        <>
+                          <div className="mt-2.5 flex flex-wrap gap-1.5 text-xs">
+                            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600 font-medium">
+                              {item.supplierName || "No supplier"}
                             </span>
+                            <span
+                              className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600 font-mono"
+                              title={
+                                item.supplierSkus && item.supplierSkus.length > 0
+                                  ? item.supplierSkus.join(", ")
+                                  : undefined
+                              }
+                            >
+                              {item.sku ||
+                                item.product?.sku ||
+                                (item.supplierSkus &&
+                                item.supplierSkus.length > 1
+                                  ? `${item.supplierSkus.length} SKUs`
+                                  : "No SKU")}
+                            </span>
+                            {Boolean((item.supplierLineCount || 0) > 1) && (
+                              <span className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600 font-medium">
+                                {item.supplierLineCount} supplier lines
+                              </span>
+                            )}
+                            {item.supplierOrderStatus && (
+                              <span className="rounded-md bg-blue-50 border border-blue-100 px-2 py-0.5 text-blue-700 font-medium">
+                                {item.supplierOrderStatus}
+                              </span>
+                            )}
+                          </div>
+                          {item.supplierSkus && item.supplierSkus.length > 1 && (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              Component SKUs: {item.supplierSkus.join(", ")}
+                            </p>
                           )}
-                        </div>
+                        </>
                       )}
                       {item.isDigital && (
                         <div className="mt-2 flex gap-1.5">
@@ -1823,6 +1851,11 @@ export default function OrderDetailsPage() {
                                         <p className="text-xs text-muted-foreground">
                                           Raw status: {line.lineStatus || "N/A"}
                                         </p>
+                                        {line.productSku && (
+                                          <p className="text-xs text-muted-foreground font-mono">
+                                            SKU: {line.productSku}
+                                          </p>
+                                        )}
                                       </div>
                                       <div className="flex flex-wrap items-center gap-2">
                                         <span

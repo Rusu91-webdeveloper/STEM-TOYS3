@@ -45,6 +45,7 @@ export interface SupplierOrderLike extends SupplierOrderStatusInput {
   product?: {
     id?: string;
     name?: string | null;
+    sku?: string | null;
   } | null;
 }
 
@@ -78,6 +79,7 @@ export interface SupplierShipmentTaskGroup {
     lineStatus: string | null | undefined;
     phase: SupplierFulfillmentPhase;
     productName: string | null;
+    productSku: string | null;
     quantity: number;
     trackingNumber: string | null;
   }>;
@@ -253,6 +255,7 @@ export function groupSupplierOrdersForOperations(
         lineStatus: line.status,
         phase: normalizeSupplierFulfillmentPhase(line),
         productName: line.product?.name || null,
+        productSku: line.product?.sku || null,
         quantity: line.quantity || 0,
         trackingNumber: line.trackingNumber || null,
       })),
