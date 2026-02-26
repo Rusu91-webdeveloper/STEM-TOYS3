@@ -462,6 +462,76 @@ const getSupplierLineWorkflowHint = (supplierOrder: SupplierOrder) => {
   };
 };
 
+const getSupplierLineChecklistSteps = (supplierOrder: SupplierOrder) => {
+  const status = String(supplierOrder.status || "").toUpperCase();
+  const phase = String(supplierOrder.phase || "").toUpperCase();
+  const hasTracking = Boolean(supplierOrder.trackingNumber?.trim());
+
+  const delivered = status === "DELIVERED" || phase === "DELIVERED";
+  const shipped = delivered || status === "SHIPPED" || phase === "SHIPPED";
+  const awbMarked =
+    shipped || status === "AWB_UPLOADED" || phase === "AWB_UPLOADED";
+  const placedMarked =
+    awbMarked ||
+    hasTracking ||
+    ["PLACED_TO_SUPPLIER", "AWB_PENDING", "ISSUE_OOS", "ISSUE_DELAYED"].includes(
+      status
+    ) ||
+    ["PLACED_TO_SUPPLIER", "AWB_PENDING", "ISSUE_OOS", "ISSUE_DELAYED"].includes(
+      phase
+    );
+  const awbSaved = hasTracking || awbMarked;
+
+  const completedStepCount = delivered
+    ? 5
+    : shipped
+      ? 4
+      : awbMarked
+        ? 3
+        : awbSaved
+          ? 2
+          : placedMarked
+            ? 1
+            : 0;
+
+  const steps = [
+    {
+      index: 1,
+      title: "Place supplier order",
+      detail: "Order on Boribon/supplier site, then click Placed to Supplier.",
+    },
+    {
+      index: 2,
+      title: "Save AWB / Tracking",
+      detail: "Paste supplier AWB in the tracking field below and save it.",
+    },
+    {
+      index: 3,
+      title: "Mark AWB Uploaded",
+      detail: "Confirm the supplier line status after AWB is saved.",
+    },
+    {
+      index: 4,
+      title: "Mark Shipped",
+      detail: "Click only after courier pickup / dispatch is confirmed.",
+    },
+    {
+      index: 5,
+      title: "Mark Delivered",
+      detail: "Click when delivery is confirmed to customer.",
+    },
+  ] as const;
+
+  return steps.map(step => ({
+    ...step,
+    state: completedStepCount >= step.index
+      ? ("done" as const)
+      : completedStepCount + 1 === step.index
+        ? ("current" as const)
+        : ("next" as const),
+  }));
+};
+
 type OosResolutionAction =
   | "WAIT_RESTOCK"
   | "OFFER_REPLACEMENT"
@@ -1924,10 +1994,10 @@ export default function OrderDetailsPage() {
 	                        dropdown for special cases
 	                      </p>
 	                    </div>
-	                    <div className="rounded-lg border bg-slate-50 p-4 space-y-2">
-	                      <p className="text-sm font-medium">
-	                        Supplier Fulfillment Playbook (per supplier line)
-	                      </p>
+		                    <div className="rounded-lg border bg-slate-50 p-4 space-y-2">
+		                      <p className="text-sm font-medium">
+		                        Supplier Fulfillment Playbook (per supplier line)
+		                      </p>
 	                      <ol className="list-decimal pl-4 space-y-1 text-xs text-muted-foreground">
 	                        <li>
 	                          Place the order on supplier website, then click{" "}
@@ -1945,16 +2015,22 @@ export default function OrderDetailsPage() {
 	                          When delivered, click <strong>Delivered</strong>.
 	                        </li>
 	                      </ol>
-	                      <p className="text-xs text-slate-600">
-	                        Parent order status updates automatically based on
-	                        supplier line statuses.
-	                      </p>
-	                    </div>
-	                    {order.supplierOrders.map(so => {
-	                      const hasTracking = Boolean(so.trackingNumber?.trim());
-	                      const workflowHint = getSupplierLineWorkflowHint(so);
-	                      const hintToneClasses =
-	                        workflowHint.tone === "success"
+		                      <p className="text-xs text-slate-600">
+		                        Parent order status updates automatically based on
+		                        supplier line statuses.
+		                      </p>
+		                      <p className="text-xs text-slate-600">
+		                        Important: use the supplier line steps below for
+		                        dropshipping workflow. The top order status is the
+		                        overall order status.
+		                      </p>
+		                    </div>
+		                    {order.supplierOrders.map(so => {
+		                      const hasTracking = Boolean(so.trackingNumber?.trim());
+		                      const workflowHint = getSupplierLineWorkflowHint(so);
+		                      const checklistSteps = getSupplierLineChecklistSteps(so);
+		                      const hintToneClasses =
+		                        workflowHint.tone === "success"
 	                          ? "border-green-200 bg-green-50 text-green-900"
 	                          : workflowHint.tone === "warning"
 	                            ? "border-amber-200 bg-amber-50 text-amber-900"
@@ -1999,14 +2075,61 @@ export default function OrderDetailsPage() {
 
 	                        <div
 	                          className={`rounded-md border p-3 ${hintToneClasses}`}
-	                        >
-	                          <p className="text-sm font-medium">
-	                            {workflowHint.title}
-	                          </p>
-	                          <p className="mt-1 text-xs opacity-90">
-	                            {workflowHint.description}
-	                          </p>
-	                        </div>
+		                        >
+		                          <p className="text-sm font-medium">
+		                            What to do now: {workflowHint.title}
+		                          </p>
+		                          <p className="mt-1 text-xs opacity-90">
+		                            {workflowHint.description}
+		                          </p>
+		                        </div>
+
+		                        <div className="rounded-md border bg-white p-3 space-y-2">
+		                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+		                            <p className="text-sm font-medium">
+		                              Step-by-step checklist
+		                            </p>
+		                            <p className="text-xs text-muted-foreground">
+		                              Follow the current step first, then continue in order
+		                            </p>
+		                          </div>
+		                          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
+		                            {checklistSteps.map(step => {
+		                              const stateClasses =
+		                                step.state === "done"
+		                                  ? "border-green-200 bg-green-50"
+		                                  : step.state === "current"
+		                                    ? "border-blue-300 bg-blue-50 ring-1 ring-blue-200"
+		                                    : "border-slate-200 bg-slate-50";
+		                              const badgeClasses =
+		                                step.state === "done"
+		                                  ? "bg-green-600 text-white"
+		                                  : step.state === "current"
+		                                    ? "bg-blue-600 text-white"
+		                                    : "bg-slate-200 text-slate-700";
+		                              return (
+		                                <div
+		                                  key={`${so.id}-step-${step.index}`}
+		                                  className={`rounded-md border p-2 space-y-1 ${stateClasses}`}
+		                                >
+		                                  <div className="flex items-center gap-2">
+		                                    <span
+		                                      className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-semibold ${badgeClasses}`}
+		                                    >
+		                                      {step.index}
+		                                    </span>
+		                                    <span className="text-xs font-medium leading-tight">
+		                                      {step.title}
+		                                    </span>
+		                                  </div>
+		                                  <p className="text-[11px] text-muted-foreground leading-tight">
+		                                    {step.detail}
+		                                  </p>
+		                                </div>
+		                              );
+		                            })}
+		                          </div>
+		                        </div>
 
 	                        {so.phase && (
 	                          <div>
@@ -2020,16 +2143,17 @@ export default function OrderDetailsPage() {
 	                          </div>
 	                        )}
 
-	                        <div className="rounded-md border bg-slate-50/70 p-3 space-y-3">
-	                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-	                            <div>
-	                            <p className="text-sm font-medium">
-	                              Quick Workflow Actions
-	                            </p>
-	                            <p className="text-xs text-muted-foreground">
-	                              Fast path for the common dropshipping flow.
-	                            </p>
-	                            </div>
+		                        <div className="rounded-md border bg-slate-50/70 p-3 space-y-3">
+		                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+		                            <div>
+		                            <p className="text-sm font-medium">
+		                              Step 1 / Step 3 / Step 4 / Step 5 Buttons
+		                            </p>
+		                            <p className="text-xs text-muted-foreground">
+		                              Click these when each step is completed. Step 2
+		                              (AWB save) is the tracking box below.
+		                            </p>
+		                            </div>
 	                            <Button
 	                              type="button"
 	                              size="sm"
@@ -2075,14 +2199,14 @@ export default function OrderDetailsPage() {
 	                              );
 	                            })}
 	                          </div>
-	                          {!hasTracking && (
-	                            <p className="text-xs text-amber-700">
-	                              Save AWB/tracking first to enable{" "}
-	                              <strong>AWB Uploaded</strong> and{" "}
-	                              <strong>Shipped</strong>.
-	                            </p>
-	                          )}
-	                        </div>
+		                          {!hasTracking && (
+		                            <p className="text-xs text-amber-700">
+		                              Step 2 first: save AWB/tracking below to enable{" "}
+		                              <strong>AWB Uploaded</strong> and{" "}
+		                              <strong>Shipped</strong>.
+		                            </p>
+		                          )}
+		                        </div>
 
 	                        <div className="grid grid-cols-2 gap-4 text-sm">
 	                          <div>
@@ -2101,11 +2225,15 @@ export default function OrderDetailsPage() {
 	                          </div>
 	                        </div>
 
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">
-                            Workflow / Supplier Status
-                          </label>
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+	                        <div className="space-y-2 rounded-md border bg-white p-3">
+	                          <label className="text-sm font-medium">
+	                            Advanced / Manual Supplier Status (optional)
+	                          </label>
+	                          <p className="text-xs text-muted-foreground">
+	                            Use quick step buttons above for normal flow. Use
+	                            this dropdown only for special cases.
+	                          </p>
+	                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                             <Select
                               value={supplierStatusDrafts[so.id] || so.status}
                               onValueChange={value =>
@@ -2491,12 +2619,12 @@ export default function OrderDetailsPage() {
                         )}
 
                         {/* Tracking Number */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium">
-                              Tracking Number (AWB):
-                            </label>
-                            {editingTracking === so.id ? (
+	                        <div className="space-y-2 rounded-md border bg-slate-50/70 p-3">
+	                          <div className="flex items-center justify-between">
+	                            <label className="text-sm font-medium">
+	                              Step 2 - Save Supplier AWB / Tracking
+	                            </label>
+	                            {editingTracking === so.id ? (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -2537,12 +2665,16 @@ export default function OrderDetailsPage() {
 	                                Save
 	                              </Button>
                             </div>
-                          ) : (
-                            <p className="text-sm text-muted-foreground">
-                              {so.trackingNumber || "No tracking number"}
-                            </p>
-                          )}
-                        </div>
+	                          ) : (
+	                            <p className="text-sm text-muted-foreground">
+	                              {so.trackingNumber || "No tracking number"}
+	                            </p>
+	                          )}
+	                          <p className="text-xs text-muted-foreground">
+	                            Saving tracking can auto-set the supplier line to{" "}
+	                            <strong>AWB Uploaded</strong> when applicable.
+	                          </p>
+	                        </div>
 
                         {so.carrier && (
                           <div className="text-sm">
