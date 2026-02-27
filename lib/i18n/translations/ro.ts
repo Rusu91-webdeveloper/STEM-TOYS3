@@ -514,8 +514,7 @@ export const ro = {
   heroSection: "Secțiunea Principală",
   inspireMinds: "Inspiră Minți Curioase",
   heroBadgeTitle: "Inspiră Minți Curioase",
-  heroBadgeSubtitle:
-    "10.000+ părinți fericiți care și-au transformat copiii",
+  heroBadgeSubtitle: "10.000+ părinți fericiți care și-au transformat copiii",
   heroPrimarySubtitle: "Jucării STEM care fac învățarea irezistibilă",
   heroDescription:
     "Înlocuiește timpul de ecran cu învățare activă. Peste 10.000 de părinți și-au transformat deja copiii din 'dependenți de telefon' în 'viitori inventatori' cu jucăriile noastre STEM.",
@@ -1972,7 +1971,7 @@ export const ro = {
   filterTipTitle:
     "Pont: combină grupa de vârstă și rezultatele de învățare pentru a vedea kit-uri ultra relevante.",
   filterTipDescription:
-    "Folosește filtrele \"Rezultate de învățare\" și \"Categorii speciale\" împreună pentru a descoperi selecții curate pentru micul tău inventator.",
+    'Folosește filtrele "Rezultate de învățare" și "Categorii speciale" împreună pentru a descoperi selecții curate pentru micul tău inventator.',
   specialOffers: "Oferte speciale",
   detailedFilters: "Filtre detaliate",
   liveResults: "Rezultate în timp real",
@@ -1987,7 +1986,8 @@ export const ro = {
 
   // COD (Cash on Delivery) translations
   codProviderTitle: "Ramburs · Plătești la livrare",
-  codProviderSubtitle: "Plătești cash la primirea coletului - fără card, fără complicații",
+  codProviderSubtitle:
+    "Plătești cash la primirea coletului - fără card, fără complicații",
   codChipPopular: "60%+ din clienții din România preferă",
   codChipSimple: "Fără card, fără complicații",
   codChipSecure: "Plătești doar când primești coletul",
@@ -1995,9 +1995,25 @@ export const ro = {
   codFee: "Taxă ramburs",
   codFeeBreakdown: "Taxă: {percentage} RON (3%) + {fixed} RON fix",
   codTotalWithFee: "Total cu ramburs: {total} RON",
-  codNotice: "💡 Plătești cash la primirea coletului. Curierul va colecta suma totală.",
+  codNotice:
+    "💡 Plătești cash la primirea coletului. Curierul va colecta suma totală.",
   codOrderSuccess: "Comandă plasată cu succes!",
-  codOrderSuccessMessage: "Comanda ta a fost plasată. Vei plăti cash la primirea coletului. Vei primi un email de confirmare în curând.",
+  codOrderSuccessMessage:
+    "Comanda ta a fost plasată. Vei plăti cash la primirea coletului. Vei primi un email de confirmare în curând.",
   codPaymentMethod: "Plată la livrare (Ramburs)",
-  codReviewNotice: "Plătești cash la primirea coletului. Curierul va colecta suma totală.",
+  codReviewNotice:
+    "Plătești cash la primirea coletului. Curierul va colecta suma totală.",
+  codUnavailableBadge: "Doar card online",
+  codUnavailableLocker:
+    "Pentru livrarea la FANbox, plata ramburs nu este disponibilă.",
+  codUnavailableMixedSupplier:
+    "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul.",
+  onlinePaymentRequiredBadge: "Plată online obligatorie",
+  mixedSupplierOrderLabel: "Comandă cu livrare separată",
+  mixedSupplierPrepaidOnly:
+    "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul.",
+
+  "error.title.MIXED_SUPPLIER_PREPAID_REQUIRED": "Ramburs indisponibil",
+  "error.message.MIXED_SUPPLIER_PREPAID_REQUIRED":
+    "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul.",
 };

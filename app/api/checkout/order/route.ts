@@ -197,7 +197,11 @@ const normalizeCheckoutAddress = (input: CheckoutAddressInput) => {
   const apartment = normalizeOptionalString(input.apartment);
   const addressDetails = normalizeOptionalString(input.addressDetails);
 
-  const parsed = parseStreetAndNumber(input.addressLine1, input.addressLine2, city);
+  const parsed = parseStreetAndNumber(
+    input.addressLine1,
+    input.addressLine2,
+    city
+  );
   const finalStreet = street || parsed.street;
   const finalStreetNumber = streetNumber || parsed.streetNumber;
   const isRomania = (country || "").toUpperCase() === "RO";
@@ -535,7 +539,10 @@ export async function POST(request: Request) {
             },
           });
 
-          supplierCartAnalysis = analyzeSupplierCartComposition(items, supplierProducts);
+          supplierCartAnalysis = analyzeSupplierCartComposition(
+            items,
+            supplierProducts
+          );
         } catch (supplierAnalysisError) {
           console.error(
             "Failed to analyze supplier composition for checkout order:",
@@ -550,7 +557,7 @@ export async function POST(request: Request) {
         {
           success: false,
           message:
-            "Orders containing products from multiple suppliers must be paid online. Cash on delivery is not available for split shipments.",
+            "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul.",
           error: "MIXED_SUPPLIER_PREPAID_REQUIRED",
           details: {
             supplierCount: supplierCartAnalysis.supplierCount,
@@ -672,9 +679,15 @@ export async function POST(request: Request) {
         if (!shippingSettingsForPricing) {
           shippingSettingsForPricing = await getShippingSettings();
         }
-        freeShippingEligible = checkFreeShipping(subtotal, shippingSettingsForPricing);
+        freeShippingEligible = checkFreeShipping(
+          subtotal,
+          shippingSettingsForPricing
+        );
       } catch (shippingRulesError) {
-        console.error("Failed to evaluate free shipping rules:", shippingRulesError);
+        console.error(
+          "Failed to evaluate free shipping rules:",
+          shippingRulesError
+        );
       }
 
       const shippingRuleResult = applyMixedSupplierShippingRules({
@@ -1034,9 +1047,7 @@ export async function POST(request: Request) {
       const shippingCompanyName = normalizeOptionalString(
         shippingAddressData.companyName
       );
-      const shippingCui = normalizeOptionalString(
-        shippingAddressData.cui
-      );
+      const shippingCui = normalizeOptionalString(shippingAddressData.cui);
 
       // Check if user has an existing address with the same details
       const existingAddress = await db.address.findFirst({
@@ -1143,17 +1154,18 @@ export async function POST(request: Request) {
             shippingAddressId,
             stripePaymentIntentId: orderData.stripePaymentIntentId || null,
             // Store COD information in notes field (we can add proper fields later)
-            notes: [
-              isCODPayment
-                ? `COD Order - Fee: ${codFee.toFixed(
-                    2
-                  )} RON, Amount to Collect: ${codAmount.toFixed(2)} RON`
-                : null,
-              ...(orderData.notes ? [orderData.notes] : []),
-              ...operationalNotes,
-            ]
-              .filter(Boolean)
-              .join(" | ") || null,
+            notes:
+              [
+                isCODPayment
+                  ? `COD Order - Fee: ${codFee.toFixed(
+                      2
+                    )} RON, Amount to Collect: ${codAmount.toFixed(2)} RON`
+                  : null,
+                ...(orderData.notes ? [orderData.notes] : []),
+                ...operationalNotes,
+              ]
+                .filter(Boolean)
+                .join(" | ") || null,
           },
         });
 
@@ -1769,9 +1781,7 @@ export async function POST(request: Request) {
               recipientEmail,
               {
                 customerName:
-                  shippingAddressData?.fullName ||
-                  user?.name ||
-                  "Client",
+                  shippingAddressData?.fullName || user?.name || "Client",
                 orderNumber: String(orderNumberForEmail),
                 orderTotal,
                 items: items.map(item => ({

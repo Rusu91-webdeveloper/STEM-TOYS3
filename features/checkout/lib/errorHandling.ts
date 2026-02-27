@@ -39,7 +39,7 @@ export function getErrorInfo(
       code: error.code,
       message: error.message,
       userFriendlyMessage: translate(
-        `error.title.${error.code}`,
+        `error.message.${error.code}`,
         error.message
       ),
       retryable: error.retryable,

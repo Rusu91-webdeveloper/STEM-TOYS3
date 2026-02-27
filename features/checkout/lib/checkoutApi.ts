@@ -132,10 +132,11 @@ export async function createOrder(orderData: any) {
       }
 
       if (errorData.error === "MIXED_SUPPLIER_PREPAID_REQUIRED") {
+        const mixedSupplierPrepaidMessage =
+          "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul.";
         throw new CheckoutError(
           "MIXED_SUPPLIER_PREPAID_REQUIRED",
-          errorData.message ||
-            "Comenzile cu produse din furnizori diferiți pot fi plătite doar online.",
+          mixedSupplierPrepaidMessage,
           false,
           "payment"
         );
@@ -143,7 +144,8 @@ export async function createOrder(orderData: any) {
 
       throw new CheckoutError(
         "CHECKOUT_ORDER_FAILED",
-        errorData.message || `Error: ${response.status} - ${response.statusText}`,
+        errorData.message ||
+          `Error: ${response.status} - ${response.statusText}`,
         true,
         "retry"
       );

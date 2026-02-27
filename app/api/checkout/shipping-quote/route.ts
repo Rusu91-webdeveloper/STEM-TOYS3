@@ -53,7 +53,10 @@ export async function GET(request: NextRequest) {
       },
     });
     const productMap = new Map(products.map(product => [product.id, product]));
-    const supplierCartRules = analyzeSupplierCartComposition(physicalItems, products);
+    const supplierCartRules = analyzeSupplierCartComposition(
+      physicalItems,
+      products
+    );
 
     const shippingItems = physicalItems
       .map(item => {
@@ -68,8 +71,13 @@ export async function GET(request: NextRequest) {
         };
       })
       .filter(
-        (item): item is { quantity: number; weightKg: number | null; dimensions: Record<string, unknown> } =>
-          item != null
+        (
+          item
+        ): item is {
+          quantity: number;
+          weightKg: number | null;
+          dimensions: Record<string, unknown>;
+        } => item != null
       );
 
     if (shippingItems.length === 0) {
@@ -105,11 +113,12 @@ export async function GET(request: NextRequest) {
             const singleShipmentPrice =
               Number.isFinite(priceOverride) && priceOverride !== null
                 ? priceOverride
-                : quote?.totalPrice ?? 0;
-            const mixedSupplierSurcharge = calculateMixedSupplierShippingSurcharge(
-              singleShipmentPrice,
-              supplierCartRules
-            );
+                : (quote?.totalPrice ?? 0);
+            const mixedSupplierSurcharge =
+              calculateMixedSupplierShippingSurcharge(
+                singleShipmentPrice,
+                supplierCartRules
+              );
 
             return {
               id: methodId,
@@ -127,7 +136,7 @@ export async function GET(request: NextRequest) {
               supplierCount: supplierCartRules.supplierCount,
               supplierNames: supplierCartRules.supplierNames,
               shippingPolicyMessage: supplierCartRules.isMixedSupplierCart
-                ? "Order ships in multiple packages. An additional shipping fee applies for split supplier fulfillment."
+                ? "Comanda se livrează în mai multe colete. Pentru expedierea separată de la furnizori diferiți se aplică o taxă suplimentară de livrare."
                 : null,
               weights: quote?.weights ?? null,
               courierId: courier.id,
@@ -143,7 +152,7 @@ export async function GET(request: NextRequest) {
       cartRules: {
         ...supplierCartRules,
         shippingPolicyMessage: supplierCartRules.isMixedSupplierCart
-          ? "Mixed-supplier orders ship in multiple packages and require prepaid payment."
+          ? "Comenzile cu furnizori multipli se livrează în mai multe colete și necesită plată online."
           : null,
       },
       methods,

@@ -425,8 +425,7 @@ export const en = {
   heroSection: "Hero Section",
   inspireMinds: "Inspire Curious Minds",
   heroBadgeTitle: "Inspire Curious Minds",
-  heroBadgeSubtitle:
-    "10,000+ delighted parents who transformed their kids",
+  heroBadgeSubtitle: "10,000+ delighted parents who transformed their kids",
   heroPrimarySubtitle: "STEM toys that make learning irresistible",
   heroDescription:
     "Replace screen time with active learning. Over 10,000 parents have already transformed their children from 'phone dependent' to 'future inventors' with our STEM toys.",
@@ -1810,11 +1809,23 @@ export const en = {
   codFee: "Cash on delivery fee",
   codFeeBreakdown: "Fee: {percentage} RON (3%) + {fixed} RON fixed",
   codTotalWithFee: "Total with COD: {total} RON",
-  codNotice:
-    "Pay cash on delivery. The courier will collect the total amount.",
+  codNotice: "Pay cash on delivery. The courier will collect the total amount.",
   codOrderSuccess: "Order placed successfully!",
   codOrderSuccessMessage:
     "Your order has been placed. You'll pay cash on delivery. You'll receive a confirmation email soon.",
   codPaymentMethod: "Cash on delivery",
   codReviewNotice: "Pay in cash when the courier delivers your package.",
+  codUnavailableBadge: "Card payment only",
+  codUnavailableLocker:
+    "Cash on delivery is not available for FANbox deliveries.",
+  codUnavailableMixedSupplier:
+    "This order contains products shipped by different suppliers, so cash on delivery is unavailable. Please complete your order with online card payment.",
+  onlinePaymentRequiredBadge: "Online payment required",
+  mixedSupplierOrderLabel: "Split-shipment order",
+  mixedSupplierPrepaidOnly:
+    "This order contains products shipped by different suppliers, so cash on delivery is unavailable. Please complete your order with online card payment.",
+
+  "error.title.MIXED_SUPPLIER_PREPAID_REQUIRED": "Cash on delivery unavailable",
+  "error.message.MIXED_SUPPLIER_PREPAID_REQUIRED":
+    "This order contains products shipped by different suppliers, so cash on delivery is unavailable. Please complete your order with online card payment.",
 };

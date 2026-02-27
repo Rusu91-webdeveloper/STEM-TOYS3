@@ -6,6 +6,8 @@ import {
   ShieldCheck,
   Banknote,
   Check,
+  Info,
+  Lock,
 } from "lucide-react";
 import React, { useEffect, useMemo } from "react";
 
@@ -54,7 +56,9 @@ type PaymentMethodItem = {
   fee?: string;
   description?: string;
   badge?: string;
-  badgeVariant?: "recommended" | "popular" | "saved";
+  badgeVariant?: "recommended" | "popular" | "saved" | "unavailable";
+  disabled?: boolean;
+  disabledReason?: string;
   color: string;
   borderColor: string;
   bgColor: string;
@@ -90,7 +94,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   }, [shippingMethod]);
   const codBlockedByMixedSupplier = useMemo(() => {
     return Boolean(
-      shippingMethod?.isMixedSupplierCart && shippingMethod?.requiresPrepaid
+      shippingMethod?.isMixedSupplierCart || shippingMethod?.requiresPrepaid
     );
   }, [shippingMethod]);
 
@@ -207,15 +211,20 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       });
     }
 
-    // Add COD option for Romanian users, but only if cart contains physical items
-    // Digital books only should not allow COD (cash on delivery)
-    if (
-      codEnabled &&
-      isRomanianUser &&
-      !isDigitalOnlyCart &&
-      !codBlockedByFanbox &&
-      !codBlockedByMixedSupplier
-    ) {
+    const codDisabledReason = codBlockedByFanbox
+      ? t(
+          "codUnavailableLocker",
+          "Pentru livrarea la FANbox, plata ramburs nu este disponibilă."
+        )
+      : codBlockedByMixedSupplier
+        ? t(
+            "codUnavailableMixedSupplier",
+            "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul."
+          )
+        : undefined;
+
+    // Show COD for Romanian physical carts, but keep it disabled when business rules require prepaid.
+    if (codEnabled && isRomanianUser && !isDigitalOnlyCart) {
       methods.push({
         id: "cash_on_delivery",
         type: "cash_on_delivery",
@@ -224,8 +233,12 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
         provider: "cod",
         fee: "3% + 5 RON",
         description: "Plătești numerar la primirea coletului",
-        badge: t("codPopular", "Popular în România"),
-        badgeVariant: "popular",
+        badge: codDisabledReason
+          ? t("codUnavailableBadge", "Doar card online")
+          : t("codPopular", "Popular în România"),
+        badgeVariant: codDisabledReason ? "unavailable" : "popular",
+        disabled: Boolean(codDisabledReason),
+        disabledReason: codDisabledReason,
         color: "amber",
         borderColor: "border-amber-200",
         bgColor: "bg-amber-50",
@@ -243,8 +256,6 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     savedCards,
     stripeEnabled,
     t,
-    cartItems,
-    isCheckoutRestricted,
   ]);
 
   useEffect(() => {
@@ -252,16 +263,16 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
       return;
     }
 
-    // If COD is selected but cart is digital-only, switch to first available method
-    if (
-      selectedPaymentMethod === "cash_on_delivery" &&
-      (isDigitalOnlyCart || codBlockedByFanbox || codBlockedByMixedSupplier)
-    ) {
-      const nonCODMethod = paymentMethods.find(
-        m => m.id !== "cash_on_delivery"
+    const selectedMethod = paymentMethods.find(
+      method => method.id === selectedPaymentMethod
+    );
+
+    if (selectedMethod?.disabled) {
+      const firstEnabledMethod = paymentMethods.find(
+        method => !method.disabled
       );
-      if (nonCODMethod) {
-        onPaymentMethodChange(nonCODMethod.id);
+      if (firstEnabledMethod) {
+        onPaymentMethodChange(firstEnabledMethod.id);
       }
       return;
     }
@@ -271,7 +282,10 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
     );
 
     if (!hasSelection) {
-      onPaymentMethodChange(paymentMethods[0].id);
+      const firstEnabledMethod = paymentMethods.find(
+        method => !method.disabled
+      );
+      onPaymentMethodChange(firstEnabledMethod?.id || paymentMethods[0].id);
     }
   }, [
     paymentMethods,
@@ -320,7 +334,9 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
   }
 
   // Badge styling based on variant
-  const getBadgeStyles = (variant?: "recommended" | "popular" | "saved") => {
+  const getBadgeStyles = (
+    variant?: "recommended" | "popular" | "saved" | "unavailable"
+  ) => {
     switch (variant) {
       case "recommended":
         return "border border-violet-200 bg-violet-50 text-violet-700";
@@ -328,6 +344,8 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
         return "border border-amber-200 bg-amber-50 text-amber-700";
       case "saved":
         return "border border-emerald-200 bg-emerald-50 text-emerald-700";
+      case "unavailable":
+        return "border border-rose-200 bg-rose-50 text-rose-700";
       default:
         return "border border-slate-200 bg-slate-50 text-slate-700";
     }
@@ -407,22 +425,59 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
 
       {/* Payment Methods Grid */}
       {codBlockedByFanbox && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Pentru livrarea la FANbox, plata ramburs nu este disponibilă.
+        <div className="rounded-2xl border border-amber-300/80 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3.5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+              <Info className="h-4 w-4" />
+            </div>
+            <p className="text-sm leading-relaxed text-amber-900">
+              {t(
+                "codUnavailableLocker",
+                "Pentru livrarea la FANbox, plata ramburs nu este disponibilă."
+              )}
+            </p>
+          </div>
         </div>
       )}
       {codBlockedByMixedSupplier && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Pentru comenzile cu produse din furnizori diferiți, plata este disponibilă doar online (card).
+        <div className="rounded-2xl border border-amber-300/80 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3.5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+              <Info className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
+                  {t("onlinePaymentRequiredBadge", "Plată online obligatorie")}
+                </span>
+                <p className="text-sm font-semibold text-amber-900">
+                  {t("mixedSupplierOrderLabel", "Comandă cu livrare separată")}
+                </p>
+              </div>
+              <p className="mt-1 text-sm leading-relaxed text-amber-800">
+                {t(
+                  "codUnavailableMixedSupplier",
+                  "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul."
+                )}
+              </p>
+            </div>
+          </div>
         </div>
       )}
       <RadioGroup
         value={selectedPaymentMethod}
-        onValueChange={onPaymentMethodChange}
+        onValueChange={value => {
+          const selectedMethod = paymentMethods.find(
+            method => method.id === value
+          );
+          if (selectedMethod?.disabled) return;
+          onPaymentMethodChange(value);
+        }}
         className="grid gap-3.5"
       >
         {paymentMethods.map(method => {
           const isSelected = selectedPaymentMethod === method.id;
+          const isDisabled = method.disabled === true;
           const colorConfig = getColorConfig(method.color);
           const providerStyles = getProviderStyles(method.provider);
 
@@ -431,23 +486,33 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
               key={method.id}
               htmlFor={`payment-${method.id}`}
               className={cn(
-                "group relative flex cursor-pointer rounded-2xl border bg-white px-4 py-4 transition-all duration-200 sm:px-5",
-                isSelected
-                  ? `${colorConfig.border} ${colorConfig.ring} ring-2 shadow-md`
-                  : "border-slate-200 hover:border-slate-300 hover:shadow-sm"
+                "group relative flex rounded-2xl border px-4 py-4 transition-all duration-200 sm:px-5",
+                isDisabled
+                  ? "cursor-not-allowed border-slate-200 bg-slate-50/80 opacity-90"
+                  : "cursor-pointer bg-white",
+                !isDisabled &&
+                  (isSelected
+                    ? `${colorConfig.border} ${colorConfig.ring} ring-2 shadow-md`
+                    : "border-slate-200 hover:border-slate-300 hover:shadow-sm")
               )}
             >
               {/* Selection indicator */}
               <div
                 className={cn(
                   "absolute right-4 top-4 flex h-5 w-5 items-center justify-center rounded-full transition-all duration-200",
-                  isSelected
-                    ? "bg-slate-900 shadow-sm"
-                    : "border border-slate-300 bg-white"
+                  isDisabled
+                    ? "border border-slate-300 bg-slate-100"
+                    : isSelected
+                      ? "bg-slate-900 shadow-sm"
+                      : "border border-slate-300 bg-white"
                 )}
               >
-                {isSelected && (
-                  <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                {isDisabled ? (
+                  <Lock className="h-2.5 w-2.5 text-slate-500" />
+                ) : (
+                  isSelected && (
+                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                  )
                 )}
               </div>
 
@@ -455,6 +520,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
               <RadioGroupItem
                 value={method.id}
                 id={`payment-${method.id}`}
+                disabled={isDisabled}
                 className="sr-only"
               />
 
@@ -464,17 +530,21 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
                 <div
                   className={cn(
                     "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors sm:h-12 sm:w-12",
-                    isSelected
-                      ? colorConfig.bg
-                      : "bg-slate-100 group-hover:bg-slate-50"
+                    isDisabled
+                      ? "bg-slate-100"
+                      : isSelected
+                        ? colorConfig.bg
+                        : "bg-slate-100 group-hover:bg-slate-50"
                   )}
                 >
                   <div
                     className={cn(
                       "transition-colors",
-                      isSelected
-                        ? colorConfig.icon
-                        : "text-slate-500 group-hover:text-slate-600"
+                      isDisabled
+                        ? "text-slate-400"
+                        : isSelected
+                          ? colorConfig.icon
+                          : "text-slate-500 group-hover:text-slate-600"
                     )}
                   >
                     {method.icon}
@@ -488,7 +558,7 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
                     <h3 className="text-sm font-semibold text-slate-900 sm:text-base">
                       {method.name}
                     </h3>
-                    {method.fee && (
+                    {method.fee && !isDisabled && (
                       <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
                         {method.fee}
                       </span>
@@ -520,9 +590,14 @@ export const PaymentMethodSelector = React.memo(function PaymentMethodSelector({
                   </div>
 
                   {/* Description */}
-                  {method.description && (
-                    <p className="mt-2 text-sm leading-relaxed text-slate-600 line-clamp-2">
-                      {method.description}
+                  {(method.description || method.disabledReason) && (
+                    <p
+                      className={cn(
+                        "mt-2 text-sm leading-relaxed line-clamp-2",
+                        isDisabled ? "text-slate-500" : "text-slate-600"
+                      )}
+                    >
+                      {method.disabledReason || method.description}
                     </p>
                   )}
 

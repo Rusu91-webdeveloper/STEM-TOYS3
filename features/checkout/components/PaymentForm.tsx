@@ -529,11 +529,14 @@ export function PaymentForm({
     }
 
     if (selectedPaymentMethod === "cash_on_delivery") {
-      if (shippingMethod?.isMixedSupplierCart && shippingMethod?.requiresPrepaid) {
+      if (
+        shippingMethod?.isMixedSupplierCart ||
+        shippingMethod?.requiresPrepaid
+      ) {
         setPaymentError(
           t(
             "mixedSupplierPrepaidOnly",
-            "Pentru comenzile livrate din furnizori diferiți, plata ramburs nu este disponibilă. Te rugăm să alegi plata cu cardul."
+            "Produsele din această comandă sunt expediate de la furnizori diferiți, iar rambursul nu este disponibil. Finalizează comanda prin plată online cu cardul."
           )
         );
         return;
