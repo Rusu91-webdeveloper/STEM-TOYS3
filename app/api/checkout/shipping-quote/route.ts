@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { auth } from "@/lib/auth";
 import { SESSION_CART_STORAGE, getCartId } from "@/lib/cart-storage";
 import { db } from "@/lib/db";
 import {
@@ -19,11 +18,8 @@ import { getShippingSettings } from "@/lib/utils/store-settings";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    // No auth required — shipping quotes are public pricing info.
+    // The cart is identified by session cookie (works for guests too).
     const cartId = await getCartId(request);
     const cart = SESSION_CART_STORAGE.get(cartId) || [];
 

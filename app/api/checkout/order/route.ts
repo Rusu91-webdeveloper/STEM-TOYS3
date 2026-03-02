@@ -662,7 +662,20 @@ export async function POST(request: Request) {
           shippingBasePrice = quote.basePrice;
           shippingTotalEstimate = quote.totalPrice;
           pricingVersion = quote.pricingVersion;
-          finalShippingCost = selectedServicePriceOverride ?? quote.totalPrice;
+
+          // Priority:
+          // 1. Admin priceOverride (always wins — definitive admin control)
+          // 2. Frontend price (what the customer was shown at checkout)
+          // 3. Server-calculated quote (safety net when no frontend price)
+          // This prevents a mismatch where the UI shows one price but the
+          // order/email stores a different server-recalculated value.
+          if (selectedServicePriceOverride !== null) {
+            finalShippingCost = selectedServicePriceOverride;
+          } else if (baseShippingCost > 0) {
+            finalShippingCost = baseShippingCost;
+          } else {
+            finalShippingCost = quote.totalPrice;
+          }
         }
       }
     }
