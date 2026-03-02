@@ -310,7 +310,7 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_12px_32px_-24px_rgba(15,23,42,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-24px_rgba(15,23,42,0.45)]",
+        "group relative flex h-full flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_-16px_rgba(15,23,42,0.3)] sm:shadow-[0_12px_32px_-24px_rgba(15,23,42,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-24px_rgba(15,23,42,0.45)]",
         isBundle && "border-cyan-200",
         className
       )}
@@ -318,7 +318,7 @@ export function ProductCard({
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden border-b border-slate-100 bg-white">
         <Link href={`/products/${product.slug}`} className="block w-full h-full">
-          <div className="flex h-full w-full items-center justify-center p-4 sm:p-5">
+          <div className="flex h-full w-full items-center justify-center p-2.5 sm:p-5">
             <OptimizedProductImage
               src={imageUrl}
               alt={product.name}
@@ -412,50 +412,50 @@ export function ProductCard({
       </div>
 
       {/* Content */}
-      <div className="flex flex-1 flex-col gap-3 p-3.5 sm:p-4">
-        <div className="space-y-1">
-          <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-1 flex-col gap-1.5 sm:gap-3 p-2.5 sm:p-4">
+        <div className="space-y-0.5 sm:space-y-1">
+          <div className="flex items-center justify-between gap-1">
             {categoryName && (
-              <span className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              <span className="truncate text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-slate-400 sm:text-slate-500">
                 {categoryName}
               </span>
             )}
-            {renderRating()}
+            <div className="hidden sm:block">{renderRating()}</div>
           </div>
 
           <Link
             href={`/products/${product.slug}`}
             className="block transition-colors group-hover:text-slate-700"
           >
-            <h3 className="line-clamp-2 min-h-[2.5rem] text-sm sm:text-base font-semibold leading-snug text-slate-900">
+            <h3 className="line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] text-xs sm:text-base font-semibold leading-snug text-slate-900">
               {product.name}
             </h3>
           </Link>
           {isBundle && bundleDiscount > 0 && (
-            <p className="text-[11px] font-medium text-cyan-700">
-              Curated bundle · -{bundleDiscount}% discount
+            <p className="text-[10px] sm:text-[11px] font-medium text-cyan-700">
+              Bundle · -{bundleDiscount}%
             </p>
           )}
           {isBundle && bundleItemsCount > 0 && (
-            <p className="text-[11px] text-slate-500">
-              {bundleItemsCount} items included
+            <p className="text-[10px] sm:text-[11px] text-slate-500">
+              {bundleItemsCount} items
             </p>
           )}
         </div>
 
-        <div className="mt-auto border-t border-slate-100 pt-2.5 space-y-2">
-          <div className="flex items-baseline gap-2">
-            <span className="text-base sm:text-lg font-semibold text-slate-900">
+        <div className="mt-auto border-t border-slate-100 pt-1.5 sm:pt-2.5 space-y-1.5 sm:space-y-2">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-sm sm:text-lg font-bold text-slate-900">
               {formatPrice(product.price)}
             </span>
             {isOnSale && (
-              <span className="text-[11px] font-medium text-slate-400 line-through">
+              <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 line-through">
                 {formatPrice(product.compareAtPrice!)}
               </span>
             )}
             {isBundle && savingsAmount > 0 && (
-              <span className="text-[11px] font-medium text-emerald-600 ml-auto">
-                Save {formatPrice(savingsAmount)}
+              <span className="text-[10px] sm:text-[11px] font-medium text-emerald-600 ml-auto">
+                -{formatPrice(savingsAmount)}
               </span>
             )}
           </div>
@@ -465,7 +465,7 @@ export function ProductCard({
             disabled={isAddingToCart || isOutOfStock}
             size="sm"
             className={cn(
-              "w-full h-9 text-xs font-semibold rounded-xl transition-all duration-200 shadow-sm",
+              "w-full h-7 sm:h-9 text-[10px] sm:text-xs font-semibold rounded-lg sm:rounded-xl transition-all duration-200 shadow-sm",
               justAdded
                 ? "bg-emerald-500 hover:bg-emerald-600 text-white"
                 : isOutOfStock
@@ -476,20 +476,26 @@ export function ProductCard({
             )}
           >
             {isAddingToCart ? (
-              <span className="flex items-center justify-center gap-1.5">
-                <div className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                Adding...
+              <span className="flex items-center justify-center gap-1">
+                <div className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                <span className="hidden sm:inline">Adding...</span>
               </span>
             ) : justAdded ? (
-              <span className="flex items-center justify-center gap-1.5">
-                <ShoppingCart className="h-3.5 w-3.5" /> Added!
+              <span className="flex items-center justify-center gap-1">
+                <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                <span>Added!</span>
               </span>
             ) : isOutOfStock ? (
-              "Out of Stock"
+              <span className="hidden sm:inline">Out of Stock</span>
             ) : (
-              <span className="flex items-center justify-center gap-1.5">
-                <ShoppingCart className="h-3.5 w-3.5" />
-                {isBundle ? "Add Bundle" : "Add to Cart"}
+              <span className="flex items-center justify-center gap-1">
+                <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                <span className="hidden xs:inline sm:inline">
+                  {isBundle ? "Add Bundle" : "Add to Cart"}
+                </span>
+                <span className="xs:hidden sm:hidden">
+                  {isBundle ? "Bundle" : "Cart"}
+                </span>
               </span>
             )}
           </Button>

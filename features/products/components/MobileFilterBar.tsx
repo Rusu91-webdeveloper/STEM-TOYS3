@@ -1,7 +1,7 @@
 "use client";
 
-import { X, Filter, Zap, Star, Gift, TrendingUp } from "lucide-react";
-import React from "react";
+import { X, Filter, Zap, Star, Gift, TrendingUp, ChevronRight } from "lucide-react";
+import React, { useRef, useState, useEffect } from "react";
 
 interface MobileFilterBarProps {
   activeFilterCount: number;
@@ -65,11 +65,29 @@ export function MobileFilterBar({
   onClearFilters,
   t,
 }: MobileFilterBarProps) {
-  // Custom styles for hiding scrollbars on mobile
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showRightFade, setShowRightFade] = useState(true);
+  const [hasScrolled, setHasScrolled] = useState(false);
+
   const scrollbarHideStyle = {
     scrollbarWidth: "none" as const,
     msOverflowStyle: "none" as const,
   };
+
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+    setShowRightFade(!atEnd);
+    if (!hasScrolled && el.scrollLeft > 0) setHasScrolled(true);
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+    setShowRightFade(!atEnd);
+  }, []);
 
   return (
     <div className="xl:hidden relative z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 sm:sticky sm:top-16">
@@ -104,72 +122,98 @@ export function MobileFilterBar({
 
       {/* Ultra-Compact Single Row Filter Section */}
       <div className="px-3 pb-2">
-        <div
-          className="flex gap-1.5 overflow-x-auto pb-1"
-          style={scrollbarHideStyle}
-        >
-          {/* Category Chips */}
-          {QUICK_CATEGORIES.map(category => {
-            const isSelected = selectedCategories.includes(category.id);
-            return (
-              <button
-                key={category.id}
-                onClick={() => onCategoryQuickSelect(category.id)}
-                className={`flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                  isSelected
-                    ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-                title={category.label}
-              >
-                <span className="text-sm">{category.icon}</span>
-                <span className="whitespace-nowrap">{category.label}</span>
-              </button>
-            );
-          })}
+        {/* Swipe hint shown before user scrolls */}
+        {!hasScrolled && (
+          <div className="flex items-center gap-0.5 mb-1 text-[10px] text-slate-400 font-medium">
+            <span>{t("swipeToSeeMore", "Swipe to see more")}</span>
+            <ChevronRight className="w-3 h-3 animate-pulse" />
+          </div>
+        )}
+        <div className="relative">
+          <div
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="flex gap-1.5 overflow-x-auto pb-1"
+            style={scrollbarHideStyle}
+          >
+            {/* Category Chips */}
+            {QUICK_CATEGORIES.map(category => {
+              const isSelected = selectedCategories.includes(category.id);
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => onCategoryQuickSelect(category.id)}
+                  className={`flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                    isSelected
+                      ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                  }`}
+                  title={category.label}
+                >
+                  <span className="text-sm">{category.icon}</span>
+                  <span className="whitespace-nowrap">{category.label}</span>
+                </button>
+              );
+            })}
 
-          {/* Divider */}
-          <div className="flex-shrink-0 w-px h-8 bg-slate-200 mx-1"></div>
+            {/* Divider */}
+            <div className="flex-shrink-0 w-px h-8 bg-slate-200 mx-1"></div>
 
-          {/* Price Range Chips */}
-          {QUICK_PRICE_RANGES.map(priceRange => {
-            const isSelected =
-              selectedPriceRange &&
-              selectedPriceRange[0] === priceRange.range[0] &&
-              selectedPriceRange[1] === priceRange.range[1];
+            {/* Price Range Chips */}
+            {QUICK_PRICE_RANGES.map(priceRange => {
+              const isSelected =
+                selectedPriceRange &&
+                selectedPriceRange[0] === priceRange.range[0] &&
+                selectedPriceRange[1] === priceRange.range[1];
 
-            return (
-              <button
-                key={priceRange.id}
-                onClick={() => onPriceQuickSelect(priceRange.id)}
-                className={`flex-shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                  isSelected
-                    ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                {priceRange.label}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={priceRange.id}
+                  onClick={() => onPriceQuickSelect(priceRange.id)}
+                  className={`flex-shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                    isSelected
+                      ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  {priceRange.label}
+                </button>
+              );
+            })}
 
-          {/* Divider */}
-          <div className="flex-shrink-0 w-px h-8 bg-slate-200 mx-1"></div>
+            {/* Divider */}
+            <div className="flex-shrink-0 w-px h-8 bg-slate-200 mx-1"></div>
 
-          {/* Special Filter Chips */}
-          {SPECIAL_FILTERS.map(special => {
-            const IconComponent = special.icon;
-            return (
-              <button
-                key={special.id}
-                onClick={() => onCategoryQuickSelect(special.id)}
-                className="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition-all"
-              >
-                <IconComponent className="w-3 h-3" />
-                <span className="whitespace-nowrap">{special.label}</span>
-              </button>
-            );
-          })}
+            {/* Special Filter Chips */}
+            {SPECIAL_FILTERS.map(special => {
+              const IconComponent = special.icon;
+              return (
+                <button
+                  key={special.id}
+                  onClick={() => onCategoryQuickSelect(special.id)}
+                  className="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition-all"
+                >
+                  <IconComponent className="w-3 h-3" />
+                  <span className="whitespace-nowrap">{special.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right fade gradient to indicate more scrollable content */}
+          {showRightFade && (
+            <div
+              className="absolute right-0 top-0 bottom-0 w-10 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(to left, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 100%)",
+              }}
+            >
+              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 border border-slate-200">
+                <ChevronRight className="w-3 h-3 text-slate-400" />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

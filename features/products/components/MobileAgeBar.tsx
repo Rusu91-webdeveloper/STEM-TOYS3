@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import { ChevronRight } from "lucide-react";
+import React, { useRef, useState, useEffect } from "react";
 
 interface MobileAgeBarProps {
   selectedAgeGroup?:
@@ -65,52 +66,99 @@ export default function MobileAgeBar({
   onSelectAgeGroup,
   t,
 }: MobileAgeBarProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showRightFade, setShowRightFade] = useState(true);
+  const [hasScrolled, setHasScrolled] = useState(false);
+
   const scrollbarHideStyle = {
     scrollbarWidth: "none" as const,
     msOverflowStyle: "none" as const,
   };
 
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+    setShowRightFade(!atEnd);
+    if (!hasScrolled && el.scrollLeft > 0) setHasScrolled(true);
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+    setShowRightFade(!atEnd);
+  }, []);
+
   return (
     <div className="xl:hidden border-b border-slate-200/80 bg-[#fbf8f1]/95 backdrop-blur supports-[backdrop-filter]:bg-[#fbf8f1]/90">
       <div className="px-3 py-2">
-        <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-          {t("shopByAge", "Shop by age")}
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            {t("shopByAge", "Shop by age")}
+          </span>
+          {!hasScrolled && (
+            <span className="flex items-center gap-0.5 text-[10px] text-slate-400 font-medium">
+              {t("swipeToSeeMore", "Swipe to see more")}
+              <ChevronRight className="w-3 h-3 animate-pulse" />
+            </span>
+          )}
         </div>
-        <div
-          className="flex gap-1.5 overflow-x-auto pb-1"
-          style={scrollbarHideStyle}
-        >
-          {AGE_OPTIONS.map(opt => {
-            const isActive = selectedAgeGroup === opt.id;
-            return (
-              <button
-                key={opt.id}
-                onClick={() => onSelectAgeGroup(opt.id)}
-                className={`flex-shrink-0 flex items-center gap-2 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                  isActive
-                    ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
-                }`}
-              >
-                <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full border border-white/70 ${opt.accent}`}
-                  aria-hidden
+
+        <div className="relative">
+          <div
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="flex gap-1.5 overflow-x-auto pb-1"
+            style={scrollbarHideStyle}
+          >
+            {AGE_OPTIONS.map(opt => {
+              const isActive = selectedAgeGroup === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => onSelectAgeGroup(opt.id)}
+                  className={`flex-shrink-0 flex items-center gap-2 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                    isActive
+                      ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                  }`}
                 >
-                  <span className="text-xs">{opt.icon}</span>
-                </span>
-                <span className="whitespace-nowrap">
-                  <span className="font-semibold">{t(opt.labelKey)}</span>
                   <span
-                    className={`ml-1 text-[10px] ${
-                      isActive ? "text-white/80" : "text-slate-500"
-                    }`}
+                    className={`flex h-6 w-6 items-center justify-center rounded-full border border-white/70 ${opt.accent}`}
+                    aria-hidden
                   >
-                    {opt.short} {t("years", "yrs")}
+                    <span className="text-xs">{opt.icon}</span>
                   </span>
-                </span>
-              </button>
-            );
-          })}
+                  <span className="whitespace-nowrap">
+                    <span className="font-semibold">{t(opt.labelKey)}</span>
+                    <span
+                      className={`ml-1 text-[10px] ${
+                        isActive ? "text-white/80" : "text-slate-500"
+                      }`}
+                    >
+                      {opt.short} {t("years", "yrs")}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right fade gradient to indicate more scrollable content */}
+          {showRightFade && (
+            <div
+              className="absolute right-0 top-0 bottom-0 w-10 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(to left, rgba(251,248,241,0.97) 0%, rgba(251,248,241,0) 100%)",
+              }}
+            >
+              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded-full bg-white/80 border border-slate-200">
+                <ChevronRight className="w-3 h-3 text-slate-400" />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

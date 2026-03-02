@@ -861,9 +861,11 @@ model ConversionLog {
   timestamp    DateTime
   createdAt    DateTime @default(now())
 
-  @@index([type])
   @@index([timestamp])
-  @@index([conversionId])
+  @@index([type, timestamp])
+  @@index([category, timestamp])
+  @@index([action, timestamp])
+  @@index([conversionId, timestamp])
 }
 
 model ErrorLog {
