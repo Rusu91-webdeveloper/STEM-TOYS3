@@ -32,6 +32,7 @@ import {
 import { ProductsHeroSection } from "./ProductsHeroSection";
 import { MobileFilterBar } from "./MobileFilterBar";
 import MobileAgeBar from "./MobileAgeBar";
+import { MobileProductsBar } from "./MobileProductsBar";
 import { ProductsMainDisplay } from "./ProductsMainDisplay";
 import { ProductsSidebar } from "./ProductsSidebar";
 import {
@@ -676,6 +677,10 @@ function ClientProductsPageContent({
     actions.setSortBy(value === "featured" ? "relevance" : value);
   };
 
+  const handleViewModeChange = (mode: "grid" | "list") => {
+    actions.setViewMode(mode);
+  };
+
   const handleSearchQueryChange = (value: string) => {
     setPage(1);
     actions.setSearchQuery(value);
@@ -787,6 +792,21 @@ function ClientProductsPageContent({
               <MobileAgeBar
                 selectedAgeGroup={state.selectedAgeGroup}
                 onSelectAgeGroup={age => actions.setAgeGroup(age)}
+                t={t}
+              />
+              <MobileProductsBar
+                bundleViewMode={bundleViewMode}
+                onBundleViewModeChange={setBundleViewMode}
+                bundleCount={filteredProducts.filter(p => p?.isBundle === true).length}
+                regularCount={filteredProducts.filter(p => p?.isBundle !== true).length}
+                totalCount={filteredProducts.length}
+                sortOption={sortOption}
+                onSortChange={handleSortChange}
+                viewMode={state.viewMode}
+                onViewModeChange={handleViewModeChange}
+                searchQuery={state.searchQuery}
+                onSearchQueryChange={handleSearchQueryChange}
+                onClearSearch={handleSearchClear}
                 t={t}
               />
             </div>

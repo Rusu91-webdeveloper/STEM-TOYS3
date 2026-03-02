@@ -218,7 +218,7 @@ export function ProductGrid({
   return (
     <div className={cn("space-y-3 sm:space-y-4", className)}>
       {(showLayoutToggle || showSortOptions) && (
-        <div className="mb-3 flex flex-col gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-2 shadow-sm sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-3 sm:py-2.5">
+        <div className="hidden xl:flex mb-3 flex-col gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-2 shadow-sm sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-3 sm:py-2.5">
           {showSortOptions && (
             <div className="w-full sm:w-56">
               <Select value={sortOption} onValueChange={handleSortChange}>

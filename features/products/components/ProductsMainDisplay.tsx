@@ -155,8 +155,8 @@ export function ProductsMainDisplay({
 
   return (
     <div className="flex-1 text-slate-900">
-      {/* Product area header */}
-      <div className="mb-3 rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm sm:mb-4 sm:px-4 sm:py-3.5">
+      {/* Product area header — hidden on mobile (replaced by MobileProductsBar) */}
+      <div className="hidden xl:block mb-3 rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm sm:mb-4 sm:px-4 sm:py-3.5">
         <div className="flex flex-col gap-2.5 sm:gap-3">
           <div className="flex flex-col gap-2.5 sm:gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-2">
@@ -276,10 +276,10 @@ export function ProductsMainDisplay({
         </div>
       </div>
 
-      {/* Educational categories banner */}
+      {/* Educational categories banner — hidden on mobile */}
       {activeCategory && visibleProductsCount > 0 && (
         <div
-          className={`${productsGlassPanelClass} relative mb-5 overflow-hidden p-4 sm:mb-6 sm:p-5`}
+          className={`hidden xl:block ${productsGlassPanelClass} relative mb-5 overflow-hidden p-4 sm:mb-6 sm:p-5`}
         >
           <div
             className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(251,247,239,0.98),rgba(255,255,255,0.9))]"
@@ -360,73 +360,70 @@ export function ProductsMainDisplay({
                 displayDescription = content.description;
               }
 
+              const discountPct =
+                product.compareAtPrice && product.compareAtPrice > product.price
+                  ? Math.round(
+                      ((product.compareAtPrice - product.price) /
+                        product.compareAtPrice) *
+                        100
+                    )
+                  : null;
+
               return (
-                <div
+                <Link
                   key={product.id}
-                  className={`${productsGlassCardClass} flex flex-col sm:flex-row gap-3 sm:gap-4 overflow-hidden transition-all duration-200 hover:shadow-md relative group animate-fadeIn`}
+                  href={`/products/${product.slug}`}
+                  className={`${productsGlassCardClass} flex flex-row overflow-hidden transition-all duration-200 hover:shadow-md relative group animate-fadeIn`}
                   style={{ animationDelay: `${Math.min(index * 0.1, 0.5)}s` }}
                 >
                   {/* Sale ribbon */}
-                  {product.compareAtPrice &&
-                    product.compareAtPrice > product.price && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <div className="bg-red-500 text-white text-xs font-semibold px-3 py-1.5 rounded-md shadow-sm">
-                          SALE
-                        </div>
+                  {discountPct && (
+                    <div className="absolute top-2 left-2 z-20">
+                      <div className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                        -{discountPct}%
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                  {/* Product image */}
-                  <div className="relative z-10 w-full h-72 sm:h-56 sm:w-52 lg:w-56 flex-shrink-0 overflow-hidden rounded-t-xl sm:rounded-xl border-b border-slate-200 bg-gradient-to-b from-slate-50 to-white sm:border">
+                  {/* Thumbnail — compact square on mobile, wider on sm+ */}
+                  <div className="relative z-10 w-24 h-24 sm:h-48 sm:w-44 lg:w-52 flex-shrink-0 overflow-hidden rounded-l-xl sm:rounded-l-xl border-r border-slate-200 bg-gradient-to-b from-slate-50 to-white">
                     {product.images && product.images.length > 0 ? (
                       <OptimizedProductImage
                         src={product.images[0]}
                         alt={displayName}
                         fill
-                        className="object-cover sm:object-contain object-center group-hover:scale-105 transition-transform duration-300 relative z-10 p-0 sm:p-3"
+                        className="object-contain object-center group-hover:scale-105 transition-transform duration-300 relative z-10 p-1.5 sm:p-3"
                         priority={false}
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 208px, 224px"
+                        sizes="(max-width: 640px) 96px, (max-width: 1024px) 176px, 208px"
                       />
                     ) : (
                       <div className="w-full h-full bg-slate-100 flex items-center justify-center relative z-10">
-                        <div className="text-center">
-                          <div className="w-12 h-12 bg-slate-200 rounded-lg flex items-center justify-center mb-2 mx-auto">
-                            <ShoppingBag className="w-6 h-6 text-slate-400" />
-                          </div>
-                          <span className="text-slate-500 text-sm font-medium">
-                            {t("noImage", "No Image")}
-                          </span>
-                        </div>
+                        <ShoppingBag className="w-6 h-6 text-slate-300" />
                       </div>
                     )}
                   </div>
 
-                  {/* Product details */}
-                  <div className="relative z-10 flex flex-1 flex-col justify-between p-4 sm:p-5">
-                    <div>
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <Link
-                          href={`/products/${product.slug}`}
-                          className="font-semibold text-base sm:text-lg text-slate-900 transition-colors line-clamp-2 leading-tight hover:text-sky-700"
-                        >
-                          {displayName}
-                        </Link>
-                      </div>
+                  {/* Info panel */}
+                  <div className="relative z-10 flex flex-1 flex-col justify-between p-3 sm:p-5 min-w-0">
+                    <div className="min-w-0">
+                      {/* Category badge */}
+                      {product.category?.name && (
+                        <span className="inline-block mb-1 text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-sky-600">
+                          {product.category.name}
+                        </span>
+                      )}
 
-                      <p className="text-sm text-slate-600 line-clamp-3 mb-4 leading-relaxed">
+                      <p className="font-semibold text-sm sm:text-base text-slate-900 leading-snug line-clamp-2 sm:line-clamp-2 mb-1 sm:mb-2">
+                        {displayName}
+                      </p>
+
+                      {/* Description — hidden on mobile, visible sm+ */}
+                      <p className="hidden sm:block text-sm text-slate-500 line-clamp-2 leading-relaxed mb-3">
                         {displayDescription}
                       </p>
 
-                      {/* Product tags/badges */}
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {product.category?.name && (
-                          <Badge
-                            variant="secondary"
-                            className="text-xs px-2.5 py-1 bg-sky-50 text-sky-700 border border-sky-100 rounded-md font-medium"
-                          >
-                            {product.category.name}
-                          </Badge>
-                        )}
+                      {/* Extra badges — sm+ only */}
+                      <div className="hidden sm:flex flex-wrap gap-2 mb-3">
                         {product.isBook && (
                           <Badge
                             variant="secondary"
@@ -446,50 +443,32 @@ export function ProductsMainDisplay({
                       </div>
                     </div>
 
-                    {/* Price and actions section */}
-                    <div className="flex flex-col gap-3 mt-auto">
-                      {/* Price Section */}
-                      <div className="flex flex-col gap-1.5">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-xl font-bold text-slate-900">
-                            {product.price
-                              ? `${product.price} RON`
-                              : t("freeDownload", "Free Download")}
-                          </span>
-                          {product.compareAtPrice &&
-                            product.compareAtPrice > product.price && (
-                              <span className="text-sm text-red-600 font-semibold">
-                                -
-                                {Math.round(
-                                  ((product.compareAtPrice - product.price) /
-                                    product.compareAtPrice) *
-                                    100
-                                )}
-                                % OFF
-                              </span>
-                            )}
-                        </div>
-                        {product.compareAtPrice && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-slate-500 line-through">
+                    {/* Price row */}
+                    <div className="flex items-center justify-between gap-2 mt-auto">
+                      <div className="flex items-baseline gap-1.5 flex-wrap">
+                        <span className="text-base sm:text-lg font-bold text-slate-900">
+                          {product.price
+                            ? `${product.price} RON`
+                            : t("freeDownload", "Gratuit")}
+                        </span>
+                        {product.compareAtPrice &&
+                          product.compareAtPrice > product.price && (
+                            <span className="text-xs text-slate-400 line-through">
                               {product.compareAtPrice} RON
                             </span>
-                          </div>
-                        )}
+                          )}
                       </div>
 
-                      {/* Action Button */}
-                      <div className="flex gap-3">
-                        <Link
-                          href={`/products/${product.slug}`}
-                          className="flex-1 bg-sky-600 hover:bg-sky-700 text-white px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-200 text-center shadow-sm"
-                        >
-                          {t("viewDetails", "View Details")}
-                        </Link>
+                      {/* CTA — icon on mobile, text on sm+ */}
+                      <div className="flex-shrink-0 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors duration-200 shadow-sm text-xs sm:text-sm font-semibold px-2.5 py-1.5 sm:px-4 sm:py-2 whitespace-nowrap">
+                        <span className="hidden sm:inline">
+                          {t("viewDetails", "Vezi detalii")}
+                        </span>
+                        <span className="sm:hidden">→</span>
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
